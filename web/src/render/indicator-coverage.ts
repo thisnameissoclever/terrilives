@@ -22,3 +22,15 @@ export function indicatorAnchorY(sprite:number,headScreenY:number,scale:number):
  const rect=SPRITES[sprite];
  return bubbleAnchorY(headScreenY,scale,21,rect.h/(rect.pixel_density??1),bottom);
 }
+
+/** The producer stores the threshold-32 bottom in density-adjusted sprite pixels. */
+export function validateIndicatorCoverage(sprite:number,bottomPixels:number):void {
+ const rect=SPRITES[sprite],density=rect?.pixel_density??1;
+ const physicalBottom=bottomPixels*density;
+ if(!rect||!Number.isFinite(bottomPixels)||!(density>0)||!Number.isInteger(physicalBottom)
+   ||physicalBottom<=0||physicalBottom>rect.h)throw new Error('Indicator coverage bottom is invalid');
+}
+export function installIndicatorCoverage(sprite:number,bottomPixels:number):void {
+ validateIndicatorCoverage(sprite,bottomPixels);
+ visibleBottoms.set(sprite,bottomPixels);
+}

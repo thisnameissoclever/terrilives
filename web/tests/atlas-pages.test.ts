@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import * as renderer from '../src/render/sprites.js';
-import {ATLAS_PAGE_FILES} from '../src/render/atlas.js';
+import {ATLAS_STORAGE} from '../src/render/atlas-storage-metadata.js';
 import {FIXTURE_DEPTH_PAGE_COUNT} from '../src/render/fixture-depth.js';
 
 describe('paged sprite storage and registered contributions', () => {
-  it('includes fixture companion layers in the real atlas allocation preflight',async()=>{
+  it('includes all fixture companions in logical storage while preflighting physical layers',async()=>{
     expect(FIXTURE_DEPTH_PAGE_COUNT).toBeGreaterThan(0);
-    const device={limits:{maxTextureDimension2D:2048,maxTextureArrayLayers:ATLAS_PAGE_FILES.length+1}} as GPUDevice;
+    expect(ATLAS_STORAGE.companions.length).toBe(FIXTURE_DEPTH_PAGE_COUNT);
+    const device={limits:{maxTextureDimension2D:2048,maxTextureArrayLayers:ATLAS_STORAGE.pages.length-1}} as GPUDevice;
     await expect(renderer.loadAtlasTexture(device)).rejects.toThrow(/array.*limit/);
   });
   it('packs the page separately from unchanged size and pair fields', () => {

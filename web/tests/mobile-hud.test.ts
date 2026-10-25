@@ -87,3 +87,23 @@ describe('the compact Needs and People toggles', () => {
     expect(INDEX_HTML).toContain('<summary id="people-caption" class="needs-caption">');
   });
 });
+
+// [AL-panel] item 5: on a phone, or any compact screen, the open log covers
+// the full width from the top edge to the dock, above the sidebar, and the
+// toggle stays a 44-pixel target at the top right.
+describe('the compact activity log', () => {
+  it('covers the full width from the top edge under the compact query', () => {
+    const block = mediaBlock(/@media \(max-width: 600px\), \(max-height: 480px\) \{\n {2}\/\* The open panel covers/, DOCK_CSS);
+    expect(block).toContain('#activity-log { top: max(8px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); width: auto; }');
+    expect(block).toContain('#activity-log-toggle { min-height: 44px; }');
+    expect(block).toContain('#activity-log-header { padding-right: 72px; }');
+    expect(block).toContain('#activity-log-header .hud-button, #activity-log-filters .hud-button, #activity-log-earlier { min-height: 44px; }');
+  });
+
+  it('keeps every log control a 44-pixel target on a touch screen', () => {
+    expect(mediaBlock(/@media \(any-pointer: coarse\) \{\n {2}#activity-log-toggle/, DOCK_CSS))
+      .toContain('#activity-log-toggle, #activity-log-header .hud-button, #activity-log-filters .hud-button, #activity-log-earlier { min-height: 44px; }');
+    expect(mediaBlock(/@media \(any-pointer: coarse\) and \(min-width: 601px\) and \(min-height: 481px\)/, DOCK_CSS))
+      .toContain('#activity-log { top: calc(max(8px, env(safe-area-inset-top)) + 52px); }');
+  });
+});

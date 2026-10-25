@@ -83,7 +83,7 @@ fn exercise(sim: &mut Sim) {
     expected.layout = adopted_layout;
     assert_eq!(
         legacy.save_snapshot_v16(),
-        expected.0.previous.legacy.legacy.legacy.legacy
+        *expected.0.room_world_v16()
     );
 }
 

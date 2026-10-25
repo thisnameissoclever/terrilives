@@ -1,0 +1,5 @@
+*
+!Dockerfile
+!inputs.lock.json
+!inventory.py
+!.dockerignore

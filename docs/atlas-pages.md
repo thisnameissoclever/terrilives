@@ -35,19 +35,42 @@ existing preservation digests unchanged when only storage moves.
 
 ## Renderer contract
 
-The browser loads the pages into a `texture_2d_array`, an ordered set of 2D
-images. This does not turn the game into a live 3D model renderer. Validate
-page dimensions and the device's actual array-layer limit before fetching
-or allocating. Close every decoded bitmap and destroy partial allocations
-when loading fails.
+The source pages remain the logical coordinate system. Run
+`python -B scripts/build-runtime-atlas.py` after changing source artwork or
+the sprite catalogue. The producer packs identical eight-pixel square blocks
+once, including a one-pixel border for filtering. It includes grime and fixture
+color and depth pages in their original logical order. It drops only blocks
+whose complete bordered contents are zero. Original artwork stays unchanged.
+
+`web/src/render/atlas-storage-metadata.ts` declares the physical PNG pages,
+source identities, block lookup and CPU coverage. The runtime also pins the
+unversioned grime image's source hash; update that reviewed pin and its source
+identity test after an intentional grime artwork change. Binary filenames hash the
+compressed bytes; binary descriptors hash the decompressed bytes. PNG
+filenames and descriptors hash the encoded PNG bytes. Run the producer with
+`--check` to reconstruct every logical pixel and border and compare CPU masks
+with original alpha. Check mode writes nothing. Local artwork verification
+includes these checks.
+
+The browser uploads physical pages into a `texture_2d_array` and uses a
+read-only storage buffer to translate logical coordinates. All integer and
+filtered accesses use the same translation, including fixtures, furniture,
+outlines and support masks. Borders retain the original linear filtering
+across block seams. Character models and architecture remain separate.
+
+Validate source identities, dimensions, array layers, storage binding size,
+payload hashes, lookup references and complete CPU coverage before allocation
+or mask installation. Invalid files fail explicitly. Keep the representation's
+texture and lookup storage below 384 MiB. The renderer owns both graphics
+resources and releases them on failure and destruction.
 
 The loader waits for each graphics upload to finish before closing its bitmap
-or starting the next page upload. Compressed downloads can still prefetch four
-pages. Grime and fixture companion uploads use the same completion boundary.
-This bounds unfinished page uploads; the complete texture array remains
-allocated for the session. See the dated
+or starting the next page upload. Compressed downloads can prefetch four pages.
+Body, dish and indicator coverage comes from an exact derived alpha payload,
+so startup does not decode the original source pages to rebuild CPU masks.
+See the dated
 [startup upload comparison](evidence/2026-10-21-ios-startup-memory/README.md)
-for measured behavior and the limits of the iPhone diagnosis.
+for the earlier upload-pacing measurements and their iPhone diagnosis limits.
 
 Each sprite record contains twelve floats: UV bounds, logical dimensions and
 legacy pair references, then crop registration and page metadata. Shared

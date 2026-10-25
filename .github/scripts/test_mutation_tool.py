@@ -4,6 +4,7 @@ import base64
 import copy
 import datetime as dt
 import io
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -18,10 +19,14 @@ import mutation_tool as tool
 import mutation_runner as runner
 from test_mutation_artifacts import FixtureAPI, archive
 
+AUTHORIZATION_TREE = hashlib.sha1(b"local authorization scripts fixture").hexdigest()
+
 
 def recipe_revision(api, contract, revision, tree_ids=None):
     tree_ids = tree_ids or ("c" * 40, "1" * 40, "2" * 40, "3" * 40)
     parents = dict(zip(("", ".github", ".github/scripts", ".github/workflows"), tree_ids))
+    parents[".github/runtime"] = "8" * 40
+    parents["scripts"] = AUTHORIZATION_TREE
     trees = {path: {"sha": sha, "truncated": False, "tree": []} for path, sha in parents.items()}
     for path, sha in parents.items():
         if path:
@@ -47,7 +52,8 @@ class ToolAuthenticationTests(unittest.TestCase):
         self.api = FixtureAPI()
         self.now = dt.datetime.now(dt.timezone.utc)
         self.required = self.now + dt.timedelta(days=9)
-        self.image = {"ImageOS": "ubuntu24", "ImageVersion": "fixture-image"}
+        self.image = {"version": 1, "image": "ghcr.io/thisnameissoclever/terrilives-mutation-runtime@sha256:" + "a" * 64,
+                      "inventory_sha256": "b" * 64, "architecture": "x86_64"}
         self.runtime = {"image": self.image, "libraries": {"/lib/libc.so": "a" * 64}}
         self.contract = tool.committed_contract(Path(__file__).resolve().parents[2])
         self.receipt = {"version": 1, "repository": "owner/repo", "workflow": tool.WORKFLOW,
@@ -141,10 +147,32 @@ class ToolAuthenticationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "committed recipe input mismatch"):
             self.authenticate()
 
+    def test_changed_local_authorization_helper_invalidates_qualification(self):
+        import mutation_qualification as qualification
+        import test_mutation_qualification as qualification_tests
+
+        helper = "scripts/check-local-ci.py"
+        self.assertIn(helper, tool.CONTRACT_PATHS)
+        fixture = qualification_tests.QualificationAuthenticationTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        qualification.verify(fixture.api, "owner/repo", 79, fixture.contract, fixture.fixture.required)
+        changed = copy.deepcopy(fixture.contract)
+        changed["files"][helper] = artifacts.sha(b"changed owner authorization guard")
+        with self.assertRaisesRegex(ValueError, "qualification computation contract mismatch"):
+            qualification.verify(fixture.api, "owner/repo", 79, changed, fixture.fixture.required)
+
+    def test_authorization_helper_blob_is_authenticated_from_its_root_directory(self):
+        self.assertIn("scripts/check-local-ci.py", tool.CONTRACT_PATHS)
+        tree = self.trees["scripts"]
+        next(row for row in tree["tree"] if row["path"] == "check-local-ci.py")["sha"] = "f" * 40
+        with self.assertRaisesRegex(ValueError, "committed recipe input mismatch: scripts/check-local-ci.py"):
+            self.authenticate()
+
     def verify_recipe(self, api=None):
         tool.verify_committed_contract(api or self.api, "owner/repo", "b" * 40, self.contract)
 
-    def test_recipe_visits_only_four_complete_immediate_trees(self):
+    def test_recipe_visits_only_required_complete_immediate_trees(self):
         self.trees[""]["tree"].append({"path": "assets", "mode": "040000", "type": "tree", "sha": "a" * 40})
         next(row for row in self.trees[""]["tree"] if row["path"] == "rust-toolchain.toml")["mode"] = "100755"
         self.api.responses["repos/owner/repo/git/trees/" + "c" * 40 + "?recursive=1"] = {"truncated": True, "tree": []}
@@ -152,7 +180,7 @@ class ToolAuthenticationTests(unittest.TestCase):
         self.verify_recipe()
         self.assertEqual(self.api.calls, ["repos/owner/repo/git/commits/" + "b" * 40,
             *("repos/owner/repo/git/trees/" + self.trees[parent]["sha"]
-              for parent in ("", ".github", ".github/workflows", ".github/scripts"))])
+              for parent in ("", ".github", ".github/workflows", "scripts", ".github/scripts", ".github/runtime"))])
 
     def test_subtree_header_must_match_selected_parent_sha(self):
         self.trees[".github/scripts"]["sha"] = "f" * 40
@@ -272,12 +300,12 @@ class ToolAuthenticationTests(unittest.TestCase):
         api = recovery.WorkflowAPI(self.api)
         self.verify_recipe(api)
         tool.verify_committed_contract(api, "owner/repo", "e" * 40, self.contract)
-        self.assertEqual(api.requests, 10)
+        self.assertEqual(api.requests, 12)
         self.verify_recipe(api)
-        self.assertEqual(api.requests, 10)
+        self.assertEqual(api.requests, 12)
         recipe_revision(self.api, self.contract, "8" * 40, ("9" * 40, "a" * 40, "6" * 40, "7" * 40))
         tool.verify_committed_contract(api, "owner/repo", "8" * 40, self.contract)
-        self.assertEqual(api.requests, 13)
+        self.assertEqual(api.requests, 15)
 
     def test_wrong_producer_failed_job_and_event_are_rejected(self):
         for key, value, message in (("name", "unrelated-tool", "producer job mismatch"),
@@ -339,7 +367,7 @@ class ExplicitExecutableTests(unittest.TestCase):
                 with runner.selected_workspace(root, "fixture") as fixture:
                     self.assertEqual((fixture / "rust-toolchain.toml").read_bytes(), pin)
                 with self.assertRaisesRegex(ValueError, "undeclared compiler"):
-                    runner.execution_environment({"opt_level": 2, "cargo_jobs": 2, "runner_image": {}})
+                    runner.execution_environment({"opt_level": 2, "cargo_jobs": 2, "runtime": {}})
             (root / "rust-toolchain.toml").unlink()
             with self.assertRaisesRegex(ValueError, "committed toolchain pin"):
                 with runner.selected_workspace(root, "fixture"):

@@ -1,6 +1,6 @@
 import { RIGGED_SIM_VARIANTS, SPRITES } from './atlas.js';
 
-interface BodyCoverage {
+export interface BodyCoverage {
   readonly opaque: Uint8Array;
   readonly partialPixels: Uint32Array;
   readonly partialAlpha: Uint8Array;
@@ -30,6 +30,31 @@ export function setBodyCoverage(sprite: number, alpha: Uint8Array): void {
     }
   }
   coverage.set(sprite, { opaque, partialPixels, partialAlpha });
+}
+
+/** Validate packed alpha before any coverage map is changed. */
+export function validatePackedBodyCoverage(sprite: number, mask: BodyCoverage): void {
+  const rect = SPRITES[sprite], count = rect ? rect.w * rect.h : 0;
+  if (!count || mask.opaque.length !== Math.ceil(count / 8)
+      || mask.partialPixels.length !== mask.partialAlpha.length) throw new Error('Body coverage lengths are invalid');
+  if (count % 8 && (mask.opaque[mask.opaque.length - 1] >>> (count % 8)) !== 0) {
+    throw new Error('Body coverage padding bits must be zero');
+  }
+  let previous = -1;
+  for (let i = 0; i < mask.partialPixels.length; i++) {
+    const pixel = mask.partialPixels[i], alpha = mask.partialAlpha[i];
+    if (pixel <= previous || pixel >= count || alpha < 1 || alpha > 254
+        || (mask.opaque[pixel >>> 3] & (1 << (pixel & 7))) !== 0) {
+      throw new Error('Body coverage partial pixels are invalid');
+    }
+    previous = pixel;
+  }
+}
+
+/** Install an already decoded mask without expanding it to a full alpha image. */
+export function installPackedBodyCoverage(sprite: number, mask: BodyCoverage): void {
+  validatePackedBodyCoverage(sprite, mask);
+  coverage.set(sprite, mask);
 }
 
 /** Decode the renderer's body frames once; do not retain the full atlas bitmap. */

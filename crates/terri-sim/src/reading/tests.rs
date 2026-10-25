@@ -3,6 +3,7 @@ use crate::Sim;
 use terri_core::command::BookCommand;
 mod order_reachability;
 mod priority;
+mod shelf_contact;
 
 #[test]
 fn build_replans_an_owned_fetch_contact_without_replacing_the_book_or_seat() {
@@ -713,7 +714,16 @@ fn indoor_fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
 }
 
 fn fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
+    fixture_with(model, |_| {})
+}
+
+/// The ordinary fixture after one edit to its content pack.
+fn fixture_with(
+    model: &str,
+    edit: impl FnOnce(&mut terri_data::ContentPack),
+) -> (Sim, Entity, Entity, Entity, String) {
     let mut pack = terri_data::pack().clone();
+    edit(&mut pack);
     pack.decay_per_tick = [0.0; 7];
     pack.tuning.neglect_bleed_per_tick = 0.0;
     pack.tuning.satisfaction_mood_per_tick = 0.0;
@@ -1236,17 +1246,20 @@ fn reading_journey_cancel_before_pickup_releases_and_after_pickup_returns() {
     ));
 }
 #[test]
-fn reading_journey_same_shelf_serializes_fetches_then_shares_reading() {
+fn reading_journey_same_shelf_admits_both_fetches_serializes_pickups_then_shares_reading() {
     let (mut sim, p, shelf, sofa, title) = fixture("long_sofa");
     purchase(&mut sim, Some(shelf), &title);
     purchase(&mut sim, Some(shelf), &title);
     let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    // On the first reader's tile, so both walks reach the contact on the
+    // same tick and only the arrival wait keeps their pickups apart.
+    let start = *sim.world().get::<Position>(p).unwrap();
     let second = sim
         .world_mut()
         .spawn((
             Agent,
             id,
-            Position { x: 1.0, y: 2.0 },
+            start,
             Needs::all_at(80.0),
             IntentQueue::default(),
         ))
@@ -1254,10 +1267,34 @@ fn reading_journey_same_shelf_serializes_fetches_then_shares_reading() {
     read(&mut sim, p, sofa, &title, false);
     read(&mut sim, second, sofa, &title, false);
     sim.tick();
-    assert!(sim.world().get::<ReadingJourney>(second).is_none());
-    assert_eq!(sim.world().get::<IntentQueue>(second).unwrap().len(), 1);
-    until(&mut sim, second, ReadingStage::Read);
+    // Both walks plan the one contact; neither holds it until it picks up.
+    assert_eq!(stage(&sim, p), Some(ReadingStage::Fetch));
+    assert_eq!(stage(&sim, second), Some(ReadingStage::Fetch));
+    let picking = |stage: Option<ReadingStage>| stage == Some(ReadingStage::Pickup);
+    let waiting = |sim: &Sim, person: Entity| {
+        stage(sim, person) == Some(ReadingStage::Fetch) && sim.world().get::<Path>(person).is_none()
+    };
+    let mut waited = 0;
+    for tick in 0..500 {
+        let (a, b) = (stage(&sim, p), stage(&sim, second));
+        assert!(
+            !(picking(a) && picking(b)),
+            "tick {tick}: both readers picked up at the one contact"
+        );
+        if (picking(a) && waiting(&sim, second)) || (picking(b) && waiting(&sim, p)) {
+            waited += 1;
+        }
+        if a == Some(ReadingStage::Read) && b == Some(ReadingStage::Read) {
+            break;
+        }
+        sim.tick();
+    }
+    assert!(
+        waited > 0,
+        "one reader waited at the contact while the other picked up"
+    );
     assert_eq!(stage(&sim, p), Some(ReadingStage::Read));
+    assert_eq!(stage(&sim, second), Some(ReadingStage::Read));
     let first = sim.world().get::<ReadingJourney>(p).unwrap();
     let other = sim.world().get::<ReadingJourney>(second).unwrap();
     assert_ne!(first.copy, other.copy);
@@ -2672,8 +2709,10 @@ fn reading_journey_two_standing_readers_leave_the_shelf_front_available() {
         .id();
     read(&mut sim, p, shelf, &title, false);
     read(&mut sim, other, shelf, &title, false);
+    // Both fetch at once, so either may settle first.
     until(&mut sim, other, ReadingStage::Read);
-    assert_eq!(stage(&sim, p), Some(ReadingStage::Read));
+    until(&mut sim, p, ReadingStage::Read);
+    assert_eq!(stage(&sim, other), Some(ReadingStage::Read));
     let first = sim.world().get::<ReadingJourney>(p).unwrap();
     let second = sim.world().get::<ReadingJourney>(other).unwrap();
     assert!(first.seat.is_none() && second.seat.is_none());
@@ -3042,7 +3081,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v23::restore(
+    let mut returning = crate::save::v24::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
@@ -3135,4 +3174,44 @@ fn actual_extended_unfinished_reading_retains_its_return_history() {
         checked,
         "actual simultaneous readers must produce extension history"
     );
+}
+
+/// [AL-sources] and [AL-capture] item 4: a finished reading session is one
+/// action line under the book action's label with the Reading skill, and
+/// the session starts its own Social total, so company left over from an
+/// interrupted activity never reaches it.
+#[test]
+fn book_completion_logs_label_and_skill_without_stale_company() {
+    use crate::activity_log::{ActivityLog, LogKind, ACTIONS, NONE};
+    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    purchase(&mut sim, Some(shelf), &title);
+    let id = sim.world().get::<SimId>(p).unwrap().0;
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(id, 5.0, Some(99));
+    read(&mut sim, p, seat, &title, false);
+    until(&mut sim, p, ReadingStage::Return);
+    let records = crate::activity_log_tests::drain(&mut sim);
+    let books: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == id)
+        .collect();
+    assert_eq!(books.len(), 1, "{records:?}");
+    let pack = sim.world().resource::<Content>().0;
+    let labels = crate::activity_log::labels(pack);
+    let action = pack
+        .object(sim.world().get::<SmartObject>(seat).unwrap().0)
+        .interactions
+        .iter()
+        .find(|a| a.book_reading)
+        .unwrap();
+    let reading = pack.skills.iter().find(|s| s.tag == "reading").unwrap();
+    let record = books[0];
+    assert_eq!(record.label(), labels.index(&action.label));
+    assert_eq!(record.label2(), labels.index(&reading.label));
+    assert_eq!(
+        (record.other(), record.value(0), record.flags()),
+        (NONE, 0, 0)
+    );
+    assert_eq!(record.triggers(), ACTIONS);
 }

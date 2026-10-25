@@ -689,7 +689,7 @@ for n in range(1000):
         self.assertTrue(runner.capacity(settings, calibration, now=now - 3600)["admit"])
 
     def test_environment_strips_tokens_and_rejects_overrides(self):
-        settings = {"opt_level": 2, "cargo_jobs": 2, "runner_image": "fixture"}
+        settings = {"opt_level": 2, "cargo_jobs": 2, "runtime": "fixture"}
         with mock.patch.object(Path, "exists", return_value=False):
             env, contract = runner.execution_environment(settings, {"PATH": "path", "GH_TOKEN": "secret", "GITHUB_TOKEN": "secret"})
             self.assertNotIn("GH_TOKEN", env)
@@ -767,7 +767,7 @@ for n in range(1000):
 
     def test_snapshot_guard_detects_isolated_post_signal_read(self):
         source_dir = Path(__file__).parent
-        names = ("mutation_runner.py", "mutation_artifacts.py", "mutation_campaign.py", "test_mutation_runner.py", "test_mutation_campaign.py")
+        names = ("mutation_runner.py", "mutation_runtime.py", "mutation_artifacts.py", "mutation_campaign.py", "test_mutation_runner.py", "test_mutation_campaign.py")
         before = {name: (source_dir / name).read_bytes() for name in names}
         with tempfile.TemporaryDirectory(prefix="snapshot-guard-control-") as directory:
             directory = Path(directory)
@@ -793,7 +793,7 @@ for n in range(1000):
 
     def test_review_fix_guards_detect_isolated_removals(self):
         source_dir = Path(__file__).parent
-        names = ("mutation_runner.py", "mutation_artifacts.py", "mutation_campaign.py", "test_mutation_runner.py",
+        names = ("mutation_runner.py", "mutation_runtime.py", "mutation_artifacts.py", "mutation_campaign.py", "test_mutation_runner.py",
                  "test_mutation_artifacts.py", "test_mutation_campaign.py")
         before = {name: (source_dir / name).read_bytes() for name in names}
         current_context = '    context, _, _ = collect_context(root, settings, planned["calibration"])'
@@ -846,7 +846,7 @@ for n in range(1000):
 
     def test_active_write_observation_controls_detect_removed_guards(self):
         source_dir = Path(__file__).parent
-        names = ("mutation_runner.py", "mutation_artifacts.py", "mutation_campaign.py", "test_mutation_runner.py",
+        names = ("mutation_runner.py", "mutation_runtime.py", "mutation_artifacts.py", "mutation_campaign.py", "test_mutation_runner.py",
                  "test_mutation_artifacts.py", "test_mutation_campaign.py")
         before = {name: (source_dir / name).read_bytes() for name in names}
         controls = [

@@ -1,0 +1,26 @@
+# Independent character download review
+
+Verdict: pass for the scoped HTTP 503 recovery change. No blocking specification, code-quality or visible-result findings.
+
+Reviewed candidate `faa80c91d9a14cd52323bab0bde86696e11ef5a1` against base `dda9ae81fa137ce971df6efbaf90d292bed00f97`. This fresh review inspected the source diff, integration callers, tests, verification script, documentation, JSON receipts and actual saved images. It did not rerun tests, launch browsers or start hosted work.
+
+## Specification and code quality
+
+1. `web/src/render/character/asset-download.ts` limits each read to three GET attempts and permits another attempt only after an observed 503. Other HTTP statuses and fetch exceptions remain terminal. Successful-body read failures also propagate without retry.
+2. Numeric `Retry-After` values use seconds; date values use the remaining time until their deadline. Missing or malformed values use 500 and 1,500 milliseconds. The cumulative scheduled delay cannot exceed 15,000 milliseconds. An excessive server delay fails instead of being shortened. Failed response bodies are cancelled before another request; cancellation failure cannot replace the status or defeat recovery from an already broken error body.
+3. `bundle.ts` routes both bundle manifests and verified binary downloads through the reader. The existing SHA-256, lengths and topology checks remain after successful reads. `creator-assets.ts` uses the same reader for clip-part manifests, then retains JSON parsing, clip-family checks and verified supplemental geometry loading. Retry requests use the same resource URL, and no replacement asset path was added.
+4. The 19 focused cases exercise the real geometry and bundle loaders, non-503 terminal failures, attempt exhaustion, cleanup, numeric/date delays, malformed headers, excessive and cumulative waits, transport failure, broken error-body recovery and corrupt success after a 503. The browser script exercises compiled creator-manifest integration as well. Source inspection confirms the second fallback delay and shared integrations. The reported 47 focused tests, type check, compiled reference checks, 30 site checks and production build are implementation evidence supplied for review, not fresh executions by this reviewer. No claim of a repeated full web or native suite is made.
+5. The implementation changes no graphics allocation, rendering, source assets, save format, dependency or hosted workflow. The same-day changelog covers brief download recovery. The guide no-change reason is appropriate for an automatic transport change with unchanged controls and scene output.
+
+## Visible results and receipt identity
+
+I inspected `baseline.png` first and rejected it as successful gameplay before inspecting the candidate images.
+
+1. `baseline.png` shows the startup failure card with HTTP 503 and the exact `runtime.normalTriangles-DitPThSI.bin` path. No household or gameplay is visible. `baseline.json` records one request, zero completed frames and the old public entry `index-D0anJtTF.js` with SHA-256 `11192025c6828dd0c92920ebc6fe0a6185c8f34b9e6c88bb1b7f06bf9dbd2a6e`. Its receipt's `PASS` means the negative control reproduced the failure.
+2. `recover.png` shows the household, three characters, furnishings and readable controls, with no startup failure card. I see no scene omission or new obstruction in this capture. Its measured PNG SHA-256 is `4f7f7c2fd7a18f3501c425a6e80e1985809aa36d1f409cd225aafc3fc0ac08a6`, matching both the receipt and the measured retained `phone-dense-reference.png`. `recover.json` records two binary requests 1,002 milliseconds apart, the first two parts-manifest requests 1,003 milliseconds apart, no failure and three completed frames. The later third parts request is a separate consumer, not evidence of a fourth retry or a need to refetch successful geometry.
+3. `persistent.png` shows the same explicit HTTP 503 startup failure as the baseline, and I reject it as gameplay. The image hashes are identical: `50dccb5c8b71d95c3e4f9cb9e6ad794ae2fdc410dd88735739f273e4a1f2f6f6`. `persistent.json` records three binary attempts with approximately one-second gaps, zero frames and the expected status/path failure.
+4. `corrupt.png` shows the hash-difference startup failure for the exact binary, and I reject it as gameplay. Its measured PNG hash is `f83e4a20c51138dc99041a6b1b5dd192bce6e6ab183277880b32dc89dd0e39a2`. `corrupt.json` records two requests 1,003 milliseconds apart, zero frames and the SHA-256 rejection. All three candidate receipts name `index-DjPw67ST.js`, SHA-256 `e447662c2af92f6d167e52d44549fe61bcd27ae7a1c9dbd32a17943f64c4abba`, and record browser cleanup.
+
+## Acceptance limits
+
+This approves the scoped client behavior and retained Windows Chrome evidence. Still images establish their captured states; they do not prove sustained play or animation quality. Recovery on either physical iPhone remains unobserved. The supplied iPhone 16 Pro Max, iOS 27.0.1 screenshot is explicitly from the previous build. Its HTTP failure does not establish the cause of the earlier browser-process failures or the original server-side 503. The prior memory repair keeps its separate acceptance limits.

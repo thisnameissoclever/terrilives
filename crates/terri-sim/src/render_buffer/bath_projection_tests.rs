@@ -62,7 +62,7 @@ fn bathtub_projects_all_facings_without_changing_positions_or_saves() {
         let before_position = *sim.world().get::<Position>(user).unwrap();
         crate::bath::begin(sim.world_mut());
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot_v23();
+        let before_save = sim.save_snapshot_v24();
         sim.sync_render_buffer();
         assert_eq!(
             projection_of(sim.render_buffer(), user),
@@ -84,10 +84,10 @@ fn bathtub_projects_all_facings_without_changing_positions_or_saves() {
         );
         assert_eq!(*sim.world().get::<Position>(user).unwrap(), before_position);
         assert_eq!(sim.world_hash(), before_hash);
-        assert!(sim.save_snapshot_v23() == before_save, "render projection must not mutate current bath state");
+        assert!(sim.save_snapshot_v24() == before_save, "render projection must not mutate current bath state");
         let mut loaded = Sim::new_with_lot(1, 1);
-        loaded.load_snapshot_v23(before_save.clone()).unwrap();
-        assert!(loaded.save_snapshot_v23() == before_save, "current load must retain the complete bath continuation");
+        loaded.load_snapshot_v24(before_save.clone()).unwrap();
+        assert!(loaded.save_snapshot_v24() == before_save, "current load must retain the complete bath continuation");
         assert_eq!(loaded.world_hash(), before_hash);
         assert_eq!(
             projection_of(loaded.render_buffer(), user),

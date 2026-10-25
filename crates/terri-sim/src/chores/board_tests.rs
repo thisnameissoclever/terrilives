@@ -125,13 +125,13 @@ fn active_dish_duty_crossing_midnight_settles_only_at_real_completion() {
     let effects = sim
         .world()
         .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
+        .effects()
         .len();
     board::credit(sim.world_mut(), &mut state, person.index_u32(), key, 0, 1);
     assert_eq!(
         sim.world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .len(),
         effects
     );
@@ -344,7 +344,7 @@ fn balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment() {
     let effects = sim
         .world()
         .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
+        .effects()
         .len();
     board::tick(sim.world_mut(), &mut state);
     sim.world_mut().resource_mut::<SimClock>().tick = day_ticks;
@@ -361,7 +361,7 @@ fn balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment() {
     assert_eq!(
         sim.world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .len(),
         effects
     );
@@ -602,4 +602,449 @@ fn balance_household_grace_cancel_below_tolerance_clears_prior_maturity() {
     add(&mut state.surfaces, surface, 1000);
     crate::neglect::refresh_in(sim.world_mut(), &state);
     assert!(!crate::neglect::episode_matured(sim.world(), episode_id));
+}
+
+// ---- The activity log ([AL-sources]) -----------------------------------
+
+use crate::activity_log::{
+    LogKind, LogRecord, CHORES, NONE, OUTCOME_COVERED, OUTCOME_DONE, OUTCOME_MISSED,
+    OUTCOME_SKIPPED, SOCIAL,
+};
+use crate::relationship_effects::RelationshipCause;
+
+/// Runs the end-of-tick pass the board's callers rely on, then takes every
+/// staged record.
+fn settled_records(sim: &mut Sim) -> Vec<LogRecord> {
+    crate::activity_log::finish_tick(sim.world_mut());
+    crate::activity_log_tests::drain(sim)
+}
+
+fn person(sim: &mut Sim, id: u32) -> Entity {
+    sim.world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .find(|(_, p)| p.0 == id)
+        .unwrap()
+        .0
+}
+
+fn everyone(sim: &mut Sim) -> Vec<u32> {
+    let mut ids: Vec<u32> = sim
+        .world_mut()
+        .query_filtered::<&SimId, With<terri_core::Agent>>()
+        .iter(sim.world())
+        .map(|id| id.0)
+        .collect();
+    ids.sort_unstable();
+    ids
+}
+
+fn label(sim: &Sim, text: &str) -> u32 {
+    crate::activity_log::labels(sim.world().resource::<crate::Content>().0).index(text)
+}
+
+/// Ticks the whole simulation until the episode of `key` begun on day 0
+/// settles, collecting every record.
+fn work_until_settled(sim: &mut Sim, key: ChoreKey) -> Vec<LogRecord> {
+    let mut records = Vec::new();
+    for _ in 0..3_000 {
+        sim.tick();
+        records.extend(crate::activity_log_tests::drain(sim));
+        let settled = sim
+            .world()
+            .resource::<SavedChores>()
+            .episodes
+            .iter()
+            .any(|e| e.key == key && e.day == 0 && e.settled);
+        if settled {
+            return records;
+        }
+    }
+    panic!("the chore never settled");
+}
+
+fn feelings_of(records: &[LogRecord], parent: u32, cause: u32) -> Vec<LogRecord> {
+    records
+        .iter()
+        .filter(|r| {
+            r.kind() == Some(LogKind::Feeling) && r.parent() == parent && r.label() == cause
+        })
+        .copied()
+        .collect()
+}
+
+/// [AL-sources] through `board::tick`: when a duty the week's assignments
+/// lack is assigned mid-week, as when a duty becomes available, only the
+/// owner who gains it gets a new Chores this week line. A reconcile that
+/// captured the previous assignments after writing the new ones would log
+/// nobody; one that lost them would log everyone.
+#[test]
+fn a_mid_week_new_duty_through_the_board_tick_logs_only_its_owner() {
+    let (mut sim, mut state, _) = fixture();
+    state.week = None;
+    board::tick(sim.world_mut(), &mut state);
+    settled_records(&mut sim);
+    assert!(
+        state.assignments.len() >= 2,
+        "the shipped lot has several duties"
+    );
+    let owners_before: std::collections::BTreeSet<u32> =
+        state.assignments.iter().map(|a| a.owner).collect();
+    assert!(
+        owners_before.len() >= 2,
+        "duties are spread over several owners"
+    );
+    let lacking = state.assignments.remove(0);
+    board::tick(sim.world_mut(), &mut state);
+    let gained = state
+        .assignments
+        .iter()
+        .find(|a| a.key == lacking.key)
+        .expect("the missing duty is assigned again")
+        .owner;
+    let headers: Vec<u32> = settled_records(&mut sim)
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ChoresThisWeek))
+        .map(|r| r.actor())
+        .collect();
+    assert_eq!(headers, vec![gained]);
+}
+
+/// [AL-sources]: new weekly duties are one Chores line per owner, with the
+/// owner's duties as its children, and an unchanged week stages nothing.
+#[test]
+fn chore_week_logs_one_header_per_owner() {
+    let (mut sim, mut state, _) = fixture();
+    // A new week.
+    state.week = None;
+    board::tick(sim.world_mut(), &mut state);
+    let records = settled_records(&mut sim);
+    let headers: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ChoresThisWeek))
+        .collect();
+    let owners: std::collections::BTreeSet<u32> =
+        state.assignments.iter().map(|a| a.owner).collect();
+    assert!(!owners.is_empty());
+    assert_eq!(
+        headers.iter().map(|r| r.actor()).collect::<Vec<_>>(),
+        owners.iter().copied().collect::<Vec<_>>()
+    );
+    for header in &headers {
+        assert_eq!(header.triggers(), CHORES);
+        assert_eq!(header.value(0), state.week.unwrap() as i32);
+        let duties: Vec<_> = records
+            .iter()
+            .filter(|r| r.kind() == Some(LogKind::Duty) && r.parent() == header.seq())
+            .collect();
+        let mine: Vec<_> = state
+            .assignments
+            .iter()
+            .filter(|a| a.owner == header.actor())
+            .collect();
+        assert_eq!(duties.len(), mine.len());
+        for (duty, assignment) in duties.iter().zip(mine) {
+            let kind = ChoreKind::ALL
+                .iter()
+                .position(|k| *k == assignment.key.kind)
+                .unwrap();
+            assert_eq!(duty.actor(), header.actor());
+            assert_eq!(duty.label(), label(&sim, assignment.key.kind.label()));
+            assert_eq!(
+                (duty.value(0), duty.value(1)),
+                (kind as i32, assignment.key.target as i32)
+            );
+            assert_eq!(duty.triggers(), 0);
+        }
+    }
+    let duties = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::Duty))
+        .count();
+    assert_eq!(duties, state.assignments.len(), "every duty has its header");
+
+    board::tick(sim.world_mut(), &mut state);
+    assert!(
+        settled_records(&mut sim).is_empty(),
+        "the same week stages nothing new"
+    );
+}
+
+/// [AL-sources]: within a week, a change to the available duties logs a new
+/// Chores this week line only for the owners whose own duties changed; a
+/// new week logs every owner.
+#[test]
+fn a_mid_week_duty_change_logs_only_the_owners_it_changed() {
+    let (mut sim, mut state, _) = fixture();
+    let duty = |kind: ChoreKind, target: u32, owner: u32| terri_core::chores::ChoreAssignment {
+        key: ChoreKey { kind, target },
+        owner,
+        week: 3,
+    };
+    let before = vec![duty(ChoreKind::Dishes, 0, 1), duty(ChoreKind::Floors, 4, 2)];
+    state.week = Some(3);
+    state.assignments = vec![
+        duty(ChoreKind::Dishes, 0, 1),
+        duty(ChoreKind::Floors, 4, 2),
+        duty(ChoreKind::Bins, 0, 1),
+    ];
+    crate::activity_log_tests::drain(&mut sim);
+    let headers = |sim: &mut Sim| -> Vec<u32> {
+        settled_records(sim)
+            .iter()
+            .filter(|r| r.kind() == Some(LogKind::ChoresThisWeek))
+            .map(|r| r.actor())
+            .collect()
+    };
+    board::log_week(
+        sim.world_mut(),
+        &state,
+        &board::WeekChange {
+            previous_week: Some(3),
+            previous: before.clone(),
+        },
+    );
+    assert_eq!(
+        headers(&mut sim),
+        vec![1],
+        "only the owner who gained a duty"
+    );
+    board::log_week(
+        sim.world_mut(),
+        &state,
+        &board::WeekChange {
+            previous_week: Some(2),
+            previous: before,
+        },
+    );
+    assert_eq!(headers(&mut sim), vec![1, 2], "a new week logs everyone");
+}
+
+/// [AL-record] kind 7: a finished chore is an action line of the performer
+/// with the Done outcome as its child, and the household's appreciation as
+/// children of the outcome under Social.
+#[test]
+fn chore_done_links_to_the_performing_action() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let owner = state.episodes.iter().find(|e| e.key == key).unwrap().owner;
+    let worker = person(&mut sim, owner);
+    assert!(work::start(sim.world_mut(), &mut state, worker, key, true));
+    sim.world_mut().insert_resource(state);
+    crate::activity_log_tests::drain(&mut sim);
+    let records = work_until_settled(&mut sim, key);
+    let outcomes: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ChoreOutcome))
+        .collect();
+    assert_eq!(outcomes.len(), 1, "{records:?}");
+    let outcome = outcomes[0];
+    assert_eq!(
+        (outcome.actor(), outcome.other(), outcome.value(0)),
+        (owner, NONE, OUTCOME_DONE)
+    );
+    assert_eq!(outcome.label(), label(&sim, key.kind.label()));
+    assert_eq!(outcome.triggers(), CHORES);
+    let action = records
+        .iter()
+        .find(|r| r.seq() == outcome.parent())
+        .expect("the outcome belongs to the action that did it");
+    assert_eq!(action.kind(), Some(LogKind::ActionDone));
+    assert_eq!(
+        (action.actor(), action.label(), action.tick()),
+        (owner, label(&sim, key.kind.label()), outcome.tick())
+    );
+    let fulfilled = label(&sim, RelationshipCause::ChoreFulfilled.log_label());
+    let thanks = feelings_of(&records, outcome.seq(), fulfilled);
+    let others: Vec<u32> = everyone(&mut sim)
+        .into_iter()
+        .filter(|id| *id != owner)
+        .collect();
+    assert_eq!(thanks.iter().map(|r| r.actor()).collect::<Vec<_>>(), others);
+    for feeling in thanks {
+        assert_eq!((feeling.other(), feeling.triggers()), (owner, SOCIAL));
+    }
+}
+
+/// [AL-capture] item 4: chore work is never company, so a finished chore's
+/// action line carries no Social total, shared opinion or companion, even
+/// when an activity interrupted before it left company behind.
+#[test]
+fn chore_line_carries_no_stale_company() {
+    use crate::activity_log::{ActivityLog, ACTIONS};
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let owner = state.episodes.iter().find(|e| e.key == key).unwrap().owner;
+    let worker = person(&mut sim, owner);
+    assert!(work::start(sim.world_mut(), &mut state, worker, key, true));
+    sim.world_mut().insert_resource(state);
+    crate::activity_log_tests::drain(&mut sim);
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(owner, 5.0, Some(99));
+    let records = work_until_settled(&mut sim, key);
+    let action = records
+        .iter()
+        .find(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == owner)
+        .expect("the chore's action line");
+    assert_eq!(action.label(), label(&sim, key.kind.label()));
+    assert_eq!(
+        (
+            action.other(),
+            action.value(0),
+            action.value(3),
+            action.triggers()
+        ),
+        (NONE, 0, 0, ACTIONS),
+        "{action:?}"
+    );
+}
+
+/// [AL-group] rule 3: a helper covering a declined chore is one line: the
+/// helper's action, the Covered outcome naming the owner, every other
+/// housemate's appreciation of the helper and the helper's resentment of
+/// the owner, all children of the outcome.
+#[test]
+fn chore_cover_and_appreciation_are_children() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let episode = state.episodes.iter_mut().find(|e| e.key == key).unwrap();
+    episode.needed = true;
+    episode.decision = Some(false);
+    episode.outcome = DutyOutcome::Skipped;
+    let owner = episode.owner;
+    let episode_id = episode.id;
+    // The declined duty has been neglected past its grace, so covering it
+    // earns the helper's resentment.
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    sim.world_mut().resource_mut::<SimClock>().tick += 120;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(crate::neglect::episode_matured(sim.world(), episode_id));
+    let helper_id = *everyone(&mut sim).iter().find(|id| **id != owner).unwrap();
+    let helper = person(&mut sim, helper_id);
+    assert!(work::start(sim.world_mut(), &mut state, helper, key, true));
+    sim.world_mut().insert_resource(state);
+    crate::activity_log_tests::drain(&mut sim);
+    let records = work_until_settled(&mut sim, key);
+    let outcome = records
+        .iter()
+        .find(|r| r.kind() == Some(LogKind::ChoreOutcome))
+        .expect("an outcome");
+    assert_eq!(
+        (outcome.actor(), outcome.other(), outcome.value(0)),
+        (helper_id, owner, OUTCOME_COVERED)
+    );
+    let action = records
+        .iter()
+        .find(|r| r.seq() == outcome.parent())
+        .expect("the outcome belongs to the helper's action");
+    assert_eq!(
+        (action.kind(), action.actor()),
+        (Some(LogKind::ActionDone), helper_id)
+    );
+    let fulfilled = label(&sim, RelationshipCause::ChoreFulfilled.log_label());
+    let thanks = feelings_of(&records, outcome.seq(), fulfilled);
+    let others: Vec<u32> = everyone(&mut sim)
+        .into_iter()
+        .filter(|id| *id != helper_id)
+        .collect();
+    assert_eq!(thanks.iter().map(|r| r.actor()).collect::<Vec<_>>(), others);
+    assert!(thanks.iter().all(|r| r.other() == helper_id));
+    let neglected = label(&sim, RelationshipCause::ChoreNeglected.log_label());
+    let resentment = feelings_of(&records, outcome.seq(), neglected);
+    assert_eq!(resentment.len(), 1);
+    assert_eq!(
+        (
+            resentment[0].actor(),
+            resentment[0].other(),
+            resentment[0].triggers()
+        ),
+        (helper_id, owner, SOCIAL)
+    );
+}
+
+/// [AL-sources]: a chore missed at the day rollover, once its grace has
+/// passed, is one Missed line for its owner, carrying every other
+/// housemate's resentment as children.
+#[test]
+fn missed_chore_logs_neglect_feelings() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let e = state.episodes.iter_mut().find(|e| e.key == key).unwrap();
+    e.needed = true;
+    e.decision = Some(false);
+    e.outcome = DutyOutcome::Skipped;
+    let owner = e.owner;
+    // The duty's neglect timer starts now, so it is due by the rollover.
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    sim.world_mut().resource_mut::<SimClock>().tick =
+        u64::from(sim.world().resource::<crate::Content>().0.tuning.day_ticks);
+    crate::activity_log_tests::drain(&mut sim);
+    board::tick(sim.world_mut(), &mut state);
+    let records = settled_records(&mut sim);
+    let missed: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ChoreOutcome) && r.value(0) == OUTCOME_MISSED)
+        .collect();
+    assert_eq!(missed.len(), 1, "{records:?}");
+    let outcome = missed[0];
+    assert_eq!(
+        (outcome.actor(), outcome.other(), outcome.parent()),
+        (owner, NONE, 0)
+    );
+    assert_eq!(outcome.label(), label(&sim, key.kind.label()));
+    assert_eq!(outcome.triggers(), CHORES);
+    let neglected = label(&sim, RelationshipCause::ChoreNeglected.log_label());
+    let resentment = feelings_of(&records, outcome.seq(), neglected);
+    let others: Vec<u32> = everyone(&mut sim)
+        .into_iter()
+        .filter(|id| *id != owner)
+        .collect();
+    assert_eq!(
+        resentment.iter().map(|r| r.actor()).collect::<Vec<_>>(),
+        others
+    );
+    assert!(resentment
+        .iter()
+        .all(|r| r.other() == owner && r.triggers() == SOCIAL));
+}
+
+/// [AL-sources]: a failed willingness roll is one Skipped line for the
+/// owner, and only the roll logs it.
+#[test]
+fn skipped_chore_is_logged() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let owner = state.episodes.iter().find(|e| e.key == key).unwrap().owner;
+    // The least willing owner there can be.
+    let profile = state
+        .profiles
+        .iter_mut()
+        .find(|p| p.sim_id == owner)
+        .unwrap();
+    profile.responsibility = 0;
+    profile.commitment = 0;
+    profile.preferences = [i8::MIN; 4];
+    crate::activity_log_tests::drain(&mut sim);
+    board::tick(sim.world_mut(), &mut state);
+    let episode = state.episodes.iter().find(|e| e.key == key).unwrap();
+    assert_eq!(episode.decision, Some(false), "the roll declined");
+    let records = settled_records(&mut sim);
+    let skipped: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ChoreOutcome))
+        .collect();
+    assert_eq!(skipped.len(), 1, "{records:?}");
+    assert_eq!(
+        (skipped[0].actor(), skipped[0].other(), skipped[0].value(0)),
+        (owner, NONE, OUTCOME_SKIPPED)
+    );
+    assert_eq!(skipped[0].label(), label(&sim, key.kind.label()));
+    // Later ticks re-derive the same decision and log nothing more.
+    for _ in 0..5 {
+        board::tick(sim.world_mut(), &mut state);
+    }
+    assert!(settled_records(&mut sim)
+        .iter()
+        .all(|r| r.kind() != Some(LogKind::ChoreOutcome)));
 }

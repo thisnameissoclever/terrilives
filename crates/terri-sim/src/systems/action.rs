@@ -1530,7 +1530,9 @@ pub fn select_action(
     _relationship_context: Res<crate::relationship_dynamics::RelationshipContext>,
     positions: Query<(&Position, Option<&Path>), With<Agent>>,
     interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
-    clock: Res<SimClock>,
+    // Paired, so the held shift's sleep rhythm (issue 296, [WS-sleep])
+    // joins without a seventeenth parameter.
+    (clock, rhythm): (Res<SimClock>, crate::shifts::ShiftRhythm),
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
     reading: Option<Res<crate::reading::Options>>,
@@ -1572,7 +1574,7 @@ pub fn select_action(
             &SimId,
             Has<Reserved>,
             &Needs,
-            Has<Eating>,
+            Option<&Eating>,
             Has<Socialising>,
             Has<terri_core::ChainState>,
             Has<crate::reading::ReadingJourney>,
@@ -1708,7 +1710,9 @@ pub fn select_action(
         .map(|(e, ..)| *e)
         .collect();
 
-    let mut company: Vec<(Entity, Position, SimId, bool, Needs, bool)> = people
+    // The last field is the person's sleep state, which rules them out as a
+    // chosen chat partner (issue 338).
+    let mut company: Vec<(Entity, Position, SimId, bool, Needs, bool, bool)> = people
         .iter()
         .map(
             |(e, pos, id, reserved, needs, eating, talking, chain, reading, chore, commuting)| {
@@ -1718,7 +1722,8 @@ pub fn select_action(
                     *id,
                     reserved,
                     *needs,
-                    eating || talking || chain || reading || chore || commuting,
+                    eating.is_some() || talking || chain || reading || chore || commuting,
+                    super::circadian::is_asleep(content.0, eating),
                 )
             },
         )
@@ -1787,6 +1792,11 @@ pub fn select_action(
                 .remove::<Blocked>();
             continue;
         }
+        // The chronotype plus the held shift's kind offset, once per
+        // decision rather than per candidate ([WS-sleep]).
+        let sleep_offset = personality
+            .chronotype_offset_ticks
+            .saturating_add(rhythm.offset(agent));
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
         let mut outcomes = std::collections::HashMap::new();
         let mut admissions = std::collections::HashMap::new();
@@ -1964,7 +1974,7 @@ pub fn select_action(
                     * super::circadian::sleep_drive(
                         content.0,
                         &clock,
-                        personality.chronotype_offset_ticks,
+                        sleep_offset,
                         tags,
                         pressure.map_or(0, |p| p.ticks),
                     );
@@ -2243,9 +2253,11 @@ pub fn select_action(
         // A chosen chat would give up at once, so it is not chosen at all.
         let chats_give_up =
             crate::social_episode::requests::gives_up_chosen_chat(&needs, &content.0.tuning);
-        for (other, other_pos, other_id, reserved, _other_needs, busy) in &company {
+        for (other, other_pos, other_id, reserved, _other_needs, busy, asleep) in &company {
             let other = *other;
-            if other == agent || chats_give_up {
+            // A chosen chat would give up as soon as it waited on a sleeper,
+            // so a sleeping partner is not chosen at all (issue 338).
+            if other == agent || chats_give_up || *asleep {
                 continue;
             }
             // Autonomous requests can wait for current care, but a player

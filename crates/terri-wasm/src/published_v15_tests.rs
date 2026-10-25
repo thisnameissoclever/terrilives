@@ -84,7 +84,7 @@ fn checksum_control_compares_the_exact_original_published_state() {
         let mut sim = Sim::new_with_lot_and_content(24, 24, pre_balance_content());
         if !current {
             sim.world_mut()
-                .remove_resource::<terri_core::save_v21::WorldSurfaces>();
+                .remove_resource::<terri_core::WorldSurfaces>();
             sim.world_mut()
                 .remove_resource::<terri_core::rooms::SavedRooms>();
             sim.world_mut()
@@ -144,7 +144,7 @@ fn checksum_control_compares_the_exact_original_published_state() {
         sim.world_mut()
             .insert_resource(terri_core::save_v19::SavedNeglect::default());
         sim.world_mut()
-            .remove_resource::<terri_core::save_v21::WorldSurfaces>();
+            .remove_resource::<terri_core::WorldSurfaces>();
         assert_eq!(
             if current {
                 sim.save_snapshot_v16().legacy
@@ -202,14 +202,7 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let original = decode(bytes);
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
-        let migrated = decode_current(&source.save_bytes())
-            .previous
-            .previous
-            .previous
-            .legacy
-            .legacy
-            .legacy
-            .legacy;
+        let migrated = decode_current(&source.save_bytes()).room_world_v16().clone();
         let mut expected_requests = original.conversation_requests.clone();
         if name == "chat-talking-later-identical" {
             use terri_core::save_v15::{
@@ -361,8 +354,7 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
         live.sim.commit_build(token).unwrap();
         let mut committed = decode_current(&live.save_bytes());
         let baseline = decode_current(&settled);
-        committed.legacy.legacy.legacy.legacy.rooms =
-            baseline.legacy.legacy.legacy.legacy.rooms.clone();
+        committed.room_world_v16_mut().rooms = baseline.room_world_v16().rooms.clone();
         assert_eq!(committed, baseline, "only the confirmed room name changes");
         let confirmed = live.save_bytes();
         live.sim

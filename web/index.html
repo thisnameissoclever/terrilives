@@ -15,6 +15,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>Natural Causes</title>
+    <script defer vite-ignore src="./startup-diagnostics-v4.js"></script>
     <link rel="icon" href="./favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
     <style>
@@ -290,6 +291,13 @@
       .career-controls select { width: 100%; }
       .career-actions { display: flex; gap: 8px; }
       .career-search { display: flex; align-items: center; gap: 6px; }
+      .career-shift-assign, .career-shift-change label { display: grid; gap: 4px; }
+      .career-shift-change { display: grid; gap: 6px; margin: 0; padding: 6px 8px; min-width: 0; }
+      .career-shift-change[hidden] { display: none; }
+      .career-shift-change select, .career-shift-assign select { width: 100%; min-width: 0; }
+      .career-shift-note { margin: 0; font-size: 0.9em; }
+      .career-shift-line { margin: 0; font-size: 0.9em; overflow-wrap: anywhere; }
+      .career-shift-line[hidden] { display: none; }
       .career-search[hidden] { display: none; }
       #sim-career p { margin: 2px 0; }
       #lighting-mode {
@@ -733,6 +741,7 @@
       }
       #new-game-dialog,
       #load-game-dialog,
+      #import-save-dialog,
       #land-dialog,
       #build-exit-dialog,
       #housemate-dialog {
@@ -745,6 +754,7 @@
       }
       #new-game-dialog::backdrop,
       #load-game-dialog::backdrop,
+      #import-save-dialog::backdrop,
       #land-dialog::backdrop,
       #build-exit-dialog::backdrop,
       #housemate-dialog::backdrop {
@@ -752,6 +762,7 @@
       }
       #new-game-dialog h2,
       #load-game-dialog h2,
+      #import-save-dialog h2,
       #land-dialog h2,
       #build-exit-dialog h2,
       #housemate-dialog h2 {
@@ -801,6 +812,7 @@
       #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
       #load-game-dialog menu,
+      #import-save-dialog menu,
       #land-dialog menu,
       #build-exit-dialog menu,
       #housemate-dialog menu {
@@ -1219,6 +1231,25 @@
       .chores-board fieldset {display:grid;gap:10px}
       .chores-board fieldset label {display:flex;justify-content:space-between;gap:12px}
       .chores-board input[type=number] {width:80px}
+      #save-transfer-help {
+        box-sizing: border-box;
+        width: min(540px, calc(100vw - 32px));
+        max-height: calc(100dvh - 32px);
+        overflow-y: auto;
+        padding: 22px;
+        border: 1px solid var(--hud-edge);
+        border-radius: 12px;
+        background: var(--hud-bg);
+        color: var(--hud-text);
+        box-shadow: 0 16px 64px #0009;
+        line-height: 1.5;
+      }
+      #save-transfer-help::backdrop { background: #0009; }
+      #save-transfer-help h2 { margin: 0 0 12px; font-size: 1.25rem; }
+      #save-transfer-help ol { padding-left: 24px; }
+      #save-transfer-help li + li { margin-top: 12px; }
+      #save-transfer-help a { color: var(--need-fill); text-decoration: underline; }
+      #save-transfer-help .hud-button { min-height: 40px; width: 100%; }
     </style>
     <link rel="stylesheet" href="/src/ui/compact-hud.css" />
     <link rel="stylesheet" href="/src/ui/build-controls.css" />
@@ -1242,12 +1273,25 @@
       <progress id="startup-loading-progress" aria-label="Files loaded" hidden></progress>
       <p id="startup-loading-bytes" hidden></p>
     </div>
-    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
-         Outside #hud for #object-menu's reason: it is fixed to the window's
-         top right, not part of the sidebar's column. Before the sidebar, so
-         it is the first stop after the game view, in and out of Build. The panel holds the
-         controls a player reaches for now and then; the sidebar keeps what
-         they read all the time. -->
+    <!-- The activity log - [AL-panel] in docs/specs/2026-10-18-activity-log.md.
+         The Log toggle owns the window's top right in normal play; Build
+         hides it, because Build's zoom buttons use that corner. Outside
+         #hud for #object-menu's reason: fixed to the window, not part of the
+         sidebar's column. The panel is non-modal and shares the right side
+         with Options and Sim details, one at a time. Its words, the filter
+         toggles included, come from src/ui/activity-log-words.ts at startup.
+         The Options flyout ([OF1] in docs/specs/2026-09-22-options-flyout.md)
+         lives in the sidebar's world actions below, beside Build. -->
+    <button id="activity-log-toggle" class="hud-button" type="button" aria-expanded="false" aria-controls="activity-log"></button>
+    <section id="activity-log" aria-labelledby="activity-log-title" hidden>
+      <div id="activity-log-header"><h2 id="activity-log-title" class="activity-log-title"></h2><button data-action-intent="negative" id="activity-log-close" class="hud-button" type="button"></button></div>
+      <div id="activity-log-filters" role="group"></div>
+      <div id="activity-log-scroller" role="region" tabindex="0">
+        <button id="activity-log-earlier" class="hud-button" type="button" hidden></button>
+        <ol id="activity-log-list"></ol>
+        <p id="activity-log-empty" hidden></p>
+      </div>
+    </section>
     <div id="hud">
       <section id="household-summary" aria-label="Household status">
         <div id="clock-row" class="summary-row">
@@ -1329,10 +1373,14 @@
         <button id="new-housemate" class="hud-button" type="button">New housemate</button>
         <button data-action-intent="affirmative" id="save-game" class="hud-button" type="button">Save</button>
         <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="export-save" class="hud-button" type="button" popovertarget="save-transfer-help" aria-controls="save-transfer-help">Export save</button>
+        <button id="import-save" class="hud-button" type="button">Import save</button>
+        <input id="import-save-file" type="file" hidden tabindex="-1" aria-hidden="true" />
 
 
         <button id="new-game" class="hud-button" type="button">New game</button>
         <p id="save-status" hidden></p>
+        <a id="report-bug" class="hud-button" href="./startup-report.html" title="Email a bug report to Tim">Report bug</a>
         <button
           id="show-help"
           class="hud-button"
@@ -1646,6 +1694,27 @@
         <menu>
           <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
           <button data-action-intent="affirmative" id="confirm-load-game" class="hud-button" value="confirm">Load game</button>
+        </menu>
+      </form>
+    </dialog>
+    <dialog id="save-transfer-help" popover="auto" aria-labelledby="save-transfer-title">
+      <h2 id="save-transfer-title" tabindex="-1" autofocus>Recover a save from the old website</h2>
+      <p>Played before the move to natural-causes.life? Your old household is stored at the old website. Use the same browser, browser profile, and device where you played.</p>
+      <ol>
+        <li>Open <a href="https://thisnameissoclever.github.io/natural-causes-old-save/" target="_blank" rel="noopener">Move your Natural Causes save (opens in a new tab)</a>.</li>
+        <li>Choose <strong>Download save</strong> on that page.</li>
+        <li>Return here. Choose <strong>Options</strong>, then <strong>Import save</strong>. Select the downloaded file, then choose <strong>Import game</strong>.</li>
+      </ol>
+      <p>Export save downloads the game at this website. Use the recovery page above for the old website's save.</p>
+      <button type="button" class="hud-button" popovertarget="save-transfer-help" popovertargetaction="hide">Close</button>
+    </dialog>
+    <dialog id="import-save-dialog" aria-labelledby="import-save-title">
+      <h2 id="import-save-title">Import this saved game?</h2>
+      <p>The current game and its saved data will be replaced. This cannot be undone.</p>
+      <form method="dialog">
+        <menu>
+          <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
+          <button data-action-intent="affirmative" id="confirm-import-save" class="hud-button" value="confirm">Import game</button>
         </menu>
       </form>
     </dialog>

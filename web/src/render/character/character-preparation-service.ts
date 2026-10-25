@@ -1,4 +1,5 @@
 import type {CharacterAppearanceV1} from '../../character/schema.js';
+import {recordDiagnostic} from '../../diagnostics.js';
 import {bikeContactAppearanceKey,prepareBikeContactForAppearance} from './bike-contact-preparation.js';
 import {createSleepContactInput,sleepContactAppearanceKey} from './sleep-contact-preparation.js';
 import {freezeBikeContactArtifact,validateBikeContactInput} from './bike-contact-protocol.js';
@@ -11,30 +12,37 @@ import type {SeatContactArtifactV1,SeatContactInputV1} from './seat-contact-type
 import {PreparationQueue,preparationCancelled,type PreparationLease,type PreparationDefinition} from './preparation-queue.js';
 import {WorkerPreparationTransport,type PreparationTransport} from './preparation-transport.js';
 import {validatePreparationResponse,type PreparationArtifact,type PreparationRequest} from './preparation-protocol.js';
-import {awaitPreparation} from './preparation-abort.js';
+import {awaitPreparation,isPreparationCancelled} from './preparation-abort.js';
+import {poolContactResource} from './pool-contact-resource.js';
+import {poolContactAppearanceKey} from './pool-contact-identity.js';
+import type {PoolContactArtifactV1,PoolContactInputV1} from './pool-contact-types.js';
 import {restorePreparationFailure,attachPreparationContext} from './preparation-error.js';
 
-export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1;readonly seat:SeatContactArtifactV1}
+export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1;readonly seat:SeatContactArtifactV1;readonly pool:PoolContactArtifactV1}
 export type CharacterPreparationLease=PreparationLease<CharacterPreparation>;
-export const characterPreparationKey=(appearance:CharacterAppearanceV1)=>JSON.stringify([bikeContactAppearanceKey(appearance),sleepContactAppearanceKey(appearance),seatContactAppearanceKey(appearance)]);
+export const characterPreparationKey=(appearance:CharacterAppearanceV1)=>JSON.stringify([bikeContactAppearanceKey(appearance),sleepContactAppearanceKey(appearance),seatContactAppearanceKey(appearance),poolContactAppearanceKey(appearance)]);
 export class CharacterPreparationNotReadyError extends Error {
   constructor(){super('Character support must be prepared before admitting this appearance.');this.name='CharacterPreparationNotReadyError';}
 }
 interface Owner {lease:CharacterPreparationLease;parts:PreparationLease<PreparationArtifact>[];closed:boolean;artifact?:CharacterPreparation;failure?:unknown;reject:(error:unknown)=>void}
+let serviceSequence=0;
 export interface CharacterPreparationServiceOptions {
   bikeInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<BikeContactInputV1>;
   sleepInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<SleepContactInputV1>;
   seatInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<SeatContactInputV1>;
+  poolInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<PoolContactInputV1>;
   transportFactory?:()=>PreparationTransport;
 }
 
 /** Required support is independently keyed, but every expensive job uses the same worker. */
 export class CharacterPreparationService {
+  private readonly diagnosticId=++serviceSequence;
   private readonly queue=new PreparationQueue<PreparationArtifact>();
   private readonly owners=new Map<string,Owner>();
   private readonly bike:PreparationDefinition<PreparationArtifact>;
   private readonly sleep:PreparationDefinition<PreparationArtifact>;
   private readonly seat:PreparationDefinition<PreparationArtifact>;
+  private readonly pool:PreparationDefinition<PreparationArtifact>;
   private transport:PreparationTransport|undefined;
   private sequence=0;private generation=0;private disposed=false;
   constructor(private readonly options:CharacterPreparationServiceOptions={}){
@@ -62,13 +70,21 @@ export class CharacterPreparationService {
         ||Object.keys(input.revisions).some(name=>artifact.revisions[name as keyof typeof input.revisions]!==input.revisions[name as keyof typeof input.revisions]))
         throw new Error('Seated support artifact does not match its input.');return artifact;
     }};
+    this.pool=poolContactResource({inputFactory:options.poolInputFactory,compile:(input,signal)=>this.compile({version:1,id:++this.sequence,kind:'pool',input},signal)});
   }
   private async compile(request:PreparationRequest,signal:AbortSignal):Promise<PreparationArtifact>{
+    const id=`preparation:${this.diagnosticId}:${request.id}`,started=Date.now();recordDiagnostic('worker.prepare',{id,state:'start',kind:request.kind});
     const transport=this.transport??=(this.options.transportFactory??(()=>new WorkerPreparationTransport()))();
     try{const response=await awaitPreparation(transport.run(request,signal),signal);validatePreparationResponse(response);
       if(response.id!==request.id||response.kind!==request.kind)throw new Error('Character preparation response does not match its request.');
-      if(!response.ok)throw restorePreparationFailure(response,request);return response.artifact;
-    }catch(error){transport.dispose();if(this.transport===transport)this.transport=undefined;throw attachPreparationContext(error,request,'prepare-resource');}
+      if(!response.ok)throw restorePreparationFailure(response,request);
+      recordDiagnostic('worker.prepare',{id,state:'complete',kind:request.kind,elapsedMs:Date.now()-started});return response.artifact;
+    }catch(error){
+      const cancelled=signal.aborted||isPreparationCancelled(error);
+      const failure=attachPreparationContext(error,request,'prepare-resource');
+      recordDiagnostic('worker.prepare',{id,state:cancelled?'complete':'failed',kind:request.kind,cancelled,elapsedMs:Date.now()-started},cancelled?undefined:failure);
+      transport.dispose();if(this.transport===transport)this.transport=undefined;throw failure;}
+
   }
   acquire(owner:string,appearance:CharacterAppearanceV1):CharacterPreparationLease {
     if(this.disposed)throw new Error('The character preparation service is disposed.');
@@ -76,7 +92,7 @@ export class CharacterPreparationService {
     const key=characterPreparationKey(appearance),previous=this.owners.get(owner);
     if(previous&&!previous.closed&&previous.failure===undefined&&previous.lease.appearanceKey===key)return previous.lease;
     const requested=structuredClone(appearance);
-    const parts=[this.queue.acquire(owner+':bike',requested,this.bike),this.queue.acquire(owner+':sleep',requested,this.sleep),this.queue.acquire(owner+':seat',requested,this.seat)];
+    const parts=[this.queue.acquire(owner+':bike',requested,this.bike),this.queue.acquire(owner+':sleep',requested,this.sleep),this.queue.acquire(owner+':seat',requested,this.seat),this.queue.acquire(owner+':pool',requested,this.pool)];
     let resolve!:(value:CharacterPreparation)=>void,reject!:(error:unknown)=>void;
     const ready=new Promise<CharacterPreparation>((yes,no)=>{resolve=yes;reject=no;});void ready.catch(()=>{});
     let record:Owner;
@@ -94,7 +110,8 @@ export class CharacterPreparationService {
     const bike=this.queue.require(owner+':bike',this.bike.key(appearance)) as BikeContactArtifactV1|undefined;
     const sleep=this.queue.require(owner+':sleep',this.sleep.key(appearance)) as SleepContactArtifactV1|undefined;
     const seat=this.queue.require(owner+':seat',this.seat.key(appearance)) as SeatContactArtifactV1|undefined;
-    return bike&&sleep&&seat?Object.freeze({bike,sleep,seat}):undefined;
+    const pool=this.queue.require(owner+':pool',this.pool.key(appearance)) as PoolContactArtifactV1|undefined;
+    return bike&&sleep&&seat&&pool?Object.freeze({bike,sleep,seat,pool}):undefined;
   }
   require(owner:string,appearance:CharacterAppearanceV1):CharacterPreparation {
     const record=this.owners.get(owner);

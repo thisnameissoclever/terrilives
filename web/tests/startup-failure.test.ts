@@ -19,6 +19,13 @@ import {
   renderStartupFailure,
 } from '../src/ui/startup-failure';
 
+it('keeps delivery metadata in the report while showing the short download error',()=>{
+  const notice=describeStartupFailure(new Error('Character asset could not load: 503 /asset.bin\nResponse: {"body":"service refused"}'),{webgpu:true,secure:true});
+  expect(notice.detail).toBe('Character asset could not load: 503 /asset.bin');
+  expect(describeStartupFailure(new Error('Other failure\nResponse: keep this'),{webgpu:true,secure:true}).detail)
+    .toBe('Other failure\nResponse: keep this');
+});
+
 /**
  * The renderer only needs this narrow piece of the DOM. Keeping the fake here
  * tests the accessibility contract without buying a browser-sized dependency
@@ -185,7 +192,12 @@ describe('renderStartupFailure', () => {
     expect(card.getAttribute('inert')).toBeNull();
     expect(document.activeElement).toBe(card);
 
-    const [title, detail, hints] = card.children;
+    const [title, detail, hints, sharing, status, manual, tim, report] = card.children;
+    expect(sharing.children.map(child=>child.textContent)).toEqual(['Copy debug details','Email Tim']);
+    expect(status.id).toBe('startup-report-share-status');expect(manual.id).toBe('startup-report-manual');
+    expect(tim.textContent).toContain("He's gr8.");
+    expect(report.textContent).toBe('Startup report');
+    expect(report.getAttribute('href')).toBe('./startup-report.html');
     expect(title.id).toBe('startup-failure-title');
     expect(title.textContent).toBe('The game failed to start');
     expect(detail.id).toBe('startup-failure-detail');

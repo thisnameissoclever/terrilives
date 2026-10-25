@@ -422,6 +422,20 @@ pub struct TuningFile {
     pub career_mood_demoted_ticks: u32,
     /// How many ticks the Fired moodlet lasts.
     pub career_mood_fired_ticks: u32,
+    // Shifts (issue 296, `docs/specs/2026-10-18-shifts-and-careers.md`,
+    // [WS-sleep] and [WS-search]), appended after the career knobs in this
+    // order.
+    /// Ticks added to the sleep rhythm while holding a day shift, -720 to 720.
+    pub shift_sleep_offset_day: i32,
+    /// Ticks added to the sleep rhythm while holding an early shift.
+    pub shift_sleep_offset_early: i32,
+    /// Ticks added to the sleep rhythm while holding a late shift.
+    pub shift_sleep_offset_late: i32,
+    /// Ticks added to the sleep rhythm while holding a night shift.
+    pub shift_sleep_offset_night: i32,
+    /// How far the job search spreads its choice of path over fit, 0 to 2;
+    /// 0 is the best-fit search with no draw.
+    pub career_search_temperature: f32,
     /// Optional extension; historical packs retain their existing wire records.
     #[serde(default)]
     pub autonomy: Option<crate::AutonomyTuning>,
@@ -1431,9 +1445,48 @@ pub struct CareerDef {
     /// the work.
     #[serde(default)]
     pub traits: std::collections::BTreeMap<String, f32>,
+    /// The kind of every level's own shift, by name from
+    /// [`SHIFT_KIND_NAMES`]. Defaults to `day` ([WS-model] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`).
+    #[serde(default = "default_standard_shift")]
+    pub standard_shift: String,
+    /// The path's other shifts, which a level offers by naming them in
+    /// its `shift_weights`.
+    #[serde(default)]
+    pub shift: Vec<CareerShiftDef>,
     /// The titled levels, lowest first. At least one.
     #[serde(default)]
     pub level: Vec<CareerLevelDef>,
+}
+
+fn default_standard_shift() -> String {
+    SHIFT_KIND_NAMES[0].to_string()
+}
+
+/// The four shift kinds, numbered in this order: day 0, early 1, late 2
+/// and night 3 ([WS-model]).
+pub const SHIFT_KIND_NAMES: [&str; 4] = ["day", "early", "late", "night"];
+
+/// The shift id a level's `shift_weights` uses for the level's own shift.
+/// No path shift may take it.
+pub const STANDARD_SHIFT_ID: &str = "standard";
+
+/// One of a path's other shifts ([WS-model]): validated as a level's own
+/// shift is.
+#[derive(Debug, Deserialize)]
+pub struct CareerShiftDef {
+    /// Unique within the path, never `standard`. A save names a held
+    /// shift by this id, so content never deletes a shipped one; it sets
+    /// its weight to 0 instead.
+    pub id: String,
+    /// The kind, by name from [`SHIFT_KIND_NAMES`].
+    pub kind: String,
+    /// The tick of day the shift begins, in `0..day_ticks`.
+    pub shift_start: u32,
+    /// How long the sim is gone, in ticks, from 1 to below `day_ticks`.
+    pub shift_ticks: u32,
+    /// The weekdays the shift runs, by name from [`WEEKDAY_NAMES`].
+    pub working_days: Vec<String>,
 }
 
 /// One titled level of a path: a job. The shift fields are what a career
@@ -1471,6 +1524,12 @@ pub struct CareerLevelDef {
     /// 1 to 52. Required, so a level cannot quietly promote after one
     /// good week nobody chose.
     pub advance_weeks: u32,
+    /// Shift id to weight, 0 to 1000: how likely a hire at this level is
+    /// to draw each shift. `standard` names the level's own shift; the
+    /// other keys name the path's shifts. Absent means `{ standard = 1 }`.
+    /// A weight of 0 is never drawn or offered but can still be held.
+    #[serde(default)]
+    pub shift_weights: Option<BTreeMap<String, u32>>,
 }
 
 /// The weekday names `working_days` accepts, Monday first. A name's index
@@ -1622,7 +1681,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 148] = [
+    const TUNING_LINES: [(&str, &str); 153] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1714,6 +1773,11 @@ mod tests {
         ("career_mood_promoted_ticks", "1400"),
         ("career_mood_demoted_ticks", "2800"),
         ("career_mood_fired_ticks", "5700"),
+        ("shift_sleep_offset_day", "-7"),
+        ("shift_sleep_offset_early", "-65"),
+        ("shift_sleep_offset_late", "115"),
+        ("shift_sleep_offset_night", "655"),
+        ("career_search_temperature", "0.3125"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -1870,6 +1934,11 @@ mod tests {
         assert_eq!(parsed.career_review_noise, 9.5);
         assert_eq!(parsed.career_search_tick, 12);
         assert_eq!(parsed.career_mood_fired_ticks, 5700);
+        assert_eq!(parsed.shift_sleep_offset_day, -7);
+        assert_eq!(parsed.shift_sleep_offset_early, -65);
+        assert_eq!(parsed.shift_sleep_offset_late, 115);
+        assert_eq!(parsed.shift_sleep_offset_night, 655);
+        assert_eq!(parsed.career_search_temperature, 0.3125);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(

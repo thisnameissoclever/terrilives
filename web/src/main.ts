@@ -1,3 +1,4 @@
+import {recordDiagnostic} from './diagnostics.js';
 import { setActionIntent } from './ui/action-intent.js';
 import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
@@ -119,6 +120,7 @@ import { canvasToClient } from './input.js';
 import { createCompactBuildLayout } from './ui/build-layout.js';
 import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
+import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
@@ -128,6 +130,10 @@ import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confi
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
+import { ActivityLogStore } from './ui/activity-log-store.js';
+import {
+  ActivityLogNames, ActivityLogPanel, activityLogElements, attachActivityLogPanel, createActivityLogView, rememberingNames,
+} from './ui/activity-log-panel.js';
 import { showGameVersion } from './ui/game-version.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
@@ -249,6 +255,26 @@ export interface StressHandle {
   /** Sampler-only timings. A 540-sample ring discards 60 warm-up ticks. */
   readonly footstepSampler: FrameTimer;
   readonly footstepSampling: boolean;
+  /**
+   * Sampler-only timings of the activity log's per-frame work: the store's
+   * drain plus the panel's update, one sample per rendered frame. Read by
+   * `scripts/activity-log-proof.cjs` for [AL-perf].
+   */
+  readonly activityLogSampler: FrameTimer;
+  /** The activity log's bounded state, for the same proof. */
+  readonly activityLog: {
+    /** Records drained since the last reset, including any since overwritten. */
+    readonly drained: number;
+    /** Records the store holds, at most its capacity. */
+    readonly held: number;
+    readonly capacity: number;
+    /** Records the simulation's staging ring overwrote before a drain. */
+    readonly dropped: number;
+    readonly open: boolean;
+    /** Rebuilds the panel deferred out of a frame for a selection change, and the latest one's time. */
+    readonly deferredRebuilds: number;
+    readonly lastDeferredRebuildMs: number;
+  };
   readonly entities: number;
   /** Current WASM linear-memory size, read live after any growth. */
   readonly wasmMemoryBytes: number;
@@ -497,8 +523,7 @@ async function main(): Promise<void> {
   try {
     // The files are the sprite pages plus the click-area data, which loads
     // alongside them. The last file is followed by the renderer's own setup,
-    // which is long enough on a phone that "43 of 43" sitting still reads as
-    // a hang.
+    // which can otherwise look like a finished download that has stalled.
     renderer = await SpriteRenderer.create(gpu, architectureAtlas, {
       files: (done, total) => {
         if (done < total) loading.files(done, total);
@@ -522,6 +547,12 @@ async function main(): Promise<void> {
   await afterPaint();
 
   const bookResults = new BookResults(sim);
+  // [AL-bridge]: the session's activity log, drained every frame whether
+  // or not its panel is open. `?activitylog=0` is the disabled baseline
+  // the performance budget compares against.
+  const activityLogStore = new ActivityLogStore();
+  const activityLogNames = new ActivityLogNames();
+  if (new URLSearchParams(location.search).get('activitylog') === '0') sim.setActivityLogEnabled(false);
   let lotWidth = handle.lot_width();
   let lotHeight = handle.lot_height();
   // Checked rather than assumed. An empty lot is not a crash: it renders
@@ -591,6 +622,13 @@ async function main(): Promise<void> {
     stressParam === null ||
     new URLSearchParams(location.search).get('audio') !== '0';
   const footstepSamplerTimer = stressParam === null ? null : new FrameTimer(540);
+  // Present only under `?stress=N`, so the shipping frame takes no extra
+  // clock reads for the activity log's [AL-perf] measurement.
+  const activityLogSamplerTimer = stressParam === null ? null : new FrameTimer(FRAME_WINDOW);
+  // Under `?stress=N`, the time of the latest rebuild the panel deferred out
+  // of a frame for a selection change, and how many have run.
+  let activityLogDeferredRebuilds = 0;
+  let activityLogLastDeferredRebuildMs = 0;
   const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
   // Probe accepted floor cells, then stack filler there. Edge-mode spawning
@@ -826,6 +864,9 @@ async function main(): Promise<void> {
     assign: () => careerPanel.assign(),
     quit: () => careerPanel.quit(),
     setJobSearch: search => careerPanel.setJobSearch(search),
+    chooseShift: shift => careerPanel.chooseShift(shift),
+    chooseChange: shift => careerPanel.chooseChange(shift),
+    changeShift: () => careerPanel.changeShift(),
   });
   const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
     () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);
@@ -897,7 +938,10 @@ async function main(): Promise<void> {
   const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
   const compactBuildQuery = window.matchMedia('(max-width: 700px), (max-height: 480px)');
   const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
-  const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close());
+  const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => {
+    optionsMenu.close();
+    activityLogPanel.close();
+  });
   compactHud.setCompact(compactHudQuery.matches);
   const dockActivity = document.getElementById('dock-activity');
   const dockTraitsEmpty = document.getElementById('dock-traits-empty');
@@ -947,7 +991,7 @@ async function main(): Promise<void> {
   const gameVersion = document.getElementById('game-version');
   if (!gameVersion) throw new Error('missing the game version line');
   showGameVersion(gameVersion);
-  optionsToggle.addEventListener('click', () => compactHud.close());
+  optionsToggle.addEventListener('click', () => { compactHud.close(); activityLogPanel.close(); });
   const optionsClose = document.getElementById('options-close');
   if (!optionsClose) throw new Error('missing Options close button');
   optionsClose.addEventListener('click', () => { optionsMenu.close(); optionsToggle.focus(); });
@@ -970,8 +1014,42 @@ async function main(): Promise<void> {
     optionsToggle,
     optionsMenu,
     // Any open dialog owns Escape, even when focus has fallen to the page.
-    (target) => document.querySelector('dialog[open]') !== null
+    (target) => document.querySelector('dialog[open], dialog:popover-open') !== null
       || (target instanceof Element && target.closest('dialog') !== null),
+  );
+  // [AL-panel]: the Log toggle at the top right and its right-side panel.
+  // Opening it closes Options and Sim details; opening either closes it.
+  const activityLogDom = activityLogElements(document);
+  const activityLogPanel = new ActivityLogPanel({
+    store: activityLogStore,
+    view: createActivityLogView(document, activityLogDom),
+    names: activityLogNames,
+    labels: () => sim.activityLogLabels(),
+    bands: () => sim.activityLogReactionBands(),
+    dayTicks: sim.dayTicks(),
+    // The roster's own read, at the same cadence: no steady simIdOf call.
+    selected: () => activityLogNames.selected(),
+    room: (kind, target) => sim.choreLocation(kind, target),
+    onOpen: () => { optionsMenu.close(); compactHud.close(); },
+    defer: stressParam === null
+      ? task => { setTimeout(task, 0); }
+      : task => {
+        setTimeout(() => {
+          const startedMs = performance.now();
+          task();
+          activityLogLastDeferredRebuildMs = performance.now() - startedMs;
+          activityLogDeferredRebuilds++;
+        }, 0);
+      },
+  });
+  attachActivityLogPanel(
+    document,
+    activityLogDom,
+    activityLogPanel,
+    // A dialog and the object menu keep Escape, as they do for Sim details.
+    (target) => document.querySelector('dialog[open], dialog:popover-open') !== null
+      || (target instanceof Element && target.closest('dialog') !== null)
+      || menuRoot?.hidden === false,
   );
   compactHudQuery.addEventListener('change', (event) => {
     compactHud.setCompact(event.matches);
@@ -1004,7 +1082,7 @@ async function main(): Promise<void> {
   );
   const householdRoster = new HouseholdRoster(
     sim,
-    createHouseholdRosterSurface(document, householdRosterRoot),
+    rememberingNames(createHouseholdRosterSurface(document, householdRosterRoot), activityLogNames),
     sim.needBarRefreshMs(),
     () => {
       commandStatus.textContent = 'That person could not be selected';
@@ -1086,6 +1164,11 @@ async function main(): Promise<void> {
 
   const saveButton = document.querySelector<HTMLButtonElement>('#save-game');
   const loadButton = document.querySelector<HTMLButtonElement>('#load-game');
+  const exportSaveButton = document.querySelector<HTMLButtonElement>('#export-save');
+  const importSaveButton = document.querySelector<HTMLButtonElement>('#import-save');
+  const importSaveFile = document.querySelector<HTMLInputElement>('#import-save-file');
+  const importSaveDialog = document.querySelector<HTMLDialogElement>('#import-save-dialog');
+  const confirmImportSave = document.querySelector<HTMLButtonElement>('#confirm-import-save');
   const stopOrdersButton = document.querySelector<HTMLButtonElement>('#stop-orders');
   const queueButton = document.querySelector<HTMLButtonElement>('#queue-mode');
   const lightingModeButton = document.querySelector<HTMLButtonElement>('#lighting-mode');
@@ -1111,6 +1194,11 @@ async function main(): Promise<void> {
   if (
     !saveButton ||
     !loadButton ||
+    !exportSaveButton ||
+    !importSaveButton ||
+    !importSaveFile ||
+    !importSaveDialog ||
+    !confirmImportSave ||
     !stopOrdersButton ||
     !queueButton ||
     !lightingModeButton ||
@@ -1154,14 +1242,17 @@ async function main(): Promise<void> {
   let persistenceControlKey = '';
   const syncPersistenceButtons = (): void => {
     const state = persistence.controlState();
-    const key = `${state.saveDisabled}:${state.loadDisabled}:${state.newGameDisabled}:${state.confirmationDisabled}`;
+    const key = `${state.saveDisabled}:${state.loadDisabled}:${state.newGameDisabled}:${state.exportDisabled}:${state.importDisabled}:${state.confirmationDisabled}`;
     if (key === persistenceControlKey) return;
     applyPersistenceControlState(state, {
       save: saveButton,
       load: loadButton,
       newGame: newGameButton,
+      exportSave: exportSaveButton,
+      importSave: importSaveButton,
       confirmLoad: confirmLoadGame,
       confirmNewGame,
+      confirmImport: confirmImportSave,
     });
     persistenceControlKey = key;
   };
@@ -1210,6 +1301,66 @@ async function main(): Promise<void> {
     restorePersistenceFocus(document, loadGameDialog, optionsToggle, persistenceFocusFallbacks);
     overlayPause.resume('load-game');
   });
+  // Load and Import both replace the world, so both refresh every view of it.
+  const adoptLoadedWorld = (): void => {
+      wallFade.reset();
+      adoptLotShape();
+      lot.walls = sim.wallTiles();
+      lot.edges = sim.wallEdges();
+      lot.windows = sim.windowLines();
+      lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
+      // [FL-draw]: the loaded house's own painted tiles. Without this the
+      // previous game's floors stayed on screen, and on a lot of another
+      // height they landed on unrelated tiles, because the renderer keys
+      // the list by height.
+      lot.floors = sim.floorTiles();
+      lot.surfaces = sim.worldSurfaces();
+      lot.doors = sim.interiorDoorLines();
+      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
+      lot.frontDoors = sim.frontDoorLines();
+      // A world saved before the yard that never grew has no street.
+      lot.street = sim.streetColumn();
+      // A restored world may reuse entity indices for different live
+      // entities. Discard every transient action that names the old world.
+      lightingDirty = true;
+      cameraDirty = true;
+      menu.close();
+      keyboardTargets.clear();
+      bookResults.resetAfterLoad();
+      activityLogStore.resetAfterLoad();
+      activityLogPanel.resetAfterLoad();
+      orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
+      commandStatus.textContent = '';
+      commandStatus.removeAttribute('data-kind');
+      bookCommerce.resetAfterLoad();
+      builder.resetAfterLoad();
+      // [ES-form]: a draft names a person of the replaced world, so
+      // close it before the form returns to create mode.
+      if (housemateDialog.open) housemateDialog.close('cancel');
+      housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
+      characterWorld.reset();characterWorld.prepareFixtures(sim);
+      bedAssignmentPanel.resetAfterLoad();
+      careerPanel.resetAfterLoad();
+      syncNewHousemateButton();
+      syncEditHousemateButton();
+      wallTool.resetAfterLoad(lotWidth, lotHeight);
+      windowTool.resetAfterLoad(lotWidth, lotHeight);
+      buyTool.resetAfterLoad(lotWidth, lotHeight);
+      roomTool.resetAfterLoad(lotWidth, lotHeight);
+      floorTool.resetAfterLoad(lotWidth, lotHeight);
+      landTool.resetAfterLoad(lotWidth, lotHeight);
+      audio.reset('load');
+      const nowMs = performance.now();
+      householdRoster.update(nowMs, true);
+      peoplePanel.update(nowMs, true);
+      moodPanel.update(nowMs, true);
+      traitsPanel.update(nowMs, true);
+      personalDetailsPanel.update(nowMs, true);
+      skillsPanel.update(nowMs, true);
+      affinitiesPanel.update(nowMs, true);
+      bedAssignmentPanel.update(nowMs, true);
+      careerPanel.update(nowMs, true);
+  };
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
     // before the browser's method=dialog default action can cancel that action
@@ -1224,60 +1375,7 @@ async function main(): Promise<void> {
     syncPersistenceButtons();
     void loading
       .then((loaded) => {
-        if (loaded) {
-          wallFade.reset();
-          adoptLotShape();
-          lot.walls = sim.wallTiles();
-          lot.edges = sim.wallEdges();
-          lot.windows = sim.windowLines();
-          lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
-          // [FL-draw]: the loaded house's own painted tiles. Without this the
-          // previous game's floors stayed on screen, and on a lot of another
-          // height they landed on unrelated tiles, because the renderer keys
-          // the list by height.
-          lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces();
-          lot.doors = sim.interiorDoorLines();
-          lot.horizontalDoors = sim.interiorHorizontalDoorLines();
-          lot.frontDoors = sim.frontDoorLines();
-          // A world saved before the yard that never grew has no street.
-          lot.street = sim.streetColumn();
-          // A restored world may reuse entity indices for different live
-          // entities. Discard every transient action that names the old world.
-          lightingDirty = true;
-          cameraDirty = true;
-          menu.close();
-          keyboardTargets.clear();
-          bookResults.resetAfterLoad();
-          orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
-          bookCommerce.resetAfterLoad();
-          builder.resetAfterLoad();
-          // [ES-form]: a draft names a person of the replaced world, so
-          // close it before the form returns to create mode.
-          if (housemateDialog.open) housemateDialog.close('cancel');
-          housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
-          characterWorld.reset();characterWorld.prepareFixtures(sim);
-          bedAssignmentPanel.resetAfterLoad();
-          careerPanel.resetAfterLoad();
-          syncNewHousemateButton();
-          syncEditHousemateButton();
-          wallTool.resetAfterLoad(lotWidth, lotHeight);
-          windowTool.resetAfterLoad(lotWidth, lotHeight);
-          buyTool.resetAfterLoad(lotWidth, lotHeight);
-          roomTool.resetAfterLoad(lotWidth, lotHeight);
-          floorTool.resetAfterLoad(lotWidth, lotHeight);
-          landTool.resetAfterLoad(lotWidth, lotHeight);
-          audio.reset('load');
-          const nowMs = performance.now();
-          householdRoster.update(nowMs, true);
-          peoplePanel.update(nowMs, true);
-          moodPanel.update(nowMs, true);
-          traitsPanel.update(nowMs, true);
-          personalDetailsPanel.update(nowMs, true);
-          skillsPanel.update(nowMs, true);
-          affinitiesPanel.update(nowMs, true);
-          bedAssignmentPanel.update(nowMs, true);
-          careerPanel.update(nowMs, true);
-        }
+        if (loaded) adoptLoadedWorld();
       })
       .finally(() => {
         loadingGame = false;
@@ -1289,6 +1387,81 @@ async function main(): Promise<void> {
           persistenceFocusFallbacks,
         );
         overlayPause.resume('load-game');
+      });
+  });
+  exportSaveButton.addEventListener('click', () => {
+    const exporting = persistence.exportSave((bytes) =>
+      downloadSaveFile(bytes, saveFileName(new Date())),
+    );
+    syncPersistenceButtons();
+    void exporting.then(() => syncPersistenceButtons());
+  });
+  // The chosen file waits here while the player confirms. Clearing the input
+  // lets the same file be chosen again after a cancel.
+  let pendingImport: Uint8Array | null = null;
+  let importingSave = false;
+  let readingImportFile = false;
+  importSaveButton.addEventListener('click', () => {
+    importSaveFile.value = '';
+    importSaveFile.click();
+  });
+  importSaveFile.addEventListener('change', () => {
+    const file = importSaveFile.files?.[0];
+    importSaveFile.value = '';
+    // One file at a time: a second choice while the first is still being read
+    // or confirmed would replace it silently.
+    if (!file || readingImportFile || importSaveDialog.open) return;
+    readingImportFile = true;
+    // Check the header before reading the rest, so a mistakenly chosen photo
+    // or video is never loaded into memory.
+    void readSaveFile(file.slice(0, SAVE_FILE_PREFIX_BYTES))
+      .then(async (prefix) => {
+        if (!persistence.acceptImportFile(prefix)) return;
+        const bytes = await readSaveFile(file);
+        pendingImport = bytes;
+        optionsMenu.close();
+        menu.close(); overlayPause.suspend('import-save');
+        importSaveDialog.showModal();
+      })
+      .catch((error: unknown) => persistence.importFileUnreadable(error))
+      .finally(() => {
+        readingImportFile = false;
+      });
+  });
+  importSaveDialog.addEventListener('close', () => {
+    if (importingSave) return;
+    pendingImport = null;
+    restorePersistenceFocus(document, importSaveDialog, optionsToggle, persistenceFocusFallbacks);
+    overlayPause.resume('import-save');
+  });
+  confirmImportSave.addEventListener('click', (event) => {
+    // Same ordering rule as Load: close the dialog before the operation lock
+    // disables this button.
+    event.preventDefault();
+    const bytes = pendingImport;
+    pendingImport = null;
+    if (!bytes) {
+      importSaveDialog.close('cancel');
+      return;
+    }
+    importingSave = true;
+    importSaveDialog.close('confirm');
+    const importing = persistence.importSave(bytes);
+    syncPersistenceButtons();
+    void importing
+      .then((loaded) => {
+        if (loaded) adoptLoadedWorld();
+      })
+      .finally(() => {
+        importingSave = false;
+        syncPersistenceButtons();
+        restorePersistenceFocus(
+          document,
+          importSaveDialog,
+          optionsToggle,
+          persistenceFocusFallbacks,
+        );
+        overlayPause.resume('import-save');
       });
   });
   let housemateOpener: HTMLButtonElement = optionsToggle;
@@ -1980,12 +2153,14 @@ async function main(): Promise<void> {
     document.querySelector<HTMLElement>('#sim-dock')!.inert = buildSession.active;
     deathInput!.disabled = buildSession.active;
     careerAutonomy.setDisabled(buildSession.active);
+    activityLogPanel.setBuilding(buildSession.active);
   }
   function settleBuildControllers(): boolean {
     wallTool.afterCommands(); windowTool.afterCommands(); roomTool.afterCommands();
     floorTool.afterCommands(); buyTool.afterCommands(); landTool.afterCommands();
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
+    if (activityLogStore.drain(sim) > 0) activityLogNames.learn();
     if (builder.afterCommands()) refreshBuildArchitecture();
     return buildCommandsIdle(buildDraft);
   }
@@ -2085,7 +2260,7 @@ async function main(): Promise<void> {
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
     escapeBuild: () => { if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder); },
-    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),
+    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder') && !document.querySelector('dialog:popover-open'),
     beforeAsk: () => { optionsMenu.close(); menu.close(); },
     focusReviewReturn: () => { if (roomReview.active) document.querySelector<HTMLButtonElement>('#room-review-back')?.focus(); },
   });
@@ -2233,7 +2408,7 @@ async function main(): Promise<void> {
     focusView: () => canvas.focus(),
   });
   canvas.addEventListener('keydown', (event) => {
-    if (event.defaultPrevented) return;
+    if (event.defaultPrevented || document.querySelector('dialog:popover-open')) return;
     if (builder.active) {
       if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
         // BuildExit also reads Escape from the rest of the page.
@@ -2489,6 +2664,7 @@ async function main(): Promise<void> {
    */
   let lastBookRefreshMs = -Infinity;
   let firstSceneDrawn = false;
+  let firstSceneRecorded = false;
   function frame(nowMs: number, presenting = true): void {
     const frameEntered=performance.now();
     const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
@@ -2522,6 +2698,11 @@ async function main(): Promise<void> {
     roomTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     floorTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     landTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    // [AL-bridge]: once a frame, open or closed, so history exists when the
+    // player opens the panel.
+    const activityLogStartedMs = activityLogSamplerTimer === null ? 0 : performance.now();
+    if (activityLogStore.drain(sim) > 0) activityLogNames.learn();
+    const activityLogDrainMs = activityLogSamplerTimer === null ? 0 : performance.now() - activityLogStartedMs;
     if (roomsTool.active) selectionControls?.render();
     const roomMarker = document.querySelector<HTMLElement>('#room-map-marker')!;
     const selectedRoom = roomSelection.rooms.find(room => room.id === roomSelection.selected);
@@ -2621,6 +2802,17 @@ async function main(): Promise<void> {
         batch.annotations,
         drawWorldEffects,
       );
+      if (!firstSceneRecorded) {
+        firstSceneRecorded = true;
+        recordDiagnostic('graphics.first-frame',{id:'first-scene',state:'start'});
+        void gpu.device.queue.onSubmittedWorkDone().then(() => {
+          recordDiagnostic('graphics.first-frame',{id:'first-scene',state:'complete'});
+          window.dispatchEvent(new Event('terrilives:startup-ready'));
+        }, error => {
+          recordDiagnostic('graphics.first-frame',{id:'first-scene',state:'failed'},error);
+          window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
+        });
+      }
     }
 
     // Inside the sample below rather than outside it, deliberately: the
@@ -2643,6 +2835,13 @@ async function main(): Promise<void> {
     affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     careerPanel.update(nowMs);
+    if (activityLogSamplerTimer === null) {
+      activityLogPanel.update();
+    } else {
+      const panelStartedMs = performance.now();
+      activityLogPanel.update();
+      activityLogSamplerTimer.sample(activityLogDrainMs + performance.now() - panelStartedMs);
+    }
     if (needsUpdated) syncDockSummary();
     if (nowMs - lastBookRefreshMs >= sim.needBarRefreshMs()) {
       lastBookRefreshMs = nowMs; bookCommerce.render(builder.active ? builder.selected : null, overlayPause.suspendedExcept('builder'));
@@ -2673,6 +2872,9 @@ async function main(): Promise<void> {
     if (footstepSamplerTimer === null) {
       throw new Error('stress footstep timer was not created');
     }
+    if (activityLogSamplerTimer === null) {
+      throw new Error('stress activity log timer was not created');
+    }
     const admission=new StressCharacterAdmission(sim,characterContacts,contactRoster,async bytes=>{
       const loaded=await loadCharacters(bytes);if(loaded){characterWorld.reset();characterWorld.prepareFixtures(sim);}return loaded;
     });
@@ -2698,6 +2900,16 @@ async function main(): Promise<void> {
       timer,
       footstepSampler: footstepSamplerTimer,
       footstepSampling,
+      activityLogSampler: activityLogSamplerTimer,
+      activityLog: {
+        get drained() { return activityLogStore.total; },
+        get held() { return activityLogStore.length; },
+        capacity: activityLogStore.capacity,
+        get dropped() { return sim.activityLogDropped(); },
+        get open() { return activityLogPanel.isOpen(); },
+        get deferredRebuilds() { return activityLogDeferredRebuilds; },
+        get lastDeferredRebuildMs() { return activityLogLastDeferredRebuildMs; },
+      },
       entities: sim.count,
       get wasmMemoryBytes() {
         return wasm.memory.buffer.byteLength;
@@ -2824,6 +3036,7 @@ async function main(): Promise<void> {
     } catch (error) {
       // A throw here already ended the loop before the cover existed; the
       // cover must not then hide the frozen game for good.
+      window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
       loading.finish();
       throw error;
     }
@@ -2844,6 +3057,7 @@ async function main(): Promise<void> {
 // secure context and WebGPU never existed there. The card names that
 // case in words a player can act on.
 void main().catch((error: unknown) => {
+  window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
   console.error('Natural Causes failed to start:', error);
   loading.finish();
   // A lost graphics device may already have put its own card up, which says

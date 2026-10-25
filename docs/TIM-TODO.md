@@ -472,8 +472,9 @@ quiet rejected-command feedback, fixed-tick distance footsteps, master mute,
 and Effects volume. Voices now has a separate saved volume multiplier beneath
 Effects, defaulting to the unchanged mix. Routine buttons, menus and slider releases are silent.
 Twelve recorded conversation clips play in pairs. Each conversation now starts
-and stops independently, with at most three pairs sounding at once. Sleep cues
-remain household-scoped; eating, reading and exercise cues have per-Sim cadence.
+and stops independently, with at most three pairs sounding at once. Sleep uses
+five recorded snores with household-scoped playback; eating, reading and exercise
+cues have per-Sim cadence.
 Failed conversation downloads now have bounded, demand-driven recovery without
 refetching successful clips or reviving cancelled playback. The evidence is in
 `docs/specs/2026-10-01-voice-download-recovery.md`.
@@ -500,6 +501,11 @@ ambience, alarms, music, non-conversation voices and their controls remain unbui
 The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.
+
+### [T-audio-next] Sound improvement backlog `[MINE]`
+
+The engineering backlog is in [Features: remaining sound improvements](FEATURES.md#remaining-sound-improvements).
+Implementation belongs to engineering; this pointer does not assign work to you.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 

@@ -1,0 +1,20 @@
+{
+  "base": "bc4e236d601fe68e47fd96e71a9d856726d6b6f4",
+  "sourceFileSha256": {
+    "web/public/startup-diagnostics-v3.js": "7d59411a9bcde77ce95b3c70e1dced1351cab26120db22b1c200b9ee04f9825a",
+    "web/startup-report/template.html": "14a01a7f48aa2f64964573acf3fbd914adb3ac8e7c72f5f881d88ec340349e92",
+    "web/index.html": "0063b27b44438136b68d5ad2db5d70db198ed704773bfcfa7f007e28b93939e3",
+    "web/src/diagnostics.ts": "ecd5b212d932508fc11a706b5274bf00fedd97be1cad3a761071fbb1856d136e",
+    "web/src/render/device.ts": "f69c7b8837789d373efe1e4813e84a83a43ccd6fc329f50648947e5b04f3be6a",
+    "web/src/render/character/asset-download.ts": "5091cbdd0b6cddbdc2ddf5ba2b71381a7b55e7d1be8992161c38d6cd61345ae9",
+    "web/src/render/character/character-preparation-service.ts": "bd89aba95510f11bc12d64ffba84ef9b500a840979b8fd4774b392db4bda14c8",
+    "web/src/render/character/preparation-transport.ts": "c16e056b2dd7a575e0022812ab9cc0b44aba0be505d9fb158bd9349f9357cf10",
+    "web/src/main.ts": "8be9e2e0a9784f5cbd4de18a2f7e9fa869e9d5f82510e9a1f72fb17808a4ac0b"
+  },
+  "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+  "reportHtmlSha256": "8c6c24bf145f9c904b5f2f1e5617eb13109b3ef929525ac58fbed4423d00be5d",
+  "bundle": "./assets/index-CF2EA_TM.js",
+  "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+  "browser": "Google Chrome 155, headed and muted on Windows; isolated test contexts; clipboard test double; no mail client opened",
+  "capturedProductRevision": "f002c28f64b6a363f7f43844ee3c0c08a766b8e3"
+}

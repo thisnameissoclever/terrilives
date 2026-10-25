@@ -2,7 +2,7 @@
 
 ## Find the controls {#overview}
 
-The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. On a phone, a selected person's needs are inside Sim details, then Overview. The separate down-chevron collapses the dock; the up-chevron expands it.
+The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top left and the [Log](#log) button at the top right; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. On a phone, a selected person's needs are inside Sim details, then Overview. The separate down-chevron collapses the dock; the up-chevron expands it.
 
 The paths below use the actual button and panel names. Desktop uses clicks and right-clicks; phone uses taps and long-presses. Scroll inside a panel when its content extends beyond the screen.
 
@@ -31,6 +31,20 @@ Drag the game view to pan. Use the mouse wheel on desktop or pinch on touch to z
 Choose Player guide directly below Build and Options. The link remains available during Build. The guide opens in another tab. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
 
 :::illustration guide-shortcut
+
+## Log {#log}
+
+Choose Log at the top right to see what the household has done recently. Each line starts with the person it is about, such as Tim: Read a book or Bill: Annoyed by Tim's dishes. The oldest line is at the top and the newest at the bottom; the list follows new lines while you are scrolled to the bottom. The Log does not pause the game and stays open while you play. Close, Escape or the Log button closes it. Opening Options or Sim details closes the Log, and opening the Log closes them. On a phone, the open Log covers the screen down to the dock. The Log button is hidden in Build mode.
+
+The filter buttons choose what the Log shows. Actions, Social and Career are on at first. Actions shows finished activities, chats and fights. Social shows chats, fights, activities shared with company, annoyances, deaths and how people felt about each other's chores and meals, so a missed chore that someone resents shows with the filters that start on. Chores adds the week's duties and the result of every chore, including chores done for someone else. Skills adds skill levels, and Career adds hiring, quitting and weekly reviews. Details adds numbers that compare with each other, such as opinion and Social changes. Time puts the day and time first, such as D2, T08:15. A line shows when any of its filters is on, and each filter adds its own part to the line. Your filter choices last until the page reloads.
+
+:::illustration log
+
+The Log shows the whole household. To follow one person, select them in the [Household](#household) row, then tick Only with their name, such as Only Tim, at the end of the filter row. The Log then shows only the lines that involve that person, either as the one who acted or as someone named in a shown part of the line. The checkbox follows the selected person and stays ticked until you untick it. With nobody selected, it is hidden and the Log shows everyone.
+
+:::illustration log-only
+
+The Log shows the newest 200 lines. Scroll to the top and choose Show earlier entries to add 200 more. It keeps a limited number of recent events, so the oldest events of a long session drop off. The Log is not saved: Load, New game and reloading the page empty it.
 
 ## Sim details and needs {#sim-details}
 
@@ -90,11 +104,13 @@ An object being present and another person actively using it can have different 
 
 ## Career {#career}
 
-Open Sim details, then Career. The panel shows path, title, level, pay and range, schedule, this week's score, review history and the factors used by performance.
+Open Sim details, then Career. The panel shows path, title, level, pay and range, the schedule with the shift's name, this week's score, review history and the factors used by performance.
 
-Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
+Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. Shift lists By chance first and then each shift the path's first level offers, with its days, hours and chance of being drawn; leave By chance to let the hire draw one, or pick a shift to hold it. For an employed person with more than one shift to choose from, Shift schedule shows their shift; choose another and select Change shift. Their old shift is still worked that day if it has not started yet, and the new shift, like a newly assigned job, starts on a day after the day their last shift ended; after a night shift that ends in the morning, that can be two days after the change. Changing shift resets the good weeks counted toward the next promotion. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
 
 :::illustration sim-career
+
+:::illustration career-shift
 
 Scroll to Reviews for the graph of actual events. The information button beside a Career title in Overview opens a smaller graph.
 
@@ -189,7 +205,9 @@ Choose Behind the house, Left side or Right side and inspect dimensions, price a
 
 ## Options {#options}
 
-Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, New game, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab.
+Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, Export save, Import save, New game, Report bug, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab.
+
+Report bug opens an email draft to Tim with the game version, recorded error and newest logs that fit. Review the draft and describe the problem before sending it. To copy or download the larger retained report, open [Startup report](https://natural-causes.life/startup-report.html) in the same browser. See [loading failures](start-here/#loading-failure).
 
 Light: auto follows the clock; Light: flat removes the changing light cycle. Sound mutes all sound. Effects changes the overall effects mix; Voices adjusts conversations within that mix. Opening Options does not pause the household. Escape, Close Options or a press outside closes it.
 
@@ -210,6 +228,10 @@ Choose **Load game** to restore the save. **Keep playing** dismisses the confirm
 Choose **Start over** to confirm a new game. **Keep playing** also dismisses this confirmation without replacing the household.
 
 :::illustration new-game-confirm
+
+Options, then Export save downloads the current household as a file and opens instructions for recovering a save from the old website. Follow the recovery link in the same browser, profile, and device where you played. Close the instructions with Close or Escape. Options, then Import save opens a file picker; after you choose a save file, a confirmation appears before the running game and this browser's saved game are replaced. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
+
+:::illustration import-confirm
 
 ## Help and the full guide {#help}
 

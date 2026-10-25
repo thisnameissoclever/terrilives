@@ -32,7 +32,7 @@ pub(crate) fn capture_world(world: &World) -> SaveSnapshotV6 {
                 command,
                 terri_core::SimCommand::Character(_)
                     | terri_core::SimCommand::ConfirmedOrder { .. }
-            ) && !super::v18::is_queued_setting(command)
+            ) && !super::v18::left_out_of_records(command)
         })
         .map(|c| match c {
             terri_core::SimCommand::Book(book) => Some(book.clone()),

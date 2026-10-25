@@ -3,6 +3,7 @@ import library from '../../../../assets/models/sims/character-creator/clips/clip
 import { loadGeometryAssets, type Bundle, type Geometry } from './bundle.js';
 import { combineClipFamily, prepareClipFamily, type CharacterRig, type ClipLibrary, type ClipParts } from './clip-runtime.js';
 import {prepareMopHandVariant,withBodyVariants,type CharacterBodyVariant} from './body-variants.js';
+import {readCharacterAsset} from './asset-download.js';
 
 const files = import.meta.glob<string>('../../../../assets/models/sims/character-creator/{export,clips/**}/runtime*.bin', { eager: true, query: '?url', import: 'default' });
 const partsFiles = import.meta.glob<string>('../../../../assets/models/sims/character-creator/clips/*/parts.json', { eager: true, query: '?url', import: 'default' });
@@ -25,8 +26,7 @@ async function loadFamily(family:string){
       const geometry=await loadCreatorGeometry();
       const url=Object.entries(partsFiles).find(([path])=>path.endsWith(`/${family}/parts.json`))?.[1];
       if(!url)throw new Error(`No creator clip geometry: ${family}`);
-      const response=await fetch(url);if(!response.ok)throw new Error(`Creator clip cannot load: ${family}`);
-      const parts=await response.json() as ClipParts;
+      const parts=JSON.parse(new TextDecoder().decode(await readCharacterAsset(new URL(url,location.href)))) as ClipParts;
       const raw=parts.geometry?await loadGeometryAssets({...geometry.manifest,original:parts.geometry,runtime:parts.geometry,materials:parts.materials},urlsFor(`clips/${family}`)):null;
       return {rig:prepareClipFamily(geometry,raw,parts,creatorClips,family),parts,raw};
     })().catch(error=>{rigs.delete(family);throw error;});

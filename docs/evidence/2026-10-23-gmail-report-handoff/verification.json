@@ -1,0 +1,26 @@
+{
+  "observedUserFailure": {
+    "mailtoCharacters": 7966,
+    "gmailRequestCharacters": 10541,
+    "visibleError": "Bad Request / Error 400"
+  },
+  "controlledBaseline": {
+    "mailtoCharacters": 7975,
+    "gmailRequestCharacters": 11031,
+    "visibleError": "Bad Request / Error 400"
+  },
+  "repaired": {
+    "mailtoCharacters": 5182,
+    "gmailRequestCharacters": 7218,
+    "recipient": "bugreport@stfuai.com",
+    "recipientVisible": true,
+    "subject": "[Bug report] Natural Causes v1.0.0",
+    "bodyMatchesCompletely": true,
+    "errorFirst": true,
+    "causePresent": true,
+    "newestLogPresent": true,
+    "footerPresent": true
+  },
+  "method": "App-generated mailto URI wrapped using the configured Gmail handler URL; actual authenticated Gmail compose fields inspected. Browser automation interrupts external-scheme clicks, so the generated handler URL was navigated directly.",
+  "sent": false
+}

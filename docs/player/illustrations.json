@@ -51,6 +51,11 @@
       "desktop": "images/guide/sim-career-desktop.png",
       "mobile": "images/guide/sim-career-mobile.png"
     },
+    "career-shift": {
+      "title": "Career shift controls",
+      "desktop": "images/guide/career-shift-desktop.png",
+      "mobile": "images/guide/career-shift-mobile.png"
+    },
     "career-review": {
       "title": "Career review",
       "desktop": "images/guide/career-review-desktop.png",
@@ -133,8 +138,8 @@
     },
     "options": {
       "title": "Options",
-      "desktop": "images/ui-options-detail-desktop.png",
-      "mobile": "images/ui-options-detail-mobile.png"
+      "desktop": "images/debug-report-options-desktop.png",
+      "mobile": "images/debug-report-options-mobile.png"
     },
     "load-confirm": {
       "title": "Load game confirmation",
@@ -145,6 +150,11 @@
       "title": "New game confirmation",
       "desktop": "images/guide/new-game-confirm-desktop.png",
       "mobile": "images/guide/new-game-confirm-mobile.png"
+    },
+    "import-confirm": {
+      "title": "Import save confirmation",
+      "desktop": "images/guide/import-confirm-desktop.png",
+      "mobile": "images/guide/import-confirm-mobile.png"
     },
     "help": {
       "title": "Help",
@@ -221,6 +231,26 @@
       "title": "Household",
       "desktop": "images/guide/household-desktop.png",
       "mobile": "images/guide/household-mobile.png"
+    },
+    "startup-report-sharing": {
+      "title": "Sending a startup report",
+      "desktop": "images/debug-report-sharing-desktop.png",
+      "mobile": "images/debug-report-sharing-mobile.png"
+    },
+    "log": {
+      "title": "Log",
+      "desktop": "images/guide/log-desktop.png",
+      "mobile": "images/guide/log-mobile.png"
+    },
+    "log-only": {
+      "title": "Log with Only ticked",
+      "desktop": "images/guide/log-only-desktop.png",
+      "mobile": "images/guide/log-only-mobile.png"
+    },
+    "save-recovery": {
+      "title": "Recover a save from the old website",
+      "desktop": "images/guide/save-recovery-desktop.jpg",
+      "mobile": "images/guide/save-recovery-mobile.jpg"
     }
   },
   "crops": [
@@ -645,13 +675,13 @@
       "source": "images/ui-sim-career-desktop.png",
       "rect": {
         "x": 899,
-        "y": 438,
+        "y": 429,
         "width": 360,
         "height": 420
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "bdf2fb33c876b9e30988d4cc3067b51dc3bd212f2af635b8c5cf27d1fc9ba9a4",
-      "outputSha256": "d8a8e08cb8378b01a9caa55bfa3eb281f5489dd25a404c76afc0472ebebb3c73"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
+      "outputSha256": "9bc2a4dca63097e2e307d97de64942e75c67166d34bda4461a9a53cc62577477"
     },
     {
       "output": "images/guide/sim-career-mobile.png",
@@ -662,22 +692,48 @@
         "width": 374,
         "height": 420
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "5b89eba9b5c5dcf6bc29135229608af891d58afbd388addf93fd441ece98c0b2",
-      "outputSha256": "b63a57c8c09bbfdae13b04e69d61adda0192ce0e90f7a809432a49c680c5d142"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
+      "outputSha256": "76e63574fbeb8bd7b5859c3090f228133756a42696050b2824957addd1343f12"
+    },
+    {
+      "output": "images/guide/career-shift-desktop.png",
+      "source": "images/ui-career-shift-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 545,
+        "width": 360,
+        "height": 301
+      },
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
+      "outputSha256": "e58a8cb2a49da9b25287c077829164aea54582f39ad5cd82c3bdd86244ae383e"
+    },
+    {
+      "output": "images/guide/career-shift-mobile.png",
+      "source": "images/ui-career-shift-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 366,
+        "width": 374,
+        "height": 301
+      },
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752",
+      "outputSha256": "91ecbb250c17ae0703834035577f040aeafa6be636aca2c7c19539eb510587ac"
     },
     {
       "output": "images/guide/career-review-desktop.png",
       "source": "images/ui-career-review-desktop.png",
       "rect": {
         "x": 899,
-        "y": 438,
+        "y": 429,
         "width": 360,
         "height": 420
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "fbf41374b0c2003191f633f779300eb3a0d58821152a9cfb883c5f8b5c643123",
-      "outputSha256": "5277149e83707434168ef1973d6be89ec789c05933ae31f28cec09dcfbc98eec"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
+      "outputSha256": "f17fdfcf94cc156211de612b99fb9859e321d6ffb0e0ca665a6742ff855e6fb0"
     },
     {
       "output": "images/guide/career-review-mobile.png",
@@ -686,11 +742,11 @@
         "x": 8,
         "y": 250,
         "width": 374,
-        "height": 420
+        "height": 409
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "50eda1535034f6148102aebb11d9f2b0e443897f6720f2074100b7a58f5255c8",
-      "outputSha256": "9c4f8840f4d0ca3c16f59a7a193038102b5b9cd66e0e7d757d5843e0e0c649f8"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e",
+      "outputSha256": "af64c472ac5acdbae212e61463096738d52a0ec7079632ab971bf542db426953"
     },
     {
       "output": "images/guide/chores-board-desktop.png",
@@ -1009,6 +1065,32 @@
       "outputSha256": "323c941b9b3615e0a823c309ac18c9f3b1952ab093389ee34da8478ad23a918c"
     },
     {
+      "output": "images/guide/import-confirm-desktop.png",
+      "source": "images/ui-import-confirm-desktop.png",
+      "rect": {
+        "x": 540,
+        "y": 391,
+        "width": 360,
+        "height": 178
+      },
+      "method": "Pillow crop of the source image at 1:1 size around the measured dialog box; no scaling or color changes",
+      "sourceSha256": "545eac6f6e211150905084b34990ef9454adc932c9dee73c0c98c7a4b37fd0c0",
+      "outputSha256": "bc31eb6f527d8115aa38ee3feeeeec7d2fb6304e0e52c5f16593854ca892db97"
+    },
+    {
+      "output": "images/guide/import-confirm-mobile.png",
+      "source": "images/ui-import-confirm-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 333,
+        "width": 358,
+        "height": 178
+      },
+      "method": "Pillow crop of the source image at 1:1 size around the measured dialog box; no scaling or color changes",
+      "sourceSha256": "1d635066fb621a64a40d993989d61ba9b508620ae019ffbe99cc3ffc409836a4",
+      "outputSha256": "f20cefe9c66f54bf10c31a5772447827265145e3a8b9016d65c2191045bd80e9"
+    },
+    {
       "output": "images/guide/work-conflict-desktop.png",
       "source": "images/ui-work-conflict-desktop.png",
       "rect": {
@@ -1273,6 +1355,58 @@
       "method": "Original browser element screenshot with corresponding full viewport capture; no raster edits",
       "sourceSha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
       "outputSha256": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39"
+    },
+    {
+      "output": "images/guide/log-desktop.png",
+      "source": "images/ui-log-desktop.png",
+      "rect": {
+        "x": 1064,
+        "y": 0,
+        "width": 376,
+        "height": 872
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d",
+      "outputSha256": "7130ea6c938f39eab1da213678984ad20a256d0e97f03d3ee8140aad3c3f6513"
+    },
+    {
+      "output": "images/guide/log-mobile.png",
+      "source": "images/ui-log-mobile.png",
+      "rect": {
+        "x": 4,
+        "y": 4,
+        "width": 382,
+        "height": 685
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2",
+      "outputSha256": "d272325df1fe05dc637e97f9fd8c5b9c697904774303ffb1988ce8344f89902f"
+    },
+    {
+      "output": "images/guide/log-only-desktop.png",
+      "source": "images/ui-log-only-desktop.png",
+      "rect": {
+        "x": 1064,
+        "y": 0,
+        "width": 376,
+        "height": 872
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636",
+      "outputSha256": "07f0a260100e13070b5b438a5bfe6c5fbf6ef4b3331a93b9f8acd08c0f4dd43d"
+    },
+    {
+      "output": "images/guide/log-only-mobile.png",
+      "source": "images/ui-log-only-mobile.png",
+      "rect": {
+        "x": 4,
+        "y": 4,
+        "width": 382,
+        "height": 685
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2",
+      "outputSha256": "ac0ec7ba8fb7603854445d7bbee19000c96e46d0d1435ece0b0a27474a69bc81"
     }
   ]
 }

@@ -35,7 +35,9 @@ it.each(['floor', 'selection', 'review'] as const)('uploads the %s highlight thr
     sky: { width: 0, height: 0, values: floats }, AMBIENT_NEUTRAL: 1,
     weatherScene: { prepare: vi.fn() }, weatherTuning: null, drawWorldEffects: vi.fn(),
     wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw,fixtureDepthBase:0 },
-    interiorDaylightShade: 0 };
+    interiorDaylightShade: 0,
+    // A later frame: startup's first-scene report has already run.
+    firstSceneRecorded: true };
   new Function(...Object.keys(bindings), code)(...Object.values(bindings));
   expect(pack).toHaveBeenCalledExactlyOnceWith(sim, 1, 100, 50, 16, null, 2,
     true, 37, null, undefined, null, highlight, 0, bindings.sky,null);

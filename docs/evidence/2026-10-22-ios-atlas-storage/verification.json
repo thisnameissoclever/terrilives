@@ -1,0 +1,220 @@
+{
+  "code_revision": "2bd4d4c42986be695f1bfa7788f88fc1fb48e495",
+  "artwork_bytes": {
+    "dense": 922746880,
+    "physical_texture": 352321536,
+    "lookup": 14417920,
+    "new_total": 366739456
+  },
+  "views": {
+    "phone": {
+      "dense-reference": {
+        "status": "PASS",
+        "viewport": {
+          "width": 402,
+          "height": 874
+        },
+        "deviceScaleFactor": 3,
+        "budgetBytes": null,
+        "startupRequestedPeakBytes": 1430199081,
+        "completedFrames": 2,
+        "tick": 7,
+        "attachments": {
+          "color": {
+            "width": 2412,
+            "height": 5244,
+            "row": 19456,
+            "sha256": "e82010291c6ccbcc4c7cdb64c383b2858b8d7090fc3537e4505e9f81d0f23e7d"
+          },
+          "surface": {
+            "width": 2412,
+            "height": 5244,
+            "row": 9728,
+            "sha256": "fb1f4e0c47c244c9b400a3344f258ba459726db8b9ee7be56943accbd31ab714"
+          },
+          "identity": {
+            "width": 2412,
+            "height": 5244,
+            "row": 9728,
+            "sha256": "39d50b2bce8908da1f070b1444671b4341818c524951d3804ca8104730373de7"
+          }
+        },
+        "entry": {
+          "url": "https://thisnameissoclever.github.io/terrilives/assets/index-0F6GhQY4.js",
+          "sha256": "56484f616c1bf465366b81b956c491056d165de49837bb7c3c81adcc80eb7ab0"
+        },
+        "errors": [],
+        "browserClosed": true,
+        "imageSha256": "4f7f7c2fd7a18f3501c425a6e80e1985809aa36d1f409cd225aafc3fc0ac08a6"
+      },
+      "packed-budget": {
+        "status": "PASS",
+        "viewport": {
+          "width": 402,
+          "height": 874
+        },
+        "deviceScaleFactor": 3,
+        "budgetBytes": 1073741824,
+        "startupRequestedPeakBytes": 823597481,
+        "completedFrames": 2,
+        "tick": 7,
+        "attachments": {
+          "color": {
+            "width": 2412,
+            "height": 5244,
+            "row": 19456,
+            "sha256": "e82010291c6ccbcc4c7cdb64c383b2858b8d7090fc3537e4505e9f81d0f23e7d"
+          },
+          "surface": {
+            "width": 2412,
+            "height": 5244,
+            "row": 9728,
+            "sha256": "fb1f4e0c47c244c9b400a3344f258ba459726db8b9ee7be56943accbd31ab714"
+          },
+          "identity": {
+            "width": 2412,
+            "height": 5244,
+            "row": 9728,
+            "sha256": "39d50b2bce8908da1f070b1444671b4341818c524951d3804ca8104730373de7"
+          }
+        },
+        "entry": {
+          "url": "http://127.0.0.1:5177/terrilives/assets/index-CXN1KiA8.js",
+          "sha256": "bac164d853e64d7ffa361d86ada5850734b060dbd8af7ebc4ac22dc800a50339"
+        },
+        "errors": [],
+        "browserClosed": true,
+        "imageSha256": "4f7f7c2fd7a18f3501c425a6e80e1985809aa36d1f409cd225aafc3fc0ac08a6"
+      }
+    },
+    "desktop": {
+      "dense-reference": {
+        "status": "PASS",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "deviceScaleFactor": 1,
+        "budgetBytes": null,
+        "startupRequestedPeakBytes": 1251050345,
+        "completedFrames": 2,
+        "tick": 7,
+        "attachments": {
+          "color": {
+            "width": 2880,
+            "height": 1800,
+            "row": 23040,
+            "sha256": "8ee5c609238147fbd1e49448b36c292e30ea9c1d69515aa449bcc01f7bb2f968"
+          },
+          "surface": {
+            "width": 2880,
+            "height": 1800,
+            "row": 11520,
+            "sha256": "25e2e88f4e70324146e810ac27926d8069fb7e3e02829aac8e44f9570f6615ca"
+          },
+          "identity": {
+            "width": 2880,
+            "height": 1800,
+            "row": 11520,
+            "sha256": "f23ea5b7c46b751f2122c0247cd2ccd8582a834025b88028dbce4087928ba271"
+          }
+        },
+        "entry": {
+          "url": "https://thisnameissoclever.github.io/terrilives/assets/index-0F6GhQY4.js",
+          "sha256": "56484f616c1bf465366b81b956c491056d165de49837bb7c3c81adcc80eb7ab0"
+        },
+        "errors": [],
+        "browserClosed": true,
+        "imageSha256": "1d6f564418294331e5ffbd418730b75f2fbcb136d95f4a6ccede8ce91c9f6de6"
+      },
+      "packed-budget": {
+        "status": "PASS",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "deviceScaleFactor": 1,
+        "budgetBytes": 1073741824,
+        "startupRequestedPeakBytes": 674306921,
+        "completedFrames": 2,
+        "tick": 7,
+        "attachments": {
+          "color": {
+            "width": 2880,
+            "height": 1800,
+            "row": 23040,
+            "sha256": "8ee5c609238147fbd1e49448b36c292e30ea9c1d69515aa449bcc01f7bb2f968"
+          },
+          "surface": {
+            "width": 2880,
+            "height": 1800,
+            "row": 11520,
+            "sha256": "25e2e88f4e70324146e810ac27926d8069fb7e3e02829aac8e44f9570f6615ca"
+          },
+          "identity": {
+            "width": 2880,
+            "height": 1800,
+            "row": 11520,
+            "sha256": "f23ea5b7c46b751f2122c0247cd2ccd8582a834025b88028dbce4087928ba271"
+          }
+        },
+        "entry": {
+          "url": "http://127.0.0.1:5177/terrilives/assets/index-CXN1KiA8.js",
+          "sha256": "bac164d853e64d7ffa361d86ada5850734b060dbd8af7ebc4ac22dc800a50339"
+        },
+        "errors": [],
+        "browserClosed": true,
+        "imageSha256": "1d6f564418294331e5ffbd418730b75f2fbcb136d95f4a6ccede8ce91c9f6de6"
+      }
+    }
+  },
+  "physical_iphone_recovery": "unobserved",
+  "negative_control": {
+    "status": "PASS",
+    "budgetBytes": 1073741824,
+    "peakBytes": 1072241689,
+    "denials": [
+      {
+        "bytes": 1649952,
+        "live": 1072241689,
+        "descriptor": {
+          "buffer": "",
+          "size": 1649952
+        }
+      }
+    ],
+    "completedFrames": 0,
+    "sceneAvailable": false,
+    "browserClosed": true
+  },
+  "sampler": {
+    "source": "web/src/render/atlas-storage-shader.ts",
+    "sha256": "29bca331d92384cee17a907ec6a7b1601e2a7a19c4d0eb6cc9a824c72ad7dd07",
+    "result": {
+      "probes": 9524,
+      "correct": {
+        "mismatches": 0,
+        "maxDifference": 0
+      },
+      "corrupt": {
+        "mismatches": 56,
+        "maxDifference": 0.41828033328056335,
+        "first": {
+          "probe": [
+            0.0036640167236328125,
+            -0.0009765625,
+            0,
+            1
+          ],
+          "channel": 0,
+          "reference": 0.012329289689660072,
+          "actual": 0.0156252384185791
+        }
+      },
+      "adapter": {}
+    },
+    "status": "PASS",
+    "browserClosed": true,
+    "serverClosed": true
+  }
+}

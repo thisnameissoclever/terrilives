@@ -4,6 +4,7 @@ import path from 'node:path';
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import { changelogPlugin } from './changelog/plugin.js';
 import { playerGuidePlugin } from './guide/plugin.js';
+import { startupReportPlugin } from './startup-report/plugin.js';
 
 /**
  * Self-signed TLS, when the material exists.
@@ -54,7 +55,7 @@ export default defineConfig(({ mode }) => ({
   // base would 404 every asset there while working fine locally, which
   // is the kind of difference that only shows up after deploying.
   base: './',
-  plugins: [changelogPlugin(), playerGuidePlugin()],
+  plugins: [changelogPlugin(), playerGuidePlugin(), startupReportPlugin(appVersion)],
   // Replaced in the bundle with the quoted version string; the TypeScript
   // declaration is in src/ui/game-version.ts, the only module that reads it.
   define: { __APP_VERSION__: JSON.stringify(appVersion) },

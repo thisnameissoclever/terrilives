@@ -517,7 +517,10 @@ pub fn advance_chains(
 /// nothing by it, paid nothing for it - and learned at the hob, where
 /// `crate::skills::practise` and `learn_and_manage` fire on the tagged
 /// step's own completion.
-#[allow(clippy::type_complexity)]
+///
+/// The arity allow is for the activity log, the eighth parameter: it only
+/// receives the finished recipe's record.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn tick_chain_steps(
     mut commands: Commands,
     content: Res<Content>,
@@ -548,6 +551,7 @@ pub fn tick_chain_steps(
         ),
         With<Agent>,
     >,
+    mut log: Option<ResMut<crate::activity_log::ActivityLog>>,
 ) {
     let mut at_work: Vec<Entity> = working.iter().map(|(entity, ..)| entity).collect();
     at_work.sort_by_key(|entity| entity.index());
@@ -563,7 +567,7 @@ pub fn tick_chain_steps(
             hobbies,
             satisfaction,
             mut traits,
-            skills,
+            mut skills,
             carrying,
             sim_id,
         )) = working.get_mut(sim)
@@ -650,8 +654,11 @@ pub fn tick_chain_steps(
             if let Some(traits) = traits.as_deref_mut() {
                 super::trait_effects::learn_and_manage(traits, content.0, &step.tags);
             }
-            if let Some(mut skills) = skills {
-                crate::skills::practise(&mut skills, content.0, &step.tags);
+            if let Some(skills) = skills.as_deref_mut() {
+                let rises = crate::skills::practise(skills, content.0, &step.tags);
+                if let (Some(log), Some(id)) = (log.as_deref_mut(), sim_id) {
+                    log.levels(content.0, burning.1.tick, id.0, rises);
+                }
             }
         }
 
@@ -779,6 +786,25 @@ pub fn tick_chain_steps(
                     ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0);
                 satisfaction.reward(payout);
             }
+        }
+
+        // One line per recipe, at its terminal payout, never per step.
+        if let (Some(log), Some(id)) = (log.as_deref_mut().filter(|log| log.enabled()), sim_id) {
+            let row = match resolved {
+                Some((model, row, _)) => crate::action_rows::resolve(content.0, model, row),
+                None => crate::action_rows::rows(content.0, chain.advertised_by)
+                    .into_iter()
+                    .find(|row| {
+                        row.recipe
+                            .is_some_and(|(index, _)| index == chain_state.chain as usize)
+                    }),
+            };
+            let label = row.map_or(chain.label.as_str(), |row| {
+                row.label(burning.1.tick, content.0.tuning.day_ticks)
+            });
+            let skill =
+                crate::activity_log::practiced(skills.as_deref(), content.0, &chain_tags(chain));
+            log.action_done(content.0, burning.1.tick, id.0, label, skill);
         }
 
         commands.queue(move |world: &mut World| {

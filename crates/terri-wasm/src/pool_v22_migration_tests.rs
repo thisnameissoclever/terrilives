@@ -48,8 +48,20 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
         let source=historical(bytes);
         let mut handle=SimHandle::new(12,12);
         assert!(handle.load_bytes(bytes),"unchanged historical control must load: {name}");
-        let actual=CurrentV5View(handle.sim.save_snapshot_v23());
-        let mut expected=CurrentV5View(terri_core::SaveSnapshotV23 { previous:source.clone(),baths:vec![] });
+        let actual=CurrentV5View(handle.sim.save_snapshot_v24());
+        let mut expected=CurrentV5View(terri_core::SaveSnapshotV24 {
+            previous: terri_core::SaveSnapshotV21 {
+                legacy: source.previous.previous.clone(),
+                shifts: terri_core::save_v21::SavedShifts {
+                    rng: terri_core::SimRng::from_seed(terri_sim::shifts::SHIFTS_SEED),
+                    draws: 0, held: vec![], changed_today: vec![],
+                },
+                queued_shift_commands: vec![],
+            },
+            surfaces: source.previous.surfaces.clone(),
+            commutes: source.previous.commutes.clone(),
+            pools: source.pools.clone(), baths: vec![],
+        });
         for row in &mut expected.0.pools {
             let migrated=actual.0.pools.iter().find(|entry|entry.actor==row.actor).unwrap();
             assert_ne!(row.approach,migrated.approach,"frozen coordinate meaning must change: {name}");

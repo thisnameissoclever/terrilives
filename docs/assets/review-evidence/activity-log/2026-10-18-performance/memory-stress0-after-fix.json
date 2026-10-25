@@ -1,0 +1,297 @@
+{
+  "mode": "memory",
+  "generatedAt": "2026-10-19T01:38:44.992Z",
+  "args": {
+    "mode": "memory",
+    "url": "http://127.0.0.1:4173/",
+    "output": "../evidence/memory-stress0-after.json",
+    "stress": 0,
+    "samplingInterval": 32768,
+    "fillTicks": 46080,
+    "afterTicks": 2880,
+    "readyTimeoutMs": 600000,
+    "repetitions": 3,
+    "everyone": false
+  },
+  "runs": [
+    {
+      "repetition": 0,
+      "logEnabled": true,
+      "startTick": 9,
+      "filledTicks": 46080,
+      "afterTicks": 2880,
+      "samples": [
+        {
+          "tick": 46089,
+          "wasmMemoryBytes": 5373952,
+          "drained": 2227,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96144552,
+          "jsEmbedderBytes": 3289960,
+          "backingStorageBytes": 274989631,
+          "domNodes": 2782,
+          "eventListeners": 295
+        },
+        {
+          "tick": 48969,
+          "wasmMemoryBytes": 5439488,
+          "drained": 2346,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96416848,
+          "jsEmbedderBytes": 3674576,
+          "backingStorageBytes": 277256557,
+          "domNodes": 2773,
+          "eventListeners": 295
+        }
+      ]
+    },
+    {
+      "repetition": 0,
+      "logEnabled": false,
+      "startTick": 11,
+      "filledTicks": 46080,
+      "afterTicks": 2880,
+      "samples": [
+        {
+          "tick": 46091,
+          "wasmMemoryBytes": 5308416,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96089852,
+          "jsEmbedderBytes": 3478160,
+          "backingStorageBytes": 284696209,
+          "domNodes": 2760,
+          "eventListeners": 295
+        },
+        {
+          "tick": 48971,
+          "wasmMemoryBytes": 5308416,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96589688,
+          "jsEmbedderBytes": 3532928,
+          "backingStorageBytes": 286231132,
+          "domNodes": 2767,
+          "eventListeners": 295
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "logEnabled": false,
+      "startTick": 10,
+      "filledTicks": 46080,
+      "afterTicks": 2880,
+      "samples": [
+        {
+          "tick": 46090,
+          "wasmMemoryBytes": 5505024,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96094160,
+          "jsEmbedderBytes": 3236304,
+          "backingStorageBytes": 276090616,
+          "domNodes": 2776,
+          "eventListeners": 295
+        },
+        {
+          "tick": 48970,
+          "wasmMemoryBytes": 5767168,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96382100,
+          "jsEmbedderBytes": 3647728,
+          "backingStorageBytes": 277203585,
+          "domNodes": 2772,
+          "eventListeners": 295
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "logEnabled": true,
+      "startTick": 10,
+      "filledTicks": 46080,
+      "afterTicks": 2880,
+      "samples": [
+        {
+          "tick": 46090,
+          "wasmMemoryBytes": 5636096,
+          "drained": 2123,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96114416,
+          "jsEmbedderBytes": 3315312,
+          "backingStorageBytes": 275688229,
+          "domNodes": 2760,
+          "eventListeners": 295
+        },
+        {
+          "tick": 48970,
+          "wasmMemoryBytes": 5636096,
+          "drained": 2265,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96682304,
+          "jsEmbedderBytes": 3462296,
+          "backingStorageBytes": 280890775,
+          "domNodes": 2759,
+          "eventListeners": 295
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "logEnabled": true,
+      "startTick": 10,
+      "filledTicks": 46080,
+      "afterTicks": 2880,
+      "samples": [
+        {
+          "tick": 46090,
+          "wasmMemoryBytes": 5636096,
+          "drained": 2089,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96099356,
+          "jsEmbedderBytes": 3489144,
+          "backingStorageBytes": 274565145,
+          "domNodes": 2792,
+          "eventListeners": 295
+        },
+        {
+          "tick": 48970,
+          "wasmMemoryBytes": 5701632,
+          "drained": 2243,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96288420,
+          "jsEmbedderBytes": 3616880,
+          "backingStorageBytes": 276347733,
+          "domNodes": 2771,
+          "eventListeners": 295
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "logEnabled": false,
+      "startTick": 11,
+      "filledTicks": 46080,
+      "afterTicks": 2880,
+      "samples": [
+        {
+          "tick": 46091,
+          "wasmMemoryBytes": 5439488,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96082504,
+          "jsEmbedderBytes": 3230872,
+          "backingStorageBytes": 274483358,
+          "domNodes": 2770,
+          "eventListeners": 295
+        },
+        {
+          "tick": 48971,
+          "wasmMemoryBytes": 5439488,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 96400544,
+          "jsEmbedderBytes": 3355208,
+          "backingStorageBytes": 280624571,
+          "domNodes": 2780,
+          "eventListeners": 295
+        }
+      ]
+    }
+  ],
+  "analysis": {
+    "allowanceBytes": 163840,
+    "pairs": [
+      {
+        "repetition": 0,
+        "retainedJsBytes": 54700,
+        "retainedWasmBytes": 65536,
+        "enabledGrowthJsBytes": 272296,
+        "disabledGrowthJsBytes": 499836,
+        "logGrowthJsBytes": -227540,
+        "enabledGrowthWasmBytes": 65536,
+        "logGrowthWasmBytes": 65536,
+        "enabledGrowthDomNodes": -9,
+        "enabledGrowthListeners": 0,
+        "storeFullAtFirstSample": true,
+        "disabledDrainedNothing": true
+      },
+      {
+        "repetition": 1,
+        "retainedJsBytes": 20256,
+        "retainedWasmBytes": 131072,
+        "enabledGrowthJsBytes": 567888,
+        "disabledGrowthJsBytes": 287940,
+        "logGrowthJsBytes": 279948,
+        "enabledGrowthWasmBytes": 0,
+        "logGrowthWasmBytes": -262144,
+        "enabledGrowthDomNodes": -1,
+        "enabledGrowthListeners": 0,
+        "storeFullAtFirstSample": true,
+        "disabledDrainedNothing": true
+      },
+      {
+        "repetition": 2,
+        "retainedJsBytes": 16852,
+        "retainedWasmBytes": 196608,
+        "enabledGrowthJsBytes": 189064,
+        "disabledGrowthJsBytes": 318040,
+        "logGrowthJsBytes": -128976,
+        "enabledGrowthWasmBytes": 65536,
+        "logGrowthWasmBytes": 65536,
+        "enabledGrowthDomNodes": -21,
+        "enabledGrowthListeners": 0,
+        "storeFullAtFirstSample": true,
+        "disabledDrainedNothing": true
+      }
+    ],
+    "medianRetainedJsBytes": 20256,
+    "medianLogGrowthJsBytes": -128976,
+    "medianLogGrowthWasmBytes": 65536,
+    "checks": {
+      "storeFilled": true,
+      "baselineEmitsNothing": true,
+      "retainedWithinAllowance": true,
+      "noGrowthAfterFull": false
+    }
+  },
+  "pass": false
+}

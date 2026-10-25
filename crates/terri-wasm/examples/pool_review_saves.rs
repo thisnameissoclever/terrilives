@@ -8,7 +8,7 @@ use terri_sim::{Content, Sim};
 use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
-    let snapshot = sim.save_snapshot_v23();
+    let snapshot = sim.save_snapshot_v24();
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -183,7 +183,7 @@ fn main() {
             for _ in 0..100 {
                 sim.tick();
                 if sim
-                    .save_snapshot_v23()
+                    .save_snapshot_v24()
                     .pools
                     .iter()
                     .any(|p| p.actor == actor.index_u32() && p.phase == 1)
@@ -191,7 +191,7 @@ fn main() {
                     break;
                 }
             }
-            let baseline = sim.save_snapshot_v23();
+            let baseline = sim.save_snapshot_v24();
             let prefix = format!("pool-f{}-{presentation}-{preset}", facing.code());
             for (label, ticks, cancel) in [
                 ("entry", 0, false),
@@ -208,7 +208,7 @@ fn main() {
                 {
                     continue;
                 }
-                sim.load_snapshot_v23(baseline.clone()).unwrap();
+                sim.load_snapshot_v24(baseline.clone()).unwrap();
                 for _ in 0..ticks {
                     sim.tick();
                 }
@@ -285,7 +285,7 @@ fn main() {
             .get::<terri_core::Eating>(actor)
             .expect("ordinary bath begins")
             .remaining_ticks;
-        let snapshot = sim.save_snapshot_v23();
+        let snapshot = sim.save_snapshot_v24();
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -297,7 +297,7 @@ fn main() {
         fs::write(folder.join(format!("{name}.bin")), &bytes).unwrap();
         receipts.push(format!("{{\"file\":\"{name}.bin\",\"actor\":{},\"target\":{},\"fixtureModel\":\"bathtub\",\"facing\":{},\"activity\":20,\"remaining\":{remaining},\"bytes\":{}}}",actor.index_u32(),tub.index_u32(),facing.code(),bytes.len()));
     }
-    fs::write(folder.join("manifest.json"),format!("{{\"schema\":23,\"entryMinutes\":20,\"swimMinutes\":60,\"exitMinutes\":20,\"files\":[{}]}}\n",receipts.join(","))).unwrap();
+    fs::write(folder.join("manifest.json"),format!("{{\"schema\":{},\"entryMinutes\":20,\"swimMinutes\":60,\"exitMinutes\":20,\"files\":[{}]}}\n",terri_core::SAVE_SCHEMA_VERSION,receipts.join(","))).unwrap();
     println!(
         "Wrote {} public-loader-verified pool and bath fixtures to {}",
         receipts.len(),

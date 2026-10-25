@@ -1,0 +1,133 @@
+{
+  "url": "http://127.0.0.1:5177/terrilives/",
+  "cases": [
+    {
+      "name": "controlled persistent HTTP failure",
+      "requests": 1,
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T15:04:03.575Z",
+            "updatedAt": "2026-10-23T15:04:09.025Z",
+            "state": "failed",
+            "phase": "Loading character models",
+            "build": "/terrilives/assets/index-B7Q70Ugo.js",
+            "gameVersion": "1.0.0",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            },
+            "error": {
+              "name": "Error",
+              "message": "Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+              "stack": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\n    at Sh (http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4880758)\n    at async wh (http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4881282)\n    at async Dh (http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4882884)\n    at async http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4883248\n    at async Promise.all (index 6)\n    at async Oh (http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4883128)\n    at async http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4929250\n    at async Promise.all (index 0)\n    at async bg (http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:808:4929691)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-B7Q70Ugo.js:2388:5265)",
+              "assetFailure": {
+                "path": "/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+                "status": 503,
+                "headers": {
+                  "server": "verification-edge",
+                  "retry-after": "60",
+                  "x-github-request-id": "controlled-response-42"
+                },
+                "body": "Controlled persistent refusal",
+                "bodyIncomplete": false
+              }
+            }
+          }
+        ]
+      },
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics-v2.js"
+        ],
+        "sharing": {
+          "subject": "[Bug report] Natural Causes v1.0.0",
+          "bodyCharacters": 2707,
+          "clipboardTransport": "isolated test double; system clipboard untouched",
+          "fallback": true
+        },
+        "summary": "The last recorded attempt reported an error. Its details appear below.",
+        "download": "natural-causes-startup-report.json"
+      },
+      "cardSharing": {
+        "subject": "[Bug report] Natural Causes v1.0.0",
+        "bodyCharacters": 2891,
+        "clipboardTransport": "isolated test double; system clipboard untouched",
+        "fallback": true
+      }
+    },
+    {
+      "name": "controlled renderer termination during loading",
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T15:04:14.268Z",
+            "updatedAt": "2026-10-23T15:04:19.712Z",
+            "state": "loading",
+            "phase": "Loading character models",
+            "build": "/terrilives/assets/index-B7Q70Ugo.js",
+            "gameVersion": "1.0.0",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            }
+          }
+        ]
+      },
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics-v2.js"
+        ],
+        "sharing": {
+          "subject": "[Bug report] Natural Causes v1.0.0",
+          "bodyCharacters": 853,
+          "clipboardTransport": "isolated test double; system clipboard untouched",
+          "fallback": true
+        },
+        "summary": "The last recorded load is unfinished. Its last step appears below. This can also mean the page was closed during loading.",
+        "download": "natural-causes-startup-report.json"
+      }
+    },
+    {
+      "name": "ordinary load and advancing simulation",
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T15:04:23.721Z",
+            "updatedAt": "2026-10-23T15:04:31.397Z",
+            "state": "ready",
+            "phase": "Step 10 of 10: Drawing the house",
+            "build": "/terrilives/assets/index-B7Q70Ugo.js",
+            "gameVersion": "1.0.0",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            }
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  ],
+  "entry": "./assets/index-B7Q70Ugo.js",
+  "entrySha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+  "status": "PASS",
+  "browserClosed": true
+}

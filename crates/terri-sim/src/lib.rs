@@ -2,6 +2,9 @@
 
 mod action_queue;
 pub mod action_rows;
+pub mod activity_log;
+#[cfg(test)]
+mod activity_log_tests;
 pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
@@ -18,10 +21,13 @@ pub use burnt_meals::BurntMeals;
 pub mod attendance;
 pub mod careers;
 pub mod player_actions;
+pub mod shifts;
 pub use careers::Careers;
 pub(crate) mod chore_repair;
 pub mod fights;
 pub use terri_data::FightRules;
+/// The held or offered shift a boundary reads (issue 296).
+pub use terri_data::ShiftView;
 pub(crate) mod social_conflicts;
 pub use fights::Fights;
 pub mod land;
@@ -1469,79 +1475,100 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.previous.legacy.legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.previous.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
-    /// Complete current persistence, including pending fights and repair decisions.
+    /// Historical schema twenty, before held shifts and explicit world state.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|s| s.previous.previous.previous.clone())
+            .map(|snapshot| snapshot.previous.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
+    /// Published schema twenty-one retains shift and queued-command ownership.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|s| s.previous.previous.clone())
+            .map(|snapshot| snapshot.previous.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
-    pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
-        self.try_save_snapshot_v22().expect("current swimming is not representable in historical V22; use V23 or the fallible projection")
+
+    /// Explicit private producer family; generic header21 always means published shifts.
+    pub fn save_snapshot_editable_world_v21(&self) -> terri_core::LegacyEditableWorldSnapshotV21 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_editable_world_v21();
+        }
+        save::editable_v21::capture(self)
     }
-    /// V22 omits bath toys and cannot express the corrected active pool coordinates.
+
+    pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
+        self.try_save_snapshot_v22().expect("current swimming is not representable in historical V22; use V24 or the fallible projection")
+    }
+
+    /// Private V22 omits shifts and bath toys and uses historical pool coordinates.
     pub fn try_save_snapshot_v22(&self) -> Result<terri_core::SaveSnapshotV22, SaveError> {
-        if let Some(baseline)=self.committed_projection() { return baseline.try_save_snapshot_v22(); }
+        if let Some(baseline) = self.committed_projection() { return baseline.try_save_snapshot_v22(); }
         if pool::has_swimming_state(&self.world) { return Err(SaveError::InvalidValue); }
         Ok(save::v22::capture_current_layer(self))
     }
+
+    /// Private historical continuation without the published shift layer.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
-        build_transaction::committed(&self.world).cloned().unwrap_or_else(|| save::v23::capture(self))
+        if let Some(baseline) = self.committed_projection() { return baseline.save_snapshot_v23(); }
+        save::v23::capture(self)
     }
+
+    pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
+        build_transaction::committed(&self.world).cloned().unwrap_or_else(|| save::v24::capture(self))
+    }
+
+    pub fn load_snapshot_v24(&mut self, snapshot: terri_core::SaveSnapshotV24) -> Result<(), SaveError> {
+        let candidate = save::v24::restore(snapshot, self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world))?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
     pub fn load_snapshot_v23(&mut self, snapshot: terri_core::SaveSnapshotV23) -> Result<(), SaveError> {
         let candidate = save::v23::restore(snapshot, self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world))?;
-        self.adopt_restored(candidate, false, false)
+        self.adopt_complete_activity_state(candidate)
     }
+
     pub fn load_snapshot_v22(&mut self, snapshot: terri_core::SaveSnapshotV22) -> Result<(), SaveError> {
         let candidate = save::v22::restore(snapshot, self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world))?;
         self.adopt_restored(candidate, false, false)
     }
-    pub fn load_snapshot_v21(
-        &mut self,
-        snapshot: terri_core::SaveSnapshotV21,
-    ) -> Result<(), SaveError> {
-        let candidate = save::v21::restore(
-            snapshot,
-            self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
-        )?;
+
+    pub fn load_snapshot_editable_world_v21(&mut self, snapshot: terri_core::LegacyEditableWorldSnapshotV21) -> Result<(), SaveError> {
+        let candidate = save::editable_v21::restore(snapshot, self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world))?;
         self.adopt_restored(candidate, false, false)
     }
 
-    pub fn load_snapshot_v20(
-        &mut self,
-        snapshot: terri_core::SaveSnapshotV20,
-    ) -> Result<(), SaveError> {
-        let candidate = save::v20::restore(
-            snapshot,
-            self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
-        )?;
+    pub fn load_snapshot_v21(&mut self, snapshot: terri_core::SaveSnapshotV21) -> Result<(), SaveError> {
+        let candidate = save::v21::restore(snapshot, self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world))?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    pub fn load_snapshot_v20(&mut self, snapshot: terri_core::SaveSnapshotV20) -> Result<(), SaveError> {
+        let candidate = save::v20::restore(snapshot, self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world))?;
         self.adopt_restored(candidate, false, false)
     }
 
@@ -1749,9 +1776,23 @@ impl Sim {
 
     fn adopt_restored(
         &mut self,
+        restored: Sim,
+        infer_legacy_state: bool,
+        adopt_legacy_conflicts: bool,
+    ) -> Result<(), SaveError> {
+        self.adopt_with_activity_policy(restored, infer_legacy_state, adopt_legacy_conflicts, true)
+    }
+
+    fn adopt_complete_activity_state(&mut self, restored: Sim) -> Result<(), SaveError> {
+        self.adopt_with_activity_policy(restored, false, false, false)
+    }
+
+    fn adopt_with_activity_policy(
+        &mut self,
         mut restored: Sim,
         infer_legacy_state: bool,
         adopt_legacy_conflicts: bool,
+        infer_legacy_bath: bool,
     ) -> Result<(), SaveError> {
         rooms::migration::migrate(&mut restored)?;
         let migrated_geometry = !world_geometry::current(&restored.world)
@@ -1784,7 +1825,7 @@ impl Sim {
         character_draft::ensure_appearance_components(&mut restored.world);
         // Historical baths select once from the restored simulation stream.
         // V23 has already required a complete current bath continuation.
-        bath::begin(&mut restored.world);
+        if infer_legacy_bath { bath::begin(&mut restored.world); }
         // Restoration attaches activity state in stages; seed interpolation from the final snapshot.
         restored.render_rows.clear();
         restored.sync_render_buffer_after_commands();
@@ -1797,6 +1838,11 @@ impl Sim {
             .revision
             .saturating_add(1);
         build_transaction::carry_adoption(&self.world, &mut restored)?;
+        let log_enabled = self
+            .world
+            .get_resource::<activity_log::ActivityLog>()
+            .is_none_or(activity_log::ActivityLog::enabled);
+        restored.set_activity_log_enabled(log_enabled);
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
         self.portals
@@ -1843,6 +1889,8 @@ impl Sim {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
         world.insert_resource(completion_sounds::CompletionSounds::default());
+        // Unsaved and unhashed, like the completion sounds: [AL-boundary].
+        world.insert_resource(activity_log::ActivityLog::default());
         world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
         world.insert_resource(social_company::SocialCompany::default());
@@ -2536,6 +2584,7 @@ impl Sim {
         chore_repair::reconcile(&mut self.world);
         social_conflicts::tick(&mut self.world);
         player_actions::observe(&mut self.world);
+        activity_log::finish_tick(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
     }
@@ -2547,6 +2596,13 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        self.apply_staged_commands();
+        // Commands can settle events too, so a paused frame ends with the
+        // same activity log pass a full tick does.
+        activity_log::finish_tick(&mut self.world);
+    }
+
+    fn apply_staged_commands(&mut self) {
         if !self.build_active() {
             player_actions::observe(&mut self.world);
         }
@@ -2575,6 +2631,52 @@ impl Sim {
         player_actions::observe(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
+    }
+
+    /// Moves every staged activity log record into `out`, twelve words
+    /// each and oldest first, and returns how many it moved ([AL-bridge]).
+    pub fn take_activity_log(&mut self, out: &mut Vec<u32>) -> u32 {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .take_into(out)
+    }
+
+    /// Moves every staged record into the log's export buffer and returns
+    /// how many it moved; [`Sim::activity_log_export`] then reads them. The
+    /// wasm bridge's consuming take ([AL-bridge]).
+    pub fn take_activity_log_export(&mut self) -> u32 {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .take_export()
+    }
+
+    /// The records the last [`Sim::take_activity_log_export`] moved.
+    pub fn activity_log_export(&self) -> &[u32] {
+        self.world
+            .resource::<activity_log::ActivityLog>()
+            .exported()
+    }
+
+    /// The strings a record's `label` and `label2` words index.
+    pub fn activity_log_labels(&self) -> &[String] {
+        activity_log::labels(self.world.resource::<Content>().0).names()
+    }
+
+    /// Records overwritten before anything drained them. Diagnostic only.
+    pub fn activity_log_dropped(&self) -> u32 {
+        self.world.resource::<activity_log::ActivityLog>().dropped()
+    }
+
+    /// Turns the activity log off for the disabled performance baseline. The
+    /// choice survives a Load, which otherwise starts an empty log.
+    pub fn set_activity_log_enabled(&mut self, on: bool) {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .set_enabled(on);
+    }
+
+    pub fn activity_log(&self) -> &activity_log::ActivityLog {
+        self.world.resource::<activity_log::ActivityLog>()
     }
 
     pub fn completion_sounds(&self) -> &[u32] {
@@ -3993,10 +4095,51 @@ impl Sim {
             .map(|career| career.label.as_str())
     }
 
-    /// The compiled career held by the sim carrying `index`, or `None`
+    /// The shift the sim carrying `index` holds at their level, or `None`
     /// for the unemployed and everything else. The Career row reads its
     /// working days and shift hours from it ([CAL-hud] in
-    /// `docs/specs/2026-10-06-calendar.md`).
+    /// `docs/specs/2026-10-06-calendar.md`, as issue 296's [WS-systems]
+    /// amends it: the held shift, not the level's standard one).
+    pub fn career_shift_of(&self, index: u32) -> Option<terri_data::ShiftView<'static>> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Career>>()?;
+        let entity = state
+            .iter(&self.world)
+            .find(|entity| entity.index_u32() == index)?;
+        shifts::shift_of(&self.world, pack, entity)
+    }
+
+    /// The shifts the level of the sim carrying `index` offers, standard
+    /// first then authored order ([WS-shell] item 6 in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`); empty for the
+    /// unemployed and everything else.
+    pub fn career_offered_shifts_of(&self, index: u32) -> Vec<terri_data::ShiftView<'static>> {
+        self.career_definition_of(index)
+            .map_or_else(Vec::new, shifts::offered)
+    }
+
+    /// The shifts the first level of career path `path` offers, standard
+    /// first then authored order; empty for an unknown path.
+    pub fn career_path_offered_shifts(&self, path: u32) -> Vec<terri_data::ShiftView<'static>> {
+        let Some(pack) = self
+            .world
+            .get_resource::<Content>()
+            .map(|content| content.0)
+        else {
+            return Vec::new();
+        };
+        pack.career_paths
+            .get(path as usize)
+            .and_then(|path| path.levels.first())
+            .and_then(|row| pack.careers.get(*row as usize))
+            .map_or_else(Vec::new, shifts::offered)
+    }
+
+    /// The compiled career held by the sim carrying `index`, or `None`
+    /// for the unemployed and everything else. Its hours are the level's
+    /// standard shift; a person's own hours are [`Sim::career_shift_of`].
     pub fn career_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledCareer> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
@@ -4775,6 +4918,12 @@ impl Sim {
                         vec![36, u64::from(*agent), u64::from(*search)]
                     }
                     SetCareerChange { change } => vec![37, u64::from(*change)],
+                    AssignCareerShift { agent, path, shift } => {
+                        vec![38, u64::from(*agent), u64::from(*path), u64::from(*shift)]
+                    }
+                    ChangeShift { agent, shift } => {
+                        vec![39, u64::from(*agent), u64::from(*shift)]
+                    }
                     ConfirmedOrder {
                         fingerprint,
                         command,

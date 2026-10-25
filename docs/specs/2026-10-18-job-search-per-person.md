@@ -27,7 +27,7 @@ The older `SimCommand::SetCareerAutonomy { change, search }`, code 34, keeps its
 
 ## [JS-search] The search
 
-Rule 13 of the careers spec still decides when and how an unemployed person looks for work. The only change is the test that admits a person: a person whose search is off is passed over before any random draw, exactly as an employed person or one at work is. The careers stream is drawn only for the people who look, in sim id order, so a household with everyone on draws the same numbers in the same order as before this change and plays out identically.
+Rule 13 of the careers spec still decides when and how an unemployed person looks for work. The only change is the test that admits a person: a person whose search is off is passed over before any random draw, exactly as an employed person or one at work is. The careers stream is drawn only for the people who look, in sim id order, so a household with everyone on draws the same numbers in the same order as before this change and plays out identically. [Shifts and more career paths](2026-10-18-shifts-and-careers.md) ([WS-search]) adds one careers draw between an applicant's apply and hire draws to choose the path by fit; a person whose search is off still draws nothing.
 
 ## [JS-hash] World hash
 

@@ -72,7 +72,9 @@ Ordinary actions deliver benefits and costs over their active minutes. Walking a
 
 Personality changes each need's ordinary loss and positive refill. Negative action costs still apply in full. Failed ordinary attempts reduce positive benefits, while cooking quality affects food. A weak benefit may be smaller than ongoing need loss, leaving a falling meter even during the action.
 
-Sleep and work slow ordinary need loss. Commuting uses the normal loss rate, and work itself provides no need refill. All meters have a floor and ceiling, so excess benefit cannot be saved for later.
+Sleep and work slow ordinary need loss. While someone is at work, meals, toilet breaks and company automatically restore Hunger, Bladder and Social to about halfway before those needs become Critical. Arriving at work with those needs Low or Critical also restores them. The other four needs continue falling. Commuting and waiting to return home receive no automatic refill.
+
+All meters have a floor and ceiling, so excess benefit cannot be saved for later.
 
 :::numbers Numbers and limits
 Need meters run from 0 to 100. One game minute is one simulation tick. Positive activity figures describe baseline delivery before personality, ordinary decay, ceilings, failure and conditional company; they are not guaranteed final changes to the meter.

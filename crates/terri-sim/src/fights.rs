@@ -131,6 +131,23 @@ impl Reason {
             None => Self::NONE_CODE,
         }
     }
+    /// Every reason a fight can have, `None` first, so a table such as the
+    /// activity log's labels can name every tag [`Reason::tag`] returns.
+    pub fn all() -> impl Iterator<Item = Option<Self>> {
+        [
+            None,
+            Some(Self::Dishes),
+            Some(Self::OtherChore),
+            Some(Self::Privacy),
+            Some(Self::Television),
+            Some(Self::Music),
+            Some(Self::Exercise),
+            Some(Self::Nuisance),
+            Some(Self::Interruption),
+        ]
+        .into_iter()
+        .chain(RANDOM_TOPICS.iter().map(|&code| Some(Self::Random(code))))
+    }
     pub fn tag(reason: Option<Self>) -> &'static str {
         match reason {
             Some(Self::Dishes) => "fight-dishes",
@@ -428,10 +445,7 @@ fn withdraw_invalid(world: &mut World) {
             world.resource_mut::<Fights>().system_orders.remove(&actor);
             continue;
         };
-        let running = world
-            .get::<Socialising>(actor)
-            .is_some_and(|s| s.partner == intent.object)
-            && crate::social_episode::request_order_id(world, actor) == Some(id);
+        let running = running(world, actor, id, intent.object);
         let reason_valid = context.as_ref().is_some_and(|c| {
             c.order_id == Some(id)
                 && context_valid(world, c, intent.object)
@@ -452,36 +466,92 @@ fn withdraw_invalid(world: &mut World) {
                             )
                         }))
         });
+        // A fight that has not started is withdrawn when either side is in
+        // crisis (the issue 301 ruling), when its recipient falls asleep
+        // (issue 338: the coordinator's decision of 2026-10-24 applies the
+        // owner's sleeping-partner ruling to fights the game starts, which
+        // are not player orders) or when either side already had a fight.
+        // A fight already under way runs to its end (issue 342): the
+        // recipient leaving for work still ends it; the initiator's shift
+        // waits for it to finish. The published rules, which never call
+        // this, keep their original behavior.
         let unavailable = world.get_entity(intent.object).is_err()
-            || crate::social_episode::urgent(world, actor)
-            || crate::social_episode::urgent(world, intent.object)
             || !running
-                && [actor, intent.object].into_iter().any(|person| {
-                    world.get::<SimId>(person).is_some_and(|id| {
-                        world
-                            .resource::<Fights>()
-                            .active(*id, world.resource::<SimClock>().tick)
-                    })
-                });
+                && (crate::social_episode::urgent(world, actor)
+                    || crate::social_episode::urgent(world, intent.object)
+                    || crate::social_episode::requests::asleep(world, intent.object)
+                    || [actor, intent.object].into_iter().any(|person| {
+                        world.get::<SimId>(person).is_some_and(|id| {
+                            world
+                                .resource::<Fights>()
+                                .active(*id, world.resource::<SimClock>().tick)
+                        })
+                    }));
         if reason_valid && !unavailable {
             continue;
         }
-        crate::social_episode::release_order(world, actor, id);
-        if running {
-            world
-                .entity_mut(actor)
-                .remove::<(Socialising, terri_core::ConversationVoice)>();
-        }
-        if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
-            queue.remove_order(id);
-        }
-        if world.get::<terri_core::Target>(actor).is_none() {
-            world.entity_mut(actor).remove::<terri_core::Blocked>();
-        }
-        crate::social_conflicts::cancel_order(world, actor, id);
-        let mut fights = world.resource_mut::<Fights>();
-        fights.provoked.remove(&actor);
-        fights.system_orders.remove(&actor);
+        withdraw(world, actor, id, running);
+    }
+}
+
+/// Whether `actor`'s game-made fight order `id` against `object` is under
+/// way: the actor is in the conversation that order started.
+fn running(world: &World, actor: Entity, id: u64, object: Entity) -> bool {
+    world
+        .get::<Socialising>(actor)
+        .is_some_and(|s| s.partner == object)
+        && crate::social_episode::request_order_id(world, actor) == Some(id)
+}
+
+/// Withdraws `actor`'s game-made fight order `id`: its claims, its queue
+/// entry, its pending or running cause and its system identity. The
+/// grievance is not marked as fought, so it can start a fight again while
+/// it stays eligible. A running fight's conversation ends with no outcome.
+fn withdraw(world: &mut World, actor: Entity, id: u64, running: bool) {
+    crate::social_episode::release_order(world, actor, id);
+    if running {
+        world
+            .entity_mut(actor)
+            .remove::<(Socialising, terri_core::ConversationVoice)>();
+    }
+    if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
+        queue.remove_order(id);
+    }
+    if world.get::<terri_core::Target>(actor).is_none() {
+        world.entity_mut(actor).remove::<terri_core::Blocked>();
+    }
+    crate::social_conflicts::cancel_order(world, actor, id);
+    let mut fights = world.resource_mut::<Fights>();
+    fights.provoked.remove(&actor);
+    fights.system_orders.remove(&actor);
+}
+
+/// Withdraws `actor`'s game-made fight if it has not started, when their
+/// shift is due. The coordinator's decision of 2026-10-25 follows the issue
+/// 301 ruling that a made-up grudge does not outrank work: a waiting
+/// game-made fight never delays its initiator's departure, which otherwise
+/// waits for any queued order (`player_actions::has_player_work`). A fight
+/// already under way finishes first, and a player's order keeps delaying
+/// the departure. The published fight rules keep their original behavior.
+pub(crate) fn withdraw_waiting_for_shift(world: &mut World, actor: Entity) {
+    if published_rules(world) {
+        return;
+    }
+    let Some(id) = world
+        .get_resource::<Fights>()
+        .and_then(|f| f.system_orders.get(&actor).copied())
+    else {
+        return;
+    };
+    let Some(object) = world
+        .get::<IntentQueue>(actor)
+        .and_then(|q| q.order(id))
+        .map(|e| e.intent.object)
+    else {
+        return;
+    };
+    if !running(world, actor, id, object) {
+        withdraw(world, actor, id, false);
     }
 }
 
@@ -489,9 +559,14 @@ fn withdraw_invalid(world: &mut World) {
 /// Energy or Bladder at or below the critical level, or away at work
 /// (`social_episode::urgent`). A player's order survives critical needs; a
 /// made-up grudge does not outrank food and sleep. This is the issue 301
-/// ruling in rule 3 of `docs/specs/2026-10-16-fights.md`, pending the owner's
-/// confirmation. A fight already under way runs to its end. Released claims
-/// follow the execution owner, so a waiting partner is freed on this tick.
+/// ruling recorded in `docs/specs/2026-10-16-fights.md`, pending the owner's
+/// confirmation. Under the current fight rules `withdraw_invalid`, called
+/// first, also withdraws one that has not started when its recipient is
+/// asleep (issue 338). Under both rules a fight already under way runs to
+/// its end through either side's crisis (issue 342). Released claims follow
+/// the execution owner, so a waiting partner is freed on this tick. Neither
+/// withdrawal marks the grievance as fought, so it can start a fight again
+/// while it stays eligible.
 pub(crate) fn yield_to_critical_needs(world: &mut World) {
     if !published_rules(world) {
         withdraw_invalid(world);
@@ -597,6 +672,7 @@ pub(crate) fn provoke(world: &mut World) {
                 .active(SimId(row.responsible), now)
                 || !approachable(world, other, &listeners)
                 || crate::social_episode::urgent(world, other)
+                || crate::social_episode::requests::asleep(world, other)
             {
                 continue;
             }
@@ -1895,7 +1971,7 @@ mod order_tests {
             .resource::<crate::relationship_effects::RelationshipDiagnostics>();
         assert_eq!(
             diagnostics
-                .effects
+                .effects()
                 .iter()
                 .filter(|e| e.cause == crate::relationship_effects::RelationshipCause::Fight)
                 .count(),
@@ -2022,9 +2098,70 @@ mod order_tests {
         assert!(sim
             .world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .iter()
             .all(|e| e.cause != crate::relationship_effects::RelationshipCause::Fight));
+    }
+
+    /// [AL-record] kind 3: a finished fight is one line naming both sides,
+    /// the fight topic and both losses.
+    #[test]
+    fn fight_completion_logs_reason_and_both_losses() {
+        use crate::activity_log::{opinion_units, LogKind, ACTIONS, SOCIAL};
+        let (mut sim, a, b, _fridge) = household();
+        order_fight(&mut sim, a, b);
+        tick_until(
+            &mut sim,
+            |sim| sim.world().get::<Socialising>(a).is_some(),
+            "the fight",
+        );
+        // A player's fight takes a reason of its own; the line names it.
+        let tag = sim
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .topics[&a]
+            .tag
+            .clone();
+        assert!(
+            Reason::from_tag_current(&tag).is_some(),
+            "{tag} is a fight reason"
+        );
+        tick_until(
+            &mut sim,
+            |sim| sim.world().get::<Socialising>(a).is_none(),
+            "the end of the fight",
+        );
+        let pack = sim.world().resource::<crate::Content>().0;
+        let records: Vec<_> = sim.activity_log().records().copied().collect();
+        let fights: Vec<_> = records
+            .iter()
+            .filter(|r| r.kind() == Some(LogKind::FightDone))
+            .collect();
+        assert_eq!(fights.len(), 1, "{records:?}");
+        assert!(records.iter().all(|r| r.kind() != Some(LogKind::ChatDone)));
+        let record = fights[0];
+        let (a_id, b_id) = (
+            *sim.world().get::<SimId>(a).unwrap(),
+            *sim.world().get::<SimId>(b).unwrap(),
+        );
+        assert_eq!((record.actor(), record.other()), (a_id.0, b_id.0));
+        assert_eq!(record.triggers(), ACTIONS | SOCIAL);
+        assert_eq!(record.label2(), sim.activity_log().label(pack, &tag));
+        assert_ne!(record.label2(), crate::activity_log::NONE);
+        let loss = |me: SimId, other: SimId| {
+            sim.relationship_effects()
+                .iter()
+                .find(|e| {
+                    e.cause == crate::relationship_effects::RelationshipCause::Fight
+                        && e.affected == me
+                        && e.responsible == other
+                })
+                .unwrap()
+                .actual
+        };
+        assert_eq!(record.value(2), opinion_units(loss(a_id, b_id)));
+        assert_eq!(record.value(3), opinion_units(loss(b_id, a_id)));
+        assert!(record.value(2) < 0 && record.value(3) < 0);
     }
 
     #[test]
@@ -2036,7 +2173,7 @@ mod order_tests {
             |s| s.world().get::<Socialising>(a).is_some(),
             "the player argument",
         );
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         assert_eq!(saved.conflicts.fights.len(), 1);
         assert!(saved.conflicts.fights[0].topic_code >= 33);
         let hash = sim.world_hash();
@@ -2046,13 +2183,13 @@ mod order_tests {
             "the frozen reader refuses the extended topic"
         );
         assert_eq!(sim.world_hash(), hash, "historical rejection is atomic");
-        sim.load_snapshot_v21(saved.clone()).unwrap();
+        sim.load_snapshot_v24(saved.clone()).unwrap();
         assert_eq!(sim.world_hash(), hash);
         assert_eq!(sim.world().resource::<SimRng>(), &rng);
         let mut missing = saved;
         missing.conflicts.fights.clear();
         assert!(
-            sim.load_snapshot_v21(missing).is_err(),
+            sim.load_snapshot_v24(missing).is_err(),
             "current saves cannot erase the argument's cause and provenance"
         );
         assert_eq!(sim.world_hash(), hash);
@@ -2101,9 +2238,9 @@ mod order_tests {
         let queue = sim.world().get::<IntentQueue>(a).unwrap();
         assert!(queue.order(system).is_none());
         assert!(queue.order(player).is_some());
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         let hash = sim.world_hash();
-        sim.load_snapshot_v21(saved).unwrap();
+        sim.load_snapshot_v24(saved).unwrap();
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -2201,9 +2338,9 @@ mod order_tests {
             .resource::<crate::social_conflicts::State>()
             .pending_fights
             .contains_key(&a));
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         let hash = sim.world_hash();
-        sim.load_snapshot_v21(saved).unwrap();
+        sim.load_snapshot_v24(saved).unwrap();
         assert_eq!(sim.world_hash(), hash);
         tick_until(
             &mut sim,
@@ -2277,7 +2414,7 @@ mod order_tests {
                 sim.world().get::<Socialising>(a).is_some(),
                 "a sale preserves the player's running argument"
             );
-            assert_eq!(sim.save_snapshot_v21().conflicts.grievances.len(), 1);
+            assert_eq!(sim.save_snapshot_v24().conflicts.grievances.len(), 1);
             if cancel {
                 let tick = sim.world().resource::<SimClock>().tick;
                 sim.world_mut()
@@ -2298,14 +2435,14 @@ mod order_tests {
                     "actual fight completion",
                 );
             }
-            let saved = sim.save_snapshot_v21();
+            let saved = sim.save_snapshot_v24();
             assert!(saved.conflicts.fights.is_empty());
             assert!(
                 saved.conflicts.grievances.is_empty(),
                 "unpinning removes the retired physical source in the same flush/tick"
             );
             let hash = sim.world_hash();
-            sim.load_snapshot_v21(saved).unwrap();
+            sim.load_snapshot_v24(saved).unwrap();
             assert_eq!(sim.world_hash(), hash);
         }
     }
@@ -2365,10 +2502,10 @@ mod order_tests {
         assert!(sim.world().get_entity(third).is_err());
         assert_eq!(sim.death_records().len(), 1);
         assert!(sim.world().get::<Socialising>(a).is_some());
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         let hash = sim.world_hash();
         assert_eq!(saved.conflicts.grievances.len(), 1);
-        sim.load_snapshot_v21(saved).unwrap();
+        sim.load_snapshot_v24(saved).unwrap();
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -2383,7 +2520,7 @@ mod order_tests {
             |s| s.world().get::<Socialising>(a).is_some(),
             "the bare actors' fight",
         );
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         let hash = sim.world_hash();
         assert_eq!(
             saved.conflicts.fights[0].initiator,
@@ -2393,11 +2530,11 @@ mod order_tests {
             saved.conflicts.fights[0].recipient,
             terri_core::save_v17::SavedOrderActor::Entity(b.index_u32())
         );
-        sim.load_snapshot_v21(saved.clone()).unwrap();
+        sim.load_snapshot_v24(saved.clone()).unwrap();
         assert_eq!(sim.world_hash(), hash);
         let mut invalid = saved;
         invalid.conflicts.fights[0].initiator = terri_core::save_v17::SavedOrderActor::Sim(0);
-        assert!(sim.load_snapshot_v21(invalid).is_err());
+        assert!(sim.load_snapshot_v24(invalid).is_err());
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -2418,7 +2555,7 @@ mod order_tests {
             crate::social_episode::bubble(sim.world(), a.index_u32()),
             (Reason::NONE_CODE, -1.)
         );
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         assert!(saved.conflicts.fights[0].legacy && saved.conflicts.fights[0].grievance.is_none());
         let mut hash = FnvHasher::default();
         crate::social_conflicts::hash(sim.world(), &mut hash);
@@ -2428,7 +2565,7 @@ mod order_tests {
             "compatibility metadata changes no published-policy computation"
         );
         let before = sim.world_hash();
-        sim.load_snapshot_v21(saved).unwrap();
+        sim.load_snapshot_v24(saved).unwrap();
         assert_eq!(sim.world_hash(), before);
     }
 
@@ -2520,7 +2657,7 @@ mod order_tests {
                 .decision,
             Some(false)
         );
-        let saved = sim.save_snapshot_v21();
+        let saved = sim.save_snapshot_v24();
         let original = saved.legacy.clone();
         let hash = sim.world_hash();
         assert_eq!(saved.conflicts.fights.len(), 2);
@@ -2531,7 +2668,7 @@ mod order_tests {
             .fights
             .iter()
             .all(|row| row.legacy && row.grievance.is_none()));
-        sim.load_snapshot_v21(saved.clone()).unwrap();
+        sim.load_snapshot_v24(saved.clone()).unwrap();
         assert_eq!(sim.world_hash(), hash);
         assert_eq!(
             sim.world()
@@ -2551,12 +2688,11 @@ mod order_tests {
             let mut missing = saved.clone();
             missing.conflicts.fights.remove(remove);
             assert!(
-                sim.load_snapshot_v21(missing).is_err(),
+                sim.load_snapshot_v24(missing).is_err(),
                 "neither exact context can stand in for the other"
             );
         }
-        let mut expected = crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV23 {
-            previous: terri_core::SaveSnapshotV22 { previous: saved.clone(), pools: vec![] }, baths: vec![] });
+        let mut expected = crate::current_test_snapshot::CurrentV5View(saved.clone());
         let source_layout = expected.layout.clone();
         let (width, height) = (expected.world.grid_width, expected.world.grid_height);
         sim.load_snapshot_v19(original.clone()).unwrap();
@@ -2565,9 +2701,9 @@ mod order_tests {
         expected.layout = adopted_layout;
         assert_eq!(
             sim.save_snapshot_v19(),
-            expected.0.previous.previous.legacy,
+            expected.0.legacy,
             "only the explicitly checked historical rear shell changes"
         );
-        assert_eq!(sim.save_snapshot_v21().conflicts.fights.len(), 2);
+        assert_eq!(sim.save_snapshot_v24().conflicts.fights.len(), 2);
     }
 }

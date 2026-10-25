@@ -58,7 +58,7 @@ pub(crate) struct Carried {
     pub actor_references: ActorReferences,
     /// Selected only by the outer schema-twenty reader.
     pub current_fight_topics: bool,
-    pub surfaces: Option<terri_core::save_v21::WorldSurfaces>,
+    pub surfaces: Option<terri_core::WorldSurfaces>,
     pub commutes: Option<Vec<(u32, u8)>>,
     pub pools: Option<Vec<terri_core::save_v22::SavedPoolEpisode>>,
     pub baths: Option<Vec<terri_core::save_v23::SavedBathEpisode>>,
@@ -98,9 +98,9 @@ impl Carried {
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
             surfaces: world
-                .get_resource::<terri_core::save_v21::WorldSurfaces>()
+                .get_resource::<terri_core::WorldSurfaces>()
                 .cloned(),
-            commutes: crate::world_geometry::current(world).then(|| v21::commutes(world)),
+            commutes: crate::world_geometry::current(world).then(|| ordinary_world::commutes(world)),
             pools: Some(crate::pool::capture(world)),
             baths: Some(crate::bath::capture(world)),
         }
@@ -140,8 +140,11 @@ pub(crate) mod v18;
 pub(crate) mod v19;
 pub(crate) mod v20;
 pub(crate) mod v21;
+pub(crate) mod editable_v21;
+pub(crate) mod ordinary_world;
 pub(crate) mod v22;
 pub(crate) mod v23;
+pub(crate) mod v24;
 #[cfg(test)]
 mod v3_tests;
 #[cfg(test)]
@@ -233,7 +236,7 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
                     SimCommand::Book(_)
                         | SimCommand::Character(_)
                         | SimCommand::ConfirmedOrder { .. }
-                ) && !v18::is_queued_setting(command)
+                ) && !v18::left_out_of_records(command)
             })
             .map(|command| capture_command(command, pack))
             .collect(),
@@ -395,7 +398,9 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::Character(_)
         | SimCommand::ConfirmedOrder { .. }
         | SimCommand::SetJobSearch { .. }
-        | SimCommand::SetCareerChange { .. } => {
+        | SimCommand::SetCareerChange { .. }
+        | SimCommand::AssignCareerShift { .. }
+        | SimCommand::ChangeShift { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
@@ -753,7 +758,7 @@ pub(crate) fn restore_with_facings(
     }
 
     if let Some(commutes) = active_portals.commutes {
-        v21::restore_commutes(&mut sim.world, commutes)?;
+        ordinary_world::restore_commutes(&mut sim.world, commutes)?;
     }
     if let Some(pools) = active_portals.pools { crate::pool::restore_physical(&mut sim.world, pools)?; }
     if let Some(baths) = active_portals.baths { crate::bath::restore(&mut sim.world, baths)?; }

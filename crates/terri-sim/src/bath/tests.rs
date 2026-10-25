@@ -110,24 +110,24 @@ fn ordinary_bath_keeps_toy_clock_and_random_stream_through_load_and_build() {
         sim.action_events_since(0).events.iter().map(|event| (&event.phase,&event.reason)).collect::<Vec<_>>());
     for _ in 0..6 { sim.tick(); }
     sim.sync_render_buffer();
-    let saved = sim.save_snapshot_v23();
+    let saved = sim.save_snapshot_v24();
     let hash = sim.world_hash();
     let random = sim.world().resource::<SimRng>().clone();
     assert_eq!(saved.baths.len(), 1);
-    sim.load_snapshot_v23(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v23(), saved);
+    sim.load_snapshot_v24(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v24(), saved);
     assert_eq!(sim.world_hash(), hash);
     assert_eq!(sim.world().resource::<SimRng>(), &random);
     assert_eq!(sim.render_buffer().bath_toys, sim.render_buffer().prev_bath_toys);
     assert_eq!(sim.render_buffer().bath_elapsed, sim.render_buffer().prev_bath_elapsed);
     sim.begin_build().unwrap();
-    assert_eq!(sim.save_snapshot_v23(), saved);
+    assert_eq!(sim.save_snapshot_v24(), saved);
     sim.cancel_build().unwrap();
-    assert_eq!(sim.save_snapshot_v23(), saved);
+    assert_eq!(sim.save_snapshot_v24(), saved);
     assert_eq!(sim.world().resource::<SimRng>(), &random);
     sim.end_build().unwrap();
     assert!(!sim.build_active());
-    assert_eq!(sim.save_snapshot_v23(), saved);
+    assert_eq!(sim.save_snapshot_v24(), saved);
     let actor = crate::dining::entity(sim.world(), actor.index_u32()).unwrap();
     let target=*sim.world().get::<Target>(actor).unwrap();
     assert!(sim.world().get::<IntentQueue>(actor).unwrap().contains(terri_core::Intent {
@@ -139,7 +139,7 @@ fn ordinary_bath_keeps_toy_clock_and_random_stream_through_load_and_build() {
     assert!(sim.world().get::<Target>(actor).is_none());
     sim.sync_render_buffer_after_commands();
     assert!(current(sim.world(), actor).is_none());
-    assert!(sim.save_snapshot_v23().baths.is_empty());
+    assert!(sim.save_snapshot_v24().baths.is_empty());
     assert!(sim.render_buffer().bath_toys.iter().all(|toy| *toy == 0));
     assert_eq!(sim.world().resource::<SimRng>(), &random);
 }
@@ -150,17 +150,17 @@ fn legacy_active_bath_selects_once_and_current_missing_rows_fail_transactionally
     let old = sim.save_snapshot_v22();
     let mut migrated = Sim::new_with_lot(12, 12);
     migrated.load_snapshot_v22(old.clone()).unwrap();
-    let adopted = migrated.save_snapshot_v23();
+    let adopted = migrated.save_snapshot_v24();
     assert_eq!(adopted.baths.len(), 1);
     assert_eq!(adopted.baths[0].elapsed, 0);
     let random = migrated.world().resource::<SimRng>().clone();
-    migrated.load_snapshot_v23(adopted.clone()).unwrap();
+    migrated.load_snapshot_v24(adopted.clone()).unwrap();
     assert_eq!(migrated.world().resource::<SimRng>(), &random);
     let mut malformed = adopted.clone(); malformed.baths.clear();
     let before = migrated.world_hash();
-    assert!(migrated.load_snapshot_v23(malformed).is_err());
+    assert!(migrated.load_snapshot_v24(malformed).is_err());
     assert_eq!(migrated.world_hash(), before);
     sim.load_snapshot_v22(old).unwrap();
-    assert_eq!(sim.save_snapshot_v23(), adopted);
+    assert_eq!(sim.save_snapshot_v24(), adopted);
     assert!(current(sim.world(), crate::dining::entity(sim.world(), actor.index_u32()).unwrap()).is_some());
 }

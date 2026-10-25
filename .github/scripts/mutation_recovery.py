@@ -220,6 +220,7 @@ def seal(data, settings, kind, verdict, destination):
         "workflow": tool.WORKFLOW, "workflow_sha": settings["workflow_sha"], "head_sha": settings["head_sha"],
         "run_id": settings["run_id"], "attempt": settings["attempt"], "job_id": settings["job_id"],
         "checkout": data["current_checkout"], "campaign_id": manifest["campaign_id"],
+        "host_provenance": settings.get("host_provenance", {}),
         "input_fingerprint": manifest["input_fingerprint"], "contract": data["contract"],
         "plan": data["chain"]["plan"], "frontier": data["frontier"], "verdict": verdict,
         "log_retention_days": settings["log_retention_days"], "chunks": chunks,

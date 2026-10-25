@@ -171,14 +171,18 @@ Every need also decays throughout ordinary life:
 | Comfort | 0.0213333333 |
 
 Personality multiplies each decay rate. Sleeping multiplies decay by 0.4;
-being at work multiplies it by 0.5. Commuting uses normal decay. Work provides
-no direct need reward. The calendar and career working days determine when
+being at work multiplies it by 0.5. Commuting uses normal decay. While a person
+is at work, Hunger, Bladder and Social refill to 50 after decay reaches the
+Critical boundary, before later systems read those meters. Arrival refills
+these three needs when they are Low or Critical. Waiting to return home does
+not receive work refills. The calendar and career working days determine when
 that work modifier applies; days off retain normal decay. Normal decay can make a meter fall during an action
 whose positive rate is too small to offset it.
 
 ## Systems that are not need refills
 
-Mood combines current needs, conditions, nearby relationships, grief,
+Needs lower mood only at the Critical boundary; Low needs have no direct
+mood penalty. Mood combines current needs, conditions, nearby relationships, grief,
 environmental mess and waiting. Removing dishes can improve mood without
 giving Hygiene points. Being near a friend can improve mood without providing
 Social points. A low meter can also block positive friendship development

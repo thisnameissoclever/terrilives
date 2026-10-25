@@ -207,6 +207,128 @@
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-10-20",
         "method": "Displayed isolated Chrome 155 through the provided Playwright tool; one game navigation, muted process, initial Help paused at 00:00."
+      },
+      {
+        "id": "startup-report-sharing",
+        "url": "http://127.0.0.1:5177/terrilives/startup-report.html",
+        "sourceFileSha256": {
+          "web/index.html": "b075a4cf6396eea02c9e818d155f30079426b01754f006cf99f7a0f1708e49f6",
+          "web/src/ui/startup-failure.ts": "ee934e99cb719afd9ce1fec1541b1e210d8a4399dccc9c5a59bc9947a189d5d3",
+          "web/public/startup-diagnostics-v2.js": "9860faa4e4dc726bbe16142ce1708b4af066da4a51c8b79fd14a699fb76090b9",
+          "web/startup-report/template.html": "a68127ec2dc2d0a3dddc1e180bcc939c5dc0f27a849203d0d7e3307bb389a3fb",
+          "web/startup-report/plugin.ts": "fc17ef40988db9f02d31121705c843cd8ec66b928311c7163f9a92c44a520d3d",
+          "web/vite.config.ts": "66155ae191158a5e7683882a344df49c2cf74aa227d2f404e45d4d78dd12e371"
+        },
+        "htmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+        "bundle": "./assets/index-B7Q70Ugo.js",
+        "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+        "browser": "Google Chrome 155 on Windows; isolated muted context",
+        "evidence": "docs/evidence/2026-10-23-startup-report-sharing/verification.json"
+      },
+      {
+        "id": "meaningful-debug-reports",
+        "url": "http://127.0.0.1:5177/terrilives/",
+        "sourceFileSha256": {
+          "web/public/startup-diagnostics-v3.js": "7d59411a9bcde77ce95b3c70e1dced1351cab26120db22b1c200b9ee04f9825a",
+          "web/startup-report/template.html": "14a01a7f48aa2f64964573acf3fbd914adb3ac8e7c72f5f881d88ec340349e92",
+          "web/index.html": "0063b27b44438136b68d5ad2db5d70db198ed704773bfcfa7f007e28b93939e3",
+          "web/src/diagnostics.ts": "ecd5b212d932508fc11a706b5274bf00fedd97be1cad3a761071fbb1856d136e",
+          "web/src/render/device.ts": "f69c7b8837789d373efe1e4813e84a83a43ccd6fc329f50648947e5b04f3be6a",
+          "web/src/render/character/asset-download.ts": "5091cbdd0b6cddbdc2ddf5ba2b71381a7b55e7d1be8992161c38d6cd61345ae9",
+          "web/src/render/character/character-preparation-service.ts": "bd89aba95510f11bc12d64ffba84ef9b500a840979b8fd4774b392db4bda14c8",
+          "web/src/render/character/preparation-transport.ts": "c16e056b2dd7a575e0022812ab9cc0b44aba0be505d9fb158bd9349f9357cf10",
+          "web/src/main.ts": "8be9e2e0a9784f5cbd4de18a2f7e9fa869e9d5f82510e9a1f72fb17808a4ac0b"
+        },
+        "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+        "bundle": "./assets/index-CF2EA_TM.js",
+        "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+        "evidence": "docs/evidence/2026-10-23-meaningful-debug-reports/verification.json"
+      },
+      {
+        "id": "save-files",
+        "url": "https://127.0.0.1:4173/",
+        "htmlSha256": "3a1d4b4be896bf4385607575c5606b9e399e0fe8afadc39158e46f653a02809e",
+        "bundle": "index-DQ-pXZpf.js",
+        "bundleSha256": "d90cf59b4ea0681a43fe619202ef1221a4868bbf9d62cf173df3b780c18e5ed9",
+        "wasm": "terri_wasm_bg-C_6UR7qL.wasm",
+        "wasmSha256": "5931cdaf8c88f928b08608afc6bf52221f93a53e655a743cf7fd2b9981f7b90f",
+        "gameSourceFileSha256": {
+          "web/index.html": "b069cff8bcb6e858d0a26901b52dcd5ae7983a05f3a72abcc23c0da3f62e94fd",
+          "web/src/main.ts": "4b48e835d40d8b78dcc1188451873b59ebb2987e8ec5173f4751e2fc59591aaf",
+          "web/src/ui/persistence-controller.ts": "53681fd17eca49a47ea48be075abd30cd3575aba8a15d47bf802b565c63370d8",
+          "web/src/storage/save-file.ts": "208998ca29d5791c47441b87da78392e2456242a1ef7ab22cd0bc74c250a32a4"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright Chrome against this worktree build, merged with main, served by vite preview; Sound off before any capture. Options opened from the world controls after dismissing first-run Help; Import confirmation opened by choosing a saved game file after closing Options with Escape."
+      },
+      {
+        "id": "activity-log",
+        "url": "http://127.0.0.1:5174/?stress=0&audio=0",
+        "sourceCommit": "33ee7a4ac",
+        "htmlSha256": "954e9c72046583f81a9f0d220822ce44567959301e1522d33a69784103bf320e",
+        "bundle": "index-BAhtCSe1.js",
+        "bundleSha256": "12e7846cec0410a6e89192e87bbdb613e1d5d5b2d6d7372410e9976dfc55374b",
+        "wasm": "terri_wasm_bg-DFgWgfcg.wasm",
+        "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
+        "gameSourceFileSha256": {
+          "web/index.html": "ac7935e161bf18a28a034683419a96d5bd889724fc7261cd8c907c531a835fb0",
+          "web/src/main.ts": "dd99436c2f59e4cd54b47d541540ceb25405bae9839e680f173b8c7698263c5f",
+          "web/src/ui/compact-hud.css": "3e16dce78728f9ac44b54f0c8ad629f953f0c6ba8daabb12f8ea0962871f1d0f",
+          "web/src/ui/activity-log-panel.ts": "708c80b3e6b1dbc99bf0a5f19da37981608b48294a4199fba88c20c385985415",
+          "web/src/ui/activity-log-compose.ts": "665263139a67c932a88e774a7787dd4e4a16496c2cad38ae195009e8b1d54031",
+          "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
+          "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
+          "crates/terri-sim/src/activity_log.rs": "067119877f6ab0f837e7a679fa78bce87865a9152a7553445368a3c5e02f62f0",
+          "crates/terri-wasm/src/lib.rs": "cf37dbee860c1f744966ca9b07f96470b614774c64b64290bf37f4aa86c27123"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping, one or two game days for the open, Only and privacy states and six or seven for Show earlier entries, then the Log opened from its top-right button.",
+        "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
+      },
+      {
+        "id": "activity-log-review-fixes",
+        "url": "http://127.0.0.1:5174/?stress=0&audio=0",
+        "sourceCommit": "e8d1d9018",
+        "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+        "bundle": "index-B3WUuvwr.js",
+        "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+        "wasm": "terri_wasm_bg-BQBZ8UbY.wasm",
+        "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+        "gameSourceFileSha256": {
+          "web/index.html": "ac7935e161bf18a28a034683419a96d5bd889724fc7261cd8c907c531a835fb0",
+          "web/src/main.ts": "dd99436c2f59e4cd54b47d541540ceb25405bae9839e680f173b8c7698263c5f",
+          "web/src/ui/compact-hud.css": "3e16dce78728f9ac44b54f0c8ad629f953f0c6ba8daabb12f8ea0962871f1d0f",
+          "web/src/ui/activity-log-panel.ts": "6ea637b3addd69e0fac6b5bc6791380aa221b73acb6c3a9b5cca582a1c00f159",
+          "web/src/ui/activity-log-compose.ts": "665263139a67c932a88e774a7787dd4e4a16496c2cad38ae195009e8b1d54031",
+          "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
+          "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
+          "crates/terri-sim/src/activity_log.rs": "230a26a08040f5c428fb5affdb205ca1e81b38d2ea5a918e81b8f7fc7f1ac9b1",
+          "crates/terri-wasm/src/lib.rs": "cf37dbee860c1f744966ca9b07f96470b614774c64b64290bf37f4aa86c27123"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping one game day at a time until a bathroom privacy line was held, then the Log opened from its top-right button. The open and Only states are scrolled to the newest line.",
+        "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
+      },
+      {
+        "id": "shift-careers-2026-10-24",
+        "url": "http://127.0.0.1:4191/",
+        "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+        "bundle": "index-DVZUdzNT.js",
+        "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+        "wasm": "terri_wasm_bg-aSRI3UZc.wasm",
+        "wasmSha256": "c5be841fe787dea99a1467bad4200e0df63519077c0471de14f6fba5b13023bf",
+        "gameSourceFileSha256": {
+          "web/index.html": "f8022e944a0005cc1a4c4f113efd0d59c4936f2f2ad5ed7abadf365c2c24efc5",
+          "web/src/main.ts": "a601d3e4511b1b4e2ee714688ffb305a2bb0f386eab0eb9c82a01f7dceb0f4a1",
+          "web/src/ui/career-panel.ts": "fa3d8deda723c27cf6ae334f3cb750cc01d940c16cffe43afdab2a55b89d1bbd",
+          "web/src/ui/game-hud.ts": "b2baab95e236adb1f14e4f844a2af57f81c6b9066670ad542da9dfa975c34661"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-24",
+        "method": "Playwright Chrome, headed and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. The shipped household after two reviewed weeks (Day 15, Monday 10:00) was imported with Options > Import save from a save written by the browser save writer; Career assigned shows Bill after Assign to the Library path."
       }
     ],
     "weatherSetup": {
@@ -352,18 +474,18 @@
       "section": "options",
       "desktop": "images/ui-options-desktop.png",
       "mobile": "images/ui-options-mobile.png",
-      "description": "Options open, with New housemate above Save and Load.",
+      "description": "Options open, with New housemate above Save, Load, Export save, Import save, New game and Report bug.",
       "access": "Choose Options beside Build.",
       "desktopDetail": "images/ui-options-detail-desktop.png",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "save-files",
+      "htmlSha256": "3a1d4b4be896bf4385607575c5606b9e399e0fe8afadc39158e46f653a02809e",
+      "bundleSha256": "d90cf59b4ea0681a43fe619202ef1221a4868bbf9d62cf173df3b780c18e5ed9",
       "mobileDetail": "images/ui-options-detail-mobile.png",
       "imageSha256": {
-        "desktop": "9bc540af1042ceb04e5e8ca3014aae946c03105bc6231f729dca94ef379f67fc",
-        "mobile": "9c01197624aeb1d4be61a58f85b9a5266687d0f5940e7bfa3e6b0feb89a7baaf",
-        "desktopDetail": "1eb48331d7f29f9a4d9dad15e2d13915fc64de85e56a36e605108cc147b0b533",
-        "mobileDetail": "b400e0ab789298badfd9e9b99429bde1108d95e5efe324a45c763045d43bd6d2"
+        "desktop": "d1a7b689f8d536bbcf3f3335caa5ba7a65c663af2b6aec77f398c5539049453c",
+        "mobile": "4e5012a11d3b217f81c21f2c6ebd126cea0c45c6b44e13af10b31d5847c7a19e",
+        "desktopDetail": "1b1250e179b4a6ff60255bec98906188b777a646a11d78e2267c26996f8c9b8d",
+        "mobileDetail": "47c6d87ca2cedd1d7b1c3d19595498d5d374f916837d670f2a8f181b2c5a8113"
       }
     },
     {
@@ -521,13 +643,13 @@
       "description": "The selected person's career, pay and work schedule.",
       "access": "Open Sim details > Career.",
       "desktopDetail": "images/ui-sim-career-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "bdf2fb33c876b9e30988d4cc3067b51dc3bd212f2af635b8c5cf27d1fc9ba9a4",
-        "mobile": "5b89eba9b5c5dcf6bc29135229608af891d58afbd388addf93fd441ece98c0b2",
-        "desktopDetail": "3950380e17c6d93132bf8e806f98294ffc68819ae1eb88e8c2fed52180e76cd3"
+        "desktop": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
+        "mobile": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
+        "desktopDetail": "7160abbc3da5b471101817c227e3edd8826e3725388f72ce6976d8b2d5f86075"
       }
     },
     {
@@ -1252,6 +1374,21 @@
       }
     },
     {
+      "id": "import-confirm",
+      "section": "saves",
+      "desktop": "images/ui-import-confirm-desktop.png",
+      "mobile": "images/ui-import-confirm-mobile.png",
+      "description": "Import save confirmation, with Keep playing and Import game.",
+      "access": "Choose Options > Import save, then pick a saved game file.",
+      "sourceSnapshot": "save-files",
+      "htmlSha256": "3a1d4b4be896bf4385607575c5606b9e399e0fe8afadc39158e46f653a02809e",
+      "bundleSha256": "d90cf59b4ea0681a43fe619202ef1221a4868bbf9d62cf173df3b780c18e5ed9",
+      "imageSha256": {
+        "desktop": "545eac6f6e211150905084b34990ef9454adc932c9dee73c0c98c7a4b37fd0c0",
+        "mobile": "1d635066fb621a64a40d993989d61ba9b508620ae019ffbe99cc3ffc409836a4"
+      }
+    },
+    {
       "id": "new-game-confirm",
       "section": "saves",
       "desktop": "images/ui-new-game-confirm-desktop.png",
@@ -1288,12 +1425,12 @@
       "mobile": "images/ui-career-assigned-mobile.png",
       "description": "Career details after assigning a path.",
       "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "8259389a71325e545d171aa8b690f416fbaed72791ba4bd190cbad7617634ca1",
-        "mobile": "7382b4abe7a45b912cbef31f73c58b1ca3e9ee5e30e46331a221e9e7d358fe1e"
+        "desktop": "97172c578c224526c96df68934647e8fd0e75951f4336651acab5f97d51ea2fc",
+        "mobile": "47f4a5aafc192b5b266b891491a9ecbc6a33178dbca8f9a0857ce70d10be031d"
       }
     },
     {
@@ -1301,14 +1438,29 @@
       "section": "career",
       "desktop": "images/ui-career-controls-desktop.png",
       "mobile": "images/ui-career-controls-mobile.png",
-      "description": "Career assignment, Quit and automatic job search controls.",
+      "description": "The Assign a career controls: Career path, the assigning Shift selector, Assign and Quit.",
       "access": "Open Sim details > Career, then scroll to Assign a career.",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "b1c9bcc7d8410a9fbdea891f26e1238806f682006d67e34d06241318a44c8ff1",
-        "mobile": "e8213181c02dcc4bb41ae628d26143f219f10268f397358a1fbb151447a4eb92"
+        "desktop": "31512630612c02553ef39a856a3a2b9f631c48c4805292f1197efdcc2917a4eb",
+        "mobile": "9fa96d81346266ed1856321436fa9e2a88a32d99ddd64fb7d5ab8fcc3f6529aa"
+      }
+    },
+    {
+      "id": "career-shift-controls",
+      "section": "career",
+      "desktop": "images/ui-career-shift-desktop.png",
+      "mobile": "images/ui-career-shift-mobile.png",
+      "description": "The end of the Career tab: the assigning Shift selector, Assign and Quit, Shift schedule with Change shift and its note, and the automatic job search box.",
+      "access": "Open Sim details > Career, then scroll to the end of the tab.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
+        "mobile": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752"
       }
     },
     {
@@ -1678,12 +1830,12 @@
       "mobile": "images/ui-career-review-mobile.png",
       "description": "The selected person's completed work reviews.",
       "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "fbf41374b0c2003191f633f779300eb3a0d58821152a9cfb883c5f8b5c643123",
-        "mobile": "50eda1535034f6148102aebb11d9f2b0e443897f6720f2074100b7a58f5255c8"
+        "desktop": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
+        "mobile": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e"
       }
     },
     {
@@ -1693,12 +1845,12 @@
       "mobile": "images/ui-career-overview-graph-mobile.png",
       "description": "The review graph opened beside the career in Overview.",
       "access": "Open Sim details > Overview, then choose i beside the career name.",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "f5662f555bf93d0700fb7b0fcf4469561dc3da5b31e4e7e80d4f068556a4beef",
-        "mobile": "babf18f267ba0967766f49a47bba21303b61c8f3395c8db592f254139e4f90b5"
+        "desktop": "6be0220959c480ffa8eeab079ecc9b71b6fff2bd2d88187a44e1a386c439b9dd",
+        "mobile": "80bce91c35ca1a37005f19c156be67051fc97ed498d8f6bff25e8abaec1cb36c"
       }
     },
     {
@@ -1970,6 +2122,239 @@
       "sourceSnapshot": "build-release-guide-integration",
       "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
       "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "startup-report-sharing",
+      "section": "loading-failure",
+      "description": "Copy and email controls after a controlled startup download error.",
+      "access": "Open startup-report.html in the same browser after a loading error.",
+      "sourceSnapshot": "startup-report-sharing",
+      "htmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+      "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+      "imageSha256": {
+        "desktop": "ae49ac1ba67b8c07655e05a9526e4f393ed71215394b3ea59f2451a6cd9c9ab9",
+        "mobile": "87d7234b667c168e9030b8127e21f4c7dfd0d470d8ea01fb73dbe1f117425c36"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor PNG, no image edits",
+          "sourceImageSha256": "ae49ac1ba67b8c07655e05a9526e4f393ed71215394b3ea59f2451a6cd9c9ab9"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor PNG, no image edits",
+          "sourceImageSha256": "87d7234b667c168e9030b8127e21f4c7dfd0d470d8ea01fb73dbe1f117425c36"
+        }
+      },
+      "desktop": "images/startup-report-sharing-desktop.png",
+      "mobile": "images/startup-report-sharing-mobile.png"
+    },
+    {
+      "id": "meaningful-debug-options",
+      "section": "options",
+      "description": "Current bug-report controls and retained runtime error.",
+      "access": "Open Options, then Report bug.",
+      "sourceSnapshot": "meaningful-debug-reports",
+      "imageSha256": {
+        "desktop": "1cc0376b9b3284bcdf6fec351176efdd23efe8bac45ec4270af926e4f326beb7",
+        "mobile": "f99d004efadd79db59fdd1efd810f7e9559c55d1309aa97d2e9de906633d96b8"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 720,
+          "height": 1875,
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor element screenshot; no image edits",
+          "sourceImageSha256": "1cc0376b9b3284bcdf6fec351176efdd23efe8bac45ec4270af926e4f326beb7"
+        },
+        "mobile": {
+          "width": 720,
+          "height": 2160,
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor element screenshot; no image edits",
+          "sourceImageSha256": "f99d004efadd79db59fdd1efd810f7e9559c55d1309aa97d2e9de906633d96b8"
+        }
+      },
+      "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+      "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+      "desktop": "images/debug-report-options-desktop.png",
+      "mobile": "images/debug-report-options-mobile.png"
+    },
+    {
+      "id": "meaningful-debug-startup-report-sharing",
+      "section": "loading-failure",
+      "description": "Current bug-report controls and retained runtime error.",
+      "access": "Open startup-report.html in the same browser after an error.",
+      "sourceSnapshot": "meaningful-debug-reports",
+      "imageSha256": {
+        "desktop": "c5f0383c35b811a5ac862fb13a5b08f8a8dc2803340cbf4b2b4517207a78c7fc",
+        "mobile": "763a6694b10a8448d4aae5d7bb46d788e8d9d805799b386f5fb9e6baa9b28f77"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 4320,
+          "height": 2700,
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "c5f0383c35b811a5ac862fb13a5b08f8a8dc2803340cbf4b2b4517207a78c7fc"
+        },
+        "mobile": {
+          "width": 1206,
+          "height": 2622,
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "763a6694b10a8448d4aae5d7bb46d788e8d9d805799b386f5fb9e6baa9b28f77"
+        }
+      },
+      "htmlSha256": "8c6c24bf145f9c904b5f2f1e5617eb13109b3ef929525ac58fbed4423d00be5d",
+      "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+      "desktop": "images/debug-report-sharing-desktop.png",
+      "mobile": "images/debug-report-sharing-mobile.png"
+    },
+    {
+      "id": "log",
+      "section": "log",
+      "description": "The Log open with the default filters, showing the whole household and scrolled to the newest line; the desktop capture includes a bathroom privacy line.",
+      "access": "Choose Log at the top right of the screen.",
+      "sourceSnapshot": "activity-log-review-fixes",
+      "imageSha256": {
+        "desktop": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d",
+        "mobile": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+        }
+      },
+      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+      "desktop": "images/ui-log-desktop.png",
+      "mobile": "images/ui-log-mobile.png"
+    },
+    {
+      "id": "log-only",
+      "section": "log",
+      "description": "The Log with Only Tim ticked, showing only the lines that involve the selected housemate.",
+      "access": "Select Tim in the Household row, choose Log, then tick Only Tim at the end of the filter row.",
+      "sourceSnapshot": "activity-log-review-fixes",
+      "imageSha256": {
+        "desktop": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636",
+        "mobile": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+        }
+      },
+      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+      "desktop": "images/ui-log-only-desktop.png",
+      "mobile": "images/ui-log-only-mobile.png"
+    },
+    {
+      "id": "log-show-earlier",
+      "section": "log",
+      "description": "The top of the Log after a week of play, with Show earlier entries above the oldest shown line.",
+      "access": "Choose Log, then scroll to the top of the list.",
+      "sourceSnapshot": "activity-log",
+      "imageSha256": {
+        "desktop": "fab49c571c832702e0080ddcac4cc73b245abc2fd84b54c710f03721bd3204d8",
+        "mobile": "a5df74c891c3f079ef3f9a4eccc8b77006336c1b39771e0e44c22f00ad4eac8a"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "fab49c571c832702e0080ddcac4cc73b245abc2fd84b54c710f03721bd3204d8"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "a5df74c891c3f079ef3f9a4eccc8b77006336c1b39771e0e44c22f00ad4eac8a"
+        }
+      },
+      "htmlSha256": "954e9c72046583f81a9f0d220822ce44567959301e1522d33a69784103bf320e",
+      "bundleSha256": "12e7846cec0410a6e89192e87bbdb613e1d5d5b2d6d7372410e9976dfc55374b",
+      "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
+      "desktop": "images/ui-log-show-earlier-desktop.png",
+      "mobile": "images/ui-log-show-earlier-mobile.png"
     }
   ],
   "uiSections": {
@@ -1981,5 +2366,32 @@
     "work-confirmation": [
       "work-conflict"
     ]
+  },
+  "saveRecoveryCapture": {
+    "capturedAt": "2026-10-25",
+    "sourceRevision": "afbe98af343123dce139338821fdacedc7fbefe8 with Export save recovery and keyboard ownership corrections",
+    "url": "http://127.0.0.1:5224/?stress=0&audio=0",
+    "accessPath": "Options > Export save",
+    "state": "Paused and muted actual game; normal export; native dialog popover",
+    "method": "Actual published game with candidate HTML/CSS. After mode makes exactly the five source guard corrections in the compiled artifact; native simulation and all other scripts are unchanged. This is a played integration proof, not a production build.",
+    "htmlSha256": "93f69dbb4ed52b2fec5f1f5ef8935752758b091fa2f1cda84cb7a256199f553c",
+    "desktop": {
+      "path": "images/guide/save-recovery-desktop.jpg",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "7eccd82710b4fcda60788810ffe7a5831652feb7386572e0c7efc53679da121d"
+    },
+    "mobile": {
+      "path": "images/guide/save-recovery-mobile.jpg",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "sha256": "17f8618fdbdc4d6728b434cd9f36ad69db8fce0f93caad6bb5a5e0f66cd838d2"
+    },
+    "javascriptSha256": "62ef5ef98a87064bcca886009c6200b3b154df7b2ceac07ed7a1042e0440d145",
+    "baselineJavascriptSha256": "036b4cdd7675eebfcef9a79f2307c14361f039148aa9012ed36ff1daa60edbc0"
   }
 }

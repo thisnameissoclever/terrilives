@@ -137,6 +137,30 @@ class JobLogTransportTests(unittest.TestCase):
         self.assertEqual(api.requests, 1)
 
 
+
+class SnapshotHostProvenanceTests(unittest.TestCase):
+    def test_host_metadata_is_retained_outside_immutable_computation(self):
+        data = {"planned": {"manifest": {"campaign_id": "fixture", "input_fingerprint": "a" * 64}},
+                "current_checkout": {"commit": "b" * 40}, "contract": {"fixed": "recipe"},
+                "chain": {"plan": {"artifact_id": 1}}, "frontier": {"100": 1}}
+        settings = {"scope": "fixture", "repository": "owner/repo", "workflow_sha": "c" * 40,
+                    "head_sha": "d" * 40, "run_id": "100", "attempt": 2, "job_id": "901", "log_retention_days": 30}
+        receipts = []
+        with tempfile.TemporaryDirectory() as temporary, contextlib.redirect_stdout(io.StringIO()), \
+                mock.patch.object(recovery.native, "validate_admitted"), \
+                mock.patch.object(recovery, "validate_log_anchors"), mock.patch.object(recovery, "validate_retained"):
+            for index, version in enumerate(("previous-host", "rolling-host")):
+                selected = dict(settings, host_provenance={"ImageOS": "ubuntu24", "ImageVersion": version})
+                destination = Path(temporary) / str(index)
+                receipts.append(recovery.seal(data, selected, "prepared", {"state": "complete"}, destination))
+                self.assertEqual(receipts[-1]["host_provenance"], selected["host_provenance"])
+                restored = recovery.decode((destination / "chunk-0000.bin").read_bytes())
+                self.assertNotIn("host_provenance", restored)
+            self.assertEqual(receipts[0]["payload_digest"], receipts[1]["payload_digest"])
+            self.assertEqual(receipts[0]["input_fingerprint"], receipts[1]["input_fingerprint"])
+            self.assertEqual(receipts[0]["data_sha256"], receipts[1]["data_sha256"])
+
+
 class SnapshotFixture:
     def __init__(self, owner):
         self.q = qualification_tests.QualificationAuthenticationTests()
@@ -175,7 +199,7 @@ class SnapshotFixture:
         self.data["qualification"] = None
         self.settings = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "workflow_sha": "e" * 40,
             "head_sha": "d" * 40, "run_id": "100", "attempt": 2, "job_id": "999", "slot": 0,
-            "scope": "fixture", "log_retention_days": 30, "runner_image": self.q.fixture.image,
+            "scope": "fixture", "log_retention_days": 30, "runtime": self.q.fixture.image,
             "survivor_baseline": str(self.root / "docs/mutants-baseline.txt"),
             "job_started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "opt_level": 2, "cargo_jobs": 2,
             "build_cap_seconds": 600, "shutdown_seconds": 30, "validation_seconds": 120, "upload_seconds": 240}
@@ -609,6 +633,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
             settings = workflow.current_settings(api, f.root, scope, name, 0)
             return api, settings, job
         with mock.patch.dict(os.environ, environment), contextlib.redirect_stdout(io.StringIO()), \
+            mock.patch.object(workflow.runtime, "identity", return_value=f.q.fixture.image), \
             mock.patch.object(tool, "committed_contract", return_value=f.contract), \
             mock.patch.object(tool, "consume_prepared", side_effect=consume), \
             mock.patch.object(runner, "checkout_inventory", return_value=(context_value["checkout"], {})), \

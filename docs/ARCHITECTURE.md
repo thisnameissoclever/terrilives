@@ -496,6 +496,13 @@ saved journeys and lot edits share the same wall-aware contact check. A floor
 tile beside the closed back is not access to the shelves. Short shelf-transfer
 claims use the existing endpoint occupancy rules and end after pickup or
 shelving; borrowing a copy does not reserve the whole bookcase for the session.
+A walk toward a shelf contact, to fetch or to return, plans the contact as a
+shelf approach: it keeps meals, media and standing readers off that tile, but
+another fetch or return may plan the same contact. The contact becomes
+exclusive only during pickup or shelving. A walker who arrives while someone
+else is transferring there waits at the contact for the transfers ahead of it,
+four ticks each in the shipped tuning, so a reader putting a book back never
+waits out another reader's walk.
 
 Owned reading runs through ordinary action selection and movement. `BookLibrary`
 owns copy identity and location; `ReadingJourney` owns the person's fetch,
@@ -668,6 +675,8 @@ imports that intent as an explicitly unattributed waiting request; it does not
 invent admission or alter the physical target, path, clock or random streams.
 Current readers still reject orphaned social targets.
 
+V21 wraps the complete V20 payload with each person's held shift other than their level's standard one, by shift id, the shift stream and its draw count, and each queued Assign or Change shift command with its position in the whole queue; the frozen command records stay unchanged and every older writer leaves those commands out. An older save loads with every job on its standard shift ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)).
+
 V20 wraps the frozen V19 envelope with indexed attributable grievances, exact active fight contexts, saved chore-response decisions and contribution receipts for the continuous dish duty. Every running fight and pending autonomous fight requires a separate exact context, retained in separate runtime indexes; queued player fights choose at contact. Only historical source adoption creates explicit legacy contexts. Current loading rejects missing contexts and malformed ownership. Chore repair follows actual physical completion, with positive appreciation separate from board settlement. All behavioral fields enter the hash, and complete current state survives native transactions. Current compiled content selects attributable fight rules even when loading an older save. Authenticated historical reference content explicitly selects its published rules to preserve original random draws; save version and cell layout never select that policy. See the [fight contract](specs/2026-10-16-fights.md).
 
 During Build, the native transaction owns a validated baseline, accepted-command
@@ -709,8 +718,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-19. A V19 primary therefore receives `terri-save-1.v19-backup.bin` before the first
-V20 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+20. A V20 primary therefore receives `terri-save-1.v20-backup.bin` before the first
+V21 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -724,7 +733,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V19 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions. The storage writer and load-status controller share the current
+Frozen V10 through V20 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, and the frozen V20 worker refuses a V21 primary, preserving held shifts. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -1451,6 +1460,17 @@ non-finite payloads and reconciles duplicate-safe rows at the ordinary need-bar
 cadence. A successful Load force-refreshes Mood in the same callback as roster
 and People, before a tick can advance or an old row can survive the restored
 world.
+
+The activity log is a projection of the same kind, with history kept in the
+shell rather than the simulation. The simulation stages fixed-size numeric
+records in an unsaved, unhashed resource that no system reads. The shell drains
+them once per rendered frame, whether or not the panel is open: one export call
+moves the staged records into a buffer, and the bridge builds one fresh view
+over it and copies the words into a preallocated typed-array ring before any
+other bridge call, including the label lookups that return strings. A frame
+with no records makes only the count call. Text is composed only while the
+panel is open, and only for new records. The label table crosses once per page
+as one string. See [the activity log specification](specs/2026-10-18-activity-log.md).
 
 **The discipline that makes this safe, in one rule: never cache a view.** WASM
 linear memory grows, and growth detaches every typed-array view over the old

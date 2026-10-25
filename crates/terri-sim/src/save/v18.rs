@@ -14,6 +14,24 @@ pub(crate) fn is_queued_setting(command: &SimCommand) -> bool {
     )
 }
 
+/// Whether `command` is a shift command (issue 296), which no schema up to
+/// twenty can record. Every writer up to schema twenty leaves them out of
+/// the queue it saves and out of the positions it counts, so the rest of
+/// the queue still loads in order; schema twenty-one carries them.
+pub(crate) fn is_shift_command(command: &SimCommand) -> bool {
+    matches!(
+        command,
+        SimCommand::AssignCareerShift { .. } | SimCommand::ChangeShift { .. }
+    )
+}
+
+/// Whether the schema-seventeen envelope leaves `command` out of its
+/// command records: a queued setting, which schema eighteen places by
+/// position, or a shift command.
+pub(crate) fn left_out_of_records(command: &SimCommand) -> bool {
+    is_queued_setting(command) || is_shift_command(command)
+}
+
 fn saved_setting(command: &SimCommand) -> Option<SavedQueuedSetting> {
     match *command {
         SimCommand::SetJobSearch { agent, search } => {
@@ -39,6 +57,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV18 {
         .resource::<CommandQueue>()
         .as_slice()
         .iter()
+        .filter(|command| !is_shift_command(command))
         .enumerate()
         .filter_map(|(position, command)| {
             saved_setting(command).map(|setting| (position as u32, setting))
@@ -89,13 +108,25 @@ pub(crate) fn restore(
     }
     let mut candidate = super::v17::restore(snapshot.legacy, content, carried)?;
     crate::careers::restore_search_off(candidate.world_mut(), snapshot.job_search_off)?;
-    restore_settings(&mut candidate, snapshot.queued_settings, content)?;
+    place_by_position(
+        &mut candidate,
+        snapshot
+            .queued_settings
+            .into_iter()
+            .map(|(position, setting)| (position, live_setting(setting)))
+            .collect(),
+        content,
+    )?;
     Ok(candidate)
 }
 
-fn restore_settings(
+/// Returns `settings`, each a command with its position in the whole
+/// command queue, to those positions among the commands the candidate's
+/// queue already holds, which keep their order. Positions must ascend and
+/// fall inside the merged queue, and the merged queue must fit the limit.
+pub(crate) fn place_by_position(
     candidate: &mut Sim,
-    settings: Vec<(u32, SavedQueuedSetting)>,
+    settings: Vec<(u32, SimCommand)>,
     content: &terri_data::ContentPack,
 ) -> Result<(), SaveError> {
     if settings.is_empty() {
@@ -124,7 +155,7 @@ fn restore_settings(
     let mut others = others.into_iter();
     for position in 0..count {
         let command = match settings.next_if(|row| row.0 as usize == position) {
-            Some((_, setting)) => live_setting(setting),
+            Some((_, command)) => command,
             None => others.next().ok_or(SaveError::InvalidValue)?,
         };
         candidate

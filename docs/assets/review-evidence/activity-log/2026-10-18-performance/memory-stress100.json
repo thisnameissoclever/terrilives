@@ -1,0 +1,295 @@
+{
+  "mode": "memory",
+  "generatedAt": "2026-10-18T21:46:04.360Z",
+  "args": {
+    "mode": "memory",
+    "url": "http://127.0.0.1:4173/",
+    "stress": 100,
+    "samplingInterval": 32768,
+    "fillTicks": 2160,
+    "afterTicks": 720,
+    "readyTimeoutMs": 600000,
+    "repetitions": 3
+  },
+  "runs": [
+    {
+      "repetition": 0,
+      "logEnabled": true,
+      "startTick": 21,
+      "filledTicks": 2160,
+      "afterTicks": 720,
+      "samples": [
+        {
+          "tick": 2181,
+          "wasmMemoryBytes": 9633792,
+          "drained": 2521,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1425634532,
+          "jsEmbedderBytes": 3584840,
+          "backingStorageBytes": 2625431387,
+          "domNodes": 2766,
+          "eventListeners": 293
+        },
+        {
+          "tick": 2901,
+          "wasmMemoryBytes": 10878976,
+          "drained": 3449,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1611030156,
+          "jsEmbedderBytes": 3634368,
+          "backingStorageBytes": 2951464291,
+          "domNodes": 2776,
+          "eventListeners": 293
+        }
+      ]
+    },
+    {
+      "repetition": 0,
+      "logEnabled": false,
+      "startTick": 24,
+      "filledTicks": 2160,
+      "afterTicks": 720,
+      "samples": [
+        {
+          "tick": 2184,
+          "wasmMemoryBytes": 9961472,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1425500652,
+          "jsEmbedderBytes": 3591096,
+          "backingStorageBytes": 2616970852,
+          "domNodes": 2755,
+          "eventListeners": 293
+        },
+        {
+          "tick": 2904,
+          "wasmMemoryBytes": 10551296,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1609892300,
+          "jsEmbedderBytes": 3467760,
+          "backingStorageBytes": 2943875646,
+          "domNodes": 2776,
+          "eventListeners": 293
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "logEnabled": false,
+      "startTick": 22,
+      "filledTicks": 2160,
+      "afterTicks": 720,
+      "samples": [
+        {
+          "tick": 2182,
+          "wasmMemoryBytes": 10223616,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1425307552,
+          "jsEmbedderBytes": 3446992,
+          "backingStorageBytes": 2619345996,
+          "domNodes": 2754,
+          "eventListeners": 293
+        },
+        {
+          "tick": 2902,
+          "wasmMemoryBytes": 11206656,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1643866268,
+          "jsEmbedderBytes": 3474168,
+          "backingStorageBytes": 3004288573,
+          "domNodes": 2759,
+          "eventListeners": 293
+        }
+      ]
+    },
+    {
+      "repetition": 1,
+      "logEnabled": true,
+      "startTick": 28,
+      "filledTicks": 2160,
+      "afterTicks": 720,
+      "samples": [
+        {
+          "tick": 2188,
+          "wasmMemoryBytes": 9830400,
+          "drained": 3016,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1425897672,
+          "jsEmbedderBytes": 3669624,
+          "backingStorageBytes": 2630682365,
+          "domNodes": 2761,
+          "eventListeners": 293
+        },
+        {
+          "tick": 2908,
+          "wasmMemoryBytes": 11599872,
+          "drained": 4005,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1611613616,
+          "jsEmbedderBytes": 3584120,
+          "backingStorageBytes": 2956780462,
+          "domNodes": 2754,
+          "eventListeners": 293
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "logEnabled": true,
+      "startTick": 22,
+      "filledTicks": 2160,
+      "afterTicks": 720,
+      "samples": [
+        {
+          "tick": 2182,
+          "wasmMemoryBytes": 9830400,
+          "drained": 2979,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1425263416,
+          "jsEmbedderBytes": 3418296,
+          "backingStorageBytes": 2614903842,
+          "domNodes": 2761,
+          "eventListeners": 293
+        },
+        {
+          "tick": 2902,
+          "wasmMemoryBytes": 11075584,
+          "drained": 4101,
+          "held": 2000,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1609951988,
+          "jsEmbedderBytes": 3532456,
+          "backingStorageBytes": 2941505921,
+          "domNodes": 2771,
+          "eventListeners": 293
+        }
+      ]
+    },
+    {
+      "repetition": 2,
+      "logEnabled": false,
+      "startTick": 20,
+      "filledTicks": 2160,
+      "afterTicks": 720,
+      "samples": [
+        {
+          "tick": 2180,
+          "wasmMemoryBytes": 9568256,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1425988796,
+          "jsEmbedderBytes": 3450928,
+          "backingStorageBytes": 2615930800,
+          "domNodes": 2761,
+          "eventListeners": 293
+        },
+        {
+          "tick": 2900,
+          "wasmMemoryBytes": 9830400,
+          "drained": 0,
+          "held": 0,
+          "capacity": 2000,
+          "dropped": 0,
+          "open": false,
+          "jsUsedBytes": 1628545652,
+          "jsEmbedderBytes": 3487248,
+          "backingStorageBytes": 2970551510,
+          "domNodes": 2776,
+          "eventListeners": 293
+        }
+      ]
+    }
+  ],
+  "analysis": {
+    "allowanceBytes": 163840,
+    "pairs": [
+      {
+        "repetition": 0,
+        "retainedJsBytes": 133880,
+        "retainedWasmBytes": -327680,
+        "enabledGrowthJsBytes": 185395624,
+        "disabledGrowthJsBytes": 184391648,
+        "logGrowthJsBytes": 1003976,
+        "enabledGrowthWasmBytes": 1245184,
+        "logGrowthWasmBytes": 655360,
+        "enabledGrowthDomNodes": 10,
+        "enabledGrowthListeners": 0,
+        "storeFullAtFirstSample": true,
+        "disabledDrainedNothing": true
+      },
+      {
+        "repetition": 1,
+        "retainedJsBytes": 590120,
+        "retainedWasmBytes": -393216,
+        "enabledGrowthJsBytes": 185715944,
+        "disabledGrowthJsBytes": 218558716,
+        "logGrowthJsBytes": -32842772,
+        "enabledGrowthWasmBytes": 1769472,
+        "logGrowthWasmBytes": 786432,
+        "enabledGrowthDomNodes": -7,
+        "enabledGrowthListeners": 0,
+        "storeFullAtFirstSample": true,
+        "disabledDrainedNothing": true
+      },
+      {
+        "repetition": 2,
+        "retainedJsBytes": -725380,
+        "retainedWasmBytes": 262144,
+        "enabledGrowthJsBytes": 184688572,
+        "disabledGrowthJsBytes": 202556856,
+        "logGrowthJsBytes": -17868284,
+        "enabledGrowthWasmBytes": 1245184,
+        "logGrowthWasmBytes": 983040,
+        "enabledGrowthDomNodes": 10,
+        "enabledGrowthListeners": 0,
+        "storeFullAtFirstSample": true,
+        "disabledDrainedNothing": true
+      }
+    ],
+    "medianRetainedJsBytes": 133880,
+    "medianLogGrowthJsBytes": -17868284,
+    "medianLogGrowthWasmBytes": 786432,
+    "checks": {
+      "storeFilled": true,
+      "baselineEmitsNothing": true,
+      "retainedWithinAllowance": true,
+      "noGrowthAfterFull": false
+    }
+  },
+  "pass": false
+}

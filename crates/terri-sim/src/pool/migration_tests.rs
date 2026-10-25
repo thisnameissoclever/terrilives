@@ -36,7 +36,7 @@ fn fixture(facing:terri_core::Facing,phase:u8,elapsed:u32,interrupted:bool)->(Si
 
 fn snapshot(source:&Sim)->terri_core::SaveSnapshotV22 {save::v22::capture_current_layer(source)}
 fn assert_old_source(source:&Sim,snapshot:&terri_core::SaveSnapshotV22) {
-    let mut restored=save::v21::restore(snapshot.previous.clone(),source.world().resource::<Content>().0,
+    let mut restored=save::editable_v21::restore(snapshot.previous.clone(),source.world().resource::<Content>().0,
         save::Carried::for_load(source.world())).expect("historical base must be independently valid");
     restore_historical_v22(restored.world_mut(),snapshot.pools.clone()).expect("historical endpoint contract must admit the source");
 }

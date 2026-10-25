@@ -720,10 +720,7 @@ fn privacy_diagnostics_group_victims_and_report_clamped_loss_without_changing_ha
     assert!((events[0].actual + 0.1).abs() < 0.000001);
     assert_eq!(events[1].affected, *sim.world().get::<SimId>(b).unwrap());
     let hash = sim.world_hash();
-    sim.world_mut()
-        .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
-        .clear();
+    crate::relationship_effects::reset(sim.world_mut());
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -984,12 +981,12 @@ fn issue314_actual_privacy_incident_permits_a_neutral_person_to_fight() {
 fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order() {
     let (mut sim, offended, _) = issue314_privacy_household(1.);
     crate::fights::provoke(sim.world_mut());
-    let saved = sim.save_snapshot_v21();
+    let saved = sim.save_snapshot_v24();
     let context = saved.conflicts.fights[0].clone();
     assert!(context.autonomous && context.grievance.is_some() && context.order_id.is_some());
     let hash = sim.world_hash();
-    sim.load_snapshot_v21(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v21().conflicts.fights[0], context);
+    sim.load_snapshot_v24(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v24().conflicts.fights[0], context);
     assert_eq!(sim.world_hash(), hash);
     let order = sim
         .world()
@@ -1000,7 +997,7 @@ fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order
     assert_eq!(context.order_id, Some(order));
     let mut missing = saved;
     missing.conflicts.fights.clear();
-    assert!(sim.load_snapshot_v21(missing).is_err());
+    assert!(sim.load_snapshot_v24(missing).is_err());
 }
 
 #[test]
@@ -1476,15 +1473,15 @@ fn interpersonal_saved_starts_and_entries_replay_without_recharging_on_load() {
         } else {
             start(&mut sim, b, furniture);
         }
-        let before = sim.save_snapshot_v21();
+        let before = sim.save_snapshot_v24();
         movement(&mut sim);
         let after_hash = sim.world_hash();
-        let after = sim.save_snapshot_v21();
-        sim.load_snapshot_v21(before)
+        let after = sim.save_snapshot_v24();
+        sim.load_snapshot_v24(before)
             .expect("pre-event save must load");
         movement(&mut sim);
         assert_eq!(sim.world_hash(), after_hash, "event must replay exactly");
-        sim.load_snapshot_v21(after)
+        sim.load_snapshot_v24(after)
             .expect("post-event save must load");
         assert_eq!(
             sim.world_hash(),
@@ -1791,4 +1788,67 @@ fn shyness_autonomous_conversation_choice_prefers_a_partner_without_urgent_needs
     );
     schedule.run(sim.world_mut());
     assert_eq!(sim.world().get::<Target>(a).unwrap().object, available);
+}
+
+/// [AL-sources]: a privacy incident is one log line per victim, naming the
+/// victim, the intruder, the cause and the fixture in private use.
+#[test]
+fn privacy_incidents_log_victim_and_intruder() {
+    use crate::relationship_effects::RelationshipCause;
+    let mut sim = fixture();
+    let pack = sim.world().resource::<Content>().0;
+    let user = person(&mut sim, 3.0, 2.0);
+    let watcher = person(&mut sim, 4.0, 2.0);
+    let intruder = person(&mut sim, 0.0, 2.0);
+    let toilet = object(&mut sim, "toilet");
+    let id = |sim: &Sim, who: Entity| sim.world().get::<SimId>(who).unwrap().0;
+    super::prepare(sim.world_mut());
+    {
+        let mut phase = sim.world_mut().resource_mut::<super::InterpersonalPhase>();
+        phase.private_start(user, toilet, 0.25);
+        phase.moved(intruder, Position { x: 3.0, y: 3.0 }, 0.25);
+    }
+    super::apply(sim.world_mut());
+    let effects = sim.relationship_effects().to_vec();
+    let records: Vec<_> = sim.activity_log().records().copied().collect();
+    // The line names the object's type, never its model name.
+    let definition = pack.object(pack.find("toilet").unwrap());
+    assert_ne!(definition.display_name(), definition.name);
+    let fixture_label = sim.activity_log().label(pack, definition.display_name());
+    assert_ne!(fixture_label, crate::activity_log::NONE);
+    assert_eq!(
+        sim.activity_log().label(pack, &definition.name),
+        crate::activity_log::NONE,
+        "the label table holds no model names"
+    );
+    for (cause, victim, responsible) in [
+        (RelationshipCause::PrivacyStart, watcher, user),
+        (RelationshipCause::PrivacyEntry, user, intruder),
+    ] {
+        let label = sim.activity_log().label(pack, cause.log_label());
+        let found: Vec<_> = records
+            .iter()
+            .filter(|r| r.label() == label)
+            .filter(|r| r.actor() == id(&sim, victim) && r.other() == id(&sim, responsible))
+            .collect();
+        assert_eq!(found.len(), 1, "{cause:?}: {records:?}");
+        assert_eq!(found[0].label2(), fixture_label, "{cause:?}");
+        let effect = effects
+            .iter()
+            .find(|e| {
+                e.cause == cause
+                    && e.affected.0 == id(&sim, victim)
+                    && e.responsible.0 == id(&sim, responsible)
+            })
+            .unwrap();
+        assert_eq!(
+            found[0].value(2),
+            crate::activity_log::opinion_units(effect.actual)
+        );
+    }
+    assert_eq!(
+        records.len(),
+        effects.len(),
+        "one line per effect, every one an annoyance"
+    );
 }

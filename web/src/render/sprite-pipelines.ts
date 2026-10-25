@@ -2,15 +2,19 @@ import {SCENE_COLOR_FORMAT,sceneColorFunctions} from './scene-sampling.js';
 import {BYTES_PER_INSTANCE,COLOURWAY_ATTRIBUTE_OFFSET,TINT_ATTRIBUTE_OFFSET,WALL_ATTRIBUTE_OFFSET,MAX_ARCHITECTURE_FINISH_SLOT} from './instances.js';
 import shaderSource from './sprites.wgsl?raw';
 import {architecturePatternShader} from './architecture-finishes.js';
+import {atlasStorageShader} from './atlas-storage-shader.js';
+import {ATLAS_STORAGE} from './atlas-storage-metadata.js';
 
 /** The production shader, including every resident architecture texture binding. */
 export function spriteShaderSource(patternCount:number):string {
   const jointBinding=11+patternCount;
-  return (sceneColorFunctions+shaderSource).replace(
+  return (sceneColorFunctions+shaderSource).replace('// ATLAS_STORAGE_SAMPLING',atlasStorageShader(ATLAS_STORAGE)).replace(
       '// ARCHITECTURE_PATTERN_BINDINGS', architecturePatternShader(patternCount)).replace(
       '// JOINT_ALPHA_BINDING', `@group(0) @binding(${jointBinding}) var jointAlpha: texture_2d_array<f32>;
 struct JointRegistration { records: array<vec4f> };
-@group(0) @binding(${jointBinding + 1}) var<storage, read> jointRegistration: JointRegistration;`);
+@group(0) @binding(${jointBinding + 1}) var<storage, read> jointRegistration: JointRegistration;
+struct AtlasLookup { entries: array<u32> };
+@group(0) @binding(${jointBinding + 2}) var<storage, read> atlasLookup: AtlasLookup;`);
 }
 
 export function spriteBindGroupLayoutEntries(patternCount:number):GPUBindGroupLayoutEntry[] {
@@ -32,6 +36,7 @@ export function spriteBindGroupLayoutEntries(patternCount:number):GPUBindGroupLa
       { binding: 10, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
       { binding: jointBinding, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
       { binding: jointBinding + 1, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
+      { binding: jointBinding + 2, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
     ];
 }
 

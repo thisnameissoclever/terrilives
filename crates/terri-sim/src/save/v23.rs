@@ -5,9 +5,6 @@ use terri_core::SaveSnapshotV23;
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV23 {
     SaveSnapshotV23 { previous: super::v22::capture_current_layer(sim), baths: crate::bath::capture(sim.world()) }
 }
-pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV23 {
-    SaveSnapshotV23 { previous: super::v22::capture_current_layer_without_commands(sim), baths: crate::bath::capture(sim.world()) }
-}
 pub(crate) fn restore(snapshot: SaveSnapshotV23, content: &'static terri_data::ContentPack,
     mut carried: super::Carried) -> Result<Sim, SaveError> {
     carried.baths = None;

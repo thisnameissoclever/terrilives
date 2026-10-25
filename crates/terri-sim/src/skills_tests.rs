@@ -971,3 +971,57 @@ fn a_load_seeds_practice_from_saved_capability_states() {
     let bill = entity_named(&loaded, "Bill");
     assert!(loaded.world().get::<Skills>(bill).unwrap().is_empty());
 }
+
+/// [AL-capture] item 5: `practise` reports each skill whose level rose and
+/// the level it reached, and stores exactly the practice the previous
+/// arithmetic stored, in the same order, for every shipped skill from an
+/// empty ladder to its top.
+#[test]
+fn practise_reports_levels_without_changing_practice() {
+    let pack = terri_data::pack();
+    let ladder = Ladder::from_tuning(&pack.tuning);
+    for (index, definition) in pack.skills.iter().enumerate() {
+        let index = index as u32;
+        let top = ladder.max_practice(definition.levels);
+        let mut skills = Skills::default();
+        let mut reported = Vec::new();
+        let mut attempts = 0;
+        while skills.practice(index) < top {
+            let before = skills.practice(index);
+            // The arithmetic `practise` used before it reported anything.
+            let expected = (before + definition.practice_per_attempt).min(top);
+            let rises = practise(&mut skills, pack, std::slice::from_ref(&definition.tag));
+            assert_eq!(
+                skills.practice(index).to_bits(),
+                expected.to_bits(),
+                "{} attempt {attempts}",
+                definition.id
+            );
+            let was = standing(&ladder, definition.levels, before).level;
+            let now = standing(&ladder, definition.levels, expected).level;
+            let rose: Vec<(u32, u8)> = rises.iter().collect();
+            if now > was {
+                assert_eq!(
+                    rose,
+                    vec![(index, now)],
+                    "{} attempt {attempts}",
+                    definition.id
+                );
+                reported.push(now);
+            } else {
+                assert!(rose.is_empty(), "{} attempt {attempts}", definition.id);
+            }
+            attempts += 1;
+            assert!(attempts < 1_000_000, "{} never tops out", definition.id);
+        }
+        assert_eq!(
+            reported,
+            (1..=definition.levels).collect::<Vec<u8>>(),
+            "{}: every level once, in order",
+            definition.id
+        );
+        assert!(practise(&mut skills, pack, std::slice::from_ref(&definition.tag)).is_empty());
+    }
+    let mut skills = Skills::default();
+    assert!(practise(&mut skills, pack, &tags(&["television"])).is_empty());
+}

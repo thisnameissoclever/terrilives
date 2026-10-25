@@ -1,0 +1,16 @@
+{
+  "base": "2fa3eac5613a231cef86dd1443f802d79b1ae771",
+  "sourceFileSha256": {
+    "web/index.html": "b075a4cf6396eea02c9e818d155f30079426b01754f006cf99f7a0f1708e49f6",
+    "web/src/ui/startup-failure.ts": "ee934e99cb719afd9ce1fec1541b1e210d8a4399dccc9c5a59bc9947a189d5d3",
+    "web/public/startup-diagnostics-v2.js": "9860faa4e4dc726bbe16142ce1708b4af066da4a51c8b79fd14a699fb76090b9",
+    "web/startup-report/template.html": "a68127ec2dc2d0a3dddc1e180bcc939c5dc0f27a849203d0d7e3307bb389a3fb",
+    "web/startup-report/plugin.ts": "fc17ef40988db9f02d31121705c843cd8ec66b928311c7163f9a92c44a520d3d",
+    "web/vite.config.ts": "66155ae191158a5e7683882a344df49c2cf74aa227d2f404e45d4d78dd12e371"
+  },
+  "htmlSha256": "73a14ea965f98fc5d3f57a0e78137152958f08e02d3d5905f1f6ba261bcf5d1d",
+  "reportHtmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+  "bundle": "./assets/index-B7Q70Ugo.js",
+  "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+  "capture": "Chrome on Windows; isolated muted contexts; controlled 503; clipboard replaced with an isolated test double; native mail client not opened"
+}

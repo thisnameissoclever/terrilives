@@ -14,7 +14,7 @@ describe('career release bridge', () => {
       const people = Array.from(bridge.ids()).filter((_, index) => bridge.kinds()[index] === 0);
       const worker = people.find(person => bridge.careerOf(person) !== null)!;
       expect(worker).toBeDefined();
-      expect(bridge.careerPathLabels()).toEqual(['Office', 'Cafe', 'Night watch']);
+      expect(bridge.careerPathLabels()).toEqual(['Office', 'Cafe', 'Night watch', 'Hospital', 'Warehouse', 'Library', 'Restaurant kitchen', 'Buses']);
       const report = bridge.careerReport(worker)!;
       expect(report).toMatchObject({ path: 0, level: 0, levels: 4, shifts: 0, mean: null, last: null, poor: 0, good: 0,
         warned: false, trend: 0, jobSatisfaction: 50, poorThreshold: 40, goodThreshold: 65 });
@@ -152,5 +152,73 @@ describe('career bridge validation', () => {
       const badSearch = fake({ job_search_of: () => new Uint8Array(values) });
       expect(badSearch.bridge.jobSearchOf(3)).toBeNull();
     }
+  });
+});
+
+describe('shift bridge (issue 296, [WS-shell] item 6)', () => {
+  it('validates the shift exports and commands', () => {
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, memory);
+      const people = Array.from(bridge.ids()).filter((_, index) => bridge.kinds()[index] === 0);
+      const worker = people.find(person => bridge.careerOf(person) !== null)!;
+      const idle = people.find(person => bridge.careerOf(person) === null)!;
+      expect(bridge.careerScheduleOf(worker)).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480, kind: 0, index: 0 });
+      expect(bridge.careerPathShifts(0)).toEqual([
+        { index: 0, kind: 0, workingDays: 31, shiftStart: 360, shiftTicks: 480, weight: 19 },
+        { index: 1, kind: 2, workingDays: 31, shiftStart: 720, shiftTicks: 480, weight: 1 },
+      ]);
+      expect(bridge.careerShiftsOf(worker)).toEqual(bridge.careerPathShifts(0));
+      expect(bridge.careerShiftsOf(idle)).toEqual([]);
+      expect(bridge.careerPathShifts(99)).toEqual([]);
+      expect(bridge.changeShift(worker, 1)).toBe(true);
+      handle.flush_commands();
+      expect(bridge.lastCareerResult()).toMatchObject({ agent: worker, reason: null });
+      expect(bridge.careerScheduleOf(worker)).toMatchObject({ shiftStart: 720, kind: 2, index: 1 });
+      expect(bridge.changeShift(worker, 1)).toBe(true);
+      handle.flush_commands();
+      expect(bridge.lastCareerResult()?.reason).toBe('They already work that shift.');
+      expect(bridge.changeShift(idle, 0)).toBe(true);
+      handle.flush_commands();
+      expect(bridge.lastCareerResult()?.reason).toBe('This person has no job.');
+      expect(bridge.assignCareerShift(worker, 0, 9)).toBe(true);
+      handle.flush_commands();
+      expect(bridge.lastCareerResult()?.reason).toBe('That shift is not offered at this level.');
+      expect(bridge.assignCareerShift(idle, 2, 1)).toBe(true);
+      handle.flush_commands();
+      expect(bridge.lastCareerResult()).toMatchObject({ agent: idle, reason: null });
+      expect(bridge.careerScheduleOf(idle)).toMatchObject({ kind: 3, index: 1 });
+      for (const bad of [-1, 0.5, NaN, Infinity, 4294967296]) {
+        expect(bridge.careerPathShifts(bad)).toEqual([]);
+        expect(bridge.careerShiftsOf(bad)).toEqual([]);
+        expect(bridge.changeShift(bad, 0)).toBe(false);
+        expect(bridge.changeShift(worker, bad)).toBe(false);
+        expect(bridge.assignCareerShift(bad, 0, 0)).toBe(false);
+        expect(bridge.assignCareerShift(worker, bad, 0)).toBe(false);
+        expect(bridge.assignCareerShift(worker, 0, bad)).toBe(false);
+      }
+    } finally { handle.free(); }
+  });
+
+  it('drops an unnameable kind and refuses malformed shift lists', () => {
+    const named = fake({ career_schedule_of: () => new Uint32Array([31, 360, 480, 7, 0]) });
+    expect(named.bridge.careerScheduleOf(3)).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480, kind: null, index: 0 });
+    expect(fake({ career_schedule_of: () => new Uint32Array([31, 360, 480]) }).bridge.careerScheduleOf(3)).toBeNull();
+    const odd = fake({ career_path_shifts: () => new Uint32Array([0, 0, 360, 480, 31]) });
+    expect(odd.bridge.careerPathShifts(0)).toEqual([]);
+    const unweighted = fake({ career_path_shifts: () => new Uint32Array([0, 0, 360, 480, 31, 0]) });
+    expect(unweighted.bridge.careerPathShifts(0)).toEqual([]);
+    const repeated = fake({ career_path_shifts: () => new Uint32Array([0, 0, 360, 480, 31, 1, 0, 2, 720, 480, 31, 1]) });
+    expect(repeated.bridge.careerPathShifts(0)).toEqual([]);
+    const unnamed = fake({ career_shifts_of: () => new Uint32Array([1, 9, 720, 480, 31, 3]) });
+    expect(unnamed.bridge.careerShiftsOf(3)).toEqual([
+      { index: 1, kind: null, workingDays: 31, shiftStart: 720, shiftTicks: 480, weight: 3 },
+    ]);
+    const reasons = [[4, 'That shift is not offered at this level.'], [5, 'This person has no job.'],
+      [6, 'They already work that shift.']] as const;
+    for (const [code, text] of reasons) {
+      expect(fake({ last_career_result: () => new Float64Array([7, code]) }).bridge.lastCareerResult()?.reason).toBe(text);
+    }
+    expect(fake({ last_career_result: () => new Float64Array([7, 7]) }).bridge.lastCareerResult()).toBeNull();
   });
 });

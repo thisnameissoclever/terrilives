@@ -1,0 +1,38 @@
+{
+  "mode": "recover",
+  "url": "http://127.0.0.1:5177/terrilives/?stress=0",
+  "binaryRequests": [
+    1792723596613,
+    1792723597615
+  ],
+  "partsRequests": [
+    1792723595433,
+    1792723596436,
+    1792723597978
+  ],
+  "diagnostics": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:5177/terrilives/assets/parts-8z4FsTXN.json"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:5177/terrilives/assets/runtime.normalTriangles-DitPThSI.bin"
+    }
+  ],
+  "partsUrl": "http://127.0.0.1:5177/terrilives/assets/parts-8z4FsTXN.json",
+  "binaryUrl": "http://127.0.0.1:5177/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+  "elapsedMs": 8649,
+  "failure": null,
+  "frames": 3,
+  "imageSha256": "4f7f7c2fd7a18f3501c425a6e80e1985809aa36d1f409cd225aafc3fc0ac08a6",
+  "referenceImageSha256": "4f7f7c2fd7a18f3501c425a6e80e1985809aa36d1f409cd225aafc3fc0ac08a6",
+  "entry": {
+    "url": "http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js",
+    "sha256": "e447662c2af92f6d167e52d44549fe61bcd27ae7a1c9dbd32a17943f64c4abba"
+  },
+  "status": "PASS",
+  "browserClosed": true
+}

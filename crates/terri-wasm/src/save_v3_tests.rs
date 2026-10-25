@@ -756,11 +756,12 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
     assert_eq!(&bytes[8..10], &terri_core::SAVE_SCHEMA_VERSION.to_le_bytes());
-    let decoded = decoded.previous.previous.previous;
+    assert!(decoded.previous.shifts.held.is_empty());
+    let decoded = decoded.previous.legacy;
     assert_eq!(decoded.conflicts, Default::default());
     let decoded = decoded.legacy;
     assert_eq!(decoded.neglect, Default::default());
@@ -1971,8 +1972,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
     );
     let current = decode_current(&handle.save_bytes())
         .previous
-        .previous
-        .previous
+        .legacy
         .legacy
         .legacy
         .legacy;
@@ -2195,9 +2195,19 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     source.flush_commands();
     assert!(!source.career_change_autonomy());
     assert_eq!(source.job_search_of(worker), vec![1]);
+    // Issue 296 added five paths after the first three.
     assert_eq!(
         source.career_path_labels(),
-        vec!["Office", "Cafe", "Night watch"]
+        vec![
+            "Office",
+            "Cafe",
+            "Night watch",
+            "Hospital",
+            "Warehouse",
+            "Library",
+            "Restaurant kitchen",
+            "Buses"
+        ]
     );
     assert_eq!(source.career_level_titles(1)[0], "Lowly barista");
     assert!(source.career_level_titles(9).is_empty());

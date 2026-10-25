@@ -1,25 +1,25 @@
 //! Test views retain the full current envelope for equality and restoration.
 use crate::{SaveError, Sim};
 use terri_core::{
-    SaveSnapshotV10, SaveSnapshotV16, SaveSnapshotV17, SaveSnapshotV19, SaveSnapshotV23,
+    SaveSnapshotV10, SaveSnapshotV16, SaveSnapshotV17, SaveSnapshotV19, SaveSnapshotV24,
     SaveSnapshotV5, SaveSnapshotV6,
 };
 
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {
         #[derive(Clone, Debug, PartialEq)]
-        pub(crate) struct $view(pub SaveSnapshotV23);
+        pub(crate) struct $view(pub SaveSnapshotV24);
         impl std::ops::Deref for $view {
             type Target = $payload;
-            fn deref(&self) -> &Self::Target { &self.0.legacy.legacy.legacy.$($field).+ }
+            fn deref(&self) -> &Self::Target { &self.0.gameplay_v20().legacy.legacy.legacy.$($field).+ }
         }
         impl std::ops::DerefMut for $view {
-            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.legacy.legacy.$($field).+ }
+            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.gameplay_v20_mut().legacy.legacy.legacy.$($field).+ }
         }
         impl Sim {
-            pub(crate) fn $capture(&self) -> $view { $view(self.save_snapshot_v23()) }
+            pub(crate) fn $capture(&self) -> $view { $view(self.save_snapshot_v24()) }
             pub(crate) fn $load(&mut self, snapshot: $view) -> Result<(), SaveError> {
-                self.load_snapshot_v23(snapshot.0)
+                self.load_snapshot_v24(snapshot.0)
             }
         }
     };
@@ -55,52 +55,52 @@ current_view!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct CurrentV17View(pub SaveSnapshotV23);
+pub(crate) struct CurrentV17View(pub SaveSnapshotV24);
 impl std::ops::Deref for CurrentV17View {
     type Target = SaveSnapshotV17;
     fn deref(&self) -> &Self::Target {
-        &self.0.legacy.legacy.legacy
+        &self.0.gameplay_v20().legacy.legacy.legacy
     }
 }
 impl std::ops::DerefMut for CurrentV17View {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0.legacy.legacy.legacy
+        &mut self.0.gameplay_v20_mut().legacy.legacy.legacy
     }
 }
 impl Sim {
     pub(crate) fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v23())
+        CurrentV17View(self.save_snapshot_v24())
     }
     pub(crate) fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), SaveError> {
-        self.load_snapshot_v23(snapshot.0)
+        self.load_snapshot_v24(snapshot.0)
     }
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct CurrentV19View(pub SaveSnapshotV23);
+pub(crate) struct CurrentV19View(pub SaveSnapshotV24);
 impl std::ops::Deref for CurrentV19View {
     type Target = SaveSnapshotV19;
     fn deref(&self) -> &Self::Target {
-        &self.0.legacy
+        &self.0.gameplay_v20().legacy
     }
 }
 impl std::ops::DerefMut for CurrentV19View {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0.legacy
+        &mut self.0.gameplay_v20_mut().legacy
     }
 }
 impl Sim {
     pub(crate) fn current_v19_view(&self) -> CurrentV19View {
-        CurrentV19View(self.save_snapshot_v23())
+        CurrentV19View(self.save_snapshot_v24())
     }
     pub(crate) fn load_current_v19_view(
         &mut self,
         snapshot: CurrentV19View,
     ) -> Result<(), SaveError> {
-        self.load_snapshot_v23(snapshot.0)
+        self.load_snapshot_v24(snapshot.0)
     }
 }
 

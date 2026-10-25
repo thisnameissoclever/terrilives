@@ -1,0 +1,112 @@
+{
+  "url": "http://127.0.0.1:5177/terrilives/",
+  "cases": [
+    {
+      "name": "controlled persistent HTTP failure",
+      "requests": 1,
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T05:39:37.430Z",
+            "updatedAt": "2026-10-23T05:39:42.138Z",
+            "state": "failed",
+            "phase": "Loading character models",
+            "build": "/terrilives/assets/index-K5DO9-q4.js",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            },
+            "error": {
+              "name": "Error",
+              "message": "Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+              "stack": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\n    at Sh (http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4880758)\n    at async wh (http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4881282)\n    at async Dh (http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4882884)\n    at async http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4883248\n    at async Promise.all (index 6)\n    at async Oh (http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4883128)\n    at async http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4929250\n    at async Promise.all (index 0)\n    at async bg (http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:808:4929691)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-K5DO9-q4.js:2388:5265)",
+              "assetFailure": {
+                "path": "/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+                "status": 503,
+                "headers": {
+                  "server": "verification-edge",
+                  "retry-after": "60",
+                  "x-github-request-id": "controlled-response-42"
+                },
+                "body": "Controlled persistent refusal",
+                "bodyIncomplete": false
+              }
+            }
+          }
+        ]
+      },
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics.js"
+        ],
+        "summary": "The last recorded attempt reported an error. Its details appear below.",
+        "download": "natural-causes-startup-report.json"
+      }
+    },
+    {
+      "name": "controlled renderer termination during loading",
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T05:39:45.216Z",
+            "updatedAt": "2026-10-23T05:39:49.652Z",
+            "state": "loading",
+            "phase": "Loading character models",
+            "build": "/terrilives/assets/index-K5DO9-q4.js",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            }
+          }
+        ]
+      },
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics.js"
+        ],
+        "summary": "The last recorded load is unfinished. Its last step appears below. This can also mean the page was closed during loading.",
+        "download": "natural-causes-startup-report.json"
+      }
+    },
+    {
+      "name": "ordinary load and advancing simulation",
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T05:39:51.281Z",
+            "updatedAt": "2026-10-23T05:39:57.920Z",
+            "state": "ready",
+            "phase": "Step 10 of 10: Drawing the house",
+            "build": "/terrilives/assets/index-K5DO9-q4.js",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            }
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  ],
+  "entry": "./assets/index-K5DO9-q4.js",
+  "entrySha256": "19c79ef6a958cdcc0cf221877edc0c369b453c055e0257b82b0c9bbdb5821941",
+  "status": "PASS",
+  "browserClosed": true
+}

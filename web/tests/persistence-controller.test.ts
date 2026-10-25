@@ -274,6 +274,8 @@ describe('PersistenceController', () => {
         saveDisabled: true,
         loadDisabled: false,
         newGameDisabled: false,
+        exportDisabled: false,
+        importDisabled: false,
         confirmationDisabled: false,
       });
       expect(view.textContent).toContain('Saving paused');
@@ -418,6 +420,8 @@ describe('PersistenceController', () => {
       saveDisabled: true,
       loadDisabled: true,
       newGameDisabled: true,
+      exportDisabled: true,
+      importDisabled: true,
       confirmationDisabled: true,
     });
 
@@ -433,6 +437,8 @@ describe('PersistenceController', () => {
       saveDisabled: false,
       loadDisabled: false,
       newGameDisabled: false,
+      exportDisabled: false,
+      importDisabled: false,
       confirmationDisabled: false,
     });
   });
@@ -468,6 +474,8 @@ describe('PersistenceController', () => {
       saveDisabled: true,
       loadDisabled: true,
       newGameDisabled: true,
+      exportDisabled: true,
+      importDisabled: true,
       confirmationDisabled: true,
     });
 
@@ -483,6 +491,8 @@ describe('PersistenceController', () => {
       saveDisabled: false,
       loadDisabled: true,
       newGameDisabled: false,
+      exportDisabled: false,
+      importDisabled: false,
       confirmationDisabled: false,
     });
   });
@@ -492,8 +502,11 @@ describe('PersistenceController', () => {
       save: { disabled: false },
       load: { disabled: false },
       newGame: { disabled: false },
+      exportSave: { disabled: false },
+      importSave: { disabled: false },
       confirmLoad: { disabled: false },
       confirmNewGame: { disabled: false },
+      confirmImport: { disabled: false },
     };
 
     applyPersistenceControlState(
@@ -501,6 +514,8 @@ describe('PersistenceController', () => {
         saveDisabled: true,
         loadDisabled: true,
         newGameDisabled: true,
+        exportDisabled: true,
+        importDisabled: true,
         confirmationDisabled: true,
       },
       targets,
@@ -510,8 +525,11 @@ describe('PersistenceController', () => {
       save: { disabled: true },
       load: { disabled: true },
       newGame: { disabled: true },
+      exportSave: { disabled: true },
+      importSave: { disabled: true },
       confirmLoad: { disabled: true },
       confirmNewGame: { disabled: true },
+      confirmImport: { disabled: true },
     });
 
     applyPersistenceControlState(
@@ -519,6 +537,8 @@ describe('PersistenceController', () => {
         saveDisabled: false,
         loadDisabled: true,
         newGameDisabled: false,
+        exportDisabled: false,
+        importDisabled: true,
         confirmationDisabled: false,
       },
       targets,
@@ -528,8 +548,11 @@ describe('PersistenceController', () => {
       save: { disabled: false },
       load: { disabled: true },
       newGame: { disabled: false },
+      exportSave: { disabled: false },
+      importSave: { disabled: true },
       confirmLoad: { disabled: true },
       confirmNewGame: { disabled: false },
+      confirmImport: { disabled: true },
     });
   });
 });

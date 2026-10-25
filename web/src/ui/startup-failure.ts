@@ -32,7 +32,7 @@ export interface StartupEnvironment {
 /** The message, chosen; rendering it is `renderStartupFailure`'s job. */
 export interface StartupFailureNotice {
   readonly title: string;
-  /** The underlying error, verbatim - the developer-facing truth. */
+  /** The failure summary; bounded HTTP delivery details remain in the startup report. */
   readonly detail: string;
   /** Player-facing explanation and what to actually do, in order. */
   readonly hints: readonly string[];
@@ -46,7 +46,9 @@ export function describeStartupFailure(
   error: unknown,
   env: StartupEnvironment,
 ): StartupFailureNotice {
-  const detail = error instanceof Error ? error.message : String(error);
+  const message = error instanceof Error ? error.message : String(error);
+  const detail = message.startsWith('Character asset could not load: ')
+    ? message.split('\nResponse: ', 1)[0] : message;
 
   if (!env.webgpu && !env.secure) {
     // The LAN case. The browser is fine; the address is the problem.
@@ -212,7 +214,23 @@ export function renderStartupFailure(
     hints.append(line);
   }
 
-  card.append(title, detail, hints);
+  const report = document.createElement('a');
+  report.setAttribute('href', './startup-report.html');
+  report.textContent = 'Startup report';
+  report.style.cssText = 'color:inherit;text-decoration:underline';
+  const sharing=document.createElement('div');
+  sharing.style.cssText='display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap';
+  const copy=document.createElement('button');copy.id='startup-report-copy';copy.type='button';copy.disabled=true;
+  copy.textContent='Copy debug details';copy.style.cssText='font:inherit;padding:10px 14px;cursor:pointer';
+  const email=document.createElement('a');email.id='startup-report-email';email.textContent='Email Tim';
+  email.style.cssText='color:inherit;text-decoration:underline;padding:10px';sharing.append(copy,email);
+  const status=document.createElement('p');status.id='startup-report-share-status';status.setAttribute('role','status');
+  status.setAttribute('aria-live','polite');status.style.cssText='margin:0';
+  const manual=document.createElement('textarea');manual.id='startup-report-manual';manual.hidden=true;manual.readOnly=true;
+  manual.setAttribute('aria-label','Debug details to copy manually');manual.style.cssText='width:100%;max-width:52em;min-height:10em';
+  const tim=document.createElement('p');tim.textContent="If you don't know who Tim is - I'm so sorry. You're really missing out. He's gr8.";
+  tim.style.cssText='max-width:32em;margin:0';
+  card.append(title, detail, hints, sharing, status, manual, tim, report);
   // Startup failure is terminal. The canvas and HUD underneath can no longer
   // do useful work, so leaving them tabbable creates a second, dead interface
   // behind the explanation. A native modal is also in the browser's top layer,
@@ -224,5 +242,6 @@ export function renderStartupFailure(
     child.setAttribute('inert', '');
   }
   parent.append(card);
+  document.defaultView?.dispatchEvent(new CustomEvent('terrilives:startup-report-controls',{detail:{title:notice.title,detail:notice.detail}}));
   card.focus();
 }

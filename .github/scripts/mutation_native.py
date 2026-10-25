@@ -124,7 +124,8 @@ def emit(directory, kind, payload, settings, planned, chain, checkout):
     receipt = {"version": 1, "kind": kind, "scope": "production", "repository": settings["repository"],
         "workflow": tool.WORKFLOW, "workflow_sha": settings["workflow_sha"], "head_sha": settings["head_sha"],
         "run_id": settings["run_id"], "attempt": settings["attempt"], "job_id": settings["job_id"],
-        "checkout": checkout, "contract": planned["orchestration"]["contract"],
+        "checkout": checkout, "host_provenance": settings.get("host_provenance", {}),
+        "contract": planned["orchestration"]["contract"],
         "binding_digest": model.digest(payload["binding"]), "state": payload["state"],
         "payload_sha256": artifacts.sha((directory / "native.json").read_bytes()),
         "log_retention_days": settings["log_retention_days"]}
@@ -197,9 +198,9 @@ def compact_proof(evidence):
 
 
 def current_binding(root, settings, planned):
-    """Metadata-only current-input comparison; native sizing/execution stays slotted."""
+    """Recheck current source and runtime without running native tests."""
     checkout, inventory = runner.checkout_inventory(root, settings["repository"])
-    env, contract = runner.execution_environment(settings)
+    env, contract = runner.execution_environment(settings, root=root)
     executable = runner.installed_tool(root, env, settings)
     calibration = planned["calibration"]
     require(model.digest(inventory) == calibration["inventory_digest"] and contract == calibration["environment"]
@@ -282,7 +283,7 @@ def owned_native(root, settings, planned, metrics):
         runner.command(["git", "checkout", "--quiet", "--detach", planned["manifest"]["context"]["checkout"]["commit"]], source)
         require(runner.checkout_inventory(source, settings["repository"])[1] == planned["manifest"]["context"]["inputs"]["input_inventory"],
                 "native diagnostic clone differs from full plan")
-        env = runner.owned_environment(runner.execution_environment(settings)[0], directory)
+        env = runner.owned_environment(runner.execution_environment(settings, root=root)[0], directory)
         metrics["clone_setup_seconds"].append(time.monotonic() - start)
         yield directory, source, env
     finally:

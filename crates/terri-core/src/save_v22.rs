@@ -1,4 +1,4 @@
-//! Pool continuations. V21 remains a complete, independently decodable envelope.
+//! Frozen private pool continuation with its original editable-world inner layout.
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -16,11 +16,11 @@ pub struct SavedPoolEpisode {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV22 {
-    pub previous: crate::SaveSnapshotV21,
+    pub previous: crate::LegacyEditableWorldSnapshotV21,
     pub pools: Vec<SavedPoolEpisode>,
 }
 impl std::ops::Deref for SaveSnapshotV22 {
-    type Target = crate::SaveSnapshotV21;
+    type Target = crate::LegacyEditableWorldSnapshotV21;
     fn deref(&self) -> &Self::Target { &self.previous }
 }
 impl std::ops::DerefMut for SaveSnapshotV22 {

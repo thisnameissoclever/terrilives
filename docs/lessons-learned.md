@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-backlog-document-ownership] Put engineering tasks in the engineering backlog
+
+**What happened.** A detailed sound implementation backlog was added to Tim's
+personal to-do document even though Features owns engineering priorities.
+
+**Root cause.** An existing engineering summary in the personal list was treated
+as authority to add the full backlog without checking the documents' ownership rules.
+
+**Prevention.** Read each candidate document's purpose before adding work. Keep
+engineering tasks in `FEATURES.md`, link system scope from `GAME-SYSTEMS.md`, and
+use `TIM-TODO.md` for owner decisions, approvals and brief tracking pointers.
+Preserve stable item IDs and existing links when relocating work.
+
+**Verification.** Confirm that the destination retains every task and constraint,
+the former location contains only a pointer, and each cross-reference resolves.
+Document relocation must not change implementation or listening approval status.
+
 ## [L-only-waiting-is-not-busy] Let every admission path recognize a person who only waits
 
 1. What happened: after player-order execution merged, the shipped household run headless starved on day 15 at seed 20260728, and two housemates died at seed 120. Tim waited to chat with Bill, Bill held a game-made fight order against Tim, and Casey held one against Bill. Each waited for a partner who was only waiting in turn.
@@ -12718,7 +12735,7 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 
 **Prevention.** Pass `encoding="utf-8"` for both source reads and writes. Inspect the complete diff for unrelated text changes.
 
-**Verification.** Compare pre-existing non-ASCII text with the base revision and check the zoom-out control in the browser.
+**Verification.** Compare pre-existing non-ASCII text with the base revision. Check affected interface symbols in the browser and run affected Unicode test fixtures. A later fixture-copy edit corrupted an accented test literal through the same implicit Windows decoding; the complete runner test module caught it before delivery.
 
 ## [L-condition-help-states-the-effect] Explain the value directly
 
@@ -13671,3 +13688,177 @@ A shell exit or process identifier does not establish exporter completion. Do no
 2. Root cause: deployment behavior was inferred from the older working checkout while the release used a newer main revision with different triggers.
 3. Prevention: inspect the target revision's actual workflow and recent same-commit runs before dispatching publication. Reuse a successful same-commit deployment; do not start another build solely because the local workflow looks manual.
 4. Verification: match the published run's event, head commit, build and deploy results to the reviewed candidate. Cancel only a duplicate run owned by the current task, and confirm its cancellation separately.
+## [L-qualification-bootstrap-diagnostics] Give the recovery procedure when setup evidence is missing
+
+1. What happened: production test planning reported an empty qualification failure after fixture setup had not completed.
+2. Root cause: discovery found no matching proof and joined an empty rejection list, leaving no explanation of the next action.
+3. Prevention: preserve strict refusal, distinguish missing proof from rejected proof, and name the fixture setup and preparation-rerun procedure. Keep fixture validation separate from production coverage.
+4. Verification: require a missing-proof test to reject planning and include the documented recovery procedure without extra discovery requests. Require real interrupted and resumed fixture completion before accepting hosted qualification.
+
+## [L-release-artifact-reruns] Bind tested release packages to the successful producer attempt
+
+1. What happened: review found that source-only package names could make a healthy rerun fail upload or leave duplicate artifacts. A live API check then found that selecting packages by the latest job's attempt could also reject a healthy partial rerun.
+2. Root cause: one run can retain artifacts from several attempts. GitHub can clone an earlier successful job with a new numeric ID and attempt while preserving its original execution timestamps and steps. The latest job's attempt does not prove that its commands ran again.
+3. Prevention: include the producing attempt in immutable artifact names. Authenticate the latest successful execution, then bind its matching original producer, artifact and receipt. Preserve earlier evidence and refuse a package from a different execution.
+4. Verification: use real API-shaped cloned-job metadata in partial-rerun tests. Retain both packages in a full-web-rerun test. Require refusal when a genuinely newer execution has no package despite an older valid package, or when original and latest execution evidence differs.
+
+## [L-stable-verification-tree] Keep verification inputs stable while a suite runs
+
+1. What happened: a broad Python test run imported an old workflow assertion before an implementation worker changed the workflow and its test. The run later compared the old assertion with the repaired file.
+2. Root cause: integration verification overlapped edits to files that tests import and read at different times.
+3. Prevention: finish worker edits before starting final integration verification. Treat a run spanning source changes as mixed-input evidence rather than a pass for the final tree.
+4. Verification: rerun affected modules after edits stop. Require the complete hosted suite on the immutable committed revision before dependent work proceeds.
+
+## [L-stable-mutation-userspace] Select the environment that the campaign requires
+
+1. What happened: separate hosted jobs received different Ubuntu image versions, so exact runtime authentication stopped fixture planning repeatedly.
+2. Root cause: a rolling runner label does not select one immutable environment across jobs or recovery attempts. Waiting for a rollout to settle cannot guarantee a stable multi-day campaign. The available failure logs established different image labels without establishing whether library bytes also differed.
+3. Prevention: select one reviewed, digest-pinned userspace for every mutation stage. Bind its compiler, executable, library and recipe identities. Retain the hosting machine as separate provenance. Update calibration, workers, native admission and recovery together.
+4. Verification: require the same pinned computation to pass across changed host metadata. Require changed image, inventory, compiler, library, helper or recipe inputs to refuse. Complete a real interrupted/resumed fixture before accepting production planning.
+
+## [L-runtime-image-consumer-contract] Test the image and its consumer together
+
+1. What happened: an image declared the intended Cargo worker count, while the consumer rejected that declaration as an unknown inherited override. Review also found that hashing a shell binary without its command alias could miss a redirected shell.
+2. Root cause: image preparation and runtime validation were checked separately. File contents, command resolution and environment declarations jointly determine the effective tools.
+3. Prevention: derive regression inputs from the actual image environment. Normalize only values that exactly match the declared computation. Verify effective helper resolutions and symlink targets as well as file bytes.
+4. Verification: run the real image environment before hosted qualification. Accept the declared worker count and refuse mismatches or unknown Cargo overrides. Redirect a shell/helper while retaining its original binary and require refusal.
+
+## [L-frozen-apt-candidates] Resolve package locks with the package manager
+
+1. What happened: package metadata enumeration selected an older security-pocket binutils version over the newer updates-pocket candidate, and the image build refused the lock.
+2. Root cause: repository iteration order replaced the package manager's version-selection rules.
+3. Prevention: freeze the package snapshot and resolve every direct package through APT's actual candidate selection. Validate every locked candidate before installation.
+4. Verification: build against the frozen signed snapshot with a candidate audit for all locked packages. Require a mismatched lock to fail before installation.
+
+## [L-isolated-test-import-closure] Copy every required module into isolated guard tests
+
+1. What happened: adding a runtime helper caused isolated guard-removal tests to fail during import, before reaching their intended assertions.
+2. Root cause: the isolated test copies explicitly listed helper modules and omitted the new transitive import.
+3. Prevention: scan isolated-copy module lists whenever adding an import. Include the required helper without weakening the original negative assertion.
+4. Verification: run the isolated controls and require each deliberate guard removal to fail for its named assertion. Complete the integration suite against a stable source tree.
+
+## [L-explain-the-purpose-of-a-check] Explain the consequence before the testing mechanism
+
+1. What happened: an explanation of remote workflow recovery described job records and interrupted execution without first explaining their purpose or connection to the requested game fix.
+2. Root cause: the explanation assumed that the reader already understood why a long testing process saves progress and which checks concern the game itself.
+3. Prevention: state what the check protects, whether it affects the requested delivery, and why the proposed location is necessary. Keep optional testing infrastructure evidence separate from application test results and player-device acceptance. Obtain approval before paid hosted work.
+4. Verification: the reader can identify the concrete failure being checked and its consequence without reconstructing previous technical explanations. Local results, remote-service behavior and deployment each retain their own verified status.
+
+## [L-canonical-runtime-inventory-unicode] Test the published inventory with its actual text encoding
+
+1. What happened: local execution of the published mutation image passed its image checks, then failed the consuming runtime validator on accented certificate filenames.
+2. Root cause: the image encoded non-ASCII JSON characters as escapes while its consumer emitted raw UTF-8 during canonical comparison. ASCII-only fixtures hid the disagreement.
+3. Prevention: define the canonical encoding explicitly on both sides. Test representative non-ASCII file paths and compare retained published inventory bytes before relying on a simulated installation.
+4. Verification: accept the exact published inventory and hash. Refuse changed certificate bytes and a hash-matching alternate JSON encoding. Run the real consumer against the pinned image locally.
+
+## [L-publication-filters-follow-build-inputs] Classify files by their production consumers
+
+1. What happened: review found that a publication filter omitted external character assets and migration content compiled from directories named `tests`.
+2. Root cause: directory labels were used as substitutes for tracing production imports, asset patterns and build-script reads.
+3. Prevention: derive publication inputs from actual consumers. Include production data stored under test directories while excluding unrelated saved-game fixtures, authoring sources and test-only files. Keep the workflow filter and stale-release comparison aligned.
+4. Verification: source-derived tests enumerate literal imports, matched runtime assets and compiled fixture filenames. Require each to trigger publication and make an older release stale. Require unrelated authoring files and test observations to remain excluded.
+
+## [L-local-npm-direct-node] Execute npm without a second command parser
+
+1. What happened: independent review ran the new local runner against the installed Windows npm command. Nested command-shell quoting made the path under `Program Files` fail before npm started.
+2. Root cause: C runtime argument escaping was reused inside `cmd /c`, whose parsing rules differ. Mocked command execution did not expose the platform failure.
+3. Prevention: resolve npm's installed JavaScript entry point and run it through Node with a direct argument array. Refuse unsupported batch wrappers rather than guessing their command syntax.
+4. Verification: run the real installed npm command through the runner. Use actual Node execution to preserve paths with spaces and arguments containing shell metacharacters, quotes and environment-variable syntax literally.
+
+## [L-qualification-binds-authorization-code] Bind helpers that define campaign authorization
+
+1. What happened: a new helper performed owner and local-report checks for the hosted workflow but was missing from the smaller contract used to select prior recovery qualification.
+2. Root cause: the workflow file was bound while its newly called authorization code was treated as ordinary source inventory.
+3. Prevention: include authorization helpers in the qualification contract. Keep full computation inventory and qualification compatibility checks distinct.
+4. Verification: change the authorization helper independently and require prior qualification and substituted remote source to refuse. Update precise API accounting for any added source tree without increasing the production ceiling.
+
+## [L-resident-graphics-and-first-frame-proof] Measure permanent graphics storage through the first complete frame
+
+1. What happened: waiting for uploads to finish reduced unfinished work while the affected iPhone continued to fail after loading. A later local budget probe initially treated removal of the loading cover as successful startup.
+2. Root cause: upload pacing left the complete dense texture allocation resident. The first-frame error path also removes the loading cover, so DOM readiness could report success after rendering had stopped.
+3. Prevention: measure actual requested texture and buffer storage, including scene attachments at device scale. Require a completed rendering frame and nonempty scene identities. Distinguish resource-pressure evidence from an observed operating-system termination on the user's device.
+4. Verification: a controlled budget rejects the old essential first-frame allocation; the repaired build completes a frame within the same budget. Compare color, depth and picking with the same paused household, and preserve source pixels and filtering independently.
+
+## [L-compressed-resource-identities] Distinguish transport hashes from unpacked content hashes
+
+1. What happened: a derived binary producer initially named gzip files using their unpacked digest despite the contract requiring the exact compressed bytes in the filename.
+2. Root cause: one digest was reused for two different byte representations.
+3. Prevention: name the encoded artifact by its exact encoded bytes. Keep the unpacked length and digest in a separate descriptor. Preserve equivalent valid committed gzip streams across compressor versions.
+4. Verification: assert the filename against the downloaded bytes and the descriptor against decompressed bytes. Corrupt each representation separately and require rejection.
+
+## [L-external-image-texture-usage] Preserve external-image upload permissions when replacing a loader
+
+1. What happened: a replacement graphics loader initially declared its destination texture for sampling and copying, omitting the render-attachment permission required by external-image uploads.
+2. Root cause: a mock queue accepted the upload without validating the real graphics API's destination contract.
+3. Prevention: trace resource descriptors through their actual upload operation. Preserve required usage flags and test the descriptor as well as the call sequence. Use real graphics validation before accepting the loader.
+4. Verification: require a descriptor test to reject the omitted permission. Run actual bitmap uploads with validation and memory error scopes, then verify rendered output on the real graphics device.
+
+## [L-local-command-catalogue-contracts] Update every guard for an expanded local check catalogue
+
+1. What happened: adding two local artwork checks passed the catalogue's direct tests but failed a second guard that compares the entire artwork command list.
+2. Root cause: the impact scan found direct catalogue assertions and missed the independent complete-list expectation.
+3. Prevention: search for both the changed command and complete-list comparisons before extending a shared verification catalogue. Preserve every existing command and add the new local requirements to each relevant contract.
+4. Verification: the full script run identifies stale expectations. After correcting the list, run the affected complete-list and catalogue policy tests. Record the initial failure and subsequent covering pass separately.
+
+## [L-startup-http-versus-process-failure] Separate download failures from browser-process failures
+
+1. What happened: a later screenshot from an earlier build showed the game's own HTTP 503 failure card, while previous reports showed browser-level page failures.
+2. Root cause: the earlier loader stopped on an unsuccessful response. The cause of the reported 503 remains unknown. Calling the reported failure temporary inferred its duration from the status code; neither a successful local download nor an injected response establishes that duration.
+3. Prevention: preserve the exact resource, status, build and failure layer. Capture a naturally failing request before attributing its cause. Keep tests of bounded recovery, memory-pressure evidence and physical-device acceptance separate.
+4. Verification: injected 503s test response handling only. Require bounded attempts and unchanged geometry validation, including rejection of corrupted successful bytes. Separately record normal public requests and their limits. Establish the reported failure's cause from an actual failing response or a reproduction of the conditions that produce it.
+
+## [L-startup-response-cleanup-and-evidence] Keep failure cleanup bounded and preserve the failed response
+
+1. What happened: the character reader discarded an unsuccessful response's delivery headers and body. A local stream test also demonstrated that awaiting its cancellation could hold the loader open forever.
+2. Root cause: cleanup completion was a prerequisite for retry or failure, and the thrown error retained only status and path. Successful desktop loads could not recover the missing evidence from an affected browser.
+3. Prevention: request discarded-body cleanup without awaiting it. Bound error-body reading by bytes and time. Retain selected response details and loading steps locally before another attempt or browser termination loses them. Keep an unfinished load distinct from a confirmed crash.
+4. Verification: hold cancellation unresolved and require retry and terminal failure to complete within their declared bounds. Verify response truncation, excluded credential headers and query strings, persisted loading steps after a renderer termination, and standalone retrieval without starting the game. Keep these diagnostic tests separate from physical-device recovery.
+
+## [L-diagnostic-report-delivery] Make device-local evidence easy to deliver
+
+1. What happened: startup reports were stored in the player's browser, while obtaining and sharing those reports remained unclear to the owner. A review also found that the report omitted the stack forwarded by a preparation worker.
+2. Root cause: collection and file download were treated as sufficient delivery. The failure surface did not provide direct copy and addressed-email actions, and the recorder retained only the wrapper's stack.
+3. Prevention: provide sharing controls beside the failure. Preserve recorded version identity, forwarded error details and the original saved data. Call clipboard writing from the user's click and expose selectable text when access is refused. Open email as a reviewable draft. Keep diagnostic delivery separate from identifying and repairing the reported defect.
+4. Verification: compare clipboard text, downloaded data and decoded draft body. Check the exact recipient and versioned subject, reserved characters, old-record version fallback, storage denial and blocked copying. Preserve cached-client compatibility when publishing a new recorder interface. Verify worker details separately from the main stack.
+
+## [L-error-capture-lifetime-and-budget] Verify report contents against actual failures throughout the session
+
+1. What happened: the recorder stopped accepting errors after the first graphics frame, and sharing used an earlier snapshot. Successful delivery tests compared equally incomplete payloads. The email also attempted to carry the entire report without a link-size budget.
+2. Root cause: startup readiness was incorrectly treated as the end of diagnostic capture. Tests established transport equality without provoking a later real exception or graphics validation error.
+3. Prevention: keep diagnostics active during play. Build sharing payloads on activation. Preserve actual error messages, causes, source locations, worker details and operation history. Reserve independent serialized budgets for errors, recent logs, context and history; changing global eviction order cannot guarantee a useful tail. Bound the fully encoded mail link separately, including CRLF and Unicode expansion. Reserve message space independently from labels. Count repeats and omitted records, and retain the larger report for copy/download.
+4. Verification: first require tests to reject missing post-ready and later errors. Then exercise a real graphics validation error and thrown exception in the compiled browser, and inspect the decoded Options email. Test nested errors, cyclic coordinates, changed worker evidence, repeated errors, newline expansion and storage readback at its hard bound. Browser-process termination still requires preceding evidence or native diagnostics; do not invent its cause.
+
+## [L-mail-handler-request-budget] Verify the complete mail-handler request
+
+1. What happened: bug reports fit the direct mail link limit but opened Gmail's Bad Request page. The body also put general context ahead of the error and omitted the operation when a source path existed.
+2. Root cause: the formatter counted one layer of URL escaping. Gmail's registered handler escaped the complete link again. Earlier verification decoded the link without opening the configured handler.
+3. Prevention: measure every generated report after the handler's extra encoding, reserve its address overhead, and place the error, cause and failing operation before context. Append newest logs before optional history. Preserve full copy and download reports.
+4. Verification: reproduce the old link's Error 400 in real Gmail, then verify recipient, subject and the complete repaired body in a populated unsent draft. Test variable report lengths, reserved characters, Unicode and lone surrogates against the encoded budget and content order. A passing direct-link test alone does not establish mail-handler acceptance.
+
+## [L-save-domain-recovery-discovery] Put domain-transfer recovery beside the export control
+
+1. What happened: the game moved domains with a working old-domain save recovery page, but Export save did not tell players where to find it.
+2. Root cause: recovery instructions existed only in the guide. The export control downloaded the new website's game, leaving the old household's location unclear.
+3. Prevention: expose the old-domain recovery link and complete transfer steps when Export save is activated. Keep the recovery page on the original browser origin, because browser storage is isolated by origin. Use the same browser profile and device, and preserve the old save during recovery.
+4. Verification: follow the public recovery page, download an existing save, import it at the new domain, and reload the game. Separately verify that Export save opens the recovery instructions, downloads the current game, and supports keyboard dismissal on desktop and phone layouts.
+
+## [L-capture-file-encoding] Match screenshot filenames to the captured encoding
+
+1. What happened: guide generation rejected screenshots saved with a PNG extension because the browser had returned JPEG bytes.
+2. Root cause: the capture filename assumed an encoding that the screenshot API did not promise.
+3. Prevention: inspect the captured file signature before choosing its extension. Preserve the original screenshot bytes and use the matching file type in guide metadata.
+4. Verification: build the guide with signature validation enabled and compare the published image hash with the original capture.
+
+## [L-popover-keyboard-ownership] Give visible popovers priority before game shortcuts
+
+1. What happened: Escape dismissed an export popover while focus was inside it, but closed Options after Tab moved focus to an underlying control.
+2. Root cause: capture handlers recognized ordinary dialogs by the open attribute or target ancestry. Native popovers use a separate visibility state and allow focus to leave them. A target listener runs after document capture handlers.
+3. Prevention: check visible popover state at every existing handler that can consume the same shortcut, including canvas and Build exit handlers. Leave Escape uncanceled so native dismissal can run.
+4. Verification: test the actual extracted predicates and play the Tab-out sequence in the game. Repeat with a selected Build tool, staged edits and canvas focus. Require one Escape to close the popover without altering the draft or opening Build exit confirmation.
+
+## [L-save-envelope-projections] Name historical save projections explicitly
+
+1. What happened: integrating two save-format families left Build and boundary tests counting nested fields from different implicit starting versions. Room accesses reached the wrong historical envelope, and a malformed-current test used an older header.
+2. Root cause: an implicit field view hid the version that owned each field. Updating an outer envelope did not make older field chains or encoded headers correct.
+3. Prevention: use named, typed accessors at current-to-historical boundaries. Preserve frozen historical readers and fixtures. Encode current corruption controls with the current header so the intended state validator must reject them.
+4. Verification: compile library and test targets, exercise authentic historical bytes, and check exact current continuation, transactional rejection and Build rollback. A successful type check alone does not prove save compatibility.

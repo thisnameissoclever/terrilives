@@ -43,7 +43,7 @@ fn exiting_pool() -> SimHandle {
         handle.sim.tick();
         if handle
             .sim
-            .save_snapshot_v23()
+            .save_snapshot_v24()
             .pools
             .first()
             .is_some_and(|episode| episode.phase == 3)
@@ -167,7 +167,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
         handle.tick();
         if handle
             .sim
-            .save_snapshot_v23()
+            .save_snapshot_v24()
             .pools
             .first()
             .is_some_and(|episode| episode.phase > 0)
@@ -175,7 +175,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
             break;
         }
     }
-    assert_eq!(handle.sim.save_snapshot_v23().pools[0].phase, 1);
+    assert_eq!(handle.sim.save_snapshot_v24().pools[0].phase, 1);
     let current = handle.sim.current_v5_view().world.clone();
     let position = current
         .entities
@@ -326,7 +326,7 @@ fn pool_codec_complete_physical_contract_negative_controls() {
 #[test]
 fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
     let natural = exiting_pool();
-    let origin = natural.sim.save_snapshot_v23().pools[0].clone();
+    let origin = natural.sim.save_snapshot_v24().pools[0].clone();
     // Reproduce each checkpoint through full public ticks, not DTO fabrication.
     for (phase, elapsed, cancel) in [
         (1, 0, false),
@@ -356,7 +356,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
         for _ in 0..150 {
             if handle
                 .sim
-                .save_snapshot_v23()
+                .save_snapshot_v24()
                 .pools
                 .first()
                 .is_some_and(|e| e.phase == phase && e.elapsed == elapsed)
@@ -365,7 +365,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
             }
             handle.tick();
         }
-        let current = handle.sim.save_snapshot_v23().pools[0].clone();
+        let current = handle.sim.save_snapshot_v24().pools[0].clone();
         assert_eq!((current.phase, current.elapsed), (phase, elapsed));
         if cancel {
             handle
@@ -423,7 +423,7 @@ fn reach(handle: &mut SimHandle, phase: u8, elapsed: u32) {
     for _ in 0..200 {
         if handle
             .sim
-            .save_snapshot_v23()
+            .save_snapshot_v24()
             .pools
             .iter()
             .any(|e| e.actor == 1 && e.phase == phase && e.elapsed == elapsed)
@@ -507,11 +507,11 @@ fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
     roundtrip_pool(&mut handle, "waiting for another pool's ladder");
     for _ in 0..110 {
         handle.tick();
-        if handle.sim.save_snapshot_v23().pools.is_empty() {
+        if handle.sim.save_snapshot_v24().pools.is_empty() {
             break;
         }
     }
-    assert!(handle.sim.save_snapshot_v23().pools.is_empty());
+    assert!(handle.sim.save_snapshot_v24().pools.is_empty());
     let waiting = handle.sim.current_v5_view();
     let actor = waiting
         .world
@@ -549,7 +549,7 @@ fn pool_codec_preserves_exact_orders_without_adopting_a_later_repeated_order() {
                 .all(|o| !o.served));
         }
         handle.tick();
-        assert!(handle.sim.save_snapshot_v23().pools[0].interrupted);
+        assert!(handle.sim.save_snapshot_v24().pools[0].interrupted);
         assert!(handle
             .sim
             .current_v17_view()
@@ -623,7 +623,7 @@ fn pool_codec_rejects_conflicting_active_work_after_owning_generic_validation() 
         match label {
             "commuting" => {
                 row.commuting = true;
-                snapshot.0.previous.commutes = vec![(actor, 0)];
+                snapshot.0.commutes = vec![(actor, 0)];
             }
             "at work" => row.at_work_ticks = Some(3),
             "conversation" => {

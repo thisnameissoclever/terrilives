@@ -116,7 +116,9 @@ def discover(api, repository, contract, required_until, selected_run=None):
                         "archive_digest": artifact["digest"]}, proof
             except (ValueError, KeyError, TypeError) as error:
                 failures.append(str(error))
-    raise ValueError("no authenticated interrupted/resumed fixture qualification: " + "; ".join(failures[-3:]))
+    detail = "; ".join(failures[-3:]) if failures else "no matching fixture recovery proof was published"
+    raise ValueError("no authenticated interrupted/resumed fixture qualification: " + detail +
+                     "; complete a fixture run, then rerun its successful preparation job as described in docs/mutation-campaign.md")
 
 
 def emit(settings, contract, planned, chain, detailed, output):

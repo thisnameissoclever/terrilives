@@ -56,7 +56,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-chains] | Multi-step activities | Partial | Cooking dinner and resumable chain engine |
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | Directional feelings, chat and living-person decay |
 | [S-family] | Family relationships and kinship | Partial | Saved ties, People labels, stronger positive family effects and reduced negative effects; ties survive death |
-| [S-careers] | Jobs and careers, with player-directed career paths | Partial | One scheduled office job with wages |
+| [S-careers] | Jobs and careers, with player-directed career paths | Partial | Eight career paths with weekly reviews, held day, early, late and night shifts, and wages |
 | [S-create-a-sim] | Create-a-sim and appearance | Partial | New housemate: name, personality, traits and family tie |
 | [S-life-stages] | Life stages and aging | Not started | None |
 | [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | None |
@@ -149,6 +149,8 @@ A task can also name the kind of unpleasantness it involves. A Sim who is sensit
 **Status: Foundation only.** The HUD has four one-line status messages, for saves, orders, keyboard targeting, and build mode. Each is visible text that a screen reader also announces, and each shows only its latest message. There is no feed or history that tells the player "the dog made a mess in the kitchen" or "the rent is due".
 
 Every event-driven system needs this feed, with a way to jump the camera to the place concerned.
+
+The activity log, opened by the Log button, records events a feed can reuse: finished actions, chats and fights, annoyances, chores, skill levels, weekly reviews, career changes and deaths, each as a numeric record with the people involved. It keeps them only for the current session and shows them as a filtered list, not as notifications; the feed itself, with channels, muting and camera jumps, remains unbuilt. See [the activity log specification](specs/2026-10-18-activity-log.md).
 
 **Owner direction, 2026-09-21.** The feed reports significant things that happened. The owner's examples: two Sims have an actual fight, a Sim is promoted, a Sim becomes despondent. Many trigger conditions across every system should produce notifications.
 
@@ -476,7 +478,7 @@ shift rewards reflect actual office time; missing more than two hours deducts
 ten performance points per further hour. The Career tab explains the actual
 attendance and deduction. See [player orders](specs/2026-10-17-player-orders.md).
 
-**What exists.** Three career paths in `content/careers.toml`, each four titled levels with their own hours, working days, pay range, need cost and reward; a `Career` component still names one level. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `QuitCareer` and `SetCareerAutonomy` direct it. Schema fourteen saves it. The Career row in Sim details shows the title with its working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths to assign and a Quit control; Options holds the two autonomy checkboxes.
+**What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, and schema twenty-one saves each held shift. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -620,6 +622,9 @@ alone does not establish a convincing seated pose.
 ### [S-audio] Sound, ambience, music, and voices
 
 **Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, a recorded snore while anyone sleeps, and cues for eating, reading, and exercise are in. Footsteps use a quieter peak amplitude without changing pitch or cadence. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Door opening is silent; closing plays a filtered 0.32-second thunk. Toilet audio plays a recorded flush after completed use; cancellation does not trigger it. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. Continuous indoor background noise is excluded from the sound design. Outdoor ambience, music, alarms and non-conversation voices remain future work. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
+
+The [sound improvement backlog](FEATURES.md#remaining-sound-improvements) owns the
+audio implementation priorities, sound-selection constraints and deferred work.
 
 ## Proposed additional systems
 
