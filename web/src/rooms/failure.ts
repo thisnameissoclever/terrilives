@@ -86,11 +86,18 @@ export function failureWhat(error: RoomFailure, report: BuildFailureReport = { r
   return cause ? `These changes can't be confirmed: ${cause}.` : "These changes can't be confirmed because the house would not load afterwards.";
 }
 
+/** The bed a refusal names: its type first, then its model, for example `bunk bed (Basic Oak)`. */
+export function bedName(type: string, model: string): string {
+  if (type === '') return '';
+  const lower = type.charAt(0).toLowerCase() + type.slice(1);
+  return model === '' ? lower : `${lower} (${model})`;
+}
+
 /** A refused Confirm, with what the player can do about it. */
-export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }, bedModel = ''): string {
+export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }, bed = ''): string {
   if (error.code === BED_OUTSIDE) {
-    // The refusal names the bed it would leave outside when its model is known.
-    const what = bedModel === '' ? WHAT[BED_OUTSIDE] : `The ${bedModel} bed would be left outside.`;
+    // The refusal names the bed it would leave outside when its type is known.
+    const what = bed === '' ? WHAT[BED_OUTSIDE] : `The ${bed} would be left outside.`;
     return `${what} Move it into a room, or choose Cancel, before confirming.`;
   }
   const fix = error.code === 10 ? 'Change the walls, doors or windows involved, or choose Cancel to undo all pending changes.'
