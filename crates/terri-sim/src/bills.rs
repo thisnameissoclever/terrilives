@@ -297,9 +297,12 @@ fn start_day(world: &mut World, pack: &'static ContentPack, today: u32) {
         bills.month_start = today;
     }
     bills.month_days += 1;
-    // A month counted across a change of month length keeps the longer one,
-    // so its days never outnumber it.
-    bills.month_length = bills.month_length.max(month);
+    // A month counted across a change of month length keeps the longest
+    // length it was counted under, and at least the days it has counted: it
+    // ends on the new length's boundary, which can come after its own end,
+    // and its amounts are divided by this length, so its days never
+    // outnumber it and its charges never exceed a full month's ([WB-save]).
+    bills.month_length = bills.month_length.max(month).max(bills.month_days);
     bills.indoor_tile_days += u64::from(indoor);
     bills.outdoor_tile_days += u64::from(outdoor);
     // A month with no daily usage keeps an empty list, as a saved month

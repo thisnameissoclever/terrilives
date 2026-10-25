@@ -113,18 +113,22 @@ fn rich() -> Sim {
     sim
 }
 
-/// [WB-save]: a later change to the month length, the grace, the late fee
-/// or its cap leaves a schema-22 save loadable. Each bill keeps the terms
-/// it was issued under, so its fees and overdue day do not change, and the
-/// open month keeps the month length it is counted under.
 /// A named change to the bills tuning.
 type TuningEdit = (&'static str, fn(&mut terri_data::BillsTuning));
 
+/// [WB-save]: a later change to the month length, the grace, the late fee
+/// or its cap leaves a schema-22 save loadable, on the day of the change
+/// and on every day after it. Each bill keeps the terms it was issued
+/// under, so its fees and overdue day do not change, and the open month
+/// keeps the month length it is counted under.
 #[test]
 fn a_save_loads_after_each_bills_tuning_change() {
     let snapshot = rich().save_snapshot_v22();
-    let edits: [TuningEdit; 5] = [
+    let edits: [TuningEdit; 8] = [
         ("a longer month", |b| b.days_per_month = 30),
+        ("a ten-day month", |b| b.days_per_month = 10),
+        ("an eight-day month", |b| b.days_per_month = 8),
+        ("a six-day month", |b| b.days_per_month = 6),
         ("a shorter month", |b| {
             b.days_per_month = 3;
             b.grace_days = 2;
@@ -144,19 +148,78 @@ fn a_save_loads_after_each_bills_tuning_change() {
             snapshot.bills,
             "{name}: the record is kept as saved"
         );
-        // Three days on, each day's first tick, so the open month and the
-        // bills go on under the new tuning.
-        for day in 17..20u64 {
+        // Each day's first tick for a month and a half, so the open month
+        // and the bills go on under the new tuning; every day's save loads.
+        for day in 17..40u64 {
             loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY - 1;
             loaded.tick();
+            let resaved = loaded.save_snapshot_v22();
+            let mut again = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+            assert_eq!(
+                again.load_snapshot_v22(resaved),
+                Ok(()),
+                "{name}: day index {day}"
+            );
         }
-        let resaved = loaded.save_snapshot_v22();
-        let mut again = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+    }
+}
+
+/// Review of 2026-10-25, S1: a save made on day 12 under seven-day months
+/// and loaded under another month length goes on saving, loading and
+/// entering Build on every day after, and the month it was saved in never
+/// counts more days than its saved length.
+#[test]
+fn a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change() {
+    for (length, grace) in [
+        (4u32, 3u32),
+        (5, 4),
+        (6, 5),
+        (8, 5),
+        (9, 5),
+        (10, 5),
+        (30, 5),
+    ] {
+        let shipped = terri_data::pack();
+        let mut sim = Sim::new_from_lot_and_content(&shipped.lot, Content(shipped));
+        for day in 0..=12u64 {
+            sim.world_mut().resource_mut::<SimClock>().tick = day * DAY;
+            crate::bills::tick(sim.world_mut());
+        }
+        let snapshot = sim.save_snapshot_v22();
+        let mut pack = shipped.clone();
+        pack.bills.days_per_month = length;
+        pack.bills.grace_days = grace;
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        let mut loaded = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
         assert_eq!(
-            again.load_snapshot_v22(resaved),
+            loaded.load_snapshot_v22(snapshot),
             Ok(()),
-            "{name}: three days on"
+            "length {length}"
         );
+        for day in 13..45u64 {
+            loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY;
+            crate::bills::tick(loaded.world_mut());
+            let bills = loaded.world().resource::<Bills>();
+            assert!(
+                bills.month_days <= bills.month_length,
+                "length {length}, day index {day}: {} days counted under {}",
+                bills.month_days,
+                bills.month_length
+            );
+            let resaved = loaded.save_snapshot_v22();
+            let mut again = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+            assert_eq!(
+                again.load_snapshot_v22(resaved),
+                Ok(()),
+                "length {length}, day index {day}: the save loads"
+            );
+            assert!(
+                loaded.begin_build().is_ok(),
+                "length {length}, day index {day}: Build opens"
+            );
+            loaded.cancel_build().unwrap();
+            loaded.end_build().unwrap();
+        }
     }
 }
 
