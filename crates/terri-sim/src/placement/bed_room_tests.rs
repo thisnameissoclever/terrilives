@@ -286,6 +286,34 @@ fn that_outdoor_bed_can_move_into_a_room_but_not_to_another_yard_tile() {
     );
 }
 
+/// The owner's decision of 2026-10-24: selecting an outdoor bed from an
+/// older save previews it where it stands, which is no move and no refusal;
+/// moving or turning it outdoors is still refused.
+#[test]
+fn an_outdoor_bed_staying_where_it_stands_is_not_refused() {
+    let mut sim = yard_bed_house();
+    let bed = entity_of(&mut sim, "double_bed");
+    let definition = pack().object(pack().find("double_bed").unwrap());
+    let current = sim
+        .world()
+        .get::<terri_core::ObjectFacing>(bed)
+        .map_or(definition.base_facing, |f| f.0);
+    assert!(validate_placement(sim.world(), bed.index_u32(), (16, 0), current).is_ok());
+    let turned = terri_core::Facing::ALL
+        .into_iter()
+        .find(|f| *f != current && definition.supports(*f))
+        .expect("the bed turns");
+    assert_eq!(
+        validate_placement(sim.world(), bed.index_u32(), (16, 0), turned).err(),
+        Some(PlacementRefusal::OutsideRoom),
+        "turning it in place is a move"
+    );
+    assert_eq!(
+        validate_placement(sim.world(), bed.index_u32(), (16, 3), current).err(),
+        Some(PlacementRefusal::OutsideRoom)
+    );
+}
+
 /// [WB-beds]: outside a Build session a single wall edit that would leave a
 /// bed outside is refused, and the wall stays.
 #[test]

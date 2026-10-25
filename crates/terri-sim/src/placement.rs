@@ -561,6 +561,24 @@ pub(crate) fn indoors_allowed(
             .is_ok_and(|topology| topology.footprint_indoors(origin, footprint))
 }
 
+/// Whether `entity` already stands at `origin` facing `facing`, so placing
+/// it there moves nothing.
+fn stays_put(
+    world: &World,
+    entity: Entity,
+    definition: &terri_data::CompiledObject,
+    origin: (u32, u32),
+    facing: Facing,
+) -> bool {
+    let Some(position) = world.get::<Position>(entity) else {
+        return false;
+    };
+    let current = world
+        .get::<terri_core::ObjectFacing>(entity)
+        .map_or(definition.base_facing, |f| f.0);
+    (position.x as u32, position.y as u32) == origin && current == facing
+}
+
 /// The placed objects that must stand inside a room, with where they stand,
 /// in entity order ([WB-beds]).
 pub(crate) fn indoor_only_objects(world: &World) -> Vec<(Entity, (u32, u32), Footprint)> {
@@ -636,7 +654,12 @@ pub fn validate_placement(
     }
     let footprint = definition.footprint_at(facing);
     let (grid, reading) = plan_rectangle(world, Some(entity), footprint, origin, Some(facing))?;
-    if !indoors_allowed(world, definition, origin, footprint) {
+    // Only a move is held to the room rule: an object asked to stay where
+    // and how it stands, such as a bed an older save left outdoors when the
+    // player first selects it, is not refused ([WB-beds]).
+    if !stays_put(world, entity, definition, origin, facing)
+        && !indoors_allowed(world, definition, origin, footprint)
+    {
         return Err(OutsideRoom);
     }
     Ok(PlacementPlan {
