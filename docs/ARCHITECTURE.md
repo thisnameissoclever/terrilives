@@ -496,6 +496,12 @@ saved journeys and lot edits share the same wall-aware contact check. A floor
 tile beside the closed back is not access to the shelves. Short shelf-transfer
 claims use the existing endpoint occupancy rules and end after pickup or
 shelving; borrowing a copy does not reserve the whole bookcase for the session.
+A walk toward a shelf contact, to fetch or to return, plans the contact as a
+shelf approach: it keeps meals, media and standing readers off that tile, but
+another fetch or return may plan the same contact. The contact becomes
+exclusive only during pickup or shelving. A walker who arrives while someone
+else is transferring there waits at the contact for that pickup or shelving to
+finish, so a reader putting a book back never waits out another reader's walk.
 
 Owned reading runs through ordinary action selection and movement. `BookLibrary`
 owns copy identity and location; `ReadingJourney` owns the person's fetch,

@@ -243,7 +243,7 @@ fn fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order() {
     }
 }
 #[test]
-fn fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhere() {
+fn fix1_a_walk_to_the_near_contact_keeps_the_near_copy_and_shelf_requests_can_fetch_elsewhere() {
     let (mut sim, blocker, far, seat, title) = fixture("armchair");
     sim.world_mut()
         .entity_mut(far)
@@ -279,8 +279,10 @@ fn fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhe
         sim.world().get::<ReadingJourney>(blocker).unwrap().shelf,
         near
     );
-    assert_eq!(sim.world().get::<ReadingJourney>(p).unwrap().shelf, far);
-    assert!(sim.book_copies()[1].borrower.is_none());
+    // Another walk to the near contact does not hold it, so the near copy wins
+    // over a walk across the lot; the two take their copies one at a time.
+    assert_eq!(sim.world().get::<ReadingJourney>(p).unwrap().shelf, near);
+    assert!(sim.book_copies()[0].borrower.is_none());
     let (mut local, p, far, _seat, title) = fixture("armchair");
     local
         .world_mut()

@@ -3,6 +3,7 @@ use crate::Sim;
 use terri_core::command::BookCommand;
 mod order_reachability;
 mod priority;
+mod shelf_contact;
 
 #[test]
 fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
@@ -570,7 +571,16 @@ fn indoor_fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
 }
 
 fn fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
+    fixture_with(model, |_| {})
+}
+
+/// The ordinary fixture after one edit to its content pack.
+fn fixture_with(
+    model: &str,
+    edit: impl FnOnce(&mut terri_data::ContentPack),
+) -> (Sim, Entity, Entity, Entity, String) {
     let mut pack = terri_data::pack().clone();
+    edit(&mut pack);
     pack.decay_per_tick = [0.0; 7];
     pack.tuning.neglect_bleed_per_tick = 0.0;
     pack.tuning.satisfaction_mood_per_tick = 0.0;
@@ -1092,7 +1102,7 @@ fn reading_journey_cancel_before_pickup_releases_and_after_pickup_returns() {
     ));
 }
 #[test]
-fn reading_journey_same_shelf_serializes_fetches_then_shares_reading() {
+fn reading_journey_same_shelf_admits_both_fetches_serializes_pickups_then_shares_reading() {
     let (mut sim, p, shelf, sofa, title) = fixture("long_sofa");
     purchase(&mut sim, Some(shelf), &title);
     purchase(&mut sim, Some(shelf), &title);
@@ -1110,10 +1120,23 @@ fn reading_journey_same_shelf_serializes_fetches_then_shares_reading() {
     read(&mut sim, p, sofa, &title, false);
     read(&mut sim, second, sofa, &title, false);
     sim.tick();
-    assert!(sim.world().get::<ReadingJourney>(second).is_none());
-    assert_eq!(sim.world().get::<IntentQueue>(second).unwrap().len(), 1);
-    until(&mut sim, second, ReadingStage::Read);
+    // Both walks plan the one contact; neither holds it until it picks up.
+    assert_eq!(stage(&sim, p), Some(ReadingStage::Fetch));
+    assert_eq!(stage(&sim, second), Some(ReadingStage::Fetch));
+    let picking = |stage: Option<ReadingStage>| stage == Some(ReadingStage::Pickup);
+    for tick in 0..500 {
+        let (a, b) = (stage(&sim, p), stage(&sim, second));
+        assert!(
+            !(picking(a) && picking(b)),
+            "tick {tick}: both readers picked up at the one contact"
+        );
+        if a == Some(ReadingStage::Read) && b == Some(ReadingStage::Read) {
+            break;
+        }
+        sim.tick();
+    }
     assert_eq!(stage(&sim, p), Some(ReadingStage::Read));
+    assert_eq!(stage(&sim, second), Some(ReadingStage::Read));
     let first = sim.world().get::<ReadingJourney>(p).unwrap();
     let other = sim.world().get::<ReadingJourney>(second).unwrap();
     assert_ne!(first.copy, other.copy);
@@ -2528,8 +2551,10 @@ fn reading_journey_two_standing_readers_leave_the_shelf_front_available() {
         .id();
     read(&mut sim, p, shelf, &title, false);
     read(&mut sim, other, shelf, &title, false);
+    // Both fetch at once, so either may settle first.
     until(&mut sim, other, ReadingStage::Read);
-    assert_eq!(stage(&sim, p), Some(ReadingStage::Read));
+    until(&mut sim, p, ReadingStage::Read);
+    assert_eq!(stage(&sim, other), Some(ReadingStage::Read));
     let first = sim.world().get::<ReadingJourney>(p).unwrap();
     let second = sim.world().get::<ReadingJourney>(other).unwrap();
     assert!(first.seat.is_none() && second.seat.is_none());

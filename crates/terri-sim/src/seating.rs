@@ -149,7 +149,13 @@ pub(crate) enum UseKind {
     TableSeat,
     Media,
     MediaEndpoint,
+    /// Standing at a shelf contact to take or shelve a copy: a few ticks of
+    /// exclusive use.
     ShelfTransfer,
+    /// Walking toward a shelf contact to transfer a copy on arrival. The
+    /// contact stays closed to longer uses, but other transfers may plan it
+    /// too; the walker takes it on arrival once nobody is transferring there.
+    ShelfApproach,
     Standing,
 }
 
@@ -172,18 +178,27 @@ pub(crate) fn media_endpoint_kind(place: &SavedDiner) -> UseKind {
     }
 }
 
+/// Two shelf uses of one contact conflict only when both people stand at it
+/// transferring a copy. A walk toward the contact does not hold it against
+/// another transfer, so nobody waits out someone else's whole walk for a few
+/// ticks at the shelf. Every other use of the tile still excludes shelf use.
 pub(crate) fn endpoints_conflict(a: EndpointUse, b: EndpointUse, historical: bool) -> bool {
-    a.owner != b.owner
-        && a.endpoint == b.endpoint
-        && (historical
-            || a.kind == UseKind::MediaEndpoint
-            || b.kind == UseKind::MediaEndpoint
-            || a.kind == UseKind::Meal
-            || b.kind == UseKind::Meal
-            || a.kind == UseKind::ShelfTransfer
-            || b.kind == UseKind::ShelfTransfer
-            || a.kind == UseKind::Standing
-            || b.kind == UseKind::Standing)
+    if a.owner == b.owner || a.endpoint != b.endpoint {
+        return false;
+    }
+    if historical {
+        return true;
+    }
+    let shelf = |kind: UseKind| matches!(kind, UseKind::ShelfTransfer | UseKind::ShelfApproach);
+    if shelf(a.kind) && shelf(b.kind) {
+        return a.kind == UseKind::ShelfTransfer && b.kind == UseKind::ShelfTransfer;
+    }
+    [a.kind, b.kind].into_iter().any(|kind| {
+        matches!(
+            kind,
+            UseKind::MediaEndpoint | UseKind::Meal | UseKind::Standing
+        ) || shelf(kind)
+    })
 }
 
 pub(crate) fn endpoint_use(world: &World, lease: &SavedDiner) -> Option<EndpointUse> {

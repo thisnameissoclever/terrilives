@@ -1,6 +1,6 @@
 # Work shifts and five new careers
 
-Jobs now come with shifts, there are five new careers, and you can choose or change a housemate's shift in the Career tab.
+Jobs now come with shifts, there are five new careers, you can choose or change a housemate's shift in the Career tab, and putting a book back no longer holds up the start of work.
 
 ## New
 
@@ -14,3 +14,7 @@ Jobs now come with shifts, there are five new careers, and you can choose or cha
 
 - Housemates looking for work now try different careers by chance, still favoring the ones that suit their traits, rather than always picking the same best fit.
 - Older saved games keep every job on its usual hours.
+
+## Fixed
+
+- A housemate putting a book back no longer stands waiting while someone else walks over to the same bookcase for a book, which could make them an hour late for work. Only the person taking or shelving a book holds the spot in front of the bookcase, and anyone who arrives meanwhile waits there just for that moment.
