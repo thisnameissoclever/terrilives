@@ -30,8 +30,11 @@ impl SimHandle {
     /// `[funds_cents, keep_aside_cents, shortfall_cents, next_due_day,
     /// overdue_cents, overdue_fee_cents, days_per_month, grace_days,
     /// late_fee_percent, late_fee_cap_percent, month_days, month_length,
-    /// unpaid_cents, unpaid_due_day, overdue_from_day]`, the last two -1
-    /// while nothing is unpaid; empty without a lot.
+    /// unpaid_cents, unpaid_due_day, pending_due_day,
+    /// pending_overdue_from_day]`: the earliest unpaid bill's due day, -1
+    /// while nothing is unpaid, then the earliest unpaid bill not yet
+    /// overdue, its due day and the day it is overdue from, both -1 while
+    /// there is none; empty without a lot.
     pub fn bills_overview(&self) -> Vec<f64> {
         bills::overview(self.sim.world()).map_or_else(Vec::new, |o| {
             vec![
@@ -49,7 +52,8 @@ impl SimHandle {
                 f64::from(o.month_length),
                 o.unpaid_cents as f64,
                 day(o.unpaid_due_day),
-                day(o.overdue_from_day),
+                day(o.pending_due_day),
+                day(o.pending_overdue_from_day),
             ]
         })
     }

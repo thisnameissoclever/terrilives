@@ -75,8 +75,8 @@ fn bills_overview_on_a_new_game() {
     let mut handle = SimHandle::from_lot();
     handle.tick();
     let overview = handle.bills_overview();
-    assert_eq!(overview.len(), 15);
-    let [funds, keep_aside, shortfall, due, overdue, fees, month, grace, fee, cap, days, length, unpaid, unpaid_due, overdue_from] =
+    assert_eq!(overview.len(), 16);
+    let [funds, keep_aside, shortfall, due, overdue, fees, month, grace, fee, cap, days, length, unpaid, unpaid_due, pending_due, overdue_from] =
         overview[..]
     else {
         unreachable!()
@@ -84,8 +84,8 @@ fn bills_overview_on_a_new_game() {
     assert_eq!((due, overdue, fees), (7.0, 0.0, 0.0));
     assert_eq!((month, grace, fee, cap, days), (7.0, 5.0, 5.0, 50.0, 1.0));
     assert_eq!(
-        (length, unpaid, unpaid_due, overdue_from),
-        (7.0, 0.0, -1.0, -1.0)
+        (length, unpaid, unpaid_due, pending_due, overdue_from),
+        (7.0, 0.0, -1.0, -1.0, -1.0)
     );
     let next = handle.bills_next();
     assert_eq!(
@@ -134,8 +134,8 @@ fn bills_exports_mid_month_with_an_overdue_bill() {
     assert_eq!(overview[10], 6.0, "six days of the month counted");
     assert_eq!(
         &overview[11..],
-        [7.0, 29_360.0 + 1_468.0, 7.0, 12.0],
-        "the unpaid rent, due day 7, overdue from day 12"
+        [7.0, 29_360.0 + 1_468.0, 7.0, -1.0, -1.0],
+        "the unpaid rent, due day 7, is overdue, so no bill is pending"
     );
     let expected: f64 = handle.bills_next().chunks(3).map(|bill| bill[2]).sum();
     assert_eq!(overview[1], 29_360.0 + 1_468.0 + expected);

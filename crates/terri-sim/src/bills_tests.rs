@@ -1233,6 +1233,24 @@ fn a_bill_is_never_paid_in_part_and_funds_never_go_below_zero() {
     assert_eq!(sim.world().resource::<Funds>().0, 0);
 }
 
+/// [WB-panel]: the overview names the earliest unpaid bill and, apart
+/// from it, the earliest unpaid bill not yet overdue with the day it will
+/// be, even while an older bill is overdue.
+#[test]
+fn the_overview_names_the_pending_bill_beside_an_overdue_one() {
+    let older = Bill {
+        due_day: 0,
+        ..due(WATER, 1_000)
+    };
+    let mut sim = owing(vec![older, due(RENT, 3_000)], 0, 8 * DAY + 1);
+    tick(sim.world_mut());
+    let overview = overview(sim.world()).expect("a lot");
+    assert!(overview.overdue_cents > 0, "the older bill is overdue");
+    assert_eq!(overview.unpaid_due_day, Some(0));
+    assert_eq!(overview.pending_due_day, Some(7));
+    assert_eq!(overview.pending_overdue_from_day, Some(12));
+}
+
 /// [WB-paying]: an overdue bill is paid only when Funds cover its amount
 /// and its late fees together, and paying it takes both.
 #[test]

@@ -767,10 +767,12 @@ pub struct Overview {
     pub month_length: u32,
     /// Every unpaid bill with its fees, overdue or not.
     pub unpaid_cents: i64,
-    /// The earliest unpaid bill's due day, and the day it is overdue from,
-    /// while any bill is unpaid.
+    /// The earliest unpaid bill's due day, while any bill is unpaid.
     pub unpaid_due_day: Option<u32>,
-    pub overdue_from_day: Option<u32>,
+    /// The earliest unpaid bill not yet overdue: its due day and the day it
+    /// is overdue from, even while an older bill is overdue ([WB-panel]).
+    pub pending_due_day: Option<u32>,
+    pub pending_overdue_from_day: Option<u32>,
 }
 
 /// One of the next bills: what the month has come to so far and what it is
@@ -1049,6 +1051,11 @@ pub fn overview(world: &World) -> Option<Overview> {
         .iter()
         .filter(|bill| bill.paid_day.is_none())
         .min_by_key(|bill| (bill.due_day, bill.kind));
+    let pending = bills
+        .bills
+        .iter()
+        .filter(|bill| bill.paid_day.is_none() && !bill.overdue_on(today))
+        .min_by_key(|bill| (bill.overdue_from(), bill.due_day, bill.kind));
     Some(Overview {
         funds_cents,
         keep_aside_cents,
@@ -1064,7 +1071,8 @@ pub fn overview(world: &World) -> Option<Overview> {
         month_length: month_length(bills, tuning),
         unpaid_cents: unpaid,
         unpaid_due_day: earliest.map(|bill| bill.due_day),
-        overdue_from_day: earliest.map(Bill::overdue_from),
+        pending_due_day: pending.map(|bill| bill.due_day),
+        pending_overdue_from_day: pending.map(Bill::overdue_from),
     })
 }
 

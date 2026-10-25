@@ -299,9 +299,14 @@ export interface BillsOverview {
   readonly monthLength: number;
   /** Every unpaid bill with its fees, overdue or not. */
   readonly unpaidCents: number;
-  /** The earliest unpaid bill's due day, and the day it is overdue from, or null while nothing is unpaid. */
+  /** The earliest unpaid bill's due day, or null while nothing is unpaid. */
   readonly unpaidDueDay: number | null;
-  readonly overdueFromDay: number | null;
+  /**
+   * The earliest unpaid bill not yet overdue, even while an older one is: its due day and the day it is
+   * overdue from, or null while there is none.
+   */
+  readonly pendingDueDay: number | null;
+  readonly pendingOverdueFromDay: number | null;
 }
 
 /** A bill's kind: 0 rent, 1 electricity, 2 water, 3 transportation. */
@@ -355,10 +360,10 @@ function billKind(value: number): value is BillKind {
 
 /** Reads `bills_overview`; null for an empty list or anything malformed. */
 export function parseBillsOverview(values: readonly number[]): BillsOverview | null {
-  if (values.length !== 15) return null;
+  if (values.length !== 16) return null;
   const [fundsCents, keepAsideCents, shortfallCents, nextDueDay, overdueCents, overdueFeeCents,
     daysPerMonth, graceDays, lateFeePercent, lateFeeCapPercent, monthDays, monthLength, unpaidCents,
-    unpaidDue, overdueFrom] = values;
+    unpaidDue, pendingDue, pendingOverdueFrom] = values;
   if (!Number.isSafeInteger(fundsCents)) return null;
   if (![keepAsideCents, shortfallCents, overdueCents, overdueFeeCents, unpaidCents].every(wholeCents)) return null;
   if (![nextDueDay, daysPerMonth, graceDays, lateFeePercent, lateFeeCapPercent, monthDays, monthLength].every(isU32)) {
@@ -367,15 +372,18 @@ export function parseBillsOverview(values: readonly number[]): BillsOverview | n
   if (daysPerMonth < 1 || graceDays >= daysPerMonth || lateFeePercent > 100 || lateFeeCapPercent > 100) return null;
   if (monthLength < 1 || monthDays > monthLength || shortfallCents > keepAsideCents) return null;
   if (unpaidCents > keepAsideCents || overdueCents + overdueFeeCents > unpaidCents) return null;
-  // Both days are -1 while nothing is unpaid, and day indices otherwise.
+  // Each day is -1 while there is no such bill, and a day index otherwise.
   const day = (value: number) => (value === -1 ? null : isU32(value) ? value : undefined);
-  const unpaidDueDay = day(unpaidDue), overdueFromDay = day(overdueFrom);
-  if (unpaidDueDay === undefined || overdueFromDay === undefined) return null;
-  if ((unpaidDueDay === null) !== (overdueFromDay === null) || (unpaidDueDay === null) !== (unpaidCents === 0)) return null;
-  if (unpaidDueDay !== null && overdueFromDay !== null && overdueFromDay < unpaidDueDay) return null;
+  const unpaidDueDay = day(unpaidDue), pendingDueDay = day(pendingDue), pendingOverdueFromDay = day(pendingOverdueFrom);
+  if (unpaidDueDay === undefined || pendingDueDay === undefined || pendingOverdueFromDay === undefined) return null;
+  if ((unpaidDueDay === null) !== (unpaidCents === 0) || (pendingDueDay === null) !== (pendingOverdueFromDay === null)) {
+    return null;
+  }
+  if (pendingDueDay !== null && pendingOverdueFromDay !== null
+    && (unpaidDueDay === null || pendingDueDay < unpaidDueDay || pendingOverdueFromDay < pendingDueDay)) return null;
   return { fundsCents, keepAsideCents, shortfallCents, nextDueDay, overdueCents, overdueFeeCents,
     daysPerMonth, graceDays, lateFeePercent, lateFeeCapPercent, monthDays, monthLength, unpaidCents,
-    unpaidDueDay, overdueFromDay };
+    unpaidDueDay, pendingDueDay, pendingOverdueFromDay };
 }
 
 /** Reads `bills_next`; empty for anything malformed. */

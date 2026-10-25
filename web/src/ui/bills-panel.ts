@@ -49,13 +49,13 @@ function dayAndWeekday(day: number, weekday: string | null): string {
 }
 
 /**
- * A tile line: `Indoor tiles: 192 at $0.90 a month, 1 of 7 days: $24.69`, or, once the
+ * A tile line: `Indoor tiles: 192 at $0.90 a tile a month, 1 of 7 days: $24.69`, or, once the
  * layout changed this month so the days counted held other numbers of
  * tiles, today's count and the month's daily average, so the amount can be
  * checked. `monthDays` is the number of days counted.
  */
 function tileLineText(name: string, line: BillLine, monthDays: number, monthLength: number): string {
-  const rate = `at ${formatCents(line.unitCents)} a month, ${monthDays} of ${monthLength} days: ${formatCents(line.amountCents)}`;
+  const rate = `at ${formatCents(line.unitCents)} a tile a month, ${monthDays} of ${monthLength} days: ${formatCents(line.amountCents)}`;
   if (monthDays === 0 || line.tileDays === line.count * monthDays) return `${name}: ${line.count} ${rate}`;
   const average = (line.tileDays / monthDays).toLocaleString('en-US', { maximumFractionDigits: 1 });
   return `${name}: ${line.count} today, ${average} a day on average this month, ${rate}`;
@@ -122,8 +122,8 @@ export function keepAsideText(overview: BillsOverview, due: string): string {
  * `Unpaid bills due Day 8 are overdue from Day 13.`; null otherwise.
  */
 export function overdueFromText(overview: BillsOverview): string | null {
-  if (overview.unpaidDueDay === null || overview.overdueFromDay === null || overview.overdueCents > 0) return null;
-  return `Unpaid bills due ${formatDay(overview.unpaidDueDay)} are overdue from ${formatDay(overview.overdueFromDay)}.`;
+  if (overview.pendingDueDay === null || overview.pendingOverdueFromDay === null) return null;
+  return `Unpaid bills due ${formatDay(overview.pendingDueDay)} are overdue from ${formatDay(overview.pendingOverdueFromDay)}.`;
 }
 
 /** Everything the panel shows, read at once so one comparison decides whether to redraw. */

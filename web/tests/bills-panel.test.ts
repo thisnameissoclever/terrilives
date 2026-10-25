@@ -53,7 +53,8 @@ const OVERVIEW: BillsOverview = {
   monthLength: 7,
   unpaidCents: 0,
   unpaidDueDay: null,
-  overdueFromDay: null,
+  pendingDueDay: null,
+  pendingOverdueFromDay: null,
 };
 
 const NEXT: NextBill[] = [
@@ -139,16 +140,16 @@ describe('bills text', () => {
   it('words each line of a bill, leaving out usage nobody used', () => {
     expect(LINES[0].map(line => billLineText(line, LABELS, 7, 3))).toEqual([
       'Base charge, 3 of 7 days: $30.00',
-      'Indoor tiles: 192 at $1.00 a month, 3 of 7 days: $82.29',
-      'Outdoor tiles: 112 at $0.30 a month, 3 of 7 days: $14.40',
+      'Indoor tiles: 192 at $1.00 a tile a month, 3 of 7 days: $82.29',
+      'Outdoor tiles: 112 at $0.30 a tile a month, 3 of 7 days: $14.40',
     ]);
     // The lines add up to rent so far: $30.00 + $82.29 + $14.40.
     expect(LINES[0].reduce((sum, line) => sum + line.amountCents, 0)).toBe(12_669);
     // After a change this month, today's tiles and the month's average.
     expect(billLineText({ ...LINES[0][1], tileDays: 600, amountCents: 8_572 }, LABELS, 7, 3))
-      .toBe('Indoor tiles: 192 today, 200 a day on average this month, at $1.00 a month, 3 of 7 days: $85.72');
+      .toBe('Indoor tiles: 192 today, 200 a day on average this month, at $1.00 a tile a month, 3 of 7 days: $85.72');
     expect(billLineText({ ...LINES[0][2], tileDays: 340, amountCents: 1_458 }, LABELS, 7, 3))
-      .toBe('Outdoor tiles: 112 today, 113.3 a day on average this month, at $0.30 a month, 3 of 7 days: $14.58');
+      .toBe('Outdoor tiles: 112 today, 113.3 a day on average this month, at $0.30 a tile a month, 3 of 7 days: $14.58');
     expect(LINES[1].map(line => billLineText(line, LABELS, 7, 3))).toEqual([
       'Base charge, 3 of 7 days: $6.00', 'Showers: 14 x $0.60', null, 'Fridges: 6 days x $0.20',
     ]);
@@ -176,7 +177,7 @@ describe('the Bills panel', () => {
     expect(overdueLineText(bill)).toBe('Rent due Day 8: $293.60 plus $14.68 in late fees');
     const { text } = opened({
       billsOverview: () => ({ ...OVERVIEW, keepAsideCents: 42_455 + 30_828, overdueCents: 29_360, overdueFeeCents: 1_468,
-        unpaidCents: 30_828, unpaidDueDay: 7, overdueFromDay: 12 }),
+        unpaidCents: 30_828, unpaidDueDay: 7, pendingDueDay: null, pendingOverdueFromDay: null }),
       billsOverdue: () => [bill],
     });
     expect(text).toContain('Overdue');
@@ -239,10 +240,15 @@ describe('the Bills panel', () => {
   });
 
   it('says when unpaid bills become overdue and leaves out late fees that are zero', () => {
-    const unpaid = { ...OVERVIEW, keepAsideCents: 42_455 + 38_873, unpaidCents: 38_873, unpaidDueDay: 7, overdueFromDay: 12 };
+    const unpaid = { ...OVERVIEW, keepAsideCents: 42_455 + 38_873, unpaidCents: 38_873, unpaidDueDay: 7,
+      pendingDueDay: 7, pendingOverdueFromDay: 12 };
     expect(overdueFromText(unpaid)).toBe('Unpaid bills due Day 8 are overdue from Day 13.');
     expect(overdueFromText(OVERVIEW)).toBeNull();
-    expect(overdueFromText({ ...unpaid, overdueCents: 38_873 })).toBeNull();
+    expect(overdueFromText({ ...unpaid, overdueCents: 38_873, pendingDueDay: null, pendingOverdueFromDay: null }))
+      .toBeNull();
+    // An older bill is overdue while the next month's bills wait in their grace: the note names the pending ones.
+    expect(overdueFromText({ ...unpaid, unpaidDueDay: 0, overdueCents: 1_000, pendingDueDay: 7, pendingOverdueFromDay: 12 }))
+      .toBe('Unpaid bills due Day 8 are overdue from Day 13.');
     expect(keepAsideText(unpaid, 'Day 15, Monday')).toBe('Keep aside $813.28 for the unpaid bills and the bills due Day 15, Monday.');
     const { text } = opened({ billsOverview: () => unpaid });
     expect(text).toContain('Unpaid bills due Day 8 are overdue from Day 13.');

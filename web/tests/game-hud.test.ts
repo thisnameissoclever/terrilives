@@ -421,7 +421,7 @@ describe('the held shift on the Career row (issue 296, [WS-shell] item 1)', () =
 describe('the Bills row (issue 298, [WB-panel])', () => {
   const overview = {
     fundsCents: 100_000, keepAsideCents: 42_455, shortfallCents: 0, nextDueDay: 7, overdueCents: 0,
-    overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3, monthLength: 7, unpaidCents: 0, unpaidDueDay: null, overdueFromDay: null,
+    overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3, monthLength: 7, unpaidCents: 0, unpaidDueDay: null, pendingDueDay: null, pendingOverdueFromDay: null,
   };
   function button() {
     const attributes = new Map<string, string>();
@@ -464,7 +464,7 @@ describe('the Bills row (issue 298, [WB-panel])', () => {
   it('the Bills row reads the earliest unpaid bill and its due day while one is unpaid', () => {
     const { view, bills } = billsRoots();
     new GameHud(view, 100).update(0, source({ billsOverview: () => ({ ...overview, nextDueDay: 14,
-      keepAsideCents: 77_800, unpaidCents: 38_873, unpaidDueDay: 7, overdueFromDay: 12 }) }));
+      keepAsideCents: 77_800, unpaidCents: 38_873, unpaidDueDay: 7, pendingDueDay: 7, pendingOverdueFromDay: 12 }) }));
     expect(bills.textContent).toBe('$389 due Day 8');
   });
 
