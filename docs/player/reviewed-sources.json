@@ -283,7 +283,7 @@
     "crates/terri-sim/src/save/v21.rs": "c14b9f4defbe35fe42d04f23c0fb27e57980898b264b36cd85626dbaa2406fbe",
     "crates/terri-sim/src/save/v21_tests.rs": "15afa95d623170e2a621ec050691d9f0507cb03d38436716f815513c267a2cc2",
     "crates/terri-sim/src/save/v22.rs": "1cc9b15a5871477ce1156c0e3a32de26310ee358a8f27d896af742cda904d1a5",
-    "crates/terri-sim/src/save/v22_tests.rs": "f4463bbbb24895b0c7edc2cb4915ce40c3e87ac05c2521a2ce57253e382c1e33",
+    "crates/terri-sim/src/save/v22_tests.rs": "ef3899c8644ea0dc18dad0fcb97d5e60b3ff5fc8356023c7aaf6dd8422a2eec9",
     "crates/terri-sim/src/save/v3_tests.rs": "d5b5cbcf1726e6100e8809ed213675a7790b2297206cf88be3f80e590b83e209",
     "crates/terri-sim/src/save/v6.rs": "bd9b501fbd74ce1362d11426f38a1cb25959c0e8e154d70601f6c10b3df668f6",
     "crates/terri-sim/src/save/v6_tests.rs": "09bf546f56b74e2ab251f8ce4148056edad1390db3c72df9a4532a002b82e281",
