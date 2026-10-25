@@ -140,6 +140,8 @@ describe('bills text', () => {
       'Base charge, 3 of 7 days: $6.00', 'Showers: 14 x $0.60', null, 'Fridges: 6 days x $0.20',
     ]);
     expect(billLineText(LINES[3][1], LABELS, 7)).toBe('Trips to work: 3 x $3.00');
+    expect(billLineText({ line: 4, kindIndex: 0, count: 1, unitCents: 20, amountCents: 20 }, LABELS, 7))
+      .toBe('Fridges: 1 day x $0.20');
     expect(billLineText({ line: 3, kindIndex: 9, count: 2, unitCents: 1, amountCents: 2 }, LABELS, 7)).toBeNull();
   });
 });
@@ -160,12 +162,13 @@ describe('the Bills panel', () => {
     const bill: IssuedBill = { kind: 0, dueDay: 7, amountCents: 29_360, feeCents: 1_468, paidDay: null };
     expect(overdueLineText(bill)).toBe('Rent due Day 8: $293.60 plus $14.68 in late fees');
     const { text } = opened({
-      billsOverview: () => ({ ...OVERVIEW, overdueCents: 29_360, overdueFeeCents: 1_468 }),
+      billsOverview: () => ({ ...OVERVIEW, keepAsideCents: 42_455 + 30_828, overdueCents: 29_360, overdueFeeCents: 1_468 }),
       billsOverdue: () => [bill],
     });
     expect(text).toContain('Overdue');
     expect(text).toContain('Rent due Day 8: $293.60 plus $14.68 in late fees');
     expect(text).toContain('Overdue bills are paid automatically as soon as Funds cover them, oldest first.');
+    expect(text).toContain('Keep aside $732.83 for the unpaid bills and the bills due Day 8, Monday.');
   });
 
   it('lists next bills with so far and expected amounts in cents', () => {

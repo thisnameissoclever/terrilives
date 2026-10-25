@@ -20,7 +20,12 @@
       "window-models",
       "build-floors",
       "build-room-outline",
-      "help-shortcuts"
+      "help-shortcuts",
+      "overview",
+      "guide-shortcut",
+      "guide-shortcut-build",
+      "build-furniture",
+      "save-status"
     ],
     "snapshots": [
       {

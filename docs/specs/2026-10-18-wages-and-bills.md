@@ -231,7 +231,7 @@ A rule checked only at Confirm lets a player remove a wall, move the bed and reb
 
 **What it shows, in order.**
 
-1. **Keep aside.** `Funds: ${funds}` and `Keep aside ${amount} for the bills due Day {n}, {Weekday}.` The amount is every unpaid bill with its late fees, overdue or still within its grace period, plus the expected total of the next bills. Below it, either `Funds cover these bills.` or `Funds are ${shortfall} short.`
+1. **Keep aside.** `Funds: ${funds}` and `Keep aside ${amount} for the bills due Day {n}, {Weekday}.`, or `Keep aside ${amount} for the unpaid bills and the bills due Day {n}, {Weekday}.` while any bill is unpaid. The amount is every unpaid bill with its late fees, overdue or still within its grace period, plus the expected total of the next bills. Below it, either `Funds cover these bills.` or `Funds are ${shortfall} short.`
 2. **Overdue**, only when a bill is overdue: one line per bill, `{Bill} due Day {n}: ${amount} plus ${fees} in late fees`, and the note `Overdue bills are paid automatically as soon as Funds cover them, oldest first.`
 3. **Next bills**, headed `Due Day {n}, {Weekday}`: one row per bill with its name, its amount so far and its expected amount. Each row expands to its lines:
    - Rent: `Base charge, {d} of {m} days: ${x}`, `Indoor tiles: {n} at ${rate} a month`, `Outdoor tiles: {n} at ${rate} a month`.
@@ -255,9 +255,9 @@ All strings below are functional text: labels, values, explanations and refusals
 | Surface | Strings |
 | --- | --- |
 | Household status | Bills; ${amount} due Day {n}; ${amount} overdue; {visible text}, open bills |
-| Bills panel | Bills; Close; Funds: ${funds}; Keep aside ${amount} for the bills due Day {n}, {Weekday}.; Funds cover these bills.; Funds are ${shortfall} short.; Overdue; {Bill} due Day {n}: ${amount} plus ${fees} in late fees; Overdue bills are paid automatically as soon as Funds cover them, oldest first.; Next bills; Due Day {n}, {Weekday}; So far; Expected; Last month; paid Day {n}; unpaid; How bills work, with its paragraph in [WB-panel] |
+| Bills panel | Bills; Close; Funds: ${funds}; Keep aside ${amount} for the bills due Day {n}, {Weekday}.; Keep aside ${amount} for the unpaid bills and the bills due Day {n}, {Weekday}.; Funds cover these bills.; Funds are ${shortfall} short.; Overdue; {Bill} due Day {n}: ${amount} plus ${fees} in late fees; Overdue bills are paid automatically as soon as Funds cover them, oldest first.; Next bills; Due Day {n}, {Weekday}; So far; Expected; Last month; paid Day {n}; unpaid; How bills work, with its paragraph in [WB-panel] |
 | Bill names | Rent; Electricity; Water; Transportation |
-| Bill lines | Base charge, {d} of {m} days: ${x}; Indoor tiles: {n} at ${rate} a month; Outdoor tiles: {n} at ${rate} a month; {label}: {count} x ${unit}; {label}: {days} days x ${unit}; Trips to work: {n} x $3.00 |
+| Bill lines | Base charge, {d} of {m} days: ${x}; Indoor tiles: {n} at ${rate} a month; Outdoor tiles: {n} at ${rate} a month; {label}: {count} x ${unit}; {label}: {days} days x ${unit}, with day for a single day; Trips to work: {n} x $3.00 |
 | Usage labels, from tuning | Showers; Baths; Hand washing; Toilet flushes; Dish washing; Television; Radio; Stove cooking; Fridges; Lamps; Aquariums; Pools |
 | Mood | Behind on bills |
 | Career tab | Night shifts pay {p}% more: ${amount} per shift. |

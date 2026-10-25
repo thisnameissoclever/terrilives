@@ -1203,6 +1203,9 @@
       .bill-row {border:1px solid var(--hud-edge);border-radius:6px;margin:6px 0;padding:6px 10px}
       .bill-row summary {display:grid;grid-template-columns:1fr auto;gap:2px 12px;cursor:pointer;min-height:32px;align-items:center}
       .bill-row .bill-expected {text-align:right;font-variant-numeric:tabular-nums}
+      /* The grid summary hides the disclosure marker, so the name carries one. */
+      .bill-row summary strong::before {content:'\25B8\00A0';color:var(--hud-muted)}
+      .bill-row[open] summary strong::before {content:'\25BE\00A0'}
       .bill-row .bill-so-far {grid-column:1 / -1;font-size:12px;font-variant-numeric:tabular-nums}
       .bill-row .bill-line {padding-left:12px;font-size:13px;font-variant-numeric:tabular-nums}
     </style>

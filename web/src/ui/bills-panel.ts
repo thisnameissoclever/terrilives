@@ -68,7 +68,7 @@ export function billLineText(line: BillLine, labels: BillKindLabels, daysPerMont
     case 4: {
       const label = labels.daily[line.kindIndex];
       return line.count === 0 || label === undefined ? null
-        : `${label}: ${line.count} days x ${formatCents(line.unitCents)}`;
+        : `${label}: ${line.count} ${line.count === 1 ? 'day' : 'days'} x ${formatCents(line.unitCents)}`;
     }
     case 5:
       return `Trips to work: ${line.count} x ${formatCents(line.unitCents)}`;
@@ -91,6 +91,16 @@ export function overdueLineText(bill: IssuedBill): string {
 export function lastMonthLineText(bill: IssuedBill): string {
   const state = bill.paidDay === null ? 'unpaid' : `paid ${formatDay(bill.paidDay)}`;
   return `${billName(bill.kind)}: ${withFees(bill)}, ${state}`;
+}
+
+/**
+ * The keep-aside sentence. The amount counts every unpaid bill as well as
+ * the next bills, so the sentence names the unpaid ones when there are any.
+ */
+export function keepAsideText(overview: BillsOverview, next: readonly NextBill[], due: string): string {
+  const expected = next.reduce((sum, bill) => sum + bill.expectedCents, 0);
+  const what = overview.keepAsideCents > expected ? 'the unpaid bills and the bills' : 'the bills';
+  return `Keep aside ${formatCents(overview.keepAsideCents)} for ${what} due ${due}.`;
 }
 
 /** Everything the panel shows, read at once so one comparison decides whether to redraw. */
@@ -218,7 +228,7 @@ export class BillsPanel {
     aside.className = 'bills-keep-aside';
     aside.append(
       this.paragraph(`Funds: ${formatCents(overview.fundsCents)}`),
-      this.paragraph(`Keep aside ${formatCents(overview.keepAsideCents)} for the bills due ${due}.`),
+      this.paragraph(keepAsideText(overview, reading.next, due)),
       overview.shortfallCents > 0
         ? this.paragraph(`Funds are ${formatCents(overview.shortfallCents)} short.`, 'bills-short')
         : this.paragraph('Funds cover these bills.'),

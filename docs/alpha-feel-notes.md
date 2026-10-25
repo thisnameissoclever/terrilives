@@ -1,5 +1,9 @@
 # Alpha Feel Notes
 
+## [A-wages-bills] Bills row, Bills panel and the bed rule, 2026-10-24
+
+The production build was played muted at desktop and phone widths with saves for a new game, the first bills' due day, an overdue month and the schema-21 fixtures. The first bills were paid on Day 8 by exactly the amount the panel showed, the overdue month showed late fees, the danger color and Behind on bills, the night worker's Career tab showed the premium, and the bed rule refused a yard tile and a Confirm that left a bed outside. The pass found and fixed a short projection before a new game's first tick, `1 days`, a keep-aside sentence that ignored unpaid bills, and bill rows with no sign that they open. Five behaviors the spec defines, such as the red shortfall on a new game's first day, are recorded for the owner. The [verification record](specs/2026-10-18-wages-and-bills-verification.md#played-pass) has the findings, and [the evidence folder](evidence/2026-10-24-wages-and-bills/README.md) the captures.
+
 ## [A-room-names-outdoor-cleaning] Rooms, Patio and action colors, 2026-10-18
 
 The displayed game was played with ordinary needs and autonomy in an isolated
