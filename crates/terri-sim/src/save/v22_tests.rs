@@ -225,6 +225,8 @@ fn refuses_a_last_counted_day_ahead_of_the_clock() {
 fn refuses_more_month_days_than_a_month_or_than_have_passed() {
     refused(|b| b.month_days = 8);
     refused(|b| b.month_days = 4);
+    // Three days counted, all passed, but more than a two-day month holds.
+    refused(|b| b.month_length = 2);
     refused(|b| {
         b.last_counted_day = None;
     });
