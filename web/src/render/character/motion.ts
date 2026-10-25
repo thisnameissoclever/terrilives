@@ -1,26 +1,32 @@
 import type { Bundle } from './bundle.js';
 import { identity, inverseAffine, multiply } from './math.js';
 
-function quaternion(m: readonly number[]): number[] {
+/** Writes the rotation quaternion of `m` into `out` as x, y, z, w. */
+function quaternionInto(out: Float64Array, m: readonly number[]): void {
   const trace=m[0]+m[5]+m[10];
-  if(trace>0){const s=Math.sqrt(trace+1)*2;return [(m[6]-m[9])/s,(m[8]-m[2])/s,(m[1]-m[4])/s,s/4];}
-  if(m[0]>m[5]&&m[0]>m[10]){const s=Math.sqrt(1+m[0]-m[5]-m[10])*2;return [s/4,(m[4]+m[1])/s,(m[8]+m[2])/s,(m[6]-m[9])/s];}
-  if(m[5]>m[10]){const s=Math.sqrt(1+m[5]-m[0]-m[10])*2;return [(m[4]+m[1])/s,s/4,(m[9]+m[6])/s,(m[8]-m[2])/s];}
-  const s=Math.sqrt(1+m[10]-m[0]-m[5])*2;return [(m[8]+m[2])/s,(m[9]+m[6])/s,s/4,(m[1]-m[4])/s];
+  if(trace>0){const s=Math.sqrt(trace+1)*2;out[0]=(m[6]-m[9])/s;out[1]=(m[8]-m[2])/s;out[2]=(m[1]-m[4])/s;out[3]=s/4;return;}
+  if(m[0]>m[5]&&m[0]>m[10]){const s=Math.sqrt(1+m[0]-m[5]-m[10])*2;out[0]=s/4;out[1]=(m[4]+m[1])/s;out[2]=(m[8]+m[2])/s;out[3]=(m[6]-m[9])/s;return;}
+  if(m[5]>m[10]){const s=Math.sqrt(1+m[5]-m[0]-m[10])*2;out[0]=(m[4]+m[1])/s;out[1]=s/4;out[2]=(m[9]+m[6])/s;out[3]=(m[8]-m[2])/s;return;}
+  const s=Math.sqrt(1+m[10]-m[0]-m[5])*2;out[0]=(m[8]+m[2])/s;out[1]=(m[9]+m[6])/s;out[2]=s/4;out[3]=(m[1]-m[4])/s;
 }
 
-/** Interpolate rotations on the unit sphere; matrix averaging would shorten limbs. */
+const qa=new Float64Array(4),qb=new Float64Array(4);
+/**
+ * Interpolate rotations on the unit sphere; matrix averaging would shorten limbs.
+ * Only the returned matrix is allocated; the quaternions use module scratch.
+ */
 export function interpolateTransform(a: readonly number[], b: readonly number[], t: number): number[] {
   if(t===0)return [...a];if(t===1)return [...b];
-  const qa=quaternion(a),qb=quaternion(b);
-  let dot=qa.reduce((sum,v,i)=>sum+v*qb[i],0);
+  quaternionInto(qa,a);quaternionInto(qb,b);
+  let dot=0;for(let i=0;i<4;i++)dot=dot+qa[i]*qb[i];
   if(dot<0){for(let i=0;i<4;i++)qb[i]*=-1;dot=-dot;}
   dot=Math.min(1,Math.max(-1,dot));
   const theta=Math.acos(dot),sine=Math.sin(theta);
   const left=sine<.001?1-t:Math.sin((1-t)*theta)/sine;
   const right=sine<.001?t:Math.sin(t*theta)/sine;
-  const q=qa.map((v,i)=>v*left+qb[i]*right),size=Math.hypot(...q);
-  const [x,y,z,w]=q.map(v=>v/size);
+  const q0=qa[0]*left+qb[0]*right,q1=qa[1]*left+qb[1]*right,q2=qa[2]*left+qb[2]*right,q3=qa[3]*left+qb[3]*right;
+  const size=Math.hypot(q0,q1,q2,q3);
+  const x=q0/size,y=q1/size,z=q2/size,w=q3/size;
   const out=[1-2*(y*y+z*z),2*(x*y+z*w),2*(x*z-y*w),0,
     2*(x*y-z*w),1-2*(x*x+z*z),2*(y*z+x*w),0,
     2*(x*z+y*w),2*(y*z-x*w),1-2*(x*x+y*y),0,

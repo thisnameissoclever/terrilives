@@ -1,0 +1,548 @@
+{
+  "mode": "character-allocation",
+  "generatedAt": "2026-10-25T14:04:43.888Z",
+  "args": {
+    "url": "http://127.0.0.1:4317/",
+    "stress": 50,
+    "speed": 3,
+    "samplingInterval": 32768,
+    "warmupMs": 6000,
+    "windowMs": 20000,
+    "windows": 3,
+    "readyTimeoutMs": 300000,
+    "budgetBytesPerFrame": null,
+    "output": "<scratch>/logs305/final-alloc-main-s50.json",
+    "profileDir": null
+  },
+  "windows": [
+    {
+      "visibility": "visible",
+      "ticks": 610,
+      "frames": 505,
+      "clips": {
+        "walk": 151,
+        "bed_sleep": 11,
+        "talk": 608,
+        "idle": 216,
+        "cook_v2": 5,
+        "mop": 2,
+        "prepare": 3,
+        "wash": 2,
+        "seat_ottoman_read": 2,
+        "seat_dining_sit": 3,
+        "bunk_sleep": 10,
+        "book_walk": 10,
+        "food_walk": 1,
+        "seated_eat": 1,
+        "exercise": 1,
+        "toilet": 3,
+        "shower": 3,
+        "seat_ottoman_sit": 3,
+        "watch_fish": 1,
+        "sofa_recline": 3,
+        "seat_reading_read": 2,
+        "seat_dining_read": 2,
+        "bath": 2,
+        "fridge": 1,
+        "seat_armchair_read": 2,
+        "eat": 1
+      },
+      "maxCharacters": 53,
+      "probeError": null,
+      "jsUsedBytesAfter": 932823628,
+      "totalBytes": 4087361600,
+      "characterBytes": 3440812928,
+      "mappedBytes": 3484386508,
+      "topFunctions": [
+        {
+          "function": "composeSkeletonPose src/render/character/pose-joints.ts:15",
+          "bytes": 598095436,
+          "character": true
+        },
+        {
+          "function": "(anonymous) src/render/character/resting-contact.ts:10",
+          "bytes": 390345388,
+          "character": true
+        },
+        {
+          "function": "boneFrame src/render/character/math.ts:45",
+          "bytes": 372885000,
+          "character": true
+        },
+        {
+          "function": "inverseAffine src/render/character/math.ts:37",
+          "bytes": 357122072,
+          "character": true
+        },
+        {
+          "function": "interpolateTransform src/render/character/motion.ts:13",
+          "bytes": 356386172,
+          "character": true
+        },
+        {
+          "function": "multiply src/render/character/math.ts:8",
+          "bytes": 346376956,
+          "character": true
+        },
+        {
+          "function": "next :0",
+          "bytes": 228340852,
+          "character": false
+        },
+        {
+          "function": "map :0",
+          "bytes": 129860484,
+          "character": false
+        },
+        {
+          "function": "normal src/render/character/head-envelope.ts:146",
+          "bytes": 125211944,
+          "character": true
+        },
+        {
+          "function": "shapePoint src/render/character/shape.ts:17",
+          "bytes": 114125324,
+          "character": true
+        },
+        {
+          "function": "quaternion src/render/character/motion.ts:4",
+          "bytes": 98650360,
+          "character": true
+        },
+        {
+          "function": "top src/render/character/head-envelope.ts:173",
+          "bytes": 96603280,
+          "character": true
+        },
+        {
+          "function": "physicalFingerprint src/render/character/seat-contact-identity.ts:31",
+          "bytes": 83672028,
+          "character": true
+        },
+        {
+          "function": "hypot :0",
+          "bytes": 83260952,
+          "character": false
+        },
+        {
+          "function": "splice :0",
+          "bytes": 62448848,
+          "character": false
+        },
+        {
+          "function": "configuredPoseWithBike src/render/character/pose.ts:36",
+          "bytes": 53676260,
+          "character": true
+        },
+        {
+          "function": "select src/render/character/prepared-character.ts:63",
+          "bytes": 38292372,
+          "character": true
+        },
+        {
+          "function": "entries :0",
+          "bytes": 32615700,
+          "character": false
+        },
+        {
+          "function": "setCharacterAppearance src/render/character/renderer.ts:82",
+          "bytes": 27763656,
+          "character": true
+        },
+        {
+          "function": "prepare src/render/character/world.ts:75",
+          "bytes": 27265412,
+          "character": true
+        },
+        {
+          "function": "shapeVertices src/render/character/shape.ts:71",
+          "bytes": 26405628,
+          "character": true
+        },
+        {
+          "function": "queryConfiguredSurface src/render/character/surface-query.ts:18",
+          "bytes": 25607292,
+          "character": true
+        },
+        {
+          "function": "(anonymous) src/render/character/motion.ts:23",
+          "bytes": 23400660,
+          "character": true
+        },
+        {
+          "function": "validateAppearance src/character/schema.ts:90",
+          "bytes": 22900496,
+          "character": false
+        },
+        {
+          "function": "keys :0",
+          "bytes": 21948868,
+          "character": false
+        }
+      ],
+      "analysis": {
+        "totalBytesPerFrame": 8093785.346534654,
+        "characterBytesPerFrame": 6813490.946534653,
+        "checks": {
+          "framesRan": true
+        },
+        "pass": true
+      }
+    },
+    {
+      "visibility": "visible",
+      "ticks": 607,
+      "frames": 463,
+      "clips": {
+        "walk": 140,
+        "talk": 440,
+        "idle": 391,
+        "wash": 4,
+        "bath": 1,
+        "seat_dining_sit": 3,
+        "seat_ottoman_sit": 4,
+        "toilet": 5,
+        "prepare": 8,
+        "bed_sleep": 9,
+        "seat_sofa_read": 5,
+        "seat_armchair_read": 3,
+        "seat_office_sit": 3,
+        "exercise": 5,
+        "bunk_sleep": 6,
+        "book_walk": 5,
+        "food_idle": 1,
+        "seat_reading_sit": 1,
+        "eat": 2,
+        "seat_sofa_sit": 1,
+        "shower": 6,
+        "watch_fish": 1
+      },
+      "maxCharacters": 53,
+      "probeError": null,
+      "jsUsedBytesAfter": 956495284,
+      "totalBytes": 3714333044,
+      "characterBytes": 3051510532,
+      "mappedBytes": 3088569068,
+      "topFunctions": [
+        {
+          "function": "composeSkeletonPose src/render/character/pose-joints.ts:15",
+          "bytes": 713288724,
+          "character": true
+        },
+        {
+          "function": "boneFrame src/render/character/math.ts:45",
+          "bytes": 331609396,
+          "character": true
+        },
+        {
+          "function": "inverseAffine src/render/character/math.ts:37",
+          "bytes": 330810644,
+          "character": true
+        },
+        {
+          "function": "interpolateTransform src/render/character/motion.ts:13",
+          "bytes": 320565792,
+          "character": true
+        },
+        {
+          "function": "configuredPoseWithBike src/render/character/pose.ts:36",
+          "bytes": 264422460,
+          "character": true
+        },
+        {
+          "function": "next :0",
+          "bytes": 255724668,
+          "character": false
+        },
+        {
+          "function": "shapePoint src/render/character/shape.ts:17",
+          "bytes": 147204824,
+          "character": true
+        },
+        {
+          "function": "shapeVertices src/render/character/shape.ts:71",
+          "bytes": 122013520,
+          "character": true
+        },
+        {
+          "function": "map :0",
+          "bytes": 96387724,
+          "character": false
+        },
+        {
+          "function": "physicalFingerprint src/render/character/seat-contact-identity.ts:31",
+          "bytes": 96158928,
+          "character": true
+        },
+        {
+          "function": "normal src/render/character/head-envelope.ts:146",
+          "bytes": 93251432,
+          "character": true
+        },
+        {
+          "function": "quaternion src/render/character/motion.ts:4",
+          "bytes": 88001544,
+          "character": true
+        },
+        {
+          "function": "multiply src/render/character/math.ts:8",
+          "bytes": 74174248,
+          "character": true
+        },
+        {
+          "function": "top src/render/character/head-envelope.ts:173",
+          "bytes": 67387792,
+          "character": true
+        },
+        {
+          "function": "hypot :0",
+          "bytes": 58809400,
+          "character": false
+        },
+        {
+          "function": "splice :0",
+          "bytes": 55204400,
+          "character": false
+        },
+        {
+          "function": "setCharacterAppearance src/render/character/renderer.ts:82",
+          "bytes": 37106972,
+          "character": true
+        },
+        {
+          "function": "setVisibleParts src/render/character/head-envelope.ts:55",
+          "bytes": 34345344,
+          "character": true
+        },
+        {
+          "function": "configuredJointSetup src/render/character/pose-joints.ts:28",
+          "bytes": 29049400,
+          "character": true
+        },
+        {
+          "function": "entries :0",
+          "bytes": 28780384,
+          "character": false
+        },
+        {
+          "function": "compactGeometry src/render/character/variants.ts:84",
+          "bytes": 26124132,
+          "character": true
+        },
+        {
+          "function": "subarray :0",
+          "bytes": 25615320,
+          "character": false
+        },
+        {
+          "function": "set :0",
+          "bytes": 24853796,
+          "character": false
+        },
+        {
+          "function": "keys :0",
+          "bytes": 23129924,
+          "character": false
+        },
+        {
+          "function": "prepare src/render/character/world.ts:75",
+          "bytes": 22254196,
+          "character": true
+        }
+      ],
+      "analysis": {
+        "totalBytesPerFrame": 8022317.58963283,
+        "characterBytesPerFrame": 6590735.490280777,
+        "checks": {
+          "framesRan": true
+        },
+        "pass": true
+      }
+    },
+    {
+      "visibility": "visible",
+      "ticks": 608,
+      "frames": 420,
+      "clips": {
+        "walk": 178,
+        "talk": 220,
+        "shower": 13,
+        "idle": 472,
+        "prepare": 16,
+        "seat_dining_read": 1,
+        "toilet": 7,
+        "bed_sleep": 20,
+        "eat": 7,
+        "book_walk": 9,
+        "fridge": 4,
+        "bath": 10,
+        "carry_idle": 16,
+        "watch_fish": 3,
+        "seat_dining_sit": 4,
+        "mop": 10,
+        "seat_ottoman_sit": 5,
+        "bunk_sleep": 9,
+        "seat_office_sit": 2,
+        "seat_armchair_sit": 3,
+        "wash": 1,
+        "food_walk": 1,
+        "carry_walk": 1,
+        "seat_reading_read": 2,
+        "seat_armchair_read": 2,
+        "sofa_recline": 2,
+        "shelve_16": 1
+      },
+      "maxCharacters": 52,
+      "probeError": null,
+      "jsUsedBytesAfter": 882269368,
+      "totalBytes": 4794555700,
+      "characterBytes": 4149808380,
+      "mappedBytes": 4185432220,
+      "topFunctions": [
+        {
+          "function": "(anonymous) src/render/character/resting-contact.ts:10",
+          "bytes": 1292110964,
+          "character": true
+        },
+        {
+          "function": "composeSkeletonPose src/render/character/pose-joints.ts:15",
+          "bytes": 634674308,
+          "character": true
+        },
+        {
+          "function": "boneFrame src/render/character/math.ts:45",
+          "bytes": 307499608,
+          "character": true
+        },
+        {
+          "function": "inverseAffine src/render/character/math.ts:37",
+          "bytes": 304528916,
+          "character": true
+        },
+        {
+          "function": "interpolateTransform src/render/character/motion.ts:13",
+          "bytes": 293923060,
+          "character": true
+        },
+        {
+          "function": "next :0",
+          "bytes": 227732784,
+          "character": false
+        },
+        {
+          "function": "configuredPoseWithBike src/render/character/pose.ts:36",
+          "bytes": 193106148,
+          "character": true
+        },
+        {
+          "function": "shapePoint src/render/character/shape.ts:17",
+          "bytes": 130818228,
+          "character": true
+        },
+        {
+          "function": "hypot :0",
+          "bytes": 112722740,
+          "character": false
+        },
+        {
+          "function": "map :0",
+          "bytes": 90223072,
+          "character": false
+        },
+        {
+          "function": "shapeVertices src/render/character/shape.ts:71",
+          "bytes": 86680388,
+          "character": true
+        },
+        {
+          "function": "quaternion src/render/character/motion.ts:4",
+          "bytes": 80841560,
+          "character": true
+        },
+        {
+          "function": "physicalFingerprint src/render/character/seat-contact-identity.ts:31",
+          "bytes": 77739924,
+          "character": true
+        },
+        {
+          "function": "multiply src/render/character/math.ts:8",
+          "bytes": 67784816,
+          "character": true
+        },
+        {
+          "function": "normal src/render/character/head-envelope.ts:146",
+          "bytes": 58430232,
+          "character": true
+        },
+        {
+          "function": "nearestReachableContact src/render/character/resting-contact.ts:27",
+          "bytes": 56705656,
+          "character": true
+        },
+        {
+          "function": "queryConfiguredSurface src/render/character/surface-query.ts:18",
+          "bytes": 56431384,
+          "character": true
+        },
+        {
+          "function": "(anonymous) src/render/character/pose.ts:102",
+          "bytes": 52387972,
+          "character": true
+        },
+        {
+          "function": "splice :0",
+          "bytes": 52056744,
+          "character": false
+        },
+        {
+          "function": "top src/render/character/head-envelope.ts:173",
+          "bytes": 46663200,
+          "character": true
+        },
+        {
+          "function": "setCharacterAppearance src/render/character/renderer.ts:82",
+          "bytes": 33529128,
+          "character": true
+        },
+        {
+          "function": "entries :0",
+          "bytes": 25534968,
+          "character": false
+        },
+        {
+          "function": "configuredJointSetup src/render/character/pose-joints.ts:28",
+          "bytes": 24984520,
+          "character": true
+        },
+        {
+          "function": "(anonymous) src/render/character/motion.ts:23",
+          "bytes": 20909808,
+          "character": true
+        },
+        {
+          "function": "subarray :0",
+          "bytes": 20892540,
+          "character": false
+        }
+      ],
+      "analysis": {
+        "totalBytesPerFrame": 11415608.80952381,
+        "characterBytesPerFrame": 9880496.142857144,
+        "checks": {
+          "framesRan": true
+        },
+        "pass": true
+      }
+    }
+  ],
+  "readyMs": 13325,
+  "entities": 87,
+  "scripts": [
+    "http://127.0.0.1:4317/startup-diagnostics-v4.js",
+    "http://127.0.0.1:4317/assets/index-DRhLGBrI.js",
+    "http://127.0.0.1:4317/assets/save-worker-DuudJ2KM.js",
+    "http://127.0.0.1:4317/assets/preparation-worker-DuAUHL7e.js"
+  ],
+  "sourceMapped": true,
+  "pass": true
+}

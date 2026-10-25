@@ -59,6 +59,26 @@ export function shapePoint(p: Vec3, region: number, a: ShapeParameters, neutralT
   return [x, y, z];
 }
 
+/**
+ * A copy of every value `shapePoint` reads. A result cached against one
+ * parameters object stays valid only while `sameShape` holds, so an object
+ * edited in place recomputes rather than reusing stale geometry.
+ */
+export function snapshotShape(a: ShapeParameters): ShapeParameters {
+  return {presentation:a.presentation,height:a.height,build:a.build,shoulders:a.shoulders,hips:a.hips,torso:a.torso,face:a.face?{...a.face}:undefined};
+}
+
+/** True when `a` still has the values `snapshot` recorded. Allocates nothing. */
+export function sameShape(snapshot: ShapeParameters, a: ShapeParameters): boolean {
+  if (snapshot.presentation !== a.presentation || snapshot.height !== a.height || snapshot.build !== a.build
+    || snapshot.shoulders !== a.shoulders || snapshot.hips !== a.hips || snapshot.torso !== a.torso) return false;
+  const saved = snapshot.face as Record<string, unknown> | undefined, face = a.face as Record<string, unknown> | undefined;
+  if (saved === undefined || face === undefined) return saved === face;
+  for (const key in face) if (saved[key] !== face[key]) return false;
+  for (const key in saved) if (!(key in face)) return false;
+  return true;
+}
+
 /** Hair is an accessory and never changes the body's anatomical height reference. */
 export function anatomicalHeight(vertices: Float32Array<ArrayBuffer>): number {
   let top = 0;
