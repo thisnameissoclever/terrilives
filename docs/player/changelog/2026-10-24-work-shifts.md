@@ -17,4 +17,4 @@ Jobs now come with shifts, there are five new careers, you can choose or change 
 
 ## Fixed
 
-- A housemate putting a book back no longer stands waiting while someone else walks over to the same bookcase for a book, which could make them an hour late for work. Only the person taking or shelving a book holds the spot in front of the bookcase, and anyone who arrives meanwhile waits there just for that moment.
+- A housemate putting a book back no longer stands waiting while someone else walks over to the same bookcase for a book, which could make them more than two hours late for work. Only the person taking or shelving a book holds the spot in front of the bookcase, and anyone who arrives meanwhile waits there only for the people ahead of them to finish.

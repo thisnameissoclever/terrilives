@@ -1107,12 +1107,15 @@ fn reading_journey_same_shelf_admits_both_fetches_serializes_pickups_then_shares
     purchase(&mut sim, Some(shelf), &title);
     purchase(&mut sim, Some(shelf), &title);
     let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    // On the first reader's tile, so both walks reach the contact on the
+    // same tick and only the arrival wait keeps their pickups apart.
+    let start = *sim.world().get::<Position>(p).unwrap();
     let second = sim
         .world_mut()
         .spawn((
             Agent,
             id,
-            Position { x: 1.0, y: 2.0 },
+            start,
             Needs::all_at(80.0),
             IntentQueue::default(),
         ))
@@ -1124,17 +1127,28 @@ fn reading_journey_same_shelf_admits_both_fetches_serializes_pickups_then_shares
     assert_eq!(stage(&sim, p), Some(ReadingStage::Fetch));
     assert_eq!(stage(&sim, second), Some(ReadingStage::Fetch));
     let picking = |stage: Option<ReadingStage>| stage == Some(ReadingStage::Pickup);
+    let waiting = |sim: &Sim, person: Entity| {
+        stage(sim, person) == Some(ReadingStage::Fetch) && sim.world().get::<Path>(person).is_none()
+    };
+    let mut waited = 0;
     for tick in 0..500 {
         let (a, b) = (stage(&sim, p), stage(&sim, second));
         assert!(
             !(picking(a) && picking(b)),
             "tick {tick}: both readers picked up at the one contact"
         );
+        if (picking(a) && waiting(&sim, second)) || (picking(b) && waiting(&sim, p)) {
+            waited += 1;
+        }
         if a == Some(ReadingStage::Read) && b == Some(ReadingStage::Read) {
             break;
         }
         sim.tick();
     }
+    assert!(
+        waited > 0,
+        "one reader waited at the contact while the other picked up"
+    );
     assert_eq!(stage(&sim, p), Some(ReadingStage::Read));
     assert_eq!(stage(&sim, second), Some(ReadingStage::Read));
     let first = sim.world().get::<ReadingJourney>(p).unwrap();
