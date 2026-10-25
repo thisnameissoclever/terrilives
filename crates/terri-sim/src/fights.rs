@@ -445,10 +445,7 @@ fn withdraw_invalid(world: &mut World) {
             world.resource_mut::<Fights>().system_orders.remove(&actor);
             continue;
         };
-        let running = world
-            .get::<Socialising>(actor)
-            .is_some_and(|s| s.partner == intent.object)
-            && crate::social_episode::request_order_id(world, actor) == Some(id);
+        let running = running(world, actor, id, intent.object);
         let reason_valid = context.as_ref().is_some_and(|c| {
             c.order_id == Some(id)
                 && context_valid(world, c, intent.object)
@@ -493,22 +490,68 @@ fn withdraw_invalid(world: &mut World) {
         if reason_valid && !unavailable {
             continue;
         }
-        crate::social_episode::release_order(world, actor, id);
-        if running {
-            world
-                .entity_mut(actor)
-                .remove::<(Socialising, terri_core::ConversationVoice)>();
-        }
-        if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
-            queue.remove_order(id);
-        }
-        if world.get::<terri_core::Target>(actor).is_none() {
-            world.entity_mut(actor).remove::<terri_core::Blocked>();
-        }
-        crate::social_conflicts::cancel_order(world, actor, id);
-        let mut fights = world.resource_mut::<Fights>();
-        fights.provoked.remove(&actor);
-        fights.system_orders.remove(&actor);
+        withdraw(world, actor, id, running);
+    }
+}
+
+/// Whether `actor`'s game-made fight order `id` against `object` is under
+/// way: the actor is in the conversation that order started.
+fn running(world: &World, actor: Entity, id: u64, object: Entity) -> bool {
+    world
+        .get::<Socialising>(actor)
+        .is_some_and(|s| s.partner == object)
+        && crate::social_episode::request_order_id(world, actor) == Some(id)
+}
+
+/// Withdraws `actor`'s game-made fight order `id`: its claims, its queue
+/// entry, its pending or running cause and its system identity. The
+/// grievance is not marked as fought, so it can start a fight again while
+/// it stays eligible. A running fight's conversation ends with no outcome.
+fn withdraw(world: &mut World, actor: Entity, id: u64, running: bool) {
+    crate::social_episode::release_order(world, actor, id);
+    if running {
+        world
+            .entity_mut(actor)
+            .remove::<(Socialising, terri_core::ConversationVoice)>();
+    }
+    if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
+        queue.remove_order(id);
+    }
+    if world.get::<terri_core::Target>(actor).is_none() {
+        world.entity_mut(actor).remove::<terri_core::Blocked>();
+    }
+    crate::social_conflicts::cancel_order(world, actor, id);
+    let mut fights = world.resource_mut::<Fights>();
+    fights.provoked.remove(&actor);
+    fights.system_orders.remove(&actor);
+}
+
+/// Withdraws `actor`'s game-made fight if it has not started, when their
+/// shift is due. The coordinator's decision of 2026-10-25 follows the issue
+/// 301 ruling that a made-up grudge does not outrank work: a waiting
+/// game-made fight never delays its initiator's departure, which otherwise
+/// waits for any queued order (`player_actions::has_player_work`). A fight
+/// already under way finishes first, and a player's order keeps delaying
+/// the departure. The published fight rules keep their original behavior.
+pub(crate) fn withdraw_waiting_for_shift(world: &mut World, actor: Entity) {
+    if published_rules(world) {
+        return;
+    }
+    let Some(id) = world
+        .get_resource::<Fights>()
+        .and_then(|f| f.system_orders.get(&actor).copied())
+    else {
+        return;
+    };
+    let Some(object) = world
+        .get::<IntentQueue>(actor)
+        .and_then(|q| q.order(id))
+        .map(|e| e.intent.object)
+    else {
+        return;
+    };
+    if !running(world, actor, id, object) {
+        withdraw(world, actor, id, false);
     }
 }
 

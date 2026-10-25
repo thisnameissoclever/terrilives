@@ -472,12 +472,12 @@ fn a_recipients_shift_start_ends_a_running_game_made_fight() {
     }
 }
 
-/// The initiator does not leave for work mid-fight in the current rules: a
-/// shift start waits while its worker's queue holds any order
-/// (`player_actions::has_player_work`), and a game-made fight is a queued
-/// order. The fight finishes with its outcome and the initiator leaves
-/// afterwards. This records how the two rules meet today; a later ruling on
-/// whether a game-made order may delay a shift would change it.
+/// The initiator does not leave for work mid-fight: a shift start waits
+/// while its worker's queue holds an order (`player_actions::has_player_work`),
+/// and the coordinator's decision of 2026-10-25 withdraws only a game-made
+/// fight that has not started. A running fight is short and, by the issue
+/// 301 ruling, runs to its end, so it finishes with its outcome and the
+/// initiator leaves afterwards.
 #[test]
 fn an_initiators_shift_start_waits_for_a_running_game_made_fight() {
     let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
@@ -499,6 +499,105 @@ fn an_initiators_shift_start_waits_for_a_running_game_made_fight() {
         assert!(ticks < 5, "the initiator then leaves for the shift");
         sim.tick();
         ticks += 1;
+    }
+}
+
+/// Keeps `person` busy at a fridge placed under them for `ticks` ticks, as
+/// arrival does, so a fight against them waits without starting.
+fn busy_at_the_fridge(sim: &mut Sim, person: Entity, ticks: u32) {
+    let definition = sim.world().resource::<Content>().0.find("fridge").unwrap();
+    let at = *sim.world().get::<Position>(person).unwrap();
+    let placed = sim
+        .world_mut()
+        .spawn((at, terri_core::SmartObject(definition), Reserved))
+        .id();
+    sim.world_mut().entity_mut(person).insert((
+        Target {
+            object: placed,
+            interaction: 0,
+        },
+        terri_core::Eating {
+            object: definition,
+            interaction: 0,
+            remaining_ticks: ticks,
+        },
+    ));
+}
+
+/// Whether `person`'s queue holds a fight order against `partner`.
+fn fight_queued(sim: &Sim, person: Entity, partner: Entity) -> bool {
+    sim.world().get::<IntentQueue>(person).is_some_and(|q| {
+        q.entries()
+            .iter()
+            .any(|e| e.intent.object == partner && e.intent.interaction == FIGHT)
+    })
+}
+
+/// The coordinator's decision of 2026-10-25, following the issue 301 ruling
+/// that a made-up grudge does not outrank work: a game-made fight that has
+/// not started never delays its initiator's shift. The departure withdraws
+/// the waiting fight through the ordinary withdrawal, so the exact order,
+/// its system identity and its pending cause go, the grievance is not
+/// marked as fought, and the initiator leaves on time.
+#[test]
+fn an_initiators_shift_start_withdraws_a_waiting_game_made_fight() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    let id = game_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the fight waits");
+    assert!(!fighting(&sim, bill, tim), "the fight has not started");
+    employ_from_two_ticks_on(&mut sim, bill);
+    let mut ticks = 0;
+    while !away(&sim, bill) {
+        assert!(ticks < 5, "the initiator leaves for the shift on time");
+        sim.tick();
+        ticks += 1;
+    }
+    assert!(
+        !fight_queued(&sim, bill, tim),
+        "the waiting fight is withdrawn"
+    );
+    assert!(
+        !sim.world()
+            .resource::<crate::fights::Fights>()
+            .owns_order(bill, id),
+        "the exact system identity is retired"
+    );
+    let bill_id = *sim.world().get::<SimId>(bill).unwrap();
+    let conflicts = sim.world().resource::<crate::social_conflicts::State>();
+    assert!(
+        conflicts
+            .pending_fights
+            .get(&bill)
+            .is_none_or(|row| row.order_id != Some(id)),
+        "the exact pending cause is retired"
+    );
+    let grievances: Vec<_> = conflicts.for_person(bill_id).collect();
+    assert!(
+        !grievances.is_empty() && grievances.iter().all(|row| row.last_fought.is_none()),
+        "the grievance is kept and not marked as fought"
+    );
+    for person in [bill, tim] {
+        assert!(!had_a_fight(&sim, person), "no fight was had");
+    }
+}
+
+/// A Fight the player ordered keeps its current effect on a departure: a
+/// shift start waits while the order is queued, as it waits for any order
+/// the player gives.
+#[test]
+fn an_initiators_shift_start_still_waits_for_a_player_ordered_fight() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    player_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the ordered fight waits");
+    employ_from_two_ticks_on(&mut sim, bill);
+    for _ in 0..10 {
+        sim.tick();
+        assert!(!away(&sim, bill), "the shift waits for the player's order");
+        assert!(fight_queued(&sim, bill, tim), "the ordered fight stays");
     }
 }
 
