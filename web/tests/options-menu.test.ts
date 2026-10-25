@@ -224,7 +224,7 @@ describe('the Options flyout wired into main.ts', () => {
   it('attaches its listeners through attachOptionsMenu, with dialogs excluded', () => {
     expect(MAIN_TS).toContain('new OptionsMenu(optionsToggle, optionsPanel)');
     expect(MAIN_TS).toContain("target.closest('dialog') !== null");
-    expect(MAIN_TS).toContain("document.querySelector('dialog[open]') !== null");
+    expect(MAIN_TS).toContain("document.querySelector('dialog[open], dialog:popover-open') !== null");
     expect(MAIN_TS.indexOf('attachOptionsMenu(')).toBeGreaterThan(-1);
     expect(MAIN_TS.indexOf('attachOptionsMenu(')).toBeLessThan(MAIN_TS.indexOf('attachPointerInput('));
   });
@@ -421,5 +421,46 @@ describe('the Options flyout wired into main.ts', () => {
   it('wires the shared compact HUD with a queue capacity refresh', () => {
     // Opening Sim details also closes the activity log ([AL-panel] item 2).
     expect(MAIN_TS).toContain('createCompactHud(document, () => actionQueue.invalidate(), () => {\n    optionsMenu.close();\n    activityLogPanel.close();\n  });');
+  });
+});
+
+describe('Export save recovery instructions', () => {
+  it('opens a recovery panel through native popover activation', () => {
+    const button = INDEX_HTML.match(/<button\b[^>]*id="export-save"[^>]*>/)?.[0];
+    expect(button).toContain('popovertarget="save-transfer-help"');
+    expect(INDEX_HTML).toContain('<dialog id="save-transfer-help" popover="auto"');
+    expect(INDEX_HTML).toContain('aria-labelledby="save-transfer-title"');
+  });
+  it('provides the old-origin link and the complete import route', () => {
+    const recovery = between('save-transfer-help', 'import-save-dialog');
+    expect(recovery).toContain('https://thisnameissoclever.github.io/natural-causes-old-save/');
+    expect(recovery).toContain('same browser, browser profile, and device');
+    for (const label of ['Download save', 'Options', 'Import save', 'Import game']) expect(recovery).toContain(label);
+    expect(recovery).toContain('popovertargetaction="hide"');
+    expect(recovery).toContain('rel="noopener"');
+  });
+});
+
+describe('recovery keeps Escape after focus leaves its popover', () => {
+  it('gives a visible dialog popover priority over Options and Log', () => {
+    const guards = [...MAIN_TS.matchAll(/\(target\) => document.querySelector\('[^']+'\) !== null(?:\n {6}.*)*/g)];
+    expect(guards).toHaveLength(2);
+    for (const match of guards) {
+      const guard = runInNewContext(`(${match[0].replace(/,$/, '')})`, {
+        document: { querySelector: (selector: string) => selector.includes('dialog:popover-open') ? {} : null },
+        Element: class {}, menuRoot: { hidden: true },
+      });
+      expect(guard(null)).toBe(true);
+    }
+  });
+  it('prevents Build Escape from running behind the recovery panel', () => {
+    const hook = MAIN_TS.match(/escapeAllowed: (\(\) => [^\n]+),/)?.[1];
+    expect(hook).toBeTruthy();
+    const allowed = runInNewContext(`(${hook})`, {
+      builder: { active: true }, menu: { isShowing: () => false },
+      overlayPause: { suspendedExcept: () => false },
+      document: { querySelector: (selector: string) => selector.includes('dialog:popover-open') ? {} : null },
+    });
+    expect(allowed()).toBe(false);
   });
 });
