@@ -1105,7 +1105,8 @@ describe('SimBridge', () => {
     expect(schedule).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480, kind: 0, index: 0 });
     const scheduledEnd = schedule.shiftStart + schedule.shiftTicks;
     const fullPayCents = bridge.careerReport(tim)!.pay * 100;
-    expect(fullPayCents).toBe(12000);
+    // The office clerk starts at $180 a shift since issue 298's raise ([WB-wages]).
+    expect(fullPayCents).toBe(18000);
     for (const hostile of [0, -1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
       expect(bridge.careerScheduleOf(hostile)).toBeNull();
     }

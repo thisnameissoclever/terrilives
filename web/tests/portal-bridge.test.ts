@@ -16,7 +16,8 @@ function observeShiftPayment(sim: SimBridge) {
   expect(worker).toBeDefined();
   const schedule = sim.careerScheduleOf(worker)!;
   const fullPayCents = sim.careerReport(worker)!.pay * 100;
-  expect(fullPayCents).toBe(12000);
+  // Tim's $120 office pay before issue 298's raise, migrated on load to $180 ([WB-save]).
+  expect(fullPayCents).toBe(18000);
   const initialCents = sim.fundsCents();
   expect(sim.clockTick()).toBeLessThan(schedule.shiftStart);
   const end = schedule.shiftStart + schedule.shiftTicks;
