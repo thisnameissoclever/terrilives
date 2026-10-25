@@ -598,7 +598,7 @@ pub fn compile(
         &foreground_sprite_names,
         &sprite_index,
     )?;
-    let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
+    let (tuning, circadian, sleep_tag, affinity, bills) = compile_tuning(tuning)?;
     for object in &compiled {
         check_sleep_places(object, &sleep_tag)?;
         check_single_user_actions(object, &sleep_tag)?;
@@ -731,6 +731,7 @@ pub fn compile(
         coverings,
         skills,
         affinities,
+        bills,
     })
 }
 
@@ -3255,9 +3256,136 @@ fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
 /// The compiled knobs, the circadian table, the sleep tag, and the traits'
 /// verb lines ([TL-affinity]), which the compiler reads and the pack never
 /// holds.
-type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
+type CompiledTuning = (
+    Tuning,
+    Option<Circadian>,
+    String,
+    AffinityBands,
+    crate::pack::BillsTuning,
+);
+
+/// The largest cent amount a bills charge may be, which keeps every month's
+/// arithmetic far inside `i64` ([WB-tuning]).
+const BILL_CENTS_MAX: i64 = 1_000_000;
+/// The longest label a usage kind may carry, in characters, so the Bills
+/// panel's lines fit ([WB-tuning]).
+const BILL_LABEL_MAX_CHARS: usize = 32;
+
+/// Compiles `[bills]` ([WB-tuning] in
+/// `docs/specs/2026-10-18-wages-and-bills.md`): every range checked, and
+/// the two kind tables flattened into lists in id order, which the
+/// compiled actions, steps and objects index.
+fn compile_bills(
+    bills: &crate::schema::BillsTuningDef,
+) -> Result<crate::pack::BillsTuning, ContentError> {
+    let percent = |value: u32| value <= 100;
+    let cents = |value: i64| (0..=BILL_CENTS_MAX).contains(&value);
+    let rules = [
+        ("days_per_month", (1..=365).contains(&bills.days_per_month)),
+        ("grace_days", bills.grace_days < bills.days_per_month),
+        ("late_fee_percent", percent(bills.late_fee_percent)),
+        ("late_fee_cap_percent", percent(bills.late_fee_cap_percent)),
+        (
+            "overdue_mood",
+            bills.overdue_mood.is_finite() && bills.overdue_mood >= 0.0,
+        ),
+        ("rent_base_cents", cents(bills.rent_base_cents)),
+        (
+            "rent_indoor_tile_cents",
+            cents(bills.rent_indoor_tile_cents),
+        ),
+        (
+            "rent_outdoor_tile_cents",
+            cents(bills.rent_outdoor_tile_cents),
+        ),
+        (
+            "electricity_base_cents",
+            cents(bills.electricity_base_cents),
+        ),
+        ("water_base_cents", cents(bills.water_base_cents)),
+        (
+            "transportation_base_cents",
+            cents(bills.transportation_base_cents),
+        ),
+        ("commute_cents", cents(bills.commute_cents)),
+    ];
+    if let Some((key, _)) = rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::BillsTuningOutOfRange {
+            key: format!("bills.{key}"),
+        });
+    }
+    let kinds = |table: &str,
+                 rows: &std::collections::BTreeMap<String, crate::schema::BillKindDef>|
+     -> Result<Vec<crate::pack::BillKind>, ContentError> {
+        rows.iter()
+            .map(|(id, row)| {
+                if id.is_empty()
+                    || !id
+                        .bytes()
+                        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_')
+                {
+                    return Err(ContentError::InvalidBillKind {
+                        id: id.clone(),
+                        reason: "ids use lowercase ASCII letters, digits and underscores",
+                    });
+                }
+                let chars = row.label.chars().count();
+                if row.label.trim().is_empty() || chars > BILL_LABEL_MAX_CHARS {
+                    return Err(ContentError::InvalidBillKind {
+                        id: id.clone(),
+                        reason: "its label must be 1 to 32 characters and not blank",
+                    });
+                }
+                for (key, value) in [
+                    ("water_cents", row.water_cents),
+                    ("electricity_cents", row.electricity_cents),
+                ] {
+                    if !cents(value) {
+                        return Err(ContentError::BillsTuningOutOfRange {
+                            key: format!("bills.{table}.{id}.{key}"),
+                        });
+                    }
+                }
+                Ok(crate::pack::BillKind {
+                    id: id.clone(),
+                    label: row.label.clone(),
+                    water_cents: row.water_cents,
+                    electricity_cents: row.electricity_cents,
+                })
+            })
+            .collect()
+    };
+    let uses = kinds("uses", &bills.uses)?;
+    let daily = kinds("daily", &bills.daily)?;
+    if let Some(repeated) = uses
+        .iter()
+        .find(|kind| daily.iter().any(|other| other.id == kind.id))
+    {
+        return Err(ContentError::InvalidBillKind {
+            id: repeated.id.clone(),
+            reason: "an id may name a use kind or a daily kind, not both",
+        });
+    }
+    Ok(crate::pack::BillsTuning {
+        days_per_month: bills.days_per_month,
+        grace_days: bills.grace_days,
+        late_fee_percent: bills.late_fee_percent,
+        late_fee_cap_percent: bills.late_fee_cap_percent,
+        overdue_mood: bills.overdue_mood,
+        rent_base_cents: bills.rent_base_cents,
+        rent_indoor_tile_cents: bills.rent_indoor_tile_cents,
+        rent_outdoor_tile_cents: bills.rent_outdoor_tile_cents,
+        electricity_base_cents: bills.electricity_base_cents,
+        water_base_cents: bills.water_base_cents,
+        transportation_base_cents: bills.transportation_base_cents,
+        commute_cents: bills.commute_cents,
+        uses,
+        daily,
+    })
+}
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    let bills = compile_bills(&tuning.bills)?;
     if !tuning.need_interactions.valid(tuning.mood_low_need_level) {
         return Err(ContentError::InvalidNeedInteractionTuning);
     }
@@ -3522,6 +3650,12 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         (
             "career_search_temperature",
             (0.0..=2.0).contains(&tuning.career_search_temperature),
+        ),
+        // Issue 298 ([WB-wages]): a night shift pays at most twice the day
+        // rate.
+        (
+            "night_shift_premium_percent",
+            tuning.night_shift_premium_percent <= 100,
         ),
     ];
     for (key, value) in [
@@ -4172,6 +4306,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             shift_sleep_offset_late: tuning.shift_sleep_offset_late,
             shift_sleep_offset_night: tuning.shift_sleep_offset_night,
             career_search_temperature: tuning.career_search_temperature,
+            night_shift_premium_percent: tuning.night_shift_premium_percent,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -4218,6 +4353,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         circadian,
         tuning.sleep_tag,
         affinity,
+        bills,
     ))
 }
 
@@ -5686,6 +5822,11 @@ mod tests {
             chore_fight_response_mood: 0.05,
             chore_repair_base: 0.08,
             chore_repair_cleanliness: 0.04,
+            // Wages and bills (issue 298): the values the published
+            // witnesses the golden vector converts reconstruct, so the
+            // vector stays as it was.
+            night_shift_premium_percent: crate::Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
+            bills: shipped_bills_def(),
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
@@ -5800,6 +5941,28 @@ mod tests {
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
                 .collect(),
+        }
+    }
+
+    /// The authored form of `BillsTuning::shipped_without_usage`: the
+    /// shipped charges and no usage kinds ([WB-tuning]).
+    fn shipped_bills_def() -> crate::schema::BillsTuningDef {
+        let shipped = crate::pack::BillsTuning::shipped_without_usage();
+        crate::schema::BillsTuningDef {
+            days_per_month: shipped.days_per_month,
+            grace_days: shipped.grace_days,
+            late_fee_percent: shipped.late_fee_percent,
+            late_fee_cap_percent: shipped.late_fee_cap_percent,
+            overdue_mood: shipped.overdue_mood,
+            rent_base_cents: shipped.rent_base_cents,
+            rent_indoor_tile_cents: shipped.rent_indoor_tile_cents,
+            rent_outdoor_tile_cents: shipped.rent_outdoor_tile_cents,
+            electricity_base_cents: shipped.electricity_base_cents,
+            water_base_cents: shipped.water_base_cents,
+            transportation_base_cents: shipped.transportation_base_cents,
+            commute_cents: shipped.commute_cents,
+            uses: BTreeMap::new(),
+            daily: BTreeMap::new(),
         }
     }
 
@@ -10505,6 +10668,256 @@ mod tests {
         let compiled =
             compile_tuned(tuning_where(|t| t.days_per_season = u32::MAX)).expect("any length");
         assert_eq!(compiled.tuning.days_per_season, u32::MAX);
+    }
+
+    /// A usage kind row for the bills tests below.
+    fn bill_kind(
+        label: &str,
+        water_cents: i64,
+        electricity_cents: i64,
+    ) -> crate::schema::BillKindDef {
+        crate::schema::BillKindDef {
+            label: label.to_string(),
+            water_cents,
+            electricity_cents,
+        }
+    }
+
+    /// `full_tuning` with two use kinds and a daily kind, declared out of
+    /// id order, and the snack interaction carrying both use kinds so the
+    /// compiler sees them used.
+    fn bills_with_kinds() -> TuningFile {
+        tuning_where(|t| {
+            t.bills.uses = [
+                ("tub".to_string(), bill_kind("Tubs", 91, 26)),
+                ("drip".to_string(), bill_kind("Drips", 2, 0)),
+            ]
+            .into_iter()
+            .collect();
+            t.bills.daily = [("glow".to_string(), bill_kind("Glows", 0, 6))]
+                .into_iter()
+                .collect();
+        })
+    }
+
+    /// [WB-tuning]: every scalar is copied from its own key, and both kind
+    /// tables compile to lists in id order whatever order they were written
+    /// in, which is the order compiled actions and objects index.
+    #[test]
+    fn compiles_the_bills_section_with_kinds_in_id_order() {
+        let mut tuning = bills_with_kinds();
+        tuning.bills.days_per_month = 9;
+        tuning.bills.grace_days = 4;
+        tuning.bills.late_fee_percent = 6;
+        tuning.bills.late_fee_cap_percent = 45;
+        tuning.bills.overdue_mood = 7.5;
+        tuning.bills.rent_base_cents = 6100;
+        tuning.bills.rent_indoor_tile_cents = 111;
+        tuning.bills.rent_outdoor_tile_cents = 21;
+        tuning.bills.electricity_base_cents = 3100;
+        tuning.bills.water_base_cents = 2100;
+        tuning.bills.transportation_base_cents = 1100;
+        tuning.bills.commute_cents = 301;
+        let pack = compile_bills(&tuning.bills).expect("valid bills");
+        assert_eq!(
+            (
+                pack.days_per_month,
+                pack.grace_days,
+                pack.late_fee_percent,
+                pack.late_fee_cap_percent,
+                pack.overdue_mood
+            ),
+            (9, 4, 6, 45, 7.5)
+        );
+        assert_eq!(
+            [
+                pack.rent_base_cents,
+                pack.rent_indoor_tile_cents,
+                pack.rent_outdoor_tile_cents,
+                pack.electricity_base_cents,
+                pack.water_base_cents,
+                pack.transportation_base_cents,
+                pack.commute_cents,
+            ],
+            [6100, 111, 21, 3100, 2100, 1100, 301]
+        );
+        assert_eq!(
+            pack.uses,
+            vec![
+                crate::BillKind {
+                    id: "drip".into(),
+                    label: "Drips".into(),
+                    water_cents: 2,
+                    electricity_cents: 0,
+                },
+                crate::BillKind {
+                    id: "tub".into(),
+                    label: "Tubs".into(),
+                    water_cents: 91,
+                    electricity_cents: 26,
+                },
+            ]
+        );
+        assert_eq!(
+            pack.daily,
+            vec![crate::BillKind {
+                id: "glow".into(),
+                label: "Glows".into(),
+                water_cents: 0,
+                electricity_cents: 6,
+            }]
+        );
+        // The whole compile carries the section onto the pack.
+        let compiled = compile_tuned(tuning_where(|t| t.bills.commute_cents = 301)).unwrap();
+        assert_eq!(compiled.bills.commute_cents, 301);
+        assert_eq!(compiled.bills.days_per_month, 7);
+    }
+
+    /// [WB-tuning]: each refusal names the key at fault, and the value just
+    /// inside each limit compiles, so a limit moved by one is visible.
+    #[test]
+    fn rejects_each_bad_bills_value() {
+        type Edit = fn(&mut crate::schema::BillsTuningDef);
+        let refused: [(&str, Edit); 14] = [
+            ("bills.days_per_month", |b| b.days_per_month = 0),
+            ("bills.days_per_month", |b| b.days_per_month = 366),
+            ("bills.grace_days", |b| b.grace_days = b.days_per_month),
+            ("bills.late_fee_percent", |b| b.late_fee_percent = 101),
+            ("bills.late_fee_cap_percent", |b| {
+                b.late_fee_cap_percent = 101
+            }),
+            ("bills.overdue_mood", |b| b.overdue_mood = -0.5),
+            ("bills.overdue_mood", |b| b.overdue_mood = f32::NAN),
+            ("bills.overdue_mood", |b| b.overdue_mood = f32::INFINITY),
+            ("bills.rent_base_cents", |b| b.rent_base_cents = 1_000_001),
+            ("bills.rent_indoor_tile_cents", |b| {
+                b.rent_indoor_tile_cents = -1
+            }),
+            ("bills.rent_outdoor_tile_cents", |b| {
+                b.rent_outdoor_tile_cents = 1_000_001
+            }),
+            ("bills.electricity_base_cents", |b| {
+                b.electricity_base_cents = 1_000_001
+            }),
+            ("bills.water_base_cents", |b| b.water_base_cents = -1),
+            ("bills.transportation_base_cents", |b| {
+                b.transportation_base_cents = 1_000_001
+            }),
+        ];
+        for (key, edit) in refused {
+            let mut bills = shipped_bills_def();
+            edit(&mut bills);
+            assert_eq!(
+                compile_bills(&bills),
+                Err(ContentError::BillsTuningOutOfRange {
+                    key: key.to_string()
+                }),
+                "{key}"
+            );
+        }
+        let mut bills = shipped_bills_def();
+        bills.commute_cents = 1_000_001;
+        assert_eq!(
+            compile_bills(&bills),
+            Err(ContentError::BillsTuningOutOfRange {
+                key: "bills.commute_cents".to_string()
+            })
+        );
+        let accepted: [Edit; 8] = [
+            // The shipped grace of 5 days fits a six-day month.
+            |b| b.days_per_month = 6,
+            |b| {
+                b.days_per_month = 365;
+                b.grace_days = 364;
+            },
+            |b| {
+                b.days_per_month = 1;
+                b.grace_days = 0;
+            },
+            |b| b.late_fee_percent = 100,
+            |b| b.late_fee_cap_percent = 0,
+            |b| b.overdue_mood = 0.0,
+            |b| b.rent_base_cents = 1_000_000,
+            |b| b.commute_cents = 0,
+        ];
+        for edit in accepted {
+            let mut bills = shipped_bills_def();
+            edit(&mut bills);
+            compile_bills(&bills).expect("a value at its limit compiles");
+        }
+    }
+
+    /// [WB-tuning]: a usage kind is refused for a malformed id, a blank or
+    /// overlong label, an amount out of range, and an id that names both a
+    /// use kind and a daily kind.
+    #[test]
+    fn rejects_each_bad_usage_kind() {
+        let with = |table: &str, id: &str, row: crate::schema::BillKindDef| {
+            let mut bills = shipped_bills_def();
+            match table {
+                "uses" => bills.uses.insert(id.to_string(), row),
+                _ => bills.daily.insert(id.to_string(), row),
+            };
+            compile_bills(&bills)
+        };
+        for (id, row) in [
+            ("", bill_kind("Empty", 1, 1)),
+            ("Tub", bill_kind("Tubs", 1, 1)),
+            ("tub tap", bill_kind("Tubs", 1, 1)),
+            ("tub", bill_kind("", 1, 1)),
+            ("tub", bill_kind("   ", 1, 1)),
+            ("tub", bill_kind(&"x".repeat(33), 1, 1)),
+        ] {
+            assert!(
+                matches!(with("uses", id, row.clone()), Err(ContentError::InvalidBillKind { id: refused, .. }) if refused == id),
+                "{id:?} {row:?}"
+            );
+            assert!(matches!(
+                with("daily", id, row),
+                Err(ContentError::InvalidBillKind { .. })
+            ));
+        }
+        with("uses", "tub", bill_kind(&"x".repeat(32), 1, 1)).expect("32 characters fit");
+        with("uses", "tub", bill_kind("Täbs", 1, 1)).expect("a label counts characters");
+        assert_eq!(
+            with("uses", "tub", bill_kind("Tubs", 1_000_001, 0)),
+            Err(ContentError::BillsTuningOutOfRange {
+                key: "bills.uses.tub.water_cents".into()
+            })
+        );
+        assert_eq!(
+            with("daily", "glow", bill_kind("Glows", 0, -1)),
+            Err(ContentError::BillsTuningOutOfRange {
+                key: "bills.daily.glow.electricity_cents".into()
+            })
+        );
+        let mut both = shipped_bills_def();
+        both.uses.insert("glow".into(), bill_kind("Glows", 0, 1));
+        both.daily.insert("glow".into(), bill_kind("Glows", 0, 1));
+        assert_eq!(
+            compile_bills(&both),
+            Err(ContentError::InvalidBillKind {
+                id: "glow".into(),
+                reason: "an id may name a use kind or a daily kind, not both",
+            })
+        );
+    }
+
+    /// [WB-wages]: the night premium compiles from 0 to 100 and is refused
+    /// above, by name.
+    #[test]
+    fn rejects_a_night_premium_above_one_hundred() {
+        for legal in [0, 15, 100] {
+            let pack =
+                compile_tuned(tuning_where(|t| t.night_shift_premium_percent = legal)).unwrap();
+            assert_eq!(pack.tuning.night_shift_premium_percent, legal);
+        }
+        assert!(matches!(
+            compile_tuned(tuning_where(|t| t.night_shift_premium_percent = 101)),
+            Err(ContentError::CareerTuningOutOfRange {
+                key: "night_shift_premium_percent"
+            })
+        ));
     }
 
     #[test]

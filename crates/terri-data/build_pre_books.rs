@@ -14,6 +14,52 @@ struct Duration {
     ticks: u32,
 }
 
+/// The `[bills]` table of `pack::BillsTuning::shipped_without_usage`, in
+/// the authored shape, so the frozen sources and the published conversions
+/// read one definition rather than two copies of the charges.
+fn shipped_bills_without_usage() -> toml::Value {
+    let shipped = pack::BillsTuning::shipped_without_usage();
+    let integer = |value: i64| toml::Value::Integer(value);
+    let mut table = toml::Table::new();
+    for (key, value) in [
+        ("days_per_month", integer(shipped.days_per_month.into())),
+        ("grace_days", integer(shipped.grace_days.into())),
+        ("late_fee_percent", integer(shipped.late_fee_percent.into())),
+        (
+            "late_fee_cap_percent",
+            integer(shipped.late_fee_cap_percent.into()),
+        ),
+        (
+            "overdue_mood",
+            toml::Value::Float(f64::from(shipped.overdue_mood)),
+        ),
+        ("rent_base_cents", integer(shipped.rent_base_cents)),
+        (
+            "rent_indoor_tile_cents",
+            integer(shipped.rent_indoor_tile_cents),
+        ),
+        (
+            "rent_outdoor_tile_cents",
+            integer(shipped.rent_outdoor_tile_cents),
+        ),
+        (
+            "electricity_base_cents",
+            integer(shipped.electricity_base_cents),
+        ),
+        ("water_base_cents", integer(shipped.water_base_cents)),
+        (
+            "transportation_base_cents",
+            integer(shipped.transportation_base_cents),
+        ),
+        ("commute_cents", integer(shipped.commute_cents)),
+        ("uses", toml::Value::Table(toml::Table::new())),
+        ("daily", toml::Value::Table(toml::Table::new())),
+    ] {
+        table.insert(key.to_string(), value);
+    }
+    toml::Value::Table(table)
+}
+
 pub fn compile(root: &Path) -> pack::ContentPack {
     let revision = fs::read_to_string(root.join("source-revision.txt")).ok();
     let need_era = revision
@@ -176,6 +222,15 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("shift_sleep_offset_late", toml::Value::Integer(120)),
         ("shift_sleep_offset_night", toml::Value::Integer(660)),
         ("career_search_temperature", toml::Value::Float(0.0)),
+        // Wages and bills (issue 298): the shipped night premium and the
+        // shipped charges, reconstructed by the published-pack conversions
+        // too. The frozen content declares no usage, so both kind tables
+        // are empty.
+        (
+            "night_shift_premium_percent",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT)),
+        ),
+        ("bills", shipped_bills_without_usage()),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

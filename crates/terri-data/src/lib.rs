@@ -35,6 +35,7 @@ pub use pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, DomesticTuning, FightRules, Footprint, ObjectDefId, Tuning,
 };
+pub use pack::{BillKind, BillsTuning};
 pub use pack::{CompiledShift, ShiftView, SHIFT_DAY, SHIFT_EARLY, SHIFT_LATE, SHIFT_NIGHT};
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};
@@ -1128,6 +1129,99 @@ mod tests {
             [0, -60, 120, 660]
         );
         assert_eq!(tuning.career_search_temperature, 0.25);
+    }
+
+    /// [WB-tuning] in `docs/specs/2026-10-18-wages-and-bills.md`: the
+    /// shipped night premium and every value of the `[bills]` block, the
+    /// kinds in id order with their labels and charges.
+    #[test]
+    fn the_shipped_bills_tuning_matches_the_spec() {
+        let pack = pack();
+        assert_eq!(pack.tuning.night_shift_premium_percent, 15);
+        let bills = &pack.bills;
+        assert_eq!(
+            (
+                bills.days_per_month,
+                bills.grace_days,
+                bills.late_fee_percent,
+                bills.late_fee_cap_percent,
+                bills.overdue_mood
+            ),
+            (7, 5, 5, 50, 8.0)
+        );
+        assert_eq!(
+            [
+                bills.rent_base_cents,
+                bills.rent_indoor_tile_cents,
+                bills.rent_outdoor_tile_cents,
+                bills.electricity_base_cents,
+                bills.water_base_cents,
+                bills.transportation_base_cents,
+                bills.commute_cents,
+            ],
+            [6000, 110, 20, 3000, 2000, 1000, 300]
+        );
+        let rows = |kinds: &[BillKind]| -> Vec<(String, String, i64, i64)> {
+            kinds
+                .iter()
+                .map(|k| {
+                    (
+                        k.id.clone(),
+                        k.label.clone(),
+                        k.water_cents,
+                        k.electricity_cents,
+                    )
+                })
+                .collect()
+        };
+        let expect = |rows: &[(&str, &str, i64, i64)]| -> Vec<(String, String, i64, i64)> {
+            rows.iter()
+                .map(|(id, label, water, electricity)| {
+                    (id.to_string(), label.to_string(), *water, *electricity)
+                })
+                .collect()
+        };
+        assert_eq!(
+            rows(&bills.uses),
+            expect(&[
+                ("bath", "Baths", 90, 25),
+                ("dishes", "Dish washing", 20, 0),
+                ("hand_wash", "Hand washing", 5, 0),
+                ("radio", "Radio", 0, 3),
+                ("shower", "Showers", 60, 15),
+                ("stove", "Stove cooking", 0, 40),
+                ("television", "Television", 0, 20),
+                ("toilet", "Toilet flushes", 10, 0),
+            ])
+        );
+        assert_eq!(
+            rows(&bills.daily),
+            expect(&[
+                ("aquarium", "Aquariums", 0, 10),
+                ("fridge", "Fridges", 0, 20),
+                ("lamp", "Lamps", 0, 5),
+                ("pool", "Pools", 50, 60),
+            ])
+        );
+        // A published pack and every frozen pre-books source keep the
+        // shipped premium and charges, with no usage kinds, because their
+        // content declares none.
+        for historical in [
+            pre_books_pack(),
+            published_pre_books_pack(),
+            affinity_pre_books_pack(),
+            latest_pre_books_pack(),
+            contextual_pre_books_pack(),
+        ] {
+            assert_eq!(historical.tuning.night_shift_premium_percent, 15);
+            assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
+        }
+        let shipped_scalars = BillsTuning {
+            uses: Vec::new(),
+            daily: Vec::new(),
+            ..bills.clone()
+        };
+        assert_eq!(shipped_scalars, BillsTuning::shipped_without_usage());
     }
 
     /// An exact fraction, enough for the household figure below.

@@ -374,6 +374,10 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // from have ONE source rather than two that agree today.
         tuning,
         career_paths: Vec::new(),
+        // The shipped charges and usage kinds, so an object copied from the
+        // shipped pack keeps usage marks that name real kinds. Bills act
+        // only in a world with a lot, which `sim_with` does not build.
+        bills: terri_data::pack().bills.clone(),
         // Empty rather than the shipped people, deliberately, and the
         // opposite call from the lot above. `sim_with` spawns its own
         // agents explicitly, so a fixture pack that also carried Tim,

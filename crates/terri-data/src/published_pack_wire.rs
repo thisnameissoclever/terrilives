@@ -614,6 +614,7 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_late: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
             career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
+            night_shift_premium_percent: Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -823,6 +824,9 @@ impl From<PublishedContentPack> for ContentPack {
             books: Vec::new(),
             reading: None,
             career_paths,
+            // Bills (issue 298): the shipped charges, and no usage, because
+            // a published pack's content declares none.
+            bills: crate::pack::BillsTuning::shipped_without_usage(),
         }
     }
 }
@@ -1001,6 +1005,9 @@ impl From<Published2fContentPack> for ContentPack {
             books: Vec::new(),
             reading: None,
             career_paths,
+            // Bills (issue 298): the shipped charges, and no usage, because
+            // a published pack's content declares none.
+            bills: crate::pack::BillsTuning::shipped_without_usage(),
         }
     }
 }
@@ -1037,6 +1044,33 @@ fn a_published_pack_keeps_the_best_fit_search() {
             .tuning
             .career_search_temperature,
         0.0
+    );
+}
+
+/// Wages and bills (issue 298, [WB-tuning]): an authentic published pack
+/// rebuilds the shipped night premium and the shipped charges with no usage
+/// kinds, because its content declares none.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_bills_tuning() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(
+        old.tuning.night_shift_premium_percent,
+        Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT
+    );
+    assert_eq!(old.bills, crate::BillsTuning::shipped_without_usage());
+    assert!(old.bills.uses.is_empty() && old.bills.daily.is_empty());
+    // The reconstruction is the shipped content's charges, not a second
+    // set of numbers that could drift from them.
+    let shipped = &crate::pack().bills;
+    assert_eq!(old.bills.rent_base_cents, shipped.rent_base_cents);
+    assert_eq!(old.bills.days_per_month, shipped.days_per_month);
+    assert_eq!(
+        old.tuning.night_shift_premium_percent,
+        crate::pack().tuning.night_shift_premium_percent
     );
 }
 
