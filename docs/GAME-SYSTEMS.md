@@ -29,7 +29,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-skills] | Skills | Partial | Cooking, Fitness and Reading, learned by doing, read by the fumble roll and listed in Sim details; shipped 2026-10-05 |
 | [S-pets] | Pets as full characters | Not started | None |
 | [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
-| [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
+| [S-money] | Money: deep earning and spending | Partial | Wages, purchases, sale proceeds and monthly household bills |
 | [S-catalogue] | Furniture and visual asset volume | Partial | Authored object models, reviewed replacements and recolour controls |
 | [S-household-size] | More people in the house | Partial | Six-member capacity, creation and removal by death |
 | [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | Placement, buying/selling, walls, rooms, floors and windows |
@@ -65,7 +65,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
 | [S-town] | Town, neighbours, and other households | Not started | None |
 | [S-ghosts] | Ghosts shared between players | Not started | None |
-| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends, working days and seasons |
+| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends, working days, seasons and seven-day billing months |
 | [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
@@ -212,7 +212,9 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 **Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it. Since PR 96 the household has something to spend on.
 
-**What exists.** Shared Funds are saved and shown in the HUD. Tim's office job pays 120 per completed shift, purchases charge the object's price, and sales refund the tuned fraction of that price. Sales shipped in PR 101. Building walls, rooms and floors does not yet charge Funds.
+**What exists.** Shared Funds are saved and shown in the HUD. Tim's office job pays $180 per completed shift, a night shift pays 15 percent more, purchases charge the object's price, and sales refund the tuned fraction of that price. Sales shipped in PR 101. Building walls, rooms and floors does not yet charge Funds.
+
+Since issue 298 the household pays four bills on the first day of each seven-day month: rent from the base charge and the lot's indoor and outdoor tiles, electricity and water from a base charge and counted use, and transportation from a base charge and a fare per shift worked. Bills are paid from Funds automatically, oldest first; an unpaid bill becomes overdue after five days, gains a daily late fee up to a cap, and gives every housemate the Behind on bills moodlet. The Bills row and panel show what is due. Nothing is shut off. See `docs/specs/2026-10-18-wages-and-bills.md`.
 
 Book purchases deduct the title's price and create one owned copy atomically.
 Short, standard and long titles cost 6, 10 and 14 Funds. Furniture prices and
@@ -221,9 +223,9 @@ identifiable advantage, which may trade speed, footprint or another benefit for
 comfort, capacity, convenience or an explicit cosmetic premium. The catalogue
 balance pass keeps wages and global need decay fixed.
 
-**What is missing.** Costs for walls, floors and lot expansion, plus the recurring costs and income routes below. Purchase prices and sale refunds already work.
+**What is missing.** Costs for walls, floors and lot expansion, plus the recurring costs and income routes below. Purchase prices, sale refunds, rent and utility bills already work.
 
-Recurring costs: rent or a mortgage, utility bills that scale with the house and what runs in it, groceries, and pet food and vet fees. Consequences for not paying, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
+Recurring costs: a mortgage, groceries, and pet food and vet fees. Consequences for not paying beyond late fees and the moodlet, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
 
 A household ledger in the HUD, so the player can see where money went. Per-person money is a later question; shared household funds is the right first version.
 
@@ -478,7 +480,7 @@ shift rewards reflect actual office time; missing more than two hours deducts
 ten performance points per further hour. The Career tab explains the actual
 attendance and deduction. See [player orders](specs/2026-10-17-player-orders.md).
 
-**What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, and schema twenty-one saves each held shift. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
+**What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay, 15 percent more for a night shift; issue 298 raised every level's pay by half ([wages and bills](specs/2026-10-18-wages-and-bills.md)). Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, schema twenty-one saves each held shift, and loading schema twenty-one or earlier raises saved pay to the new wages. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -534,13 +536,13 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. Bills run on seven-day months that start on day 1, so every month starts on a Monday; see [WB-calendar] in `docs/specs/2026-10-18-wages-and-bills.md`. There are no dates or named months. Pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-weather-preferences] Weather preferences and longer-term variation
 
 **Status: Owner-requested future work, October 19, 2026. Not implemented.** Each Sim should prefer warmer or cooler weather. Weather that matches or conflicts with that preference should slightly raise or lower overall mood. Keep this effect small; the request does not add weather damage, need loss or survival mechanics. The preference model, numerical strength and presentation need a design before implementation.
 
-Weather should also vary more from month to month and year to year. Current weather already varies by day; the requested change adds longer-term variation. Months do not exist in the current calendar, so monthly variation requires a calendar decision rather than treating the current seven-day seasons as months. Do not assign a release date or priority from the phrase "Coming soon" in player documentation.
+Weather should also vary more from month to month and year to year. Current weather already varies by day; the requested change adds longer-term variation. The only months in the calendar are seven-day billing months, the same length as a season, so monthly variation requires a calendar decision rather than reusing either. Do not assign a release date or priority from the phrase "Coming soon" in player documentation.
 
 See [the calendar](#s-calendar-calendar-and-weekly-schedules) for the current season cycle. The [player guide's weather section](player/the-world.md#weather) separates current visual weather from these coming features.
 

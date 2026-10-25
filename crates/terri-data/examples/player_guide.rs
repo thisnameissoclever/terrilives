@@ -155,6 +155,7 @@ fn reference() -> Value {
         ("needs", value(&needs)),
         ("actions", Value::Array(actions)),
         ("tuning", value(&pack.tuning)),
+        ("bills", value(&pack.bills)),
         (
             "objects",
             Value::Array(
