@@ -1101,7 +1101,8 @@ describe('SimBridge', () => {
     // Friday (mask 31) from 06:00 for eight hours.
     expect(bridge.weekdayIndex()).toBe(0);
     const schedule = bridge.careerScheduleOf(tim)!;
-    expect(schedule).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480 });
+    // Issue 296: the held shift is the office's standard day shift.
+    expect(schedule).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480, kind: 0, index: 0 });
     const scheduledEnd = schedule.shiftStart + schedule.shiftTicks;
     const fullPayCents = bridge.careerReport(tim)!.pay * 100;
     expect(fullPayCents).toBe(12000);

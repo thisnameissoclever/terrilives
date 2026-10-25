@@ -103,7 +103,7 @@ fn opinions(sim: &Sim) -> [f32; 3] {
 
 fn write_phase(directory: &Path, phase: &str, sim: &Sim) -> String {
     let mut captured = support::capture(sim);
-    let repairs = captured.0.conflicts.repairs.iter().map(|row| {
+    let repairs = captured.0.legacy.conflicts.repairs.iter().map(|row| {
         format!(r#"{{"recipient":{},"accepted":{},"attempted":{},"working":{},"contributedUnits":{},"deadline":{}}}"#,
             row.recipient, row.accepted, row.attempted, row.working, row.contributed_units, row.deadline)
     }).collect::<Vec<_>>().join(",");
@@ -276,7 +276,7 @@ fn main() {
         owner: BILL.0,
         actionable_since: 0,
     };
-    snapshot.0.conflicts = SavedConflictState {
+    snapshot.0.legacy.conflicts = SavedConflictState {
         next_id: 3,
         grievances: [TIM, CASEY]
             .into_iter()
@@ -327,6 +327,7 @@ fn main() {
     let argument = support::capture(&sim);
     let context = argument
         .0
+        .legacy
         .conflicts
         .fights
         .iter()

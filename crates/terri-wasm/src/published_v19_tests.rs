@@ -24,10 +24,12 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
             "cold public nineteen admission at source tick {tick}"
         );
         let mut native_control = SimHandle::from_lot();
-        let view = super::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV20 {
-            legacy: published.clone(),
-            conflicts: Default::default(),
-        });
+        let view = super::current_test_snapshot::CurrentV5View(
+            super::current_test_snapshot::current_from_v20(terri_core::SaveSnapshotV20 {
+                legacy: published.clone(),
+                conflicts: Default::default(),
+            }),
+        );
         assert_eq!(
             view.world.content_fingerprint,
             native_control
@@ -103,10 +105,12 @@ fn issue314_published_player_fight_requires_its_exact_execution_witness() {
         .expect("positive published fight control");
     let before = live.save_bytes();
     for corruption in 0..6 {
-        let mut view = super::current_test_snapshot::CurrentV17View(terri_core::SaveSnapshotV20 {
-            legacy: published.clone(),
-            conflicts: Default::default(),
-        });
+        let mut view = super::current_test_snapshot::CurrentV17View(
+            super::current_test_snapshot::current_from_v20(terri_core::SaveSnapshotV20 {
+                legacy: published.clone(),
+                conflicts: Default::default(),
+            }),
+        );
         assert_eq!(view.social_executions.len(), 1);
         assert_eq!(view.legacy.legacy.conversation_requests.requests.len(), 1);
         match corruption {
@@ -125,7 +129,7 @@ fn issue314_published_player_fight_requires_its_exact_execution_witness() {
             _ => unreachable!(),
         }
         assert!(
-            live.sim.load_snapshot_v19(view.0.legacy).is_err(),
+            live.sim.load_snapshot_v19(view.0.legacy.legacy).is_err(),
             "corruption {corruption}"
         );
         assert_eq!(

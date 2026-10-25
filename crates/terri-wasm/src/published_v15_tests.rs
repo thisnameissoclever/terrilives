@@ -202,6 +202,7 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
             .legacy
             .legacy
             .legacy
+            .legacy
             .legacy;
         let mut expected_requests = original.conversation_requests.clone();
         if name == "chat-talking-later-identical" {
@@ -354,8 +355,8 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
         live.sim.commit_build(token).unwrap();
         let mut committed = decode_current(&live.save_bytes());
         let baseline = decode_current(&settled);
-        committed.legacy.legacy.legacy.legacy.rooms =
-            baseline.legacy.legacy.legacy.legacy.rooms.clone();
+        committed.legacy.legacy.legacy.legacy.legacy.rooms =
+            baseline.legacy.legacy.legacy.legacy.legacy.rooms.clone();
         assert_eq!(committed, baseline, "only the confirmed room name changes");
         let confirmed = live.save_bytes();
         live.sim

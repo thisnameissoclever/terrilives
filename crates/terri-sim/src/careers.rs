@@ -11,6 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use bevy_ecs::prelude::*;
+use terri_core::save_v21::{SavedHeldShift, SavedShiftChange, SavedShifts};
 use terri_core::{
     save_v14::{SavedCareerMoodlet, SavedCareerRecord, SavedCareerWeek, SavedCareers},
     Agent, AtWork, Career, Commuting, FnvHasher, Funds, Satisfaction, SimClock, SimId, SimRng,
@@ -49,6 +50,12 @@ pub enum CareerRefusal {
     NotAPerson = 1,
     AtWork = 2,
     UnknownPath = 3,
+    /// Issue 296, [WS-select]: the level does not offer that shift.
+    ShiftNotOffered = 4,
+    /// The person has no job whose shift could change.
+    NotEmployed = 5,
+    /// The person already holds that shift.
+    SameShift = 6,
 }
 
 /// What the drain did with the last career command: the person it named
@@ -81,6 +88,10 @@ pub struct Record {
     /// The week whose review waits for the person to come home: a person
     /// at work or commuting when a week ends is reviewed on their return.
     pub review_due: Option<u64>,
+    /// The shift the person holds, as an index into their level's shifts:
+    /// 0 is the level's standard shift (issue 296, [WS-choose] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`).
+    pub shift: u32,
 }
 
 impl Record {
@@ -95,6 +106,7 @@ impl Record {
             shifts: Vec::new(),
             history: Vec::new(),
             review_due: None,
+            shift: 0,
         }
     }
 
@@ -127,6 +139,27 @@ pub struct Careers {
     pub commands: u64,
     /// What the drain did with the last career command. Not saved.
     pub last_result: Option<CareerResult>,
+    /// The shift stream (issue 296, [WS-determinism]): drawn only for a
+    /// shift, so a player's shift choices never move a search or a review.
+    pub shift_rng: SimRng,
+    /// How often the shift stream was drawn.
+    pub shift_draws: u64,
+    /// Each person's last shift change. A changed shift takes effect from
+    /// the next day, and the schedule they held when the day began still
+    /// runs that day (the owner's rulings of 2026-10-23 and 2026-10-24 in
+    /// [WS-rulings]). A change on an earlier day, or at a level the person
+    /// no longer holds, means nothing and is neither hashed nor saved.
+    pub shift_changed: BTreeMap<SimId, ShiftChange>,
+}
+
+/// One person's shift change: the day it was made, the level (career row)
+/// it was made at and the shift index whose schedule runs for the rest of
+/// that day.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ShiftChange {
+    pub day: u64,
+    pub career: u32,
+    pub from: u32,
 }
 
 impl Default for Careers {
@@ -143,6 +176,9 @@ impl Default for Careers {
             fired: MoodletTimers::default(),
             commands: 0,
             last_result: None,
+            shift_rng: SimRng::from_seed(crate::shifts::SHIFTS_SEED),
+            shift_draws: 0,
+            shift_changed: BTreeMap::new(),
         }
     }
 }
@@ -154,6 +190,7 @@ impl Careers {
         self.autonomous_change
             && self.search_off.is_empty()
             && self.draws == 0
+            && self.shift_draws == 0
             && self.commands == 0
             && self.records.is_empty()
             && self.promoted.entries().is_empty()
@@ -169,6 +206,15 @@ impl Careers {
 
     pub fn record(&self, sim: SimId) -> Option<&Record> {
         self.records.get(&sim)
+    }
+
+    /// The shift index whose schedule runs on day `day` for `sim` at level
+    /// `career` because they changed shift that day, or `None`.
+    pub fn shift_before_change(&self, sim: SimId, day: u64, career: u32) -> Option<u32> {
+        self.shift_changed
+            .get(&sim)
+            .filter(|change| change.day == day && change.career == career)
+            .map(|change| change.from)
     }
 
     /// Whether `sim` looks for work on their own while unemployed.
@@ -190,6 +236,7 @@ impl Careers {
     pub fn forget(&mut self, sim: SimId) {
         self.records.remove(&sim);
         self.search_off.remove(&sim);
+        self.shift_changed.remove(&sim);
         self.promoted.forget(sim);
         self.raised.forget(sim);
         self.demoted.forget(sim);
@@ -304,6 +351,7 @@ impl Careers {
                         })
                         .collect(),
                     review_due: record.review_due,
+                    shift: 0,
                 },
             );
         }
@@ -582,14 +630,16 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
     }
 }
 
-/// Settle a scheduled shift once, with its captured pay and actual attendance.
+/// Settle a scheduled shift once, with its captured pay and actual
+/// attendance. `score` joins the week's scores; `None` is a shift a shift
+/// change forfeited, which pays and rewards its minutes but is not scored.
 pub(crate) fn complete_attended_shift(
     world: &mut World,
     worker: Entity,
     career: u32,
     pay_cents: i64,
     ratio: f32,
-    score: f32,
+    score: Option<f32>,
     scheduled_week: u64,
 ) {
     let pack = world.resource::<Content>().0;
@@ -608,7 +658,7 @@ pub(crate) fn complete_attended_shift(
             .records
             .entry(sim)
             .or_insert_with(|| Record::new(job));
-        record.shifts.push(score);
+        record.shifts.extend(score);
         let target = 50.0 + 40.0 * fit;
         let step = pack.tuning.career_satisfaction_rate * ratio;
         record.job_satisfaction = if record.job_satisfaction < target {
@@ -755,7 +805,7 @@ fn raised_pay(job: &CompiledCareer, pay: u32) -> u32 {
 /// reviewed when they come home instead (`complete_shift` at the shift's
 /// end, or `settle_due_review` at the end of the walk), so no outcome
 /// changes a job while its shift is being worked.
-fn review(world: &mut World, ended_week: u64, tick: u64) {
+pub(crate) fn review(world: &mut World, ended_week: u64, tick: u64) {
     let pack = world.resource::<Content>().0;
     let people = people(world);
     let logged: BTreeMap<SimId, [f32; 6]> = people
@@ -853,6 +903,9 @@ fn review_person(
             record.pay = next.pay.max(record.pay.saturating_add(1)).min(next.pay_max);
             record.consecutive_good = 0;
             record.consecutive_poor = 0;
+            let held = record.shift;
+            let shift = crate::shifts::keep_or_draw(careers, job, held, next);
+            careers.records.get_mut(&sim).expect("present above").shift = shift;
             world.entity_mut(entity).insert(Career(row));
             careers.promoted.record(
                 sim,
@@ -872,6 +925,9 @@ fn review_person(
             record.pay = record.pay.clamp(below.pay, below.pay_max);
             record.consecutive_good = 0;
             record.consecutive_poor = 0;
+            let held = record.shift;
+            let shift = crate::shifts::keep_or_draw(careers, job, held, below);
+            careers.records.get_mut(&sim).expect("present above").shift = shift;
             world.entity_mut(entity).insert(Career(row));
             careers.demoted.record(
                 sim,
@@ -901,11 +957,13 @@ fn review_person(
                             event = EVENT_CHANGED_PATH;
                             let row = pack.career_paths[path_index as usize].levels[0];
                             let first = &pack.careers[row as usize];
+                            let shift = crate::shifts::draw(careers, first);
                             let record = careers.records.get_mut(&sim).expect("present above");
                             record.pay = first.pay;
                             record.consecutive_good = 0;
                             record.consecutive_poor = 0;
                             record.job_satisfaction = 50.0;
+                            record.shift = shift;
                             world.entity_mut(entity).insert(Career(row));
                         }
                     }
@@ -944,7 +1002,7 @@ fn review_person(
 
 /// The path whose first level fits the person best among those with fit
 /// at least `floor`, leaving out `except`; ties go to the lower index.
-fn best_path(
+pub(crate) fn best_path(
     world: &World,
     pack: &ContentPack,
     entity: Entity,
@@ -970,10 +1028,48 @@ fn best_path(
     best.map(|(index, _)| index)
 }
 
+/// The path an applicant tries ([WS-search] in
+/// `docs/specs/2026-10-18-shifts-and-careers.md`): at a search temperature
+/// of 0, the best fit with no draw, as before issue 296; above 0, one draw
+/// on the careers stream through the softmax over every path's first-level
+/// fit, so a better fit is likelier but not certain.
+pub(crate) fn search_path(
+    world: &World,
+    pack: &ContentPack,
+    entity: Entity,
+    careers: &mut Careers,
+) -> Option<u32> {
+    let temperature = pack.tuning.career_search_temperature;
+    if temperature <= 0.0 {
+        return best_path(world, pack, entity, None, f32::NEG_INFINITY);
+    }
+    let candidates: Vec<(u32, f32)> = pack
+        .career_paths
+        .iter()
+        .enumerate()
+        .filter_map(|(index, path)| {
+            let row = *path.levels.first()?;
+            Some((
+                index as u32,
+                fit(world, pack, &pack.careers[row as usize], entity),
+            ))
+        })
+        .collect();
+    if candidates.is_empty() {
+        return None;
+    }
+    let scores: Vec<f32> = candidates.iter().map(|(_, fit)| *fit).collect();
+    careers.draws += 1;
+    let chosen = crate::systems::action::sample_softmax(&scores, temperature, &mut careers.rng);
+    Some(candidates[chosen].0)
+}
+
 /// Rule 13: an unemployed person whose search is on looks for work on a
 /// working day. A person whose search is off is passed over before any
-/// draw, so the stream sees exactly the people who look.
-fn search(world: &mut World) {
+/// draw, so the stream sees exactly the people who look. An applicant
+/// draws apply, then the path ([WS-search]), then hire, all on the careers
+/// stream.
+pub(crate) fn search(world: &mut World) {
     let pack = world.resource::<Content>().0;
     let tuning = &pack.tuning;
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
@@ -988,7 +1084,7 @@ fn search(world: &mut World) {
         if careers.draw() >= tuning.career_search_chance {
             continue;
         }
-        let Some(path) = best_path(world, pack, entity, None, f32::NEG_INFINITY) else {
+        let Some(path) = search_path(world, pack, entity, &mut careers) else {
             continue;
         };
         let row = pack.career_paths[path as usize].levels[0];
@@ -996,7 +1092,14 @@ fn search(world: &mut World) {
         let hired = (0.5 + 0.5 * fit).clamp(0.1, 0.95);
         if careers.draw() < hired {
             let job = &pack.careers[row as usize];
-            careers.records.insert(sim, Record::new(job));
+            let shift = crate::shifts::draw(&mut careers, job);
+            careers.records.insert(
+                sim,
+                Record {
+                    shift,
+                    ..Record::new(job)
+                },
+            );
             world.entity_mut(entity).insert(Career(row));
             let hire = crate::activity_log::CHANGE_HIRED;
             log_change(world, entity, Some(job.label.as_str()), hire);
@@ -1034,36 +1137,145 @@ pub(crate) fn tick(world: &mut World) {
     }
 }
 
-/// Rule 12: the player puts `agent` on `path`.
+/// Rule 12: the player puts `agent` on `path`, drawing the shift.
 pub(crate) fn assign(world: &mut World, agent: u32, path: u32) {
-    let reason = assign_or_refuse(world, agent, Some(path));
-    let mut careers = world.resource_mut::<Careers>();
-    careers.commands += 1;
-    careers.last_result = Some(CareerResult { agent, reason });
+    let reason = assign_or_refuse(world, agent, Some(path), None);
+    record_command(world, agent, reason);
+}
+
+/// [WS-select] item 1: the player puts `agent` on `path` holding shift
+/// index `shift` of its first level, with no draw.
+pub(crate) fn assign_with_shift(world: &mut World, agent: u32, path: u32, shift: u32) {
+    let reason = assign_or_refuse(world, agent, Some(path), Some(shift));
+    record_command(world, agent, reason);
 }
 
 /// Rule 12: the player makes `agent` unemployed.
 pub(crate) fn quit(world: &mut World, agent: u32) {
-    let reason = assign_or_refuse(world, agent, None);
+    let reason = assign_or_refuse(world, agent, None, None);
+    record_command(world, agent, reason);
+}
+
+/// [WS-select] items 2 and 3: the employed `agent` holds shift index
+/// `shift` of their level from now on. Any scheduled shift still open at
+/// home settles first, as a career change settles it, and the good-week
+/// streak starts again; nothing else about the job changes.
+pub(crate) fn change_shift(world: &mut World, agent: u32, shift: u32) {
+    let reason = change_shift_or_refuse(world, agent, shift);
+    record_command(world, agent, reason);
+}
+
+/// Every career command, applied or refused, is counted and reported.
+fn record_command(world: &mut World, agent: u32, reason: Option<CareerRefusal>) {
     let mut careers = world.resource_mut::<Careers>();
     careers.commands += 1;
     careers.last_result = Some(CareerResult { agent, reason });
 }
 
-fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<CareerRefusal> {
-    let pack = world.resource::<Content>().0;
+/// The living person at entity index `agent` who is at home, or why not.
+fn person_at_home(world: &World, agent: u32) -> Result<(Entity, SimId), CareerRefusal> {
     // `agent` is an entity index, as every per-person command names one.
-    let Some(entity) = crate::family::sim_id_at(world, agent)
+    let entity = crate::family::sim_id_at(world, agent)
         .and_then(|sim| crate::edit::living_entity(world, sim))
-    else {
-        return Some(CareerRefusal::NotAPerson);
-    };
+        .ok_or(CareerRefusal::NotAPerson)?;
     if world.get::<AtWork>(entity).is_some() || world.get::<Commuting>(entity).is_some() {
-        return Some(CareerRefusal::AtWork);
+        return Err(CareerRefusal::AtWork);
     }
     let sim = *world
         .get::<SimId>(entity)
         .expect("a living person has an id");
+    Ok((entity, sim))
+}
+
+/// Why `shift` cannot become `entity`'s shift at their current level, or
+/// `None` when it can.
+fn shift_change_refusal(
+    world: &World,
+    entity: Entity,
+    sim: SimId,
+    shift: u32,
+) -> Option<CareerRefusal> {
+    let pack = world.resource::<Content>().0;
+    let Some(job) = job_of(world, pack, entity) else {
+        return Some(CareerRefusal::NotEmployed);
+    };
+    if !job.offers(shift as usize) {
+        return Some(CareerRefusal::ShiftNotOffered);
+    }
+    let held = world
+        .resource::<Careers>()
+        .record(sim)
+        .map_or(0, |record| record.shift);
+    (held == shift).then_some(CareerRefusal::SameShift)
+}
+
+fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<CareerRefusal> {
+    let pack = world.resource::<Content>().0;
+    let (entity, sim) = match person_at_home(world, agent) {
+        Ok(person) => person,
+        Err(reason) => return Some(reason),
+    };
+    if let Some(reason) = shift_change_refusal(world, entity, sim, shift) {
+        return Some(reason);
+    }
+    let path_before = job_of(world, pack, entity).map(|job| job.path);
+    crate::attendance::close_for_shift_change(world, entity);
+    // Settling can run a review that waited for the person: it can fire,
+    // demote or promote them or change their path. The change applies only
+    // to the job they hold after it, so it is checked again. A shift index
+    // names a shift of one path, so after a change of path it is refused
+    // rather than read as the new path's shift. The settlement itself
+    // stands either way ([WS-select] item 4).
+    if job_of(world, pack, entity).is_some_and(|job| Some(job.path) != path_before) {
+        return Some(CareerRefusal::ShiftNotOffered);
+    }
+    if let Some(reason) = shift_change_refusal(world, entity, sim, shift) {
+        return Some(reason);
+    }
+    let job = job_of(world, pack, entity).expect("checked above");
+    let career = world.get::<Career>(entity).expect("employed").0;
+    // A departure a reading order deferred belongs to the old shift, as an
+    // assignment drops it for the old job.
+    world
+        .entity_mut(entity)
+        .remove::<crate::reading::PendingShift>();
+    let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
+    let mut careers = world.resource_mut::<Careers>();
+    let held = careers.record(sim).map_or(0, |record| record.shift);
+    // The owner's rulings of 2026-10-23 and 2026-10-24: the change takes
+    // effect from the next day, and the schedule held when the day began
+    // still runs today. A second change the same day keeps that schedule.
+    let from = careers
+        .shift_before_change(sim, today, career)
+        .unwrap_or(held);
+    let record = careers
+        .records
+        .entry(sim)
+        .or_insert_with(|| Record::new(job));
+    record.consecutive_good = 0;
+    record.shift = shift;
+    careers.shift_changed.insert(
+        sim,
+        ShiftChange {
+            day: today,
+            career,
+            from,
+        },
+    );
+    None
+}
+
+fn assign_or_refuse(
+    world: &mut World,
+    agent: u32,
+    path: Option<u32>,
+    chosen: Option<u32>,
+) -> Option<CareerRefusal> {
+    let pack = world.resource::<Content>().0;
+    let (entity, sim) = match person_at_home(world, agent) {
+        Ok(person) => person,
+        Err(reason) => return Some(reason),
+    };
     match path {
         Some(path) => {
             let Some(&row) = pack
@@ -1074,11 +1286,25 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
                 return Some(CareerRefusal::UnknownPath);
             };
             let job = &pack.careers[row as usize];
+            if chosen.is_some_and(|shift| !job.offers(shift as usize)) {
+                return Some(CareerRefusal::ShiftNotOffered);
+            }
             crate::attendance::close_for_career_change(world, entity);
-            world
-                .resource_mut::<Careers>()
-                .records
-                .insert(sim, Record::new(job));
+            let mut careers = world.resource_mut::<Careers>();
+            // A new job starts as it always has; the next-day rule is a
+            // shift change's.
+            careers.shift_changed.remove(&sim);
+            let shift = match chosen {
+                Some(shift) => shift,
+                None => crate::shifts::draw(&mut careers, job),
+            };
+            careers.records.insert(
+                sim,
+                Record {
+                    shift,
+                    ..Record::new(job)
+                },
+            );
             world
                 .entity_mut(entity)
                 .insert(Career(row))
@@ -1089,7 +1315,9 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
         None => {
             let held = job_of(world, pack, entity).map(|job| job.label.as_str());
             crate::attendance::close_for_career_change(world, entity);
-            world.resource_mut::<Careers>().records.remove(&sim);
+            let mut careers = world.resource_mut::<Careers>();
+            careers.records.remove(&sim);
+            careers.shift_changed.remove(&sim);
             world
                 .entity_mut(entity)
                 .remove::<Career>()
@@ -1144,6 +1372,8 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     }
     hash.write_bytes(b"careers-v1");
     careers.hash_into(hash);
+    hash_shifts(world, careers, hash);
+    hash_shift_changes(world, hash);
     let mut jobs: Vec<(u32, u32)> = world
         .try_query_filtered::<(&SimId, &Career), With<Agent>>()
         .map(|mut query| {
@@ -1159,6 +1389,181 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
         hash.write_u64(u64::from(sim));
         hash.write_u64(u64::from(career));
     }
+}
+
+/// Issue 296, [WS-determinism] item 3: after the people whose search is
+/// off, the shift stream, its draw count and every held shift other than
+/// the standard one, by sim id and shift id; written only once the stream
+/// has been drawn or someone holds another shift, so a world of standard
+/// shifts hashes as it did before shifts existed.
+fn hash_shifts(world: &World, careers: &Careers, hash: &mut FnvHasher) {
+    let held = held_shifts(world);
+    if careers.shift_draws == 0 && held.is_empty() {
+        return;
+    }
+    hash.write_bytes(b"career-shifts-v1");
+    careers.shift_rng.hash_into(hash);
+    hash.write_u64(careers.shift_draws);
+    hash.write_u64(held.len() as u64);
+    for row in &held {
+        hash.write_u64(u64::from(row.sim));
+        hash.write_u64(row.shift.len() as u64);
+        hash.write_bytes(row.shift.as_bytes());
+    }
+}
+
+/// The people who changed shift today, by sim id with the day and the
+/// shift whose schedule still runs today; written only when someone did,
+/// so every other world hashes as before the rule.
+fn hash_shift_changes(world: &World, hash: &mut FnvHasher) {
+    let changes = shift_changes_today(world);
+    if changes.is_empty() {
+        return;
+    }
+    hash.write_bytes(b"career-shift-changes-v2");
+    hash.write_u64(changes.len() as u64);
+    for change in &changes {
+        hash.write_u64(u64::from(change.sim));
+        hash.write_u64(change.day);
+        hash.write_u64(change.from.len() as u64);
+        hash.write_bytes(change.from.as_bytes());
+    }
+}
+
+/// Every living person who changed shift on the current day at the level
+/// they still hold, in sim id order, with the id of the shift whose
+/// schedule runs for the rest of the day: the only changes that still
+/// matter.
+pub(crate) fn shift_changes_today(world: &World) -> Vec<SavedShiftChange> {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return Vec::new();
+    };
+    let pack = world.resource::<Content>().0;
+    let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
+    careers
+        .shift_changed
+        .iter()
+        .filter(|(_, change)| change.day == today)
+        .filter_map(|(sim, change)| {
+            let entity = crate::edit::living_entity(world, sim.0)?;
+            let career = world.get::<Career>(entity)?.0;
+            let from = pack
+                .careers
+                .get(career as usize)?
+                .shift(change.from as usize)?;
+            (career == change.career).then(|| SavedShiftChange {
+                sim: sim.0,
+                day: change.day,
+                from: from.id.to_string(),
+            })
+        })
+        .collect()
+}
+
+/// Every living person whose held shift is not their level's standard
+/// one, in sim id order, with the shift's id ([WS-save]). A held index past
+/// the level's list works the standard shift (`shifts::shift_of`), so it is
+/// left out, as the standard shift is.
+pub(crate) fn held_shifts(world: &World) -> Vec<SavedHeldShift> {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return Vec::new();
+    };
+    let pack = world.resource::<Content>().0;
+    careers
+        .records
+        .iter()
+        .filter(|(_, record)| record.shift != 0)
+        .filter_map(|(sim, record)| {
+            let entity = crate::edit::living_entity(world, sim.0)?;
+            let shift = job_of(world, pack, entity)?.shift(record.shift as usize)?;
+            Some(SavedHeldShift {
+                sim: sim.0,
+                shift: shift.id.to_string(),
+            })
+        })
+        .collect()
+}
+
+/// Schema twenty-one's shift block: the stream, its draw count and the
+/// held shifts other than the standard ones.
+pub(crate) fn saved_shifts(world: &World) -> SavedShifts {
+    let (rng, draws) = world.get_resource::<Careers>().map_or_else(
+        || (SimRng::from_seed(crate::shifts::SHIFTS_SEED), 0),
+        |careers| (careers.shift_rng.clone(), careers.shift_draws),
+    );
+    SavedShifts {
+        rng,
+        draws,
+        held: held_shifts(world),
+        changed_today: shift_changes_today(world),
+    }
+}
+
+/// Validates and installs schema twenty-one's shift block over a world
+/// whose careers the older envelope restored, every held shift standard:
+/// each listed person living, holding a job and a career record, listed
+/// once in ascending order, with a shift id other than `standard` that
+/// their level lists ([WS-save]).
+pub(crate) fn restore_shifts(
+    world: &mut World,
+    saved: SavedShifts,
+) -> Result<(), crate::SaveError> {
+    use crate::SaveError::InvalidValue;
+    let pack = world.resource::<Content>().0;
+    if saved.held.windows(2).any(|pair| pair[0].sim >= pair[1].sim) {
+        return Err(InvalidValue);
+    }
+    let mut indices = Vec::with_capacity(saved.held.len());
+    for row in &saved.held {
+        let entity = crate::edit::living_entity(world, row.sim).ok_or(InvalidValue)?;
+        let job = job_of(world, pack, entity).ok_or(InvalidValue)?;
+        if world.resource::<Careers>().record(SimId(row.sim)).is_none()
+            || row.shift == terri_data::STANDARD_SHIFT_ID
+        {
+            return Err(InvalidValue);
+        }
+        let index = job.shift_index(&row.shift).ok_or(InvalidValue)?;
+        indices.push((SimId(row.sim), index as u32));
+    }
+    let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
+    if saved
+        .changed_today
+        .windows(2)
+        .any(|pair| pair[0].sim >= pair[1].sim)
+    {
+        return Err(InvalidValue);
+    }
+    let mut changes = BTreeMap::new();
+    for change in &saved.changed_today {
+        let entity = crate::edit::living_entity(world, change.sim).ok_or(InvalidValue)?;
+        let career = world.get::<Career>(entity).ok_or(InvalidValue)?.0;
+        let job = pack.careers.get(career as usize).ok_or(InvalidValue)?;
+        let from = job.shift_index(&change.from).ok_or(InvalidValue)?;
+        if change.day != today
+            || world
+                .resource::<Careers>()
+                .record(SimId(change.sim))
+                .is_none()
+        {
+            return Err(InvalidValue);
+        }
+        changes.insert(
+            SimId(change.sim),
+            ShiftChange {
+                day: change.day,
+                career,
+                from: from as u32,
+            },
+        );
+    }
+    let mut careers = world.resource_mut::<Careers>();
+    careers.shift_rng = saved.rng;
+    careers.shift_draws = saved.draws;
+    for (sim, index) in indices {
+        careers.records.get_mut(&sim).expect("checked above").shift = index;
+    }
+    careers.shift_changed = changes;
+    Ok(())
 }
 
 /// Validates a saved careers block against the loaded world (rule 16):
@@ -1313,6 +1718,10 @@ pub fn history(world: &World, entity: Entity) -> Vec<f32> {
 #[cfg(test)]
 #[path = "job_search_tests.rs"]
 mod job_search_tests;
+
+#[cfg(test)]
+#[path = "search_tests.rs"]
+mod search_tests;
 
 #[cfg(test)]
 mod tests {
@@ -1971,7 +2380,12 @@ mod tests {
 
     #[test]
     fn the_search_hires_the_unemployed_only_while_the_setting_is_on() {
-        let mut sim = shipped_with(|t| t.career_search_chance = 1.0);
+        // At search temperature 0, the best-fit rule from before issue 296:
+        // this test's subject is the setting, not the choice of path.
+        let mut sim = shipped_with(|t| {
+            t.career_search_chance = 1.0;
+            t.career_search_temperature = 0.0;
+        });
         let (id, entity) = worker(&mut sim);
         sim.world_mut().entity_mut(entity).remove::<Career>();
         sim.world_mut()

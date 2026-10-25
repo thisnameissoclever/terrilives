@@ -1,7 +1,7 @@
 import { setActionIntent } from './action-intent.js';
-import type { CareerFactors, CareerReport, CareerResult, CareerWeek } from '../bridge.js';
+import type { CareerFactors, CareerReport, CareerResult, CareerShift, CareerWeek } from '../bridge.js';
 import { careerGraphKey, renderCareerGraph, type CareerGraphThresholds } from './career-graph.js';
-import { formatCareerSchedule, type CareerSchedule } from './game-hud.js';
+import { formatCareerSchedule, formatShiftHours, shiftName, type CareerSchedule } from './game-hud.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
 // The Career section of Sim details - rule 18 of
@@ -12,7 +12,9 @@ import { setTextIfChanged } from './set-text-if-changed.js';
 // nothing else. One pending command at a time; the simulation stays the
 // authority on what a command does. A box sets whether the person looks
 // for work on their own while unemployed - their own setting
-// (docs/specs/2026-10-18-job-search-per-person.md).
+// (docs/specs/2026-10-18-job-search-per-person.md). Shift selectors pick
+// the shift an assignment holds and change an employed person's shift
+// (docs/specs/2026-10-18-shifts-and-careers.md, [WS-shell]).
 
 export interface CareerPanelSource {
   selectedIndex(): number | null;
@@ -26,6 +28,10 @@ export interface CareerPanelSource {
   careerPathLabels(): readonly string[];
   assignCareer(entity: number, path: number): boolean;
   quitCareer(entity: number): boolean;
+  careerPathShifts(path: number): readonly CareerShift[];
+  careerShiftsOf(entity: number): readonly CareerShift[];
+  assignCareerShift(entity: number, path: number, shift: number): boolean;
+  changeShift(entity: number, shift: number): boolean;
   lastCareerResult(): CareerResult | null;
   jobSearchOf(entity: number): boolean | null;
   setJobSearch(entity: number, search: boolean): boolean;
@@ -62,6 +68,79 @@ export interface CareerPanelState {
   readonly status: string;
   /** The person's job search setting, or null when it cannot be read. */
   readonly jobSearch: boolean | null;
+  /** The chosen path's first-level shifts, most likely first. */
+  readonly assignShifts?: readonly CareerShiftOption[];
+  /** The shift the assignment holds, or null for By chance. */
+  readonly shiftChoice?: number | null;
+  /** The shifts the held level offers, most likely first. */
+  readonly heldShifts?: readonly CareerShiftOption[];
+  /** The index of the shift held, or null without a job. */
+  readonly heldShift?: number | null;
+  /** The shift selected to change to. */
+  readonly changeChoice?: number | null;
+}
+
+/** One shift as a selector offers it: its index at the level and its wording. */
+export interface CareerShiftOption {
+  readonly index: number;
+  readonly text: string;
+}
+
+// [WS-shell] items 3 to 5. Functional text, for the owner's review.
+export const BY_CHANCE = 'By chance';
+export const SHIFT_LABEL = 'Shift';
+export const SHIFT_SCHEDULE = 'Shift schedule';
+export const CHANGE_SHIFT = 'Change shift';
+export const SHIFT_CHANGE_NOTE = 'Changing shift resets the good weeks counted toward the next promotion.';
+
+/**
+ * Words each offered shift as `{shift}, {working days}, {start} to {end}`,
+ * most likely first with ties in authored order. For an assignment, which
+ * draws By chance, each line ends `, {n}% chance`, where `n` is its chance
+ * of being drawn rounded to a whole percent; a shift change is chosen, not
+ * drawn, so its lines carry no chance. A shift whose hours cannot be read is
+ * left out; one whose kind cannot be named loses the name.
+ */
+export function careerShiftOptions(
+  shifts: readonly CareerShift[],
+  dayTicks: number,
+  use: 'assign' | 'change' = 'assign',
+): CareerShiftOption[] {
+  const total = shifts.reduce((sum, shift) => sum + shift.weight, 0);
+  if (total <= 0) return [];
+  return shifts
+    .map((shift, order) => ({ shift, order, hours: formatShiftHours(shift, dayTicks) }))
+    .filter(row => row.hours !== null)
+    .sort((a, b) => b.shift.weight - a.shift.weight || a.order - b.order)
+    .map(({ shift, hours }) => {
+      const words = shiftWords(shift.kind, hours!);
+      if (use === 'change') return { index: shift.index, text: words };
+      return { index: shift.index, text: `${words}, ${Math.round((shift.weight / total) * 100)}% chance` };
+    });
+}
+
+/** `{shift}, {hours}`, or the hours alone when the kind cannot be named. */
+function shiftWords(kind: number | null | undefined, hours: string): string {
+  const name = shiftName(kind);
+  return name === null ? hours : `${name}, ${hours}`;
+}
+
+/**
+ * The Change shift list: the shifts the level offers, as
+ * `careerShiftOptions` words them for a change, with the held shift first
+ * when the level no longer offers it (a retired shift, weight zero), so the
+ * selector always shows what the person works.
+ */
+export function heldShiftOptions(
+  offered: readonly CareerShift[],
+  held: CareerSchedule | null,
+  dayTicks: number,
+): CareerShiftOption[] {
+  const rows = careerShiftOptions(offered, dayTicks, 'change');
+  const index = held?.index;
+  if (held === null || index === null || index === undefined || rows.some(row => row.index === index)) return rows;
+  const hours = formatShiftHours(held, dayTicks);
+  return hours === null ? rows : [{ index, text: shiftWords(held.kind, hours) }, ...rows];
 }
 
 /** The job search box's label. Functional text, for the owner's review. */
@@ -145,9 +224,18 @@ export function careerJobView(
 }
 
 const RESULT_TEXT: Readonly<Record<string, string>> = {
-  assigned: 'Career assigned.',
+  assign: 'Career assigned.',
   quit: 'Job left.',
+  shift: 'Shift changed.',
 };
+
+const SENT_TEXT: Readonly<Record<string, string>> = {
+  assign: 'Assigning the career…',
+  quit: 'Leaving the job…',
+  shift: 'Changing the shift…',
+};
+
+type CareerCommand = 'assign' | 'quit' | 'shift';
 
 /** One pending UI command; `afterCommands` reads what the drain did with it. */
 export class CareerPanel {
@@ -157,7 +245,14 @@ export class CareerPanel {
   private paths: readonly string[] = [];
   private choice: number | null = null;
   private status = '';
-  private pending: { agent: number; path: number | null; after: bigint } | null = null;
+  private pending: { agent: number; command: CareerCommand; after: bigint } | null = null;
+  private assignShifts: readonly CareerShiftOption[] = [];
+  private shiftChoice: number | null = null;
+  private heldShifts: readonly CareerShiftOption[] = [];
+  private heldShift: number | null = null;
+  /** Whose job, which job and which shift the last read saw; a change resets the change choice. */
+  private heldKey: string | null = null;
+  private changeChoice: number | null = null;
   private lastRead: number | null = null;
   private jobSearch: boolean | null = null;
   /** A setting sent and not yet applied: reads keep the sent value. */
@@ -174,7 +269,9 @@ export class CareerPanel {
 
   private show(): void {
     this.render({ agent: this.agent, job: this.job, unavailable: this.unavailable, paths: this.paths,
-      choice: this.choice, pending: this.pending !== null, status: this.status, jobSearch: this.jobSearch });
+      choice: this.choice, pending: this.pending !== null, status: this.status, jobSearch: this.jobSearch,
+      assignShifts: this.assignShifts, shiftChoice: this.shiftChoice, heldShifts: this.heldShifts,
+      heldShift: this.heldShift, changeChoice: this.changeChoice });
   }
 
   private syncSelection(): boolean {
@@ -189,8 +286,27 @@ export class CareerPanel {
     this.lastRead = null;
     this.jobSearch = null;
     this.searchSent = false;
+    this.clearShifts();
     this.show();
     return true;
+  }
+
+  private clearShifts(): void {
+    this.assignShifts = [];
+    this.shiftChoice = null;
+    this.heldShifts = [];
+    this.heldShift = null;
+    this.changeChoice = null;
+    this.heldKey = null;
+  }
+
+  /** The chosen path's shifts; a choice the path no longer offers returns to By chance. */
+  private readAssignShifts(): void {
+    this.assignShifts = this.choice === null ? []
+      : careerShiftOptions(this.source.careerPathShifts(this.choice), this.source.dayTicks());
+    if (this.shiftChoice !== null && !this.assignShifts.some(option => option.index === this.shiftChoice)) {
+      this.shiftChoice = null;
+    }
   }
 
   update(nowMs: number, force = false): void {
@@ -203,6 +319,10 @@ export class CareerPanel {
 
   private read(): void {
     this.paths = this.source.careerPathLabels();
+    if (this.choice !== null && this.choice >= this.paths.length) this.choice = null;
+    this.readAssignShifts();
+    this.heldShifts = [];
+    this.heldShift = null;
     if (!this.searchSent) this.jobSearch = this.agent === null ? null : this.source.jobSearchOf(this.agent);
     if (this.agent === null) {
       this.job = null;
@@ -213,6 +333,7 @@ export class CareerPanel {
     if (title === null) {
       this.job = null;
       this.unavailable = false;
+      this.changeChoice = null;
       return;
     }
     const report = this.source.careerReport(this.agent);
@@ -222,25 +343,60 @@ export class CareerPanel {
       return;
     }
     this.unavailable = false;
-    const schedule = formatCareerSchedule(title, this.source.careerScheduleOf(this.agent), this.source.dayTicks());
+    const held = this.source.careerScheduleOf(this.agent);
+    this.heldShift = held?.index ?? null;
+    this.heldShifts = heldShiftOptions(this.source.careerShiftsOf(this.agent), held, this.source.dayTicks());
+    // A new job, a promotion, a review or a drawn shift can move the held
+    // shift without the player choosing one; the selector then follows it,
+    // so Change shift stays disabled until the player picks another.
+    const heldKey = `${this.agent}:${report.path}:${report.level}:${title}:${this.heldShift}`;
+    if (heldKey !== this.heldKey || this.changeChoice === null
+      || !this.heldShifts.some(option => option.index === this.changeChoice)) {
+      this.changeChoice = this.heldShift;
+    }
+    this.heldKey = heldKey;
+    const schedule = formatCareerSchedule(title, held, this.source.dayTicks());
     this.job = careerJobView(title, this.paths[report.path], schedule, report,
       this.source.careerFactors(this.agent), this.source.careerHistory(this.agent));
     this.job = {...this.job, attendance: careerAttendanceLine(this.source.careerAttendanceOf?.(this.agent) ?? [])};
-    if (this.choice !== null && this.choice >= this.paths.length) this.choice = null;
   }
 
   choose(path: number | null): void {
     if (this.syncSelection() || this.pending) return;
     this.choice = path !== null && Number.isInteger(path) && path >= 0 && path < this.paths.length ? path : null;
+    // A new path's shifts start at By chance ([WS-shell] item 3).
+    this.shiftChoice = null;
+    this.readAssignShifts();
+    this.status = '';
+    this.show();
+  }
+
+  /** The shift an assignment holds; null is By chance. */
+  chooseShift(shift: number | null): void {
+    if (this.syncSelection() || this.pending) return;
+    this.shiftChoice = shift !== null && this.assignShifts.some(option => option.index === shift) ? shift : null;
+    this.status = '';
+    this.show();
+  }
+
+  /** The shift Change shift moves an employed person to. */
+  chooseChange(shift: number | null): void {
+    if (this.syncSelection() || this.pending) return;
+    this.changeChoice = shift !== null && this.heldShifts.some(option => option.index === shift) ? shift : this.heldShift;
     this.status = '';
     this.show();
   }
 
   assign(): void {
-    if (this.choice !== null) this.stage(this.choice);
+    if (this.choice !== null) this.stage('assign');
   }
 
-  quit(): void { this.stage(null); }
+  quit(): void { this.stage('quit'); }
+
+  /** Sends the selected shift for the employed person ([WS-shell] item 4). */
+  changeShift(): void {
+    if (this.changeChoice !== null && this.changeChoice !== this.heldShift) this.stage('shift');
+  }
 
   /** Sends the person's job search setting; shown as sent until applied. */
   setJobSearch(search: boolean): void {
@@ -254,19 +410,28 @@ export class CareerPanel {
     this.show();
   }
 
-  private stage(path: number | null): void {
+  private stage(command: CareerCommand): void {
     if (this.syncSelection() || this.pending || this.agent === null) return;
+    const path = this.choice;
+    const shift = this.shiftChoice;
+    const change = this.changeChoice;
     this.read();
-    if (path === null && this.job === null) {
-      this.status = 'This person has no job to leave.';
+    if (command !== 'assign' && this.job === null) {
+      this.status = command === 'quit' ? 'This person has no job to leave.' : 'This person has no job.';
       this.show();
       return;
     }
     const after = this.source.lastCareerResult()?.sequence ?? 0n;
-    const sent = path === null ? this.source.quitCareer(this.agent) : this.source.assignCareer(this.agent, path);
+    let sent = false;
+    if (command === 'quit') sent = this.source.quitCareer(this.agent);
+    else if (command === 'shift') sent = change !== null && this.source.changeShift(this.agent, change);
+    else if (path !== null) {
+      sent = shift === null ? this.source.assignCareer(this.agent, path)
+        : this.source.assignCareerShift(this.agent, path, shift);
+    }
     if (sent) {
-      this.pending = { agent: this.agent, path, after };
-      this.status = path === null ? 'Leaving the job…' : 'Assigning the career…';
+      this.pending = { agent: this.agent, command, after };
+      this.status = SENT_TEXT[command];
     } else {
       this.status = 'The career change could not be sent.';
     }
@@ -284,11 +449,11 @@ export class CareerPanel {
     const result = this.source.lastCareerResult();
     if (!result || result.sequence <= this.pending.after) return;
     const matches = result.agent === this.pending.agent;
-    const wasQuit = this.pending.path === null;
+    const command = this.pending.command;
     this.pending = null;
     this.status = !matches
       ? 'Another career change was handled. Check the current job.'
-      : result.reason ?? (wasQuit ? RESULT_TEXT.quit : RESULT_TEXT.assigned);
+      : result.reason ?? RESULT_TEXT[command];
     this.read();
     this.show();
   }
@@ -303,6 +468,7 @@ export class CareerPanel {
     this.lastRead = null;
     this.jobSearch = null;
     this.searchSent = false;
+    this.clearShifts();
     this.show();
   }
 }
@@ -333,7 +499,10 @@ function line(doc: Document, className: string): HTMLParagraphElement {
 export function createCareerPanelSurface(
   doc: Document,
   roots: CareerPanelRoots,
-  actions: { choose(path: number | null): void; assign(): void; quit(): void; setJobSearch(search: boolean): void },
+  actions: {
+    choose(path: number | null): void; assign(): void; quit(): void; setJobSearch(search: boolean): void;
+    chooseShift?(shift: number | null): void; chooseChange?(shift: number | null): void; changeShift?(): void;
+  },
 ): (state: CareerPanelState) => void {
   const { section, empty, content } = roots;
   const heading = doc.createElement('div');
@@ -394,6 +563,22 @@ export function createCareerPanelSurface(
   placeholder.textContent = 'Choose a path';
   select.append(placeholder);
   label.append(select);
+  // [WS-shell] item 3: the shift the assignment holds, By chance first.
+  const shiftLabel = doc.createElement('label');
+  shiftLabel.className = 'career-shift-assign';
+  shiftLabel.textContent = SHIFT_LABEL;
+  const shiftSelect = doc.createElement('select');
+  shiftSelect.setAttribute('aria-label', 'Choose the shift for the new job');
+  const byChance = doc.createElement('option');
+  byChance.value = '';
+  byChance.textContent = BY_CHANCE;
+  shiftSelect.append(byChance);
+  shiftLabel.append(shiftSelect);
+  // A closed selector cuts a long line at narrow widths, hiding the chance
+  // or the end time, so the chosen shift's whole line is repeated beneath
+  // it. Assistive technology already reads the selector's value.
+  const shiftLine = line(doc, 'career-shift-line');
+  shiftLine.setAttribute('aria-hidden', 'true');
   const buttons = doc.createElement('div');
   buttons.className = 'career-actions';
   const assign = doc.createElement('button');
@@ -405,7 +590,32 @@ export function createCareerPanelSurface(
   quit.textContent = 'Quit';
   setActionIntent(quit, 'destructive');
   buttons.append(assign, quit);
-  fieldset.append(legend, label, buttons);
+  fieldset.append(legend, label, shiftLabel, shiftLine, buttons);
+  // [WS-shell] item 4: an employed person's shift, below the schedule line
+  // and after the assignment controls, which keep the first path list.
+  const change = doc.createElement('fieldset');
+  change.className = 'career-shift-change';
+  const changeLegend = doc.createElement('legend');
+  changeLegend.textContent = SHIFT_SCHEDULE;
+  const changeLabel = doc.createElement('label');
+  changeLabel.textContent = SHIFT_LABEL;
+  const changeSelect = doc.createElement('select');
+  changeSelect.setAttribute('aria-label', 'Choose a shift to change to');
+  changeLabel.append(changeSelect);
+  const changeLine = line(doc, 'career-shift-line');
+  changeLine.setAttribute('aria-hidden', 'true');
+  const changeButton = doc.createElement('button');
+  changeButton.type = 'button';
+  changeButton.className = 'career-change-shift';
+  changeButton.textContent = CHANGE_SHIFT;
+  setActionIntent(changeButton, 'affirmative');
+  const changeNote = line(doc, 'career-shift-note');
+  changeNote.textContent = SHIFT_CHANGE_NOTE;
+  // One Career panel exists, so the note's id is unique; the button names
+  // the note as its description, which screen readers read with it.
+  changeNote.id = 'career-shift-note';
+  changeButton.setAttribute('aria-describedby', changeNote.id);
+  change.append(changeLegend, changeLabel, changeLine, changeButton, changeNote);
   // The person's own setting, outside the assignment controls: it stays
   // usable while an assignment is pending and for the employed, for when
   // they are next out of work.
@@ -421,13 +631,33 @@ export function createCareerPanelSurface(
   // The miniature sits under the heading its control belongs to, so
   // pressing i changes what is on screen wherever the tab is scrolled.
   content.append(heading, miniGraph, path, level, pay, schedule, week, lastReview, attendance, factorsHeading, factors,
-    streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, searchLabel, status);
+    streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, change, searchLabel, status);
 
   const options: HTMLOptionElement[] = [];
+  const shiftOptions: HTMLOptionElement[] = [];
+  const changeOptions: HTMLOptionElement[] = [];
+  /** Keeps `target` holding one option per row in `held`, after any options it was built with. */
+  const fill = (target: HTMLSelectElement, held: HTMLOptionElement[], rows: readonly CareerShiftOption[]) => {
+    while (held.length > rows.length) held.pop()!.remove();
+    for (const [at, row] of rows.entries()) {
+      let option = held[at];
+      if (!option) {
+        option = doc.createElement('option');
+        held.push(option);
+        target.append(option);
+      }
+      option.value = String(row.index);
+      setTextIfChanged(option, row.text);
+    }
+  };
   let drawn = '';
   let miniOpen = false;
   let rowMiniOpen = false;
   let wasPending = false;
+  // The control that sent the pending command, which takes focus back once
+  // the command settles ([WS-shell]); null when the command came from
+  // somewhere else, such as the keyboard on the path list.
+  let sender: HTMLButtonElement | null = null;
   const rowGraphSvg = roots.rowGraph ? doc.createElementNS('http://www.w3.org/2000/svg', 'svg') : null;
   if (rowGraphSvg && roots.rowGraph) {
     rowGraphSvg.setAttribute('class', 'career-graph career-graph-mini');
@@ -450,12 +680,32 @@ export function createCareerPanelSurface(
     if (roots.rowGraph) roots.rowGraph.hidden = !rowMiniOpen;
   });
   select.addEventListener('change', () => actions.choose(select.value === '' ? null : Number(select.value)));
-  assign.addEventListener('click', () => actions.assign());
-  quit.addEventListener('click', () => actions.quit());
+  assign.addEventListener('click', () => { sender = assign; actions.assign(); });
+  quit.addEventListener('click', () => { sender = quit; actions.quit(); });
   searchBox.addEventListener('change', () => actions.setJobSearch(searchBox.checked));
+  shiftSelect.addEventListener('change', () =>
+    actions.chooseShift?.(shiftSelect.value === '' ? null : Number(shiftSelect.value)));
+  changeSelect.addEventListener('change', () =>
+    actions.chooseChange?.(changeSelect.value === '' ? null : Number(changeSelect.value)));
+  changeButton.addEventListener('click', () => { sender = changeButton; actions.changeShift?.(); });
+
+  /**
+   * Returns focus to the control that sent the settled command. A sender the
+   * result disabled or hid hands focus to its nearest usable neighbor: Change
+   * shift to its selector, Assign and Quit to the path list.
+   */
+  const settleFocus = () => {
+    const usable = (node: HTMLSelectElement | HTMLButtonElement) =>
+      !node.disabled && !node.hidden && (!change.contains(node) || !change.hidden)
+      && (node !== select || select.options.length > 1);
+    const candidates: (HTMLSelectElement | HTMLButtonElement)[] = sender === changeButton
+      ? [changeButton, changeSelect, select]
+      : sender === assign || sender === quit ? [sender, select] : [select];
+    candidates.find(usable)?.focus();
+  };
 
   return state => {
-    const focusedHere = fieldset.contains(doc.activeElement);
+    const focusedHere = fieldset.contains(doc.activeElement) || change.contains(doc.activeElement);
     const job = state.job;
     section.dataset.state = state.agent === null ? 'unselected' : state.unavailable ? 'unavailable' : job ? 'employed' : 'unemployed';
     setTextIfChanged(empty, state.agent === null ? 'Select a person to see their career.'
@@ -546,6 +796,24 @@ export function createCareerPanelSurface(
     if (focusedHere && disabled && doc.activeElement !== section) section.focus();
     fieldset.disabled = disabled;
     select.disabled = state.paths.length === 0;
+    const assignShifts = state.assignShifts ?? [];
+    fill(shiftSelect, shiftOptions, assignShifts);
+    shiftSelect.value = state.shiftChoice === null || state.shiftChoice === undefined ? '' : String(state.shiftChoice);
+    shiftSelect.disabled = state.choice === null || assignShifts.length === 0;
+    const chosen = assignShifts.find(option => option.index === state.shiftChoice);
+    setTextIfChanged(shiftLine, chosen?.text ?? '');
+    shiftLine.hidden = chosen === undefined;
+    const heldShifts = state.heldShifts ?? [];
+    // A level that offers one shift has nothing to change to.
+    change.hidden = job === null || heldShifts.length < 2;
+    fill(changeSelect, changeOptions, heldShifts);
+    const changeChoice = state.changeChoice ?? state.heldShift ?? null;
+    changeSelect.value = changeChoice === null ? '' : String(changeChoice);
+    const changeTo = heldShifts.find(option => option.index === changeChoice);
+    setTextIfChanged(changeLine, changeTo?.text ?? '');
+    changeLine.hidden = changeTo === undefined;
+    change.disabled = disabled || job === null;
+    changeButton.disabled = changeChoice === null || changeChoice === (state.heldShift ?? null);
     assign.disabled = state.choice === null;
     quit.disabled = job === null;
     searchLabel.hidden = state.jobSearch === null;
@@ -553,9 +821,10 @@ export function createCareerPanelSurface(
     searchBox.checked = state.jobSearch === true;
     setTextIfChanged(status, state.status);
     status.hidden = state.status === '';
-    if (wasPending && !state.pending && doc.activeElement === section && !disabled && state.paths.length > 0) {
-      select.focus();
+    if (wasPending && !state.pending && doc.activeElement === section && !disabled) {
+      settleFocus();
     }
+    if (!state.pending) sender = null;
     wasPending = state.pending;
   };
 }

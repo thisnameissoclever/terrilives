@@ -7,12 +7,27 @@ import { weatherAt, type WeatherTuning } from '../render/weather.js';
 /**
  * A job's working days and shift hours as the simulation reports them:
  * `workingDays` is a mask with bit 0 for Monday through bit 6 for Sunday,
- * and the two times are ticks of the day clock.
+ * and the two times are ticks of the day clock. `kind` is the held shift's
+ * kind, 0 to 3 for day, early, late and night, or null when it cannot be
+ * named; `index` is the shift's index at the level, 0 for the standard
+ * shift (issue 296, [WS-shell]).
  */
 export interface CareerSchedule {
   readonly workingDays: number;
   readonly shiftStart: number;
   readonly shiftTicks: number;
+  readonly kind?: number | null;
+  readonly index?: number | null;
+}
+
+/** The shift kind names, in kind order. Functional text, for the owner's review. */
+export const SHIFT_NAMES = ['Day shift', 'Early shift', 'Late shift', 'Night shift'] as const;
+
+/** The name of shift kind `kind`, or null for anything but 0 to 3. */
+export function shiftName(kind: number | null | undefined): string | null {
+  return typeof kind === 'number' && Number.isInteger(kind) && kind >= 0 && kind < SHIFT_NAMES.length
+    ? SHIFT_NAMES[kind]
+    : null;
 }
 
 export interface GameHudSource {
@@ -162,17 +177,22 @@ const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;
 
 /**
  * Names the days in a working-day mask: `every day` for all seven,
- * `Monday to Friday` for one unbroken run of two or more days in the
- * Monday-first week, and otherwise each day, separated by commas. A run
- * does not wrap from Sunday to Monday.
+ * `Monday to Friday` for one unbroken run of two or more days, and
+ * otherwise each day in Monday-first order, separated by commas. A run
+ * may wrap past Sunday, so Sunday to Thursday nights read
+ * `Sunday to Thursday`.
  */
 function formatWorkingDays(mask: number): string {
   if (mask === EVERY_WEEKDAY) return 'every day';
-  const days = WEEKDAY_NAMES.filter((_, weekday) => (mask & (1 << weekday)) !== 0);
-  const first = WEEKDAY_NAMES.indexOf(days[0]);
-  const last = WEEKDAY_NAMES.indexOf(days[days.length - 1]);
-  const unbroken = last - first + 1 === days.length;
-  return unbroken && days.length > 1 ? `${days[0]} to ${days[days.length - 1]}` : days.join(', ');
+  const count = WEEKDAY_NAMES.length;
+  const works = (weekday: number) => (mask & (1 << (((weekday % count) + count) % count))) !== 0;
+  const days = WEEKDAY_NAMES.filter((_, weekday) => works(weekday));
+  // A run starts on a working day whose previous day is off; exactly one
+  // such day means the working days form one run around the week.
+  const starts = WEEKDAY_NAMES.map((_, weekday) => weekday).filter(weekday => works(weekday) && !works(weekday - 1));
+  if (days.length < 2 || starts.length !== 1) return days.join(', ');
+  const first = starts[0];
+  return `${WEEKDAY_NAMES[first]} to ${WEEKDAY_NAMES[(first + days.length - 1) % count]}`;
 }
 
 function isScheduleTime(value: number): boolean {
@@ -180,26 +200,39 @@ function isScheduleTime(value: number): boolean {
 }
 
 /**
- * The Career row's text: the job label, then its working days and shift
- * hours, for example `Office clerk, Monday to Friday, 06:00 to 14:00`
- * ([CAL-hud]). A shift that runs past midnight ends at the next day's
- * time. Without a usable schedule the row keeps the label alone, which is
- * still true.
+ * The Career row's text: the job label, the held shift's name, then its
+ * working days and hours, for example
+ * `Office clerk, Day shift, Monday to Friday, 06:00 to 14:00` ([CAL-hud],
+ * issue 296's [WS-shell] item 1). A shift that runs past midnight ends at
+ * the next day's time. A kind that cannot be named leaves the name out;
+ * without a usable schedule the row keeps the label alone, which is still
+ * true.
  */
 export function formatCareerSchedule(
   label: string,
   schedule: CareerSchedule | null,
   dayTicks: number,
 ): string {
-  if (schedule === null || !Number.isInteger(dayTicks) || dayTicks <= 0) return label;
+  const hours = schedule === null ? null : formatShiftHours(schedule, dayTicks);
+  if (schedule === null || hours === null) return label;
+  const name = shiftName(schedule.kind);
+  return name === null ? `${label}, ${hours}` : `${label}, ${name}, ${hours}`;
+}
+
+/**
+ * A shift's working days and hours, `Monday to Friday, 06:00 to 14:00`, or
+ * null when the schedule or the day length cannot be read.
+ */
+export function formatShiftHours(schedule: CareerSchedule, dayTicks: number): string | null {
+  if (!Number.isInteger(dayTicks) || dayTicks <= 0) return null;
   const { workingDays, shiftStart, shiftTicks } = schedule;
   if (!Number.isInteger(workingDays) || workingDays <= 0 || workingDays > EVERY_WEEKDAY) {
-    return label;
+    return null;
   }
-  if (!isScheduleTime(shiftStart) || !isScheduleTime(shiftTicks)) return label;
+  if (!isScheduleTime(shiftStart) || !isScheduleTime(shiftTicks)) return null;
   const start = formatTimeOfDay(shiftStart % dayTicks, dayTicks);
   const end = formatTimeOfDay((shiftStart + shiftTicks) % dayTicks, dayTicks);
-  return `${label}, ${formatWorkingDays(workingDays)}, ${start} to ${end}`;
+  return `${formatWorkingDays(workingDays)}, ${start} to ${end}`;
 }
 
 export function formatFunds(value: number): string {

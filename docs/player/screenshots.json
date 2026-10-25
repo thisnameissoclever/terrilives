@@ -311,6 +311,24 @@
         "capturedAt": "2026-10-23",
         "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping one game day at a time until a bathroom privacy line was held, then the Log opened from its top-right button. The open and Only states are scrolled to the newest line.",
         "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
+      },
+      {
+        "id": "shift-careers-2026-10-24",
+        "url": "http://127.0.0.1:4191/",
+        "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+        "bundle": "index-DVZUdzNT.js",
+        "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+        "wasm": "terri_wasm_bg-aSRI3UZc.wasm",
+        "wasmSha256": "c5be841fe787dea99a1467bad4200e0df63519077c0471de14f6fba5b13023bf",
+        "gameSourceFileSha256": {
+          "web/index.html": "f8022e944a0005cc1a4c4f113efd0d59c4936f2f2ad5ed7abadf365c2c24efc5",
+          "web/src/main.ts": "a601d3e4511b1b4e2ee714688ffb305a2bb0f386eab0eb9c82a01f7dceb0f4a1",
+          "web/src/ui/career-panel.ts": "fa3d8deda723c27cf6ae334f3cb750cc01d940c16cffe43afdab2a55b89d1bbd",
+          "web/src/ui/game-hud.ts": "b2baab95e236adb1f14e4f844a2af57f81c6b9066670ad542da9dfa975c34661"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-24",
+        "method": "Playwright Chrome, headed and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. The shipped household after two reviewed weeks (Day 15, Monday 10:00) was imported with Options > Import save from a save written by the browser save writer; Career assigned shows Bill after Assign to the Library path."
       }
     ],
     "weatherSetup": {
@@ -625,13 +643,13 @@
       "description": "The selected person's career, pay and work schedule.",
       "access": "Open Sim details > Career.",
       "desktopDetail": "images/ui-sim-career-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "bdf2fb33c876b9e30988d4cc3067b51dc3bd212f2af635b8c5cf27d1fc9ba9a4",
-        "mobile": "5b89eba9b5c5dcf6bc29135229608af891d58afbd388addf93fd441ece98c0b2",
-        "desktopDetail": "3950380e17c6d93132bf8e806f98294ffc68819ae1eb88e8c2fed52180e76cd3"
+        "desktop": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
+        "mobile": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
+        "desktopDetail": "7160abbc3da5b471101817c227e3edd8826e3725388f72ce6976d8b2d5f86075"
       }
     },
     {
@@ -1407,12 +1425,12 @@
       "mobile": "images/ui-career-assigned-mobile.png",
       "description": "Career details after assigning a path.",
       "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "8259389a71325e545d171aa8b690f416fbaed72791ba4bd190cbad7617634ca1",
-        "mobile": "7382b4abe7a45b912cbef31f73c58b1ca3e9ee5e30e46331a221e9e7d358fe1e"
+        "desktop": "97172c578c224526c96df68934647e8fd0e75951f4336651acab5f97d51ea2fc",
+        "mobile": "47f4a5aafc192b5b266b891491a9ecbc6a33178dbca8f9a0857ce70d10be031d"
       }
     },
     {
@@ -1420,14 +1438,29 @@
       "section": "career",
       "desktop": "images/ui-career-controls-desktop.png",
       "mobile": "images/ui-career-controls-mobile.png",
-      "description": "Career assignment, Quit and automatic job search controls.",
+      "description": "The Assign a career controls: Career path, the assigning Shift selector, Assign and Quit.",
       "access": "Open Sim details > Career, then scroll to Assign a career.",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "b1c9bcc7d8410a9fbdea891f26e1238806f682006d67e34d06241318a44c8ff1",
-        "mobile": "e8213181c02dcc4bb41ae628d26143f219f10268f397358a1fbb151447a4eb92"
+        "desktop": "31512630612c02553ef39a856a3a2b9f631c48c4805292f1197efdcc2917a4eb",
+        "mobile": "9fa96d81346266ed1856321436fa9e2a88a32d99ddd64fb7d5ab8fcc3f6529aa"
+      }
+    },
+    {
+      "id": "career-shift-controls",
+      "section": "career",
+      "desktop": "images/ui-career-shift-desktop.png",
+      "mobile": "images/ui-career-shift-mobile.png",
+      "description": "The end of the Career tab: the assigning Shift selector, Assign and Quit, Shift schedule with Change shift and its note, and the automatic job search box.",
+      "access": "Open Sim details > Career, then scroll to the end of the tab.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
+        "mobile": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752"
       }
     },
     {
@@ -1797,12 +1830,12 @@
       "mobile": "images/ui-career-review-mobile.png",
       "description": "The selected person's completed work reviews.",
       "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "fbf41374b0c2003191f633f779300eb3a0d58821152a9cfb883c5f8b5c643123",
-        "mobile": "50eda1535034f6148102aebb11d9f2b0e443897f6720f2074100b7a58f5255c8"
+        "desktop": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
+        "mobile": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e"
       }
     },
     {
@@ -1812,12 +1845,12 @@
       "mobile": "images/ui-career-overview-graph-mobile.png",
       "description": "The review graph opened beside the career in Overview.",
       "access": "Open Sim details > Overview, then choose i beside the career name.",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "f5662f555bf93d0700fb7b0fcf4469561dc3da5b31e4e7e80d4f068556a4beef",
-        "mobile": "babf18f267ba0967766f49a47bba21303b61c8f3395c8db592f254139e4f90b5"
+        "desktop": "6be0220959c480ffa8eeab079ecc9b71b6fff2bd2d88187a44e1a386c439b9dd",
+        "mobile": "80bce91c35ca1a37005f19c156be67051fc97ed498d8f6bff25e8abaec1cb36c"
       }
     },
     {

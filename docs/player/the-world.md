@@ -34,7 +34,11 @@ Current weather events last {{number:tuning.weather.event_hours}} game hours. On
 
 ## Work, pay and days off {#careers}
 
-Careers have paths and levels with their own hours, pay range and working days. Open [Career](ui-elements/#career) inside Sim details to inspect the selected person's schedule, performance factors and reviews. The office, cafe and night-watch paths have different demands.
+Careers have paths and levels with their own pay range. Open [Career](ui-elements/#career) inside Sim details to inspect the selected person's shift, performance factors and reviews. The office, cafe, night watch, hospital, warehouse, library, restaurant kitchen and buses paths have different demands.
+
+Each job is worked on a shift: a day, early, late or night shift with its own hours and working days. Most careers offer more than one shift, and a new hire is given one by chance, weighted by how common that shift is in the career; office work is nearly always a weekday day shift. You can pick the shift when you assign a career, and change an employed person's shift while they are at home. Their old shift is still worked that day if it has not started yet. Nobody works two shifts in one day, so a new shift or a newly assigned job starts on a day after the day their last shift ended; after a night shift that ends in the morning, that can be two days after the change. Changing shift resets the good weeks counted toward their next promotion; pay, level and job satisfaction stay the same. A shift starting late on Sunday counts in the week it starts.
+
+A shift's kind moves when the person wants to sleep, on working days and days off alike. Night workers sleep during the day, early workers go to bed about an hour earlier and late workers about two hours later. Older saved games keep every job on its usual hours.
 
 :::illustration sim-career
 
@@ -42,7 +46,7 @@ A person commutes to an off-lot job and returns after the shift. Work has an Ene
 
 Your orders can delay a shift or bring someone home. The scheduled end does not move later to compensate, so actual attendance affects pay and performance. Career assignment and quitting are unavailable while the person is at work or commuting.
 
-Weekly reviews use performance and a limited random contribution. Good results can bring a raise or promotion; poor runs can bring demotion and eventually dismissal. Turning off automatic career changes does not turn off reviews. A person's automatic job search is controlled separately in their own Career tab.
+Weekly reviews use performance and a limited random contribution. Good results can bring a raise or promotion; poor runs can bring demotion and eventually dismissal. A promotion or demotion keeps the person's shift when the new level offers it. Turning off automatic career changes does not turn off reviews. A person's automatic job search is controlled separately in their own Career tab. A person looking for work tries careers by chance, favoring the ones that suit their traits.
 
 ## The house and Outside {#home-and-outside}
 

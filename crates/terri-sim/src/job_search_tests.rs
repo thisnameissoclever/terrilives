@@ -65,9 +65,15 @@ fn search_of(sim: &Sim, entity: Entity) -> Option<bool> {
 /// Rule 3: leaving everyone's search on preserves the published hires,
 /// career assignments, schedules and career random stream. Mood, need and
 /// attendance performance are independently affected by gameplay balance.
+/// Issue 296 changed the shipped careers and the search, so this runs under
+/// the career content and search from before it
+/// (`test_content::pre_shift_careers`), which the published values still
+/// describe.
 #[test]
 fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
     let mut sim = Sim::new_from_shipped_lot();
+    let pack = crate::test_content::pre_shift_careers(terri_data::pack());
+    sim.world_mut().insert_resource(Content(pack));
     let before = employed(&mut sim);
     for _ in 0..THROUGH_THURSDAY {
         sim.tick();
@@ -182,6 +188,48 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
         ]
     );
 }
+
+/// Issue 296 ([WS-determinism], "Movement of pinned values" class 3): the
+/// shipped household run to Thursday 10:00 on the shipped careers, with the
+/// chance-based path choice, shift draws and the shift hash section, pinned
+/// as an exact outcome: the world hash, the careers stream's draw count,
+/// the shift stream's draw count, and each person's job and held shift.
+/// Issue 296 moved these values from the published run above.
+#[test]
+fn the_shipped_household_hash_and_draws_through_thursday() {
+    let mut sim = Sim::new_from_shipped_lot();
+    for _ in 0..THROUGH_THURSDAY {
+        sim.tick();
+    }
+    let people = household(&mut sim);
+    let pack = sim.world().resource::<Content>().0;
+    let jobs: Vec<(u32, Option<&str>, Option<&str>)> = people
+        .iter()
+        .map(|(id, person)| {
+            let shift = crate::shifts::shift_of(sim.world(), pack, *person);
+            (
+                id.0,
+                crate::careers::job_of(sim.world(), pack, *person).map(|job| job.id.as_str()),
+                shift.map(|shift| shift.id),
+            )
+        })
+        .collect();
+    let careers = sim.world().resource::<Careers>();
+    assert_eq!(
+        (sim.world_hash(), careers.draws, careers.shift_draws),
+        SHIPPED_THURSDAY,
+        "{jobs:?}"
+    );
+    assert_eq!(jobs, SHIPPED_THURSDAY_JOBS);
+}
+/// Seven careers draws, and two shift draws: one for each search hire, as
+/// both hired levels offer more than one shift.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (17413157888741130017, 7, 2);
+const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
+    (0, Some("office_job"), Some("standard")),
+    (1, Some("kitchen_porter"), Some("standard")),
+    (2, Some("night_watch_guard"), Some("weekend_nights")),
+];
 
 /// Rule 1: every person in a new game, and every newcomer, looks for work.
 #[test]

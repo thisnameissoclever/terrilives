@@ -1314,6 +1314,8 @@ fn compile_careers(
         if def.level.is_empty() {
             return Err(ContentError::CareerPathWithoutLevels { id: def.id.clone() });
         }
+        let standard_kind = compile_shift_kind(&def.id, &def.standard_shift)?;
+        let path_shifts = compile_path_shifts(def, tuning)?;
         let mut levels = Vec::with_capacity(def.level.len());
         let mut previous: Option<(u32, u32)> = None;
         for (level_index, level) in def.level.iter().enumerate() {
@@ -1384,6 +1386,8 @@ fn compile_careers(
                 });
             }
             let working_days = compile_working_days(&level.id, &level.working_days)?;
+            let (standard_weight, shifts) =
+                compile_level_shifts(&level.id, level.shift_weights.as_ref(), &path_shifts)?;
             levels.push(compiled.len() as u32);
             compiled.push(crate::pack::CompiledCareer {
                 id: level.id.clone(),
@@ -1401,6 +1405,9 @@ fn compile_careers(
                 social_demand: def.social_demand,
                 skill_tag: skill_tag.clone(),
                 trait_fit: trait_fit.clone(),
+                standard_kind,
+                standard_weight,
+                shifts,
             });
             previous = Some((level.pay, level.pay_max));
         }
@@ -1411,6 +1418,124 @@ fn compile_careers(
         });
     }
     Ok((compiled, paths))
+}
+
+/// The largest weight a level may give one shift ([WS-model] in
+/// `docs/specs/2026-10-18-shifts-and-careers.md`).
+const MAX_SHIFT_WEIGHT: u32 = 1000;
+
+/// A shift kind's number from its name in [`crate::schema::SHIFT_KIND_NAMES`].
+fn compile_shift_kind(id: &str, kind: &str) -> Result<u8, ContentError> {
+    crate::schema::SHIFT_KIND_NAMES
+        .iter()
+        .position(|name| *name == kind)
+        .map(|index| index as u8)
+        .ok_or_else(|| ContentError::UnknownShiftKind {
+            id: id.to_string(),
+            kind: kind.to_string(),
+        })
+}
+
+/// A path's other shifts, validated as a level's own shift is, in authored
+/// order with weight 0; each level sets its own weights. A shift's errors
+/// name it as `path.shift`.
+fn compile_path_shifts(
+    def: &crate::schema::CareerDef,
+    tuning: &Tuning,
+) -> Result<Vec<crate::pack::CompiledShift>, ContentError> {
+    let mut seen = BTreeSet::new();
+    let mut shifts = Vec::with_capacity(def.shift.len());
+    for shift in &def.shift {
+        if shift.id == crate::schema::STANDARD_SHIFT_ID {
+            return Err(ContentError::ReservedCareerShift { id: def.id.clone() });
+        }
+        if !seen.insert(shift.id.as_str()) {
+            return Err(ContentError::DuplicateCareerShift {
+                id: def.id.clone(),
+                shift: shift.id.clone(),
+            });
+        }
+        let name = format!("{}.{}", def.id, shift.id);
+        let kind = compile_shift_kind(&name, &shift.kind)?;
+        if shift.shift_ticks == 0 {
+            return Err(ContentError::ZeroShift { id: name });
+        }
+        if shift.shift_start >= tuning.day_ticks {
+            return Err(ContentError::ShiftStartsPastTheDay {
+                id: name,
+                shift_start: shift.shift_start,
+                day_ticks: tuning.day_ticks,
+            });
+        }
+        if shift.shift_ticks >= tuning.day_ticks {
+            return Err(ContentError::ShiftLongerThanTheDay {
+                id: name,
+                shift_ticks: shift.shift_ticks,
+                day_ticks: tuning.day_ticks,
+            });
+        }
+        let working_days = compile_working_days(&name, &shift.working_days)?;
+        shifts.push(crate::pack::CompiledShift {
+            id: shift.id.clone(),
+            kind,
+            shift_start: shift.shift_start,
+            shift_ticks: shift.shift_ticks,
+            working_days,
+            weight: 0,
+        });
+    }
+    Ok(shifts)
+}
+
+/// One level's standard weight and the path shifts it names, in the
+/// path's order with this level's weights. An absent table is
+/// `{ standard = 1 }`; a table without `standard` gives the standard shift
+/// weight 0.
+fn compile_level_shifts(
+    level: &str,
+    weights: Option<&BTreeMap<String, u32>>,
+    path_shifts: &[crate::pack::CompiledShift],
+) -> Result<(u32, Vec<crate::pack::CompiledShift>), ContentError> {
+    let Some(weights) = weights else {
+        return Ok((1, Vec::new()));
+    };
+    for (shift, weight) in weights {
+        if shift != crate::schema::STANDARD_SHIFT_ID
+            && !path_shifts.iter().any(|known| &known.id == shift)
+        {
+            return Err(ContentError::UnknownShiftWeight {
+                id: level.to_string(),
+                shift: shift.clone(),
+            });
+        }
+        if *weight > MAX_SHIFT_WEIGHT {
+            return Err(ContentError::ShiftWeightOutOfRange {
+                id: level.to_string(),
+                shift: shift.clone(),
+            });
+        }
+    }
+    if weights.values().all(|weight| *weight == 0) {
+        return Err(ContentError::NoShiftOffered {
+            id: level.to_string(),
+        });
+    }
+    let standard = weights
+        .get(crate::schema::STANDARD_SHIFT_ID)
+        .copied()
+        .unwrap_or(0);
+    let shifts = path_shifts
+        .iter()
+        .filter_map(|shift| {
+            weights
+                .get(&shift.id)
+                .map(|weight| crate::pack::CompiledShift {
+                    weight: *weight,
+                    ..shift.clone()
+                })
+        })
+        .collect();
+    Ok((standard, shifts))
 }
 
 /// Compiles a career's `working_days` names into the Monday-first mask
@@ -3375,6 +3500,29 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             "career_mood_fired_ticks",
             (1..=10080).contains(&tuning.career_mood_fired_ticks),
         ),
+        // Shifts (issue 296): an offset of half a day either way covers
+        // every rhythm, and a temperature of 2 already spreads the search
+        // nearly evenly over the shipped fits.
+        (
+            "shift_sleep_offset_day",
+            (-720..=720).contains(&tuning.shift_sleep_offset_day),
+        ),
+        (
+            "shift_sleep_offset_early",
+            (-720..=720).contains(&tuning.shift_sleep_offset_early),
+        ),
+        (
+            "shift_sleep_offset_late",
+            (-720..=720).contains(&tuning.shift_sleep_offset_late),
+        ),
+        (
+            "shift_sleep_offset_night",
+            (-720..=720).contains(&tuning.shift_sleep_offset_night),
+        ),
+        (
+            "career_search_temperature",
+            (0.0..=2.0).contains(&tuning.career_search_temperature),
+        ),
     ];
     for (key, value) in [
         ("career_review_noise", tuning.career_review_noise),
@@ -3402,6 +3550,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         ("career_mood_raise", tuning.career_mood_raise),
         ("career_mood_demoted", tuning.career_mood_demoted),
         ("career_mood_fired", tuning.career_mood_fired),
+        (
+            "career_search_temperature",
+            tuning.career_search_temperature,
+        ),
     ] {
         check_finite(value, &format!("{key} in tuning.toml"))?;
     }
@@ -4015,6 +4167,11 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             career_mood_fired_ticks: tuning.career_mood_fired_ticks,
             autonomy: tuning.autonomy,
             meal_appreciation_gain: tuning.meal_appreciation_gain,
+            shift_sleep_offset_day: tuning.shift_sleep_offset_day,
+            shift_sleep_offset_early: tuning.shift_sleep_offset_early,
+            shift_sleep_offset_late: tuning.shift_sleep_offset_late,
+            shift_sleep_offset_night: tuning.shift_sleep_offset_night,
+            career_search_temperature: tuning.career_search_temperature,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -5503,6 +5660,13 @@ mod tests {
             career_mood_promoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_PROMOTED_TICKS,
             career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
+            shift_sleep_offset_day: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_DAY,
+            shift_sleep_offset_early: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_EARLY,
+            shift_sleep_offset_late: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
+            shift_sleep_offset_night: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
+            // The best-fit search of the published witnesses the golden
+            // vector converts, which predate issue 296's temperature.
+            career_search_temperature: crate::Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             autonomy: None,
             weather: None,
             fight_grievance_ticks: 360,
@@ -8907,6 +9071,8 @@ mod tests {
             social_demand: 0.0,
             skill: None,
             traits: Default::default(),
+            standard_shift: "day".to_string(),
+            shift: Vec::new(),
             level: vec![a_level(id)],
         }
     }
@@ -8926,6 +9092,7 @@ mod tests {
             // Friday nor a mask a reversed bit order would also produce.
             working_days: vec!["tue".to_string(), "thu".to_string(), "sat".to_string()],
             advance_weeks: 2,
+            shift_weights: None,
         }
     }
 
@@ -9309,6 +9476,327 @@ mod tests {
             with_satisfaction(0.0).is_ok(),
             "a job that means nothing is legal, and is the point"
         );
+    }
+
+    /// A path shift that passes every rule against `full_tuning`'s 19-tick
+    /// day, distinct from `a_level`'s own times.
+    fn a_shift(id: &str, kind: &str) -> crate::schema::CareerShiftDef {
+        crate::schema::CareerShiftDef {
+            id: id.to_string(),
+            kind: kind.to_string(),
+            shift_start: 11,
+            shift_ticks: 6,
+            working_days: vec!["mon".to_string(), "fri".to_string()],
+        }
+    }
+
+    fn weights(pairs: &[(&str, u32)]) -> Option<BTreeMap<String, u32>> {
+        Some(
+            pairs
+                .iter()
+                .map(|(id, weight)| (id.to_string(), *weight))
+                .collect(),
+        )
+    }
+
+    /// Shifts (issue 296, [WS-model]): a level with no `shift_weights`
+    /// holds its own shift alone with weight 1, even on a path that
+    /// declares other shifts, and the path's `standard_shift` sets its kind.
+    #[test]
+    fn compiles_a_level_without_weights_to_its_standard_shift_alone() {
+        let mut career = a_career("office_job");
+        career.shift = vec![a_shift("late", "late")];
+        let pack = compile_people_full(vec![], vec![], vec![], vec![career])
+            .expect("a path shift no level names");
+        let job = &pack.careers[0];
+        assert_eq!(job.standard_kind, crate::pack::SHIFT_DAY);
+        assert_eq!(job.standard_weight, 1);
+        assert!(job.shifts.is_empty());
+
+        let mut nights = a_career("office_job");
+        nights.standard_shift = "night".to_string();
+        let pack = compile_people_full(vec![], vec![], vec![], vec![nights]).expect("night");
+        assert_eq!(pack.careers[0].standard_kind, crate::pack::SHIFT_NIGHT);
+    }
+
+    /// [WS-model]: each level lists the path shifts its weights name, in the
+    /// path's authored order rather than the weight table's sorted order,
+    /// keeps weight-0 entries, and leaves out the shifts it does not name.
+    /// A table without `standard` gives the standard shift weight 0.
+    #[test]
+    fn compiles_path_shifts_and_level_weights_in_authored_order() {
+        let mut career = a_career("office_job");
+        career.standard_shift = "early".to_string();
+        career.shift = vec![
+            a_shift("zeta", "late"),
+            crate::schema::CareerShiftDef {
+                shift_start: 0,
+                shift_ticks: 18,
+                working_days: vec!["sun".to_string()],
+                ..a_shift("alpha", "night")
+            },
+            a_shift("beta", "day"),
+        ];
+        career.level[0].shift_weights = weights(&[("standard", 4), ("zeta", 3), ("beta", 0)]);
+        career.level.push(CareerLevelDef {
+            pay: 140,
+            pay_max: 170,
+            shift_weights: weights(&[("alpha", 2)]),
+            ..a_level("office_senior")
+        });
+        let pack = compile_people_full(vec![], vec![], vec![], vec![career]).expect("valid");
+
+        let first = &pack.careers[0];
+        assert_eq!(first.standard_kind, crate::pack::SHIFT_EARLY);
+        assert_eq!(first.standard_weight, 4);
+        assert_eq!(
+            first.shifts,
+            vec![
+                crate::pack::CompiledShift {
+                    id: "zeta".to_string(),
+                    kind: crate::pack::SHIFT_LATE,
+                    shift_start: 11,
+                    shift_ticks: 6,
+                    working_days: 0b0010001,
+                    weight: 3,
+                },
+                crate::pack::CompiledShift {
+                    id: "beta".to_string(),
+                    kind: crate::pack::SHIFT_DAY,
+                    shift_start: 11,
+                    shift_ticks: 6,
+                    working_days: 0b0010001,
+                    weight: 0,
+                },
+            ]
+        );
+        assert!(first.offers(1) && !first.offers(2));
+
+        let second = &pack.careers[1];
+        assert_eq!(second.standard_weight, 0);
+        assert_eq!(
+            second.shifts,
+            vec![crate::pack::CompiledShift {
+                id: "alpha".to_string(),
+                kind: crate::pack::SHIFT_NIGHT,
+                shift_start: 0,
+                shift_ticks: 18,
+                working_days: 0b1000000,
+                weight: 2,
+            }]
+        );
+        assert!(!second.offers(0) && second.offers(1));
+    }
+
+    /// Every shift and weight refusal of [WS-model], each from the side the
+    /// rule refuses, with the accepting boundary where there is one.
+    #[test]
+    fn rejects_each_bad_shift_and_weight() {
+        let refused = |career: CareerDef| {
+            compile_people_full(vec![], vec![], vec![], vec![career]).unwrap_err()
+        };
+        let with_shift = |shift: crate::schema::CareerShiftDef| {
+            let mut career = a_career("office_job");
+            career.shift = vec![shift];
+            career.level[0].shift_weights = weights(&[("standard", 1), ("late", 1)]);
+            career
+        };
+
+        let mut standard_kind = a_career("office_job");
+        standard_kind.standard_shift = "evening".to_string();
+        assert_eq!(
+            refused(standard_kind),
+            ContentError::UnknownShiftKind {
+                id: "office_job_path".into(),
+                kind: "evening".into()
+            }
+        );
+        assert_eq!(
+            refused(with_shift(a_shift("late", "Late"))),
+            ContentError::UnknownShiftKind {
+                id: "office_job_path.late".into(),
+                kind: "Late".into()
+            }
+        );
+
+        let mut twice = a_career("office_job");
+        twice.shift = vec![a_shift("late", "late"), a_shift("late", "night")];
+        assert_eq!(
+            refused(twice),
+            ContentError::DuplicateCareerShift {
+                id: "office_job_path".into(),
+                shift: "late".into()
+            }
+        );
+
+        let mut reserved = a_career("office_job");
+        reserved.shift = vec![a_shift("standard", "late")];
+        assert_eq!(
+            refused(reserved),
+            ContentError::ReservedCareerShift {
+                id: "office_job_path".into()
+            }
+        );
+
+        let mut unknown = a_career("office_job");
+        unknown.level[0].shift_weights = weights(&[("standard", 1), ("late", 1)]);
+        assert_eq!(
+            refused(unknown),
+            ContentError::UnknownShiftWeight {
+                id: "office_job".into(),
+                shift: "late".into()
+            }
+        );
+
+        let mut heavy = with_shift(a_shift("late", "late"));
+        heavy.level[0].shift_weights = weights(&[("standard", 1), ("late", 1001)]);
+        assert_eq!(
+            refused(heavy),
+            ContentError::ShiftWeightOutOfRange {
+                id: "office_job".into(),
+                shift: "late".into()
+            }
+        );
+        let mut heaviest = with_shift(a_shift("late", "late"));
+        heaviest.level[0].shift_weights = weights(&[("standard", 1000), ("late", 1000)]);
+        assert!(
+            compile_people_full(vec![], vec![], vec![], vec![heaviest]).is_ok(),
+            "1000 is the largest legal weight"
+        );
+
+        let mut none = with_shift(a_shift("late", "late"));
+        none.level[0].shift_weights = weights(&[("standard", 0), ("late", 0)]);
+        assert_eq!(
+            refused(none),
+            ContentError::NoShiftOffered {
+                id: "office_job".into()
+            }
+        );
+
+        let late = "office_job_path.late";
+        let timed = |start: u32, ticks: u32| {
+            with_shift(crate::schema::CareerShiftDef {
+                shift_start: start,
+                shift_ticks: ticks,
+                ..a_shift("late", "late")
+            })
+        };
+        assert_eq!(
+            refused(timed(19, 6)),
+            ContentError::ShiftStartsPastTheDay {
+                id: late.into(),
+                shift_start: 19,
+                day_ticks: 19
+            }
+        );
+        assert_eq!(
+            refused(timed(5, 0)),
+            ContentError::ZeroShift { id: late.into() }
+        );
+        assert_eq!(
+            refused(timed(5, 19)),
+            ContentError::ShiftLongerThanTheDay {
+                id: late.into(),
+                shift_ticks: 19,
+                day_ticks: 19
+            }
+        );
+        assert!(compile_people_full(vec![], vec![], vec![], vec![timed(18, 18)]).is_ok());
+
+        let days = |names: &[&str]| {
+            with_shift(crate::schema::CareerShiftDef {
+                working_days: names.iter().map(|day| day.to_string()).collect(),
+                ..a_shift("late", "late")
+            })
+        };
+        assert_eq!(
+            refused(days(&[])),
+            ContentError::EmptyWorkingDays { id: late.into() }
+        );
+        assert_eq!(
+            refused(days(&["mon", "mon"])),
+            ContentError::RepeatedWorkingDay {
+                id: late.into(),
+                day: "mon".into()
+            }
+        );
+        assert_eq!(
+            refused(days(&["Mon"])),
+            ContentError::UnknownWorkingDay {
+                id: late.into(),
+                day: "Mon".into()
+            }
+        );
+    }
+
+    /// [WS-sleep]: each shift sleep offset from -720 to 720, refused one
+    /// tick past either end.
+    #[test]
+    fn rejects_shift_sleep_offsets_outside_their_range() {
+        type Set = fn(&mut TuningFile, i32);
+        let knobs: [(&str, Set); 4] = [
+            ("shift_sleep_offset_day", |t, v| {
+                t.shift_sleep_offset_day = v
+            }),
+            ("shift_sleep_offset_early", |t, v| {
+                t.shift_sleep_offset_early = v
+            }),
+            ("shift_sleep_offset_late", |t, v| {
+                t.shift_sleep_offset_late = v
+            }),
+            ("shift_sleep_offset_night", |t, v| {
+                t.shift_sleep_offset_night = v
+            }),
+        ];
+        for (key, set) in knobs {
+            for bad in [-721, 721] {
+                match compile_tuned(tuning_where(|t| set(t, bad))) {
+                    Err(ContentError::CareerTuningOutOfRange { key: refused }) => {
+                        assert_eq!(refused, key, "{bad}")
+                    }
+                    other => panic!("{key} at {bad}: {other:?}"),
+                }
+            }
+            for legal in [-720, 720] {
+                let pack = compile_tuned(tuning_where(|t| set(t, legal)))
+                    .unwrap_or_else(|error| panic!("{key} at {legal}: {error}"));
+                let compiled = [
+                    pack.tuning.shift_sleep_offset_day,
+                    pack.tuning.shift_sleep_offset_early,
+                    pack.tuning.shift_sleep_offset_late,
+                    pack.tuning.shift_sleep_offset_night,
+                ];
+                assert!(compiled.contains(&legal), "{key} at {legal}");
+            }
+        }
+    }
+
+    /// [WS-search]: the search temperature from 0 (the best-fit search) to
+    /// 2; negative, larger and non-finite values are refused.
+    #[test]
+    fn rejects_a_search_temperature_outside_its_range() {
+        for bad in [-0.01, 2.01] {
+            match compile_tuned(tuning_where(|t| t.career_search_temperature = bad)) {
+                Err(ContentError::CareerTuningOutOfRange { key }) => {
+                    assert_eq!(key, "career_search_temperature", "{bad}")
+                }
+                other => panic!("{bad}: {other:?}"),
+            }
+        }
+        for bad in [f32::NAN, f32::INFINITY] {
+            assert!(
+                matches!(
+                    compile_tuned(tuning_where(|t| t.career_search_temperature = bad)),
+                    Err(ContentError::NonFiniteValue { .. })
+                ),
+                "{bad}"
+            );
+        }
+        for legal in [0.0, 2.0] {
+            let pack = compile_tuned(tuning_where(|t| t.career_search_temperature = legal))
+                .expect("a temperature inside the range");
+            assert_eq!(pack.tuning.career_search_temperature, legal);
+        }
     }
 
     #[test]

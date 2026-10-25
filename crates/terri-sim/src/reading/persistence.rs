@@ -451,18 +451,17 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
     }
     if let Some(mut q) = world.try_query::<(Entity, &PendingShift)>() {
         for (e, p) in q.iter(world) {
-            let career = pack.careers.get(p.career as usize).ok_or_else(bad)?;
+            // Issue 296, [WS-systems] item 4: against any shift the row
+            // lists, as saved attendance is checked. A save restores the
+            // held shifts after this check runs, and on the day of a shift
+            // change the schedule held when the day began still runs, so the
+            // held shift alone would refuse valid worlds. Accepting any listed
+            // start is safe: a deferral is only ever recorded at a real start
+            // of the person's row, and a shift change drops it.
+            let job = pack.careers.get(p.career as usize).ok_or_else(bad)?;
             if world.get::<Career>(e).is_none_or(|c| c.0 != p.career)
                 || p.scheduled_tick > world.resource::<SimClock>().tick
-                || p.scheduled_tick % u64::from(pack.tuning.day_ticks)
-                    != u64::from(career.shift_start)
-                || !crate::systems::career::works_today(
-                    career,
-                    &SimClock {
-                        tick: p.scheduled_tick,
-                    },
-                    &pack.tuning,
-                )
+                || !crate::shifts::a_listed_shift_starts_at(job, &pack.tuning, p.scheduled_tick)
                 || world.get::<AtWork>(e).is_some()
                 || world.get::<Commuting>(e).is_some()
             {

@@ -129,6 +129,8 @@ impl Placement {
             | SimCommand::BuyLand { .. }
             | SimCommand::AssignCareer { .. }
             | SimCommand::QuitCareer { .. }
+            | SimCommand::AssignCareerShift { .. }
+            | SimCommand::ChangeShift { .. }
             | SimCommand::SetCareerAutonomy { .. }
             | SimCommand::SetJobSearch { .. }
             | SimCommand::SetCareerChange { .. }
@@ -587,6 +589,8 @@ pub(crate) fn drain_ordinary_commands(
             }
             SimCommand::AssignCareer { .. }
             | SimCommand::QuitCareer { .. }
+            | SimCommand::AssignCareerShift { .. }
+            | SimCommand::ChangeShift { .. }
             | SimCommand::SetCareerAutonomy { .. }
             | SimCommand::SetJobSearch { .. }
             | SimCommand::SetCareerChange { .. } => {

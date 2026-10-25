@@ -686,6 +686,26 @@ career_mood_demoted_ticks = 2880
 # How many ticks the Fired moodlet lasts.
 career_mood_fired_ticks = 5760
 
+# SHIFTS - issue 296 (docs/specs/2026-10-18-shifts-and-careers.md,
+# [WS-sleep] and [WS-search]). While a person holds a shift of a kind, that
+# kind's offset is added to their sleep rhythm, in ticks from -720 to 720,
+# positive meaning later, on working days and days off alike. Appended to
+# the compiled tuning after fight_rules, so packs published
+# before them reconstruct these shipped offsets and a search temperature
+# of 0, the best-fit search they ran.
+# A day shift leaves the rhythm alone.
+shift_sleep_offset_day = 0
+# An early shift puts bed an hour earlier.
+shift_sleep_offset_early = -60
+# A late shift puts bed two hours later.
+shift_sleep_offset_late = 120
+# A night shift moves the rhythm's midnight to 11:00, so a worker home at
+# 06:00 sleeps from mid-morning to late afternoon.
+shift_sleep_offset_night = 660
+# How far the job search spreads its choice of path over fit, from 0 to 2.
+# 0 restores the best-fit search: the best fit wins and nothing is drawn.
+career_search_temperature = 0.25
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

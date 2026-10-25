@@ -110,7 +110,40 @@ const CAREER_REASONS: Readonly<Record<number, string>> = {
   1: 'That person is no longer here.',
   2: 'Not while they are at work or on the way.',
   3: 'That career path is not known.',
+  // Issue 296, [WS-shell] item 5. Functional text, for the owner's review.
+  4: 'That shift is not offered at this level.',
+  5: 'This person has no job.',
+  6: 'They already work that shift.',
 };
+
+/**
+ * One shift a level offers (issue 296, [WS-shell] item 6): its index at the
+ * level, 0 for the standard shift; its kind, 0 to 3, or null when it cannot
+ * be named; its working-day mask, start and length in ticks of the day
+ * clock; and its weight, the chance of a hire drawing it relative to the
+ * level's other offered shifts.
+ */
+export interface CareerShift {
+  readonly index: number;
+  readonly kind: number | null;
+  readonly workingDays: number;
+  readonly shiftStart: number;
+  readonly shiftTicks: number;
+  readonly weight: number;
+}
+
+/** The runtime's offered shifts, six numbers each; empty when any is unusable. */
+function careerShifts(values: ArrayLike<number>): CareerShift[] {
+  if (values.length % 6 !== 0) return [];
+  const shifts: CareerShift[] = [];
+  for (let at = 0; at < values.length; at += 6) {
+    const [index, kind, shiftStart, shiftTicks, workingDays, weight] = Array.from(values).slice(at, at + 6);
+    if (![index, kind, shiftStart, shiftTicks, workingDays, weight].every(isU32) || weight === 0) return [];
+    if (shifts.some(shift => shift.index === index)) return [];
+    shifts.push({ index, kind: kind <= 3 ? kind : null, workingDays, shiftStart, shiftTicks, weight });
+  }
+  return shifts;
+}
 
 export interface BedAssignmentResult {
   readonly sequence: bigint;
@@ -2322,11 +2355,27 @@ export class SimBridge {
    */
   careerScheduleOf(
     entityIndex: number,
-  ): { workingDays: number; shiftStart: number; shiftTicks: number } | null {
+  ): { workingDays: number; shiftStart: number; shiftTicks: number; kind: number | null; index: number | null } | null {
     if (!isU32(entityIndex)) return null;
     const values = this.handle.career_schedule_of(entityIndex);
-    if (values.length !== 3) return null;
-    return { workingDays: values[0], shiftStart: values[1], shiftTicks: values[2] };
+    if (values.length !== 5) return null;
+    const [workingDays, shiftStart, shiftTicks, kind, index] = values;
+    // A kind past the four named ones keeps the schedule and loses the name
+    // (issue 296, [WS-shell] item 6).
+    return { workingDays, shiftStart, shiftTicks, kind: isU32(kind) && kind <= 3 ? kind : null,
+      index: isU32(index) ? index : null };
+  }
+
+  /** The shifts the first level of career path `path` offers; empty for an unknown path. */
+  careerPathShifts(path: number): CareerShift[] {
+    if (!isU32(path)) return [];
+    return careerShifts(this.handle.career_path_shifts(path));
+  }
+
+  /** The shifts the person's current level offers; empty without a job. */
+  careerShiftsOf(entityIndex: number): CareerShift[] {
+    if (!isU32(entityIndex)) return [];
+    return careerShifts(this.handle.career_shifts_of(entityIndex));
   }
 
   /**
@@ -2396,6 +2445,18 @@ export class SimBridge {
   quitCareer(entityIndex: number): boolean {
     if (!isU32(entityIndex)) return false;
     return this.handle.quit_career(entityIndex);
+  }
+
+  /** Stages an assignment holding shift index `shift` of the path's first level. */
+  assignCareerShift(entityIndex: number, path: number, shift: number): boolean {
+    if (!isU32(entityIndex) || !isU32(path) || !isU32(shift)) return false;
+    return this.handle.assign_career_shift(entityIndex, path, shift);
+  }
+
+  /** Stages a move to shift index `shift` of the person's current level. */
+  changeShift(entityIndex: number, shift: number): boolean {
+    if (!isU32(entityIndex) || !isU32(shift)) return false;
+    return this.handle.change_shift(entityIndex, shift);
   }
 
   /** What the drain did with the last career command, or null before any. */

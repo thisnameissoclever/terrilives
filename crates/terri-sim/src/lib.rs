@@ -17,10 +17,13 @@ pub use burnt_meals::BurntMeals;
 pub mod attendance;
 pub mod careers;
 pub mod player_actions;
+pub mod shifts;
 pub use careers::Careers;
 pub(crate) mod chore_repair;
 pub mod fights;
 pub use terri_data::FightRules;
+/// The held or offered shift a boundary reads (issue 296).
+pub use terri_data::ShiftView;
 pub(crate) mod social_conflicts;
 pub use fights::Fights;
 pub mod land;
@@ -1467,28 +1470,29 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
-    /// Complete current persistence, including pending fights and repair decisions.
+    /// Historical schema twenty, before held shifts: pending fights and
+    /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1497,6 +1501,27 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV20,
     ) -> Result<(), SaveError> {
         let candidate = save::v20::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    /// The current save: schema twenty-one, which adds each person's held
+    /// shift, the shift stream and queued shift commands (issue 296,
+    /// [WS-save] in `docs/specs/2026-10-18-shifts-and-careers.md`).
+    pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v21::capture(self))
+    }
+
+    pub fn load_snapshot_v21(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV21,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v21::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -3924,10 +3949,51 @@ impl Sim {
             .map(|career| career.label.as_str())
     }
 
-    /// The compiled career held by the sim carrying `index`, or `None`
+    /// The shift the sim carrying `index` holds at their level, or `None`
     /// for the unemployed and everything else. The Career row reads its
     /// working days and shift hours from it ([CAL-hud] in
-    /// `docs/specs/2026-10-06-calendar.md`).
+    /// `docs/specs/2026-10-06-calendar.md`, as issue 296's [WS-systems]
+    /// amends it: the held shift, not the level's standard one).
+    pub fn career_shift_of(&self, index: u32) -> Option<terri_data::ShiftView<'static>> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Career>>()?;
+        let entity = state
+            .iter(&self.world)
+            .find(|entity| entity.index_u32() == index)?;
+        shifts::shift_of(&self.world, pack, entity)
+    }
+
+    /// The shifts the level of the sim carrying `index` offers, standard
+    /// first then authored order ([WS-shell] item 6 in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`); empty for the
+    /// unemployed and everything else.
+    pub fn career_offered_shifts_of(&self, index: u32) -> Vec<terri_data::ShiftView<'static>> {
+        self.career_definition_of(index)
+            .map_or_else(Vec::new, shifts::offered)
+    }
+
+    /// The shifts the first level of career path `path` offers, standard
+    /// first then authored order; empty for an unknown path.
+    pub fn career_path_offered_shifts(&self, path: u32) -> Vec<terri_data::ShiftView<'static>> {
+        let Some(pack) = self
+            .world
+            .get_resource::<Content>()
+            .map(|content| content.0)
+        else {
+            return Vec::new();
+        };
+        pack.career_paths
+            .get(path as usize)
+            .and_then(|path| path.levels.first())
+            .and_then(|row| pack.careers.get(*row as usize))
+            .map_or_else(Vec::new, shifts::offered)
+    }
+
+    /// The compiled career held by the sim carrying `index`, or `None`
+    /// for the unemployed and everything else. Its hours are the level's
+    /// standard shift; a person's own hours are [`Sim::career_shift_of`].
     pub fn career_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledCareer> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
@@ -4703,6 +4769,12 @@ impl Sim {
                         vec![36, u64::from(*agent), u64::from(*search)]
                     }
                     SetCareerChange { change } => vec![37, u64::from(*change)],
+                    AssignCareerShift { agent, path, shift } => {
+                        vec![38, u64::from(*agent), u64::from(*path), u64::from(*shift)]
+                    }
+                    ChangeShift { agent, shift } => {
+                        vec![39, u64::from(*agent), u64::from(*shift)]
+                    }
                     ConfirmedOrder {
                         fingerprint,
                         command,

@@ -102,11 +102,13 @@ An object being present and another person actively using it can have different 
 
 ## Career {#career}
 
-Open Sim details, then Career. The panel shows path, title, level, pay and range, schedule, this week's score, review history and the factors used by performance.
+Open Sim details, then Career. The panel shows path, title, level, pay and range, the schedule with the shift's name, this week's score, review history and the factors used by performance.
 
-Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
+Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. Shift lists By chance first and then each shift the path's first level offers, with its days, hours and chance of being drawn; leave By chance to let the hire draw one, or pick a shift to hold it. For an employed person with more than one shift to choose from, Shift schedule shows their shift; choose another and select Change shift. Their old shift is still worked that day if it has not started yet, and the new shift, like a newly assigned job, starts on a day after the day their last shift ended; after a night shift that ends in the morning, that can be two days after the change. Changing shift resets the good weeks counted toward the next promotion. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
 
 :::illustration sim-career
+
+:::illustration career-shift
 
 Scroll to Reviews for the graph of actual events. The information button beside a Career title in Overview opens a smaller graph.
 
