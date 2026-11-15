@@ -38,10 +38,10 @@ fn review_physical_media_prediction_includes_the_actual_company_multiplier() {
         .unwrap()
         .remaining_ticks = 300;
     let mut personality = Personality::neutral();
-    // 2.7 times the shipped 0.013 is the 0.0351 a minute that 2 times the
-    // 0.0173 before issue 315 gave. The test needs Social to fall faster
+    // 8 / 3 times the shipped 0.013 is the 0.03467 a minute that 2 times the
+    // 0.017333 before issue 315 gave. The test needs Social to fall faster
     // than disliked company can refill it over the use.
-    personality.drain[NeedId::Social.index()] = 2.7;
+    personality.drain[NeedId::Social.index()] = 8. / 3.;
     let mut feelings = Relationships::default();
     feelings.bump(*sim.world().get::<terri_core::SimId>(b).unwrap(), -1.);
     let mut needs = Needs::all_at(90.);

@@ -111,15 +111,15 @@ fn conversation_balance_family_increases_positive_and_softens_negative_opinions(
 }
 
 #[test]
-fn conversation_balance_shipped_need_drain_is_half_of_the_original_rates() {
-    // The original balance, reduced to two thirds of itself and then, for
-    // issue 315, to three quarters of that: half of the original in all.
+fn conversation_balance_shipped_need_drain_is_half_of_the_rates_before_2026_10_19() {
+    // The balance before 2026-10-19, reduced to two thirds of itself and
+    // then, for issue 315, to three quarters of that: half of it in all.
     let original = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     let rates = &terri_data::pack().decay_per_tick;
     for (index, old) in original.into_iter().enumerate() {
         assert!(
             (rates[index] - old * 0.5).abs() < 0.0000001,
-            "need {index} retains half of its original drain: {}",
+            "need {index} retains half of its drain before 2026-10-19: {}",
             rates[index]
         );
     }

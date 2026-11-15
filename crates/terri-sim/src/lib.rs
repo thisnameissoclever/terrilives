@@ -7400,8 +7400,8 @@ mod determinism_tests {
         // minutes. The digest encoding is unchanged, and the published
         // control sets its own drain in `pre_balance_content`, so it did not
         // move. Measured from the native assertion, which was 4733362429942472337
-        // before; the release-wasm twin in `web/tests/bridge.test.ts` must
-        // confirm it independently after rebuilding the module.
+        // before; the release-wasm twin in `web/tests/bridge.test.ts` gave the
+        // same value independently after rebuilding the module.
         const GOLDEN: u64 = 15287039064284998688;
 
         let mut sim = build_scenario();

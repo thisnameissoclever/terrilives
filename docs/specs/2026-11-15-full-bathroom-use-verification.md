@@ -20,9 +20,11 @@ Needs that reached 0 during the week (trace lines marked "hit zero", one per per
 
 Energy critical time rose in the default seed (398 to 1080 ticks) even though its drain fell. The household's choices differ from the first morning under the new rates, so one week of one seed can move a single need either way. The other three seeds, and the total, fell.
 
-Bathroom use lengths are unchanged by this change, as expected: the drawn length does not depend on the drain. Mean toilet length was 20.1, 18.3, 20.6 and 21.2 ticks before and 19.9, 20.0, 21.7 and 19.6 after; mean shower length was 71.3, 71.8, 82.2 and 75.7 before and 80.2, 66.5, 72.0 and 74.8 after. Those differences are draws on different household histories, not a rule.
+This change does not touch how long a bathroom use lasts: the rule that draws a use's length is unchanged. The means differ only because the household's histories differ. Mean toilet length was 20.1, 18.3, 20.6 and 21.2 ticks before and 19.9, 20.0, 21.7 and 19.6 after; mean shower length was 71.3, 71.8, 82.2 and 75.7 before and 80.2, 66.5, 72.0 and 74.8 after. Those differences are draws on different household histories, not a rule.
 
-Full logs are kept outside the repository with the local check reports.
+To reproduce the "before" column, build the trace example on main at 053ee52d3 (check `git rev-parse --short origin/main` first) and run the same command with each seed; the "after" column is this branch. The raw logs stay in ignored local storage next to the local check reports and are not part of the repository.
+
+The trace line "unexplained disappearances" of conversation requests is 0, 1, 0 and 1 on main and 2, 0, 2 and 1 here. Main's baseline is not zero and no housemate died in any run, so this is recorded as run-to-run variation under different histories, not as a drain effect. It was not investigated further.
 
 ## Drain: pinned values that moved, and why
 
@@ -44,10 +46,11 @@ Unchanged on purpose, and asserted by their existing tests: the published schema
 Tests that encoded the old balance and were corrected:
 
 1. `review_physical_terminal_reward_arrives_after_work_has_clamped_hunger_at_zero` starts hunger at 10 instead of 20. It needs 600 ticks of work to drain hunger to the floor, and at the new rate 600 ticks drain 18.6.
-2. `review_physical_media_prediction_includes_the_actual_company_multiplier` uses a Social drain multiplier of 2.7 instead of 2. The test needs Social to fall faster than disliked company refills it; 2.7 times the new 0.013 is the 0.0351 that 2 times the old 0.0173 gave.
-3. Two seating tests and one dining test read comfort, fun and energy decay from the shipped pack instead of a literal.
-4. `conversation_balance_shipped_need_drain_is_two_thirds_of_previous_rates` now checks half of the original rates, since the rates are two thirds then three quarters of the original.
-5. The two-day activity log check no longer requires a nuisance episode in the household's first two days, because with slower drain there is none. The manual twenty-day check requires one instead, and the emitter has its own test, `a_nuisance_episode_closes_at_the_end_of_the_day`. This moves one coverage assertion, it does not weaken the comparison: the log-on and log-off worlds are still compared tick by tick.
+2. `review_physical_media_prediction_includes_the_actual_company_multiplier` uses a Social drain multiplier of 8/3 instead of 2. The test needs Social to fall faster than disliked company refills it; 8/3 times the new 0.013 is the 0.03467 a minute that 2 times the old 0.017333 gave, so the fixture's net Social decay is the same as before.
+3. One seating test and one dining test read comfort, fun and energy decay from the shipped pack instead of a literal.
+4. `conversation_balance_shipped_need_drain_is_two_thirds_of_previous_rates` is now `conversation_balance_shipped_need_drain_is_half_of_the_rates_before_2026_10_19` and checks half of those rates, since the shipped rates are two thirds and then three quarters of them.
+5. The two-day activity log check no longer requires a nuisance episode in the household's first two days, because with slower drain there is none. The manual twenty-day check (release build, `--ignored`) requires one instead, and it passed with that requirement. The log-on and log-off worlds are still compared tick by tick in the two-day check. One coverage guard did get weaker, and it is stated here plainly: that a real run exercises the nuisance emitter while the log is compared on and off is now checked only by the manual twenty-day test, not by the ordinary suite. The emitter itself is still tested by `a_nuisance_episode_closes_at_the_end_of_the_day` and `every_relationship_cause_is_logged_or_excluded`, which do not run a household.
+6. `content/careers.toml` quoted the energy cost of a shift as about 24 points of decay and about 40 all told. Those figures were already stale; the comment now gives the roughly 6 points and about 21 all told that the shipped rate and the work scale produce.
 
 ## Drain: red then green
 

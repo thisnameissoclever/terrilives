@@ -6,9 +6,9 @@ it when changing an interaction, its advertised effects, seating, or need
 delivery. The content files hold balance values; this document explains their
 meaning. Dated verification belongs in `docs/evidence/`.
 
-Base need drain rates are half of the original balance. They were reduced to
-two thirds of it, and then to three quarters of that (issue 315, so every need
-drains on average 25 percent slower). Existing personality, sleep and work
+Base need drain rates are half of what they were before 2026-10-19. They were
+reduced to two thirds of that balance, and then to three quarters of that
+(issue 315, so every need drains on average 25 percent slower). Existing personality, sleep and work
 multipliers still apply to those rates.
 
 ## What each meter represents

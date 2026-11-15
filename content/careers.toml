@@ -91,9 +91,10 @@ shift_ticks = 480
 # the dearest object costs a little over three shifts.
 pay = 120
 pay_max = 150
-# Debited at return, on top of the ~24 points the energy decay rate
-# takes across the shift itself: a workday costs about 40 energy all
-# told, which the bed comfortably repays each night.
+# Debited at return, on top of the roughly 6 points the energy decay rate
+# takes across the shift itself (0.0255 a minute at half rate for 480
+# minutes): a workday costs about 21 energy all told, which the bed
+# comfortably repays each night.
 energy_cost = 15.0
 # One completed shift is worth a third of one un-loved read (base 3).
 # Deliberately nearly nothing - see the header.

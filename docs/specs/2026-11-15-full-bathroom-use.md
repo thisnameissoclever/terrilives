@@ -20,11 +20,11 @@ Issue 315 asks for two things. Every need drains on average 25 percent slower, a
 | Fun | 0.032 | 0.024 |
 | Comfort | 0.0213333333 | 0.016 |
 
-The rates are points lost per game minute before modifiers. They stay pairwise distinct, which `needs_decay_at_different_rates` requires so that a need read from another need's slot is visible. The original balance of this table was twice these values; the earlier pass to two thirds and this one to three quarters of that leave half.
+The rates are points lost per game minute before modifiers. They stay pairwise distinct, which `needs_decay_at_different_rates` requires so that a need read from another need's slot is visible. The balance before 2026-10-19 was twice these values; the pass of that date to two thirds and this one to three quarters of that leave half.
 
 The change needs no new knob and no schema. Rates are content, so a saved game picks up the new ones when it loads and the stored need values are untouched. A pack published before the change keeps the rates it was compiled with, which is why the published control in the world-hash test is unchanged.
 
-Comments in `content/tuning.toml` that quote a balance measurement, such as those for `at_work_decay_scale` and `asleep_decay_scale`, were measured under the original rates. They now say so. They are not re-measured: the knobs they explain still do what they did, and each is a fraction of whatever the base rate is.
+Comments in `content/tuning.toml` that quote a balance measurement, such as those for `at_work_decay_scale` and `asleep_decay_scale`, were measured under the rates before 2026-10-19. They now say so. They are not re-measured: the knobs they explain still do what they did, and each is a fraction of whatever the base rate is.
 
 ## Verification
 
