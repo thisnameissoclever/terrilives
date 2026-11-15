@@ -7393,7 +7393,16 @@ mod determinism_tests {
         // conversation choices change even though no argument starts. Native
         // and rebuilt release WebAssembly independently measured this state.
         // The immutable published control above retains its original value.
-        const GOLDEN: u64 = 4733362429942472337;
+        // Issue 315 cut every base need drain rate to three quarters of what
+        // it was, which is a BEHAVIOR change in this scenario: the eight
+        // agents' needs cross the same thresholds at different ticks, so
+        // their choices and the draws they spend differ from the first
+        // minutes. The digest encoding is unchanged, and the published
+        // control sets its own drain in `pre_balance_content`, so it did not
+        // move. Measured from the native assertion, which was 4733362429942472337
+        // before; the release-wasm twin in `web/tests/bridge.test.ts` must
+        // confirm it independently after rebuilding the module.
+        const GOLDEN: u64 = 15287039064284998688;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

@@ -1446,7 +1446,10 @@ describe('SimBridge', () => {
     // Current grievance memory begins at tick 5. Its additional argument
     // eligibility draw at tick 63 changes later choices without starting a
     // fight. Measured independently on native and rebuilt release WASM.
-    expect(bridge.worldHash()).toBe(4733362429942472337n);
+    // Issue 315 cut every base need drain rate to three quarters of what it
+    // was, a behavior change in this scenario (previously 4733362429942472337).
+    // Measured on native first; this twin confirms it on rebuilt release WASM.
+    expect(bridge.worldHash()).toBe(15287039064284998688n);
   });
 
   // ---- Player commands -------------------------------------------------

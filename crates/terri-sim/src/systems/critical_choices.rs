@@ -160,7 +160,9 @@ mod tests {
     fn review_physical_terminal_reward_arrives_after_work_has_clamped_hunger_at_zero() {
         let pack = terri_data::pack();
         let mut needs = Needs::all_at(60.);
-        needs.set(NeedId::Hunger, 20.);
+        // Ten, not twenty: after issue 315 the 600 ticks of work drain
+        // 18.6 hunger, so only a start below that is clamped at zero.
+        needs.set(NeedId::Hunger, 10.);
         let predicted = predict(
             pack,
             &needs,
@@ -179,7 +181,7 @@ mod tests {
         }
         assert_eq!(executed.get(NeedId::Hunger), 0.);
         executed.fill(NeedId::Hunger, 21.);
-        assert!((predicted.net_change[0] - (executed.get(NeedId::Hunger) - 20.)).abs() < 0.0001);
+        assert!((predicted.net_change[0] - (executed.get(NeedId::Hunger) - 10.)).abs() < 0.0001);
         assert_eq!(predicted.first_relief_ticks[0], Some(600));
     }
     #[test]

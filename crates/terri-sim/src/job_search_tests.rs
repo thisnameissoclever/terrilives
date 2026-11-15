@@ -235,8 +235,12 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// no longer considers a sleeping recipient, so at 21:25 on Monday it spends
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. The draw counts and every job and
-/// shift are again unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (17769474122166916875, 7, 2);
+/// shift are again unchanged. Issue 315 then moved the hash from
+/// 17769474122166916875 on purpose: every base need drain rate is three
+/// quarters of what it was, so needs cross their thresholds at different ticks
+/// and the household's choices differ from the first morning. The draw counts,
+/// jobs and shifts are unchanged. Read from the failing assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (15679464342224380920, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

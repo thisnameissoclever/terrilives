@@ -121,8 +121,12 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// someone asleep, so at 05:16 on Monday Tim's choice no longer has a chat
 /// with the sleeping Bill among its candidates, the same draw picks another
 /// action, and Monday morning differs from then on. Re-measured on that
-/// branch the same two ways; both runs gave this value.
-const STANDARD_ONLY_HASH: u64 = 1877760251232896320;
+/// branch the same two ways; both runs gave this value. Issue 315 then moved
+/// it from 1877760251232896320 on purpose: every base need drain rate is three
+/// quarters of what it was, so needs cross their thresholds at different ticks
+/// and the household's choices differ from the first morning. The simulation
+/// code is unchanged; the value was read from the failing assertion.
+const STANDARD_ONLY_HASH: u64 = 12407989054242721803;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.
