@@ -472,8 +472,8 @@
         "height": 90
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "0ef30fc84cacc8cc000fe385532edf43ada3d813bf8f9416a08b6ebaf913a7e0",
-      "outputSha256": "11f3c8f5eaf57a1062dad7844ee53a9a04be361fd4c9be6d53b204dcfed0d725"
+      "sourceSha256": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
+      "outputSha256": "90f90dafc4be0d86248dcc688681dc513145bda11b2c67ce03b2908f4987447f"
     },
     {
       "output": "images/guide/household-mobile.png",
@@ -485,8 +485,8 @@
         "height": 153
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "25af4a25b5e0e6e349d0b588dd747b1628c96fba4956b4b72e42d468d7747ae1",
-      "outputSha256": "d718c343dc5a4dcc6d82499230fcd2bc5a11daeea66f99c129a1243d606e0de2"
+      "sourceSha256": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f",
+      "outputSha256": "fe871940403b5ed2bc50ece60f2c9df29115b888dd2a57eb823f5663ee6bf172"
     },
     {
       "output": "images/guide/sim-needs-desktop.png",
@@ -810,7 +810,7 @@
         "height": 644
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "640e8332ae4aa10a0e8ad837b92f3ecbbe0ff950a8953d43d5e691dc803c2064",
+      "sourceSha256": "2552e91d6b86c52c0e58b6a60cec363f653e9aba702d28a28d023c1f5cb05021",
       "outputSha256": "a100d1e59cb917b3681526d842e64b7d0d3ca4c1d657d93941bb6d74bfa914e4"
     },
     {
@@ -820,11 +820,11 @@
         "x": 8,
         "y": 532,
         "width": 374,
-        "height": 304
+        "height": 200
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "36edc19eaa37bb31657868a03d2dfcf9166cd23fbf346e97eb759718a4caab4f",
-      "outputSha256": "8ba4728dd8043317cd1730b68dd7f5782b4f80ff087dee93ba5313c01c296886"
+      "sourceSha256": "14cf8f192cbc0bc0cbbded29e375de4be776738c433aa381f3e31ede54fb9048",
+      "outputSha256": "3603e4ca2233582bf6cf3b7061b79f130ec8e0f090fd86ebd5099f606a4c6ba2"
     },
     {
       "output": "images/guide/build-walls-desktop.png",

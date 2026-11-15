@@ -349,6 +349,26 @@
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-10-25",
         "method": "Playwright Chrome, headed and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. A new game was run at 3x to Day 1, 09:00 for daylight, paused, and Tim selected; Game saved follows Options > Save, and the Build captures follow Build. The phone guide-link closeup has keyboard focus moved to the link with Tab from Options."
+      },
+      {
+        "id": "wages-bills-2026-11-15",
+        "url": "http://127.0.0.1:4391/",
+        "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
+        "bundle": "index-C-R_2qFb.js",
+        "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
+        "wasm": "terri_wasm_bg-B6P7zeGr.wasm",
+        "wasmSha256": "b541a45bd6ff29653de57ba1227e80bb0934851b8c3b296fa34dac7bb47b2c1c",
+        "gameSourceFileSha256": {
+          "web/index.html": "b0cd165cf8d95e9d6310e764ed8a9fde2386db5428e8a6259448cc811fedc7bf",
+          "web/src/main.ts": "43d72f3346a8a7b69fbe0192dbe536a10859a2282e050257dbb87cbfe78cbe94",
+          "web/src/ui/bills-panel.ts": "6e6eb2162e39dae07764dfa41b3ade540cf73b2fd888a0bd98da0d16965f5c15",
+          "web/src/ui/bills-text.ts": "6ae4e6836952347b8015c817e53eb1d879cdcd66dba46cf1de0b30077365032c",
+          "web/src/ui/compact-hud.css": "d5a3828ea89078cd8c42ce38cf5f496a887157f67e3257045312ab0f3269d1ff",
+          "content/tuning.toml": "a564871cb5ac8d180527e9be92d563ae49bd303456bb0f3a8913b089aa8d8686"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-15",
+        "method": "Playwright Chrome, headless and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. A new game was run at 3x to Day 1, about 09:00 for daylight, paused, and Tim selected; the phone captures were taken only when no housemate bubble sat behind the speed buttons, which a pixel check of that strip confirmed. Game saved follows Options > Save, and the Build captures follow Build. The phone guide-link closeup has keyboard focus moved to the link with Tab from Options."
       }
     ],
     "weatherSetup": {
@@ -446,21 +466,21 @@
       "description": "The game view with the clock, funds, bills, save status, speed controls, Build, Options, Player guide and selected-person dock.",
       "access": "Open the game. Select a name at the bottom of the screen.",
       "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
-      "sourceSnapshot": "wages-bills-2026-10-25",
-      "htmlSha256": "52c54f565d86954fac88bf59e62ca42332d1713f88a2a23994e44da3016feb26",
-      "bundleSha256": "31cde437aa68da243ab5015a7cf167062fc8a8ef2b078a076fe06103fbe6a1b0",
+      "sourceSnapshot": "wages-bills-2026-11-15",
+      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
+      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
-        "desktop": "0ef30fc84cacc8cc000fe385532edf43ada3d813bf8f9416a08b6ebaf913a7e0",
-        "mobile": "25af4a25b5e0e6e349d0b588dd747b1628c96fba4956b4b72e42d468d7747ae1",
-        "desktopDetail": "75fd41876f9f40907fa50307046e558dcba992af711a1e7136905ad7bada9765",
-        "mobileDetail": "63259b3c4f8e88cbf3937a130d23346c4ba41b7835b329cbbbdb77af8c0ad852"
+        "desktop": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
+        "mobile": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f",
+        "desktopDetail": "837c149ffe2d3b53b2e2d5a2046c8c717b1d145df0e1f60829af06a93818e010",
+        "mobileDetail": "081f63be62ee7fb3a9f20241b129a5a986516baa16479af895e9c7b1b765d242"
       },
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "imageSourceSnapshots": {
-        "desktopDetail": "wages-bills-2026-10-25",
-        "mobileDetail": "wages-bills-2026-10-25",
-        "desktop": "wages-bills-2026-10-25",
-        "mobile": "wages-bills-2026-10-25"
+        "desktopDetail": "wages-bills-2026-11-15",
+        "mobileDetail": "wages-bills-2026-11-15",
+        "desktop": "wages-bills-2026-11-15",
+        "mobile": "wages-bills-2026-11-15"
       },
       "captureMetadata": {
         "desktop": {
@@ -473,7 +493,7 @@
           "devicePixelRatio": 1,
           "captureMethod": "Playwright Chrome viewport PNG at device pixel ratio 1, no image edits",
           "dialogs": [],
-          "sourceImageSha256": "0ef30fc84cacc8cc000fe385532edf43ada3d813bf8f9416a08b6ebaf913a7e0"
+          "sourceImageSha256": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4"
         },
         "mobile": {
           "width": 390,
@@ -485,7 +505,7 @@
           "devicePixelRatio": 1,
           "captureMethod": "Playwright Chrome viewport PNG at device pixel ratio 1, no image edits",
           "dialogs": [],
-          "sourceImageSha256": "25af4a25b5e0e6e349d0b588dd747b1628c96fba4956b4b72e42d468d7747ae1"
+          "sourceImageSha256": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f"
         }
       }
     },
@@ -816,12 +836,12 @@
       "description": "Furniture controls in Build mode.",
       "access": "Choose Build > Furniture.",
       "desktopDetail": "images/ui-build-furniture-detail-desktop.png",
-      "sourceSnapshot": "wages-bills-2026-10-25",
-      "htmlSha256": "52c54f565d86954fac88bf59e62ca42332d1713f88a2a23994e44da3016feb26",
-      "bundleSha256": "31cde437aa68da243ab5015a7cf167062fc8a8ef2b078a076fe06103fbe6a1b0",
+      "sourceSnapshot": "wages-bills-2026-11-15",
+      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
+      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
-        "desktop": "640e8332ae4aa10a0e8ad837b92f3ecbbe0ff950a8953d43d5e691dc803c2064",
-        "mobile": "36edc19eaa37bb31657868a03d2dfcf9166cd23fbf346e97eb759718a4caab4f",
+        "desktop": "2552e91d6b86c52c0e58b6a60cec363f653e9aba702d28a28d023c1f5cb05021",
+        "mobile": "14cf8f192cbc0bc0cbbded29e375de4be776738c433aa381f3e31ede54fb9048",
         "desktopDetail": "b031037002363df28b6faf32884fec71cf68cd36bf0c43c73c89906f4146a19a"
       }
     },
@@ -1430,12 +1450,12 @@
       "mobile": "images/ui-save-status-mobile.png",
       "description": "Game saved status after Save.",
       "access": "Choose Options > Save and wait for Game saved.",
-      "sourceSnapshot": "wages-bills-2026-10-25",
-      "htmlSha256": "52c54f565d86954fac88bf59e62ca42332d1713f88a2a23994e44da3016feb26",
-      "bundleSha256": "31cde437aa68da243ab5015a7cf167062fc8a8ef2b078a076fe06103fbe6a1b0",
+      "sourceSnapshot": "wages-bills-2026-11-15",
+      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
+      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
-        "desktop": "57c2938f0582360f65e407da5ccc1838bedad3473a5acaf61ee518b6e6891847",
-        "mobile": "05f764bc580a6d11b142c4da6f78d3c33a8014c78e7380787f3be934f61aa805"
+        "desktop": "0f598510011d310693ebac05ca6a5341f75757bdac2e04651bea2bf75b4b3e60",
+        "mobile": "dd6a217c3b333ae6c7a4d757a6695237f71bb182b1751a6bb58906928f66b5f9"
       }
     },
     {
@@ -1969,14 +1989,14 @@
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
       "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
-      "sourceSnapshot": "wages-bills-2026-10-25",
-      "htmlSha256": "52c54f565d86954fac88bf59e62ca42332d1713f88a2a23994e44da3016feb26",
-      "bundleSha256": "31cde437aa68da243ab5015a7cf167062fc8a8ef2b078a076fe06103fbe6a1b0",
+      "sourceSnapshot": "wages-bills-2026-11-15",
+      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
+      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
-        "desktop": "0ef30fc84cacc8cc000fe385532edf43ada3d813bf8f9416a08b6ebaf913a7e0",
-        "mobile": "25af4a25b5e0e6e349d0b588dd747b1628c96fba4956b4b72e42d468d7747ae1",
-        "desktopDetail": "75fd41876f9f40907fa50307046e558dcba992af711a1e7136905ad7bada9765",
-        "mobileDetail": "63259b3c4f8e88cbf3937a130d23346c4ba41b7835b329cbbbdb77af8c0ad852"
+        "desktop": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
+        "mobile": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f",
+        "desktopDetail": "837c149ffe2d3b53b2e2d5a2046c8c717b1d145df0e1f60829af06a93818e010",
+        "mobileDetail": "081f63be62ee7fb3a9f20241b129a5a986516baa16479af895e9c7b1b765d242"
       }
     },
     {
@@ -1988,14 +2008,14 @@
       "mobileDetail": "images/ui-guide-shortcut-build-detail-mobile.png",
       "description": "The guide link stays available while Build is open, with room for the building controls.",
       "access": "Choose Build, then choose Player guide in the HUD.",
-      "sourceSnapshot": "wages-bills-2026-10-25",
-      "htmlSha256": "52c54f565d86954fac88bf59e62ca42332d1713f88a2a23994e44da3016feb26",
-      "bundleSha256": "31cde437aa68da243ab5015a7cf167062fc8a8ef2b078a076fe06103fbe6a1b0",
+      "sourceSnapshot": "wages-bills-2026-11-15",
+      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
+      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
-        "desktop": "640e8332ae4aa10a0e8ad837b92f3ecbbe0ff950a8953d43d5e691dc803c2064",
-        "mobile": "36edc19eaa37bb31657868a03d2dfcf9166cd23fbf346e97eb759718a4caab4f",
-        "desktopDetail": "4e1337440a0cadec66c51f964075021cbc985a143faf2aef4424d2020997cbfa",
-        "mobileDetail": "3762cd5b489350dfe645e43d72a69b92794a8ad55c6da0d3ea98505bf6e88891"
+        "desktop": "2552e91d6b86c52c0e58b6a60cec363f653e9aba702d28a28d023c1f5cb05021",
+        "mobile": "14cf8f192cbc0bc0cbbded29e375de4be776738c433aa381f3e31ede54fb9048",
+        "desktopDetail": "1215f8ed58114dae06c77ad3e7d33cb9e09005ed9ddd5c4ca794f1cdb46dd43b",
+        "mobileDetail": "2a9dc8e907c968404adc47f71b6ce684319dd4cd6d5f81cd2ea6317cd24e75d1"
       }
     },
     {
