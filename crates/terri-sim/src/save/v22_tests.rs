@@ -353,9 +353,74 @@ fn refuses_a_bad_amount_or_fee() {
 }
 
 #[test]
-fn refuses_an_open_month_outside_the_compiler_range() {
-    refused(|b| b.month_length = 366);
+fn refuses_an_open_month_outside_the_open_month_range() {
+    refused(|b| b.month_length = crate::bills::MAX_OPEN_MONTH_DAYS + 1);
+    refused(|b| b.month_length = 0);
     refused(|b| b.month_start = 17);
+}
+
+/// Review of 2026-11-15, 2: the compiler accepts a month of up to 365 days,
+/// and a month that began under another length runs to the next boundary of
+/// the new one, so an open month can hold more than 365 days. A record of
+/// 366 days counted under a length of 366 loads, and one past twice the
+/// compiler's longest month does not.
+#[test]
+fn an_open_month_may_run_past_the_compilers_longest_month() {
+    let mut live = rich();
+    live.world_mut().resource_mut::<SimClock>().tick = 400 * DAY + 600;
+    let mut snapshot = live.save_snapshot_v22();
+    snapshot.bills.bills.clear();
+    snapshot.bills.previous = None;
+    snapshot.bills.last_counted_day = Some(399);
+    snapshot.bills.month_start = 0;
+    snapshot.bills.month_days = 366;
+    snapshot.bills.month_length = 366;
+    snapshot.bills.indoor_tile_days = 0;
+    snapshot.bills.outdoor_tile_days = 0;
+    let mut loaded = rich();
+    loaded.world_mut().resource_mut::<SimClock>().tick = 400 * DAY + 600;
+    assert_eq!(loaded.load_snapshot_v22(snapshot.clone()), Ok(()));
+    let mut too_long = snapshot;
+    too_long.bills.month_days = crate::bills::MAX_OPEN_MONTH_DAYS + 1;
+    too_long.bills.month_length = crate::bills::MAX_OPEN_MONTH_DAYS + 1;
+    too_long.bills.last_counted_day = Some(799);
+    loaded.world_mut().resource_mut::<SimClock>().tick = 800 * DAY + 600;
+    assert!(loaded.load_snapshot_v22(too_long).is_err());
+}
+
+/// Review of 2026-11-15, 2: seven-day months run to about day 365, then the
+/// tuning becomes the longest month the compiler accepts. The save goes on
+/// loading on every day around the change.
+#[test]
+fn a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable() {
+    let shipped = terri_data::pack();
+    let mut long_pack = shipped.clone();
+    long_pack.bills.days_per_month = 365;
+    let long_pack: &'static terri_data::ContentPack = Box::leak(Box::new(long_pack));
+    for save_day in [363u64, 364, 365, 371] {
+        let mut sim = Sim::new_from_lot_and_content(&shipped.lot, Content(shipped));
+        for day in 0..=save_day {
+            sim.world_mut().resource_mut::<SimClock>().tick = day * DAY;
+            crate::bills::tick(sim.world_mut());
+        }
+        let snapshot = sim.save_snapshot_v22();
+        let mut loaded = Sim::new_from_lot_and_content(&long_pack.lot, Content(long_pack));
+        assert_eq!(loaded.load_snapshot_v22(snapshot), Ok(()), "day {save_day}");
+        for day in save_day + 1..save_day + 740 {
+            loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY;
+            crate::bills::tick(loaded.world_mut());
+            let bills = loaded.world().resource::<Bills>();
+            assert!(bills.month_days <= bills.month_length);
+            if bills.month_days > 300 {
+                let mut again = Sim::new_from_lot_and_content(&long_pack.lot, Content(long_pack));
+                assert_eq!(
+                    again.load_snapshot_v22(loaded.save_snapshot_v22()),
+                    Ok(()),
+                    "saved on day {save_day}, loaded again on day index {day}"
+                );
+            }
+        }
+    }
 }
 
 /// Each edit below makes only the bill's own terms invalid: the electricity

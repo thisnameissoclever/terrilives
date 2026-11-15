@@ -35,6 +35,12 @@ pub const MAX_SAVED_COUNT: u32 = 100_000;
 /// The largest amount a saved bill may carry, in cents: ten billion
 /// dollars, far above any month and far inside `i64` for payment.
 pub const MAX_SAVED_AMOUNT_CENTS: i64 = 1_000_000_000_000;
+/// The most days an open month may be counted over, and so the longest
+/// length it may be counted under: twice the compiler's longest month. A
+/// month that began under one month length ends on the next boundary of
+/// another, so after a change of tuning it can run past either length
+/// ([WB-save]).
+pub const MAX_OPEN_MONTH_DAYS: u32 = 2 * 365;
 
 /// The terms a bill was issued under, kept with it so a later change to the
 /// tuning applies to later bills only and never makes a saved bill invalid
@@ -602,7 +608,7 @@ pub fn validate_saved(world: &World, saved: &SavedBills) -> Result<(), crate::Sa
     match saved.last_counted_day {
         Some(day) => {
             if day > today
-                || !(1..=365).contains(&saved.month_length)
+                || !(1..=MAX_OPEN_MONTH_DAYS).contains(&saved.month_length)
                 || saved.month_start > day
                 || saved.month_days == 0
                 || saved.month_days > saved.month_length
