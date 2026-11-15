@@ -1,6 +1,6 @@
 # Wages and bills verification
 
-This record holds the calibration measurements, moved test expectations, mutation results and played findings for [wages and bills](2026-10-18-wages-and-bills.md) (issue 298). The figures were taken on 2026-10-24 and 2026-10-25 on a Windows 11 desktop running other work at the same time, so the timings are noisy; each says which builds it compares.
+This record holds the calibration measurements, moved test expectations, mutation results and played findings for [wages and bills](2026-10-18-wages-and-bills.md) (issue 298). The figures were taken from 2026-10-24 to 2026-11-15 on a Windows 11 desktop running other work at the same time, so the timings are noisy; each says which builds it compares.
 
 ## Contents
 
@@ -12,6 +12,7 @@ This record holds the calibration measurements, moved test expectations, mutatio
 - [Targeted mutation results](#targeted-mutation-results)
 - [Mutation sweep](#mutation-sweep)
 - [Played pass](#played-pass)
+- [Review dispositions](#review-dispositions)
 
 ## Calibration traces
 
@@ -19,28 +20,30 @@ Each run is `target/release/examples/trace.exe 40320 <seed>` for the three-earne
 
 The trace's `BILLS` section reports, for each issued month, the four bills, their late fees and payment days, the month's use counts, object-days and trips, and the income earned while the month ran. Income is every rise in Funds, with bills paid on the same tick added back; the starting funds are not a rise.
 
-The calibration ran twice on the branch after it merged main at `318da27c6`: first with the indoor rent rate of $1.10 a tile and no starting funds, then with the owner's rulings 17 and 18 of 2026-10-24 applied, an indoor rate of $0.90 and $400 of starting funds. The two runs behaved identically, because neither the rent rate nor Funds changes any choice: income, usage, trips and electricity and water bills match month for month, and only rent and the totals differ.
+The calibration ran three times. The first two ran on the branch after it merged main at `318da27c6`, first with the indoor rent rate of $1.10 a tile and no starting funds, then with the owner's rulings 17 and 18 of 2026-10-24 applied, an indoor rate of $0.90 and $400 of starting funds. Those two behaved identically, because neither the rent rate nor Funds changes any choice. At $1.10 the shipped worker's bills were 53.0 to 54.0 percent of his actual earnings, 3 to 4 points over the band, which is why ruling 17 lowered the rate.
 
-| Run | Income a month | Bills a month at $1.10 | Share at $1.10 | Bills a month at $0.90 | Share at $0.90 | Electricity usage | Water usage |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Three earners, seed 20260728 | $1,762.28 | $428.04 | 24.3% | $389.64 | 22.1% | 22 to 25% | 51 to 52% |
-| Three earners, seed 1 | $1,731.39 | $428.99 | 24.8% | $390.59 | 22.6% | 23 to 29% | 47 to 54% |
-| Three earners, seed 2 | $1,736.63 | $428.23 | 24.7% | $389.83 | 22.4% | 24 to 26% | 49 to 53% |
-| Three earners, seed 3 | $1,744.96 | $427.43 | 24.5% | $389.03 | 22.3% | 20 to 28% | 49 to 50% |
-| Tim alone, seed 20260728 | $762.56 | $404.02 | 53.0% | $365.62 | 47.9% | 27 to 29% | 52 to 57% |
-| Tim alone, seed 1 | $752.43 | $404.93 | 53.8% | $366.53 | 48.7% | 24 to 29% | 55 to 56% |
-| Tim alone, seed 2 | $748.87 | $403.23 | 53.8% | $364.83 | 48.7% | 25 to 27% | 51 to 57% |
-| Tim alone, seed 3 | $747.27 | $403.67 | 54.0% | $365.27 | 48.9% | 25 to 28% | 54 to 56% |
+The third and final reading was taken on 2026-10-25 at `0d0fd3d1a`, after the review of the branch changed the month bookkeeping and the hash, and it contains main as of `afbe98af3`. The simulation of the final head is the simulation that ran: main has changed no Rust or content file since `afbe98af3`, and the branch changed after `0d0fd3d1a` only the overview's exported due-day fields (`pending_due_day` and `pending_overdue_from_day`), their boundary tests and the web shell, none of which a tick reads. The traces are saved in the local scratch folder and are not part of the repository. Every bill in all 32 months of the final reading was paid on its due day, and no late fee was added.
 
-In both runs every bill in all 32 months was paid on its due day, and no late fee was added.
+| Run | Income a month | Bills a month | Share of income | Share in each of the four months | Electricity usage | Water usage |
+| --- | --- | --- | --- | --- | --- | --- |
+| Three earners, seed 20260728 | $1,752.25 | $390.61 | 22.3% | 22.7, 22.3, 22.4, 21.7 | 23 to 25% | 48 to 54% |
+| Three earners, seed 1 | $1,753.76 | $391.09 | 22.3% | 23.4, 21.7, 22.2, 22.0 | 24 to 27% | 48 to 55% |
+| Three earners, seed 2 | $1,732.06 | $390.58 | 22.5% | 24.0, 21.8, 22.2, 22.3 | 19 to 26% | 51 to 53% |
+| Three earners, seed 3 | $1,730.45 | $391.15 | 22.6% | 23.9, 21.8, 22.7, 22.1 | 23 to 26% | 50 to 53% |
+| Tim alone, seed 20260728 | $749.53 | $366.73 | 48.9% | 47.9, 48.7, 50.2, 49.0 | 25 to 28% | 55 to 59% |
+| Tim alone, seed 1 | $767.15 | $366.68 | 47.8% | 48.0, 46.7, 48.2, 48.3 | 27 to 30% | 53 to 56% |
+| Tim alone, seed 2 | $766.40 | $366.47 | 47.8% | 48.2, 47.7, 46.9, 48.5 | 26 to 29% | 53 to 57% |
+| Tim alone, seed 3 | $775.21 | $366.13 | 47.2% | 48.1, 47.0, 46.8, 46.9 | 25 to 29% | 53 to 59% |
+
+The share of income is the four months' bills over the four months' income. The final reading replaces the second reading's table, which was taken before the branch merged main's sleeping-partner and fight changes and differs from it by up to two points (Tim alone on seed 1 read 48.7 percent then and 47.8 percent now, and on seed 3 48.9 then and 47.2 now). The raw figures, month by month, come from the traces' `BILLS` sections.
 
 ## Acceptance bands
 
-[WB-numbers] accepts the shipped values when the three-earner household's bills are 18 to 26 percent of its income with every bill paid on its due day, the one-earner household's bills are 35 to 50 percent of Tim's actual earnings with every bill paid within its grace period, water usage is 30 to 65 percent of the water bill and electricity usage 15 to 40 percent of the electricity bill. Ruling 17 made actual earnings the reading for the one-earner band.
+[WB-numbers] accepts the shipped values when the three-earner household's bills are 18 to 26 percent of its income with every bill paid on its due day, the one-earner household's bills are 35 to 50 percent of Tim's actual earnings with every bill paid within its grace period, water usage is 30 to 65 percent of the water bill and electricity usage 15 to 40 percent of the electricity bill. Ruling 17 made actual earnings the reading for the one-earner band, and the owner's reading of the band is the average over the measured months of a run, which ruling 23 records.
 
-- Three earners: 22.1 to 22.6 percent at $0.90, every bill paid on its due day. Passes. At $1.10 it was 24.3 to 24.8 percent.
-- One earner: 47.9 to 48.9 percent of Tim's actual earnings of $747 to $763 a month at $0.90, every bill paid on its due day. Passes. At $1.10 it was 53.0 to 54.0 percent, which failed the band by 3 to 4 points; on the nominal reading of five shifts at $180 it was 44.8 to 45.0 percent, and at $0.90 it is 40.5 to 40.7 percent.
-- Water usage 47 to 57 percent and electricity usage 20 to 29 percent of their bills in every month of every run. Passes.
+- Three earners: 22.3 to 22.6 percent over the four months of each seed, and 21.7 to 24.0 percent in every single month, every bill paid on its due day. Passes on either reading.
+- One earner: 47.2 to 48.9 percent of Tim's actual earnings of $750 to $775 a month over the four months of each seed, every bill paid on its due day. Passes on the average, which is the owner's reading. One month is outside 35 to 50 percent: the third month of seed 20260728 reads 50.2 percent, because Tim earned $735.37 that month, the least of any month of any solo run. The other fifteen solo months are 46.7 to 49.0 percent. At $1.10 the average was 53.0 to 54.0 percent; on the nominal reading of five shifts at $180 it is 40.7 percent.
+- Water usage 48 to 59 percent and electricity usage 19 to 30 percent of their bills in every month of every run. Passes.
 
 Condition 3 of [WB-numbers], a tiny house saving at least a third, is a design estimate rather than a trace: at $0.90 the 4 by 4 house of [WB-rent] saves the three-earner household 32 percent, just short of a third, as [WB-numbers] records.
 
@@ -62,14 +65,14 @@ Dish washing counts each Wash dishes step, which runs far more often than the es
 
 ## Moved test expectations
 
-Every moved value belongs to one of the classes of [WB-determinism]. For the four hashes below, a classification run on the branch after it merged main at `afbe98af3`, with the old wages in `content/careers.toml`, `night_shift_premium_percent = 0`, `starting_funds_cents = 0` and the bills system and its hash returning before they did anything, reproduced main's value exactly; the files were then restored byte for byte.
+Every moved value belongs to one of the classes of [WB-determinism]. The four hashes below were classified again on 2026-11-15 on the merged head `eabccaa65`, after the review's changes to the bills hash. The run set the old wages in `content/careers.toml`, `night_shift_premium_percent = 0`, `starting_funds_cents = 0` and the three bills functions that act on a tick or the hash (`begin_day`, `pay_due` and `hash`) to return before doing anything, and set the four pins to main's values. The two-day fold, shipped Thursday and standard shift tests passed in debug at optimization level 1, and the twenty-day test passed in release with `--ignored`, so with those edits the branch reproduces main's four values exactly. Main has changed no Rust or content file since `afbe98af3`, so these are also main's values at `053ee52d3`. All six edited files were then restored from copies, and their SHA-256 digests matched the originals. The run is `exp_classify2.py` in the local scratch folder, which is not part of the repository.
 
 | Test | Main's value at `afbe98af3` | Branch value | Class and cause |
 | --- | --- | --- | --- |
-| `activity_log_never_changes_the_world`, two-day fold | `0xa0fb_785a_e3a4_7b1d` | `0x981f_c7f5_1465_4aa4` | Wages, premium, starting funds and bills hash |
-| `activity_log_never_changes_the_world_over_twenty_days` (release, ignored) | `0x78e8_cb74_b70c_d742` | `0x0572_5884_b65c_1246` | Wages, premium, starting funds, bills hash, bills paid on days 7 and 14 |
-| `the_shipped_household_hash_and_draws_through_thursday` | 17769474122166916875 | 14978728520623758854 | Wages, premium, starting funds and bills hash; draws and jobs unchanged |
-| `the_hash_is_unchanged_while_everyone_holds_the_standard_shift` | 1877760251232896320 | 12629721401771819137 | Wages, starting funds and bills hash |
+| `activity_log_never_changes_the_world`, two-day fold | `0xa0fb_785a_e3a4_7b1d` | `0xb953_34a8_9aca_0e2c` | Wages, premium, starting funds and bills hash, including the open month's length and start and each bill's terms |
+| `activity_log_never_changes_the_world_over_twenty_days` (release, ignored) | `0x78e8_cb74_b70c_d742` | `0x9b22_0f1c_a448_e32c` | Wages, premium, starting funds, bills hash, bills paid on days 7 and 14 |
+| `the_shipped_household_hash_and_draws_through_thursday` | 17769474122166916875 | 4873052259007802963 | Wages, premium, starting funds and bills hash; draws and jobs unchanged |
+| `the_hash_is_unchanged_while_everyone_holds_the_standard_shift` | 1877760251232896320 | 3704503324967516506 | Wages, starting funds and bills hash |
 | `every_search_on_keeps_published_hires_schedules_and_career_randomness` | pay 120, 120, 80; open shifts 12000, 12000, 8000 cents | 180, 180, 120; 18000, 18000, 12000 | Wages |
 | `the_shipped_careers_hold_eight_paths_with_the_first_twelve_rows_unchanged`, `the_five_new_paths_match_the_spec_tables` | issue 296's pay | the same rows raised by half | Wages |
 | `the_shipped_household_keeps_living_around_its_jobs` | day pay for every shift; Funds equal to pay | night premium for the night watch; Funds emptied first, then Funds plus the first month's paid bills equal to pay | Wages, starting funds and bills |
@@ -101,8 +104,13 @@ Each mechanism below was removed or disabled in the source, the test that guards
 | A schema-22 save is never migrated | the schema-22 guard forced on; removing it alone changes nothing, because the current loader never selects the migration | `a_schema_twenty_two_save_is_not_migrated_twice` |
 | Open shifts' pay is migrated | the open-shift step removed | `loading_schema_twenty_one_migrates_pay_and_open_shift_cents` |
 | A new game's first month is projected whole | the projection before the first tick removed | `the_first_month_is_projected_whole_before_the_first_tick` |
+| An open month is never shorter than the days it has counted (S1) | the days-counted term removed from the month length | `a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change`, `a_save_loads_after_each_bills_tuning_change` |
+| An open month keeps the longest length it was counted under (S3) | a plain assignment of the new month length | `a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new`, and the two S1 tests |
+| A month starts on its first counted day (S3) | the month start assignment removed | `a_month_starts_on_its_first_counted_day`, `a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new` |
+| An issued month's length is reset so the next one takes the new length (S3) | the reset removed | `a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new` |
+| The day start runs before payment in the real schedule (S3) | the day start moved beside payment | `a_trip_on_a_months_first_tick_is_billed_to_the_new_month` |
 
-The runner and its log are outside the repository.
+The last five rows ran on 2026-11-15 at `eabccaa65` with the same procedure, and every restored file matched its SHA-256. The runners and their logs are outside the repository.
 
 ## Mutation sweep
 
@@ -143,12 +151,12 @@ The branch's production build at `bdd6b65f1`, with the $0.90 indoor rate and $40
 2. The panel showed keep aside, overdue bills with fees, the payment-order note, the next bills with every line open, last month and how bills work at both widths. On Day 17 it read `Unpaid bills due Day 15 are overdue from Day 20.` Each bill's lines add up to its amount so far in every capture. On the phone the dialog's content was 349 pixels wide inside the 375-pixel viewport with no sideways scroll; the Bills button, the Close button and the summary line that opens each bill measured 44 pixels tall on the phone, the landscape phone and the tablet.
 3. Funds were $2,108.34 at 23:44 on Day 7, after a late shift's pay, and $1,720.63 at 00:00 on Day 8, exactly the $387.71 the panel showed, and Last month listed the four bills as paid Day 8.
 4. Tim's mood list showed Behind on bills at minus 8 while the bills were overdue.
-5. The schema-21 bed on the yard previewed in place with no refusal when selected in Build, and `Beds can only go inside a room.` when moved to another yard tile. It moved into Bedroom 1 and confirmed. After the wall between Bedroom 1 and the porch was removed, Confirm showed `The Standard Double bed would be left outside. Move it into a room, or choose Cancel, before confirming.` and the draft stayed open. A room then built on the yard in the same session, with a doorway, took the bed, and the batch confirmed.
+5. The schema-21 bed on the yard previewed in place with no refusal when selected in Build, and `Beds can only go inside a room.` when moved to another yard tile. It moved into Bedroom 1 and confirmed. After the wall between Bedroom 1 and the porch was removed, Confirm showed `The bed (Standard Double) would be left outside. Move it into a room, or choose Cancel, before confirming.` (retaken on 2026-11-15 with the final wording, which names the bed's type first and its model second) and the draft stayed open. A room then built on the yard in the same session, with a doorway, took the bed, and the batch confirmed.
 6. From the yard-bed save, removing the same wall while Bedroom 1 was empty reached the room review and confirmed, because the bed already outdoors did not move. Expected rent fell from $255.20 to $233.60 with 156 indoor tiles instead of 192, and on Day 2 the tile lines read 174 indoor tiles a day on average and rent's lines added up to its $69.32 so far.
 7. The night watch worker's Career tab read `$105 per shift, from $105 to $128 at this level. Night shifts pay 15% more: $120.75 per shift.`
 8. The schema-21 night-shift save loaded with the office clerk at $180 and Casey, the night watch guard, at $105 with her open night shift at the raised pay; the schema-21 yard-bed save loaded with the double bed on its yard tile. The two are separate committed fixtures, and `the_authentic_schema_twenty_one_fixtures_load_with_migrated_pay` checks the raised pay in all three.
 
-The phone row held `$10,000 due Day 1,000`, set into the live row by script to measure the longest value, on one line, 128 pixels wide within the 182-pixel panel. The player guide's overview, guide shortcut, Build, Furniture and save status captures were retaken on the same build with the Bills row, on a new game run to Day 1, 09:00.
+The phone row held `$10,000 due Day 1,000`, set into the live row by script to measure the longest value, on one line, 128 pixels wide within the 182-pixel panel. The player guide's overview, guide shortcut, Build, Furniture and save status captures were retaken on the same build with the Bills row, on a new game run to Day 1, 09:00. They were retaken once more on 2026-11-15 on the final head's build (headless, muted Chrome, one browser at a time, its own preview port, closed afterward), because the review found a housemate's bubble behind the phone speed buttons. The phone captures were taken only when a pixel check of the speed-button strip matched a strip known to be clear, which needed three tries and ended at Day 1, 09:22. The phone Furniture crop ends below the Furniture dropdown, because the panel's sticky Cancel and Confirm row covers the Colour dropdown below it; the desktop crop is unchanged. Every retaken capture was opened at full size and checked for bubbles over the controls, clipped text and the Bills row's value.
 
 **Findings fixed during the passes.**
 
@@ -160,3 +168,26 @@ The phone row held `$10,000 due Day 1,000`, set into the live row by script to m
 **Behaviors decided in review.** Rulings 18 to 21 of [WB-rulings] settle what the first pass recorded for the owner: a new game starts with $400, so Day 1 shows no shortfall; every bill's lines add up to its amount so far; an outdoor bed from an older save is refused only when moved or turned, or at Confirm; and two behaviors stay as specified. In a game's first month the expected electricity counts the fridge, lamps and aquarium only for the days so far, so it rises by a few cents a day (`$30.35` on Day 1). A shift settled before the pay migration keeps the pay it was settled at, so the office clerk's tab can read `Earned $85.00` from the old rate beside `$180 per shift` after loading an older save.
 
 A fresh independent reviewer read the final captures against the [WB-played] points and the guide entries with no expected verdict, checking the arithmetic each capture makes checkable. It confirmed the rows, panels, fees, totals, rent figures, refusals and crops. Its gaps, the Day 8 fall in Funds, the bed in a room built in the same session and phone captures with the bills open, are closed by `d08`, `d09`, `d28`, `d29` and `p15`; the Last month lines' fee clause is now in [WB-panel]. Its notes on earlier behavior are outside this change: the phone speed buttons are faint over the scene and can sit under a housemate's bubble, the Funds row has no dollar sign, Build's sticky footer covers the Shortcuts line and the phone sheet's Colour dropdown, and Build spells Colour in British English.
+
+## Review dispositions
+
+Two fresh reviewers read `fc6d02659` without being told what to expect, one the simulation and save side and one the web, documentation and visuals. Their findings are numbered S1 to S5 and W1 to W9 here. Every finding held up. The review of the first round, with its F and R numbers, is in the [played pass](#played-pass) and the commits before `fc6d02659`.
+
+| Finding | What the reviewer found | Disposition | Commit |
+| --- | --- | --- | --- |
+| S1 | A month length changed from day 12 of a month made the game refuse its own saves and Build for lengths 4, 5, 6, 8, 9 and 10, and charged about 1.1 months of rent in the 10-day case | Fixed. The open month's length is the longest it was counted under and at least the days it has counted, so it stays valid and is never charged more than a full month. The reviewer's probe of seven month lengths is a regression test, and the tuning-change test now saves and loads every day | `3c1736687` |
+| S2 | The world hash left out the open month's length and start and each bill's issued-under terms | Fixed. They are hashed in saved order, the hash test changes each one, and the four pins moved again with the same classification, which the 2026-11-15 run above confirms | `9c5ff53e3` |
+| S3 | Four mutants survived: the day start moved beside payment, a plain assignment of the month length, no month start, no length reset on issue | Fixed. Tests drive the real schedule and the month bookkeeping, and all five mutants, S1's included, are caught on 2026-11-15 (the [targeted mutation results](#targeted-mutation-results)) | `cd04aa9fa` |
+| S4 | The ignored Build search failed at seed 16 on the bed rule's intended refusal | Fixed. The search cancels a batch the bed rule refuses and goes on; all 24 seeds pass and seed 16 cancels one batch | `0d0fd3d1a` |
+| S5 | The calibration table did not match the final head, and one month of one seed read 50.2 percent | Re-recorded at the final head in [calibration traces](#calibration-traces). The one-earner band is read as the average over measured months (ruling 23); the 50.2 percent month is named in [acceptance bands](#acceptance-bands) | the commit of this record |
+| W1 | The player guide's Bills section lacked the unpaid row and the overdue-from note | Fixed in the guide | `606a48899` |
+| W2 | The visible strings register held the old note and tile lines and lacked the new strings | Fixed. The register takes the current proposed rows for the owner's review | `606a48899` |
+| W3 | The named-bed refusal was untested where it is wired: passing no name to the refusal kept every web test green | Fixed. A `BuildSession` test drives a refusal that carries the bed's entity and checks the message, so passing no name fails it | `fa5236520` |
+| W4 | A bunk bed was named only by its model | Fixed. The refusal reads type first and model second, for example `The bunk bed (Basic Oak) would be left outside.`; `d27` shows `The bed (Standard Double) would be left outside.` | `fa5236520` |
+| W5 | The overdue-from note disappeared once any bill was overdue | Fixed. The overview exports the earliest unpaid bill that is not yet overdue, and the panel says when it becomes overdue even while an older bill is | `33abebdc9` |
+| W6 | The phone guide captures of the overview, save status and guide shortcut hid the 3x button behind a bubble | Fixed by recapture on 2026-11-15, with a pixel check that nothing sits behind the speed buttons | the commit of the captures |
+| W7 | The phone Furniture crop ended on a bare `Colour` label | Fixed. The crop ends below the Furniture dropdown | the commit of the captures |
+| W8 | Four mutants survived with no test: the month length passed to a bill row, the null-days check, the touch-size media query and the phone header offset | Fixed with fixtures where the month length differs from the tuning's, where unpaid cents disagree with the days, and stylesheet assertions for the query and the offset | `33abebdc9` |
+| W9 | The tile lines never said "a tile" | Fixed. They read `at $0.90 a tile a month`. This is proposed copy for the owner's review | `33abebdc9` |
+
+The `d27` capture was retaken for W4 and carries the same text as the record's played-pass point 5.
