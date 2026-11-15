@@ -1,6 +1,6 @@
 # Character render allocation, measured 2026-10-25
 
-This record holds the measurements for GitHub issue 305: the character renderer's allocation on every frame, the JavaScript heap at stress 50, and the cost of starting a stress page. It compares main at `afbe98af3` with the branch `twcl/305-character-render-allocation` under the same procedure. The owner limited this work to `?stress=50`, so nothing here measures `?stress=100` or more; projections to 100 Sims are labeled as projections. The release performance gate measures 100 Sims by the owner's decision of 2026-10-25, so this record does not treat a 1,000-agent load as a requirement.
+This record holds the measurements for GitHub issue 305: the character renderer's allocation on every frame, the JavaScript heap at stress 50, and the cost of starting a stress page. It compares main at `afbe98af3` with the branch `twcl/305-character-render-allocation` under the same procedure. Most measurements were first taken on the branch at commit `c82aafc15`. The branch's code later changed in `e1cbff3f1`, `152052bd0` (a test only) and `ffa24c876`, which is the last commit that changes code; later commits change documentation only. The allocation, drawing, process memory and start-up measurements were therefore repeated on a build of `ffa24c876`, and both sets are given. The heap growth series and the per-call allocation table were not repeated and describe `c82aafc15`. The owner limited this work to `?stress=50`, so nothing here measures `?stress=100` or more; projections to 100 Sims are labeled as projections. The release performance gate measures 100 Sims by the owner's decision of 2026-10-25, so this record does not treat a 1,000-agent load as a requirement.
 
 ## Contents
 
@@ -10,6 +10,7 @@ This record holds the measurements for GitHub issue 305: the character renderer'
 - [Cause](#cause)
 - [Allocation before and after](#allocation-before-and-after)
 - [Start-up and memory per character](#start-up-and-memory-per-character)
+- [Process memory](#process-memory)
 - [Heap growth at stress 50](#heap-growth-at-stress-50)
 - [Drawing is unchanged](#drawing-is-unchanged)
 - [What the 100-Sim release gate still needs](#what-the-100-sim-release-gate-still-needs)
@@ -17,7 +18,7 @@ This record holds the measurements for GitHub issue 305: the character renderer'
 ## Machine and builds
 
 - **Machine.** Observed 2026-10-25 on a Windows 11 Pro desktop: Intel Core i7-13700KF, 64 GB, NVIDIA GeForce RTX 4090, one display at 60 Hz. Chrome 155.0.8059.85 driven by Playwright Core 1.64 from Node 24.14.1. Other sessions shared the machine; the processor was at 2 percent load before the runs.
-- **Builds.** Each revision's wasm was built with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, then `npx vite build --minify false --sourcemap --outDir <dir>` in `web/`. That is the production build with names kept and source maps written, so profiles attribute frames to source lines. Each build was served by `npx vite preview --port <port> --strictPort --host 127.0.0.1 --outDir <dir>`. Main's bundle was `index-DRhLGBrI.js`; the branch's measured bundle was `index-CAFvqz7p.js`.
+- **Builds.** Each revision's wasm was built with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, then `npx vite build --minify false --sourcemap --outDir <dir>` in `web/`. That is the production build with names kept and source maps written, so profiles attribute frames to source lines. Each build was served by `npx vite preview --port <port> --strictPort --host 127.0.0.1 --outDir <dir>`. Main's bundle was `index-DRhLGBrI.js`; the branch's bundle at `c82aafc15` was `index-CAFvqz7p.js` and at `ffa24c876` it was `index-DMpDQnnI.js`.
 
 ## Procedures
 
@@ -26,6 +27,7 @@ Every page ran with `audio=0` and Chrome's `--mute-audio`, one browser at a time
 - **Allocation.** `node scripts/character-allocation-proof.cjs --url <build> --stress <0|50> --windows 3`. This is adapted from the [V11] procedure of `docs/gpu-verification.md` (which ran on `?stress=1000`; this record uses `?stress=0` and `?stress=50`): speed 3, 6 seconds of warm-up, then three 20-second windows of V8's sampling heap profiler at a 32 KB interval with both garbage-collection inclusion flags, so short-lived objects count. Frames are counted with the page's own `requestAnimationFrame`. "Character" bytes are those whose frame maps to `src/render/character/`.
 - **Per-call allocation in Node.** `web/tests/character-pose-allocation.test.ts` runs each pose many times after warming up and measures it with the same profiler through `node:inspector`.
 - **Start-up.** `node scripts/character-startup-proof.cjs --url <build> --stress 50` records a CPU profile from navigation until the character world displays every agent, attributed by function.
+- **Process memory.** A scratch script loaded `?stress=0` or `?stress=50`, set speed 3, and at 30 and 120 seconds forced two garbage collections, read `Runtime.getHeapUsage`, listed the browser's processes with `SystemInfo.getProcessInfo` and read each one's working set and private bytes from Windows (`Get-Process`). "Renderer" is the page's process, which holds the JavaScript heap and typed arrays; "GPU" is Chrome's graphics process.
 - **Heap.** A scratch script loaded `?stress=50`, set speed 3, and every 30 seconds forced two garbage collections and read `Runtime.getHeapUsage` and the character world's buffer totals, for 180 seconds.
 - **Drawing.** `node scripts/character-frame-capture.cjs --url <build> --out <dir> --frames 120,360,720,1200,1800,2400,3000,3600` replaces the page's clock and entropy before its scripts run, so every build starts the same seeded household and advances the same fabricated 60 Hz frames. The screenshots were compared with a Pillow pixel difference.
 
@@ -55,16 +57,18 @@ Per-frame selection also re-serialized and re-validated each appearance for ever
 
 ## Allocation before and after
 
-Paired runs of the allocation procedure, main first, then the branch, at each stress level:
+Paired runs of the allocation procedure, main first, then the branch, at each stress level. The "branch, final" rows are a second run on `ffa24c876`:
 
 | Stress | Build | Megabytes per window | Kilobytes per frame | Frames per window | Heap after window, MB |
 | --- | --- | --- | --- | --- | --- |
-| 0 | main | 1,521, 912, 1,171 | 1,233, 746, 950 | 1,205, 1,194, 1,204 | 84, 121, 85 |
-| 0 | branch | 144, 394, 194 | 117, 323, 158 | 1,202, 1,189, 1,203 | 48, 50, 50 |
-| 50 | main | 4,087, 3,714, 4,795 | 7,904, 7,834, 11,148 | 505, 463, 420 | 933, 956, 882 |
-| 50 | branch | 1,095, 1,336, 1,031 | 1,863, 2,181, 2,059 | 574, 598, 489 | 59, 70, 62 |
+| 0 | main | 1,521, 912, 1,171 | 1,233, 746, 950 | 1,205, 1,194, 1,204 | 84.3, 120.9, 84.5 |
+| 0 | branch, `c82aafc15` | 144, 394, 194 | 117, 323, 158 | 1,202, 1,189, 1,203 | 48.4, 49.7, 49.7 |
+| 0 | branch, final | 264, 414, 177 | 220, 346, 147 | 1,201, 1,196, 1,201 | 49.3, 49.8, 50.1 |
+| 50 | main | 4,087, 3,714, 4,795 | 7,904, 7,834, 11,148 | 505, 463, 420 | 932.8, 956.5, 882.3 |
+| 50 | branch, `c82aafc15` | 1,095, 1,336, 1,031 | 1,863, 2,181, 2,059 | 574, 598, 489 | 58.7, 69.9, 62.2 |
+| 50 | branch, final | 926, 931, 1,239 | 1,690, 2,059, 2,140 | 548, 452, 579 | 61.8, 61.5, 76.9 |
 
-Windows differ in what the household is doing, so compare medians: at stress 0 the page allocates about a sixth as much (median 1,171 MB to 194 MB a window), and at stress 50 about a quarter (4,087 MB to 1,095 MB) while drawing a median 24 percent more frames (463 to 574). Stress 0 runs at the display's 60 Hz in both builds. Reports: [reports/allocation-main-stress0.json](reports/allocation-main-stress0.json), [reports/allocation-fix-stress0.json](reports/allocation-fix-stress0.json), [reports/allocation-main-stress50.json](reports/allocation-main-stress50.json), [reports/allocation-fix-stress50.json](reports/allocation-fix-stress50.json).
+Windows differ in what the household is doing, so compare medians. At stress 0 the median allocation is 1,171 MB a window on main, 194 MB on the branch at `c82aafc15` and 264 MB on the final build: between a quarter and a sixth as much. The median heap after a window is 84.5 MB on main and 49.7 MB on the branch, in both runs. At stress 50 the medians are 4,087 MB on main and 1,095 MB and 931 MB on the branch, about a quarter, while the page drew a median 463 frames a window on main and 574 and 548 on the branch. Stress 0 runs at the display's 60 Hz in all builds. Reports: [reports/allocation-main-stress0.json](reports/allocation-main-stress0.json), [reports/allocation-fix-stress0.json](reports/allocation-fix-stress0.json), [reports/allocation-final-stress0.json](reports/allocation-final-stress0.json), [reports/allocation-main-stress50.json](reports/allocation-main-stress50.json), [reports/allocation-fix-stress50.json](reports/allocation-fix-stress50.json), [reports/allocation-final-stress50.json](reports/allocation-final-stress50.json).
 
 Per pose call in Node, bytes allocated by the original and the rewritten code for one body: the median of three sampled windows of at least 120 calls, after 30 warm-up passes over the clip's phases.
 
@@ -83,20 +87,45 @@ What remains per frame is mostly the pose's own output: fresh sampled matrices a
 
 `?stress=50` draws 53 characters: the household and 50 filler agents. All of them share one style and one body shape.
 
+The branch's start-up was repeated, and so was main's, because the first main reading proved unrepresentative. Start-up profiles at stress 50, in the order taken (the first main reading and the first branch reading are the ones this record first reported):
+
+| Build | Stress handle ready after navigation, s | CPU in `src/render/character/` functions, s |
+| --- | --- | --- |
+| Main | 19.1, 13.3, 10.5, 10.9 | 12.6, 7.2, 5.6, 5.7 |
+| Branch: `c82aafc15`, then final four times | 10.9; 18.6, 11.7, 10.5, 10.5 | 5.7; 6.2, 5.7, 5.5, 5.6 |
+
+Medians: ready after 12.1 s on main and 10.9 s on the branch; 6.5 s and 5.7 s of character CPU. **This record no longer claims faster start-up.** The readings overlap, and the earlier main reading (19.1 s and 12.6 s), which suggested a halving, was not reproduced in the three later main runs. The 18.6 s branch reading had 10.7 s of idle time in its profile; its cause was not established. Reports: [reports/startup-main-stress50.json](reports/startup-main-stress50.json), [reports/startup-fix-stress50.json](reports/startup-fix-stress50.json) and the `run` files beside them.
+
 | Measure at stress 50 | Main | Branch |
 | --- | ---: | ---: |
-| Stress handle ready after navigation | 19.1 s | 10.9 s |
-| CPU in character preparation, all characters | 12.5 s | 5.6 s |
-| CPU per character | 235 ms | 106 ms |
-| JavaScript heap after start-up | 937 MB | 49 MB |
-| JavaScript heap at stress 0 | 96 MB | 46 MB |
-| JavaScript heap per filler character | 16.8 MB | 0.07 MB |
+| JavaScript heap after start-up | 937.9 MB | 49.7 MB |
+| JavaScript heap at stress 0, median after a window | 84.5 MB | 49.7 MB |
+| JavaScript heap per filler character | about 17 MB | not resolved |
 | GPU buffers, all characters | 1,604 MB | 1,604 MB |
 | GPU buffers per character | 30 MB | 30 MB |
 
-Each character allocates 17 MB of GPU buffers of its own for subdivision and posed vertices, and 13 MB of static buffers that are shared only between characters with the same compacted geometry object. Each character compacts its own geometry, so no static buffers are shared even though every stress agent has the same style. On the branch the remaining preparation time per character is geometry compaction (44 ms), shaping the cage for the appearance (37 ms) and creating its GPU resources (21 ms). Reports: [reports/startup-main-stress50.json](reports/startup-main-stress50.json), [reports/startup-fix-stress50.json](reports/startup-fix-stress50.json).
+The per-filler figure for main is 937.9 MB at stress 50 less 84.5 MB at stress 0, over 50 fillers. On the branch the heap at stress 50 after start-up (49.7 MB) matches the stress 0 readings (48.4 to 49.7 MB), so a per-character figure is below what these readings can resolve; the 0.07 MB figure this record first gave came from unlike readings and is withdrawn.
 
-Projected linearly to `?stress=100`, 103 characters, and not measured: main would spend about 24 seconds preparing characters and hold about 1.7 GB of JavaScript heap, which is consistent with the issue's 1.43 GB after collection and 25-second start at that level. The branch would spend about 11 seconds and hold well under 100 MB, and both builds would need about 3.1 GB of GPU buffers, which fits on the RTX 4090's 24 GB.
+Each character allocates 17 MB of GPU buffers of its own for subdivision and posed vertices, and 13 MB of static buffers that are shared only between characters with the same compacted geometry object. Each character compacts its own geometry, so no static buffers are shared even though every stress agent has the same style. On the branch at `c82aafc15` the remaining preparation time per character was geometry compaction (44 ms), shaping the cage for the appearance (37 ms) and creating its GPU resources (21 ms).
+
+Projected linearly to `?stress=100`, 103 characters, and not measured: main would hold about 1.7 GB of JavaScript heap, which is consistent with the issue's 1.43 GB after collection, and the branch well under 100 MB. Both builds would spend about 11 seconds preparing characters, since their start-up CPU is about the same, and need about 3.1 GB of GPU buffers, which fits on the RTX 4090's 24 GB.
+
+## Process memory
+
+The figures above count only the JavaScript heap. Typed arrays, such as the head selections and the bath surface buffers, live outside it, so the whole renderer process was read as well (procedure above; one run per cell, readings at 30 and 120 seconds, MB):
+
+| Build | Stress | JS heap | Renderer private | Renderer private less heap | GPU process private |
+| --- | --- | --- | --- | --- | --- |
+| Main | 0 | 94.5, 79.8 | 921, 859 | 827, 779 | 1,038, 982 |
+| Branch, `c82aafc15` | 0 | 46.6, 47.9 | 881, 839 | 834, 791 | 1,039, 976 |
+| Branch, final | 0 | 46.1, 47.5 | 873, 837 | 827, 789 | 1,025, 972 |
+| Main | 50 | 881, 724 | 3,258, 2,822 | 2,377, 2,098 | 3,063, 2,896 |
+| Branch, `c82aafc15` | 50 | 50.8, 54.7 | 2,478, 2,164 | 2,427, 2,109 | 3,043, 2,890 |
+| Branch, final | 50 | 50.8, 54.8 | 2,436, 2,143 | 2,385, 2,089 | 3,060, 2,902 |
+
+The renderer process holds 22 to 48 MB less at stress 0 (3 to 5 percent) and 780 to 820 MB less at 30 seconds and 660 to 680 MB less at 120 seconds at stress 50 (20 to 25 percent), nearly all of it JavaScript heap. What the renderer holds outside the heap is the same within about 50 MB on every build, so the typed arrays that replaced the maps (head selections, bath buffers) do not show at this resolution. The stress 50 pages sit about 1.6 GB above the stress 0 pages in both builds, 32 MB per character, mirroring the GPU buffers. The retained cost of those typed arrays is therefore below what one run per cell can resolve. Reports: `reports/process-memory-*`.
+
+The bath surface buffers, about 2.2 MB, were kept per geometry object at `c82aafc15`. In the final build they are one shared set, because bath contacts run one at a time and finish with the buffers before the next begins. The head selections' typed arrays (the `visible` lookup, scan arrays and triangle lists) are kept for each prepared character and are not shared.
 
 ## Heap growth at stress 50
 
@@ -107,11 +136,11 @@ Heap after two forced collections, every 30 seconds at speed 3, about 5,000 tick
 | Main | 938, 924, 954, 910, 809, 792, 760 | 56 falling to 46 |
 | Branch | 50, 53, 56, 58, 59, 57, 57 | 56, varying to 42 |
 
-Neither build grows without bound at stress 50. Main's heap falls as characters leave the drawn set and their envelopes are released. The branch's heap rises 9 MB over the first 2,700 ticks as characters meet new activities and their selections are prepared, then stays flat. The growth the issue measured at `?stress=100`, about 185 MB per 720 ticks, was not checked, because the owner's limit is stress 50; on main each newly prepared head selection cost megabytes per character, which is consistent with it.
+Seven samples over 180 seconds cannot show whether either heap settles. Main's heap falls over the last four samples as characters leave the drawn set and their envelopes are released. The branch's heap, measured at `c82aafc15`, rose for the first four samples (49.7, 53.4, 55.8 and 58.1 MB over about 2,700 ticks) as characters met new activities and their selections were prepared, then read 58.6, 57.0 and 56.8 MB. That is no evidence of unbounded growth in this window and no conclusion about longer runs. The growth the issue measured at `?stress=100`, about 185 MB per 720 ticks, was not checked, because the owner's limit is stress 50; on main each newly prepared head selection cost megabytes per character, which is consistent with it.
 
 ## Drawing is unchanged
 
-The frame capture procedure drew eight frames, at 120 to 3,600 pumped frames (ticks 20 to 600), from main twice and from the branch once. Main against itself and main against the branch differed in 0 of 1,260,000 pixels in every frame. The frames show the household walking, seated on the armchair and office chair, on the toilet, standing, and talking with speech bubbles above their heads. As a positive control, a build that raised every bone frame's origin by 1 cm differed from main in 685 to 3,041 pixels in every frame. No bath appears in these frames; the bath pose is covered by the unit tests, which require bit-identical skinning matrices for every clip and phase, including the bath, for six body shapes (every second body, so three, for the bookcase clips). The same tests compare the game's `configuredPose` route with seat, sleep and exercise bike contact artifacts against the original for two body shapes.
+The frame capture procedure drew eight frames, at 120 to 3,600 pumped frames (ticks 20 to 600), from main twice, from the branch at `c82aafc15` once and from the final build once. Main against itself and main against each branch build differed in 0 of 1,260,000 pixels in every frame. The frames show the household walking, seated on the armchair and office chair, on the toilet, standing, and talking with speech bubbles above their heads. As a positive control, a build that raised every bone frame's origin by 1 cm differed from main in 685 to 3,041 pixels in every frame. No bath, shower, sleeping or exercise pose appears in these frames, so pixels check none of them. They rest on the unit tests, which require bit-identical skinning matrices for every clip and phase, including the bath, for six body shapes (every second body, so three, for the bookcase clips). The same tests compare the game's `configuredPose` route with seat, sleep and exercise bike contact artifacts against the original for two body shapes.
 
 ## What the 100-Sim release gate still needs
 
@@ -121,4 +150,4 @@ The frame-time release gate in `docs/ARCHITECTURE.md` and `node scripts/audio-br
 2. A display calibrated at 120 Hz; this desktop's display runs at 60 Hz, so the gate's calibration fails here regardless of the page.
 3. Then `node scripts/activity-log-proof.cjs performance` and `node scripts/audio-browser-proof.cjs performance` on a production build served on 127.0.0.1, with their default `--stress 100`.
 
-The issue's other `?stress=100` observations, the 25-second start at 6 to 11 frames per second and the heap growth of about 185 MB per 720 ticks, were not re-measured. At `?stress=50` the branch starts in 10.9 seconds, holds 49 MB after start-up and does not grow without bound.
+The issue's other `?stress=100` observations, the 25-second start at 6 to 11 frames per second and the heap growth of about 185 MB per 720 ticks, were not re-measured. At `?stress=50` the branch starts in about 10.5 to 11.7 seconds, as main mostly does, holds 49.7 MB of JavaScript heap after start-up and showed no unbounded growth over 180 seconds.

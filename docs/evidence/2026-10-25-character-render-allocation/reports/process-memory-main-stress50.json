@@ -1,0 +1,140 @@
+{
+  "url": "http://127.0.0.1:4331/",
+  "stress": 50,
+  "generatedAt": "2026-11-15T20:57:05.906Z",
+  "samples": [
+    {
+      "seconds": 30,
+      "jsHeapMB": 881,
+      "renderer": {
+        "workingSetMB": 3375.5,
+        "privateMB": 3258.3
+      },
+      "gpu": {
+        "workingSetMB": 627.6,
+        "privateMB": 3063
+      },
+      "browser": {
+        "workingSetMB": 151.4,
+        "privateMB": 46.8
+      },
+      "rows": [
+        {
+          "type": "browser",
+          "id": 43732,
+          "workingSetMB": 151.4,
+          "privateMB": 46.8
+        },
+        {
+          "type": "renderer",
+          "id": 46628,
+          "workingSetMB": 35.8,
+          "privateMB": 17.4
+        },
+        {
+          "type": "renderer",
+          "id": 82456,
+          "workingSetMB": 3267.3,
+          "privateMB": 3208.2
+        },
+        {
+          "type": "renderer",
+          "id": 102012,
+          "workingSetMB": 72.4,
+          "privateMB": 32.7
+        },
+        {
+          "type": "GPU",
+          "id": 81108,
+          "workingSetMB": 627.6,
+          "privateMB": 3063
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 52712,
+          "workingSetMB": 97.1,
+          "privateMB": 71.6
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 96564,
+          "workingSetMB": 21.4,
+          "privateMB": 8
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 79944,
+          "workingSetMB": 25.4,
+          "privateMB": 8.5
+        }
+      ]
+    },
+    {
+      "seconds": 120,
+      "jsHeapMB": 723.6,
+      "renderer": {
+        "workingSetMB": 2938.2,
+        "privateMB": 2822.2
+      },
+      "gpu": {
+        "workingSetMB": 511.7,
+        "privateMB": 2895.8
+      },
+      "browser": {
+        "workingSetMB": 148.9,
+        "privateMB": 43.1
+      },
+      "rows": [
+        {
+          "type": "browser",
+          "id": 43732,
+          "workingSetMB": 148.9,
+          "privateMB": 43.1
+        },
+        {
+          "type": "renderer",
+          "id": 46628,
+          "workingSetMB": 35.8,
+          "privateMB": 17.4
+        },
+        {
+          "type": "renderer",
+          "id": 82456,
+          "workingSetMB": 2831.4,
+          "privateMB": 2774
+        },
+        {
+          "type": "renderer",
+          "id": 102012,
+          "workingSetMB": 71,
+          "privateMB": 30.8
+        },
+        {
+          "type": "GPU",
+          "id": 81108,
+          "workingSetMB": 511.7,
+          "privateMB": 2895.8
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 52712,
+          "workingSetMB": 91.9,
+          "privateMB": 65.4
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 96564,
+          "workingSetMB": 21.4,
+          "privateMB": 8
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 79944,
+          "workingSetMB": 25.5,
+          "privateMB": 8.4
+        }
+      ]
+    }
+  ],
+  "readyMs": 13874
+}
