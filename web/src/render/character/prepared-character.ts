@@ -42,7 +42,10 @@ export class PreparedCharacter {
    * actor on every frame; repeating it with the same rig, the same appearance
    * record and an equal context changes nothing, so it returns at once rather
    * than re-serialising and re-validating the appearance for each renderer.
-   * Methods that change what a selection installs clear it.
+   * Methods that change what a selection installs clear it. The match is by
+   * object identity, so an appearance record must be treated as immutable: an
+   * edit made in place to the record last passed here is not seen. Callers
+   * change an appearance by passing a new record.
    */
   private selected:{rig:CharacterRig;appearance:CharacterAppearanceV1;context:AppearanceContext}|null=null;
   constructor(private readonly device:GPUDevice,rig:CharacterRig,appearance:CharacterAppearanceV1,context:AppearanceContext,

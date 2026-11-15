@@ -33,9 +33,15 @@ export function queryConfiguredSurface(geometry:Geometry,parts:readonly MeshPart
   return out;
 }
 
-interface SurfaceScratch {cage:Float32Array<ArrayBuffer>;out:Float32Array<ArrayBuffer>;skinning:Float64Array<ArrayBuffer>;ids:Uint32Array<ArrayBuffer>;weights:Float32Array<ArrayBuffer>}
+interface StencilViews {ids:Uint32Array<ArrayBuffer>;weights:Float32Array<ArrayBuffer>}
 interface ShapedCages {query:SurfaceQuery;shape:ShapeParameters;top:number;points:Float64Array<ArrayBuffer>}
-const scratches=new WeakMap<Geometry,SurfaceScratch>();
+const stencils=new WeakMap<Geometry,StencilViews>();
+/**
+ * One set of working buffers for every geometry: a call finishes with them
+ * before the next begins, so characters need not each keep about 2 MB.
+ * They only grow, to the largest geometry seen.
+ */
+const scratch={cage:new Float32Array(0),out:new Float32Array(0),skinning:new Float64Array(0)};
 const shapedCages=new WeakMap<Geometry,ShapedCages>();
 
 /** The selected cages' shaped rest positions, kept while the body shape and top are unchanged. */
@@ -50,21 +56,19 @@ function shapedSelectedCages(geometry:Geometry,selected:SurfaceQuery,appearance:
 /**
  * `queryConfiguredSurface` with a pose, for code that runs every frame. It
  * performs the same Float32 stores and accumulations in the same order, so
- * the selected vertices are bit-identical, but it writes into buffers reused
- * for this geometry. Only the selected vertices of the result are valid, and
- * only until the next call for the same geometry.
+ * the selected vertices are bit-identical, but it writes into buffers shared
+ * by every geometry. Only the selected vertices of the result are valid, and
+ * only until the next call for any geometry.
  */
 export function configuredSurfaceScratch(geometry:Geometry,parts:readonly MeshPart[],appearance:ShapeParameters,top:number,
   pose:readonly (readonly number[])[],inverse:readonly (readonly number[])[]):Float32Array<ArrayBuffer> {
   const selected=query(geometry,parts),vertex=geometry.cage;
-  let scratch=scratches.get(geometry);
-  if(!scratch){
-    scratch={cage:new Float32Array(geometry.description.cageCount*3),out:new Float32Array(geometry.description.vertexCount*3),skinning:new Float64Array(pose.length*16),
-      ids:new Uint32Array(geometry.stencilWeights),weights:new Float32Array(geometry.stencilWeights)};
-    scratches.set(geometry,scratch);
-  }
+  let views=stencils.get(geometry);
+  if(!views){views={ids:new Uint32Array(geometry.stencilWeights),weights:new Float32Array(geometry.stencilWeights)};stencils.set(geometry,views);}
+  if(scratch.cage.length<geometry.description.cageCount*3)scratch.cage=new Float32Array(geometry.description.cageCount*3);
+  if(scratch.out.length<geometry.description.vertexCount*3)scratch.out=new Float32Array(geometry.description.vertexCount*3);
   if(scratch.skinning.length<pose.length*16)scratch.skinning=new Float64Array(pose.length*16);
-  const {cage,out,skinning,ids,weights}=scratch;
+  const {cage,out,skinning}=scratch,{ids,weights}=views;
   for(let i=0;i<pose.length;i++)multiplyInto(skinning,pose[i],inverse[i],i*16);
   const shaped=shapedSelectedCages(geometry,selected,appearance,top);
   for(let j=0;j<selected.cages.length;j++){

@@ -248,6 +248,20 @@ describe('the bath contact',()=>{
     expect(thighContactPatches(geometry,shape,top,matrices,inverse).points[0]).toBe(thighContactPatches(geometry,shape,top,matrices,inverse).points[0]);
   });
 
+  it('shares its working buffers between geometries without carrying one body into the next',()=>{
+    const cases=bathCases(),first=cases[0],other=cases.find(row=>row.geometry!==first.geometry&&row.shape.height!==first.shape.height)!;
+    expect(other).toBeDefined();
+    const partsOf=(geometry:typeof first.geometry)=>geometry.description.parts.filter(part=>part.name.startsWith('Creator bare leg '));
+    const selected=(row:typeof first)=>{
+      const actual=configuredSurfaceScratch(row.geometry,partsOf(row.geometry),row.shape,row.top,row.matrices,row.inverse),
+        expected=queryConfiguredSurface(row.geometry,partsOf(row.geometry),row.shape,row.top,row.matrices,row.inverse);
+      for(const part of partsOf(row.geometry))for(let at=part.start;at<part.start+part.count;at++){const vertex=row.geometry.indices[at];same(actual.subarray(vertex*3,vertex*3+3),expected.subarray(vertex*3,vertex*3+3));}
+      return actual;
+    };
+    // The same buffer serves both bodies, so each call must rewrite everything the next reads.
+    expect(selected(first)).toBe(selected(other));selected(first);selected(other);
+  });
+
   it('chooses the original contact, including ties, unreachable and non-finite candidates',()=>{
     let chosen=0,empty=0;
     for(let trial=0;trial<3000;trial++){
@@ -262,6 +276,10 @@ describe('the bath contact',()=>{
       if(expected===null){expect(actual).toBeNull();empty++;}else{same(actual!,expected);chosen++;}
     }
     expect(chosen).toBeGreaterThan(100);expect(empty).toBeGreaterThan(10);
+    // Two candidates a unit in the last place apart: their square-root scores can be equal or differ by the margin, and the original's Math.hypot picks the first.
+    const close:Vec3[]=[[0.44762776605784893,-0.1566345861647278,0.05153212929144502],[0.4476277660578489,-0.1566345861647278,0.05153212929144502]],zero:Vec3=[0,0,0];
+    const tie=nearestReachableContact(new Float64Array(close.flat()),2,zero,zero,zero,.5,.5);
+    expect(originalNearest(close,zero,zero,zero,.5,.5)).toEqual(close[0]);same(tie!,close[0]);
   });
 
   it('decides facing and reach exactly as Math.hypot does at the thresholds',()=>{
