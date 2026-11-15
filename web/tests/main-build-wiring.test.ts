@@ -63,7 +63,8 @@ class Element {
 class DocumentModel {
   activeElement: Element | null = null; body = new Element(this);
   nodes = new Map<string, Element>(); listeners = new Map<string, ((event: any) => void)[]>();
-  querySelector(selector: string) { if (!this.nodes.has(selector)) this.nodes.set(selector, new Element(this)); return this.nodes.get(selector)!; }
+  // No recovery popover is ever open here; Build ignores keys only while one is.
+  querySelector(selector: string): Element { if (selector === 'dialog:popover-open') return null as unknown as Element; if (!this.nodes.has(selector)) this.nodes.set(selector, new Element(this)); return this.nodes.get(selector)!; }
   addEventListener(type: string, fn: (event: any) => void) { this.listeners.set(type, [...this.listeners.get(type) ?? [], fn]); }
   key(canvas: Element, key: string, repeat = false) {
     const event = { target: canvas, key, repeat, defaultPrevented: false, ctrlKey: false, metaKey: false, altKey: false,
