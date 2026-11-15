@@ -303,7 +303,9 @@ fn accepted_architecture_edits_always_confirm() {
             .and_then(|s| s.parse().ok())
             .unwrap_or(default)
     };
-    for seed in seed_env("BUILD_FUZZ_FROM", 1)..=seed_env("BUILD_FUZZ_TO", 24) {
+    let (from, to) = (seed_env("BUILD_FUZZ_FROM", 1), seed_env("BUILD_FUZZ_TO", 24));
+    let mut cancelled_for_beds = 0;
+    for seed in from..=to {
         let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
         let mut rng = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
         let mut next = move |n: u64| {
@@ -422,6 +424,7 @@ fn accepted_architecture_edits_always_confirm() {
                 // confirmed layout.
                 Err(crate::build_transaction::BuildCommitError::BedOutside { .. }) => {
                     refused_beds += 1;
+                    cancelled_for_beds += 1;
                     sim.cancel_build().unwrap();
                     sim.end_build().unwrap();
                     if let Err(e) = sim.begin_build() {
@@ -454,6 +457,15 @@ fn accepted_architecture_edits_always_confirm() {
         }
         eprintln!(
             "seed {seed}: {accepted} accepted edits, batches cancelled for a bed left outside: {refused_beds}"
+        );
+    }
+    // The bed rule's refusal is part of what the search exercises: across
+    // the default 24 seeds at least one batch is cancelled for it, so the
+    // arm above cannot go unused unnoticed. A narrower range may miss it.
+    if to.saturating_sub(from) + 1 >= 24 {
+        assert!(
+            cancelled_for_beds >= 1,
+            "no batch was cancelled for a bed left outside across seeds {from} to {to}"
         );
     }
 }
