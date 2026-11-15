@@ -468,8 +468,13 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// no longer considers a sleeping recipient, so at 21:25 on Monday it spends
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. Both measured on its branch with
-/// the log off and on giving the same worlds.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa0fb_785a_e3a4_7b1d;
+/// the log off and on giving the same worlds. Issue 344 moved it from
+/// 0xa0fb_785a_e3a4_7b1d on purpose: Bill holds -0.35 for plants, so from
+/// about 06:50 on Monday, when he first stands in a room with a plant he
+/// no longer reads `Bothered by the plants here`, his mood is higher, and the
+/// choices scored from it differ. Measured on its branch with the log off and
+/// on giving the same worlds.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9b82_b49b_c343_cfa0;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -480,8 +485,11 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa0fb_785a_e3a4_7b1d;
 /// fold, measured on its branch in a release build. Issue 338 moved it from
 /// 0x2e8d_746e_12f8_fad2, and its fight trigger change then from
 /// 0x4080_914e_b342_85e0, for the reasons given for the two-day fold, both
-/// measured on its branch in a release build.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x78e8_cb74_b70c_d742;
+/// measured on its branch in a release build. Issue 344 moved it from
+/// 0x78e8_cb74_b70c_d742 for the reason given for the two-day fold, measured
+/// on its branch in a release build, with the log off and on giving the same
+/// worlds.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6f69_a181_4336_43c8;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

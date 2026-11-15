@@ -235,8 +235,13 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// no longer considers a sleeping recipient, so at 21:25 on Monday it spends
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. The draw counts and every job and
-/// shift are again unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (17769474122166916875, 7, 2);
+/// shift are again unchanged. Issue 344 (presence never lowers mood) then
+/// moved it from 17769474122166916875: Bill holds -0.35 for plants, so from
+/// about 06:50 on Monday, when he first stands in a room with a plant he
+/// no longer reads `Bothered by the plants here`, his mood is higher, and the
+/// choices scored from it differ. The draw counts and every job and shift are
+/// again unchanged.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (4146085866862393671, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
