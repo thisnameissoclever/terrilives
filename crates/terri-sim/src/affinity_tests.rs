@@ -105,6 +105,56 @@ fn likes_plants(score: f32) -> Vec<(String, f32)> {
     vec![("Likes the plants here".to_string(), score)]
 }
 
+/// [OA-presence], owner ruling of 2026-10-25: being near furniture never
+/// lowers mood. A person who dislikes or hates a presence kind reads no
+/// moodlet from it at any strength, with one object or many, and the whole
+/// mood list carries nothing for it, while a person who likes the same kind
+/// beside them still reads the positive lift.
+#[test]
+fn presence_never_lowers_mood() {
+    let mut sim = shipped();
+    let tim = person(&mut sim, "Tim");
+    let casey = person(&mut sim, "Casey");
+    stand(&mut sim, tim, 14.0, 1.0);
+    stand(&mut sim, casey, 14.0, 2.0);
+    for tile in [(9.0, 4.0), (13.0, 5.0), (15.0, 5.0)] {
+        spawn_plant(&mut sim, tile.0, tile.1);
+    }
+    for hated in [-1.0, -0.8, -0.4, -0.2, -0.199_999] {
+        set_values(&mut sim, tim, &[("plants", hated), ("aquarium", hated)]);
+        set_values(&mut sim, casey, &[("plants", 1.0)]);
+        assert_eq!(affinity_moodlets(&sim, tim), vec![], "value {hated}");
+        let labels: Vec<String> = sim
+            .mood_of(tim.index_u32())
+            .unwrap()
+            .moodlets
+            .into_iter()
+            .map(|moodlet| moodlet.label)
+            .collect();
+        assert!(
+            labels.iter().all(|label| !label.ends_with(" here")),
+            "value {hated}: {labels:?}"
+        );
+        assert_eq!(
+            affinity_moodlets(&sim, casey),
+            likes_plants(19.0),
+            "the person who likes plants keeps the lift beside the same plants"
+        );
+    }
+}
+
+/// [OA-presence], [OA-use]: removing the presence bother leaves the use
+/// nuisance alone. A person who hates both plants and television, beside a
+/// plant and a watching housemate, reads only the nuisance.
+#[test]
+fn the_use_nuisance_stays_when_presence_stops_bothering() {
+    let (mut sim, bill, _) = bill_beside_a_watching_casey();
+    spawn_plant(&mut sim, 14.0, 5.0);
+    stand(&mut sim, bill, 14.0, 1.0);
+    set_values(&mut sim, bill, &[("plants", -1.0), ("television", -1.0)]);
+    assert_eq!(affinity_moodlets(&sim, bill), bothered_by_casey(-15.0));
+}
+
 /// [OA-presence]: one plant in the room gives the whole presence points at
 /// a value of 1.0, signed by the value; a value below the threshold gives
 /// nothing; each further plant adds the extra points up to the cap.
@@ -127,11 +177,10 @@ fn presence_scores_one_plant_and_caps_the_extras() {
 
     set_values(&mut sim, tim, &[("plants", 1.0)]);
     assert_eq!(affinity_moodlets(&sim, tim), likes_plants(10.0));
+    // Owner ruling of 2026-10-25: being near a kind never lowers mood, so
+    // a person who hates plants reads nothing beside one.
     set_values(&mut sim, tim, &[("plants", -1.0)]);
-    assert_eq!(
-        affinity_moodlets(&sim, tim),
-        vec![("Bothered by the plants here".to_string(), -10.0)]
-    );
+    assert_eq!(affinity_moodlets(&sim, tim), vec![]);
     set_values(&mut sim, tim, &[("plants", 0.5)]);
     assert_eq!(affinity_moodlets(&sim, tim), likes_plants(5.0));
 
@@ -160,7 +209,8 @@ fn presence_scores_one_plant_and_caps_the_extras() {
     set_values(&mut sim, tim, &[("plants", -0.5)]);
     assert_eq!(
         affinity_moodlets(&sim, tim),
-        vec![("Bothered by the plants here".to_string(), -9.5)]
+        vec![],
+        "a dislike gives nothing however many plants are in the room"
     );
 }
 
@@ -781,10 +831,7 @@ fn a_zero_value_reads_nothing_under_a_zero_threshold() {
     set_values(&mut sim, tim, &[("plants", 0.001)]);
     assert_eq!(affinity_moodlets(&sim, tim), likes_plants(0.001 * 10.0));
     set_values(&mut sim, tim, &[("plants", -0.001)]);
-    assert_eq!(
-        affinity_moodlets(&sim, tim),
-        vec![("Bothered by the plants here".to_string(), -0.001 * 10.0)]
-    );
+    assert_eq!(affinity_moodlets(&sim, tim), vec![]);
 
     let (mut sim, bill, _) = bill_beside_a_watching_casey();
     retune(&mut sim, |tuning| tuning.affinity_presence_threshold = 0.0);
