@@ -77,7 +77,13 @@ export class PreparedCharacter {
   }
   select(rig:CharacterRig,appearance:CharacterAppearanceV1,context:AppearanceContext):void {
     if(this.closed)throw new Error('Prepared character is closed.');
-    const last=this.selected;if(last&&last.rig===rig&&last.appearance===appearance&&sameContext(last.context,context))return;
+    const last=this.selected;
+    if(last&&last.rig===rig&&last.appearance===appearance&&sameContext(last.context,context)){
+      // A borrowed cover is one renderer shared by every actor on that fixture, and each actor's selection used to
+      // leave it showing that actor's appearance. Repeat that for the few sleepers so the last selection still wins.
+      if(this.borrowedCover)for(const view of this.views)view.cover?.setCharacterAppearance(appearance);
+      return;
+    }
     this.selected=null;
     if(this.selectionKey!==bodySelectionKey(appearance))throw new Error('Prepared character style changed.');
     this.appearance=appearance;this.current=this.prepared.select(rig,appearance,context);

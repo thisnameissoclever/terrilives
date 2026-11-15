@@ -70,11 +70,12 @@ export function snapshotShape(a: ShapeParameters): ShapeParameters {
 
 /** True when `a` still has the values `snapshot` recorded. Allocates nothing. */
 export function sameShape(snapshot: ShapeParameters, a: ShapeParameters): boolean {
-  if (snapshot.presentation !== a.presentation || snapshot.height !== a.height || snapshot.build !== a.build
-    || snapshot.shoulders !== a.shoulders || snapshot.hips !== a.hips || snapshot.torso !== a.torso) return false;
+  // Object.is, so a NaN or a signed zero in the parameters is compared by value like everything else.
+  if (!Object.is(snapshot.presentation, a.presentation) || !Object.is(snapshot.height, a.height) || !Object.is(snapshot.build, a.build)
+    || !Object.is(snapshot.shoulders, a.shoulders) || !Object.is(snapshot.hips, a.hips) || !Object.is(snapshot.torso, a.torso)) return false;
   const saved = snapshot.face as Record<string, unknown> | undefined, face = a.face as Record<string, unknown> | undefined;
   if (saved === undefined || face === undefined) return saved === face;
-  for (const key in face) if (saved[key] !== face[key]) return false;
+  for (const key in face) if (!Object.is(saved[key], face[key])) return false;
   for (const key in saved) if (!(key in face)) return false;
   return true;
 }

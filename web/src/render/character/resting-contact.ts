@@ -46,8 +46,9 @@ function thighRows(bones:readonly Bone[]):readonly [number,number,number,number]
  * than 0.35 upward. Exactly `Math.hypot(n) < 1e-10 || n2 * (1 / Math.hypot(n)) < 0.35`.
  */
 export function facesAway(n0:number,n1:number,n2:number):boolean {
-  // Any size gives a ratio of at most zero, or the size test skips it.
-  if(n2<=0)return true;
+  // With every component a number and n2 not above zero, any size gives a ratio of at most zero, or the size test skips it.
+  // A NaN component or an n2 of -Infinity makes the original's ratio NaN, which does not skip, so those take the exact path.
+  if(n2<=0&&n2>-Infinity&&n0===n0&&n1===n1)return true;
   const squares=n0*n0+n1*n1+n2*n2;
   if(safe(squares)){
     const size=Math.sqrt(squares),ratio=n2/size;

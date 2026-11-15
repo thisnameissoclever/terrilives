@@ -15,6 +15,17 @@ import {configuredPose as originalPose,configuredPoseForProof as originalPoseFor
 import {nearestReachableContact as originalNearest,thighContactPatches as originalPatches} from './fixtures/pose-allocation/resting-contact-original.js';
 import {queryConfiguredSurface} from './fixtures/pose-allocation/surface-query-original.js';
 import {appearances,clipSubject,framesOf,library,manifest,sampledAllocationBytes} from './character-pose-allocation-fixture.js';
+import {anatomicalHeight} from '../src/render/character/shape.js';
+import {compileBikeContact} from '../src/render/character/bike-contact-compile.js';
+import {freezeBikeContactArtifact,makeBikeContactInput} from '../src/render/character/bike-contact-protocol.js';
+import {compileSeatContact} from '../src/render/character/seat-contact-compile.js';
+import {createSeatContactInput} from '../src/render/character/seat-contact-preparation.js';
+import {SEAT_ACTIONS} from '../src/render/character/seat-contact-types.js';
+import {compileSleepContact} from '../src/render/character/sleep-contact-compile.js';
+import {createSleepContactInput} from '../src/render/character/sleep-contact-preparation.js';
+import {bikeGeometry,bikeInput} from './bike-contact-fixture.js';
+import {preparedSeatGeometry,seatRigs} from './seat-contact-fixture.js';
+import {preparedSleepGeometry,sleepRigs} from './sleep-contact-fixture.js';
 
 /*
  * The pose and contact code runs for every animated character on every
@@ -121,6 +132,62 @@ describe('the configured pose is unchanged',()=>{
   },60000);
 });
 
+/*
+ * The game poses seated, sleeping and exercising characters through
+ * `configuredPose` with a compiled contact artifact, not through the proof
+ * entry point the clip loop above uses. These compare that route with the
+ * frozen original for the same artifact.
+ */
+describe('the production path with compiled contact artifacts',()=>{
+  const bodies=()=>appearances().filter((_,index)=>index===1||index===3);
+  const shapeOf=(appearance:ReturnType<typeof appearances>[number])=>({presentation:appearance.presentation,...appearance.body,face:appearance.face});
+
+  it('poses every seat action exactly as before',async()=>{
+    let poses=0;
+    for(const appearance of bodies()){
+      const input=await createSeatContactInput(appearance),artifact=compileSeatContact(input,{rigs:seatRigs,revisions:input.revisions});
+      for(const action of SEAT_ACTIONS){
+        const geometry=preparedSeatGeometry(appearance,action),shape=shapeOf(appearance),top=anatomicalHeight(geometry.vertices),count=geometry.manifest.actions[action].length;
+        for(const frame of [0,.5,1.375,count-.25]){
+          const actual=configuredPose(geometry.manifest,shape,action,frame,top,undefined,geometry,undefined,undefined,artifact);
+          const expected=originalPose(geometry.manifest,shape,action,frame,top,undefined,geometry,undefined,undefined,artifact);
+          if(!bytes(actual).equals(bytes(expected)))throw new Error(`${action} ${appearance.presentation} frame ${frame} differs`);poses++;
+        }
+      }
+    }
+    expect(poses).toBe(2*SEAT_ACTIONS.length*4);
+  },120000);
+
+  it('poses both sleeping actions exactly as before',async()=>{
+    let poses=0;
+    for(const appearance of bodies()){
+      const input=await createSleepContactInput(appearance),artifact=compileSleepContact(input,{...sleepRigs,revisions:input.revisions});
+      for(const action of ['bed_sleep','bunk_sleep'] as const){
+        const geometry=preparedSleepGeometry(appearance,action),shape=shapeOf(appearance),top=anatomicalHeight(geometry.vertices);
+        for(const frame of [0,.5,3.75]){
+          expect(bytes(configuredPose(geometry.manifest,shape,action,frame,top,undefined,geometry,undefined,artifact)))
+            .toEqual(bytes(originalPose(geometry.manifest,shape,action,frame,top,undefined,geometry,undefined,artifact)));poses++;
+        }
+      }
+    }
+    expect(poses).toBe(12);
+  },120000);
+
+  it('poses the exercise bike cycle exactly as before',async()=>{
+    let poses=0;
+    for(const appearance of bodies()){
+      appearance.footwear='trainers';
+      const geometry=bikeGeometry(appearance),artifact=freezeBikeContactArtifact(compileBikeContact(await makeBikeContactInput(bikeInput(appearance,geometry))));
+      const shape=shapeOf(appearance),top=anatomicalHeight(geometry.vertices);
+      for(const frame of [7.5,0,3.5,1,6.25]){
+        expect(bytes(configuredPose(geometry.manifest,shape,'exercise',frame,top,undefined,geometry,artifact)))
+          .toEqual(bytes(originalPose(geometry.manifest,shape,'exercise',frame,top,undefined,geometry,artifact)));poses++;
+      }
+    }
+    expect(poses).toBe(10);
+  },120000);
+});
+
 describe('the reused rest setup',()=>{
   it('returns the same frozen rows on every frame of one body shape, and fresh pose rows',()=>{
     const {geometry,shape,top}=clipSubject('walk',people()[0]),first=configuredJointSetup(geometry.manifest,shape,'walk',0,top),second=configuredJointSetup(geometry.manifest,shape,'walk',3.5,top);
@@ -148,6 +215,9 @@ describe('the reused rest setup',()=>{
     expect(sameShape(saved,{...shape,presentation:shape.presentation==='feminine'?'masculine':'feminine'})).toBe(false);
     for(const key of Object.keys(shape.face))expect(sameShape(saved,{...shape,face:{...shape.face,[key]:'changed'}}),key).toBe(false);
     expect(sameShape(saved,{...shape,face:undefined})).toBe(false);
+    // A NaN equals itself and a signed zero differs from zero, so an unusual value cannot force a recompute every frame or hide an edit.
+    expect(sameShape(snapshotShape({...shape,height:NaN}),{...shape,height:NaN})).toBe(true);
+    expect(sameShape(snapshotShape({...shape,height:0}),{...shape,height:-0})).toBe(false);
   });
 });
 
@@ -197,7 +267,9 @@ describe('the bath contact',()=>{
   it('decides facing and reach exactly as Math.hypot does at the thresholds',()=>{
     const reference=(n0:number,n1:number,n2:number)=>{const size=Math.hypot(n0,n1,n2);return size<1e-10||n2*(1/size)<.35;};
     const near=(x:number,steps:number)=>{let y=x;for(let i=0;i<Math.abs(steps);i++)y=steps>0?y+Math.abs(y)*Number.EPSILON:y-Math.abs(y)*Number.EPSILON;return y;};
-    const normals:[number,number,number][]=[[0,0,0],[0,0,-0],[NaN,0,1],[0,NaN,1],[0,0,NaN],[Infinity,0,1],[0,0,Infinity],[1e-300,0,1e-300],[1e200,1e200,1e200],[0,0,1e-10],[0,0,9.9999e-11]];
+    const normals:[number,number,number][]=[[0,0,0],[0,0,-0],[NaN,0,1],[0,NaN,1],[0,0,NaN],[Infinity,0,1],[0,0,Infinity],[1e-300,0,1e-300],[1e200,1e200,1e200],[0,0,1e-10],[0,0,9.9999e-11],
+      // A non-positive upward component skips the triangle only when the whole normal is a number.
+      [NaN,0,-1],[0,NaN,-1],[NaN,NaN,0],[NaN,0,-0],[0,0,-Infinity],[NaN,0,-Infinity],[Infinity,0,-Infinity],[Infinity,0,-1],[0,-Infinity,-1],[0,0,-1],[0,0,-0],[1,1,-1e-300]];
     // Normals whose upward fraction is within a few units in the last place of 0.35.
     for(let trial=0;trial<4000;trial++){
       const horizontal=Math.sqrt(1-.35*.35),angle=next()*Math.PI*2,size=10**(next()*24-14);
