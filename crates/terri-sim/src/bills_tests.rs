@@ -443,6 +443,72 @@ fn a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new() {
     );
 }
 
+/// Review of 2026-11-15, 1: after a change of month length the panel
+/// divides by the length the month is counted under, as the issued bills
+/// do. Nine days counted under a length of ten, with the tuning at seven:
+/// every bill's lines add up to its amount so far, and the expected bills
+/// never come to more than a full month of them.
+#[test]
+fn the_panel_follows_a_months_own_length_after_a_month_length_change() {
+    let mut sim = house();
+    // Day index 10 is the fourth day of a seven-day month, so three more
+    // days are to count before the new boundary: the open month, begun on
+    // day index 2 under a length of ten, will hold twelve.
+    set_tick(&mut sim, 10 * DAY);
+    sim.world_mut().insert_resource(Bills {
+        last_counted_day: Some(10),
+        month_start: 2,
+        month_days: 9,
+        month_length: 10,
+        indoor_tile_days: 192 * 9,
+        outdoor_tile_days: 112 * 9,
+        commutes: 2,
+        ..Bills::default()
+    });
+    let so_far = month_amounts(bills(&sim), &pack().bills);
+    for kind in 0..BILL_KINDS {
+        assert_eq!(
+            lines(sim.world(), kind)
+                .iter()
+                .map(|line| line.amount_cents)
+                .sum::<i64>(),
+            so_far[kind as usize],
+            "bill kind {kind}: the lines add up to the amount so far"
+        );
+    }
+    // Transportation so far: 9 of 10 days of its base, and two trips.
+    assert_eq!(so_far[TRANSPORTATION as usize], 900 + 2 * 300);
+    let base = &pack().bills;
+    let full = [
+        base.rent_base_cents + 192 * base.rent_indoor_tile_cents + 112 * base.rent_outdoor_tile_cents,
+        base.electricity_base_cents,
+        base.water_base_cents,
+        base.transportation_base_cents + 2 * base.commute_cents,
+    ];
+    let expected = next_bills(sim.world());
+    assert_eq!(expected.len(), 4);
+    for next in &expected {
+        assert!(
+            next.expected_cents <= full[next.kind as usize],
+            "bill kind {}: {} is more than a full month's {}",
+            next.kind,
+            next.expected_cents,
+            full[next.kind as usize]
+        );
+        assert!(next.expected_cents >= next.so_far_cents);
+    }
+    // Three more days are projected, so the month comes to twelve days
+    // counted under a length of twelve: a base charge comes to its whole
+    // month and the usage-free bills are exactly a full month.
+    assert_eq!(expected[0].expected_cents, 25_520, "a full month of rent");
+    assert_eq!(expected[1].expected_cents, base.electricity_base_cents);
+    assert_eq!(expected[2].expected_cents, base.water_base_cents);
+    assert_eq!(
+        expected[3].expected_cents,
+        base.transportation_base_cents + 2 * base.commute_cents
+    );
+}
+
 /// [WB-usage]: a use is counted once at physical start, and a save and
 /// load in the middle of the action does not count it again.
 #[test]

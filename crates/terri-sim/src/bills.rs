@@ -860,8 +860,13 @@ fn expected_month(world: &World, bills: &Bills, tuning: &BillsTuning, today: u32
         None => month - today % month,
     });
     let (indoor, outdoor) = rent_tiles(world);
+    let projected_days = bills.month_days + left as u32;
     Bills {
-        month_days: bills.month_days + left as u32,
+        month_days: projected_days,
+        // The month's own length, or the days it will have counted if that
+        // is more, so the projection is divided as the issued bills will be
+        // and never comes to more than a full month ([WB-save]).
+        month_length: month_length(bills, tuning).max(projected_days),
         indoor_tile_days: bills.indoor_tile_days + u64::from(indoor) * left,
         outdoor_tile_days: bills.outdoor_tile_days + u64::from(outdoor) * left,
         ..bills.clone()
@@ -907,7 +912,8 @@ pub fn lines(world: &World, kind: u8) -> Vec<Line> {
         return Vec::new();
     }
     let tuning = &pack.bills;
-    let month = i64::from(tuning.days_per_month);
+    // The length the amounts are divided by, so the lines add up to them.
+    let month = i64::from(month_length(bills, tuning));
     let days = i64::from(bills.month_days);
     let base = [
         tuning.rent_base_cents,
