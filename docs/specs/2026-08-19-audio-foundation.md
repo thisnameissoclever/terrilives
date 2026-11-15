@@ -332,11 +332,12 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
    paused calibration between 118 and 122 animation frames per second, with
    median interval from 8.0 to 8.7 ms. Report the active cadence rather than
    calling it 120 Hz by configuration alone.
-2. Run `?stress=1000` for 600 fixed ticks. Discard the first 60; the sampler
+2. Run `?stress=100` for 600 fixed ticks (100 Sims, the gate set in
+   `docs/ARCHITECTURE.md` on 2026-10-25). Discard the first 60; the sampler
    timer retains the final 540.
 3. Require sampler p95 at or below 0.25 ms per tick and maximum at or below
    1.0 ms.
-4. Repeat with `?stress=1000&audio=0`. This diagnostic switch disables fixed-tick
+4. Repeat with `?stress=100&audio=0`. This diagnostic switch disables fixed-tick
    Sim audio sampling. The sampling-enabled whole-frame p95 may regress by at
    most 1.0 ms and neither run may place application work over 16.6 ms. A 120 Hz
    display interval is about 8.33 ms; the 16.6 ms application guard remains the
