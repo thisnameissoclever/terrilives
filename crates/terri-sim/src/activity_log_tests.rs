@@ -473,7 +473,7 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// purpose: pay is 1.5 times what it was, a night shift pays 15 percent
 /// more, a new household starts with $400, and the household bills record
 /// joins the hash once a day is counted. Measured on its branch after
-/// merging afbe98af3; with the old wages, no premium, no starting funds and
+/// merging 053ee52d3; with the old wages, no premium, no starting funds and
 /// the bills system and its hash switched off, the branch gave
 /// 0xa0fb_785a_e3a4_7b1d again.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb953_34a8_9aca_0e2c;

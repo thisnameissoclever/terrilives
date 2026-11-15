@@ -126,7 +126,7 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// it was, a new household starts with $400, and the household bills record
 /// joins the hash once a day is counted. With the old wages, no night
 /// premium, no starting funds and the bills system and its hash off, the
-/// branch gave 1877760251232896320 again after merging afbe98af3, so the
+/// branch gave 1877760251232896320 again after merging 053ee52d3, so the
 /// shift section still adds nothing here.
 const STANDARD_ONLY_HASH: u64 = 3704503324967516506;
 

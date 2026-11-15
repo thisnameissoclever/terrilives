@@ -243,7 +243,7 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// more, a new household starts with $400, and the bills record joins the
 /// hash once a day is counted. With the old wages, no premium, no starting
 /// funds and the bills off, the branch gave 17769474122166916875 after
-/// merging afbe98af3; the draws and jobs are the same.
+/// merging 053ee52d3; the draws and jobs are the same.
 const SHIPPED_THURSDAY: (u64, u64, u64) = (4873052259007802963, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
