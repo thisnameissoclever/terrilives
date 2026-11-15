@@ -57,7 +57,7 @@ Condition 3 of [WB-numbers], a tiny house saving at least a third, is a design e
 | Trips to work | 13.5 | 14 in the first month, 15 after | 5 |
 | Usage with one earner | as three earners | electricity $37.57 to $42.10, water $37.90 to $43.65 | electricity $39.23 to $42.34, water $41.05 to $46.70 |
 
-Dish washing counts each Wash dishes step, which runs far more often than the estimate. At 20 cents of water each, the three-earner household's 10 to 18 washes a month add $2.00 to $3.60 to the water bill. Housemates at home all day use slightly more water and electricity than housemates at work, as the spec expected.
+Dish washing counts each Wash dishes step, which runs far more often than the estimate. At 20 cents of water each, the three-earner household's 10 to 18 washes a month add $2.00 to $3.60 to the water bill. Housemates at home all day use slightly more water and electricity than housemates at work, as the spec expected. The final reading's counts stay close to these: dish washing 10 to 17 a month with three earners and 10 to 22 with Tim alone, 14 or 15 trips with three earners and 5 with Tim alone.
 
 ## Trace cost
 
