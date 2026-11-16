@@ -729,7 +729,7 @@ infrastructure. FEATURES.md owns the same current priority.
    reading, TV and listening. Keep location-bound activities at their objects,
    including watching fish near the tank. Deliver missing sitting poses and
    animations in this slice rather than leaving them in the later art backlog.
-2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].** The first object-affinities slice shipped on 2026-10-06: each Sim holds a value for plants, the aquarium, the television and the radio, the first two move mood in their room, and a Sim who dislikes the television or the radio is bothered when another Sim uses it in the same room. Colour preferences remain, with editing the values, the general nuisance field [P-nuisance] and pets.
+2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].** The first object-affinities slice shipped on 2026-10-06: each Sim holds a value for plants, the aquarium, the television and the radio, the first two lift the mood of a Sim who likes them in their room (a dislike never lowers mood), and a Sim who dislikes the television or the radio is bothered when another Sim uses it in the same room. Colour preferences remain, with editing the values, the general nuisance field [P-nuisance] and pets.
 3. **[S-skills] consequences and [S-sim-details].** The first skills slice
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.

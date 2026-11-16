@@ -156,8 +156,8 @@ fn the_use_nuisance_stays_when_presence_stops_bothering() {
 }
 
 /// [OA-presence]: one plant in the room gives the whole presence points at
-/// a value of 1.0, signed by the value; a value below the threshold gives
-/// nothing; each further plant adds the extra points up to the cap.
+/// a value of 1.0, scaled by the value; a value below the threshold, or a
+/// negative one, gives nothing; each further plant adds the extra points up to the cap.
 #[test]
 fn presence_scores_one_plant_and_caps_the_extras() {
     let mut sim = shipped();
@@ -816,8 +816,9 @@ fn a_running_interaction_that_differs_from_the_target_is_not_use() {
 
 /// [OA-presence], [OA-use]: a value of exactly zero is indifference even
 /// when the threshold is zero, which the compiler allows. It gives no
-/// presence moodlet of either sign and is bothered by nobody, while the
-/// smallest value either side of it does read.
+/// presence moodlet and is bothered by nobody, while the smallest positive
+/// value does read and the smallest negative one reads nothing, since
+/// presence never lowers mood.
 #[test]
 fn a_zero_value_reads_nothing_under_a_zero_threshold() {
     let mut sim = shipped();

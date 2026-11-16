@@ -469,11 +469,15 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. Both measured on its branch with
 /// the log off and on giving the same worlds. Issue 344 moved it from
-/// 0xa0fb_785a_e3a4_7b1d on purpose: Bill holds -0.35 for plants, so from
-/// about 06:50 on Monday, when he first stands in a room with a plant he
-/// no longer reads `Bothered by the plants here`, his mood is higher, and the
-/// choices scored from it differ. Measured on its branch with the log off and
-/// on giving the same worlds.
+/// 0xa0fb_785a_e3a4_7b1d on purpose: a person no longer reads
+/// `Bothered by the plants here`. Of the three shipped housemates only Bill holds a plant
+/// value at or below -0.2 (-0.35; nobody's aquarium value is negative), so he is the
+/// only person who loses a penalty. His mood first differs from main's at
+/// about 06:50 on Monday, when he first stands in a room with a plant, and
+/// the world hash first differs at about 12:00 on Monday, when a choice
+/// scored from that mood first goes the other way. Measured with the old
+/// rule restored behind a temporary switch, then removed. Also measured on its branch with
+/// the log off and on giving the same worlds.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9b82_b49b_c343_cfa0;
 
 /// The same fold over twenty game days, measured the same way. Main at
