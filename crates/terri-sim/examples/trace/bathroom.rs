@@ -19,7 +19,8 @@
 //! ended on: `follow_path` inserts `Eating` and `tick_interactions` takes a
 //! tick off it within the same tick, and the last tick of a use removes it, so
 //! an outside observer sees one tick fewer than the use lasted.
-use terri_core::{Eating, Entity, NeedId, Needs};
+use std::collections::BTreeMap;
+use terri_core::{AtWork, Blocked, ChainState, Commuting, Eating, Entity, NeedId, Needs, Path};
 use terri_data::CompiledActivity;
 use terri_sim::Sim;
 
@@ -47,6 +48,8 @@ struct Open {
 }
 
 pub struct Summary {
+    /// What a housemate was doing on each tick their Bladder was critical.
+    bladder_critical: BTreeMap<&'static str, u64>,
     open: Vec<Option<Open>>,
     previous: Vec<Option<Needs>>,
     tallies: [Tally; 3],
@@ -66,6 +69,7 @@ fn kind_of(eating: &Eating) -> Option<usize> {
 impl Summary {
     pub fn new(sims: usize) -> Self {
         Summary {
+            bladder_critical: BTreeMap::new(),
             open: (0..sims).map(|_| None).collect(),
             previous: vec![None; sims],
             tallies: Default::default(),
@@ -81,6 +85,33 @@ impl Summary {
                 self.previous[index] = None;
                 continue;
             };
+            if needs.get(NeedId::Bladder) <= terri_data::pack().tuning.mood_critical_need_level {
+                let what = if world.get::<AtWork>(*entity).is_some()
+                    || world.get::<Commuting>(*entity).is_some()
+                {
+                    "at work or commuting"
+                } else if let Some(eating) = world.get::<Eating>(*entity) {
+                    let pack = terri_data::pack();
+                    let action =
+                        &pack.object(eating.object).interactions[eating.interaction as usize];
+                    if kind_of(eating).is_some() {
+                        "using a bathroom fixture"
+                    } else if action.tags.contains(&pack.sleep_tag) {
+                        "asleep"
+                    } else {
+                        "using something else"
+                    }
+                } else if world.get::<ChainState>(*entity).is_some() {
+                    "in a multi-step errand"
+                } else if world.get::<Path>(*entity).is_some() {
+                    "walking"
+                } else if world.get::<Blocked>(*entity).is_some() {
+                    "blocked, waiting for an occupied target"
+                } else {
+                    "standing, not blocked"
+                };
+                *self.bladder_critical.entry(what).or_default() += 1;
+            }
             let now = world.get::<Eating>(*entity).and_then(kind_of);
             let continuing =
                 matches!((&self.open[index], now), (Some(open), Some(kind)) if open.kind == kind);
@@ -152,6 +183,10 @@ impl Summary {
                 100.0 * tally.occupied as f64 / run_ticks as f64,
             );
         }
+        println!(
+            "BLADDER CRITICAL, what housemates were doing on those ticks: {:?}",
+            self.bladder_critical
+        );
         println!("occupied is the share of the run in which any housemate was using that kind of fixture, counted per housemate (three housemates can add to over 100%)");
     }
 }
