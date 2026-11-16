@@ -471,9 +471,9 @@
       "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
         "desktop": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
-        "mobile": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f",
+        "mobile": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3",
         "desktopDetail": "837c149ffe2d3b53b2e2d5a2046c8c717b1d145df0e1f60829af06a93818e010",
-        "mobileDetail": "081f63be62ee7fb3a9f20241b129a5a986516baa16479af895e9c7b1b765d242"
+        "mobileDetail": "05a147c805fad904d061cda4bb1d8463baa163441cf700d76d2e22a5ae99629d"
       },
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "imageSourceSnapshots": {
@@ -505,7 +505,7 @@
           "devicePixelRatio": 1,
           "captureMethod": "Playwright Chrome viewport PNG at device pixel ratio 1, no image edits",
           "dialogs": [],
-          "sourceImageSha256": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f"
+          "sourceImageSha256": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3"
         }
       }
     },
@@ -841,7 +841,7 @@
       "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
         "desktop": "2552e91d6b86c52c0e58b6a60cec363f653e9aba702d28a28d023c1f5cb05021",
-        "mobile": "14cf8f192cbc0bc0cbbded29e375de4be776738c433aa381f3e31ede54fb9048",
+        "mobile": "1a3ca9de2b4151abbce9081415d4f58b72498795565f0c27e379a85cf47ac531",
         "desktopDetail": "b031037002363df28b6faf32884fec71cf68cd36bf0c43c73c89906f4146a19a"
       }
     },
@@ -1455,7 +1455,7 @@
       "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
         "desktop": "0f598510011d310693ebac05ca6a5341f75757bdac2e04651bea2bf75b4b3e60",
-        "mobile": "dd6a217c3b333ae6c7a4d757a6695237f71bb182b1751a6bb58906928f66b5f9"
+        "mobile": "5bfa91f09952e2f8ac30fd990fa600c7b78805edc599701bad0d403c10fc1c68"
       }
     },
     {
@@ -1994,9 +1994,9 @@
       "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
         "desktop": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
-        "mobile": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f",
+        "mobile": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3",
         "desktopDetail": "837c149ffe2d3b53b2e2d5a2046c8c717b1d145df0e1f60829af06a93818e010",
-        "mobileDetail": "081f63be62ee7fb3a9f20241b129a5a986516baa16479af895e9c7b1b765d242"
+        "mobileDetail": "05a147c805fad904d061cda4bb1d8463baa163441cf700d76d2e22a5ae99629d"
       }
     },
     {
@@ -2013,9 +2013,9 @@
       "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
       "imageSha256": {
         "desktop": "2552e91d6b86c52c0e58b6a60cec363f653e9aba702d28a28d023c1f5cb05021",
-        "mobile": "14cf8f192cbc0bc0cbbded29e375de4be776738c433aa381f3e31ede54fb9048",
+        "mobile": "d6df7db9a3074fd02900d163d2522519b4b6cdaa140939f5d26e7964ce8a8cfd",
         "desktopDetail": "1215f8ed58114dae06c77ad3e7d33cb9e09005ed9ddd5c4ca794f1cdb46dd43b",
-        "mobileDetail": "2a9dc8e907c968404adc47f71b6ce684319dd4cd6d5f81cd2ea6317cd24e75d1"
+        "mobileDetail": "e00f84712a08cc4ae324fba9509cbed0c41af12d35d02bf03496c0762b4d2110"
       }
     },
     {

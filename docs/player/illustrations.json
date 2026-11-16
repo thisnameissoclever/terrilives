@@ -485,8 +485,8 @@
         "height": 153
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "f441b9b134f5f7760e5eb69c40b4096fc65b37a0c586a300497aef40324c9f5f",
-      "outputSha256": "fe871940403b5ed2bc50ece60f2c9df29115b888dd2a57eb823f5663ee6bf172"
+      "sourceSha256": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3",
+      "outputSha256": "a184d6bb2414d075071a45fed378f9c35d79673ddf2113816d40bc69e4c410b5"
     },
     {
       "output": "images/guide/sim-needs-desktop.png",
@@ -820,11 +820,11 @@
         "x": 8,
         "y": 532,
         "width": 374,
-        "height": 200
+        "height": 304
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "14cf8f192cbc0bc0cbbded29e375de4be776738c433aa381f3e31ede54fb9048",
-      "outputSha256": "3603e4ca2233582bf6cf3b7061b79f130ec8e0f090fd86ebd5099f606a4c6ba2"
+      "sourceSha256": "1a3ca9de2b4151abbce9081415d4f58b72498795565f0c27e379a85cf47ac531",
+      "outputSha256": "03451cee100eb24ba1bad14f4e6b0fd36b36de9fef4ba452672980c68f4fc898"
     },
     {
       "output": "images/guide/build-walls-desktop.png",
