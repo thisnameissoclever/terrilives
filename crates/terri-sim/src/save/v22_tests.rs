@@ -435,9 +435,14 @@ fn a_month_length_of_365_after_seven_day_months_issues_at_its_own_boundary() {
         let own_end = (save_day as u32) - (save_day as u32) % 7 + 7;
         let mut loaded = Sim::new_from_lot_and_content(&long_pack.lot, Content(long_pack));
         assert_eq!(loaded.load_snapshot_v22(snapshot), Ok(()), "day {save_day}");
+        // The unsaved world goes on under the longer month from the same day.
+        sim.world_mut().insert_resource(Content(long_pack));
         for day in save_day + 1..own_end as u64 + 3 {
+            sim.world_mut().resource_mut::<SimClock>().tick = day * DAY;
+            crate::bills::tick(sim.world_mut());
             loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY;
             crate::bills::tick(loaded.world_mut());
+            assert_same_as_twin(&loaded, &sim, day as u32);
             let bills = loaded.world().resource::<Bills>();
             if day < own_end as u64 {
                 assert_eq!(bills.month_length, 7, "saved on {save_day}, day {day}");
@@ -466,6 +471,32 @@ fn a_month_length_of_365_after_seven_day_months_issues_at_its_own_boundary() {
     }
 }
 
+/// The world a save and a load rebuilt matches the twin that never left
+/// memory: the same bills record, the same saved bills, the same Funds and
+/// the same world hash.
+fn assert_same_as_twin(reloaded: &Sim, twin: &Sim, day: u32) {
+    assert_eq!(
+        reloaded.world().resource::<Bills>(),
+        twin.world().resource::<Bills>(),
+        "day index {day}: the bills record differs from the unsaved twin's"
+    );
+    assert_eq!(
+        reloaded.save_snapshot_v22().bills,
+        twin.save_snapshot_v22().bills,
+        "day index {day}: the saved bills differ from the unsaved twin's"
+    );
+    assert_eq!(
+        reloaded.world().resource::<terri_core::Funds>().0,
+        twin.world().resource::<terri_core::Funds>().0,
+        "day index {day}: Funds differ from the unsaved twin's"
+    );
+    assert_eq!(
+        reloaded.world_hash(),
+        twin.world_hash(),
+        "day index {day}: the world hash differs from the unsaved twin's"
+    );
+}
+
 /// Runs bills alone for `days` days with the tuning's month length given
 /// by `length_on` for each day, saving and loading into a world under that
 /// day's tuning every day. Every load succeeds, the open month never counts
@@ -489,6 +520,8 @@ fn exercise_month_lengths(length_on: &dyn Fn(u32) -> u32, days: u32) -> u32 {
     }
     let first = packs[&length_on(0)];
     let mut sim = Sim::new_from_lot_and_content(&first.lot, Content(first));
+    // A twin under the same tuning each day that is never saved or loaded.
+    let mut twin = Sim::new_from_lot_and_content(&first.lot, Content(first));
     let mut issued_months = 0;
     let mut expected_at_end = None;
     for day in 0..days {
@@ -502,6 +535,10 @@ fn exercise_month_lengths(length_on: &dyn Fn(u32) -> u32, days: u32) -> u32 {
         );
         sim.world_mut().resource_mut::<SimClock>().tick = u64::from(day) * DAY;
         crate::bills::tick(sim.world_mut());
+        twin.world_mut().insert_resource(Content(pack));
+        twin.world_mut().resource_mut::<SimClock>().tick = u64::from(day) * DAY;
+        crate::bills::tick(twin.world_mut());
+        assert_same_as_twin(&sim, &twin, day);
         let bills = sim.world().resource::<Bills>().clone();
         assert!(
             bills.month_days >= 1 && bills.month_days <= bills.month_length,
