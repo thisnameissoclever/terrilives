@@ -303,7 +303,10 @@ fn accepted_architecture_edits_always_confirm() {
             .and_then(|s| s.parse().ok())
             .unwrap_or(default)
     };
-    let (from, to) = (seed_env("BUILD_FUZZ_FROM", 1), seed_env("BUILD_FUZZ_TO", 24));
+    let (from, to) = (
+        seed_env("BUILD_FUZZ_FROM", 1),
+        seed_env("BUILD_FUZZ_TO", 24),
+    );
     let mut cancelled_for_beds = 0;
     for seed in from..=to {
         let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
