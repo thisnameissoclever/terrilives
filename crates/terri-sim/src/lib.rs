@@ -16,6 +16,7 @@ pub mod build_transaction;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
 pub mod attendance;
+pub mod lateness;
 pub mod careers;
 pub mod player_actions;
 pub mod shifts;

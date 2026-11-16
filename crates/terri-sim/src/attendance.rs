@@ -385,6 +385,15 @@ pub(crate) fn start_tick(world: &mut World) {
             crate::reading::request_return(world, actor);
             continue;
         }
+        // Issue 309 ([WL-depart]): a critical Hunger or Energy, or the
+        // meal or sleep that answers it, keeps the person home for at most
+        // `work_lateness_limit_ticks` after the start and never past the
+        // shift's end. After the fight withdrawal and the player-work and
+        // reading checks above, so those keep their priority.
+        let open = world.resource::<Attendance>().shifts.get(&sim).cloned();
+        if open.is_some_and(|shift| crate::lateness::waits_for_needs(world, actor, &shift, now)) {
+            continue;
+        }
         depart(world, actor);
     }
 }
@@ -527,6 +536,9 @@ pub(crate) fn finish_tick(world: &mut World) {
             }
         }
     }
+    // Issue 309 ([WL-bladder]): after arrival is recorded and the tick's
+    // decay has run, so a worker never sits at work with a low Bladder.
+    crate::lateness::relieve_bladder_at_work(world);
 }
 pub(crate) fn has_open_shift(world: &World, actor: Entity) -> bool {
     world
