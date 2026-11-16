@@ -486,13 +486,13 @@ mod tests {
     #[test]
     fn shipped_base_decay_is_three_quarters_of_the_balance_before_issue_315() {
         const BEFORE_ISSUE_315: [(NeedId, f32); 7] = [
-            (NeedId::Hunger, 0.0413333333),
+            (NeedId::Hunger, 0.041333333),
             (NeedId::Energy, 0.034),
             (NeedId::Hygiene, 0.048),
             (NeedId::Bladder, 0.068),
-            (NeedId::Social, 0.0173333333),
+            (NeedId::Social, 0.017333333),
             (NeedId::Fun, 0.032),
-            (NeedId::Comfort, 0.0213333333),
+            (NeedId::Comfort, 0.021333333),
         ];
         let rates = terri_data::pack().decay_per_tick;
         for (id, before) in BEFORE_ISSUE_315 {

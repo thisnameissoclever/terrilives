@@ -331,7 +331,7 @@
     "crates/terri-sim/src/systems/mod.rs": "ce184247f9df5b89b2d116565ab67c1d1d5a41219885e101ae52391d5d1114f9",
     "crates/terri-sim/src/systems/movement.rs": "4fc177b29e5c5858cf57cbf0f07dc4892e24ec41a5453f2cd6a202906e87ca31",
     "crates/terri-sim/src/systems/movement_edge_tests.rs": "ecd03c6724c209fca38643d6d21ed79efdf20230cc80c85516e53b85ac383544",
-    "crates/terri-sim/src/systems/needs.rs": "7a80568efec21bff6ab0578033be2c977b437268dc4258b0831ba00b710798aa",
+    "crates/terri-sim/src/systems/needs.rs": "08912255344ee6588f4532f2f07d579aacfe54224fc3147345d47306257eaec0",
     "crates/terri-sim/src/systems/satisfaction.rs": "67e386a04ded6f215017f2f21de03a52c0551b16f3e6b8f142b4c3a4e67eedd1",
     "crates/terri-sim/src/systems/social.rs": "0fab85a2a943b94eac48479d5d2e12b8901a5c2c0b786252c4604af167b155af",
     "crates/terri-sim/src/systems/street_tests.rs": "f33e09b35eacd34402950d1616eaa0ede698be1319aaf6662dd2a7a3376b2930",
