@@ -15,6 +15,7 @@ This record holds the calibration measurements, moved test expectations, mutatio
 - [Review dispositions](#review-dispositions)
 - [Final review of `901cbf3fd`](#final-review-of-901cbf3fd)
 - [Third round: the month length redesign](#third-round-the-month-length-redesign)
+- [Fourth round: fixtures, overflow and the twin](#fourth-round-fixtures-overflow-and-the-twin)
 
 ## Calibration traces
 
@@ -252,3 +253,24 @@ The review of `ebe94f194` found two more edge cases in the stored-maximum design
 **The file was restored byte for byte.** One earlier run of these mutants was stopped partway through its first mutant to fix a wrong assertion in the probe test, which left `bills.rs` mutated. Before anything was committed, the restore was proven in two ways. The mutation's replacement text was present once and its original text absent, and I reversed that one replacement by hand. Then the design edit script was re-run on a temporary copy of `ebe94f194`'s `bills.rs`, and the copy's SHA-256, `d8302df3af998eeb5e3b4caebac13d4f898d0d5059c3316669eab7aee9312673`, equals the hand-restored file's and a saved known-good copy's. `git diff ebe94f194 -- crates/terri-sim/src/bills.rs` was then read line by line against the design and held no stray edit. The rerun script takes a snapshot of the file and checks its hash first, restores every mutant from that snapshot (never with `git checkout`), prints that the hash matches after each mutant, and checks it once more at the end; every check matched `d8302df3af998eeb`.
 
 **The web panel on a short month.** A web test (`tests/bills-panel.test.ts`, 15 tests passing) renders the real panel code with a month opened under a four-day tuning, two days counted and the bills due on day index 16: it reads `Due Day 17, Wednesday`, `Base charge, 2 of 4 days`, tile lines of `2 of 4 days` and `A month is 4 days.`, and the row reads `$425 due Day 17`. The panel code needed no change: its lines already read the stored month length.
+
+## Fourth round: fixtures, overflow and the twin
+
+A fresh review of the redesign (`ebe94f194` to `3a6b8f0f5`) found one test that breaks and three changes worth making.
+
+| Item | What the reviewer found | Disposition |
+| --- | --- | --- |
+| F1 | `bills_exports_mid_month_with_an_overdue_bill` in `terri-wasm` built a mid-month record with `month_start` 0 and `month_length` 0, so under the redesign the first tick of day 12 issued a month and its overview expectations broke | Fixed. The fixture now has `month_start` 7 and `month_length` 7, as its own comment says ("the sixth day of the second month"). No other hand-built `Bills` fixture in any crate or in the web tests ticks. The 75 targeted terri-sim tests had never touched `terri-wasm`; its eight bills tests now pass, with the terri-sim `bills::` and `save::v22` tests (76) |
+| F2 | Check every checked-in schema 22 payload that has a bills record against the new `day >= end` refusal | Checked, none to re-pin. Every checked-in save and hex fixture was scanned by its header (`TERRISAV` and the schema number): 351 payloads of schemas 1 to 21, none of schema 22 or later. The newest three are the schema-21 fixtures of `bills-v21`, which load through the migration with an empty bills record, so `validate_saved` does not see an open month in them |
+| F3 | `month_end` computed `start - start % length + length` in `u32`, so a crafted save with `month_start` near `u32::MAX` overflowed inside `validate_saved` and panicked debug and test builds on untrusted input | Fixed. `checked_month_end` returns `None` when the end would pass the largest day index and `validate_saved` refuses the save; `month_end` saturates so nothing in play can overflow. `a_month_starting_at_the_end_of_the_day_numbers_is_refused_not_panicked_on` refuses starts of `u32::MAX` under lengths 1, 7 and 365 and of `u32::MAX - 3` under 365, and loads `u32::MAX - 1` under 1, the largest start with room. Its first version assumed a saturating end would refuse `u32::MAX - 3`; it did not, which is why the check returns `None` |
+| F4 | The save-and-reload-every-day tests checked only invariants | Fixed. `exercise_month_lengths` and the 365 test run a twin world under the same per-day tuning that is never saved or loaded, and each day assert that the reloaded world's bills record, saved bills, Funds and world hash equal the twin's |
+| Doc | The `SavedBill.month_length` comment still described the month its due day falls on | Reworded in `crates/terri-core/src/save_v22.rs` to "the length of the month this bill charges" |
+
+**The twin comparison was proven with throwaway mutations on 2026-11-15.** Each was applied to the restore function of `bills.rs`, the `save::v22` tests were run, and the file was restored from a snapshot taken first (never with `git checkout`), its SHA-256 `6fe0670c7722a87083b7e8e4c76d4566eddbe725dbe62766e8e2e1c2eb1c1e6f` checked after each mutant and at the end. Dropping `month_start` on restore failed the 365 test with "day index 364: the bills record differs from the unsaved twin's", among others; dropping a bill's late fee failed the twin comparison at day index 364 and at day index 10. Dropping a bill's paid day was caught by the older round-trip tests but not by the twin tests, which is not a gap in the request, since the dropped `month_start` and the late fee show the comparison working. A first run of this script stopped on patterns that matched two places in the file, and a second on a syntax error before it touched anything; both left the file as it was, which its hash showed.
+
+**Two things were left as they are on purpose.**
+
+- The clause `month_days > end - month_start` in `validate_saved` stays, because the requirement lists it. No mutant can kill it: a record that passes `day < end` and `month_days <= day - month_start + 1` already has `month_days <= end - month_start`, so removing the clause changes no result.
+- The rules sentence "A month is N days" keeps the tuning's length. It states the rule for months that open from now on, while the bill lines show the open month's own length.
+
+**Checks of this round.** `cargo fmt --all -- --check` is clean, `cargo clippy --workspace --all-targets -- -D warnings` passes, and the terri-sim tests named above (76) and the terri-wasm bills tests (8) pass.
