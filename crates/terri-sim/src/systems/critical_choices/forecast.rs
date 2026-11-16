@@ -18,6 +18,61 @@ pub(crate) fn travel_ticks(distance: f32) -> u32 {
     (distance / super::super::advertise::TILES_PER_TICK).ceil() as u32
 }
 
+/// The needs a person has after `ticks` of drain and no delivery: what they
+/// arrive at a fixture with after travelling to it.
+pub(crate) fn after_decay(
+    pack: &ContentPack,
+    needs: &Needs,
+    personality: &Personality,
+    ticks: u32,
+) -> Needs {
+    let mut values = *needs;
+    for need in NeedId::ALL {
+        values.drain(
+            need,
+            pack.decay_per_tick[need.index()] * personality.drain[need.index()] * ticks as f32,
+        );
+    }
+    values
+}
+
+/// The forecast of using one object action after `travel` ticks of walking:
+/// the walk, then the use. A toilet, shower or bath is planned at the length
+/// that fills its need for this person, the length play will give it, so the
+/// forecast and the delivery agree (issue 315); any other action is planned
+/// at its authored duration.
+pub(crate) fn object_outcome(
+    pack: &ContentPack,
+    needs: &Needs,
+    personality: &Personality,
+    action: &CompiledInteraction,
+    effects: Effects,
+    travel: u32,
+    asleep: bool,
+) -> NeedOutcome {
+    let ticks = crate::need_interactions::fill::planned_ticks_after(
+        pack,
+        action,
+        needs,
+        personality,
+        travel,
+    );
+    predict_phases(
+        pack,
+        needs,
+        personality,
+        &[
+            Phase::Decay(travel),
+            Phase::Active {
+                ticks,
+                effects,
+                action: Some(action),
+                asleep,
+            },
+        ],
+    )
+}
+
 /// Fold constant phases with the same drain-before-payment and meter bounds as play.
 pub(crate) fn predict_phases(
     pack: &ContentPack,
@@ -31,14 +86,7 @@ pub(crate) fn predict_phases(
     for phase in phases {
         match phase {
             Phase::Decay(ticks) => {
-                for need in NeedId::ALL {
-                    values.drain(
-                        need,
-                        pack.decay_per_tick[need.index()]
-                            * personality.drain[need.index()]
-                            * *ticks as f32,
-                    );
-                }
+                values = after_decay(pack, &values, personality, *ticks);
                 elapsed = elapsed.saturating_add(*ticks);
             }
             Phase::Payment(effects) => {

@@ -1,4 +1,7 @@
 //! Contextual need effects and the matching benefits used by decisions.
+pub(crate) mod fill;
+#[cfg(test)]
+mod fill_tests;
 pub(crate) mod physical;
 #[cfg(test)]
 mod tests;

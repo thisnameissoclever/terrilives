@@ -473,8 +473,10 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// quarters of what it was, so needs cross their thresholds at different
 /// ticks and the household's choices differ from the first morning. The log
 /// emitters are unchanged; the value was read from the failing assertion,
-/// which compares the world with the log on against this pin.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x1f5f_7875_d990_cea9;
+/// which compares the world with the log on against this pin. Issue 315's fill
+/// change then moved it from 0x1f5f_7875_d990_cea9 on purpose: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so every use of them in the household's days is shorter or longer than before and the choices and draws that follow differ. The
+/// log emitters are unchanged; read the same way.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x24d1_7731_8113_0034;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -487,8 +489,10 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x1f5f_7875_d990_cea9;
 /// 0x4080_914e_b342_85e0, for the reasons given for the two-day fold, both
 /// measured on its branch in a release build. Issue 315 moved it from
 /// 0x78e8_cb74_b70c_d742 for the reason given for the two-day fold, measured
-/// in a release build from the failing assertion.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9edb_b19f_679e_fd4b;
+/// in a release build from the failing assertion. Issue 315's fill change then
+/// moved it from 0x9edb_b19f_679e_fd4b for the reason given for the two-day
+/// fold, measured the same way.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x213d_276f_ca08_9a06;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

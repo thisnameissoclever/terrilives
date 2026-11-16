@@ -1128,6 +1128,7 @@ mod tests {
             [0, -60, 120, 660]
         );
         assert_eq!(tuning.career_search_temperature, 0.25);
+        assert_eq!(tuning.need_fill_max_ticks, 240);
     }
 
     /// An exact fraction, enough for the household figure below.
@@ -2851,7 +2852,9 @@ mod tests {
             object.action_sockets[0].facing,
             CompiledSocketFacing::PositiveX
         );
-        assert_eq!((action.duration_ticks, action.slots), (24, 1));
+        // 20 since issue 315, which raised the rate so a full use takes about
+        // 15 minutes; it was 24.
+        assert_eq!((action.duration_ticks, action.slots), (20, 1));
         let mut absent = original.clone();
         absent.objects[id.0 as usize].interactions[0].visual = None;
         absent.objects[id.0 as usize].action_sockets.clear();
@@ -2902,7 +2905,9 @@ mod tests {
             object.action_sockets[0].facing,
             CompiledSocketFacing::PositiveY
         );
-        assert_eq!((action.duration_ticks, action.slots), (78, 1));
+        // 40 since issue 315, which raised the rate so a full use takes under
+        // 45 minutes; it was 78.
+        assert_eq!((action.duration_ticks, action.slots), (40, 1));
         let mut absent = original.clone();
         absent.objects[id.0 as usize].interactions[0].visual = None;
         absent.objects[id.0 as usize].action_sockets.clear();

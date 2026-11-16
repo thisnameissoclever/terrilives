@@ -73,12 +73,16 @@ Lie down on the long sofa gives Comfort and a small Energy benefit. Sit gives Co
 
 Take a shower restores Hygiene at an Energy cost. Take a bath restores Hygiene and Comfort with a smaller Energy cost. Both are whole-body cleaning. Use the toilet restores Bladder and does not wash hands afterward.
 
+These three last until their meter is full. A person who finishes a shower or bath has Hygiene at 100, and one who finishes at the toilet has Bladder at 100, however low the meter started. How long that takes depends on how far the meter has to rise, so a nearly full person finishes quickly, though they still use the fixture for a short minimum time. From an empty meter the toilet takes a quarter of an hour of game time and a shower or bath well under an hour. The Energy cost of a shower and the Comfort from a bath arrive every minute, so a longer use costs or gives more. Stopping early leaves the meter partly filled: an order that sends the person elsewhere keeps only the minutes already spent.
+
 Wash hands is partial cleaning. Either sink stops adding Hygiene at the same ceiling, so washing repeatedly cannot replace bathing or remove body odor. The kitchen sink's rate differs from the bathroom sink's. Neither action has an extra Comfort cost. Cleaning household dishes at the kitchen sink is a different action and supplies no personal Hygiene.
 
 Toilets, showers and baths are [private activities](relationships/#privacy). Entering an occupied bathroom, or starting private use with somebody already inside, can harm feelings in different directions.
 
 :::numbers Numbers and limits
 Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from ordinary decay. Body-odor consequences clear only above that level, so bathing is necessary.
+
+A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} game minutes at most, even if the meter is not yet full. That limit only matters to a person who gets very little from the activity.
 :::
 
 ## Chairs and secondary seats {#chairs}

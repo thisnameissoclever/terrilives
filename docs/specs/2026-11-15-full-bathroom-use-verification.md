@@ -1,6 +1,6 @@
 # Verification record: slower need drain and full bathroom use
 
-Dated verification for [the specification](2026-11-15-full-bathroom-use.md), issue 315. This record covers the drain change. The fill change adds its own section when it lands.
+Dated verification for [the specification](2026-11-15-full-bathroom-use.md), issue 315. The sections headed Drain cover the drain change; the sections headed Fill cover the fill change stacked on it.
 
 ## Drain: measurements
 
@@ -55,3 +55,96 @@ Tests that encoded the old balance and were corrected:
 ## Drain: red then green
 
 `shipped_base_decay_is_three_quarters_of_the_balance_before_issue_315` was written first and failed on main's content with "hunger drains 0.041333333 a tick; three quarters of the old 0.041333333 is 0.031". It passes with the new rates. Mutation checks, each followed by a restore and a matching hash of `content/tuning.toml`: setting every rate to 0.8 times its old value fails with "hunger drains 0.033066668 a tick", and restoring only hunger to 0.0413333333 fails with "hunger drains 0.041333333 a tick".
+
+## Fill: measurements
+
+The trace example gained a bathroom tally (`crates/terri-sim/examples/trace/bathroom.rs`) that reads each toilet, shower and bath use off the household once a tick from outside the simulation, so the same harness measures a build from before the fill change and one after it. Commands: `cargo run --release -p terri-sim --example trace -- <ticks> <seed>` with the default seed (20260728) and seeds 1, 2 and 3, for 10080 ticks (a game week) and 36000 ticks (25 game days). "Before" is the head of the drain pull request (82283519f), which has the new drain and the old bathroom behavior, with only the example's tally added; "after" is this branch. Both were built and run on the same machine class (Windows 11, release build).
+
+Bathroom uses over 36000 ticks, summed over the four seeds and the three housemates. A use counts as full when the need ended at 100.
+
+| Fixture | Uses | Ended full | Mean ticks | Shortest | Longest | Need at start | Need at end | Time occupied |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Toilet, before | 350 | 285 | 20.6 | 12 | 33 | 47.6 | 98.2 | 5.0% |
+| Toilet, after | 360 | 357 | 12.0 | 7 | 15 | 50.4 | 100.0 | 3.0% |
+| Shower, before | 151 | 63 | 74.8 | 9 | 124 | 43.3 | 88.8 | 7.9% |
+| Shower, after | 166 | 164 | 19.2 | 9 | 34 | 53.5 | 100.0 | 2.2% |
+| Bath, before | 111 | 48 | 65.0 | 47 | 109 | 52.3 | 89.5 | 5.0% |
+| Bath, after | 123 | 123 | 19.0 | 12 | 38 | 62.1 | 100.0 | 1.6% |
+
+After the change 644 of 649 uses ended at 100. The five that did not were 3 toilet uses and 2 showers. The shortest toilet use was 7 ticks and the shortest shower 9, both below the 12 tick minimum, so those two were cut short by something else, such as an order or a shift start; the other three were not examined. "Time occupied" is the share of the run, per kind of fixture and averaged over the four seeds, in which any housemate was using that kind of fixture. Typical uses are short because housemates go when a meter is about half full, so the fill takes 12 to 20 ticks; the 15, 37 and 43 tick figures are from an empty bar.
+
+Net change over a use (it includes the drain over the use, so a longer use shows a larger drain):
+
+| Fixture | Net Energy before | Net Energy after | Net Comfort before | Net Comfort after |
+| --- | --- | --- | --- | --- |
+| Toilet | -0.50 | -0.30 | -0.35 | -0.20 |
+| Shower | -11.72 | -10.03 | -1.30 | -0.30 |
+| Bath | -4.01 | -3.06 | 5.11 | 5.31 |
+
+The shower's own per-use Energy cost, which is the net change less the drain over the use (0.0255 a tick times the mean length), is 9.8 before and 9.5 after, so the total stayed within about 3 percent. The bath's is 2.4 before and 2.6 after. The side rates in `content/objects.toml` (Energy -20 for the shower, Comfort 55 and Energy -5.5 for the bath) were set to give these, after a first guess that the same measurement showed to be too low.
+
+Ticks spent with a need at or below the critical level (20), summed over the three housemates and the four seeds:
+
+| Run | Variant | Hunger | Energy | Hygiene | Bladder | Fun | Waiting for an occupied target |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 36000 ticks | before | 27551 | 11086 | 6796 | 3360 | 3915 | 12336 (2.9% of housemate time) |
+| 36000 ticks | after | 29430 | 6707 | 2268 | 2118 | 1759 | 13811 (3.2%) |
+| 10080 ticks | before | 9241 | 2422 | 1123 | 250 | 193 | 4085 (3.4%) |
+| 10080 ticks | after | 6906 | 1555 | 280 | 1078 | 393 | 5526 (4.6%) |
+
+Social critical time was 174 before and 7 after over 25 days, and Comfort never reached critical. Needs that reached 0: 11 before and 10 after over 25 days, 1 and 2 over a week. No housemate died in any run.
+
+Reading the table, and what it does not show:
+
+1. **Hygiene crisis time fell by two thirds over 25 days** (6796 to 2268), because every shower or bath now fills the bar.
+2. **Bladder crisis time rose in the one-week runs (250 to 1078) and fell in the 25-day runs (3360 to 2118).** One week of one household is a small sample, and the four weeks differ from each other by more than the change does. The longer runs are the better evidence that the change did not raise Bladder crises, but two samples that point opposite ways do not measure the effect, so this is reported to the owner as an open question rather than settled here.
+3. **Waiting for an occupied target rose slightly** (2.9% to 3.2% of housemate time over 25 days, 3.4% to 4.6% over a week). This is the trace's existing tally for any object, not for bathrooms alone, and its cause was not investigated. Fixtures were occupied for about a third as long after the change, so the rise does not come from longer bathroom uses.
+4. **How often each fixture is chosen** changed little: 350, 151 and 111 uses over 25 days before and 360, 166 and 123 after for the toilet, shower and bath. The authored rates of the three are higher, so their ordinary scores are higher, as the specification says; the measured effect is a rise of about 10 percent in showers and baths and 3 percent at the toilet.
+5. Energy crisis time fell by about 40 percent over 25 days, Fun crisis time by 55 percent and Hunger crisis time rose 7 percent. These come from different household histories under the new rates and were not investigated; this record does not claim a cause.
+
+## Fill: pinned values that moved, and why
+
+Moved by this change, each read from the failing assertion and confirmed by a passing run:
+
+| Value | Where | Old | New |
+| --- | --- | --- | --- |
+| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 15679464342224380920 | 15708678162880853617 |
+| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 12407989054242721803 | 6219414423998606800 |
+| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0x1f5f_7875_d990_cea9 | 0x24d1_7731_8113_0034 |
+| Twenty-day activity log fold (release, manual) | the same file | 0x9edb_b19f_679e_fd4b | 0x213d_276f_ca08_9a06 |
+| Compiled runtime fixture `inherited-runtime.pack` | `crates/terri-data/tests/fixtures/` | 25708 bytes, SHA-256 fad1da2c3a7dceca90f5c9158a80c44ffa97d1fe8f0e9767a27111df264a1cb4 | 25710 bytes, SHA-256 0bd740dbe31799520752566fecce24a828f56e56d196f5e4ac6fa50e54b7141f |
+
+The cause of the four hashes is one: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so the household's days differ from the first bathroom visit. The draw counts, jobs and shifts in `SHIPPED_THURSDAY` are unchanged. The fixture changes by two things and the test proves it: with the fill limit's two bytes removed from the tuning and the three actions put back to their old authored numbers, the current pack encodes to exactly the 25708 bytes on main (`TERRI_PROVE_RUNTIME_FIXTURE=1` runs that proof against the file before it is regenerated).
+
+Unchanged and asserted unchanged: `GOLDEN` and its release-WebAssembly twin (the scenario has only a fridge), the published schema-fifteen control hash, the bare-agent hash, every save fixture's bytes, and the content fingerprint, which `the_shipped_content_fingerprint_is_the_one_main_had` pins at 5841475410324663844, read from main.
+
+Tests corrected because they encoded the old behavior:
+
+1. `critical_social_does_not_create_phantom_media_emergencies` occupied a bathroom with a person whose toilet use had 1000 ticks left and whose Bladder was already 100. The use now ends on the tick the need is full, so the room emptied and the actor walked in. The fixture's occupant now gets nothing from the toilet (their Bladder satisfaction multiplier is 0 and the need starts at 50), so the use lasts for the whole test, which is what the test needs.
+2. `the_shipped_toilet_declares_presentation_only_seat_metadata` and `the_shipped_bathtub_declares_presentation_only_basin_metadata` read the new durations 20 and 40.
+3. `shipped_migration_scopes_retirement_balance_and_seating_changes` lists the three actions' retuned rates among its intended differences from the frozen legacy content.
+4. `the_appended_tuning_knobs_keep_their_slots` and the schema test learned the new last field.
+
+## Fill: red then green
+
+The fill tests were written first, against a stub whose length was still the drawn one. Of 20, 15 failed for the stated reason (the toilet from an empty bar ended at 58.661 instead of 100, a use ran its drawn length, the activity filter found nothing) and 5 passed, each by design: the net-rate-at-or-below-zero fallback, a resumed use with a short drawn length, an interrupted shower, the other actions' lengths and the kept draw all describe behavior the stub already had, and each is exercised by a mutation below. Both forecast tests failed against a stub that planned the authored length (a forecast of 21 ticks against a played use of 16).
+
+The first run against the implementation, with the rates still at their old values, passed 15 of 20. The pinned 15, 37 and 43 tick lengths failed as they should (26 ticks for the toilet), and four of my own expectations were wrong and were corrected, not the implementation: a tolerance of two ticks on a halved length, a shower length that reached the limit, a save test that ran too few ticks, and a drain counted one tick short. Retuning the content turned the pinned lengths green. The full terri-sim suite then had four failures, the three hashes above and the phantom media fixture in item 1 of the corrected tests.
+
+## Fill: mutation checks
+
+Each mutation was applied alone to the file named, the fill tests were run, the file was restored from a byte copy and its hash compared. One mutation survived the first time (the drain on the arrival tick), and a test was added that kills it; the others failed at least one test on the first run. Every restore was identical.
+
+| Mutation | Tests that failed |
+| --- | --- |
+| Delete the fill branch in `follow_path` | `a_full_use_ends_with_the_need_at_exactly_100`, `a_use_never_ends_one_tick_short_of_full`, `the_forecast_of_a_fill_agrees_with_what_delivery_produces`, `a_floor_bound_use_still_lasts_the_floor_and_stays_full` |
+| Delete the stop-at-full check in `tick_interactions` | `a_use_resumed_from_a_save_with_a_long_drawn_length_ends_when_full` |
+| Remove the minimum length | `a_full_use_ends_with_the_need_at_exactly_100`, `a_full_use_takes_the_closed_form_number_of_ticks_from_any_start`, `the_floor_applies_near_full_and_the_cap_applies_for_a_tiny_rate`, `a_floor_bound_use_still_lasts_the_floor_and_stays_full` |
+| Ignore the limit | `the_floor_applies_near_full_and_the_cap_applies_for_a_tiny_rate` |
+| Let any action fill (drop the activity filter) | `only_the_three_bathroom_activities_fill_and_both_sinks_do_not`, `any_other_action_has_no_fill_length`, `a_forecast_plans_the_fill_length_for_a_fill_and_the_authored_length_otherwise` |
+| Skip the duration draw for a fill | `the_duration_draw_is_still_taken_for_a_fill` |
+| Drain on the arrival tick too | Survived the first run: no start level the tests used sits within one tick of drain of a whole number of ticks, so both conventions gave the same length. `the_arrival_tick_delivers_without_a_drain_before_it` was added with starts chosen to sit there, and it then fails alone |
+| Stop early even below the minimum | `a_full_use_ends_with_the_need_at_exactly_100`, `a_floor_bound_use_still_lasts_the_floor_and_stays_full`, `the_forecast_of_a_fill_agrees_with_what_delivery_produces` |
+| Plan forecasts at the authored length | `a_forecast_plans_the_fill_length_for_a_fill_and_the_authored_length_otherwise`, `the_forecast_of_a_fill_agrees_with_what_delivery_produces` |
+
+Not covered by a mutation test, stated plainly: that `select_action` builds its forecast through `object_outcome` rather than inline. The forecast helper is tested directly, and `select_action` has one call site, but no test would fail if that call were replaced by the old inline construction, because the relief mask the decision telemetry exposes depends only on the sign of the net change, which the fill length does not change.

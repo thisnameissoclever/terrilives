@@ -129,13 +129,17 @@
         "content/objects.toml",
         "content/tuning.toml",
         "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/fill.rs",
         "crates/terri-sim/src/need_interactions/physical.rs",
         "crates/terri-sim/src/systems/interact.rs",
-        "crates/terri-sim/src/systems/interpersonal.rs"
+        "crates/terri-sim/src/systems/interpersonal.rs",
+        "crates/terri-sim/src/systems/movement.rs"
       ],
-      "numbers": [],
+      "numbers": [
+        "tuning.need_fill_max_ticks"
+      ],
       "review": {
-        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost. A toilet, shower or bath lasts until its need is full, limited by need_fill_max_ticks; stopping early keeps only the minutes used."
       }
     },
     {
@@ -572,13 +576,17 @@
         "content/objects.toml",
         "content/tuning.toml",
         "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/fill.rs",
         "crates/terri-sim/src/need_interactions/physical.rs",
         "crates/terri-sim/src/systems/interact.rs",
-        "crates/terri-sim/src/systems/interpersonal.rs"
+        "crates/terri-sim/src/systems/interpersonal.rs",
+        "crates/terri-sim/src/systems/movement.rs"
       ],
-      "numbers": [],
+      "numbers": [
+        "tuning.need_fill_max_ticks"
+      ],
       "review": {
-        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost. A toilet, shower or bath lasts until its need is full, limited by need_fill_max_ticks; stopping early keeps only the minutes used."
       }
     },
     {
@@ -665,13 +673,17 @@
         "content/objects.toml",
         "content/tuning.toml",
         "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/fill.rs",
         "crates/terri-sim/src/need_interactions/physical.rs",
         "crates/terri-sim/src/systems/interact.rs",
-        "crates/terri-sim/src/systems/interpersonal.rs"
+        "crates/terri-sim/src/systems/interpersonal.rs",
+        "crates/terri-sim/src/systems/movement.rs"
       ],
-      "numbers": [],
+      "numbers": [
+        "tuning.need_fill_max_ticks"
+      ],
       "review": {
-        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost. A toilet, shower or bath lasts until its need is full, limited by need_fill_max_ticks; stopping early keeps only the minutes used."
       }
     },
     {

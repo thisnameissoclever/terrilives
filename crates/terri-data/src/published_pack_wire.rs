@@ -614,6 +614,7 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_late: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
             career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
+            need_fill_max_ticks: Tuning::PRE_FILL_NEED_FILL_MAX_TICKS,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,

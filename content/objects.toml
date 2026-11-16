@@ -101,14 +101,29 @@ slots = { set = 1 }
 tags = { set = ["sleep"] }
 visual = { set = { action = "sleep", anchor = "object_socket", facing = "socket", socket = "lower_bunk" } }
 
+# Toilet, shower and bath (issue 315, docs/specs/2026-11-15-full-bathroom-use.md).
+# A use of these three lasts until its need is full, not for the authored
+# duration. What is authored is the RATE: the advertised delta spread over
+# duration_ticks, scaled by the person's satisfaction multiplier, so a better
+# model fills faster by authoring a higher delta or a shorter duration. From an
+# empty bar a neutral person takes about 15 game minutes at the toilet, 37 in
+# the shower and 43 in the bath. Because the use runs until the bar is full,
+# each per-minute cost or side benefit (the shower's Energy, the bath's
+# Comfort and Energy) is paid for as many minutes as the use lasts, so a person
+# who arrives nearly clean pays for a short shower. Those side rates were set
+# so a typical use, which starts around half full and lasts 15 to 20 minutes,
+# costs about what a typical use cost before the fill, measured with the trace
+# example (docs/specs/2026-11-15-full-bathroom-use-verification.md). A duration below 20 ticks is
+# refused by the build (min_interaction_ticks over 1 - duration_variance), which
+# is why the toilet's rate comes from its delta rather than a shorter duration.
 [[action_template]]
 id = "take_shower"
 [action_template.properties]
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "showering" }
 label = { set = "Take a shower" }
-advertises = { set = { hygiene = 70.0, energy = -12.0 } }
-duration_ticks = { set = 90 }
+advertises = { set = { hygiene = 110.0, energy = -20.0 } }
+duration_ticks = { set = 40 }
 slots = { set = 1 }
 sound_action = { set = "shower_water" }
 
@@ -120,8 +135,8 @@ visual = { set = { action = "use_toilet", anchor = "object_socket", facing = "so
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "using_toilet" }
 label = { set = "Use the toilet" }
-advertises = { set = { bladder = 95.0 } }
-duration_ticks = { set = 24 }
+advertises = { set = { bladder = 135.0 } }
+duration_ticks = { set = 20 }
 slots = { set = 1 }
 
 [[action_template]]
@@ -256,8 +271,8 @@ visual = { set = { action = "bathe", anchor = "object_socket", facing = "socket"
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "bathing" }
 label = { set = "Take a bath" }
-advertises = { set = { hygiene = 58.0, comfort = 31.0, energy = -3.0 } }
-duration_ticks = { set = 78 }
+advertises = { set = { hygiene = 95.0, comfort = 55.0, energy = -5.5 } }
+duration_ticks = { set = 40 }
 slots = { set = 1 }
 
 [[object_type]]

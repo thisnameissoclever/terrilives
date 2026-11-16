@@ -83,6 +83,25 @@ type DecayRow<'a> = (
     Option<&'a terri_core::Eating>,
 );
 
+/// How many points one need drains in one tick: the pack's rate for it,
+/// times the person's drain multiplier for it (absent means all ones), times
+/// the at-work and asleep scales.
+///
+/// The one place this product is written, shared by `decay_needs` and by
+/// `need_interactions::fill::fill_ticks`, which runs the same arithmetic ahead
+/// of time to find how long a bathroom use takes to fill a need. Two copies of
+/// it could drift apart and leave a use ending a tick short of full.
+pub(crate) fn drain_amount(
+    rates: &[f32; terri_core::NEED_COUNT],
+    id: NeedId,
+    personality: Option<&Personality>,
+    away: f32,
+    asleep: f32,
+) -> f32 {
+    let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
+    rates[id.index()] * multiplier * away * asleep
+}
+
 pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
     let rates = &content.0.decay_per_tick;
     for (mut needs, personality, at_work, eating) in &mut query {
@@ -97,8 +116,7 @@ pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
             1.0
         };
         for id in NeedId::ALL {
-            let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
-            needs.drain(id, rates[id.index()] * multiplier * away * asleep);
+            needs.drain(id, drain_amount(rates, id, personality, away, asleep));
         }
     }
 }

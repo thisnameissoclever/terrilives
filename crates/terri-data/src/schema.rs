@@ -475,6 +475,11 @@ pub struct TuningFile {
     pub chore_fight_response_mood: f32,
     pub chore_repair_base: f32,
     pub chore_repair_cleanliness: f32,
+    /// Issue 315 (`docs/specs/2026-11-15-full-bathroom-use.md`): the longest
+    /// a toilet, shower or bath use may run while filling its need, from
+    /// `min_interaction_ticks` to 1440. A person whose rate would need longer
+    /// stops here with the need partly filled.
+    pub need_fill_max_ticks: u32,
 }
 
 /// The seasons as `season_yard_looks` names them in `tuning.toml`, in the
@@ -1681,7 +1686,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 153] = [
+    const TUNING_LINES: [(&str, &str); 154] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1778,6 +1783,7 @@ mod tests {
         ("shift_sleep_offset_late", "115"),
         ("shift_sleep_offset_night", "655"),
         ("career_search_temperature", "0.3125"),
+        ("need_fill_max_ticks", "245"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -1939,6 +1945,7 @@ mod tests {
         assert_eq!(parsed.shift_sleep_offset_late, 115);
         assert_eq!(parsed.shift_sleep_offset_night, 655);
         assert_eq!(parsed.career_search_temperature, 0.3125);
+        assert_eq!(parsed.need_fill_max_ticks, 245);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(

@@ -176,6 +176,8 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("shift_sleep_offset_late", toml::Value::Integer(120)),
         ("shift_sleep_offset_night", toml::Value::Integer(660)),
         ("career_search_temperature", toml::Value::Float(0.0)),
+        // Issue 315: the fill limit a pack published before it rebuilds with.
+        ("need_fill_max_ticks", toml::Value::Integer(240)),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

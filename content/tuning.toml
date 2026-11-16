@@ -705,6 +705,14 @@ shift_sleep_offset_night = 660
 # How far the job search spreads its choice of path over fit, from 0 to 2.
 # 0 restores the best-fit search: the best fit wins and nothing is drawn.
 career_search_temperature = 0.25
+# Issue 315: the longest a toilet, shower or bath use may run while it fills
+# its need, in ticks (game minutes). A use lasts until the need is full, so
+# this only binds for a person whose satisfaction multiplier for the need is
+# so low that filling would take hours; they stop here with the need partly
+# filled. A neutral person from an empty bar needs about 15 ticks at the
+# toilet and under 45 in the shower or bath. From `min_interaction_ticks` to
+# 1440. Packs published before this knob existed rebuild with 240.
+need_fill_max_ticks = 240
 
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in

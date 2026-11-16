@@ -239,8 +239,11 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// 17769474122166916875 on purpose: every base need drain rate is three
 /// quarters of what it was, so needs cross their thresholds at different ticks
 /// and the household's choices differ from the first morning. The draw counts,
-/// jobs and shifts are unchanged. Read from the failing assertion.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (15679464342224380920, 7, 2);
+/// jobs and shifts are unchanged. Read from the failing assertion. Issue 315's
+/// fill change then moved the hash from 15679464342224380920 on purpose: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so every use of them in the household's days is shorter or longer than before and the choices and draws that follow differ. The
+/// draw counts, jobs and shifts are again unchanged. Read from the failing
+/// assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (15708678162880853617, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

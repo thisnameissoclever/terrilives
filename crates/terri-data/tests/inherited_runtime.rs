@@ -133,20 +133,20 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 296 (shifts): the shift tuning appended to `Tuning`, the
-            // shift fields appended to every `CompiledCareer`, and the new
-            // career rows and paths. The proof always runs against the
-            // fixture as it was on main before issue 296 merged (23113 bytes,
-            // SHA-256
-            // 48f32c6ffaeae3d9885f444efd8c2ca7b785bf67a00865557f711b28377a435a,
-            // main at 2fa3eac56): restore that file before regenerating.
+            // Issue 315 (a toilet, shower or bath fills its need): the fill
+            // limit appended to `Tuning`, and the authored rates of the
+            // toilet, the shower and the bath retuned. The proof always runs
+            // against the fixture as it was on main before issue 315 merged
+            // (25708 bytes, SHA-256
+            // fad1da2c3a7dceca90f5c9158a80c44ffa97d1fe8f0e9767a27111df264a1cb4,
+            // main at 053ee52d3): restore that file before regenerating.
             assert_eq!(
-                previous_without_shifts(&pack),
+                previous_without_fill(&pack),
                 old_bytes,
-                "only the shift tuning, the shift fields and the new careers may change the current fixture"
+                "only the fill limit and the three bathroom actions' authored rates may change the current fixture"
             );
             eprintln!(
-                "Shift fixture proof: removing the shift tuning, the career shift fields and the new careers recovers every byte of the previous fixture"
+                "Fill fixture proof: removing the fill limit and restoring the three actions' authored rates recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -164,88 +164,46 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 296 (shifts), rebuilt
-/// from the current pack: the five shift knobs left off the end of the
-/// tuning, the three shift fields left off each career row, and only the
-/// twelve rows and three paths that existed then. Postcard writes a struct
-/// as its fields in order, so a tuple of the old fields encodes exactly as
-/// the old struct did.
-fn previous_without_shifts(pack: &terri_data::ContentPack) -> Vec<u8> {
-    const SHIFT_TUNING_BYTES: usize = 10;
-    const OLD_ROWS: usize = 12;
-    const OLD_PATHS: usize = 3;
-    let mut bytes = postcard::to_allocvec(&(
-        &pack.decay_per_tick,
-        &pack.objects,
-        pack.sim_sprite,
-        &pack.lot,
-    ))
-    .unwrap();
-    let tuning = postcard::to_allocvec(&pack.tuning).unwrap();
+/// The fixture's bytes as they were before issue 315, rebuilt from the
+/// current pack: the three bathroom actions put back to the authored numbers
+/// they had on main at 053ee52d3, and the fill limit left off the end of the
+/// tuning. Postcard writes a struct as its fields in order, so the tuning
+/// without its last field encodes exactly as the old tuning did.
+fn previous_without_fill(pack: &terri_data::ContentPack) -> Vec<u8> {
+    // (object, advertised (need index, delta) pairs, duration), as on main.
+    // Need indices: 1 Energy, 2 Hygiene, 3 Bladder, 6 Comfort.
+    type Authored<'a> = (&'a str, &'a [(u8, f32)], u32);
+    let before: [Authored; 3] = [
+        ("toilet", &[(3, 95.0)], 24),
+        ("shower", &[(1, -12.0), (2, 70.0)], 90),
+        ("bathtub", &[(1, -3.0), (2, 58.0), (6, 31.0)], 78),
+    ];
+    let mut old = pack.clone();
+    for (id, advertises, duration) in before {
+        let action = old
+            .objects
+            .iter_mut()
+            .find(|object| object.id == id)
+            .unwrap_or_else(|| panic!("the fixture holds a {id}"))
+            .interactions
+            .first_mut()
+            .unwrap();
+        action.advertises = advertises.to_vec();
+        action.duration_ticks = duration;
+    }
+    let head =
+        postcard::to_allocvec(&(&old.decay_per_tick, &old.objects, old.sim_sprite, &old.lot))
+            .unwrap();
+    let tuning = postcard::to_allocvec(&old.tuning).unwrap();
+    let fill = postcard::to_allocvec(&old.tuning.need_fill_max_ticks).unwrap();
     assert_eq!(
-        &tuning[tuning.len() - SHIFT_TUNING_BYTES..],
-        postcard::to_allocvec(&(
-            pack.tuning.shift_sleep_offset_day,
-            pack.tuning.shift_sleep_offset_early,
-            pack.tuning.shift_sleep_offset_late,
-            pack.tuning.shift_sleep_offset_night,
-            pack.tuning.career_search_temperature,
-        ))
-        .unwrap(),
-        "the shift knobs are the tuning's last bytes"
+        &tuning[tuning.len() - fill.len()..],
+        fill,
+        "the fill limit is the tuning's last bytes"
     );
-    bytes.extend_from_slice(&tuning[..tuning.len() - SHIFT_TUNING_BYTES]);
-    bytes.extend(
-        postcard::to_allocvec(&(
-            &pack.personalities,
-            &pack.household,
-            &pack.social,
-            &pack.traits,
-        ))
-        .unwrap(),
-    );
-    let rows: Vec<_> = pack.careers[..OLD_ROWS]
-        .iter()
-        .map(|c| {
-            (
-                &c.id,
-                &c.label,
-                c.shift_start,
-                c.shift_ticks,
-                c.pay,
-                c.energy_cost,
-                c.satisfaction,
-                c.working_days,
-                c.path,
-                c.level,
-                c.pay_max,
-                c.advance_weeks,
-                c.social_demand,
-                &c.skill_tag,
-                &c.trait_fit,
-            )
-        })
-        .collect();
-    bytes.extend(postcard::to_allocvec(&rows).unwrap());
-    bytes.extend(
-        postcard::to_allocvec(&(
-            &pack.roles,
-            &pack.item_kinds,
-            &pack.chains,
-            &pack.circadian,
-            &pack.sleep_tag,
-            &pack.voice_clips,
-            &pack.portals,
-            &pack.colourways,
-            &pack.coverings,
-            &pack.skills,
-            &pack.affinities,
-            &pack.books,
-            &pack.reading,
-            &pack.career_paths[..OLD_PATHS],
-        ))
-        .unwrap(),
-    );
+    let mut bytes = postcard::to_allocvec(&old).unwrap();
+    let at = head.len() + tuning.len() - fill.len();
+    bytes.drain(at..at + fill.len());
     bytes
 }
 

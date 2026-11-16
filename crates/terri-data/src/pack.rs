@@ -1218,6 +1218,10 @@ pub struct Tuning {
     /// [WS-search]: how far the job search spreads its choice of path over
     /// fit. 0 is the best-fit search with no draw.
     pub career_search_temperature: f32,
+    /// Issue 315: the longest a toilet, shower or bath use may run while
+    /// filling its need, in ticks, from `min_interaction_ticks` to 1440.
+    /// Appended last, per the rule above.
+    pub need_fill_max_ticks: u32,
 }
 
 impl Tuning {
@@ -1282,6 +1286,12 @@ impl Tuning {
     /// with: 0, the best-fit search those packs ran, so their worlds keep
     /// choosing a path exactly as they did.
     pub const PRE_SHIFT_CAREER_SEARCH_TEMPERATURE: f32 = 0.0;
+    /// The fill limit a pack published before issue 315 rebuilds with: the
+    /// shipped 240. The fill is a rule of the simulation, not a knob a pack
+    /// opts into, so a published pack's worlds change behavior with it; this
+    /// only keeps a person with a very low satisfaction multiplier from
+    /// occupying a bathroom for hours.
+    pub const PRE_FILL_NEED_FILL_MAX_TICKS: u32 = 240;
     /// The shipped season knobs, reconstructed the same way for packs
     /// published before they existed.
     pub const SHIPPED_DAYS_PER_SEASON: u32 = 7;
@@ -2268,6 +2278,7 @@ mod tests {
             shift_sleep_offset_late: 125,
             shift_sleep_offset_night: 655,
             career_search_temperature: 0.3125,
+            need_fill_max_ticks: 245,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3123,8 +3134,8 @@ mod tests {
     /// eighteen of the fight knobs, the four of the land knobs, the
     /// ninety-five of the career knobs and the fifty of the season knobs,
     /// followed by optional autonomy, the meal-appreciation float, the
-    /// optional weather, the purposeful-fight knobs and the ten bytes of
-    /// the shift knobs;
+    /// optional weather, the purposeful-fight knobs, the ten bytes of the
+    /// shift knobs and the fill limit's varint;
     /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
@@ -3139,14 +3150,26 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Shifts (issue 296): the five shift knobs are the last ten bytes,
-        // after the purposeful-fight knobs:
+        // The fill limit (issue 315) is appended last: a varint, 245 in two
+        // bytes. Changing it moves exactly those bytes.
+        let fill = before.len() - 2;
+        assert_eq!(before[fill..], [0xF5, 0x01]);
+        assert_eq!(
+            changed(Tuning {
+                need_fill_max_ticks: 246,
+                ..a_tuning()
+            }),
+            vec![fill],
+            "fill limit"
+        );
+        // Shifts (issue 296): the five shift knobs are the ten bytes before
+        // the fill limit, after the purposeful-fight knobs:
         // four zigzag varints (3 as 6, -61 as 121, 125 as 250 in two bytes
         // and 655 as 1310 in two bytes), then the search temperature's
         // four bytes.
-        let shifts = before.len() - 10;
+        let shifts = fill - 10;
         assert_eq!(before[shifts..shifts + 6], [6, 121, 0xFA, 0x01, 0x9E, 0x0A]);
-        assert_eq!(before[shifts + 6..], 0.3125f32.to_le_bytes());
+        assert_eq!(before[shifts + 6..fill], 0.3125f32.to_le_bytes());
         for (offset, after) in [
             (
                 0,
