@@ -141,6 +141,33 @@ fn entering_and_leaving_build_keeps_the_fades() {
     assert_eq!(sim.save_snapshot_v23().presence_fade, rows, "after cancel");
 }
 
+/// An ordinary construction command is applied to a candidate rebuilt from
+/// a capture of the live world and installed over it, so a purchase made
+/// outside Build mode must carry every fade through that capture.
+#[test]
+fn buying_furniture_keeps_the_fades() {
+    let mut sim = fading();
+    sim.world_mut().resource_mut::<terri_core::Funds>().0 = 1_000_000;
+    let rows = sim.save_snapshot_v23().presence_fade;
+    assert_eq!(rows.len(), 3);
+    let before = sim.world().resource::<terri_core::Funds>().0;
+    let floor_lamp = terri_data::pack().find("floor_lamp").expect("a floor lamp");
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::BuyObject {
+            definition: floor_lamp.0,
+            x: 17,
+            y: 13,
+            facing: terri_core::Facing::SouthEast,
+        });
+    sim.flush_commands();
+    assert!(
+        sim.world().resource::<terri_core::Funds>().0 < before,
+        "the lamp was bought, so the world was rebuilt around it"
+    );
+    assert_eq!(sim.save_snapshot_v23().presence_fade, rows);
+}
+
 /// Rows that name nobody living, an unknown kind, a kind that has no
 /// presence, repeat a pair, arrive out of order, are already over, or end
 /// further ahead than any fade can last refuse the whole load and leave
