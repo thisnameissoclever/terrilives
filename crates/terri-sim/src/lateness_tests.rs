@@ -784,7 +784,7 @@ fn a_housemate_without_a_job_gets_no_lateness_and_todays_share() {
     let mut needs = Needs::all_at(100.0);
     needs.set(NeedId::Hunger, 10.0);
     needs.set(NeedId::Fun, 30.0);
-    sim.world_mut().entity_mut(actor).insert(needs.clone());
+    sim.world_mut().entity_mut(actor).insert(needs);
     let mut state =
         bevy_ecs::system::SystemState::<crate::shifts::ShiftRhythm>::new(sim.world_mut());
     assert_eq!(
