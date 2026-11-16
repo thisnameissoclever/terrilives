@@ -102,7 +102,7 @@
     "crates/terri-sim/src/action_queue.rs": "91049b3fd68c9787f4b08571008b4a3f4e7b0ceebb00bde27d2dec7b062f977b",
     "crates/terri-sim/src/action_rows.rs": "80cadae2bf9ee792561fd0b2874edf0ff1bd0807e141f578f65f625518cf0186",
     "crates/terri-sim/src/activity_log.rs": "230a26a08040f5c428fb5affdb205ca1e81b38d2ea5a918e81b8f7fc7f1ac9b1",
-    "crates/terri-sim/src/activity_log_tests.rs": "21fec3cf122303ac1479b167354821e4c70250b3b4238fad8dad7dfe41520b5e",
+    "crates/terri-sim/src/activity_log_tests.rs": "c1168ea8c0fc369742aa2abd747433a6248e747e0ae4db327d003fd05ccd055b",
     "crates/terri-sim/src/activity_status.rs": "871e4ab4577fead6467ccb9ad7d69be638e84292fe406fa4b48455acffbe285f",
     "crates/terri-sim/src/activity_tests.rs": "5452fd1a403b005a26f38bebd1cddda4c65f35f8c689f3306c3e7ff370f4368a",
     "crates/terri-sim/src/affinity.rs": "b5fb803c25bfcc0b64462235f61426a8e921ac8a1fb8a98982bdaf081fa9bc06",
