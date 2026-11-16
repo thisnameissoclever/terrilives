@@ -20,6 +20,10 @@ enum Furniture {
     Bed,
     /// An order a player can hold the worker with: Fun over 900 ticks.
     Hold,
+    /// A weak remedy: Hunger plus 5 over 15 ticks.
+    WeakSnack,
+    /// A strong unrelated attraction: Fun plus 100 over 60 ticks.
+    Tv,
 }
 
 /// A worker at (2, 4) with a shift at [`START`], no decay and no random
@@ -29,6 +33,33 @@ fn fixture(
     furniture: &[Furniture],
     tune: impl Fn(&mut terri_data::ContentPack),
 ) -> (Sim, Entity, Vec<Entity>) {
+    let (mut sim, actor, defs) = fixture_without_furniture(shift_ticks, furniture, tune);
+    let objects = defs
+        .into_iter()
+        .enumerate()
+        .map(|(n, def)| place(&mut sim, n, def))
+        .collect();
+    (sim, actor, objects)
+}
+
+/// Spawns the `n`th of the fixture's objects at its own spot.
+fn place(sim: &mut Sim, n: usize, def: terri_core::ObjectDefId) -> Entity {
+    sim.spawn_object(
+        Position {
+            x: 4.0 + n as f32 * 2.0,
+            y: 4.0,
+        },
+        def,
+    )
+}
+
+/// The fixture with its furniture defined in the pack but not yet placed,
+/// returning the definitions, for a test that adds the furniture later.
+fn fixture_without_furniture(
+    shift_ticks: u32,
+    furniture: &[Furniture],
+    tune: impl Fn(&mut terri_data::ContentPack),
+) -> (Sim, Entity, Vec<terri_core::ObjectDefId>) {
     let mut pack = terri_data::pack().clone();
     pack.decay_per_tick = [0.0; 7];
     pack.tuning.neglect_bleed_per_tick = 0.0;
@@ -49,6 +80,10 @@ fn fixture(
             Furniture::Snack => crate::test_content::object("snack", &[(NeedId::Hunger, 60.0)], 15),
             Furniture::Bed => crate::test_content::object("bed", &[(NeedId::Energy, 60.0)], 200),
             Furniture::Hold => crate::test_content::object("hold", &[(NeedId::Fun, 10.0)], 900),
+            Furniture::WeakSnack => {
+                crate::test_content::object("weak_snack", &[(NeedId::Hunger, 5.0)], 15)
+            }
+            Furniture::Tv => crate::test_content::object("tv", &[(NeedId::Fun, 100.0)], 60),
         });
     }
     tune(&mut pack);
@@ -69,19 +104,6 @@ fn fixture(
             Satisfaction::from_value(0.0),
         ))
         .id();
-    let objects = ids
-        .into_iter()
-        .enumerate()
-        .map(|(n, def)| {
-            sim.spawn_object(
-                Position {
-                    x: 4.0 + n as f32 * 2.0,
-                    y: 4.0,
-                },
-                def,
-            )
-        })
-        .collect();
     command(
         &mut sim,
         SimCommand::SetCareerAutonomy {
@@ -89,7 +111,7 @@ fn fixture(
             search: false,
         },
     );
-    (sim, actor, objects)
+    (sim, actor, ids)
 }
 
 fn command(sim: &mut Sim, command: SimCommand) {
@@ -654,4 +676,148 @@ fn the_allowance_is_a_window_that_ends_at_the_limit_or_the_shift_end() {
     assert_eq!(late_ticks(&long, START + 60, &tuning), None, "the limit");
     tuning.work_lateness_limit_ticks = 0;
     assert_eq!(late_ticks(&long, START, &tuning), None, "a limit of 0");
+}
+
+/// The share of `actor`'s last decision that went to `target`, as
+/// `select_action` recorded it, or `None` when `target` was not a candidate.
+fn recorded_share(sim: &Sim, actor: Entity, target: Entity) -> Option<f64> {
+    let telemetry = &sim
+        .world()
+        .resource::<crate::systems::autonomy::DecisionTelemetry>()
+        .0;
+    let decision = telemetry.iter().find(|d| d.agent == actor.index_u32())?;
+    let shares: Vec<f64> = decision
+        .choices
+        .iter()
+        .filter(|choice| choice.0 == target.index_u32())
+        .map(|choice| choice.4)
+        .collect();
+    (!shares.is_empty()).then(|| shares.iter().sum())
+}
+
+/// A critically hungry worker with a weak snack that relieves Hunger and a
+/// television that scores far higher, so the cap on unrelated choices is what
+/// decides the shares. The furniture is placed now or left to the test.
+struct Crisis {
+    sim: Sim,
+    actor: Entity,
+    defs: Vec<terri_core::ObjectDefId>,
+    placed: Vec<Entity>,
+}
+
+fn crisis_with_a_tempting_television(place_now: bool) -> Crisis {
+    let (mut sim, actor, defs) =
+        fixture_without_furniture(480, &[Furniture::WeakSnack, Furniture::Tv], |_| {});
+    let placed = if place_now {
+        defs.iter()
+            .enumerate()
+            .map(|(n, def)| place(&mut sim, n, *def))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    start_with(
+        &mut sim,
+        actor,
+        &[(NeedId::Hunger, 10.0), (NeedId::Fun, 30.0)],
+    );
+    Crisis {
+        sim,
+        actor,
+        defs,
+        placed,
+    }
+}
+
+/// The join between a late worker and the choice: `select_action` hands
+/// `ShiftRhythm::lateness` to the probabilities, so the same decision gives
+/// the remedy 95 percent on the start tick and 99 percent from 30 minutes in.
+/// With `None` passed instead, both would be 95 percent.
+#[test]
+fn select_action_gives_a_late_worker_the_ramped_remedy_share() {
+    // The start tick, progress 0: the autonomy cap, 5 percent unrelated.
+    let early = crisis_with_a_tempting_television(true);
+    let early_share = recorded_share(&early.sim, early.actor, early.placed[0])
+        .expect("the snack was a candidate on the start tick");
+    assert!(
+        (early_share - 0.95).abs() < 1e-6,
+        "progress 0 keeps today's cap: {early_share}"
+    );
+    // The same worker 45 minutes in, past the 30 minute ramp, inside the
+    // 60 minute limit: nothing was in reach before, then the furniture
+    // appears and the worker decides.
+    let mut late = crisis_with_a_tempting_television(false);
+    late.sim.world_mut().resource_mut::<SimClock>().tick = START + 44;
+    let placed: Vec<Entity> = late
+        .defs
+        .iter()
+        .enumerate()
+        .map(|(n, def)| place(&mut late.sim, n, *def))
+        .collect();
+    late.sim.tick();
+    assert_eq!(now(&late.sim), START + 45);
+    assert!(
+        !commuting(&late.sim, late.actor),
+        "still inside the allowance"
+    );
+    let late_share = recorded_share(&late.sim, late.actor, placed[0])
+        .expect("the snack was a candidate 45 minutes in");
+    assert!(
+        (late_share - 0.99).abs() < 1e-6,
+        "past the ramp the remedy takes the lateness share: {late_share}"
+    );
+}
+
+/// A housemate with no job is never late for anything: the parameter reports
+/// nothing, and the same critical decision keeps today's cap exactly.
+#[test]
+fn a_housemate_without_a_job_gets_no_lateness_and_todays_share() {
+    let (mut sim, actor, defs) =
+        fixture_without_furniture(480, &[Furniture::WeakSnack, Furniture::Tv], |_| {});
+    let placed: Vec<Entity> = defs
+        .iter()
+        .enumerate()
+        .map(|(n, def)| place(&mut sim, n, *def))
+        .collect();
+    sim.world_mut().entity_mut(actor).remove::<Career>();
+    sim.world_mut().resource_mut::<SimClock>().tick = START + 44;
+    let mut needs = Needs::all_at(100.0);
+    needs.set(NeedId::Hunger, 10.0);
+    needs.set(NeedId::Fun, 30.0);
+    sim.world_mut().entity_mut(actor).insert(needs.clone());
+    let mut state =
+        bevy_ecs::system::SystemState::<crate::shifts::ShiftRhythm>::new(sim.world_mut());
+    assert_eq!(
+        state.get(sim.world()).lateness(actor, &needs, START + 44),
+        None
+    );
+    sim.tick();
+    assert!(shift(&sim, actor).is_none(), "no job, no scheduled shift");
+    let share = recorded_share(&sim, actor, placed[0]).expect("the snack was a candidate");
+    assert!(
+        (share - 0.95).abs() < 1e-6,
+        "a jobless critical decision keeps today's cap, not the lateness share: {share}"
+    );
+}
+
+/// Hunger and Bladder both critical on the start tick: Hunger keeps the
+/// worker home, Bladder is not the reason, and the departure comes once
+/// Hunger is dealt with, whatever Bladder still is.
+#[test]
+fn hunger_and_bladder_both_critical_keep_the_worker_home_for_hunger_only() {
+    let (mut sim, actor, _) = fixture(480, &[Furniture::Snack], |_| {});
+    start_with(
+        &mut sim,
+        actor,
+        &[(NeedId::Hunger, 10.0), (NeedId::Bladder, 5.0)],
+    );
+    assert!(!commuting(&sim, actor), "Hunger holds the worker back");
+    let left = depart_tick(&mut sim, actor, 100).expect("leaves once fed");
+    assert!(left > START && left < START + 60, "left at {left}");
+    assert!(need(&sim, actor, NeedId::Hunger) > 20.0, "fed first");
+    assert_eq!(
+        need(&sim, actor, NeedId::Bladder),
+        5.0,
+        "Bladder was never the reason and nothing relieved it at home"
+    );
 }

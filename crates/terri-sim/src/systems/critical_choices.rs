@@ -469,6 +469,28 @@ mod tests {
         assert!((p[2] - 0.99).abs() < 1e-6, "{p:?}");
         assert!(p[0] > 0. && p[0] < 0.01, "{p:?}");
     }
+    /// Hunger and Bladder both critical (so the cap is the multiple one):
+    /// while late only the relief of Hunger is a remedy and the relief of
+    /// Bladder is an unrelated choice, as [WL-ramp] says. Not late, both are
+    /// remedies.
+    #[test]
+    fn with_hunger_and_bladder_critical_only_hungers_relief_is_a_remedy_while_late() {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        needs.set(NeedId::Bladder, 10.);
+        let rows = [(0, 0, 1.), (1, 0, 10.), (2, 0, 1.)];
+        let outcomes = [
+            relieving(NeedId::Bladder),
+            NeedOutcome::default(),
+            relieving(NeedId::Hunger),
+        ];
+        let usual = evaluate_late(&rows, &outcomes, &needs, None);
+        assert!(usual[0] > 0.4 && usual[2] > 0.4, "{usual:?}");
+        let p = evaluate_late(&rows, &outcomes, &needs, late(0.0));
+        assert!((p[2] - 0.99).abs() < 1e-6, "{p:?}");
+        assert!(p[0] > 0. && p[0] < 0.01, "{p:?}");
+        assert!(p[1] > 0., "wandering stays possible: {p:?}");
+    }
     #[test]
     fn a_late_housemate_with_no_counted_remedy_gets_the_ordinary_distribution() {
         let mut needs = Needs::all_at(60.);

@@ -1361,6 +1361,19 @@ fn mint_kind(item_kinds: &mut Vec<String>, name: &str) -> u32 {
 /// something nobody can have. Pay climbs the levels: a level pays at
 /// least the one below it and tops out higher, so a promotion always has
 /// a raise to give.
+/// Issue 309 ([WL-tuning]): the lateness allowance must be shorter than every
+/// shift of every job, so a critical need can never keep a worker home for
+/// the whole shift. A limit of 0 passes, since every shift has at least one
+/// tick.
+fn check_lateness_inside_shift(tuning: &Tuning, shift_ticks: u32) -> Result<(), ContentError> {
+    if tuning.work_lateness_limit_ticks >= shift_ticks {
+        return Err(ContentError::CareerTuningOutOfRange {
+            key: "work_lateness_limit_ticks",
+        });
+    }
+    Ok(())
+}
+
 fn compile_careers(
     careers: CareersFile,
     tuning: &Tuning,
@@ -1460,6 +1473,7 @@ fn compile_careers(
                     day_ticks: tuning.day_ticks,
                 });
             }
+            check_lateness_inside_shift(tuning, level.shift_ticks)?;
             check_finite(
                 level.energy_cost,
                 &format!("energy_cost on career '{}'", level.id),
@@ -1586,6 +1600,7 @@ fn compile_path_shifts(
                 day_ticks: tuning.day_ticks,
             });
         }
+        check_lateness_inside_shift(tuning, shift.shift_ticks)?;
         let working_days = compile_working_days(&name, &shift.working_days)?;
         shifts.push(crate::pack::CompiledShift {
             id: shift.id.clone(),
@@ -9358,6 +9373,17 @@ mod tests {
         trait_def: Vec<TraitDef>,
         career: Vec<CareerDef>,
     ) -> Result<ContentPack, ContentError> {
+        compile_people_tuned(full_tuning(), archetypes, sims, trait_def, career)
+    }
+
+    /// `compile_people_full` under the given tuning.
+    fn compile_people_tuned(
+        tuning: TuningFile,
+        archetypes: Vec<ArchetypeDef>,
+        sims: Vec<HouseholdSimDef>,
+        trait_def: Vec<TraitDef>,
+        career: Vec<CareerDef>,
+    ) -> Result<ContentPack, ContentError> {
         // The snack gains one tag so traits have something real to key
         // on; untagged fixtures elsewhere are untouched because this
         // helper is the traits tests' own.
@@ -9377,7 +9403,7 @@ mod tests {
             one_object(snack),
             lot,
             test_atlas(),
-            full_tuning(),
+            tuning,
             PersonalitiesFile {
                 archetype: archetypes,
             },
@@ -11369,6 +11395,44 @@ mod tests {
         }
         let pack = compile_tuned(tuning_where(|t| t.work_lateness_remedy_share = 0.9501)).unwrap();
         assert_eq!(pack.tuning.work_lateness_remedy_share, 0.9501);
+    }
+
+    /// Issue 309 ([WL-tuning]): the lateness limit must be below the shift
+    /// ticks of every job, standard or offered, so the allowance can never
+    /// cover a whole shift. Equal is refused, one below is accepted, and a
+    /// limit of 0 is accepted whatever the shifts.
+    #[test]
+    fn rejects_a_work_lateness_limit_that_could_cover_a_whole_shift() {
+        let compile_with = |limit: u32, standard: u32, offered: Option<u32>| {
+            let mut career = a_career("office_job");
+            career.level[0].shift_ticks = standard;
+            if let Some(ticks) = offered {
+                let mut shift = a_shift("late", "late");
+                shift.shift_ticks = ticks;
+                career.shift = vec![shift];
+            }
+            compile_people_tuned(
+                tuning_where(|t| {
+                    t.work_lateness_limit_ticks = limit;
+                    // The ramp must fit inside the limit.
+                    t.work_lateness_ramp_ticks = limit.max(1);
+                }),
+                vec![],
+                vec![],
+                vec![],
+                vec![career],
+            )
+        };
+        let refused = ContentError::CareerTuningOutOfRange {
+            key: "work_lateness_limit_ticks",
+        };
+        assert!(compile_with(6, 7, None).is_ok(), "one tick below the shift");
+        assert_eq!(compile_with(7, 7, None).unwrap_err(), refused, "equal");
+        assert_eq!(compile_with(8, 7, None).unwrap_err(), refused, "above");
+        assert!(compile_with(0, 1, None).is_ok(), "0 leaves on time");
+        // An offered shift is held to it too, not only the standard shift.
+        assert_eq!(compile_with(6, 7, Some(6)).unwrap_err(), refused);
+        assert!(compile_with(5, 7, Some(6)).is_ok());
     }
 
     #[test]

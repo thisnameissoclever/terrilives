@@ -41,7 +41,7 @@ The owner's decision of 2026-11-15 is binding and replaces the plan's recommenda
 ## [WL-depart] Departure
 
 1. At home with an open shift, a person does not depart while the allowance lasts and either a counted need is critical (at or under `mood_critical_need_level`) or, after the start tick, they are still running an ordinary activity that advertises Hunger or Energy. On the start tick only a critical need counts: a person who is not critical but happens to be mid-meal or asleep leaves on time, as before. A person still at home after the start tick was kept there by a need, so finishing what the need set going is part of the same lateness, and the rule reads no saved state. The allowance lasts from the scheduled start up to, not including, the start plus `work_lateness_limit_ticks`, so the latest departure tick is the start plus the limit. A limit of 0 leaves on time, as before.
-2. The allowance never reaches the shift's end: at and after `end_tick` the shift is not open and nobody departs for it. A shift shorter than the limit may be spent entirely at home, and then settles once with no worked minutes and no pay.
+2. The allowance never reaches the shift's end: at and after `end_tick` the shift is not open and nobody departs for it. The compiler refuses a limit that is not below the shift ticks of every job, standard or offered, so in compiled content the allowance can never cover a whole shift. The predicate and the departure still stop at the shift's end on their own, for a hand-built world: a shift shorter than the limit is never left for after its end, and settles once with no worked minutes and no pay.
 3. When the allowance ends, or when no counted need is critical and nothing is running for one, the person departs through the existing `depart`, unchanged. `depart` removes the running interaction, target, reservation and the rest as it always has, so a meal or a sleep still running at the limit is cut off.
 4. The check sits after the waiting game-made fight is withdrawn, after the player-work check and after the reading-journey check. A waiting game-made fight is still withdrawn at the shift start. A player's order still delays departure without limit; once it is gone the person leaves at once if the allowance is over, whatever their needs. A reader on a journey is asked home as before.
 5. A worker already commuting or at work is never turned around by a need.
@@ -69,7 +69,7 @@ Four root keys follow `night_shift_premium_percent` in `content/tuning.toml`, an
 
 | Knob | Shipped | Range | Meaning |
 | --- | --- | --- | --- |
-| `work_lateness_limit_ticks` | 60 | 0 to 720 | Longest a critical need may keep a worker home after the scheduled start. 0 leaves on time. |
+| `work_lateness_limit_ticks` | 60 | 0 to 720, and below the shift ticks of every job | Longest a critical need may keep a worker home after the scheduled start. 0 leaves on time. |
 | `work_lateness_ramp_ticks` | 30 | 1 to 720, and at most the limit when the limit is above 0 | Lateness at which the remedy share reaches its maximum. |
 | `work_lateness_remedy_share` | 0.99 | above `1 - unrelated_single`, below 1 | The most the remedies of the late need can take. |
 | `work_bladder_relief_threshold` | 50 | 0 to 100 | A worker at work is relieved of Bladder below this level. 0 is no relief. |
@@ -99,7 +99,7 @@ The tests are in `crates/terri-sim/src/lateness_tests.rs`, `crates/terri-sim/src
 2. A worker with nothing critical, with a critical Bladder, and with a critical Fun, Social, Hygiene or Comfort leaves on the start tick.
 3. With no remedy the worker leaves exactly at the start plus the limit; with a sleep still running at the limit the departure cuts it off.
 4. A meal that lifts Hunger above critical finishes before the departure.
-5. A limit of 0 leaves on time. A shift shorter than the limit is never left for after its end, and settles once with no pay.
+5. A limit of 0 leaves on time. In a hand-built world a shift shorter than the limit is never left for after its end, and settles once with no pay. The compiler refuses a limit that is not below every job's shortest shift.
 6. A player's order still delays departure past the limit, and the worker leaves as soon as it is gone.
 7. A worker on the way to work or at work is not turned back by a crisis.
 8. A waiting game-made fight is withdrawn although the initiator stays home late.
@@ -108,4 +108,5 @@ The tests are in `crates/terri-sim/src/lateness_tests.rs`, `crates/terri-sim/src
 11. The unrelated share equals today's cap at the start, the exact linear value halfway and `1 - work_lateness_remedy_share` from the ramp on, and stays above 0; relief of an uncounted critical need is unrelated while late; with no lateness the probabilities are the pinned vector of before this change.
 12. A worker at work is relieved of Bladder below the threshold and not at it, only Bladder is relieved, a worker at home is not relieved, and with the real decay rates Bladder never falls below the threshold during a shift.
 13. A worker who is not critical but is mid-meal on the start tick leaves on the start tick, and the allowance predicate is pinned on its own: it opens at the start, closes at the limit or at the shift's end, whichever is first, and is shut for a settled shift or a limit of 0.
-14. The knob compile, published-pack, pre-books and fixture checks in the data crate.
+14. `select_action` gives a late worker the ramped remedy share: the same critical decision gives the remedy 95 percent on the start tick and 99 percent 45 minutes in, with the television that tempts the worker most scoring far above the weak snack, so the cap decides the shares. A housemate with no job gets no lateness and today's share. With Hunger and Bladder both critical, Hunger keeps the worker home and only the relief of Hunger is a remedy, while the relief of Bladder joins the unrelated choices.
+15. The knob compile, published-pack, pre-books and fixture checks in the data crate.

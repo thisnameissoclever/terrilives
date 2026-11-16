@@ -13,7 +13,7 @@ Every job pays half as much again and night shifts pay extra, the household pays
 
 ## Improved
 
-- A housemate who is critically hungry or exhausted when their shift starts now deals with it first and leaves for work late, at most one game hour after the shift starts. While they are late they almost always spend the time on that need. A meal or sleep already under way finishes first. Your orders still come first, a critically full bladder never makes anyone late, and lateness still costs pay and, past two hours of missed work, performance.
+- A housemate who is critically hungry or exhausted when their shift starts now deals with it first and leaves for work late, at most one game hour after the shift starts. While they are late they almost always spend the time on that need. A meal or sleep already under way finishes first. Your orders still come first, needing the toilet never makes anyone late for work (housemates take care of it at work), and lateness still costs pay and, past two hours of missed work, performance.
 - A housemate at work is now relieved of their Bladder whenever it falls below half, so it no longer becomes critical during a shift.
 - Older saved games raise their wages to the new pay. A bed already standing outdoors in an older save stays where it is and still works.
 - Housemates who dislike or hate plants or the aquarium no longer get "Bothered by the plants here" or "Bothered by the aquarium here" when they share a room with one. They simply read nothing from it. Housemates who like those things still get "Likes the plants here" or "Likes the aquarium here" while they are in the room.

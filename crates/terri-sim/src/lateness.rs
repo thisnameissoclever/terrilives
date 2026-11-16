@@ -91,9 +91,9 @@ fn running_remedy(world: &World, actor: Entity) -> bool {
 
 /// Whether the departure for `shift` waits at `now` ([WL-depart]): the
 /// allowance has not run out and either a counted need is critical or, after
-/// the start tick, a remedy for one is still running. The caller has already decided that no
-/// player order, reading journey or commute stands in the way; this is the
-/// one predicate a later "go to work now" command bypasses.
+/// the start tick, a remedy for one is still running. The caller has already
+/// decided that no player order, reading journey or commute stands in the
+/// way; this is the one predicate a later "go to work now" command bypasses.
 pub(crate) fn waits_for_needs(
     world: &World,
     actor: Entity,
