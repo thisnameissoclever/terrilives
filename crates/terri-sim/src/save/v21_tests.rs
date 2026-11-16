@@ -121,12 +121,22 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// someone asleep, so at 05:16 on Monday Tim's choice no longer has a chat
 /// with the sleeping Bill among its candidates, the same draw picks another
 /// action, and Monday morning differs from then on. Re-measured on that
-/// branch the same two ways; both runs gave this value. Issue 344 left it
-/// unchanged: Bill's mood is higher from about 06:50 on Monday once presence
-/// stops lowering it, but mood is not hashed, and the first choice that goes
-/// differently is at about 12:00, after this test's Monday 10:00 stopping
-/// point, so the hash is equal at every tick of this run.
-const STANDARD_ONLY_HASH: u64 = 1877760251232896320;
+/// branch the same two ways; both runs gave this value.
+/// Issue 298 then moved it from 1877760251232896320: pay is 1.5 times what
+/// it was, a new household starts with $400, and the household bills record
+/// joins the hash once a day is counted. With the old wages, no night
+/// premium, no starting funds and the bills system and its hash off, the
+/// branch gave 1877760251232896320 again after merging 053ee52d3, so the
+/// shift section still adds nothing here.
+/// Issue 344 (presence never lowers mood) left it unchanged: Bill's mood is
+/// higher from tick index 410 (about 06:50 on Monday) once presence stops
+/// lowering it, but mood is not hashed, and the first choice that goes
+/// differently is at tick index 718 (about 12:00 on Monday), after this
+/// test's Monday 10:00 stopping point at 600 ticks, so the hash is equal at
+/// every tick of this run. Measured on the tree that combines both changes
+/// with the old presence rule restored behind a temporary switch and then
+/// removed; the combined tree still gives the value above.
+const STANDARD_ONLY_HASH: u64 = 3704503324967516506;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.

@@ -468,17 +468,27 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// no longer considers a sleeping recipient, so at 21:25 on Monday it spends
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. Both measured on its branch with
-/// the log off and on giving the same worlds. Issue 344 moved it from
-/// 0xa0fb_785a_e3a4_7b1d on purpose: a person no longer reads
-/// `Bothered by the plants here`. Of the three shipped housemates only Bill holds a plant
-/// value at or below -0.2 (-0.35; nobody's aquarium value is negative), so he is the
-/// only person who loses a penalty. His mood first differs from main's at
-/// about 06:50 on Monday, when he first stands in a room with a plant, and
-/// the world hash first differs at about 12:00 on Monday, when a choice
-/// scored from that mood first goes the other way. Measured with the old
-/// rule restored behind a temporary switch, then removed. Also measured on its branch with
 /// the log off and on giving the same worlds.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9b82_b49b_c343_cfa0;
+/// Issue 298 (wages and bills) then moved it from 0xa0fb_785a_e3a4_7b1d on
+/// purpose: pay is 1.5 times what it was, a night shift pays 15 percent
+/// more, a new household starts with $400, and the household bills record
+/// joins the hash once a day is counted. Measured on its branch after
+/// merging 053ee52d3; with the old wages, no premium, no starting funds and
+/// the bills system and its hash switched off, the branch gave
+/// 0xa0fb_785a_e3a4_7b1d again.
+/// Issue 344 (presence never lowers mood) then moved it from
+/// 0xb953_34a8_9aca_0e2c, on top of issue 298's change, on purpose: a person
+/// no longer reads `Bothered by the plants here`. Of the three shipped
+/// housemates only Bill holds a plant value at or below -0.2 (-0.35;
+/// nobody's aquarium value is negative), so he is the only person who loses
+/// a penalty. His mood first differs from the old rule's at tick index 410
+/// (about 06:50 on Monday), when he first stands in a room with a plant, and
+/// the world hash first differs at tick index 718 (about 12:00 on Monday),
+/// when a choice scored from that mood first goes the other way. Measured
+/// on the tree that combines both changes, with the log off and on giving the
+/// same worlds, and with the old presence rule restored behind a temporary
+/// switch and then removed.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x06a6_5d89_3df7_7287;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -489,11 +499,15 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9b82_b49b_c343_cfa0;
 /// fold, measured on its branch in a release build. Issue 338 moved it from
 /// 0x2e8d_746e_12f8_fad2, and its fight trigger change then from
 /// 0x4080_914e_b342_85e0, for the reasons given for the two-day fold, both
-/// measured on its branch in a release build. Issue 344 moved it from
-/// 0x78e8_cb74_b70c_d742 for the reason given for the two-day fold, measured
-/// on its branch in a release build, with the log off and on giving the same
-/// worlds.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6f69_a181_4336_43c8;
+/// measured on its branch in a release build.
+/// Issue 298 then moved it from 0x78e8_cb74_b70c_d742 for the reason given
+/// for the two-day fold, and over twenty days the bills are also paid from
+/// Funds on days 7 and 14; with the old wages, no premium, no starting
+/// funds and the bills off it gave 0x78e8_cb74_b70c_d742. Issue 344 then
+/// moved it from 0x9b22_0f1c_a448_e32c for the reason given for the two-day
+/// fold, measured on the tree that combines both changes, in a release
+/// build, with the log off and on giving the same worlds.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4947_38f3_cd9d_3898;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

@@ -217,6 +217,24 @@ fn held_shift<'a>(job: &'a CompiledCareer, record: Option<&Record>) -> ShiftView
         .expect("every level has its standard shift")
 }
 
+/// What one shift pays `entity` with the night premium, in cents, when the
+/// shift they hold is of the night kind ([WB-panel] and [WB-wages] in
+/// `docs/specs/2026-10-18-wages-and-bills.md`): the Career tab's night pay
+/// line. `None` for anyone not holding a night shift.
+pub fn night_pay_cents(world: &World, entity: Entity) -> Option<i64> {
+    let pack = world.get_resource::<Content>()?.0;
+    let shift = shift_of(world, pack, entity)?;
+    if shift.kind != terri_data::SHIFT_NIGHT {
+        return None;
+    }
+    let job = job_of(world, pack, entity)?;
+    let pay = world
+        .get::<SimId>(entity)
+        .and_then(|sim| world.get_resource::<Careers>()?.record(*sim))
+        .map_or(job.pay, |record| record.pay);
+    Some(pack.tuning.shift_pay_cents(pay, terri_data::SHIFT_NIGHT))
+}
+
 /// The ticks a shift of `kind` adds to its holder's sleep rhythm
 /// ([WS-sleep]); a kind past the four named ones counts as day.
 pub fn kind_offset(tuning: &Tuning, kind: u8) -> i32 {

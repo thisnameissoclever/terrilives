@@ -24,8 +24,15 @@ pub(crate) fn restore(
     content: &'static terri_data::ContentPack,
     portals: super::Carried,
 ) -> Result<Sim, SaveError> {
+    let migrate = portals.wage_migration;
+    let mut careers = snapshot.careers;
     let mut candidate = super::v13::restore(snapshot.legacy, content, portals)?;
-    crate::careers::validate_saved(candidate.world(), &snapshot.careers)?;
-    crate::careers::install_saved(candidate.world_mut(), snapshot.careers);
+    if migrate {
+        // Issue 298: pay saved before the raise, raised before the current
+        // ranges judge it.
+        super::wage_migration::migrate_careers(candidate.world(), &mut careers);
+    }
+    crate::careers::validate_saved(candidate.world(), &careers)?;
+    crate::careers::install_saved(candidate.world_mut(), careers);
     Ok(candidate)
 }

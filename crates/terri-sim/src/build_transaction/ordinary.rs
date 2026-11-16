@@ -139,8 +139,8 @@ struct PreparedOrdinary {
 }
 fn prepare(sim: &Sim, commands: Vec<SimCommand>) -> Result<PreparedOrdinary, BuildCommitError> {
     next_epoch(&sim.world).map_err(|_| BuildCommitError::CounterExhausted)?;
-    let baseline = save::v21::capture_without_commands(sim);
-    let mut candidate = save::v21::restore(
+    let baseline = save::v22::capture_without_commands(sim);
+    let mut candidate = save::v22::restore(
         baseline.clone(),
         sim.world.resource::<Content>().0,
         save::Carried::for_load(&sim.world),
@@ -170,8 +170,8 @@ fn prepare(sim: &Sim, commands: Vec<SimCommand>) -> Result<PreparedOrdinary, Bui
         .remove_resource::<NativeBatch>()
         .unwrap()
         .accepted;
-    let final_state = save::v21::capture(&candidate);
-    save::v21::restore(
+    let final_state = save::v22::capture(&candidate);
+    save::v22::restore(
         final_state.clone(),
         sim.world.resource::<Content>().0,
         save::Carried::for_load(&sim.world),

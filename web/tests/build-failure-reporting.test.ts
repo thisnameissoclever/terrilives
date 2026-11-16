@@ -8,8 +8,8 @@ import { SimBridge, wallReason } from '../src/bridge.js';
 import { BuildExit, type BuildExitHooks } from '../src/ui/build-exit.js';
 import { BuildSession } from '../src/ui/build-session.js';
 import { RoomFailureLog } from '../src/ui/room-selection.js';
-import { confirmFailure, enterFailure, parseBuildFailureReport } from '../src/rooms/failure.js';
-import type { RoomFailure } from '../src/rooms/codec.js';
+import { bedName, confirmFailure, enterFailure, parseBuildFailureReport } from '../src/rooms/failure.js';
+import { decodeRoomUnit, RoomWireError, type RoomFailure } from '../src/rooms/codec.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const CSS = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
@@ -195,5 +195,47 @@ describe('the page', () => {
   it('has a reason line in the dialog and marks a refusal in the footer as an error', () => {
     expect(INDEX_HTML).toMatch(/<p id="build-exit-status" role="alert"><\/p>/);
     expect(CSS).toMatch(/#build-batch-status\[data-kind='error'\], #build-exit-status:not\(:empty\)/);
+  });
+});
+
+describe('a bed left outside (issue 298, [WB-beds])', () => {
+  it('reads the bed refusal with the bed it names and refuses it without one', () => {
+    expect(decodeRoomUnit(Uint8Array.of(1, 1, 15, 1, 42))).toEqual({ ok: false, error: { code: 15, detail: 42n } });
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 15, 0))).toThrow(RoomWireError);
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 16, 0))).toThrow(RoomWireError);
+  });
+
+  it('tells the player to move the bed into a room or cancel', () => {
+    expect(confirmFailure({ code: 15, detail: 42n }))
+      .toBe('A bed would be left outside. Move it into a room, or choose Cancel, before confirming.');
+  });
+
+  it('names the bed the refusal carries, type first', () => {
+    expect(confirmFailure({ code: 15, detail: 42n }, { rule: null }, bedName('Bunk bed', 'Basic Oak')))
+      .toBe('The bunk bed (Basic Oak) would be left outside. Move it into a room, or choose Cancel, before confirming.');
+    expect(bedName('Bed', 'Standard Double')).toBe('bed (Standard Double)');
+    expect(bedName('Bed', '')).toBe('bed');
+    expect(bedName('', 'Standard Double')).toBe('');
+  });
+
+  it('names the refused bed from the entity the Confirm refusal carries', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const named: number[] = [];
+    const source = {
+      clockTick: () => 0, dayTicks: () => 1440, saveBytes: () => new Uint8Array(), loadBytes: () => true,
+      flushCommands() {}, buildActive: () => true, buildDirty: () => true, beginBuild: () => ({ ok: true as const, value: undefined }),
+      takeBuildError: () => ({ ok: true as const, value: null }),
+      prepareBuildCommit: () => ({ ok: false as const, error: { code: 15, detail: 42n } }),
+      commitBuild: () => ({ ok: true as const, value: undefined }),
+      cancelBuild: () => ({ ok: true as const, value: undefined }), endBuild: () => ({ ok: true as const, value: undefined }),
+      objectName: (entity: number) => { named.push(entity); return entity === 42 ? 'Bunk bed' : 'Lamp'; },
+      objectDetails: (entity: number) => entity === 42 ? { modelName: 'Basic Oak', description: '' } : undefined,
+    };
+    const session = new BuildSession(source as unknown as ConstructorParameters<typeof BuildSession>[0],
+      { prepare: () => true, settled: () => true, restored() {} });
+    expect(session.confirm()).toBe(false);
+    expect(session.error)
+      .toBe('The bunk bed (Basic Oak) would be left outside. Move it into a room, or choose Cancel, before confirming.');
+    expect(named).toEqual([42]);
   });
 });

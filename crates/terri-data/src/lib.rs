@@ -35,6 +35,7 @@ pub use pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, DomesticTuning, FightRules, Footprint, ObjectDefId, Tuning,
 };
+pub use pack::{BillKind, BillsTuning};
 pub use pack::{CompiledShift, ShiftView, SHIFT_DAY, SHIFT_EARLY, SHIFT_LATE, SHIFT_NIGHT};
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};
@@ -870,8 +871,9 @@ mod tests {
     }
 
     /// Shifts (issue 296, [WS-content]): eight paths in the shipped order,
-    /// 32 rows, and rows 0 to 11 exactly as they were before shifts, so the
-    /// shipped worker's save and every older save still name the same jobs.
+    /// 32 rows, and rows 0 to 11 as they were before shifts apart from
+    /// issue 298's raise, so the shipped worker's save and every older save
+    /// still name the same jobs.
     #[test]
     fn the_shipped_careers_hold_eight_paths_with_the_first_twelve_rows_unchanged() {
         let pack = pack();
@@ -983,7 +985,13 @@ mod tests {
                     job.pay,
                     job.pay_max
                 ),
-                *expected,
+                {
+                    // Issue 298 raised every wage by half, rounded half up
+                    // ([WB-wages]); the rows keep issue 296's pay before it.
+                    let raised = |pay: u32| (pay * 3).div_ceil(2);
+                    let (id, label, start, ticks, days, pay, pay_max) = *expected;
+                    (id, label, start, ticks, days, raised(pay), raised(pay_max))
+                },
                 "row {row}"
             );
             assert_eq!((job.path, job.level), (row as u32 / 4, row as u32 % 4));
@@ -1128,6 +1136,327 @@ mod tests {
             [0, -60, 120, 660]
         );
         assert_eq!(tuning.career_search_temperature, 0.25);
+    }
+
+    /// [WB-tuning] in `docs/specs/2026-10-18-wages-and-bills.md`: the
+    /// shipped night premium and every value of the `[bills]` block, the
+    /// kinds in id order with their labels and charges.
+    #[test]
+    fn shift_pay_adds_the_night_premium_to_night_shifts_only() {
+        let tuning = &pack().tuning;
+        assert_eq!(tuning.shift_pay_cents(105, SHIFT_NIGHT), 12_075);
+        assert_eq!(tuning.shift_pay_cents(105, SHIFT_DAY), 10_500);
+        assert_eq!(tuning.shift_pay_cents(105, SHIFT_LATE), 10_500);
+        assert_eq!(tuning.shift_pay_cents(1, SHIFT_NIGHT), 115);
+    }
+
+    #[test]
+    fn the_shipped_bills_tuning_matches_the_spec() {
+        let pack = pack();
+        assert_eq!(pack.tuning.night_shift_premium_percent, 15);
+        let bills = &pack.bills;
+        assert_eq!(
+            (
+                bills.days_per_month,
+                bills.grace_days,
+                bills.late_fee_percent,
+                bills.late_fee_cap_percent,
+                bills.overdue_mood
+            ),
+            (7, 5, 5, 50, 8.0)
+        );
+        assert_eq!(
+            [
+                bills.rent_base_cents,
+                bills.rent_indoor_tile_cents,
+                bills.rent_outdoor_tile_cents,
+                bills.electricity_base_cents,
+                bills.water_base_cents,
+                bills.transportation_base_cents,
+                bills.commute_cents,
+                bills.starting_funds_cents,
+            ],
+            [6000, 90, 20, 3000, 2000, 1000, 300, 40000]
+        );
+        let rows = |kinds: &[BillKind]| -> Vec<(String, String, i64, i64)> {
+            kinds
+                .iter()
+                .map(|k| {
+                    (
+                        k.id.clone(),
+                        k.label.clone(),
+                        k.water_cents,
+                        k.electricity_cents,
+                    )
+                })
+                .collect()
+        };
+        let expect = |rows: &[(&str, &str, i64, i64)]| -> Vec<(String, String, i64, i64)> {
+            rows.iter()
+                .map(|(id, label, water, electricity)| {
+                    (id.to_string(), label.to_string(), *water, *electricity)
+                })
+                .collect()
+        };
+        assert_eq!(
+            rows(&bills.uses),
+            expect(&[
+                ("bath", "Baths", 90, 25),
+                ("dishes", "Dish washing", 20, 0),
+                ("hand_wash", "Hand washing", 5, 0),
+                ("radio", "Radio", 0, 3),
+                ("shower", "Showers", 60, 15),
+                ("stove", "Stove cooking", 0, 40),
+                ("television", "Television", 0, 20),
+                ("toilet", "Toilet flushes", 10, 0),
+            ])
+        );
+        assert_eq!(
+            rows(&bills.daily),
+            expect(&[
+                ("aquarium", "Aquariums", 0, 10),
+                ("fridge", "Fridges", 0, 20),
+                ("lamp", "Lamps", 0, 5),
+                ("pool", "Pools", 50, 60),
+            ])
+        );
+        // A published pack and every frozen pre-books source keep the
+        // shipped premium and charges, with no usage kinds, because their
+        // content declares none.
+        for historical in [
+            pre_books_pack(),
+            published_pre_books_pack(),
+            affinity_pre_books_pack(),
+            latest_pre_books_pack(),
+            contextual_pre_books_pack(),
+        ] {
+            assert_eq!(historical.tuning.night_shift_premium_percent, 15);
+            assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
+        }
+        // Households from before bills started with nothing, so only the
+        // starting funds differ from the shipped scalars.
+        let shipped_scalars = BillsTuning {
+            uses: Vec::new(),
+            daily: Vec::new(),
+            starting_funds_cents: 0,
+            ..bills.clone()
+        };
+        assert_eq!(shipped_scalars, BillsTuning::shipped_without_usage());
+    }
+
+    /// [WB-wages]: every level's pay and pay maximum is the spec's table,
+    /// 1.5 times the wage before issue 298, rounded half up to the dollar.
+    /// The old wages are listed beside the new so a slip in either column
+    /// is visible.
+    #[test]
+    fn the_shipped_wages_are_one_and_a_half_times_the_old_ones() {
+        // Each level's old start and top pay, then the new ones.
+        type Levels = [(u32, u32, u32, u32); 4];
+        let table: [(&str, Levels); 8] = [
+            (
+                "office",
+                [
+                    (120, 150, 180, 225),
+                    (160, 200, 240, 300),
+                    (220, 280, 330, 420),
+                    (320, 400, 480, 600),
+                ],
+            ),
+            (
+                "cafe",
+                [
+                    (80, 100, 120, 150),
+                    (90, 120, 135, 180),
+                    (130, 170, 195, 255),
+                    (200, 260, 300, 390),
+                ],
+            ),
+            (
+                "night_watch",
+                [
+                    (70, 85, 105, 128),
+                    (85, 105, 128, 158),
+                    (105, 130, 158, 195),
+                    (130, 160, 195, 240),
+                ],
+            ),
+            (
+                "hospital",
+                [
+                    (95, 120, 143, 180),
+                    (125, 160, 188, 240),
+                    (170, 220, 255, 330),
+                    (235, 300, 353, 450),
+                ],
+            ),
+            (
+                "warehouse",
+                [
+                    (90, 110, 135, 165),
+                    (110, 140, 165, 210),
+                    (150, 190, 225, 285),
+                    (210, 270, 315, 405),
+                ],
+            ),
+            (
+                "library",
+                [
+                    (85, 105, 128, 158),
+                    (105, 130, 158, 195),
+                    (140, 175, 210, 263),
+                    (190, 240, 285, 360),
+                ],
+            ),
+            (
+                "restaurant_kitchen",
+                [
+                    (75, 95, 113, 143),
+                    (100, 130, 150, 195),
+                    (150, 195, 225, 293),
+                    (230, 300, 345, 450),
+                ],
+            ),
+            (
+                "buses",
+                [
+                    (110, 135, 165, 203),
+                    (130, 165, 195, 248),
+                    (165, 205, 248, 308),
+                    (205, 255, 308, 383),
+                ],
+            ),
+        ];
+        let pack = pack();
+        let raised = |old: u32| (old * 3).div_ceil(2);
+        let mut levels = 0;
+        for (path_id, rows) in table {
+            let path = pack
+                .career_paths
+                .iter()
+                .find(|path| path.id == path_id)
+                .unwrap_or_else(|| panic!("{path_id} ships"));
+            assert_eq!(path.levels.len(), 4, "{path_id}");
+            for (level, (old_pay, old_max, pay, pay_max)) in path.levels.iter().zip(rows) {
+                let job = &pack.careers[*level as usize];
+                assert_eq!((job.pay, job.pay_max), (pay, pay_max), "{}", job.id);
+                assert_eq!(
+                    (raised(old_pay), raised(old_max)),
+                    (pay, pay_max),
+                    "{}",
+                    job.id
+                );
+                levels += 1;
+            }
+        }
+        assert_eq!(levels, 32);
+        assert_eq!(
+            pack.careers.len(),
+            32,
+            "every shipped level is in the table"
+        );
+    }
+
+    /// [WB-usage]: every usage mark of the shipped content is exactly the
+    /// spec's table: each action and chain step listed carries its use
+    /// kind, the listed types and the lighting category carry their daily
+    /// kinds, and nothing else carries any.
+    #[test]
+    fn the_shipped_usage_marks_match_the_spec() {
+        let pack = pack();
+        let use_kind = |id: &str| pack.bills.uses.iter().position(|k| k.id == id).unwrap() as u16;
+        let daily_kind =
+            |id: &str| pack.bills.daily.iter().position(|k| k.id == id).unwrap() as u16;
+        let mut actions = std::collections::BTreeMap::new();
+        for object in &pack.objects {
+            let type_id = object.metadata.as_ref().map(|m| m.type_id.as_str());
+            let category = object.metadata.as_ref().map(|m| m.category_id.as_str());
+            for action in &object.interactions {
+                if !action.bill_uses.is_empty() {
+                    actions.insert(
+                        (object.id.clone(), action.id.clone()),
+                        action.bill_uses.clone(),
+                    );
+                }
+            }
+            let expected_daily = match (category, type_id) {
+                (Some("lighting"), _) => vec![daily_kind("lamp")],
+                (_, Some("fridge")) => vec![daily_kind("fridge")],
+                (_, Some("aquarium")) => vec![daily_kind("aquarium")],
+                (_, Some("pool")) => vec![daily_kind("pool")],
+                _ => Vec::new(),
+            };
+            assert_eq!(object.bill_daily, expected_daily, "{}", object.id);
+        }
+        // The actions by the template they come from: every model of a type
+        // inherits its type's action, so each row is checked by action id.
+        let expected_by_action = [
+            ("take_shower", "shower"),
+            ("soak", "bath"),
+            ("wash_hands", "hand_wash"),
+            ("wash_up", "hand_wash"),
+            ("relieve_self", "toilet"),
+            ("watch_tv", "television"),
+            ("listen", "radio"),
+        ];
+        for ((object, action), uses) in &actions {
+            let expected = expected_by_action
+                .iter()
+                .find(|(id, _)| id == action)
+                .unwrap_or_else(|| {
+                    panic!("{object} {action} carries {uses:?}, which the spec does not list")
+                });
+            assert_eq!(uses, &vec![use_kind(expected.1)], "{object} {action}");
+        }
+        for (action, _) in expected_by_action {
+            assert!(
+                actions.keys().any(|(_, id)| id == action),
+                "some shipped object carries {action}"
+            );
+        }
+        for chain in &pack.chains {
+            for step in &chain.steps {
+                let expected = match (chain.id.as_str(), step.label.as_str()) {
+                    ("cook_dinner", "Cook") => vec![use_kind("stove")],
+                    ("clean_dishes", "Wash dishes") => vec![use_kind("dishes")],
+                    _ => Vec::new(),
+                };
+                assert_eq!(step.bill_uses, expected, "{} {}", chain.id, step.label);
+            }
+        }
+        let simmer = pack
+            .chains
+            .iter()
+            .find(|c| c.id == "cook_dinner")
+            .and_then(|c| c.steps.iter().find(|s| s.label == "Simmer and stir"))
+            .expect("the shipped dinner simmers");
+        assert!(
+            simmer.bill_uses.is_empty(),
+            "the stove charges once, on Cook"
+        );
+    }
+
+    /// [WB-beds]: the sleeping category sets `indoor_only`, so both shipped
+    /// bed models carry it and no other model does.
+    #[test]
+    fn only_sleeping_models_are_indoor_only() {
+        let indoor: Vec<&str> = pack()
+            .objects
+            .iter()
+            .filter(|object| object.indoor_only)
+            .map(|object| object.id.as_str())
+            .collect();
+        assert_eq!(indoor, ["bed", "double_bed"]);
+        for object in &pack().objects {
+            assert_eq!(
+                object.indoor_only,
+                object
+                    .metadata
+                    .as_ref()
+                    .is_some_and(|m| m.category_id == "sleeping"),
+                "{}",
+                object.id
+            );
+        }
     }
 
     /// An exact fraction, enough for the household figure below.

@@ -58,6 +58,11 @@ pub(crate) struct Carried {
     pub actor_references: ActorReferences,
     /// Selected only by the outer schema-twenty reader.
     pub current_fight_topics: bool,
+    /// Selected only by the loaders of schemas fourteen to twenty-one, whose
+    /// pay predates issue 298's raise ([`wage_migration`]). Every other
+    /// restore, a schema-twenty-two save and every build transaction's own
+    /// baseline among them, leaves pay as saved.
+    pub wage_migration: bool,
 }
 
 impl Carried {
@@ -71,6 +76,18 @@ impl Carried {
             room_mode: crate::rooms::RoomReferenceMode::Legacy,
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
+            wage_migration: false,
+        }
+    }
+
+    /// For loading a save from schema fourteen to twenty-one, which holds
+    /// pay from before issue 298's raise: [`Self::for_load`] with the pay
+    /// migration selected ([WB-save] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`).
+    pub(crate) fn for_older_load(world: &World) -> Self {
+        Self {
+            wage_migration: true,
+            ..Self::for_load(world)
         }
     }
 
@@ -89,6 +106,7 @@ impl Carried {
                 .unwrap_or_default(),
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
+            wage_migration: false,
         }
     }
 }
@@ -126,11 +144,13 @@ pub(crate) mod v18;
 pub(crate) mod v19;
 pub(crate) mod v20;
 pub(crate) mod v21;
+pub(crate) mod v22;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
 #[cfg(test)]
 mod v6_tests;
+pub(crate) mod wage_migration;
 mod wall_migration;
 #[cfg(test)]
 mod wall_migration_tests;

@@ -39,8 +39,9 @@ it.each(['curl','bob','wave','crop','quiff','bald'])('matches compact selected %
     const cage=shapeVertices(union.cage,shape,top),envelope=new HeadEnvelope(union);
     envelope.configure(cage);
     const matrices=configuredPose(union.manifest,shape,'read',1.5,top,undefined,union);envelope.pose(matrices);
-    const points=Reflect.get(envelope,'points') as Float64Array,prepared=Reflect.get(envelope,'vertices') as {contributions:unknown}[];
-    const unchanged=Buffer.from(points.buffer.slice(0)),contributions=prepared.map(vertex=>vertex.contributions);
+    // The prepared skinning contributions are typed arrays filled once per appearance; a selection must not rebuild them.
+    const points=Reflect.get(envelope,'points') as Float64Array,contributions=Reflect.get(envelope,'contributionValues') as Float64Array;
+    const unchanged=Buffer.from(points.buffer.slice(0)),preparedContributions=Buffer.from(contributions.buffer.slice(0));
     for(const selectionContext of contexts){
       const compact=originalSelection(union,appearance,selectionContext);
       const selected=compact.description.parts.map(part=>{
@@ -51,7 +52,7 @@ it.each(['curl','bob','wave','crop','quiff','bald'])('matches compact selected %
       envelope.setVisibleParts(selected);
       for(let facing=0;facing<4;facing++)expect(envelope.top(facing*Math.PI/2)).toStrictEqual(original.top(facing*Math.PI/2));
       expect(Buffer.from(points.buffer).equals(unchanged)).toBe(true);
-      prepared.forEach((vertex,index)=>expect(vertex.contributions).toBe(contributions[index]));
+      expect(Reflect.get(envelope,'contributionValues')).toBe(contributions);expect(Buffer.from(contributions.buffer).equals(preparedContributions)).toBe(true);
     }
   }
 },30000);

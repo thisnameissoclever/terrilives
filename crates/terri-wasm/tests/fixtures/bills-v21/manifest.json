@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "44f5fb271ca1ca818ef3190e8c7b976a989601ad",
+  "producer": "SimHandle::save_bytes from a native release build of terri-wasm at the source revision, through a scratch example that was not committed",
+  "records": [
+    {
+      "name": "two-days-tim-at-work.sav",
+      "schema": 21,
+      "length": 7064,
+      "sha256": "d0580d3dad893a66153c8b9137ee3ac8d2d8eca896ef00376f1bd6ab5ad2854d",
+      "tick": "3480",
+      "contents": "shipped household, Tim at work"
+    },
+    {
+      "name": "night-shift-open.sav",
+      "schema": 21,
+      "length": 6448,
+      "sha256": "dbf48c6764c64adf458065def6641c06eda421b9614f576afbdeb75c53df8ac8",
+      "tick": "1500",
+      "contents": "night watch worker with an open night shift"
+    },
+    {
+      "name": "double-bed-in-yard.sav",
+      "schema": 21,
+      "length": 6145,
+      "sha256": "d6d29f37f417cff803dd5bb70afc6095787ee3da0b4bbd678b74f5adb6c2fa50",
+      "tick": "600",
+      "contents": "double bed on a yard tile"
+    }
+  ]
+}
