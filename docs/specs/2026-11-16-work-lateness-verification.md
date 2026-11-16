@@ -59,7 +59,31 @@ Unchanged and asserted by the suite: the `GOLDEN` world hash in `lib.rs` and its
 
 `docs/testing-protocol.md` section 1. Each mutation was applied to a hashed byte-exact snapshot, the lateness, critical-choice and fight tests were run, and the file was restored from the snapshot with its hash compared. Results are in `mutation-results.json` and `mutation-<id>.log`.
 
-MUTATION_TABLE
+| Id | File | Mutation | Test that failed | Run |
+| --- | --- | --- | --- | --- |
+| M1 | `lateness.rs` | the limit comparison `late < limit` made `late <= limit` | `lateness_ends_at_the_limit_even_mid_remedy`, `lateness_ends_at_the_limit_with_no_remedy_to_be_had`, `limit_zero_leaves_on_time`, `the_choice_parameter_reports_lateness_along_the_ramp` | alone (`mutation-M1.log`) |
+| M2 | `lateness.rs` | the shift-end bound removed from the allowance predicate | `the_allowance_is_a_window_that_ends_at_the_limit_or_the_shift_end` | batch E (`mutation-batch-E.log`) |
+| M3 | `attendance.rs` | the player-work check removed from the departure gate | `a_player_order_still_delays_departure_past_the_limit` | batch B (`mutation-batch-B.log`) |
+| M4a | `lateness.rs` | Bladder added to the counted needs | `a_bladder_crisis_never_delays_departure`, `other_critical_needs_do_not_delay_work` | batch E (`mutation-batch-E.log`) |
+| M4b | `lateness.rs` | Energy dropped from the counted needs | `lateness_ends_at_the_limit_even_mid_remedy` | batch D (`mutation-batch-D.log`) |
+| M5a | `lateness.rs` | the ramp progress not clamped to 1 | `the_choice_parameter_reports_lateness_along_the_ramp` | batch A (`mutation-batch-A.log`) |
+| M5b | `critical_choices.rs` | the ramp clamp removed from the unrelated cap | `the_remedy_share_ramps_from_the_autonomy_cap_to_the_lateness_share` | batch A (`mutation-batch-A.log`) |
+| M5c | `critical_choices.rs` | the ramp allowed to raise the cap | `the_ramp_never_raises_the_unrelated_cap` | batch D (`mutation-batch-D.log`) |
+| M6 | `lateness.rs` | the Bladder relief comparator `<` made `<=` | `a_worker_at_work_is_relieved_of_bladder_below_the_threshold` | batch A (`mutation-batch-A.log`) |
+| M7 | `lateness.rs` | the Bladder relief applied to every housemate, not only those at work | `bladder_is_not_relieved_away_from_work` | batch E (`mutation-batch-E.log`) |
+| M8 | `lateness.rs` | the running-remedy wait removed | `a_running_remedy_finishes_before_departure` | batch C (`mutation-batch-C.log`) |
+| M8b | `lateness.rs` | the running-remedy wait applied on the start tick too | `a_worker_who_is_not_critical_leaves_on_the_start_tick_even_mid_meal` | batch D (`mutation-batch-D.log`) |
+| M9 | `critical_choices.rs` | relief of any critical need counted as a remedy while late | `relief_of_an_uncounted_critical_need_is_unrelated_while_late`, `a_late_housemate_with_no_counted_remedy_gets_the_ordinary_distribution` | batch A (`mutation-batch-A.log`) |
+| M10 | `lateness.rs` | lateness reported with no counted need critical | `the_choice_parameter_reports_lateness_along_the_ramp` | batch B (`mutation-batch-B.log`) |
+| M11 | `attendance.rs` | the Bladder relief never run | `a_worker_at_work_is_relieved_of_bladder_below_the_threshold`, `bladder_never_falls_below_the_threshold_during_a_shift` | batch B (`mutation-batch-B.log`) |
+| M12 | `attendance.rs` | the lateness check removed from the departure gate | `a_worker_in_a_hunger_crisis_at_shift_start_eats_then_leaves`, `lateness_ends_at_the_limit_with_no_remedy_to_be_had` | batch C (`mutation-batch-C.log`) |
+
+Every mutation made its named test fail, and every restored file's SHA-256 matched its snapshot (`mutation-results-batches-AtoD.json`, `mutation-run-3.log`). The first mutation ran alone and later ones in batches that share one compile, grouped so that each mutation's named tests cannot fail for another mutation in the batch. Three results of the first pass were wrong for reasons found by this check, and were rerun alone in batch E:
+
+1. **M2 survived.** Removing the shift-end bound from the predicate changed no behavior, because `start_tick` already skips a shift that is not open, which stops at the end. The clause stays as a cheap guard that makes the predicate stand on its own, and `the_allowance_is_a_window_that_ends_at_the_limit_or_the_shift_end` now pins it directly.
+2. **M7 and M4a were hidden.** In the first batches M7 shared a compile with M11, and M4a with M12; M11 and M12 each remove the code the other mutation changes, so their tests could not fail. Both were detected when run without them.
+
+The ramp clamp had a gap too: the ramp test passed only progress values from 0 to 1, so removing the clamp in the cap survived (M5b) until the test also passed 2.0 and -1.0.
 
 ## [trace] Trace figures
 
