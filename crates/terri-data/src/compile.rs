@@ -1349,18 +1349,6 @@ fn mint_kind(item_kinds: &mut Vec<String>, name: &str) -> u32 {
     }
 }
 
-/// Validates `content/careers.toml` - [E4]'s rabbit holes, now on paths
-/// with titled levels (`docs/specs/2026-10-17-careers.md`, rule 1).
-///
-/// The one cross-file rule is the day clock: a shift that starts past
-/// the day never begins, and one as long as the day (or longer) sends
-/// the sim back out the moment it returns - both silent versions of
-/// "the career is the whole life", which is satire the SIMULATION
-/// should not commit by accident. A path's traits and skill resolve
-/// against the compiled traits and skills, so a job cannot expect
-/// something nobody can have. Pay climbs the levels: a level pays at
-/// least the one below it and tops out higher, so a promotion always has
-/// a raise to give.
 /// Issue 309 ([WL-tuning]): the lateness allowance must be shorter than every
 /// shift of every job, so a critical need can never keep a worker home for
 /// the whole shift. A limit of 0 passes, since every shift has at least one
@@ -1374,6 +1362,18 @@ fn check_lateness_inside_shift(tuning: &Tuning, shift_ticks: u32) -> Result<(), 
     Ok(())
 }
 
+/// Validates `content/careers.toml` - [E4]'s rabbit holes, now on paths
+/// with titled levels (`docs/specs/2026-10-17-careers.md`, rule 1).
+///
+/// The one cross-file rule is the day clock: a shift that starts past
+/// the day never begins, and one as long as the day (or longer) sends
+/// the sim back out the moment it returns - both silent versions of
+/// "the career is the whole life", which is satire the SIMULATION
+/// should not commit by accident. A path's traits and skill resolve
+/// against the compiled traits and skills, so a job cannot expect
+/// something nobody can have. Pay climbs the levels: a level pays at
+/// least the one below it and tops out higher, so a promotion always has
+/// a raise to give.
 fn compile_careers(
     careers: CareersFile,
     tuning: &Tuning,

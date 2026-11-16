@@ -76,7 +76,7 @@
     "crates/terri-data/examples/player_guide.rs": "0c048446c0bbf2c038fc8af987dd82d04f63f4369a9bcdde9c6ca2352f94ad84",
     "crates/terri-data/src/autonomy_tuning.rs": "15d7b6af93724d51afeab0e01a198b7eeaa6dd8b95f2dec53a09d4c73c8f9da7",
     "crates/terri-data/src/books.rs": "08cfea1441fd52ef5815b4e1f807c13b9917c213434b227960851c3eae84b783",
-    "crates/terri-data/src/compile.rs": "15924084889a6b6e6184624b0facfc961aac0c9f7550a067ff0438b19654acc0",
+    "crates/terri-data/src/compile.rs": "2bd44671a1fcdc3e7a5a7e39b57f56cbe800d9c7c218107bcf591c770a4a0229",
     "crates/terri-data/src/error.rs": "c5eeef0303778bf9c9a8ddf18040c3907e97ebd142ae997a64f9c647720ffc02",
     "crates/terri-data/src/hierarchy.rs": "be5d3ce576100d691107107b28dc502518403ad5302d182f6f1942588150edf5",
     "crates/terri-data/src/lib.rs": "e72da6f581674853f8a615a0acdee0b693e1eb8d837ebb1307f3f046fb8fd2a9",
