@@ -36,7 +36,7 @@ Cleaning dishes, floors, furniture or a bin cleans the home. It does not wash th
 
 ## Bladder {#bladder}
 
-Use the toilet. It supplies direct Bladder relief during actual use. The person does not wash their hands automatically afterward, and showers, baths and sinks provide no Bladder benefit.
+Use the toilet. It supplies direct Bladder relief during actual use. The person does not wash their hands automatically afterward, and showers, baths and sinks provide no Bladder benefit. A housemate who is at work is relieved of Bladder whenever it falls below {{number:tuning.work_bladder_relief_threshold}} percent, so it never becomes critical during a shift.
 
 Toilet, shower and bath use establish [privacy boundaries](relationships/#privacy). A route or fixture may be available physically while someone would prefer to wait out of respect.
 

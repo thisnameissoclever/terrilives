@@ -602,7 +602,10 @@ fn a_waiting_game_made_fight_is_withdrawn_even_when_its_initiator_stays_home_lat
         .set(NeedId::Hunger, 5.);
     sim.tick();
     sim.tick();
-    assert!(!away(&sim, bill), "a critical need keeps the initiator home");
+    assert!(
+        !away(&sim, bill),
+        "a critical need keeps the initiator home"
+    );
     assert!(
         !fight_queued(&sim, bill, tim),
         "the waiting fight is withdrawn at the shift start"
@@ -622,8 +625,7 @@ fn a_waiting_game_made_fight_is_withdrawn_even_when_its_initiator_stays_home_lat
     while sim.world().resource::<crate::SimClock>().tick < end + 5 {
         sim.tick();
         assert!(
-            !away(&sim, bill)
-                || sim.world().resource::<crate::SimClock>().tick <= end,
+            !away(&sim, bill) || sim.world().resource::<crate::SimClock>().tick <= end,
             "the initiator left after the shift ended"
         );
         assert!(!fight_queued(&sim, bill, tim), "the fight stays withdrawn");

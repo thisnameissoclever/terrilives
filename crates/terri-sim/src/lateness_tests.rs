@@ -5,8 +5,8 @@ use super::*;
 use crate::attendance::Attendance;
 use crate::{Content, Sim};
 use terri_core::{
-    Agent, AtWork, Career, CommandQueue, Commuting, Eating, IntentQueue, Personality,
-    Position, Relationships, Satisfaction, SimClock, SimCommand, SimId, SimIdAllocator,
+    Agent, AtWork, Career, CommandQueue, Commuting, Eating, IntentQueue, Personality, Position,
+    Relationships, Satisfaction, SimClock, SimCommand, SimId, SimIdAllocator,
 };
 
 /// The scheduled start of the fixture's shift.
@@ -46,9 +46,7 @@ fn fixture(
     for item in furniture {
         ids.push(terri_core::ObjectDefId(pack.objects.len() as u32));
         pack.objects.push(match item {
-            Furniture::Snack => {
-                crate::test_content::object("snack", &[(NeedId::Hunger, 60.0)], 15)
-            }
+            Furniture::Snack => crate::test_content::object("snack", &[(NeedId::Hunger, 60.0)], 15),
             Furniture::Bed => crate::test_content::object("bed", &[(NeedId::Energy, 60.0)], 200),
             Furniture::Hold => crate::test_content::object("hold", &[(NeedId::Fun, 10.0)], 900),
         });
@@ -74,7 +72,15 @@ fn fixture(
     let objects = ids
         .into_iter()
         .enumerate()
-        .map(|(n, def)| sim.spawn_object(Position { x: 4.0 + n as f32 * 2.0, y: 4.0 }, def))
+        .map(|(n, def)| {
+            sim.spawn_object(
+                Position {
+                    x: 4.0 + n as f32 * 2.0,
+                    y: 4.0,
+                },
+                def,
+            )
+        })
         .collect();
     command(
         &mut sim,
@@ -101,7 +107,11 @@ fn need(sim: &Sim, actor: Entity, id: NeedId) -> f32 {
 }
 fn shift(sim: &Sim, actor: Entity) -> Option<SavedScheduledShift> {
     let id = *sim.world().get::<SimId>(actor).unwrap();
-    sim.world().resource::<Attendance>().shifts.get(&id).cloned()
+    sim.world()
+        .resource::<Attendance>()
+        .shifts
+        .get(&id)
+        .cloned()
 }
 /// Sets the needs one tick before the shift starts, then runs that tick, so
 /// the worker is in the state under test on the start tick itself.
@@ -115,7 +125,10 @@ fn start_with(sim: &mut Sim, actor: Entity, set: &[(NeedId, f32)]) {
     }
     sim.tick();
     assert_eq!(now(sim), START);
-    assert!(shift(sim, actor).is_some(), "the shift registers on its start tick");
+    assert!(
+        shift(sim, actor).is_some(),
+        "the shift registers on its start tick"
+    );
 }
 /// Ticks until the worker is commuting and returns that tick, checking on
 /// the way that the worker never left earlier than the caller's floor.
@@ -193,7 +206,10 @@ fn other_critical_needs_do_not_delay_work() {
     ] {
         let (mut sim, actor, _) = fixture(480, &[Furniture::Snack], |_| {});
         start_with(&mut sim, actor, &[(uncounted, 0.0)]);
-        assert!(commuting(&sim, actor), "{uncounted:?} left on the start tick");
+        assert!(
+            commuting(&sim, actor),
+            "{uncounted:?} left on the start tick"
+        );
     }
 }
 
@@ -203,11 +219,21 @@ fn other_critical_needs_do_not_delay_work() {
 fn lateness_ends_at_the_limit_with_no_remedy_to_be_had() {
     let (mut sim, actor, _) = fixture(480, &[], |_| {});
     start_with(&mut sim, actor, &[(NeedId::Hunger, 10.0)]);
-    let limit = u64::from(sim.world().resource::<Content>().0.tuning.work_lateness_limit_ticks);
+    let limit = u64::from(
+        sim.world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .work_lateness_limit_ticks,
+    );
     assert_eq!(limit, 60, "the shipped limit");
     for _ in 1..limit {
         sim.tick();
-        assert!(!commuting(&sim, actor), "tick {} is still inside the limit", now(&sim));
+        assert!(
+            !commuting(&sim, actor),
+            "tick {} is still inside the limit",
+            now(&sim)
+        );
     }
     sim.tick();
     assert_eq!(now(&sim), START + limit);
@@ -230,12 +256,18 @@ fn lateness_ends_at_the_limit_even_mid_remedy() {
         assert!(now(&sim) < START + 100, "never left");
     };
     assert_eq!(left, START + 60, "leaves exactly at the limit");
-    assert!(slept_at_the_end, "the worker was still sleeping a tick before");
+    assert!(
+        slept_at_the_end,
+        "the worker was still sleeping a tick before"
+    );
     assert!(
         need(&sim, actor, NeedId::Energy) > 20.0,
         "the need had recovered, so only the running remedy kept the worker"
     );
-    assert!(sim.world().get::<Eating>(actor).is_none(), "the remedy is cleared");
+    assert!(
+        sim.world().get::<Eating>(actor).is_none(),
+        "the remedy is cleared"
+    );
 }
 
 /// [WL-limit] and [Q4]: a remedy that has lifted the need above critical
@@ -263,6 +295,30 @@ fn a_running_remedy_finishes_before_departure() {
     };
     assert!(above_while_eating, "the meal lifted hunger before it ended");
     assert!(left < START + 60);
+}
+
+/// [WL-depart] item 1: finishing a meal or a sleep holds a worker back only
+/// after a critical need has kept them home. A worker who is not critical
+/// but happens to be mid-meal or asleep when the shift starts is pulled out
+/// on the start tick, as before.
+#[test]
+fn a_worker_who_is_not_critical_leaves_on_the_start_tick_even_mid_meal() {
+    let (mut sim, actor, objects) = fixture(480, &[Furniture::Snack], |_| {});
+    let snack = sim
+        .world()
+        .get::<terri_core::SmartObject>(objects[0])
+        .unwrap()
+        .0;
+    sim.world_mut().resource_mut::<SimClock>().tick = START - 1;
+    sim.world_mut().entity_mut(actor).insert(Eating {
+        object: snack,
+        interaction: 0,
+        remaining_ticks: 10,
+    });
+    sim.tick();
+    assert_eq!(now(&sim), START);
+    assert!(commuting(&sim, actor), "left on the start tick");
+    assert!(sim.world().get::<Eating>(actor).is_none());
 }
 
 /// [WL-limit]: a limit of 0 restores leaving on time.
@@ -316,7 +372,11 @@ fn a_player_order_still_delays_departure_past_the_limit() {
     start_with(&mut sim, actor, &[(NeedId::Hunger, 10.0)]);
     for _ in 0..80 {
         sim.tick();
-        assert!(!commuting(&sim, actor), "the order holds the worker at {}", now(&sim));
+        assert!(
+            !commuting(&sim, actor),
+            "the order holds the worker at {}",
+            now(&sim)
+        );
     }
     assert!(now(&sim) > START + 60, "well past the limit");
     command(
@@ -354,7 +414,10 @@ fn a_worker_on_the_way_to_work_or_at_work_is_not_turned_back_by_a_crisis() {
     }
     assert!(arrived, "reached work");
     assert!(sim.world().get::<AtWork>(actor).is_some(), "still at work");
-    assert!(need(&sim, actor, NeedId::Hunger) <= 5.0, "no meal was eaten");
+    assert!(
+        need(&sim, actor, NeedId::Hunger) <= 5.0,
+        "no meal was eaten"
+    );
 }
 
 /// The state is derived from saved facts, so a save taken mid-lateness
@@ -404,16 +467,40 @@ fn the_choice_parameter_reports_lateness_along_the_ramp() {
         needs.set(NeedId::Bladder, bladder);
         state.get(sim.world()).lateness(actor, &needs, tick)
     };
-    assert_eq!(report(&mut sim, START, 10.0, 100.0).map(|l| l.progress), Some(0.0));
-    assert_eq!(report(&mut sim, START + 15, 10.0, 100.0).map(|l| l.progress), Some(0.5));
-    assert_eq!(report(&mut sim, START + 30, 10.0, 100.0).map(|l| l.progress), Some(1.0));
-    assert_eq!(report(&mut sim, START + 59, 10.0, 100.0).map(|l| l.progress), Some(1.0));
+    assert_eq!(
+        report(&mut sim, START, 10.0, 100.0).map(|l| l.progress),
+        Some(0.0)
+    );
+    assert_eq!(
+        report(&mut sim, START + 15, 10.0, 100.0).map(|l| l.progress),
+        Some(0.5)
+    );
+    assert_eq!(
+        report(&mut sim, START + 30, 10.0, 100.0).map(|l| l.progress),
+        Some(1.0)
+    );
+    assert_eq!(
+        report(&mut sim, START + 59, 10.0, 100.0).map(|l| l.progress),
+        Some(1.0)
+    );
     let late = report(&mut sim, START, 10.0, 100.0).unwrap();
     assert_eq!(late.counted, counted_mask());
     assert_eq!(late.remedy_share, 0.99);
-    assert_eq!(report(&mut sim, START + 60, 10.0, 100.0), None, "the limit has passed");
-    assert_eq!(report(&mut sim, START - 1, 10.0, 100.0), None, "before the start");
-    assert_eq!(report(&mut sim, START + 5, 80.0, 100.0), None, "nothing critical");
+    assert_eq!(
+        report(&mut sim, START + 60, 10.0, 100.0),
+        None,
+        "the limit has passed"
+    );
+    assert_eq!(
+        report(&mut sim, START - 1, 10.0, 100.0),
+        None,
+        "before the start"
+    );
+    assert_eq!(
+        report(&mut sim, START + 5, 80.0, 100.0),
+        None,
+        "nothing critical"
+    );
     assert_eq!(
         report(&mut sim, START + 5, 80.0, 5.0),
         None,
@@ -454,7 +541,11 @@ fn a_worker_at_work_is_relieved_of_bladder_below_the_threshold() {
             .set(NeedId::Hunger, 30.0);
         sim.tick();
         assert!(sim.world().get::<AtWork>(actor).is_some());
-        let expected = if relieved { terri_core::NEED_MAX } else { level };
+        let expected = if relieved {
+            terri_core::NEED_MAX
+        } else {
+            level
+        };
         assert_eq!(need(&sim, actor, NeedId::Bladder), expected, "from {level}");
         assert_eq!(
             need(&sim, actor, NeedId::Hunger),
@@ -496,7 +587,10 @@ fn bladder_never_falls_below_the_threshold_during_a_shift() {
             // choices the real decay would otherwise provoke.
             for other in NeedId::ALL {
                 if other != NeedId::Bladder {
-                    sim.world_mut().get_mut::<Needs>(actor).unwrap().set(other, 100.0);
+                    sim.world_mut()
+                        .get_mut::<Needs>(actor)
+                        .unwrap()
+                        .set(other, 100.0);
                 }
             }
             if sim.world().get::<AtWork>(actor).is_some() {

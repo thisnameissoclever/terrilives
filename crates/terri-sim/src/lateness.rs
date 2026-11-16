@@ -90,8 +90,8 @@ fn running_remedy(world: &World, actor: Entity) -> bool {
 }
 
 /// Whether the departure for `shift` waits at `now` ([WL-depart]): the
-/// allowance has not run out and either a counted need is critical or a
-/// remedy for one is still running. The caller has already decided that no
+/// allowance has not run out and either a counted need is critical or, after
+/// the start tick, a remedy for one is still running. The caller has already decided that no
 /// player order, reading journey or commute stands in the way; this is the
 /// one predicate a later "go to work now" command bypasses.
 pub(crate) fn waits_for_needs(
@@ -104,10 +104,17 @@ pub(crate) fn waits_for_needs(
     if late_ticks(shift, now, tuning).is_none() {
         return false;
     }
+    // A running remedy holds the person back only after the start tick. A
+    // person still at home on a later tick was kept there by a critical need
+    // (or an order or journey, which end the question first), so finishing
+    // what that need set going is part of the same lateness. On the start
+    // tick itself only a critical need counts, so a person who happens to be
+    // mid-meal or asleep with nothing critical leaves on time, as before.
+    // This reads no saved state, so a save mid-lateness loads identically.
     world
         .get::<Needs>(actor)
         .is_some_and(|needs| counted_critical(needs, tuning))
-        || running_remedy(world, actor)
+        || (now > shift.start_tick && running_remedy(world, actor))
 }
 
 /// Relieves the Bladder of every housemate at work whose level is below
@@ -115,7 +122,11 @@ pub(crate) fn waits_for_needs(
 /// during a shift ([WL-bladder]). Runs after the tick's decay and after
 /// arrival is recorded. A threshold of 0 relieves nobody.
 pub(crate) fn relieve_bladder_at_work(world: &mut World) {
-    let threshold = world.resource::<Content>().0.tuning.work_bladder_relief_threshold;
+    let threshold = world
+        .resource::<Content>()
+        .0
+        .tuning
+        .work_bladder_relief_threshold;
     let mut workers = world.query_filtered::<&mut Needs, With<AtWork>>();
     for mut needs in workers.iter_mut(world) {
         if needs.get(NeedId::Bladder) < threshold {

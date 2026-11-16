@@ -1,6 +1,6 @@
-# Higher wages and household bills
+# Higher wages, household bills and late starts for urgent needs
 
-Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, and beds belong indoors.
+Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, and a housemate who is starving or exhausted when a shift starts now sorts that out first.
 
 ## New
 
@@ -13,4 +13,6 @@ Every job pays half as much again and night shifts pay extra, the household pays
 
 ## Improved
 
+- A housemate who is critically hungry or exhausted when their shift starts now deals with it first and leaves for work late, at most one game hour after the shift starts. While they are late they almost always spend the time on that need. A meal or sleep already under way finishes first. Your orders still come first, a critically full bladder never makes anyone late, and lateness still costs pay and, past two hours of missed work, performance.
+- A housemate at work is now relieved of their Bladder whenever it falls below half, so it no longer becomes critical during a shift.
 - Older saved games raise their wages to the new pay. A bed already standing outdoors in an older save stays where it is and still works.

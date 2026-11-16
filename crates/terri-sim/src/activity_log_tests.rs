@@ -476,7 +476,13 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// merging 053ee52d3; with the old wages, no premium, no starting funds and
 /// the bills system and its hash switched off, the branch gave
 /// 0xa0fb_785a_e3a4_7b1d again.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb953_34a8_9aca_0e2c;
+/// Issue 309 then moved it from 0xb953_34a8_9aca_0e2c on purpose: a
+/// housemate at work is relieved of Bladder whenever it falls below half, so
+/// the working household's needs differ from the first shift on. With the
+/// work Bladder relief and the lateness limit both at 0 the fold is the
+/// value above again, which `the_two_day_fold_without_the_work_knobs_is_unchanged`
+/// pins.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7a49_b0b5_3318_3dfb;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -492,7 +498,52 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb953_34a8_9aca_0e2c;
 /// for the two-day fold, and over twenty days the bills are also paid from
 /// Funds on days 7 and 14; with the old wages, no premium, no starting
 /// funds and the bills off it gave 0x78e8_cb74_b70c_d742.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9b22_0f1c_a448_e32c;
+/// Issue 309 then moved it from 0x9b22_0f1c_a448_e32c: a housemate at work is
+/// relieved of Bladder below half, and over twenty days Tim and Bill are
+/// critical at some shift starts and now stay home late for it. With both
+/// work knobs at 0 it is the value above again, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x8fa8_9724_c059_8d2c;
+
+/// Issue 309: the two-day fold with the log off, the work lateness limit at
+/// 0 and the work Bladder relief at 0 is the value main measured before the
+/// issue (0xb953_34a8_9aca_0e2c), so the issue moves the shipped household
+/// only through those two knobs.
+#[test]
+fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
+    assert_eq!(fold_without_the_work_knobs(2), 0xb953_34a8_9aca_0e2c);
+}
+
+/// The twenty-day version of the check above, against the value main measured
+/// before the issue (0x9b22_0f1c_a448_e32c). Manual, like the pin it guards.
+#[test]
+#[ignore = "manual check: twenty game days; run with --release and --ignored"]
+fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
+    assert_eq!(fold_without_the_work_knobs(20), 0x9b22_0f1c_a448_e32c);
+}
+
+/// The fold of the shipped household's per-tick hashes over `days` game
+/// days with the log off, the work lateness limit at 0 and the work Bladder
+/// relief at 0, measured as the pins above are.
+fn fold_without_the_work_knobs(days: usize) -> u64 {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.set_activity_log_enabled(false);
+    let mut pack = terri_data::pack().clone();
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
+    let ticks = days * pack.tuning.day_ticks as usize;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    let mut hashes = Vec::new();
+    for tick in 0..ticks {
+        sim.tick();
+        if tick % 97 == 96 {
+            sim.flush_commands();
+        }
+        hashes.push(sim.world_hash());
+    }
+    fold(&hashes)
+}
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

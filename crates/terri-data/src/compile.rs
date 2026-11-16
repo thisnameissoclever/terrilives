@@ -11279,17 +11279,25 @@ mod tests {
     /// names its knob, and non-finite values are refused as such.
     #[test]
     fn rejects_work_lateness_knobs_outside_their_ranges() {
-        let refused = |change: fn(&mut TuningFile), key: &str| match compile_tuned(
-            tuning_where(change),
-        ) {
-            Err(ContentError::CareerTuningOutOfRange { key: named }) => {
-                assert_eq!(named, key)
-            }
-            other => panic!("{key}: {other:?}"),
-        };
-        refused(|t| t.work_lateness_limit_ticks = 721, "work_lateness_limit_ticks");
-        refused(|t| t.work_lateness_ramp_ticks = 0, "work_lateness_ramp_ticks");
-        refused(|t| t.work_lateness_ramp_ticks = 721, "work_lateness_ramp_ticks");
+        let refused =
+            |change: fn(&mut TuningFile), key: &str| match compile_tuned(tuning_where(change)) {
+                Err(ContentError::CareerTuningOutOfRange { key: named }) => {
+                    assert_eq!(named, key)
+                }
+                other => panic!("{key}: {other:?}"),
+            };
+        refused(
+            |t| t.work_lateness_limit_ticks = 721,
+            "work_lateness_limit_ticks",
+        );
+        refused(
+            |t| t.work_lateness_ramp_ticks = 0,
+            "work_lateness_ramp_ticks",
+        );
+        refused(
+            |t| t.work_lateness_ramp_ticks = 721,
+            "work_lateness_ramp_ticks",
+        );
         refused(
             |t| {
                 t.work_lateness_limit_ticks = 60;
@@ -11297,8 +11305,14 @@ mod tests {
             },
             "work_lateness_ramp_ticks",
         );
-        refused(|t| t.work_lateness_remedy_share = 1.0, "work_lateness_remedy_share");
-        refused(|t| t.work_lateness_remedy_share = 0.0, "work_lateness_remedy_share");
+        refused(
+            |t| t.work_lateness_remedy_share = 1.0,
+            "work_lateness_remedy_share",
+        );
+        refused(
+            |t| t.work_lateness_remedy_share = 0.0,
+            "work_lateness_remedy_share",
+        );
         refused(
             |t| t.work_bladder_relief_threshold = -0.5,
             "work_bladder_relief_threshold",
@@ -11347,8 +11361,10 @@ mod tests {
             assert_eq!(pack.tuning.work_lateness_ramp_ticks, ramp);
         }
         for threshold in [0.0, 100.0] {
-            let pack = compile_tuned(tuning_where(|t| t.work_bladder_relief_threshold = threshold))
-                .unwrap();
+            let pack = compile_tuned(tuning_where(|t| {
+                t.work_bladder_relief_threshold = threshold
+            }))
+            .unwrap();
             assert_eq!(pack.tuning.work_bladder_relief_threshold, threshold);
         }
         let pack = compile_tuned(tuning_where(|t| t.work_lateness_remedy_share = 0.9501)).unwrap();

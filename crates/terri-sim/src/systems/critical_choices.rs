@@ -427,6 +427,23 @@ mod tests {
         // The vector the function returned before issue 309.
         assert_eq!(none, PINNED_TODAY.to_vec());
     }
+    /// The ramp lowers the unrelated cap and never raises it: with two
+    /// critical needs the cap is already 0.01, so even a remedy share below
+    /// 0.99 (which the compiler refuses for shipped content) leaves it there.
+    #[test]
+    fn the_ramp_never_raises_the_unrelated_cap() {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        needs.set(NeedId::Energy, 10.);
+        let rows = [(0, 0, 0.01), (1, 0, 10.)];
+        let outcomes = [relieving(NeedId::Hunger), NeedOutcome::default()];
+        let mut lateness = late(1.0).unwrap();
+        lateness.remedy_share = 0.9;
+        let p = evaluate_late(&rows, &outcomes, &needs, Some(lateness));
+        let today = evaluate_late(&rows, &outcomes, &needs, None);
+        assert_eq!(p, today, "a share under today's cap changes nothing: {p:?}");
+        assert!(p[0] >= 0.99 - 1e-6);
+    }
     #[test]
     fn relief_of_an_uncounted_critical_need_is_unrelated_while_late() {
         let mut needs = Needs::all_at(60.);
@@ -455,10 +472,7 @@ mod tests {
         let outcomes = [relieving(NeedId::Fun), NeedOutcome::default()];
         let ordinary =
             super::super::autonomy::grouped_probabilities(&rows, &[0.; 2], 0.06, 0.005, 1e-9);
-        assert_eq!(
-            evaluate_late(&rows, &outcomes, &needs, late(1.0)),
-            ordinary
-        );
+        assert_eq!(evaluate_late(&rows, &outcomes, &needs, late(1.0)), ordinary);
         assert_ne!(evaluate_late(&rows, &outcomes, &needs, None), ordinary);
     }
 }
