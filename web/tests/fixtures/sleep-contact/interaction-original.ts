@@ -7,7 +7,7 @@ import {fitAssembly,reachableSegment} from '../../../src/render/character/contac
 import {add,boneFrame,dot,identity,inverseAffine,length,multiply,scale,solveLimb,sub,transform,unit,type Vec3} from '../../../src/render/character/math.js';
 import {clipSample,interpolateAffine,interpolateTransform} from '../../../src/render/character/motion.js';
 import {shapePoint,type ShapeParameters} from '../../../src/render/character/shape.js';
-import {thighContactPatches,nearestReachableContact} from '../../../src/render/character/resting-contact.js';
+import {thighContactPatches,nearestReachableContact} from '../pose-allocation/resting-contact-original.js';
 import {fitSleepingPose} from './fit-original.js';
 import {fitRecliningPose} from '../../../src/render/character/recline-fit.js';
 

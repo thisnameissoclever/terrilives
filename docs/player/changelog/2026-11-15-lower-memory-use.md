@@ -1,6 +1,6 @@
-# Higher wages and household bills
+# Higher wages, household bills and lower memory use
 
-Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, and beds belong indoors.
+Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, and beds belong indoors. The game also keeps less in memory while Sims move around.
 
 ## New
 
@@ -14,3 +14,4 @@ Every job pays half as much again and night shifts pay extra, the household pays
 ## Improved
 
 - Older saved games raise their wages to the new pay. A bed already standing outdoors in an older save stays where it is and still works.
+- The game uses a little less memory while Sims walk, sit, bathe and work around the house. Pictures and animation look the same as before.

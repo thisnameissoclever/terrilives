@@ -1,0 +1,321 @@
+{
+  "mode": "character-allocation",
+  "generatedAt": "2026-10-25T12:53:32.572Z",
+  "args": {
+    "url": "http://127.0.0.1:4318/",
+    "stress": 0,
+    "speed": 3,
+    "samplingInterval": 32768,
+    "warmupMs": 6000,
+    "windowMs": 20000,
+    "windows": 2,
+    "readyTimeoutMs": 300000,
+    "budgetBytesPerFrame": null,
+    "output": "<scratch>/logs305/alloc-e999fdf8f-s0.json",
+    "profileDir": "<scratch>/logs305/profiles-e999fdf8f-s0"
+  },
+  "windows": [
+    {
+      "visibility": "visible",
+      "ticks": 600,
+      "frames": 1201,
+      "clips": {},
+      "maxCharacters": 0,
+      "probeError": null,
+      "jsUsedBytesAfter": 32164636,
+      "totalBytes": 30455344,
+      "characterBytes": 0,
+      "mappedBytes": 21631052,
+      "topFunctions": [
+        {
+          "function": "subarray :0",
+          "bytes": 6133500,
+          "character": false
+        },
+        {
+          "function": "displayedPropSprite src/frame.ts:1014",
+          "bytes": 5344356,
+          "character": false
+        },
+        {
+          "function": "buildInstanceBatch src/frame.ts:1069",
+          "bytes": 2917452,
+          "character": false
+        },
+        {
+          "function": "getArrayJsValueFromWasm0 src/wasm/terri_wasm.js:2884",
+          "bytes": 2230392,
+          "character": false
+        },
+        {
+          "function": "writePortals src/render/portals.ts:42",
+          "bytes": 1442820,
+          "character": false
+        },
+        {
+          "function": "layeredDepth src/render/iso.ts:373",
+          "bytes": 950436,
+          "character": false
+        },
+        {
+          "function": "next :0",
+          "bytes": 917892,
+          "character": false
+        },
+        {
+          "function": "buildGrimeInstances src/render/grime-decals.ts:47",
+          "bytes": 787024,
+          "character": false
+        },
+        {
+          "function": "spriteDrawOffsetY src/render/sprite-anchors.ts:10",
+          "bytes": 786576,
+          "character": false
+        },
+        {
+          "function": "draw src/render/sprites.ts:743",
+          "bytes": 655868,
+          "character": false
+        },
+        {
+          "function": "spriteDrawOffsetX src/render/sprite-anchors.ts:5",
+          "bytes": 426060,
+          "character": false
+        },
+        {
+          "function": "from :0",
+          "bytes": 395120,
+          "character": false
+        },
+        {
+          "function": "update src/render/interaction-sprites.ts:205",
+          "bytes": 394676,
+          "character": false
+        },
+        {
+          "function": "values :0",
+          "bytes": 295008,
+          "character": false
+        },
+        {
+          "function": "frame src/main.ts:2018",
+          "bytes": 294984,
+          "character": false
+        },
+        {
+          "function": "slice :0",
+          "bytes": 262488,
+          "character": false
+        },
+        {
+          "function": "update src/render/wall-fade.ts:43",
+          "bytes": 262380,
+          "character": false
+        },
+        {
+          "function": "moodPanelState src/ui/mood-panel.ts:78",
+          "bytes": 262260,
+          "character": false
+        },
+        {
+          "function": "Uint32Array :0",
+          "bytes": 229740,
+          "character": false
+        },
+        {
+          "function": "findSelectedRow src/frame.ts:1599",
+          "bytes": 229560,
+          "character": false
+        },
+        {
+          "function": "ambientFor src/render/daylight.ts:76",
+          "bytes": 229416,
+          "character": false
+        },
+        {
+          "function": "sprites src/bridge.ts:1056",
+          "bytes": 196800,
+          "character": false
+        },
+        {
+          "function": "updateSource src/render/interaction-sprites.ts:176",
+          "bytes": 196800,
+          "character": false
+        },
+        {
+          "function": "render src/ui/traits-panel.ts:213",
+          "bytes": 196704,
+          "character": false
+        },
+        {
+          "function": "suspendedExcept src/ui/overlay-pause.ts:52",
+          "bytes": 196660,
+          "character": false
+        }
+      ],
+      "analysis": {
+        "totalBytesPerFrame": 25358.321398834305,
+        "characterBytesPerFrame": 0,
+        "checks": {
+          "framesRan": true
+        },
+        "pass": true
+      }
+    },
+    {
+      "visibility": "visible",
+      "ticks": 600,
+      "frames": 1201,
+      "clips": {},
+      "maxCharacters": 0,
+      "probeError": null,
+      "jsUsedBytesAfter": 32224884,
+      "totalBytes": 30751952,
+      "characterBytes": 0,
+      "mappedBytes": 20616760,
+      "topFunctions": [
+        {
+          "function": "displayedPropSprite src/frame.ts:1014",
+          "bytes": 7476816,
+          "character": false
+        },
+        {
+          "function": "subarray :0",
+          "bytes": 6527040,
+          "character": false
+        },
+        {
+          "function": "buildInstanceBatch src/frame.ts:1069",
+          "bytes": 2720244,
+          "character": false
+        },
+        {
+          "function": "next :0",
+          "bytes": 1180104,
+          "character": false
+        },
+        {
+          "function": "from :0",
+          "bytes": 689760,
+          "character": false
+        },
+        {
+          "function": "buildGrimeInstances src/render/grime-decals.ts:47",
+          "bytes": 623112,
+          "character": false
+        },
+        {
+          "function": "slice :0",
+          "bytes": 524936,
+          "character": false
+        },
+        {
+          "function": "update src/render/interaction-sprites.ts:205",
+          "bytes": 427764,
+          "character": false
+        },
+        {
+          "function": "draw src/render/sprites.ts:743",
+          "bytes": 426440,
+          "character": false
+        },
+        {
+          "function": "update src/render/wall-fade.ts:43",
+          "bytes": 426360,
+          "character": false
+        },
+        {
+          "function": "values :0",
+          "bytes": 426180,
+          "character": false
+        },
+        {
+          "function": "writePortals src/render/portals.ts:42",
+          "bytes": 360708,
+          "character": false
+        },
+        {
+          "function": "moodPanelState src/ui/mood-panel.ts:78",
+          "bytes": 360668,
+          "character": false
+        },
+        {
+          "function": "render src/ui/traits-panel.ts:213",
+          "bytes": 360576,
+          "character": false
+        },
+        {
+          "function": "frame src/main.ts:2018",
+          "bytes": 327800,
+          "character": false
+        },
+        {
+          "function": "visualActions src/bridge.ts:847",
+          "bytes": 295200,
+          "character": false
+        },
+        {
+          "function": "activities src/bridge.ts:820",
+          "bytes": 262440,
+          "character": false
+        },
+        {
+          "function": "traitsPanelState src/ui/traits-panel.ts:85",
+          "bytes": 262268,
+          "character": false
+        },
+        {
+          "function": "update src/ui/needs-panel.ts:141",
+          "bytes": 262236,
+          "character": false
+        },
+        {
+          "function": "layeredDepth src/render/iso.ts:373",
+          "bytes": 262200,
+          "character": false
+        },
+        {
+          "function": "simIds src/bridge.ts:752",
+          "bytes": 229620,
+          "character": false
+        },
+        {
+          "function": "facings src/bridge.ts:1028",
+          "bytes": 229620,
+          "character": false
+        },
+        {
+          "function": "positions src/bridge.ts:727",
+          "bytes": 229560,
+          "character": false
+        },
+        {
+          "function": "updateSource src/render/interaction-sprites.ts:176",
+          "bytes": 229560,
+          "character": false
+        },
+        {
+          "function": "render src/ui/household-roster.ts:119",
+          "bytes": 229476,
+          "character": false
+        }
+      ],
+      "analysis": {
+        "totalBytesPerFrame": 25605.28892589509,
+        "characterBytesPerFrame": 0,
+        "checks": {
+          "framesRan": true
+        },
+        "pass": true
+      }
+    }
+  ],
+  "readyMs": 4568,
+  "entities": 37,
+  "scripts": [
+    "http://127.0.0.1:4318/assets/index-D0ZKXB0p.js",
+    "http://127.0.0.1:4318/assets/save-worker-BuGvvVMx.js"
+  ],
+  "sourceMapped": true,
+  "pass": true
+}

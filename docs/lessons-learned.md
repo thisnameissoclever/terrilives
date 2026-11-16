@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## [L-frame-code-allocation-has-four-sources] Profile frame code for repeated setup, rebuilt surfaces, shared helpers and retained per-actor maps
+
+1. What happened: the 3D character renderer allocated 0.75 to 1.2 MB a frame for a three-person household and 8 to 11 MB a frame at stress 50, and a stress 50 page held 937 MB of JavaScript heap. Profiles named small vector helpers, and the [V11] rule against per-entity objects had no check on the character code.
+2. Root cause: four different defects looked alike in the profile. Pose setup recomputed per-shape rest data every frame. The bath contact rebuilt the whole configured thigh surface, about 10,000 triangles, on every bath frame. Shared math helpers received so many kinds of array that V8 compiled their element reads generically and boxed every number, so arithmetic with no visible allocation allocated anyway. Each prepared character kept head selections as maps of per-vertex arrays, about 17 MB a character.
+3. Prevention: attribute an allocation profile by caller before rewriting a helper. Cache what depends only on the appearance, write per-frame surface queries into reused buffers, give a hot path its own small kernels over one kind of array, and store per-actor lookup tables in typed arrays. Keep `Math.hypot` and similar builtins out of per-vertex loops unless an exact fallback decides the close cases.
+4. Verification: `web/tests/character-pose-allocation.test.ts` requires bit-identical poses against frozen originals and bounds the bytes per pose call with V8's sampling heap profiler; disabling the rest cache or the bath fast path fails it. `scripts/character-allocation-proof.cjs` reports per-frame allocation by source module in the browser. The [measurement record](evidence/2026-10-25-character-render-allocation/README.md) has the procedure and numbers.
+
 ## [L-backlog-document-ownership] Put engineering tasks in the engineering backlog
 
 **What happened.** A detailed sound implementation backlog was added to Tim's

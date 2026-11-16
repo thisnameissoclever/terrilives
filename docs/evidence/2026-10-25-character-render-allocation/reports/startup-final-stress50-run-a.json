@@ -1,0 +1,348 @@
+{
+  "mode": "character-startup",
+  "generatedAt": "2026-11-15T21:14:44.179Z",
+  "args": {
+    "url": "http://127.0.0.1:4333/",
+    "stress": 50,
+    "timeoutMs": 600000,
+    "samplingUs": 1000,
+    "output": "C:/Users/myema/AppData/Local/Temp/claude/D--VIBES--worktrees-terrilives-nifty-morse-1d549a/8347eed5-fcc5-46f4-8762-05eaeb9964fa/scratchpad/logs305/final2-startup-s50.json",
+    "profile": null
+  },
+  "readyMs": 18637,
+  "entities": 87,
+  "expected": 53,
+  "displayed": {
+    "count": 53,
+    "msAfterReady": 9
+  },
+  "displayedMs": 18646,
+  "time": {
+    "self": [
+      {
+        "function": "(idle) :0",
+        "ms": 10731
+      },
+      {
+        "function": "compactGeometry src/render/character/variants.ts:84",
+        "ms": 1158
+      },
+      {
+        "function": "shapeVertices src/render/character/shape.ts:92",
+        "ms": 970
+      },
+      {
+        "function": "(program) :0",
+        "ms": 758
+      },
+      {
+        "function": "configure src/render/character/head-envelope.ts:94",
+        "ms": 529
+      },
+      {
+        "function": "PreparedBody src/render/character/prepared-body.ts:46",
+        "ms": 412
+      },
+      {
+        "function": "shapePoint src/render/character/shape.ts:17",
+        "ms": 380
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:100",
+        "ms": 363
+      },
+      {
+        "function": "upload src/render/character/subdivision-gpu.ts:11",
+        "ms": 288
+      },
+      {
+        "function": "upload src/render/character/resources.ts:55",
+        "ms": 256
+      },
+      {
+        "function": "update src/render/character/subdivision-gpu.ts:27",
+        "ms": 236
+      },
+      {
+        "function": "upload src/render/character/mesh-resources.ts:53",
+        "ms": 219
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:81",
+        "ms": 195
+      },
+      {
+        "function": "(garbage collector) :0",
+        "ms": 184
+      },
+      {
+        "function": "setVisibleParts src/render/character/head-envelope.ts:70",
+        "ms": 184
+      },
+      {
+        "function": "headScan src/render/character/head-envelope.ts:24",
+        "ms": 139
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:120",
+        "ms": 134
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:111",
+        "ms": 125
+      },
+      {
+        "function": "lookup src/render/character/variants.ts:74",
+        "ms": 92
+      },
+      {
+        "function": "range src/render/character/shape.ts:12",
+        "ms": 85
+      },
+      {
+        "function": "drawFloorSwatch src/ui/floor-swatches.ts:31",
+        "ms": 75
+      },
+      {
+        "function": "hash src/render/atlas-storage.ts:82",
+        "ms": 62
+      },
+      {
+        "function": "validateArchitectureAtlas src/render/architecture-atlas.ts:26",
+        "ms": 57
+      },
+      {
+        "function": "freckleCoordinates src/render/character/freckles.ts:10",
+        "ms": 55
+      },
+      {
+        "function": "configure src/render/character/mesh-resources.ts:88",
+        "ms": 50
+      },
+      {
+        "function": "decodeGeometry src/render/character/bundle.ts:44",
+        "ms": 49
+      },
+      {
+        "function": "shapeHead src/render/character/head-shape.ts:9",
+        "ms": 44
+      },
+      {
+        "function": "cross src/render/character/shape.ts:99",
+        "ms": 44
+      },
+      {
+        "function": "uploadJointAlpha src/render/joint-alpha.ts:7",
+        "ms": 43
+      },
+      {
+        "function": "(anonymous) src/render/character/shape.ts:103",
+        "ms": 42
+      },
+      {
+        "function": "verified src/render/character/bundle.ts:64",
+        "ms": 40
+      },
+      {
+        "function": "loadAtlasStorage src/render/atlas-storage.ts:164",
+        "ms": 40
+      },
+      {
+        "function": "top src/render/character/head-envelope.ts:198",
+        "ms": 34
+      },
+      {
+        "function": "HeadEnvelope src/render/character/head-envelope.ts:63",
+        "ms": 32
+      },
+      {
+        "function": "anatomicalHeight src/render/character/shape.ts:84",
+        "ms": 26
+      },
+      {
+        "function": "(anonymous) index-DMpDQnnI.js:1",
+        "ms": 22
+      },
+      {
+        "function": "canonicalSleepValue src/render/character/sleep-contact-identity.ts:6",
+        "ms": 17
+      },
+      {
+        "function": "SpriteRenderer src/render/sprites.ts:316",
+        "ms": 17
+      },
+      {
+        "function": "prepareClipFamily src/render/character/clip-runtime.ts:26",
+        "ms": 16
+      },
+      {
+        "function": "gunzipExact src/render/gzip-file.ts:20",
+        "ms": 16
+      }
+    ],
+    "inclusive": [
+      {
+        "function": "(root) :0",
+        "ms": 18711
+      },
+      {
+        "function": "(idle) :0",
+        "ms": 10731
+      },
+      {
+        "function": "frame src/main.ts:2623",
+        "ms": 6256
+      },
+      {
+        "function": "(anonymous) src/main.ts:2983",
+        "ms": 6256
+      },
+      {
+        "function": "run src/frame-clock.ts:77",
+        "ms": 6256
+      },
+      {
+        "function": "(anonymous) src/frame-clock.ts:62",
+        "ms": 6256
+      },
+      {
+        "function": "buildInstanceBatch src/frame.ts:1073",
+        "ms": 6210
+      },
+      {
+        "function": "update src/render/character/scene-plan.ts:59",
+        "ms": 6206
+      },
+      {
+        "function": "prepare src/render/character/world.ts:75",
+        "ms": 6204
+      },
+      {
+        "function": "(anonymous) src/render/character/world.ts:47",
+        "ms": 6204
+      },
+      {
+        "function": "PreparedCharacter src/render/character/prepared-character.ts:51",
+        "ms": 6121
+      },
+      {
+        "function": "PreparedBody src/render/character/prepared-body.ts:46",
+        "ms": 2491
+      },
+      {
+        "function": "select src/render/character/prepared-character.ts:81",
+        "ms": 2141
+      },
+      {
+        "function": "setCharacterAppearance src/render/character/renderer.ts:82",
+        "ms": 2141
+      },
+      {
+        "function": "configure src/render/character/mesh-resources.ts:88",
+        "ms": 2135
+      },
+      {
+        "function": "compactGeometry src/render/character/variants.ts:84",
+        "ms": 2102
+      },
+      {
+        "function": "shapeVertices src/render/character/shape.ts:92",
+        "ms": 1576
+      },
+      {
+        "function": "CharacterMeshResources src/render/character/mesh-resources.ts:51",
+        "ms": 1295
+      },
+      {
+        "function": "CharacterRenderer src/render/character/renderer.ts:42",
+        "ms": 910
+      },
+      {
+        "function": "(program) :0",
+        "ms": 758
+      },
+      {
+        "function": "configure src/render/character/head-envelope.ts:94",
+        "ms": 532
+      },
+      {
+        "function": "shapePoint src/render/character/shape.ts:17",
+        "ms": 514
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:100",
+        "ms": 434
+      },
+      {
+        "function": "HeadEnvelope src/render/character/head-envelope.ts:63",
+        "ms": 339
+      },
+      {
+        "function": "SubdivisionGpu src/render/character/subdivision-gpu.ts:10",
+        "ms": 291
+      },
+      {
+        "function": "prepareHeadSelection src/render/character/mesh-resources.ts:82",
+        "ms": 290
+      },
+      {
+        "function": "upload src/render/character/subdivision-gpu.ts:11",
+        "ms": 288
+      },
+      {
+        "function": "setVisibleParts src/render/character/head-envelope.ts:70",
+        "ms": 285
+      },
+      {
+        "function": "acquireStaticCharacterBuffers src/render/character/resources.ts:31",
+        "ms": 257
+      },
+      {
+        "function": "upload src/render/character/resources.ts:55",
+        "ms": 256
+      },
+      {
+        "function": "update src/render/character/subdivision-gpu.ts:27",
+        "ms": 236
+      },
+      {
+        "function": "upload src/render/character/mesh-resources.ts:53",
+        "ms": 219
+      },
+      {
+        "function": "gather src/render/character/variants.ts:79",
+        "ms": 204
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:81",
+        "ms": 195
+      },
+      {
+        "function": "(garbage collector) :0",
+        "ms": 184
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:111",
+        "ms": 146
+      },
+      {
+        "function": "headScan src/render/character/head-envelope.ts:24",
+        "ms": 142
+      },
+      {
+        "function": "(anonymous) src/render/character/variants.ts:120",
+        "ms": 134
+      },
+      {
+        "function": "main src/main.ts:367",
+        "ms": 132
+      },
+      {
+        "function": "loadAtlasStorage src/render/atlas-storage.ts:164",
+        "ms": 116
+      }
+    ]
+  },
+  "pass": true,
+  "crashed": false
+}
