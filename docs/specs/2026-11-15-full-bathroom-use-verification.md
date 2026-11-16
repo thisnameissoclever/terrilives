@@ -147,4 +147,29 @@ Each mutation was applied alone to the file named, the fill tests were run, the 
 | Stop early even below the minimum | `a_full_use_ends_with_the_need_at_exactly_100`, `a_floor_bound_use_still_lasts_the_floor_and_stays_full`, `the_forecast_of_a_fill_agrees_with_what_delivery_produces` |
 | Plan forecasts at the authored length | `a_forecast_plans_the_fill_length_for_a_fill_and_the_authored_length_otherwise`, `the_forecast_of_a_fill_agrees_with_what_delivery_produces` |
 
-Not covered by a mutation test, stated plainly: that `select_action` builds its forecast through `object_outcome` rather than inline. The forecast helper is tested directly, and `select_action` has one call site, but no test would fail if that call were replaced by the old inline construction, because the relief mask the decision telemetry exposes depends only on the sign of the net change, which the fill length does not change.
+| `select_action` plans the authored length again (the call site in `action.rs` put back to the old inline construction) | `the_decision_forecast_plans_a_shower_at_its_fill_length`, alone; the file restored identically |
+
+`the_decision_forecast_plans_a_shower_at_its_fill_length` pins that wiring. It stands a shower with a slow Hygiene rate (a fill of about 104 ticks against an authored 10) and a Comfort rate just above Comfort's drain ten tiles from a person with Hygiene 0 and Comfort 15. After the walk Comfort is net negative at the authored length and net positive at the fill length, so only the fill length puts the fixture in Comfort's critical-relief group in the decision telemetry. An earlier version of this record said no test covered that call site, because the relief mask depends only on the sign of the net change; the slow-rate fixture is what makes the sign differ.
+
+## Fill: what the faster shower does to scoring
+
+Ordinary scoring weighs the authored delta over the authored duration and does not cap the delta at the need's deficit, so raising the authored rates raised the three actions' per-tick scores (about 3.5 times for the shower's Hygiene and 3.7 times for its Energy cost, 3.2 times for the bath, 1.7 times for the toilet). Two scenario tests on the shipped content check that this does not let a shower beat a more urgent need; both pass and stay as regression tests:
+
+1. `a_person_with_critical_energy_and_low_hygiene_sleeps_rather_than_showers`: with Energy 8 and Hygiene 30, the double bed gets 99.2 percent of the choice and the shower 0.08 percent.
+2. `a_starving_dirty_person_who_gets_little_from_showers_eats_first`: with Hunger 8, Hygiene 30 and a Hygiene satisfaction multiplier of 0.5, the fridge gets 95 percent and the shower 2.3 percent.
+
+These cover critical needs, where the critical-need policy keeps unrelated actions to a few percent. They do not cover a person whose needs are all merely low, where a shower now competes harder with every other action; that is the 10 percent rise in showers and baths in the measurements above.
+
+## Fill: the week-one Bladder rise on seed 1
+
+Bladder critical ticks on seed 1 over the first 10080 ticks went from 60 to 899. To find a cause, the trace tally gained a line that classifies what a housemate was doing on each tick their Bladder was at or below 20 (`BLADDER CRITICAL, what housemates were doing on those ticks`). Seed 1, 10080 ticks:
+
+| What they were doing | Before | After |
+| --- | --- | --- |
+| Walking | 60 | 20 |
+| At work or commuting | 0 | 500 |
+| Blocked, waiting for an occupied target | 0 | 377 |
+| Using a bathroom fixture | 0 | 2 |
+
+The 899 ticks are one housemate: Casey's Bladder reached 0 and the other two stayed above 20 (per-person need bands in the same trace). A bit over half of the critical time (500 ticks) was at work or commuting, where a person cannot reach a bathroom and drains at half rate, so she went into a shift with a low Bladder. The rest (377 ticks) was the trace's blocked state, waiting for an occupied target. The trace does not record which target, so it is not established that the wait was for a bathroom fixture, nor why she started the shift low. The wait tally for all objects on seed 1 rose from 795 ticks to 1514 (2.6 to 5.0 percent of housemate time). This is a description of one housemate's one stretch in one seed. It is not evidence for or against the change raising Bladder crises in general, and it is left as an open question for the owner.
+
