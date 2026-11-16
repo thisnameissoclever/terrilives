@@ -171,9 +171,17 @@ pub fn is_month_start(day: u32, days_per_month: u32) -> bool {
 /// and its bills are issued: the next first day of a month of that length
 /// ([WB-calendar]). A month that began mid-way, as a new game's or the first
 /// after a change of the tuning's month length, is short and charged pro
-/// rata.
+/// rata. `length` is at least 1. A month whose end would pass the largest
+/// day index has no end that fits: [`checked_month_end`] says so and
+/// [`validate_saved`] refuses such a save, and this saturates at `u32::MAX`
+/// so that nothing can overflow.
 pub fn month_end(start: u32, length: u32) -> u32 {
-    start - start % length + length
+    checked_month_end(start, length).unwrap_or(u32::MAX)
+}
+
+/// [`month_end`], or `None` when the end would pass the largest day index.
+pub fn checked_month_end(start: u32, length: u32) -> Option<u32> {
+    (start - start % length).checked_add(length)
 }
 
 /// Bills act only in a world with a lot: a lot frame and a confirmed room
@@ -626,7 +634,11 @@ pub fn validate_saved(world: &World, saved: &SavedBills) -> Result<(), crate::Sa
             {
                 return Err(InvalidValue);
             }
-            let end = month_end(saved.month_start, saved.month_length);
+            // A crafted start near the largest day index has no end that
+            // fits: refuse it instead of overflowing.
+            let Some(end) = checked_month_end(saved.month_start, saved.month_length) else {
+                return Err(InvalidValue);
+            };
             if day >= end || saved.month_days > end - saved.month_start {
                 return Err(InvalidValue);
             }

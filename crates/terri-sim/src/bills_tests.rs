@@ -536,6 +536,46 @@ fn the_panel_follows_a_months_own_length_after_a_month_length_change() {
     assert_eq!(overview(sim.world()).unwrap().month_length, 10);
 }
 
+/// Review of 2026-11-15, F3: a crafted save with its month starting at the
+/// very end of the day numbers is refused, not panicked on, by the
+/// validator, and the largest start whose month still has room loads.
+#[test]
+fn a_month_starting_at_the_end_of_the_day_numbers_is_refused_not_panicked_on() {
+    let mut sim = house();
+    let template = saved(sim.world());
+    let record = |start: u32, length: u32| {
+        let mut record = template.clone();
+        record.last_counted_day = Some(start);
+        record.month_start = start;
+        record.month_days = 1;
+        record.month_length = length;
+        record
+    };
+    // The clock is on the largest day index, so no other bound refuses first.
+    set_tick(&mut sim, u64::from(u32::MAX) * DAY + 600);
+    // A start of u32::MAX under any length: its end would pass the largest
+    // day index, so it has no end that fits and the record is refused.
+    for length in [1, 7, 365] {
+        assert!(
+            validate_saved(sim.world(), &record(u32::MAX, length)).is_err(),
+            "start u32::MAX, length {length}"
+        );
+    }
+    // A start near the end whose own end overflows u32 is refused as well.
+    assert!(validate_saved(sim.world(), &record(u32::MAX - 3, 365)).is_err());
+    // The largest start with room: u32::MAX - 1 under a length of one ends
+    // on u32::MAX, after the day counted.
+    set_tick(&mut sim, u64::from(u32::MAX - 1) * DAY + 600);
+    assert!(validate_saved(sim.world(), &record(u32::MAX - 1, 1)).is_ok());
+    assert_eq!(checked_month_end(u32::MAX - 1, 1), Some(u32::MAX));
+    assert_eq!(checked_month_end(u32::MAX, 7), None);
+    assert_eq!(
+        month_end(u32::MAX, 7),
+        u32::MAX,
+        "the unchecked end saturates"
+    );
+}
+
 /// [WB-usage]: a use is counted once at physical start, and a save and
 /// load in the middle of the action does not count it again.
 #[test]
