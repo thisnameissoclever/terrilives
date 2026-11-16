@@ -126,7 +126,10 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// quarters of what it was, so needs cross their thresholds at different ticks
 /// and the household's choices differ from the first morning. The simulation
 /// code is unchanged; the value was read from the failing assertion. Issue 315's
-/// fill change then moved it from 12407989054242721803 on purpose: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so every use of them in the household's days is shorter or longer than before and the choices and draws that follow differ. Read
+/// fill change then moved it from 12407989054242721803 on purpose: a toilet,
+/// shower or bath now lasts until its need is full and its authored rates
+/// were raised, so every use of them in the household's days is shorter or
+/// longer than before and the choices and draws that follow differ. Read
 /// from the failing assertion.
 const STANDARD_ONLY_HASH: u64 = 6219414423998606800;
 

@@ -675,6 +675,135 @@ fn the_forecast_of_a_fill_agrees_with_what_delivery_produces() {
     }
 }
 
+/// `select_action` builds its forecast of a shower through `object_outcome`,
+/// so the forecast plans the fill length. A shower whose Hygiene rate is slow
+/// (a fill of about 104 ticks against an authored 10) and whose Comfort rate
+/// is just above Comfort's drain is the discriminating case: after a ten tile
+/// walk, Comfort is net negative if the use is planned at the authored length
+/// and net positive if it is planned at the fill length, so only the fill
+/// length puts the fixture in Comfort's critical-relief group.
+#[test]
+fn the_decision_forecast_plans_a_shower_at_its_fill_length() {
+    let mut sim = Sim::new_with_lot(16, 16);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let shower = pack.find("shower").unwrap();
+    {
+        let action = &mut pack.objects[shower.0 as usize].interactions[0];
+        action.advertises = vec![
+            (NeedId::Hygiene.index() as u8, 10.),
+            (NeedId::Comfort.index() as u8, 0.3),
+        ];
+        action.duration_ticks = 10;
+    }
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    let object = sim.spawn_object(Position { x: 12., y: 2. }, shower);
+    let person = sim.spawn_agent(Position { x: 2., y: 2. }, 100.);
+    let mut needs = Needs::all_at(100.);
+    needs.set(NeedId::Hygiene, 0.);
+    needs.set(NeedId::Comfort, 15.);
+    sim.world_mut().entity_mut(person).insert(needs);
+    sim.tick();
+    let decision = sim
+        .world()
+        .resource::<crate::systems::autonomy::DecisionTelemetry>()
+        .0
+        .iter()
+        .find(|d| d.agent == person.index_u32())
+        .expect("the person decided");
+    let row = decision
+        .choices
+        .iter()
+        .position(|c| c.0 == object.index_u32() && c.1 == 0)
+        .expect("the shower is a candidate");
+    assert_ne!(
+        decision.relief_masks[row] & (1 << NeedId::Comfort.index()),
+        0,
+        "Comfort relief mask {:#b}: the forecast planned the authored length",
+        decision.relief_masks[row]
+    );
+}
+
+/// The chance each kind of object gets in `person`'s latest decision, summed
+/// over its actions, from the decision telemetry.
+fn decision_chances(sim: &mut Sim, person: Entity) -> std::collections::BTreeMap<String, f64> {
+    let kinds: std::collections::BTreeMap<u32, String> = {
+        let pack = sim.world().resource::<Content>().0;
+        sim.world_mut()
+            .query::<(Entity, &terri_core::SmartObject)>()
+            .iter(sim.world())
+            .map(|(entity, object)| (entity.index_u32(), pack.object(object.0).id.clone()))
+            .collect()
+    };
+    let decision = sim
+        .world()
+        .resource::<crate::systems::autonomy::DecisionTelemetry>()
+        .0
+        .iter()
+        .find(|d| d.agent == person.index_u32())
+        .expect("the person decided")
+        .clone();
+    let mut chances = std::collections::BTreeMap::new();
+    for choice in &decision.choices {
+        if let Some(kind) = kinds.get(&choice.0) {
+            *chances.entry(kind.clone()).or_insert(0.) += choice.4;
+        }
+    }
+    chances
+}
+
+/// A raised shower rate raised the shower's ordinary score (it weighs the
+/// authored delta over the authored duration), so a person who is nearly
+/// out of Energy and merely dirty must still prefer sleep to a shower. The
+/// critical-need policy keeps unrelated actions to a few percent of the
+/// choice; this pins that the faster shower does not slip past it.
+#[test]
+fn a_person_with_critical_energy_and_low_hygiene_sleeps_rather_than_showers() {
+    let (mut sim, bill, _casey) = crate::affinity::presence_and_use_tests::bill_and_casey();
+    let mut needs = Needs::all_at(100.);
+    needs.set(NeedId::Energy, 8.);
+    needs.set(NeedId::Hygiene, 30.);
+    sim.world_mut().entity_mut(bill).insert(needs);
+    sim.tick();
+    let chances = decision_chances(&mut sim, bill);
+    let sleep = chances.get("bed").unwrap_or(&0.) + chances.get("double_bed").unwrap_or(&0.);
+    let shower = *chances.get("shower").unwrap_or(&0.);
+    assert!(
+        sleep > 0.5 && shower < 0.1,
+        "sleep {sleep}, shower {shower}: {chances:?}"
+    );
+}
+
+/// The same for a person who is starving, dirty and gets little from
+/// showers: they eat before they start a long shower.
+#[test]
+fn a_starving_dirty_person_who_gets_little_from_showers_eats_first() {
+    let (mut sim, bill, _casey) = crate::affinity::presence_and_use_tests::bill_and_casey();
+    let mut needs = Needs::all_at(100.);
+    needs.set(NeedId::Hunger, 8.);
+    needs.set(NeedId::Hygiene, 30.);
+    let mut personality = sim
+        .world()
+        .get::<Personality>(bill)
+        .cloned()
+        .unwrap_or_else(Personality::neutral);
+    personality.satisfaction[NeedId::Hygiene.index()] = 0.5;
+    sim.world_mut()
+        .entity_mut(bill)
+        .insert((needs, personality));
+    sim.tick();
+    let chances = decision_chances(&mut sim, bill);
+    let food: f64 = ["fridge", "dining_table", "stove", "counter"]
+        .iter()
+        .map(|kind| chances.get(*kind).unwrap_or(&0.))
+        .sum();
+    let shower = *chances.get("shower").unwrap_or(&0.);
+    assert!(
+        food > 0.5 && shower < 0.1,
+        "food {food}, shower {shower}: {chances:?}"
+    );
+}
+
 #[test]
 fn the_shipped_content_fingerprint_is_the_one_main_had() {
     // The fingerprint deliberately leaves out tuning numbers, advert deltas,

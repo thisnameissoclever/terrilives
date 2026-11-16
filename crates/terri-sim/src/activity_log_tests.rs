@@ -474,7 +474,10 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// ticks and the household's choices differ from the first morning. The log
 /// emitters are unchanged; the value was read from the failing assertion,
 /// which compares the world with the log on against this pin. Issue 315's fill
-/// change then moved it from 0x1f5f_7875_d990_cea9 on purpose: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so every use of them in the household's days is shorter or longer than before and the choices and draws that follow differ. The
+/// change then moved it from 0x1f5f_7875_d990_cea9 on purpose: a toilet,
+/// shower or bath now lasts until its need is full and its authored rates
+/// were raised, so every use of them in the household's days is shorter or
+/// longer than before and the choices and draws that follow differ. The
 /// log emitters are unchanged; read the same way.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x24d1_7731_8113_0034;
 

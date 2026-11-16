@@ -308,8 +308,12 @@ pub fn tick_interactions(
         // the need, so this is not what ends it; it ends a use resumed from a
         // save made before the change, whose drawn length may be far longer
         // than the need takes to fill. Only while more than the minimum use
-        // length is left, so a nearly full person still visibly uses the
-        // fixture for the floor and the use never ends sooner than that.
+        // length is left, so the rule never cuts off the final minimum-length
+        // stretch of a use, and a nearly full person who arrives now still
+        // visibly uses the fixture for the floor. A use resumed mid-use from
+        // an older save can end sooner than that: how long it has already
+        // run is not saved, so one with 14 ticks left and a full need ends
+        // within two.
         if eating.remaining_ticks > content.0.tuning.min_interaction_ticks
             && crate::need_interactions::fill::is_full(act, &needs)
         {

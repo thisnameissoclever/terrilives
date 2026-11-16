@@ -60,7 +60,7 @@ Tests that encoded the old balance and were corrected:
 
 The trace example gained a bathroom tally (`crates/terri-sim/examples/trace/bathroom.rs`) that reads each toilet, shower and bath use off the household once a tick from outside the simulation, so the same harness measures a build from before the fill change and one after it. Commands: `cargo run --release -p terri-sim --example trace -- <ticks> <seed>` with the default seed (20260728) and seeds 1, 2 and 3, for 10080 ticks (a game week) and 36000 ticks (25 game days). "Before" is the head of the drain pull request (82283519f), which has the new drain and the old bathroom behavior, with only the example's tally added; "after" is this branch. Both were built and run on the same machine class (Windows 11, release build).
 
-Bathroom uses over 36000 ticks, summed over the four seeds and the three housemates. A use counts as full when the need ended at 100.
+Bathroom uses over 36000 ticks, summed over the four seeds and the three housemates. A use counts as full when the need ended at 99.99 or more.
 
 | Fixture | Uses | Ended full | Mean ticks | Shortest | Longest | Need at start | Need at end | Time occupied |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -71,7 +71,7 @@ Bathroom uses over 36000 ticks, summed over the four seeds and the three housema
 | Bath, before | 111 | 48 | 65.0 | 47 | 109 | 52.3 | 89.5 | 5.0% |
 | Bath, after | 123 | 123 | 19.0 | 12 | 38 | 62.1 | 100.0 | 1.6% |
 
-After the change 644 of 649 uses ended at 100. The five that did not were 3 toilet uses and 2 showers. The shortest toilet use was 7 ticks and the shortest shower 9, both below the 12 tick minimum, so those two were cut short by something else, such as an order or a shift start; the other three were not examined. "Time occupied" is the share of the run, per kind of fixture and averaged over the four seeds, in which any housemate was using that kind of fixture. Typical uses are short because housemates go when a meter is about half full, so the fill takes 12 to 20 ticks; the 15, 37 and 43 tick figures are from an empty bar.
+After the change 644 of 649 uses ended at 99.99 or more. The five that did not were 3 toilet uses and 2 showers. The shortest toilet use was 7 ticks and the shortest shower 9, both below the 12 tick minimum, so those two were cut short by something else, such as an order or a shift start; the other three were not examined. "Time occupied" adds one tick for every housemate who is using that kind of fixture on a tick, as a share of the run's ticks, averaged over the four seeds, so with three housemates it can pass 100 percent. Typical uses are short because housemates go when a meter is about half full, so the fill takes 12 to 20 ticks; the 15, 37 and 43 tick figures are from an empty bar.
 
 Net change over a use (it includes the drain over the use, so a longer use shows a larger drain):
 
@@ -97,7 +97,7 @@ Social critical time was 174 before and 7 after over 25 days, and Comfort never 
 Reading the table, and what it does not show:
 
 1. **Hygiene crisis time fell by two thirds over 25 days** (6796 to 2268), because every shower or bath now fills the bar.
-2. **Bladder crisis time rose in the one-week runs (250 to 1078) and fell in the 25-day runs (3360 to 2118).** One week of one household is a small sample, and the four weeks differ from each other by more than the change does. The longer runs are the better evidence that the change did not raise Bladder crises, but two samples that point opposite ways do not measure the effect, so this is reported to the owner as an open question rather than settled here.
+2. **Bladder crisis time rose in the first week and fell over the rest.** The one-week runs are the first 10080 ticks of the 25-day runs, so these are one run read two ways, not two samples. Summed over the four seeds, Bladder critical ticks went from 250 to 1078 in week one (mostly seed 1, from 60 to 899) and from 3110 to 1040 over days 8 to 25 (the 25-day totals, 3360 and 2118, less the first week). Whether the change raises Bladder crises is an open question; the figures neither show nor exclude it. The cause of the week-one rise on seed 1 is in the next section.
 3. **Waiting for an occupied target rose slightly** (2.9% to 3.2% of housemate time over 25 days, 3.4% to 4.6% over a week). This is the trace's existing tally for any object, not for bathrooms alone, and its cause was not investigated. Fixtures were occupied for about a third as long after the change, so the rise does not come from longer bathroom uses.
 4. **How often each fixture is chosen** changed little: 350, 151 and 111 uses over 25 days before and 360, 166 and 123 after for the toilet, shower and bath. The authored rates of the three are higher, so their ordinary scores are higher, as the specification says; the measured effect is a rise of about 10 percent in showers and baths and 3 percent at the toilet.
 5. Energy crisis time fell by about 40 percent over 25 days, Fun crisis time by 55 percent and Hunger crisis time rose 7 percent. These come from different household histories under the new rates and were not investigated; this record does not claim a cause.

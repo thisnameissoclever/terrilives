@@ -19,7 +19,7 @@ pub(crate) fn travel_ticks(distance: f32) -> u32 {
 }
 
 /// The needs a person has after `ticks` of drain and no delivery: what they
-/// arrive at a fixture with after travelling to it.
+/// arrive at a fixture with after traveling to it.
 pub(crate) fn after_decay(
     pack: &ContentPack,
     needs: &Needs,
