@@ -32,8 +32,9 @@ pub struct SavedBill {
     /// The day index it was paid, `None` while unpaid.
     pub paid_day: Option<u32>,
     /// The terms it was issued under, so a later tuning change applies to
-    /// later bills only: the month length its due day falls on, its days
-    /// of grace, and its daily late fee and cap in percent.
+    /// later bills only: the length of the month this bill charges, which
+    /// its due day ends, its days of grace, and its daily late fee and cap
+    /// in percent.
     pub month_length: u32,
     pub grace_days: u32,
     pub late_fee_percent: u32,
