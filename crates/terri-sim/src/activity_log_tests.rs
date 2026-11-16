@@ -476,13 +476,26 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// merging 053ee52d3; with the old wages, no premium, no starting funds and
 /// the bills system and its hash switched off, the branch gave
 /// 0xa0fb_785a_e3a4_7b1d again.
-/// Issue 309 then moved it from 0xb953_34a8_9aca_0e2c on purpose: a
-/// housemate at work is relieved of Bladder whenever it falls below half, so
-/// the working household's needs differ from the first shift on. With the
-/// work Bladder relief and the lateness limit both at 0 the fold is the
-/// value above again, which `the_two_day_fold_without_the_work_knobs_is_unchanged`
-/// pins.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7a49_b0b5_3318_3dfb;
+/// Issue 344 (presence never lowers mood) then moved it from
+/// 0xb953_34a8_9aca_0e2c, on top of issue 298's change, on purpose: a person
+/// no longer reads `Bothered by the plants here`. Of the three shipped
+/// housemates only Bill holds a plant value at or below -0.2 (-0.35;
+/// nobody's aquarium value is negative), so he is the only person who loses
+/// a penalty. His mood first differs from the old rule's at tick index 410
+/// (about 06:50 on Monday), when he first stands in a room with a plant, and
+/// the world hash first differs at tick index 718 (about 12:00 on Monday),
+/// when a choice scored from that mood first goes the other way. Measured
+/// on the tree that combines both changes, with the log off and on giving the
+/// same worlds, and with the old presence rule restored behind a temporary
+/// switch and then removed.
+/// Issue 309 then moved it from 0x06a6_5d89_3df7_7287 on purpose: a
+/// housemate at work is relieved of Bladder whenever it falls below half, and
+/// one critical for Hunger or Energy at a shift start now leaves late, so the
+/// working household's needs and choices differ from the first shift on.
+/// Measured on the tree that combines the changes. With the work Bladder
+/// relief and the lateness limit both at 0 the fold is the value above
+/// again, which `the_two_day_fold_without_the_work_knobs_is_unchanged` pins.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x15a5_6cde_2cb1_8c2d;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -497,29 +510,31 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7a49_b0b5_3318_3dfb;
 /// Issue 298 then moved it from 0x78e8_cb74_b70c_d742 for the reason given
 /// for the two-day fold, and over twenty days the bills are also paid from
 /// Funds on days 7 and 14; with the old wages, no premium, no starting
-/// funds and the bills off it gave 0x78e8_cb74_b70c_d742.
-/// Issue 309 then moved it from 0x9b22_0f1c_a448_e32c: a housemate at work is
-/// relieved of Bladder below half, and over twenty days Tim and Bill are
-/// critical at some shift starts and now stay home late for it. With both
-/// work knobs at 0 it is the value above again, which
-/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x8fa8_9724_c059_8d2c;
+/// funds and the bills off it gave 0x78e8_cb74_b70c_d742. Issue 344 then
+/// moved it from 0x9b22_0f1c_a448_e32c for the reason given for the two-day
+/// fold, measured on the tree that combines both changes, in a release
+/// build, with the log off and on giving the same worlds.
+/// Issue 309 then moved it from 0x4947_38f3_cd9d_3898 for the reason given
+/// for the two-day fold, measured on the tree that combines the changes, in a
+/// release build. With both work knobs at 0 it is the value above again,
+/// which `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x1888_d727_b10c_00ee;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the value main measured before the
-/// issue (0xb953_34a8_9aca_0e2c), so the issue moves the shipped household
+/// issue (0x06a6_5d89_3df7_7287), so the issue moves the shipped household
 /// only through those two knobs.
 #[test]
 fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(2), 0xb953_34a8_9aca_0e2c);
+    assert_eq!(fold_without_the_work_knobs(2), 0x06a6_5d89_3df7_7287);
 }
 
 /// The twenty-day version of the check above, against the value main measured
-/// before the issue (0x9b22_0f1c_a448_e32c). Manual, like the pin it guards.
+/// before the issue (0x4947_38f3_cd9d_3898). Manual, like the pin it guards.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0x9b22_0f1c_a448_e32c);
+    assert_eq!(fold_without_the_work_knobs(20), 0x4947_38f3_cd9d_3898);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

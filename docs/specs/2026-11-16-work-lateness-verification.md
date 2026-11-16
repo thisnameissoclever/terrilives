@@ -41,15 +41,15 @@ Green runs: `green-lateness2.log` (19 lateness tests), `sim-suite-release-2.log`
 
 ## [pins] Moved and unchanged pinned values
 
-Each moved value was re-measured from the tree and each comment in the tests names this issue.
+Each moved value was re-measured from the tree after merging main at `54cf96b46`, which includes issue 344's presence change (#348), and each comment in the tests names this issue.
 
-| Value | Before | After | Cause |
+| Value | Main with #348 | With this issue | Cause |
 | --- | --- | --- | --- |
-| `SHIPPED_THURSDAY` in `job_search_tests.rs` | 4873052259007802963 | 7333729248054006451 | Bladder relief at work |
-| `TWO_DAY_FOLD_WITHOUT_THE_LOG` | `0xb953_34a8_9aca_0e2c` | `0x7a49_b0b5_3318_3dfb` | Bladder relief at work |
-| `TWENTY_DAY_FOLD_WITHOUT_THE_LOG` (manual, release) | `0x9b22_0f1c_a448_e32c` | `0x8fa8_9724_c059_8d2c` | Bladder relief, and workers critical at a shift start staying home late |
+| `SHIPPED_THURSDAY` in `job_search_tests.rs` | 13315179661733202479 | 17164534138135296707 | Bladder relief at work and workers critical at a shift start leaving late |
+| `TWO_DAY_FOLD_WITHOUT_THE_LOG` | `0x06a6_5d89_3df7_7287` | `0x15a5_6cde_2cb1_8c2d` | the same |
+| `TWENTY_DAY_FOLD_WITHOUT_THE_LOG` (manual, release) | `0x4947_38f3_cd9d_3898` | `0x1888_d727_b10c_00ee` | the same |
 
-The Thursday run was measured with each knob alone: the threshold at 0 gives the old value with the limit at 0 or 60, and the threshold at 50 gives the new value with either limit, so nobody in the shipped household is critical at a shift start before Thursday 10:00. Three guards assert that main's values return with both knobs at 0: `without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged`, `the_two_day_fold_without_the_work_knobs_is_unchanged` and the manual `the_twenty_day_fold_without_the_work_knobs_is_unchanged`.
+Three guards assert that main's values return with both knobs at 0, which is how the change is shown to move the household only through them: `without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged`, `the_two_day_fold_without_the_work_knobs_is_unchanged` and the manual `the_twenty_day_fold_without_the_work_knobs_is_unchanged`. Before #348 was merged, on main at `67c988c33`, the Thursday run was also measured with each knob alone: with the threshold at 0 the old value 4873052259007802963 came back with the limit at 0 or 60, and with the threshold at 50 the value was 7333729248054006451 with either limit, so on that tree nobody in the shipped household was critical at a shift start before Thursday 10:00 and only the Bladder relief moved it. The split was not repeated after the merge, which changes the household's days.
 
 Two tests keep their meaning by leaving on time: `every_search_on_keeps_published_hires_schedules_and_career_randomness` and the schema-21 test run under `test_content::pre_shift_careers`, which now also sets the limit and the threshold to 0, as a pack published before them reconstructs; and `a_kept_errand_is_not_shown_while_the_worker_is_away`, whose worker is critically hungry on purpose and now sets the limit to 0 because the test is about an errand kept across a departure.
 
