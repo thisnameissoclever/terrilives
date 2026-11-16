@@ -592,7 +592,9 @@ fn run_a_nuisance_day(log: bool) -> (Vec<u64>, Vec<LogRecord>) {
     );
     let mut staged = Vec::new();
     let mut out = Vec::new();
-    while ticks < day {
+    // The episode closes on the day's last tick; a few more ticks leave a
+    // margin, so a one tick shift fails on the comparison and not the boundary.
+    while ticks < day + 5 {
         sim.tick();
         ticks += 1;
         hashes.push(sim.world_hash());
