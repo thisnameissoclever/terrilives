@@ -174,7 +174,8 @@ pub fn is_month_start(day: u32, days_per_month: u32) -> bool {
 /// rata. `length` is at least 1. A month whose end would pass the largest
 /// day index has no end that fits: [`checked_month_end`] says so and
 /// [`validate_saved`] refuses such a save, and this saturates at `u32::MAX`
-/// so that nothing can overflow.
+/// instead of overflowing. Callers that subtract from the result rely on
+/// that refusal: a loaded month always has an end that fits.
 pub fn month_end(start: u32, length: u32) -> u32 {
     checked_month_end(start, length).unwrap_or(u32::MAX)
 }
