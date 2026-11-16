@@ -107,4 +107,5 @@ The tests are in `crates/terri-sim/src/lateness_tests.rs`, `crates/terri-sim/src
 10. The choice parameter reports the lateness along the ramp, and nothing for Bladder or for an uncritical worker.
 11. The unrelated share equals today's cap at the start, the exact linear value halfway and `1 - work_lateness_remedy_share` from the ramp on, and stays above 0; relief of an uncounted critical need is unrelated while late; with no lateness the probabilities are the pinned vector of before this change.
 12. A worker at work is relieved of Bladder below the threshold and not at it, only Bladder is relieved, a worker at home is not relieved, and with the real decay rates Bladder never falls below the threshold during a shift.
-13. The knob compile, published-pack, pre-books and fixture checks in the data crate.
+13. A worker who is not critical but is mid-meal on the start tick leaves on the start tick, and the allowance predicate is pinned on its own: it opens at the start, closes at the limit or at the shift's end, whichever is first, and is shut for a settled shift or a limit of 0.
+14. The knob compile, published-pack, pre-books and fixture checks in the data crate.
