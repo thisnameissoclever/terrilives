@@ -14,6 +14,7 @@ This record holds the calibration measurements, moved test expectations, mutatio
 - [Played pass](#played-pass)
 - [Review dispositions](#review-dispositions)
 - [Final review of `901cbf3fd`](#final-review-of-901cbf3fd)
+- [Third round: the month length redesign](#third-round-the-month-length-redesign)
 
 ## Calibration traces
 
@@ -113,13 +114,7 @@ Each mechanism below was removed or disabled in the source, the test that guards
 
 The last five rows ran on 2026-11-15 at `eabccaa65` with the same procedure, and every restored file matched its SHA-256. The runners and their logs are outside the repository.
 
-Three more mechanisms were checked the same way on 2026-11-15 after the final review of `901cbf3fd`, each restored and its SHA-256 matched:
-
-| Mechanism | Change | Test that failed |
-| --- | --- | --- |
-| The panel's lines divide by the month's own length | the tuning's month length put back | `the_panel_follows_a_months_own_length_after_a_month_length_change` |
-| The expected amounts project the month to the longer of its length and the days it will have counted | the old month length kept | `the_panel_follows_a_months_own_length_after_a_month_length_change`; the first version of that test left this mutant alive, because its projection ended exactly on the month's length, so the test now projects three days past it |
-| An open month may be counted over up to 730 days | the bound put back at 365 | `an_open_month_may_run_past_the_compilers_longest_month` and `a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable` |
+The rows from "An open month is never shorter than the days it has counted (S1)" to "The day start runs before payment in the real schedule (S3)" above, and two mutants of the final review's first round (the panel's length and the projection's `max`, and the 730-day bound), tested the stored-maximum rule of the earlier review rounds. The month length redesign of 2026-11-15 removed that rule and its code, so those mutants no longer apply; the day-start schedule row still does. The redesign's own mutants are in [the third round](#third-round-the-month-length-redesign).
 
 ## Mutation sweep
 
@@ -184,7 +179,7 @@ Two fresh reviewers read `fc6d02659` without being told what to expect, one the 
 
 | Finding | What the reviewer found | Disposition | Commit |
 | --- | --- | --- | --- |
-| S1 | A month length changed from day 12 of a month made the game refuse its own saves and Build for lengths 4, 5, 6, 8, 9 and 10, and charged about 1.1 months of rent in the 10-day case | Fixed. The open month's length is the longest it was counted under and at least the days it has counted, so it stays valid and is never charged more than a full month. The reviewer's probe of seven month lengths is a regression test, and the tuning-change test now saves and loads every day | `3c1736687` |
+| S1 | A month length changed from day 12 of a month made the game refuse its own saves and Build for lengths 4, 5, 6, 8, 9 and 10, and charged about 1.1 months of rent in the 10-day case | Fixed at the time: the open month's length was the longest it was counted under and at least the days it had counted. The [third round](#third-round-the-month-length-redesign) replaced that rule with a month length fixed when the month opens. The reviewer's probe of seven month lengths is a regression test, and the tuning-change test now saves and loads every day | `3c1736687` |
 | S2 | The world hash left out the open month's length and start and each bill's issued-under terms | Fixed. They are hashed in saved order, the hash test changes each one, and the four pins moved again with the same classification, which the 2026-11-15 run above confirms | `9c5ff53e3` |
 | S3 | Four mutants survived: the day start moved beside payment, a plain assignment of the month length, no month start, no length reset on issue | Fixed. Tests drive the real schedule and the month bookkeeping, and all five mutants, S1's included, are caught on 2026-11-15 (the [targeted mutation results](#targeted-mutation-results)) | `cd04aa9fa` |
 | S4 | The ignored Build search failed at seed 16 on the bed rule's intended refusal | Fixed. The search cancels a batch the bed rule refuses and goes on; all 24 seeds pass and seed 16 cancels one batch | `0d0fd3d1a` |
@@ -207,9 +202,53 @@ A last fresh review of `901cbf3fd` found no blocker and these items, numbered as
 
 | Item | What the reviewer found | Disposition | Commit |
 | --- | --- | --- | --- |
-| 1 | After a month length change the panel disagreed with what is issued: a bill's lines divided by the tuning's month length, and the expected amounts left the month's length at its old value while adding the remaining days (a probe with the tuning at seven and nine days counted under ten showed 1,286 where 900 was so far, and 1,400 expected against 1,000 issued) | Fixed. The lines use the month's own length and the projection uses the longer of it and the days it will have counted. The new test asserts the lines add up and that no expected amount exceeds a full month; both fixes' mutants are caught | `d7876bea6` |
-| 2 | A saved open month longer than 365 days was refused, though the compiler accepts a month of 365 days and a month can run to the next boundary of another length | Fixed. The bound is 730 days, twice the compiler's longest month, and the spec's claim is corrected. A 366-day month loads, one past 730 is refused, and seven-day months run into a tuning of 365 with a save loaded every day near the end; the bound at 365 fails two of those tests | `601c15784` |
+| 1 | After a month length change the panel disagreed with what is issued: a bill's lines divided by the tuning's month length, and the expected amounts left the month's length at its old value while adding the remaining days (a probe with the tuning at seven and nine days counted under ten showed 1,286 where 900 was so far, and 1,400 expected against 1,000 issued) | Fixed in `d7876bea6`, then replaced by the redesign of the [third round](#third-round-the-month-length-redesign), which divides by the stored length only and projects to the month's fixed end | `d7876bea6`, then the redesign |
+| 2 | A saved open month longer than 365 days was refused, though the compiler accepts a month of 365 days and a month can run to the next boundary of another length | Fixed in `601c15784` with a 730-day bound, then replaced by the redesign of the [third round](#third-round-the-month-length-redesign), under which a month never counts past its own end and `month_length` stays within 1 to 365 | `601c15784`, then the redesign |
 | 3 | The Build search's new bed arm counted refusals and asserted nothing | Fixed. The search asserts that at least one batch is cancelled for a bed left outside across the default 24 seeds. The 24 seeds ran once in release with `--ignored` on 2026-11-15 and passed, 524 seconds, and only seed 16 cancelled a batch (one). An earlier run of the same seeds was cut off by its time bound after seed 21 while the machine was busy, with seeds 1 to 21 passing; seeds 22 to 24 then passed alone | `82e85b0e9` |
 | 4 | The V22 notes of `docs/ARCHITECTURE.md` omitted the open month's start and length and each bill's issued-under terms, and three pin comments named an older main commit | Fixed. The notes list them and the three comments name `053ee52d3`, main's current commit | `727b45bca` |
 | 5 | Ruling 23 was not marked as unconfirmed | The owner confirmed it on 2026-11-15, so the spec records it as decided by the coordinator on 2026-10-25 and confirmed by the owner on 2026-11-15, with the 50.2 percent month accepted | the commit of this record |
 | 6 | The full-frame phone Furniture capture still ended on a bare `Colour` label above Cancel and Confirm | Fixed. The panel is scrolled so the Colour dropdown shows whole above the row, and the guide crop is the whole panel. I opened the capture at full size | the commit of the captures |
+
+## Third round: the month length redesign
+
+The review of `ebe94f194` found two more edge cases in the stored-maximum design and one wrong claim of this record. This was the third round on one mechanism, so a separate reviewer was asked for a simpler design.
+
+- **M1.** `expected_month` took the days left from the tuning's month length when that was longer than the stored one: stored 10, nine days counted, tuning 30, and the projection used a length of 28 where the issue uses 30, overstating Expected, keep aside and the shortfall by up to 2/30 until the next counted day.
+- **M2.** Alternating tuning changes (7, then 365 on day 6, then 300, then 365, then 300) pushed an open month past 730 days, which the validator then refused.
+- **L1.** This record said `a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable` failed with the bound put back at 365. It did not: only `an_open_month_may_run_past_the_compilers_longest_month` did. The claim was wrong, and that test is rewritten below.
+
+**Decision.** Coordinator decision of 2026-11-15, chosen from an independent design review (route R1) and awaiting the owner's confirmation; the owner has not ruled on it ([WB-rulings] ruling 24 in the spec): a content change to the month length applies from the next month, and a realigned first month is short and charged pro rata. A month's start and length are fixed when its first day is counted, its end is `start - start % length + length`, it is issued when today reaches that end, and the next month opens on that day under the tuning's length at that moment. The stored-maximum rule and the 730-day bound are gone, and every month has one length.
+
+**Shipped behavior is unchanged.** With the shipped seven-day months and every day counted, a month starts on a multiple of 7, so its end is the same day as before. No saved value and no hash input changes for a game that never changes its month length, so no pinned hash moves; the full local CI run records that.
+
+**Tests.** `an_open_month_may_run_past_the_compilers_longest_month` is deleted, and a refusal of `month_length` 366 replaces it. The new and rewritten tests are:
+
+| Test | What it asserts |
+| --- | --- |
+| `a_shorter_month_runs_to_its_own_end_and_the_next_opens_under_the_new_length` | with the tuning at 4, a month saved under 7 runs to day index 14 under 7, issues there with its own length, and the next month opens on 14 under 4, ends on 16, and is charged two of four days |
+| `the_panel_follows_a_months_own_length_after_a_month_length_change` | nine days under a length of ten with the tuning at seven: the lines add up, the expected amounts are a full month, and the next bills are due on day index 10 |
+| `a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change` | the probe of a save on day 12 under 7 loaded under 4 to 10 and 30 now also asserts the issue day (14) and the next due day |
+| `a_month_length_of_365_after_seven_day_months_issues_at_its_own_boundary` | the seven-day month issues at its own boundary and the next opens under 365 and aligns to it |
+| `refuses_an_open_month_outside_the_compiler_range` | `month_length` 366 and 0 are refused |
+| `refuses_a_month_counted_to_or_past_its_own_end` | a record counted to or past its end is refused |
+| `refuses_a_bill_with_terms_the_compiler_would_refuse` | a grace of 365 is refused and a grace of 20, longer than the month, loads |
+| `the_month_length_sequence_7_365_300_365_300_keeps_every_save_and_projection_right` | the sequence on fixed days, a save and a load every day for 1,000 days, every load succeeds, `month_days <= month_length <= 365`, no issued transportation base charge exceeds a full month, and on each month's last counted day the panel's Expected equals what is then issued |
+| `month_lengths_changing_every_few_days_keep_every_save_and_projection_right` | the same over 150 days of lengths 7, 3, 10, 5, 30, 4, 1 and 9 |
+
+**Against the old code.** The new tests were run on `ebe94f194`'s `bills.rs`, with a three-line `month_end` helper the tests call, on 2026-11-15. Eight of nine failed there: the shorter-month test, the panel test, the 365 test, the probe, both fixed-day runs, and both range refusals. The ninth, the bill-terms test, passed there because a grace of 365 was refused by the old rule too; it gained the grace-of-20 case afterwards, and a mutant (below) shows it now fails when the grace must stay under the month. The 365 test, whose old version did not fail with the bound back at 365 (L1), now fails on the old code.
+
+**Mutants of the redesign.** Seven mechanisms were removed or changed in `bills.rs` and the targeted tests (`bills::` and `save::v22`, 75 tests, all passing on the unmutated design) were run; each mutant failed at least one test:
+
+| Mechanism | Change | Tests that failed |
+| --- | --- | --- |
+| A month keeps the length it opened with | the length is not stored when a month opens | 13, among them the shorter-month test and the long run of debt and recovery |
+| The projection counts to the month's own end | the days left use the tuning's length | the panel test and both fixed-day runs |
+| A save counted at its end is refused | the `day >= end` refusal removed | `refuses_a_month_counted_to_or_past_its_own_end` |
+| A month's bills are due on its end day | the due day is today | `bills_issued_after_a_skipped_boundary_are_due_on_the_months_first_day` |
+| A bill carries the length of its own month | the tuning's length is used | six, among them the shorter-month test, the 365 test and the sequence run |
+| A bill's grace need only stay under 365 | the grace must stay under the month | `refuses_a_bill_with_terms_the_compiler_would_refuse` and the every-few-days run |
+| The next bills are due when the open month ends | the tuning's next first day | the shorter-month test and the panel test |
+
+**The file was restored byte for byte.** One earlier run of these mutants was stopped partway through its first mutant to fix a wrong assertion in the probe test, which left `bills.rs` mutated. Before anything was committed, the restore was proven in two ways. The mutation's replacement text was present once and its original text absent, and I reversed that one replacement by hand. Then the design edit script was re-run on a temporary copy of `ebe94f194`'s `bills.rs`, and the copy's SHA-256, `d8302df3af998eeb5e3b4caebac13d4f898d0d5059c3316669eab7aee9312673`, equals the hand-restored file's and a saved known-good copy's. `git diff ebe94f194 -- crates/terri-sim/src/bills.rs` was then read line by line against the design and held no stray edit. The rerun script takes a snapshot of the file and checks its hash first, restores every mutant from that snapshot (never with `git checkout`), prints that the hash matches after each mutant, and checks it once more at the end; every check matched `d8302df3af998eeb`.
+
+**The web panel on a short month.** A web test (`tests/bills-panel.test.ts`, 15 tests passing) renders the real panel code with a month opened under a four-day tuning, two days counted and the bills due on day index 16: it reads `Due Day 17, Wednesday`, `Base charge, 2 of 4 days`, tile lines of `2 of 4 days` and `A month is 4 days.`, and the row reads `$425 due Day 17`. The panel code needed no change: its lines already read the stored month length.
