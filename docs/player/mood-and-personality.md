@@ -76,7 +76,7 @@ Books also have title-specific familiarity. A new physical copy does not reset a
 
 ## Likes, surroundings and other people {#likes-and-dislikes}
 
-People can like or dislike object kinds. Some reactions concern an object present in the room; others concern active use. These can affect mood. Strong dislike of another person's TV or radio use in the same room can also reduce the observer's feeling toward the user.
+People can like or dislike object kinds. Some reactions concern an object present in the room; others concern active use. Being near a plant or an aquarium they like lifts a person's mood, and the lift ends when they leave the room. Being near something they dislike never lowers mood. Strong dislike of another person's TV or radio use in the same room does lower the observer's mood, and can also reduce their feeling toward the user.
 
 Relationships create their own nearby mood effects. Compatibility is based on interests, dispositions and hobbies. It is not the same as current friendship, and changing a preference does not directly set a new opinion. See [relationship causes](relationships/#causes).
 

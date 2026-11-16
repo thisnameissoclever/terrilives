@@ -476,7 +476,19 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// merging 053ee52d3; with the old wages, no premium, no starting funds and
 /// the bills system and its hash switched off, the branch gave
 /// 0xa0fb_785a_e3a4_7b1d again.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb953_34a8_9aca_0e2c;
+/// Issue 344 (presence never lowers mood) then moved it from
+/// 0xb953_34a8_9aca_0e2c, on top of issue 298's change, on purpose: a person
+/// no longer reads `Bothered by the plants here`. Of the three shipped
+/// housemates only Bill holds a plant value at or below -0.2 (-0.35;
+/// nobody's aquarium value is negative), so he is the only person who loses
+/// a penalty. His mood first differs from the old rule's at tick index 410
+/// (about 06:50 on Monday), when he first stands in a room with a plant, and
+/// the world hash first differs at tick index 718 (about 12:00 on Monday),
+/// when a choice scored from that mood first goes the other way. Measured
+/// on the tree that combines both changes, with the log off and on giving the
+/// same worlds, and with the old presence rule restored behind a temporary
+/// switch and then removed.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x06a6_5d89_3df7_7287;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -491,8 +503,11 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb953_34a8_9aca_0e2c;
 /// Issue 298 then moved it from 0x78e8_cb74_b70c_d742 for the reason given
 /// for the two-day fold, and over twenty days the bills are also paid from
 /// Funds on days 7 and 14; with the old wages, no premium, no starting
-/// funds and the bills off it gave 0x78e8_cb74_b70c_d742.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9b22_0f1c_a448_e32c;
+/// funds and the bills off it gave 0x78e8_cb74_b70c_d742. Issue 344 then
+/// moved it from 0x9b22_0f1c_a448_e32c for the reason given for the two-day
+/// fold, measured on the tree that combines both changes, in a release
+/// build, with the log off and on giving the same worlds.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4947_38f3_cd9d_3898;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

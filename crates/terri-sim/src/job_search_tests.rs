@@ -244,7 +244,19 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// hash once a day is counted. With the old wages, no premium, no starting
 /// funds and the bills off, the branch gave 17769474122166916875 after
 /// merging 053ee52d3; the draws and jobs are the same.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (4873052259007802963, 7, 2);
+/// Issue 344 (presence never lowers mood) then moved the hash from
+/// 4873052259007802963, on top of issue 298's change, on purpose: a person
+/// no longer reads `Bothered by the plants here`. Of the three shipped
+/// housemates only Bill holds a plant value at or below -0.2 (-0.35;
+/// nobody's aquarium value is negative), so he is the only person who loses
+/// a penalty. His mood first differs from the old rule's at tick index 410
+/// (about 06:50 on Monday), when he first stands in a room with a plant, and
+/// the world hash first differs at tick index 718 (about 12:00 on Monday),
+/// when a choice scored from that mood first goes the other way. Measured
+/// on the tree that combines both changes, with the old presence rule
+/// restored behind a temporary switch and then removed. The draw counts and
+/// every job and shift are again unchanged.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (13315179661733202479, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
