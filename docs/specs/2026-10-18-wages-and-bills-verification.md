@@ -13,6 +13,7 @@ This record holds the calibration measurements, moved test expectations, mutatio
 - [Mutation sweep](#mutation-sweep)
 - [Played pass](#played-pass)
 - [Review dispositions](#review-dispositions)
+- [Final review of `901cbf3fd`](#final-review-of-901cbf3fd)
 
 ## Calibration traces
 
@@ -39,7 +40,7 @@ The share of income is the four months' bills over the four months' income. The 
 
 ## Acceptance bands
 
-[WB-numbers] accepts the shipped values when the three-earner household's bills are 18 to 26 percent of its income with every bill paid on its due day, the one-earner household's bills are 35 to 50 percent of Tim's actual earnings with every bill paid within its grace period, water usage is 30 to 65 percent of the water bill and electricity usage 15 to 40 percent of the electricity bill. Ruling 17 made actual earnings the reading for the one-earner band, and ruling 23, decided by the coordinator on 2026-10-25 following the owner's take-home-pay ruling of 2026-10-24, reads the band as the average over the measured months of a run.
+[WB-numbers] accepts the shipped values when the three-earner household's bills are 18 to 26 percent of its income with every bill paid on its due day, the one-earner household's bills are 35 to 50 percent of Tim's actual earnings with every bill paid within its grace period, water usage is 30 to 65 percent of the water bill and electricity usage 15 to 40 percent of the electricity bill. Ruling 17 made actual earnings the reading for the one-earner band, and ruling 23, decided by the coordinator on 2026-10-25 following the owner's take-home-pay ruling of 2026-10-24 and confirmed by the owner on 2026-11-15, reads the band as the average over the measured months of a run.
 
 - Three earners: 22.3 to 22.6 percent over the four months of each seed, and 21.7 to 24.0 percent in every single month, every bill paid on its due day. Passes on either reading.
 - One earner: 47.2 to 48.9 percent of Tim's actual earnings of $750 to $775 a month over the four months of each seed, every bill paid on its due day. Passes on the average, which is ruling 23's reading. One month is outside 35 to 50 percent: the third month of seed 20260728 reads 50.2 percent, because Tim earned $735.37 that month, the least of any month of any solo run. The other fifteen solo months are 46.7 to 49.0 percent. At $1.10 the average was 53.0 to 54.0 percent; on the nominal reading of five shifts at $180 it is 40.7 percent.
@@ -112,6 +113,14 @@ Each mechanism below was removed or disabled in the source, the test that guards
 
 The last five rows ran on 2026-11-15 at `eabccaa65` with the same procedure, and every restored file matched its SHA-256. The runners and their logs are outside the repository.
 
+Three more mechanisms were checked the same way on 2026-11-15 after the final review of `901cbf3fd`, each restored and its SHA-256 matched:
+
+| Mechanism | Change | Test that failed |
+| --- | --- | --- |
+| The panel's lines divide by the month's own length | the tuning's month length put back | `the_panel_follows_a_months_own_length_after_a_month_length_change` |
+| The expected amounts project the month to the longer of its length and the days it will have counted | the old month length kept | `the_panel_follows_a_months_own_length_after_a_month_length_change`; the first version of that test left this mutant alive, because its projection ended exactly on the month's length, so the test now projects three days past it |
+| An open month may be counted over up to 730 days | the bound put back at 365 | `an_open_month_may_run_past_the_compilers_longest_month` and `a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable` |
+
 ## Mutation sweep
 
 `cargo mutants --in-place --in-diff` ran on 2026-10-25 against the branch's diff from `318da27c6` to `bdd6b65f1`, in this worktree only, with the test build at optimization level 1 so the whole `terri-sim` library suite ran in about 40 seconds per mutant (`CARGO_PROFILE_DEV_OPT_LEVEL=1`; tests ran with `--lib` for `terri-sim`). A driver ran small shards in priority order, recorded the SHA-256 of every tracked file under `crates/` and `content/` before the sweep, compared them after every shard, and started no new shard after 3 hours 40 minutes; the tree matched after every shard. It never used `git checkout`.
@@ -156,7 +165,7 @@ The branch's production build at `bdd6b65f1`, with the $0.90 indoor rate and $40
 7. The night watch worker's Career tab read `$105 per shift, from $105 to $128 at this level. Night shifts pay 15% more: $120.75 per shift.`
 8. The schema-21 night-shift save loaded with the office clerk at $180 and Casey, the night watch guard, at $105 with her open night shift at the raised pay; the schema-21 yard-bed save loaded with the double bed on its yard tile. The two are separate committed fixtures, and `the_authentic_schema_twenty_one_fixtures_load_with_migrated_pay` checks the raised pay in all three.
 
-The phone row held `$10,000 due Day 1,000`, set into the live row by script to measure the longest value, on one line, 128 pixels wide within the 182-pixel panel. The player guide's overview, guide shortcut, Build, Furniture and save status captures were retaken on the same build with the Bills row, on a new game run to Day 1, 09:00. They were retaken once more on 2026-11-15 on the final head's build (headless, muted Chrome, one browser at a time, its own preview port, closed afterward), because the review found a housemate's bubble behind the phone speed buttons. The phone captures were taken only when a pixel check of the speed-button strip matched a strip known to be clear, which needed three tries and ended at Day 1, 09:22. The phone Furniture crop ends below the Furniture dropdown, because the panel's sticky Cancel and Confirm row covers the Colour dropdown below it; the desktop crop is unchanged. Every retaken capture was opened at full size and checked for bubbles over the controls, clipped text and the Bills row's value.
+The phone row held `$10,000 due Day 1,000`, set into the live row by script to measure the longest value, on one line, 128 pixels wide within the 182-pixel panel. The player guide's overview, guide shortcut, Build, Furniture and save status captures were retaken on the same build with the Bills row, on a new game run to Day 1, 09:00. They were retaken once more on 2026-11-15 on the final head's build (headless, muted Chrome, one browser at a time, its own preview port, closed afterward), because the review found a housemate's bubble behind the phone speed buttons. The phone captures were taken only when a pixel check of the speed-button strip matched a strip known to be clear, which needed three tries and ended at Day 1, 09:22. The phone Furniture capture scrolls the panel so the Colour dropdown shows whole above the sticky Cancel and Confirm row, because that row covered the dropdown and left a bare Colour label at the panel's top position; the guide crop is the whole panel from that capture, and the desktop crop is unchanged. Every retaken capture was opened at full size and checked for bubbles over the controls, clipped text and the Bills row's value.
 
 **Findings fixed during the passes.**
 
@@ -179,15 +188,28 @@ Two fresh reviewers read `fc6d02659` without being told what to expect, one the 
 | S2 | The world hash left out the open month's length and start and each bill's issued-under terms | Fixed. They are hashed in saved order, the hash test changes each one, and the four pins moved again with the same classification, which the 2026-11-15 run above confirms | `9c5ff53e3` |
 | S3 | Four mutants survived: the day start moved beside payment, a plain assignment of the month length, no month start, no length reset on issue | Fixed. Tests drive the real schedule and the month bookkeeping, and all five mutants, S1's included, are caught on 2026-11-15 (the [targeted mutation results](#targeted-mutation-results)) | `cd04aa9fa` |
 | S4 | The ignored Build search failed at seed 16 on the bed rule's intended refusal | Fixed. The search cancels a batch the bed rule refuses and goes on; all 24 seeds pass and seed 16 cancels one batch | `0d0fd3d1a` |
-| S5 | The calibration table did not match the final head, and one month of one seed read 50.2 percent | Re-recorded at the final head in [calibration traces](#calibration-traces). The one-earner band is read as the average over measured months (ruling 23, the coordinator's); the 50.2 percent month is named in [acceptance bands](#acceptance-bands) | the commit of this record |
+| S5 | The calibration table did not match the final head, and one month of one seed read 50.2 percent | Re-recorded at the final head in [calibration traces](#calibration-traces). The one-earner band is read as the average over measured months (ruling 23, confirmed by the owner on 2026-11-15); the 50.2 percent month is named in [acceptance bands](#acceptance-bands) | the commit of this record |
 | W1 | The player guide's Bills section lacked the unpaid row and the overdue-from note | Fixed in the guide | `606a48899` |
 | W2 | The visible strings register held the old note and tile lines and lacked the new strings | Fixed. The register takes the current proposed rows for the owner's review | `606a48899` |
 | W3 | The named-bed refusal was untested where it is wired: passing no name to the refusal kept every web test green | Fixed. A `BuildSession` test drives a refusal that carries the bed's entity and checks the message, so passing no name fails it | `fa5236520` |
 | W4 | A bunk bed was named only by its model | Fixed. The refusal reads type first and model second, for example `The bunk bed (Basic Oak) would be left outside.`; `d27` shows `The bed (Standard Double) would be left outside.` | `fa5236520` |
 | W5 | The overdue-from note disappeared once any bill was overdue | Fixed. The overview exports the earliest unpaid bill that is not yet overdue, and the panel says when it becomes overdue even while an older bill is | `33abebdc9` |
 | W6 | The phone guide captures of the overview, save status and guide shortcut hid the 3x button behind a bubble | Fixed by recapture on 2026-11-15, with a pixel check that nothing sits behind the speed buttons | the commit of the captures |
-| W7 | The phone Furniture crop ended on a bare `Colour` label | Fixed. The crop ends below the Furniture dropdown | the commit of the captures |
+| W7 | The phone Furniture crop ended on a bare `Colour` label | Fixed. The capture scrolls the panel so the Colour dropdown shows whole above the Cancel and Confirm row, and the guide crop is the whole panel. A reviewer of the first fix found the full-frame capture still ended on the bare label; it was retaken | the commit of the captures |
 | W8 | Four mutants survived with no test: the month length passed to a bill row, the null-days check, the touch-size media query and the phone header offset | Fixed with fixtures where the month length differs from the tuning's, where unpaid cents disagree with the days, and stylesheet assertions for the query and the offset | `33abebdc9` |
 | W9 | The tile lines never said "a tile" | Fixed. They read `at $0.90 a tile a month`. This is proposed copy for the owner's review | `33abebdc9` |
 
 The `d27` capture was retaken for W4 and carries the same text as the record's played-pass point 5.
+
+## Final review of `901cbf3fd`
+
+A last fresh review of `901cbf3fd` found no blocker and these items, numbered as the coordinator sent them.
+
+| Item | What the reviewer found | Disposition | Commit |
+| --- | --- | --- | --- |
+| 1 | After a month length change the panel disagreed with what is issued: a bill's lines divided by the tuning's month length, and the expected amounts left the month's length at its old value while adding the remaining days (a probe with the tuning at seven and nine days counted under ten showed 1,286 where 900 was so far, and 1,400 expected against 1,000 issued) | Fixed. The lines use the month's own length and the projection uses the longer of it and the days it will have counted. The new test asserts the lines add up and that no expected amount exceeds a full month; both fixes' mutants are caught | `d7876bea6` |
+| 2 | A saved open month longer than 365 days was refused, though the compiler accepts a month of 365 days and a month can run to the next boundary of another length | Fixed. The bound is 730 days, twice the compiler's longest month, and the spec's claim is corrected. A 366-day month loads, one past 730 is refused, and seven-day months run into a tuning of 365 with a save loaded every day near the end; the bound at 365 fails two of those tests | `601c15784` |
+| 3 | The Build search's new bed arm counted refusals and asserted nothing | Fixed. The search asserts that at least one batch is cancelled for a bed left outside across the default 24 seeds. The 24 seeds ran once in release with `--ignored` on 2026-11-15 and passed, 524 seconds, and only seed 16 cancelled a batch (one). An earlier run of the same seeds was cut off by its time bound after seed 21 while the machine was busy, with seeds 1 to 21 passing; seeds 22 to 24 then passed alone | `82e85b0e9` |
+| 4 | The V22 notes of `docs/ARCHITECTURE.md` omitted the open month's start and length and each bill's issued-under terms, and three pin comments named an older main commit | Fixed. The notes list them and the three comments name `053ee52d3`, main's current commit | `727b45bca` |
+| 5 | Ruling 23 was not marked as unconfirmed | The owner confirmed it on 2026-11-15, so the spec records it as decided by the coordinator on 2026-10-25 and confirmed by the owner on 2026-11-15, with the 50.2 percent month accepted | the commit of this record |
+| 6 | The full-frame phone Furniture capture still ended on a bare `Colour` label above Cancel and Confirm | Fixed. The panel is scrolled so the Colour dropdown shows whole above the row, and the guide crop is the whole panel. I opened the capture at full size | the commit of the captures |
