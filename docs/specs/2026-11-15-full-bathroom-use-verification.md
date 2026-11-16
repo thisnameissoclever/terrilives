@@ -57,3 +57,12 @@ Tests that encoded the old balance and were corrected:
 ## Drain: red then green
 
 `shipped_base_decay_is_three_quarters_of_the_balance_before_issue_315` was written first and failed on main's content with "hunger drains 0.041333333 a tick; three quarters of the old 0.041333333 is 0.031". It passes with the new rates. Mutation checks, each followed by a restore and a matching hash of `content/tuning.toml`: setting every rate to 0.8 times its old value fails with "hunger drains 0.033066668 a tick", and restoring only hunger to 0.0413333333 fails with "hunger drains 0.041333333 a tick".
+
+## Drain: checks on the merged tree
+
+The drain change was merged with main at 54cf96b46 and checked on the merged head 07171218f.
+
+1. Full local check, `scripts/check-local-ci.py run`, all six groups (docs, scripts, art, rust, site, web), 29 steps, every step exit code 0. The report says state passed, complete true and source_changed false. Report: `D:/VIBES/.worktrees/twcl-315-logs/pr1-ci-final.json`, sha256 `f8bf6685b8115874c361c1b6765b98fdc525cdcf4e54f73f2071f0c909bacd3b`. The web steps rebuilt the release WebAssembly module and ran the `GOLDEN` twin in `web/tests/bridge.test.ts` against it.
+2. The manual twenty-day activity log check, `cargo test --release -p terri-sim --lib -- activity_log_never_changes_the_world_over_twenty_days --ignored --test-threads=1`, passed on the same head: 1 passed, 0 failed, 122 seconds. It requires a nuisance episode in the twenty days and found one. Log: `D:/VIBES/.worktrees/twcl-315-logs/pr1-twenty-day-release-final.log`.
+
+The report and log live in local storage next to the other evidence and are not part of the repository. Later commits on this branch changed documentation only.
