@@ -8,6 +8,7 @@
 | Affinity | One person's directional feeling toward another, from hostility to closeness. The other person's feeling is separate. See Relationships. |
 | Autosave | An automatic write to the local save slot at the start of a new game day. |
 | Bed assignment | Permanent ownership of a sleeping place. It is separate from current occupancy or a temporary reservation. |
+| Bills | Rent, Electricity, Water and Transportation, charged on the first day of each month and paid from Funds automatically. See [bills](the-world/#bills). |
 | Bookmark | A person's saved progress through a reading pass. Interruption does not erase it. |
 | Build draft | Home changes waiting for Confirm. Cancel at the bottom discards changes since the last confirmation. |
 | Capability | A trait that permits a skill-linked chance of failure. Completed failed attempts can still give practice. |
@@ -23,7 +24,7 @@
 | Disposition | A trait or preference that changes the appeal of an activity. Reading-related dispositions also change how much Fun reading supplies. |
 | Family tie | A partner, parent, child or sibling connection, separate from opinion. Family scales relationship events and adds a company bonus. |
 | Familiarity | How much and how recently a person has read a title. Greater familiarity reduces novelty. |
-| Funds | Household money used for purchases and increased by pay or sales. |
+| Funds | Household money used for purchases and bills and increased by pay or sales. |
 | Fumble | A failed capability-linked attempt. Positive benefits and satisfaction may be reduced or absent; costs and time still matter. |
 | Game minute | The unit used for activity durations, need rates and the clock. Speed changes how many pass per real second. |
 | Habituation | Repetition making the same activity on the same object less appealing. It fades over time without reducing ordinary need rates. |

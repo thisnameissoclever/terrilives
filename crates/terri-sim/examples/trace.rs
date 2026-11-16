@@ -65,6 +65,8 @@ use terri_sim::Sim;
 mod activity_log;
 #[path = "trace/bathroom.rs"]
 mod bathroom;
+#[path = "trace/bills.rs"]
+mod bills;
 #[path = "trace/catalogue.rs"]
 mod catalogue;
 #[path = "trace/catalogue_meals.rs"]
@@ -286,6 +288,7 @@ fn main() {
 
     let mut shift_summary = shifts::Summary::new(sims.len());
     let mut bathroom_summary = bathroom::Summary::new(sims.len());
+    let mut bills_summary = bills::Summary::new(&sim);
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
     };
@@ -297,6 +300,7 @@ fn main() {
         log_volume.observe(&mut sim);
         let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
+        bills_summary.observe(&sim);
 
         let current = sim.save_snapshot_v17();
         let saved_requests = current.legacy.legacy.conversation_requests;
@@ -1431,6 +1435,7 @@ fn main() {
     }
     shift_summary.print(&sim, &sims);
     bathroom_summary.print(ticks);
+    bills_summary.print(&sim);
     println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());

@@ -147,8 +147,10 @@ fn using_kind(world: &World, pack: &ContentPack, person: Entity) -> Option<u32> 
 
 /// The moodlets the things in `subject`'s room give - [OA-presence]: one
 /// per `presence` kind with at least one object in the room and a value
-/// that is not zero and whose magnitude is at least
-/// `affinity_presence_threshold`, in kinds order. Nobody in the yard, off the lot or at work gets one, and nothing
+/// that is positive and at least `affinity_presence_threshold`, in kinds
+/// order. Being near a thing never lowers mood, so a dislike gives nothing
+/// (owner ruling of 2026-10-25; only a use bothers, see [`nuisances`]).
+/// Nobody in the yard, off the lot or at work gets one, and nothing
 /// outside the house counts.
 pub(crate) fn presence_moodlets(
     world: &World,
@@ -181,16 +183,15 @@ pub(crate) fn presence_moodlets(
         .filter(|(_, (kind, count))| kind.reach == AffinityReach::Presence && *count > 0)
         .filter_map(|(index, (kind, count))| {
             let value = affinities.value(index as u32);
-            if value.abs() < tuning.affinity_presence_threshold {
+            // Only a liked kind gives a moodlet. A value of exactly zero is
+            // indifference whatever the threshold, a negative value is a
+            // dislike that presence never charges, and NaN has no sign.
+            if value.partial_cmp(&0.0) != Some(Ordering::Greater)
+                || value < tuning.affinity_presence_threshold
+            {
                 return None;
             }
-            // A value of exactly zero is indifference whatever the
-            // threshold, so it has no sign to read.
-            let label = match value.partial_cmp(&0.0) {
-                Some(Ordering::Greater) => format!("Likes the {} here", kind.label),
-                Some(Ordering::Less) => format!("Bothered by the {} here", kind.label),
-                _ => return None,
-            };
+            let label = format!("Likes the {} here", kind.label);
             let extra = (count - 1).min(tuning.affinity_presence_extra_cap);
             Some(Moodlet {
                 label,

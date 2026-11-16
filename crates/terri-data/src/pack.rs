@@ -308,6 +308,13 @@ pub struct CompiledInteraction {
     pub seat_use: SeatUse,
     pub media: Option<MediaBehavior>,
     pub recipe: Option<RecipeBinding>,
+    /// Use kinds charged once when this action starts its physical work, as
+    /// indices into [`BillsTuning::uses`] ([WB-usage] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`). Ascending, none
+    /// repeated, usually empty. Kept apart from `tags`, so traits, hobbies,
+    /// skills and habituation cannot notice it, and outside the content
+    /// fingerprint. Appended last.
+    pub bill_uses: Vec<u16>,
 }
 
 #[cfg(test)]
@@ -468,8 +475,16 @@ pub struct CompiledObject {
     pub cooking_front: Option<(i32, i32)>,
     pub seat_comfort_per_tick: f32,
     /// The interaction a left click starts. Content names it by action id;
-    /// the first interaction when unnamed. Appended last.
+    /// the first interaction when unnamed.
     pub default_interaction: u32,
+    /// Daily usage kinds, as indices into [`BillsTuning::daily`]: each placed
+    /// object of this definition adds one of each to the month's bills
+    /// every day ([WB-usage]). Ascending, none repeated. Appended after
+    /// `default_interaction`.
+    pub bill_daily: Vec<u16>,
+    /// Whether every tile of the object must be inside an enclosed room when
+    /// it is bought or moved ([WB-beds]). Appended last.
+    pub indoor_only: bool,
 }
 
 /// Navigation offsets from the base-facing footprint, independent of art sockets.
@@ -1218,6 +1233,12 @@ pub struct Tuning {
     /// [WS-search]: how far the job search spreads its choice of path over
     /// fit. 0 is the best-fit search with no draw.
     pub career_search_temperature: f32,
+    /// How much more a shift of the night kind pays, in percent from 0 to
+    /// 100 ([WB-wages] in `docs/specs/2026-10-18-wages-and-bills.md`).
+    /// Applied to each night shift's pay when it is registered; the
+    /// person's pay and the level's range stay without it. Appended after
+    /// the shift knobs, per the rule above.
+    pub night_shift_premium_percent: u32,
     /// Issue 315: the longest a toilet, shower or bath use may run while
     /// filling its need, in ticks, from `min_interaction_ticks` to 1440.
     /// Appended last, per the rule above.
@@ -1286,12 +1307,28 @@ impl Tuning {
     /// with: 0, the best-fit search those packs ran, so their worlds keep
     /// choosing a path exactly as they did.
     pub const PRE_SHIFT_CAREER_SEARCH_TEMPERATURE: f32 = 0.0;
+    /// The shipped night premium (issue 298), reconstructed the same way for
+    /// packs published before it existed. It matters only for a held shift
+    /// of the night kind, which no published pack has.
+    pub const SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT: u32 = 15;
     /// The fill limit a pack published before issue 315 rebuilds with: the
     /// shipped 240. The fill is a rule of the simulation, not a knob a pack
     /// opts into, so a published pack's worlds change behavior with it; this
     /// only keeps a person with a very low satisfaction multiplier from
     /// occupying a bathroom for hours.
     pub const PRE_FILL_NEED_FILL_MAX_TICKS: u32 = 240;
+
+    /// The pay of one shift of `kind` for a person paid `pay` whole dollars
+    /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
+    /// added for a night shift, rounded down to the cent.
+    pub fn shift_pay_cents(&self, pay: u32, kind: u8) -> i64 {
+        let cents = i64::from(pay) * 100;
+        if kind == SHIFT_NIGHT {
+            cents * (100 + i64::from(self.night_shift_premium_percent)) / 100
+        } else {
+            cents
+        }
+    }
     /// The shipped season knobs, reconstructed the same way for packs
     /// published before they existed.
     pub const SHIPPED_DAYS_PER_SEASON: u32 = 7;
@@ -1302,6 +1339,79 @@ impl Tuning {
         [-45.0, 0.9, -0.05],
         [12.0, 0.3, 0.14],
     ];
+}
+
+/// The household's monthly bills, compiled from `[bills]` in
+/// `content/tuning.toml` - [WB-tuning] in
+/// `docs/specs/2026-10-18-wages-and-bills.md`.
+///
+/// A sibling of [`Tuning`] on the pack rather than a field of it, for the
+/// reason [`Circadian`] is: `Tuning` is `Copy`, and the kind lists own
+/// their labels. Every value has been through the compiler: the month is
+/// 1 to 365 days, the grace is shorter than the month, the percentages are
+/// 0 to 100, the mood is finite and not negative, and every cent amount is
+/// 0 to 1,000,000.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct BillsTuning {
+    pub days_per_month: u32,
+    pub grace_days: u32,
+    pub late_fee_percent: u32,
+    pub late_fee_cap_percent: u32,
+    pub overdue_mood: f32,
+    pub rent_base_cents: i64,
+    pub rent_indoor_tile_cents: i64,
+    pub rent_outdoor_tile_cents: i64,
+    pub electricity_base_cents: i64,
+    pub water_base_cents: i64,
+    pub transportation_base_cents: i64,
+    pub commute_cents: i64,
+    /// The money a new household starts with ([WB-rulings] ruling 18).
+    pub starting_funds_cents: i64,
+    /// Charged once each time an action or chain step carrying the kind
+    /// starts its physical work, in id order. Compiled actions and steps
+    /// hold indices into this list.
+    pub uses: Vec<BillKind>,
+    /// Charged once a day for each placed object carrying the kind, in id
+    /// order. Compiled objects hold indices into this list.
+    pub daily: Vec<BillKind>,
+}
+
+/// One usage kind of [`BillsTuning`]: its id, the label the Bills panel
+/// shows, and what one use or one object-day adds to each utility bill.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BillKind {
+    pub id: String,
+    pub label: String,
+    pub water_cents: i64,
+    pub electricity_cents: i64,
+}
+
+impl BillsTuning {
+    /// The shipped scalar values, which packs published before bills and
+    /// the frozen pre-books sources reconstruct ([L-required-tuning-
+    /// historical-expansion]). Their content declares no usage, so the
+    /// kind lists are empty.
+    pub fn shipped_without_usage() -> Self {
+        Self {
+            days_per_month: 7,
+            grace_days: 5,
+            late_fee_percent: 5,
+            late_fee_cap_percent: 50,
+            overdue_mood: 8.0,
+            rent_base_cents: 6000,
+            rent_indoor_tile_cents: 90,
+            rent_outdoor_tile_cents: 20,
+            electricity_base_cents: 3000,
+            water_base_cents: 2000,
+            transportation_base_cents: 1000,
+            commute_cents: 300,
+            // Households from before bills started with nothing, and a
+            // reconstructed one must too.
+            starting_funds_cents: 0,
+            uses: Vec::new(),
+            daily: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1617,6 +1727,9 @@ pub struct ContentPack {
     /// The career paths every job belongs to (issue 249). Appended at the
     /// pack tail; a pack from before paths reconstructs one path per job.
     pub career_paths: Vec<CompiledCareerPath>,
+    /// The monthly bills (issue 298, [WB-tuning]). Appended after the career
+    /// paths, the pack's last field until then.
+    pub bills: BillsTuning,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1691,6 +1804,10 @@ pub struct CompiledChainStep {
     pub sound_action: Option<CompiledSoundAction>,
     /// Optional authored activity indicator; excluded from save compatibility.
     pub activity: Option<CompiledActivity>,
+    /// Use kinds charged once when this step starts its physical work, as
+    /// indices into [`BillsTuning::uses`] ([WB-usage]). Ascending, none
+    /// repeated. Appended last.
+    pub bill_uses: Vec<u16>,
 }
 
 /// One career, compiled and validated: the shift fits inside the day,
@@ -2024,6 +2141,7 @@ mod tests {
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
+            bill_uses: Vec::new(),
             media: None,
             recipe: None,
             book_reading: false,
@@ -2278,6 +2396,7 @@ mod tests {
             shift_sleep_offset_late: 125,
             shift_sleep_offset_night: 655,
             career_search_temperature: 0.3125,
+            night_shift_premium_percent: 17,
             need_fill_max_ticks: 245,
             days_per_season: 5,
             first_season: 2,
@@ -2295,6 +2414,7 @@ mod tests {
             books: Vec::new(),
             reading: None,
             career_paths: Vec::new(),
+            bills: BillsTuning::shipped_without_usage(),
             circadian: None,
             sleep_tag: String::new(),
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
@@ -2322,6 +2442,8 @@ mod tests {
                         });
                     }
                     CompiledObject {
+                        bill_daily: Vec::new(),
+                        indoor_only: false,
                         default_interaction: 0,
                         cooking_front: None,
                         shelf_capacity: 0,
@@ -2425,6 +2547,7 @@ mod tests {
             // interaction above, so the round trip can see the social
             // list written into the objects' slot or vice versa.
             social: vec![CompiledInteraction {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -2561,6 +2684,7 @@ mod tests {
                 satisfaction: 3.25,
                 steps: vec![
                     CompiledChainStep {
+                        bill_uses: Vec::new(),
                         role: 1,
                         label: "Get ingredients".to_string(),
                         duration_ticks: 21,
@@ -2573,6 +2697,7 @@ mod tests {
                         activity: None,
                     },
                     CompiledChainStep {
+                        bill_uses: Vec::new(),
                         role: 0,
                         label: "Cook".to_string(),
                         duration_ticks: 63,
@@ -2585,6 +2710,7 @@ mod tests {
                         activity: None,
                     },
                     CompiledChainStep {
+                        bill_uses: Vec::new(),
                         role: 1,
                         label: "Eat".to_string(),
                         duration_ticks: 42,
@@ -2704,6 +2830,8 @@ mod tests {
         facing_foreground_sprites: FacingSprites,
     ) -> CompiledObject {
         CompiledObject {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_interaction: 0,
             cooking_front: None,
             shelf_capacity: 0,
@@ -3135,8 +3263,8 @@ mod tests {
     /// ninety-five of the career knobs and the fifty of the season knobs,
     /// followed by optional autonomy, the meal-appreciation float, the
     /// optional weather, the purposeful-fight knobs, the ten bytes of the
-    /// shift knobs and the fill limit's varint;
-    /// every established field stays put.
+    /// shift knobs, the one-byte varint of the night premium ([WB-wages])
+    /// and the fill limit's varint; every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3162,14 +3290,25 @@ mod tests {
             vec![fill],
             "fill limit"
         );
+        // Wages (issue 298): the night premium is the byte before the fill
+        // limit, a varint of 17, and moving it moves that byte alone.
+        let premium = fill - 1;
+        assert_eq!(before[premium], 17);
+        assert_eq!(
+            changed(Tuning {
+                night_shift_premium_percent: 18,
+                ..a_tuning()
+            }),
+            vec![premium]
+        );
         // Shifts (issue 296): the five shift knobs are the ten bytes before
-        // the fill limit, after the purposeful-fight knobs:
+        // the premium, after the purposeful-fight knobs:
         // four zigzag varints (3 as 6, -61 as 121, 125 as 250 in two bytes
         // and 655 as 1310 in two bytes), then the search temperature's
         // four bytes.
-        let shifts = fill - 10;
+        let shifts = premium - 10;
         assert_eq!(before[shifts..shifts + 6], [6, 121, 0xFA, 0x01, 0x9E, 0x0A]);
-        assert_eq!(before[shifts + 6..fill], 0.3125f32.to_le_bytes());
+        assert_eq!(before[shifts + 6..premium], 0.3125f32.to_le_bytes());
         for (offset, after) in [
             (
                 0,
@@ -3211,7 +3350,7 @@ mod tests {
             ..a_tuning()
         })
         .iter()
-        .all(|index| *index >= shifts + 6));
+        .all(|index| (shifts + 6..premium).contains(index)));
         // Autonomy, appreciation and weather follow the original season fields.
         let mut tail = Vec::new();
         macro_rules! tail_field {
@@ -3743,6 +3882,7 @@ mod tests {
     #[test]
     fn a_chain_step_visual_has_stable_postcard_bytes() {
         let step = CompiledChainStep {
+            bill_uses: Vec::new(),
             role: 7,
             label: "Eat".to_string(),
             duration_ticks: 42,
@@ -3763,9 +3903,10 @@ mod tests {
         assert_eq!(
             postcard::to_allocvec(&step).expect("chain step must serialise"),
             // Visual socket `None` is followed by Some and enum discriminant
-            // 1 for the appended StoveCooking sound action. The final zero is
-            // the independently authored activity's None value.
-            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1, 0]
+            // 1 for the appended StoveCooking sound action. The next zero is
+            // the independently authored activity's None value, and the last
+            // is the empty usage list appended for bills (issue 298).
+            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1, 0, 0]
         );
     }
 

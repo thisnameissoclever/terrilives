@@ -125,9 +125,11 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
         .collect();
     assert_eq!(
         outcomes,
+        // The published hires at issue 298's wages, 1.5 times the published
+        // $120 and $80 ([WB-wages]).
         vec![
-            (0, 0, "office_job", 31, 360, 480, 120, Some(240), false),
-            (1, 0, "office_job", 31, 360, 480, 120, Some(240), false),
+            (0, 0, "office_job", 31, 360, 480, 180, Some(240), false),
+            (1, 0, "office_job", 31, 360, 480, 180, Some(240), false),
             (
                 2,
                 4,
@@ -135,7 +137,7 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
                 62,
                 330,
                 420,
-                80,
+                120,
                 Some(150),
                 false
             ),
@@ -182,9 +184,9 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
     assert_eq!(
         ongoing,
         vec![
-            (0, 0, 4680, 5160, 12000, false, false),
-            (1, 0, 4680, 5160, 12000, false, false),
-            (2, 4, 4650, 5070, 8000, false, false),
+            (0, 0, 4680, 5160, 18000, false, false),
+            (1, 0, 4680, 5160, 18000, false, false),
+            (2, 4, 4650, 5070, 12000, false, false),
         ]
     );
 }
@@ -235,18 +237,42 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// no longer considers a sleeping recipient, so at 21:25 on Monday it spends
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. The draw counts and every job and
-/// shift are again unchanged. Issue 315 then moved the hash from
-/// 17769474122166916875 on purpose: every base need drain rate is three
-/// quarters of what it was, so needs cross their thresholds at different ticks
-/// and the household's choices differ from the first morning. The draw counts,
-/// jobs and shifts are unchanged. Read from the failing assertion. Issue 315's
-/// fill change then moved the hash from 15679464342224380920 on purpose: a
-/// toilet, shower or bath now lasts until its need is full and its authored
-/// rates were raised, so every use of them in the household's days is shorter
-/// or longer than before and the choices and draws that follow differ. The
-/// draw counts, jobs and shifts are again unchanged. Read from the failing
-/// assertion.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (15708678162880853617, 7, 2);
+/// shift are again unchanged.
+/// Issue 298 then moved the hash from 17769474122166916875: pay is 1.5
+/// times what it was, the night watch guard's night shifts pay 15 percent
+/// more, a new household starts with $400, and the bills record joins the
+/// hash once a day is counted. With the old wages, no premium, no starting
+/// funds and the bills off, the branch gave 17769474122166916875 after
+/// merging 053ee52d3; the draws and jobs are the same.
+/// Issue 344 (presence never lowers mood) then moved the hash from
+/// 4873052259007802963, on top of issue 298's change, on purpose: a person
+/// no longer reads `Bothered by the plants here`. Of the three shipped
+/// housemates only Bill holds a plant value at or below -0.2 (-0.35;
+/// nobody's aquarium value is negative), so he is the only person who loses
+/// a penalty. His mood first differs from the old rule's at tick index 410
+/// (about 06:50 on Monday), when he first stands in a room with a plant, and
+/// the world hash first differs at tick index 718 (about 12:00 on Monday),
+/// when a choice scored from that mood first goes the other way. Measured
+/// on the tree that combines both changes, with the old presence rule
+/// restored behind a temporary switch and then removed. The draw counts and
+/// every job and shift are again unchanged.
+/// Issue 315 then moved the hash from 13315179661733202479, which main at
+/// 54cf96b46 gave with the wages, the bills and the presence rule above, on
+/// purpose: every base need drain rate is three quarters of what it was, so
+/// needs cross their thresholds at different ticks and the household's
+/// choices, and the draws they spend, differ from the first morning. The
+/// draw counts, jobs and shifts are unchanged. Measured on the tree that
+/// merges main at 54cf96b46 into the drain change, read from the failing
+/// assertion and then confirmed by a passing run.
+/// Issue 315's fill change then moved the hash from 5892717548701736568,
+/// which the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The draw counts, jobs and shifts are again unchanged. Measured on
+/// the tree that merges the drain change at f9b33b2ea into the fill change,
+/// read from the failing assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (16800902046621430031, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

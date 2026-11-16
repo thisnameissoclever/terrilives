@@ -202,3 +202,7 @@ Not checked: a `Bothered by` presence moodlet or the television bother in the br
 ## Delivery
 
 The implementation and this record are on branch `twcl/object-affinities`. Push, merge and deployment are recorded separately in the delivery report.
+
+## Later change: presence never lowers mood
+
+On the owner's ruling of 2026-10-25 (issue 344), the `Bothered by the {kind} here` moodlet was removed from [OA-presence]. The Mood evidence in item 4 of [OA-evidence] now reads nothing for a negative value, and the guard-deletion row `Zero is not a dislike` above describes a branch that no longer exists; its protection is now carried by `a_zero_value_reads_nothing_under_a_zero_threshold` and `presence_never_lowers_mood`. The rest of this record is the original evidence and is kept as written.

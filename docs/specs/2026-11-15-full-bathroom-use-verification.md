@@ -28,16 +28,18 @@ The trace line "unexplained disappearances" of conversation requests is 0, 1, 0 
 
 ## Drain: pinned values that moved, and why
 
-Every moved value below moved for one cause: each base need drain rate is three quarters of its old value, so needs cross their thresholds at different ticks and the household's choices, and the random draws they spend, differ from the first minutes. No digest encoding changed and no simulation code changed. Each new value was read from the failing assertion and then confirmed by a passing run.
+This change was merged with main at 54cf96b46, which added the wages and bills (issue 298, save schema 22) and stopped furniture presence lowering mood (issue 344). Each value below was recomputed on the merged tree from its own failing assertion, never by taking either side. The "Main" column is the value main at 54cf96b46 pins, which already includes the wages, the bills and the presence rule; the "This change" column adds one more cause. Each moved because each base need drain rate is three quarters of its old value, so needs cross their thresholds at different ticks and the household's choices, and the random draws they spend, differ from the first minutes. No digest encoding changed and no simulation code changed. Each new value was read from the failing assertion and then confirmed by a passing run.
 
-| Value | Where | Old | New |
+| Value | Where | Main | This change |
 | --- | --- | --- | --- |
 | Fixed-scenario world hash `GOLDEN` | `crates/terri-sim/src/lib.rs` | 4733362429942472337 | 15287039064284998688 |
 | Its release-WebAssembly twin | `web/tests/bridge.test.ts` | 4733362429942472337 | 15287039064284998688 |
-| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 17769474122166916875 | 15679464342224380920 |
-| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 1877760251232896320 | 12407989054242721803 |
-| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0xa0fb_785a_e3a4_7b1d | 0x1f5f_7875_d990_cea9 |
-| Twenty-day activity log fold (release, manual) | the same file | 0x78e8_cb74_b70c_d742 | 0x9edb_b19f_679e_fd4b |
+| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 13315179661733202479 | 5892717548701736568 |
+| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 3704503324967516506 | 16044876517331188252 |
+| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0x06a6_5d89_3df7_7287 | 0xcb8f_9954_11cb_4102 |
+| Twenty-day activity log fold (release, manual) | the same file | 0x4947_38f3_cd9d_3898 | 0xfe91_9131_6786_b7dc |
+
+`GOLDEN` is a fixed scenario that main's wages, bills and presence changes did not move: main pins the same 4733362429942472337 as before them. This change's own measurement of 15287039064284998688 still holds on the merged tree (the native assertion passes with it), so the merge added no second cause. Before the merge, the drain change alone had measured the other values as `SHIPPED_THURSDAY` 17769474122166916875 to 15679464342224380920, `STANDARD_ONLY_HASH` 1877760251232896320 to 12407989054242721803, the two-day fold 0xa0fb_785a_e3a4_7b1d to 0x1f5f_7875_d990_cea9 and the twenty-day fold 0x78e8_cb74_b70c_d742 to 0x9edb_b19f_679e_fd4b; those are superseded by the table above.
 
 The draws and jobs in `SHIPPED_THURSDAY` (seven careers draws, two shift draws, the three jobs and shifts) did not change.
 
@@ -55,6 +57,15 @@ Tests that encoded the old balance and were corrected:
 ## Drain: red then green
 
 `shipped_base_decay_is_three_quarters_of_the_balance_before_issue_315` was written first and failed on main's content with "hunger drains 0.041333333 a tick; three quarters of the old 0.041333333 is 0.031". It passes with the new rates. Mutation checks, each followed by a restore and a matching hash of `content/tuning.toml`: setting every rate to 0.8 times its old value fails with "hunger drains 0.033066668 a tick", and restoring only hunger to 0.0413333333 fails with "hunger drains 0.041333333 a tick".
+
+## Drain: checks on the merged tree
+
+The drain change was merged with main at 54cf96b46 and checked on the merged head 07171218f.
+
+1. Full local check, `scripts/check-local-ci.py run`, all six groups (docs, scripts, art, rust, site, web), 29 steps, every step exit code 0. The report says state passed, complete true and source_changed false. Report: `D:/VIBES/.worktrees/twcl-315-logs/pr1-ci-final.json`, sha256 `f8bf6685b8115874c361c1b6765b98fdc525cdcf4e54f73f2071f0c909bacd3b`. The web steps rebuilt the release WebAssembly module and ran the `GOLDEN` twin in `web/tests/bridge.test.ts` against it.
+2. The manual twenty-day activity log check, `cargo test --release -p terri-sim --lib -- activity_log_never_changes_the_world_over_twenty_days --ignored --test-threads=1`, passed on the same head: 1 passed, 0 failed, 122 seconds. It requires a nuisance episode in the twenty days and found one. Log: `D:/VIBES/.worktrees/twcl-315-logs/pr1-twenty-day-release-final.log`.
+
+The report and log live in local storage next to the other evidence and are not part of the repository. Later commits on this branch changed documentation only.
 
 ## Fill: measurements
 
@@ -104,17 +115,19 @@ Reading the table, and what it does not show:
 
 ## Fill: pinned values that moved, and why
 
-Moved by this change, each read from the failing assertion and confirmed by a passing run:
+The fill change was merged with the drain change as merged with main at 54cf96b46 (head f9b33b2ea), which carries the wages and bills (issue 298, save schema 22), the presence rule (issue 344) and the slower drain. Each value below was recomputed on that merged tree from its own failing assertion, never by taking a side, and confirmed by a passing run. "Before" is the value the drain change pins on the merged tree; each moved for one more cause, the fill.
 
-| Value | Where | Old | New |
+| Value | Where | Before | After |
 | --- | --- | --- | --- |
-| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 15679464342224380920 | 15708678162880853617 |
-| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 12407989054242721803 | 6219414423998606800 |
-| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0x1f5f_7875_d990_cea9 | 0x24d1_7731_8113_0034 |
-| Twenty-day activity log fold (release, manual) | the same file | 0x9edb_b19f_679e_fd4b | 0x213d_276f_ca08_9a06 |
-| Compiled runtime fixture `inherited-runtime.pack` | `crates/terri-data/tests/fixtures/` | 25708 bytes, SHA-256 fad1da2c3a7dceca90f5c9158a80c44ffa97d1fe8f0e9767a27111df264a1cb4 | 25710 bytes, SHA-256 0bd740dbe31799520752566fecce24a828f56e56d196f5e4ac6fa50e54b7141f |
+| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 5892717548701736568 | 16800902046621430031 |
+| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 16044876517331188252 | 10091986056830211033 |
+| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0xcb8f_9954_11cb_4102 | 0x6ed5_8e35_ffc8_2f8d |
+| Twenty-day activity log fold (release, manual) | the same file | 0xfe91_9131_6786_b7dc | 0xb6e3_d213_e72a_6360 |
+| Compiled runtime fixture `inherited-runtime.pack` | `crates/terri-data/tests/fixtures/` | 26134 bytes, SHA-256 5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8 (main at 54cf96b46) | 26136 bytes, SHA-256 6f508934a4bdc377690acbd8162ed6286f93c2c60b2c863d032ce968de0afe3d |
 
-The cause of the four hashes is one: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so the household's days differ from the first bathroom visit. The draw counts, jobs and shifts in `SHIPPED_THURSDAY` are unchanged. The fixture changes by two things and the test proves it: with the fill limit's two bytes removed from the tuning and the three actions put back to their old authored numbers, the current pack encodes to exactly the 25708 bytes on main (`TERRI_PROVE_RUNTIME_FIXTURE=1` runs that proof against the file before it is regenerated).
+The cause of the four hashes is one: a toilet, shower or bath now lasts until its need is full and its authored rates were raised, so the household's days differ from the first bathroom visit. The draw counts, jobs and shifts in `SHIPPED_THURSDAY` are unchanged. The fixture changes by two things and the test proves it: with the fill limit's two bytes removed from the tuning (the filtered postcard writer omits the `Tuning` field `need_fill_max_ticks`, after proving that the unfiltered writer reproduces postcard) and the three actions put back to their old authored numbers, the current pack encodes to exactly the 26134 bytes on main at 54cf96b46. On the merged tree `TERRI_PROVE_RUNTIME_FIXTURE=1` ran that proof against main's file before it was regenerated, and it passed. The fill limit is the last field of `Tuning`, after main's night premium, so the premium keeps its place and `the_appended_tuning_knobs_keep_their_slots` pins both.
+
+The trace measurements, the mutation checks and the scoring and week-one tables in this record were taken before main's wages and bills were merged. The merge changes pay, starting funds and bills, not the fill, and those measurements were not repeated.
 
 Unchanged and asserted unchanged: `GOLDEN` and its release-WebAssembly twin (the scenario has only a fridge), the published schema-fifteen control hash, the bare-agent hash, every save fixture's bytes, and the content fingerprint, which `the_shipped_content_fingerprint_is_the_one_main_had` pins at 5841475410324663844, read from main.
 

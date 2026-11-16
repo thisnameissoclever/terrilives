@@ -342,6 +342,7 @@ fn chain_pack() -> &'static ContentPack {
         },
     );
     let step = |label: &str, role: u32, duration_ticks: u32, tagged: bool| CompiledChainStep {
+        bill_uses: Vec::new(),
         role,
         label: label.to_string(),
         duration_ticks,

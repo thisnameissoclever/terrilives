@@ -1,5 +1,5 @@
 import type { Bundle, Geometry } from './bundle.js';
-import { add, boneFrame, inverseAffine, length, multiply, scale, solveLimb, sub, transform, type Vec3 } from './math.js';
+import { add, boneFrame, inverseAffine, length, multiply, solveLimb, sub, transform, type Vec3 } from './math.js';
 import { type ShapeParameters } from './shape.js';
 import { hasBook, isTransition } from './motion.js';
 import {solveInteraction} from './interaction-pose.js';
@@ -14,6 +14,21 @@ import {fitSeatedPose} from './seat-fit.js';
 import {seatContactResolver} from './seat-contact-sample.js';
 import type {SeatContactArtifactV1,SeatFitResolver} from './seat-contact-types.js';
 export {composeSkeletonPose} from './pose-joints.js';
+
+/**
+ * `multiply(pose, inverse)` written into the skinning matrices. A private
+ * copy of the shared helper, whose element reads V8 compiles generically
+ * because every kind of array reaches it; this one sees only pose rows and
+ * stays unboxed. It sums in `multiply`'s order, so each Float32 store is the
+ * value `result.set(multiply(...))` stored.
+ */
+function skinInto(out: Float32Array<ArrayBuffer>, a: readonly number[], b: readonly number[], offset: number): void {
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    let sum = 0;
+    for (let k = 0; k < 4; k++) sum += a[k * 4 + r] * b[c * 4 + k];
+    out[offset + c * 4 + r] = sum;
+  }
+}
 
 /** Production pose sampling never constructs a contact fit. */
 export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1):Float32Array<ArrayBuffer> {
@@ -40,8 +55,8 @@ function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: stri
   const bones = bundle.bones, index = (name: string) => {
     const found = bones.findIndex(b => b.name === name); if (found < 0) throw new Error(`Missing bone ${name}`); return found;
   };
+  if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,inverse,matrices,audit,geometry,bikeFit,seatFit});
   const result = new Float32Array(bones.length * 16);
-  if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,matrices,audit,geometry,bikeFit,seatFit});
   const positions = matrices.map(m=>[m[12],m[13],m[14]] as [number,number,number]);
   // The authored foot path is a physical ground/contact target, not a scaled pose translation.
   for(let i=0;i<bones.length;i++) if(bones[i].name.startsWith('foot')) {
@@ -99,6 +114,6 @@ function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: stri
       matrices[hand] = multiply(bookMovement, sample.grip[hand]);
     }
   }
-  bones.forEach((_, i) => result.set(multiply(matrices[i], inverse[i]), i*16));
+  for (let i = 0; i < bones.length; i++) skinInto(result, matrices[i], inverse[i], i*16);
   return result;
 }

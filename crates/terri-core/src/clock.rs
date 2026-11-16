@@ -61,6 +61,36 @@ pub fn season(tick: u64, day_ticks: u32, days_per_season: u32, first_season: u8)
     ((day / days_per_season as u64 % year + first_season as u64) % year) as u8
 }
 
+/// The billing month of the day `tick` falls in, counted from 0 -
+/// [WB-calendar] in `docs/specs/2026-10-18-wages-and-bills.md`.
+///
+/// Day `d` is `tick / day_ticks`, the day index [`weekday`] reads, and each
+/// month lasts `days_per_month` days, so the month is `d / days_per_month`.
+/// Nothing about the month is saved: like the weekday and the season it is
+/// a pure function of the saved tick and content. The day index is reduced
+/// first and only divided, so the top of the tick range cannot overflow.
+///
+/// # Panics
+///
+/// Divides by `day_ticks` and by `days_per_month`, so it panics if either
+/// is 0. The content compiler refuses both.
+pub fn month(tick: u64, day_ticks: u32, days_per_month: u32) -> u64 {
+    tick / day_ticks as u64 / days_per_month as u64
+}
+
+/// The day of the month the day `tick` falls in, from 1 to
+/// `days_per_month` - [WB-calendar]. Day 1 is the first day of a month,
+/// when the month just ended is billed.
+///
+/// # Panics
+///
+/// As [`month`].
+pub fn day_of_month(tick: u64, day_ticks: u32, days_per_month: u32) -> u32 {
+    // The remainder is below `days_per_month`, a u32, so the cast and the
+    // addition cannot overflow.
+    (tick / day_ticks as u64 % days_per_month as u64) as u32 + 1
+}
+
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SimClock {
     pub tick: u64,
@@ -217,5 +247,70 @@ mod tests {
         // The longest season: u64::MAX / u32::MAX is 2^32 + 1, which is 1
         // mod 4.
         assert_eq!(season(u64::MAX, 1, u32::MAX, 0), 1);
+    }
+
+    /// [WB-calendar]: tick 0 is the first day of month 0, and the first tick
+    /// of a day and its last both belong to that day's month.
+    #[test]
+    fn month_and_day_of_month_at_the_start_of_a_game() {
+        assert_eq!(month(0, 1440, 7), 0);
+        assert_eq!(day_of_month(0, 1440, 7), 1);
+        assert_eq!(month(1439, 1440, 7), 0);
+        assert_eq!(day_of_month(1439, 1440, 7), 1);
+        assert_eq!(day_of_month(1440, 1440, 7), 2);
+    }
+
+    /// [WB-calendar]: with 1440-tick days and seven-day months, day index 6
+    /// is day 7 of month 0 and day index 7 is day 1 of month 1. A month
+    /// length other than seven and a day length other than 1440 count their
+    /// own units, so a hardcoded week or day moves an assertion.
+    #[test]
+    fn the_last_day_of_a_month_and_the_first_of_the_next() {
+        let day = 1440u64;
+        assert_eq!(month(7 * day - 1, 1440, 7), 0);
+        assert_eq!(day_of_month(7 * day - 1, 1440, 7), 7);
+        assert_eq!(month(7 * day, 1440, 7), 1);
+        assert_eq!(day_of_month(7 * day, 1440, 7), 1);
+        assert_eq!(month(20 * day, 1440, 7), 2);
+        assert_eq!(day_of_month(20 * day, 1440, 7), 7);
+        assert_eq!(month(30 * day, 1440, 28), 1);
+        assert_eq!(day_of_month(30 * day, 1440, 28), 3);
+        assert_eq!(month(699, 100, 7), 0);
+        assert_eq!(month(700, 100, 7), 1);
+        assert_eq!(day_of_month(700, 100, 7), 1);
+        // One-day months: every day is the first of its month.
+        for d in 0..5u64 {
+            assert_eq!(month(d * day, 1440, 1), d);
+            assert_eq!(day_of_month(d * day + 1439, 1440, 1), 1);
+        }
+    }
+
+    /// [WB-calendar]: the largest tick neither overflows nor panics.
+    #[test]
+    fn month_reduces_before_dividing_at_the_top_of_the_tick_range() {
+        // A one-tick day: the day index is u64::MAX, which is 15 mod 16 and
+        // 0 mod 5 (u64::MAX = 3 * 5 * 17 * 257 * 641 * 65537 * 6700417).
+        assert_eq!(month(u64::MAX, 1, 16), u64::MAX / 16);
+        assert_eq!(day_of_month(u64::MAX, 1, 16), 16);
+        assert_eq!(day_of_month(u64::MAX, 1, 5), 1);
+        // u64::MAX / 1440 is 12810238940076077, which is 3 mod 7.
+        assert_eq!(day_of_month(u64::MAX, 1440, 7), 4);
+        assert_eq!(month(u64::MAX, 1440, 7), 12810238940076077 / 7);
+        // The longest month: u64::MAX / u32::MAX is 2^32 + 1.
+        assert_eq!(month(u64::MAX, 1, u32::MAX), (1u64 << 32) + 1);
+        assert_eq!(day_of_month(u64::MAX, 1, u32::MAX), 1);
+    }
+
+    /// [WB-calendar]: with the shipped seven-day months and Monday as day
+    /// 0, the first day of every month is a Monday, so bills arrive every
+    /// Monday; any other day of a month is not.
+    #[test]
+    fn a_seven_day_month_starts_on_the_first_weekday() {
+        let day = 1440u64;
+        for d in 0..=70u64 {
+            let tick = d * day;
+            let first = day_of_month(tick, 1440, 7) == 1;
+            assert_eq!(first, weekday(tick, 1440, 0) == 0, "day index {d}");
+        }
     }
 }

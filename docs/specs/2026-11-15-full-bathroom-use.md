@@ -97,7 +97,7 @@ Prediction and delivery share physical reward scaling and now share length. For 
 
 **Content fingerprint: unchanged.** It deliberately leaves out tuning numbers, advert deltas, durations and activities, so neither the retuned rates nor the new knob moves it or the saved action manifest. `the_shipped_content_fingerprint_is_the_one_main_had` pins the value read from main.
 
-The compiled runtime fixture `crates/terri-data/tests/fixtures/inherited-runtime.pack` changes by exactly two things: the fill limit appended to the tuning and the three bathroom actions' authored numbers. The fixture test proves this by rebuilding the previous bytes from the current pack and comparing them with the file on main before regenerating (25708 bytes, SHA-256 `fad1da2c3a7dceca90f5c9158a80c44ffa97d1fe8f0e9767a27111df264a1cb4`, main at 053ee52d3). The other pinned values that moved, and why, are in the verification record.
+The compiled runtime fixture `crates/terri-data/tests/fixtures/inherited-runtime.pack` changes by exactly two things: the fill limit appended to the tuning and the three bathroom actions' authored numbers. The fixture test proves this by rebuilding the previous bytes from the current pack and comparing them with the file on main before regenerating (26134 bytes, SHA-256 `5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8`, main at 54cf96b46, which already holds the wages and bills of issue 298). The other pinned values that moved, and why, are in the verification record.
 
 ## [FB-overlap] Overlap with other work
 

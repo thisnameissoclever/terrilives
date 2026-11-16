@@ -1,5 +1,7 @@
 use terri_data::{compile, schema::*};
 
+mod filtered_postcard;
+
 fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentError> {
     let source = format!(
         "{}\n{}\n{extra}",
@@ -137,9 +139,10 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
             // limit appended to `Tuning`, and the authored rates of the
             // toilet, the shower and the bath retuned. The proof always runs
             // against the fixture as it was on main before issue 315 merged
-            // (25708 bytes, SHA-256
-            // fad1da2c3a7dceca90f5c9158a80c44ffa97d1fe8f0e9767a27111df264a1cb4,
-            // main at 053ee52d3): restore that file before regenerating.
+            // (26134 bytes, SHA-256
+            // 5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8,
+            // main at 54cf96b46, which already holds the wages and bills of
+            // issue 298): restore that file before regenerating.
             assert_eq!(
                 previous_without_fill(&pack),
                 old_bytes,
@@ -166,10 +169,13 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
 
 /// The fixture's bytes as they were before issue 315, rebuilt from the
 /// current pack: the three bathroom actions put back to the authored numbers
-/// they had on main at 053ee52d3, and the fill limit left off the end of the
-/// tuning. Postcard writes a struct as its fields in order, so the tuning
-/// without its last field encodes exactly as the old tuning did.
+/// they had on main at 54cf96b46, and the fill limit left out of the tuning.
+/// Postcard writes a struct as its fields in order with no names, so leaving
+/// a field out removes exactly its bytes. The unfiltered writer must
+/// reproduce postcard byte for byte first, or the filtered bytes would prove
+/// nothing.
 fn previous_without_fill(pack: &terri_data::ContentPack) -> Vec<u8> {
+    use filtered_postcard::Rule;
     // (object, advertised (need index, delta) pairs, duration), as on main.
     // Need indices: 1 Energy, 2 Hygiene, 3 Bladder, 6 Comfort.
     type Authored<'a> = (&'a str, &'a [(u8, f32)], u32);
@@ -191,20 +197,15 @@ fn previous_without_fill(pack: &terri_data::ContentPack) -> Vec<u8> {
         action.advertises = advertises.to_vec();
         action.duration_ticks = duration;
     }
-    let head =
-        postcard::to_allocvec(&(&old.decay_per_tick, &old.objects, old.sim_sprite, &old.lot))
-            .unwrap();
-    let tuning = postcard::to_allocvec(&old.tuning).unwrap();
-    let fill = postcard::to_allocvec(&old.tuning.need_fill_max_ticks).unwrap();
     assert_eq!(
-        &tuning[tuning.len() - fill.len()..],
-        fill,
-        "the fill limit is the tuning's last bytes"
+        filtered_postcard::to_vec(&old, &|_, _| Rule::Keep),
+        postcard::to_allocvec(&old).unwrap(),
+        "the filtered writer reproduces postcard when it filters nothing"
     );
-    let mut bytes = postcard::to_allocvec(&old).unwrap();
-    let at = head.len() + tuning.len() - fill.len();
-    bytes.drain(at..at + fill.len());
-    bytes
+    filtered_postcard::to_vec(&old, &|owner, field| match (owner, field) {
+        ("Tuning", "need_fill_max_ticks") => Rule::Omit,
+        _ => Rule::Keep,
+    })
 }
 
 #[test]

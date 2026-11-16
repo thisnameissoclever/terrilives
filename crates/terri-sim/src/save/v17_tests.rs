@@ -687,6 +687,8 @@ fn v14_bare_waiter_is_adopted_before_a_current_save_without_claiming_admission()
         .legacy
         .legacy
         .legacy
+        .legacy
+        .legacy
         .conversation_requests
         .requests
         .retain(|request| request.initiator != 2);

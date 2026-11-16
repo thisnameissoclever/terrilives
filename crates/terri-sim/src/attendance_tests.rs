@@ -2146,3 +2146,185 @@ fn legacy_adoption_registers_the_held_shifts_length() {
     assert!(shift.legacy);
     assert_eq!(shift.end_tick - shift.start_tick, 540);
 }
+
+/// `full_fixture`'s worker, 06:00 shifts of 480 ticks every day, on the
+/// shipped night watch guard's row (pay $105) with its standard shift of
+/// kind `kind` (issue 298, [WB-wages]).
+fn premium_fixture(kind: u8) -> (Sim, Entity, Entity) {
+    let (mut sim, actor, object) = full_fixture(60, 480, 1440);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let guard = pack
+        .careers
+        .iter()
+        .position(|job| job.id == "night_watch_guard")
+        .expect("shipped");
+    let row = terri_data::CompiledCareer {
+        shift_start: 60,
+        shift_ticks: 480,
+        working_days: 0b1111111,
+        standard_kind: kind,
+        shifts: Vec::new(),
+        ..pack.careers[guard].clone()
+    };
+    pack.careers[0] = row;
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    (sim, actor, object)
+}
+
+/// [WB-wages]: a night shift registers its pay with the 15 percent premium:
+/// the night watch guard's $105 shift records 12075 cents, and the order
+/// preflight quotes the same.
+#[test]
+fn a_night_shift_records_the_premium_in_cents() {
+    let (mut sim, actor, _) = premium_fixture(terri_data::SHIFT_NIGHT);
+    assert_eq!(
+        sim.world().resource::<Content>().0.careers[0].pay,
+        105,
+        "the raised guard's pay"
+    );
+    sim.world_mut().resource_mut::<SimClock>().tick = 60;
+    let quote = work_conflicts(sim.world(), &[actor.index_u32()]);
+    assert_eq!(quote.conflicts[0].pay_cents, 12_075);
+    start_tick(sim.world_mut());
+    assert_eq!(scheduled(&sim, actor).map(|s| s.pay_cents), Some(12_075));
+    assert_eq!(
+        validate_saved(sim.world(), &to_saved(sim.world())),
+        Ok(()),
+        "a premium shift validates"
+    );
+}
+
+/// [WB-wages]: day, early and late shifts record the plain pay.
+#[test]
+fn day_early_and_late_shifts_record_no_premium() {
+    for kind in [
+        terri_data::SHIFT_DAY,
+        terri_data::SHIFT_EARLY,
+        terri_data::SHIFT_LATE,
+    ] {
+        let (mut sim, actor, _) = premium_fixture(kind);
+        sim.world_mut().resource_mut::<SimClock>().tick = 60;
+        start_tick(sim.world_mut());
+        assert_eq!(
+            scheduled(&sim, actor).map(|s| s.pay_cents),
+            Some(10_500),
+            "kind {kind}"
+        );
+    }
+}
+
+/// [WB-wages]: proration by minutes worked acts on the premium pay: a night
+/// shift cut short pays its share of 12075 cents, with the settlement's one
+/// rounding step, and Funds rise by exactly that.
+#[test]
+fn a_prorated_night_shift_pays_its_share_of_the_premium() {
+    let (mut sim, actor, object) = premium_fixture(terri_data::SHIFT_NIGHT);
+    until(&mut sim, "the worker at work", 200, |sim| {
+        sim.world().get::<AtWork>(actor).is_some()
+    });
+    for _ in 0..100 {
+        sim.tick();
+    }
+    hold(&mut sim, actor, object);
+    let before = sim.world().resource::<Funds>().0;
+    until(&mut sim, "the shift settles", 600, |sim| {
+        !sim.world().resource::<Attendance>().outcomes.is_empty()
+    });
+    let outcome = sim.world().resource::<Attendance>().outcomes[0].clone();
+    let worked = outcome.worked_minutes as i64;
+    assert!(worked > 0 && worked < 480, "cut short: {worked}");
+    assert_eq!(outcome.pay_cents, 12_075 * worked / 480);
+    assert_eq!(
+        sim.world().resource::<Funds>().0 - before,
+        outcome.pay_cents
+    );
+}
+
+/// [WB-wages]: on the day of a shift change the shift worked that day is
+/// the one held when the day began, and its kind decides the premium: a
+/// night worker who changes to the day shift is paid that day's night shift
+/// with the premium, and the first day shift without it.
+#[test]
+fn the_premium_follows_the_shift_worked_on_a_change_day() {
+    let (mut sim, actor, _) = premium_fixture(terri_data::SHIFT_NIGHT);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.careers[0].standard_weight = 1;
+    pack.careers[0].shifts = vec![terri_data::CompiledShift {
+        id: "days".to_string(),
+        kind: terri_data::SHIFT_DAY,
+        shift_start: 900,
+        shift_ticks: 300,
+        working_days: 0b1111111,
+        weight: 1,
+    }];
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    let sim_id = *sim.world().get::<SimId>(actor).expect("an id");
+    sim.world_mut()
+        .resource_mut::<Careers>()
+        .records
+        .insert(sim_id, crate::careers::Record::new(&pack.careers[0]));
+    for _ in 0..30 {
+        sim.tick();
+    }
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
+    until(&mut sim, "the day's old shift registers", 100, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| (s.start_tick, s.pay_cents)),
+        Some((60, 12_075)),
+        "the night schedule still runs, at the night rate"
+    );
+    until(&mut sim, "the day shift registers", 3_000, |sim| {
+        scheduled(sim, actor).is_some_and(|s| s.start_tick != 60)
+    });
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| (s.start_tick, s.pay_cents)),
+        Some((1440 + 900, 10_500)),
+        "the first day shift pays the plain rate"
+    );
+}
+
+/// [WB-wages]: the saved-attendance validator accepts an open shift's pay
+/// up to the level's maximum with the premium when the shift is a night
+/// shift, and refuses a cent more; a day shift's ceiling is the plain
+/// maximum.
+#[test]
+fn the_open_shift_validator_accepts_the_premium_range_and_refuses_above_it() {
+    // The guard's pay maximum is $128: 14720 cents with the premium, 12800
+    // without.
+    for (kind, ceiling) in [
+        (terri_data::SHIFT_NIGHT, 14_720),
+        (terri_data::SHIFT_DAY, 12_800),
+    ] {
+        let (mut sim, _, _) = premium_fixture(kind);
+        assert_eq!(sim.world().resource::<Content>().0.careers[0].pay_max, 128);
+        sim.world_mut().resource_mut::<SimClock>().tick = 60;
+        start_tick(sim.world_mut());
+        let mut saved = to_saved(sim.world());
+        saved.shifts[0].pay_cents = ceiling;
+        assert_eq!(
+            validate_saved(sim.world(), &saved),
+            Ok(()),
+            "kind {kind} at its ceiling"
+        );
+        saved.shifts[0].pay_cents = ceiling + 1;
+        assert!(
+            validate_saved(sim.world(), &saved).is_err(),
+            "kind {kind} above it"
+        );
+        saved.shifts[0].pay_cents = 10_499;
+        assert!(
+            validate_saved(sim.world(), &saved).is_err(),
+            "below the starting pay"
+        );
+    }
+}

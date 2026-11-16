@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn current_bytes_are_strict_v20() {
+fn current_bytes_are_strict_v22() {
     let source = SimHandle::from_lot();
     let bytes = source.save_bytes();
-    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v21());
+    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v22());
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&bytes));
     assert_eq!(restored.save_bytes(), bytes);
@@ -239,7 +239,7 @@ fn current_v6_rejects_two_readers_on_one_physical_chair() {
     second.eating = None;
     second.position = first.position;
     let mut corrupted = SAVE_MAGIC.to_vec();
-    corrupted.extend_from_slice(&21u16.to_le_bytes());
+    corrupted.extend_from_slice(&22u16.to_le_bytes());
     corrupted.extend(postcard::to_allocvec(&bad.0).unwrap());
     assert!(!loaded.load_bytes(&corrupted));
     assert_eq!(loaded.save_bytes(), before);
