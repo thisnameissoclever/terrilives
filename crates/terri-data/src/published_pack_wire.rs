@@ -615,6 +615,10 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
             career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             night_shift_premium_percent: Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
+            work_lateness_limit_ticks: Tuning::PRE_LATENESS_WORK_LATENESS_LIMIT_TICKS,
+            work_lateness_ramp_ticks: Tuning::SHIPPED_WORK_LATENESS_RAMP_TICKS,
+            work_lateness_remedy_share: Tuning::SHIPPED_WORK_LATENESS_REMEDY_SHARE,
+            work_bladder_relief_threshold: Tuning::PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -1135,6 +1139,28 @@ fn a_published_pack_reconstructs_the_shipped_bills_tuning() {
     assert_eq!(
         old.tuning.night_shift_premium_percent,
         crate::pack().tuning.night_shift_premium_percent
+    );
+}
+
+/// Issue 309, [WL-tuning]: an authentic published pack leaves on time and
+/// is never relieved at work, the behavior it was published with, and
+/// keeps the shipped ramp and share, which are inert at a limit of 0.
+#[test]
+fn a_published_pack_keeps_leaving_on_time_and_never_relieves_bladder_at_work() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(old.tuning.work_lateness_limit_ticks, 0);
+    assert_eq!(old.tuning.work_bladder_relief_threshold, 0.0);
+    assert_eq!(
+        old.tuning.work_lateness_ramp_ticks,
+        crate::pack().tuning.work_lateness_ramp_ticks
+    );
+    assert_eq!(
+        old.tuning.work_lateness_remedy_share,
+        crate::pack().tuning.work_lateness_remedy_share
     );
 }
 

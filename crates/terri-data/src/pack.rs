@@ -1239,6 +1239,21 @@ pub struct Tuning {
     /// person's pay and the level's range stay without it. Appended after
     /// the shift knobs, per the rule above.
     pub night_shift_premium_percent: u32,
+    /// Work lateness (issue 309, [WL-tuning] in
+    /// `docs/specs/2026-11-16-work-lateness.md`): the longest a critical
+    /// Hunger or Energy may keep a housemate home from work, in ticks after
+    /// the scheduled start. 0 leaves on time. Appended after the night
+    /// premium, per the rule above.
+    pub work_lateness_limit_ticks: u32,
+    /// The lateness, in ticks, at which the remedy share reaches its
+    /// maximum.
+    pub work_lateness_ramp_ticks: u32,
+    /// The largest share of a late housemate's choices that relieve the
+    /// need they are late for, strictly below 1.
+    pub work_lateness_remedy_share: f32,
+    /// A housemate at work is relieved of Bladder below this level. 0 is no
+    /// relief.
+    pub work_bladder_relief_threshold: f32,
 }
 
 impl Tuning {
@@ -1307,6 +1322,14 @@ impl Tuning {
     /// packs published before it existed. It matters only for a held shift
     /// of the night kind, which no published pack has.
     pub const SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT: u32 = 15;
+    /// What a pack published before issue 309 reconstructs for the work
+    /// lateness knobs: a limit of 0, so its worlds keep leaving on time, and
+    /// no Bladder relief at work. The ramp and the share are the shipped
+    /// values, which a limit of 0 leaves inert.
+    pub const PRE_LATENESS_WORK_LATENESS_LIMIT_TICKS: u32 = 0;
+    pub const PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD: f32 = 0.0;
+    pub const SHIPPED_WORK_LATENESS_RAMP_TICKS: u32 = 30;
+    pub const SHIPPED_WORK_LATENESS_REMEDY_SHARE: f32 = 0.99;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
@@ -2387,6 +2410,10 @@ mod tests {
             shift_sleep_offset_night: 655,
             career_search_temperature: 0.3125,
             night_shift_premium_percent: 17,
+            work_lateness_limit_ticks: 73,
+            work_lateness_ramp_ticks: 41,
+            work_lateness_remedy_share: 0.9375,
+            work_bladder_relief_threshold: 37.5,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3252,8 +3279,9 @@ mod tests {
     /// ninety-five of the career knobs and the fifty of the season knobs,
     /// followed by optional autonomy, the meal-appreciation float, the
     /// optional weather, the purposeful-fight knobs, the ten bytes of
-    /// the shift knobs and the one-byte varint of the night premium
-    /// ([WB-wages]); every established field stays put.
+    /// the shift knobs, the one-byte varint of the night premium
+    /// ([WB-wages]) and the ten bytes of the work lateness knobs
+    /// ([WL-tuning]); every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3267,9 +3295,49 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Wages (issue 298): the night premium is the last byte, a varint
-        // of 17, and moving it moves that byte alone.
-        let premium = before.len() - 1;
+        // Work lateness (issue 309): the four lateness knobs are the last
+        // ten bytes: the limit and the ramp as one-byte varints (73 and
+        // 41), the remedy share and the Bladder threshold as floats
+        // (0.9375 and 37.5).
+        let lateness = before.len() - 10;
+        assert_eq!(
+            before[lateness..],
+            [
+                &[73u8, 41][..],
+                &0.9375f32.to_le_bytes()[..],
+                &37.5f32.to_le_bytes()[..]
+            ]
+            .concat()[..]
+        );
+        assert_eq!(
+            changed(Tuning {
+                work_lateness_limit_ticks: 74,
+                ..a_tuning()
+            }),
+            vec![lateness]
+        );
+        assert_eq!(
+            changed(Tuning {
+                work_lateness_ramp_ticks: 42,
+                ..a_tuning()
+            }),
+            vec![lateness + 1]
+        );
+        assert!(changed(Tuning {
+            work_lateness_remedy_share: 0.96875,
+            ..a_tuning()
+        })
+        .iter()
+        .all(|index| (lateness + 2..lateness + 6).contains(index)));
+        assert!(changed(Tuning {
+            work_bladder_relief_threshold: 38.5,
+            ..a_tuning()
+        })
+        .iter()
+        .all(|index| (lateness + 6..lateness + 10).contains(index)));
+        // Wages (issue 298): the night premium is the byte before them, a
+        // varint of 17, and moving it moves that byte alone.
+        let premium = lateness - 1;
         assert_eq!(before[premium], 17);
         assert_eq!(
             changed(Tuning {

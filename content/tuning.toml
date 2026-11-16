@@ -712,6 +712,31 @@ career_search_temperature = 0.25
 # level's range stay without it. Packs published before it reconstruct 15.
 night_shift_premium_percent = 15
 
+# WORK LATENESS - issue 309 (docs/specs/2026-11-16-work-lateness.md,
+# [WL-tuning]). A housemate whose Hunger or Energy is critical when their
+# shift starts deals with it first and leaves for work late. Bladder never
+# delays a departure, and a player's own order still comes first.
+#
+# The longest a critical need may keep a housemate home, in game minutes
+# after the shift's scheduled start, from 0 to 720. The shift's end is a
+# bound too: nobody leaves after it. 0 restores leaving on time, which is
+# what a pack published before this knob reconstructs.
+work_lateness_limit_ticks = 60
+# How many minutes late the remedy share below is reached, from 1 to 720
+# and at most the limit while the limit is above 0. Up to it the share
+# rises in a straight line from the `[autonomy]` share (95 percent with one
+# critical need) to the maximum.
+work_lateness_ramp_ticks = 30
+# The most that choices relieving the late need can take while a housemate
+# is late for it, strictly between 1 minus `[autonomy] unrelated_single`
+# and 1. Below 1 on purpose: other choices stay possible, only rare.
+work_lateness_remedy_share = 0.99
+# A housemate at work is relieved of Bladder whenever it falls below this
+# level, from 0 to 100, so it never becomes critical during a shift. 0
+# switches the relief off, which is what a pack published before this knob
+# reconstructs. Bladder is the only need relieved at work.
+work_bladder_relief_threshold = 50.0
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

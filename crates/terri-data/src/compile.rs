@@ -3771,6 +3771,34 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             "night_shift_premium_percent",
             tuning.night_shift_premium_percent <= 100,
         ),
+        // Issue 309 ([WL-tuning]): up to half a day late; a ramp of at
+        // least one tick and no longer than the limit it ramps within; a
+        // remedy share that stays above what the autonomy rule already
+        // gives remedies with one critical need, so the ramp only rises,
+        // and below 1, so other choices stay possible; and a Bladder level.
+        (
+            "work_lateness_limit_ticks",
+            tuning.work_lateness_limit_ticks <= 720,
+        ),
+        (
+            "work_lateness_ramp_ticks",
+            (1..=720).contains(&tuning.work_lateness_ramp_ticks)
+                && (tuning.work_lateness_limit_ticks == 0
+                    || tuning.work_lateness_ramp_ticks <= tuning.work_lateness_limit_ticks),
+        ),
+        (
+            "work_lateness_remedy_share",
+            tuning.work_lateness_remedy_share > 0.0
+                && tuning.work_lateness_remedy_share < 1.0
+                && tuning.autonomy.is_none_or(|policy| {
+                    f64::from(tuning.work_lateness_remedy_share)
+                        > 1.0 - f64::from(policy.unrelated_single)
+                }),
+        ),
+        (
+            "work_bladder_relief_threshold",
+            (0.0..=100.0).contains(&tuning.work_bladder_relief_threshold),
+        ),
     ];
     for (key, value) in [
         ("career_review_noise", tuning.career_review_noise),
@@ -3801,6 +3829,14 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         (
             "career_search_temperature",
             tuning.career_search_temperature,
+        ),
+        (
+            "work_lateness_remedy_share",
+            tuning.work_lateness_remedy_share,
+        ),
+        (
+            "work_bladder_relief_threshold",
+            tuning.work_bladder_relief_threshold,
         ),
     ] {
         check_finite(value, &format!("{key} in tuning.toml"))?;
@@ -4421,6 +4457,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             shift_sleep_offset_night: tuning.shift_sleep_offset_night,
             career_search_temperature: tuning.career_search_temperature,
             night_shift_premium_percent: tuning.night_shift_premium_percent,
+            work_lateness_limit_ticks: tuning.work_lateness_limit_ticks,
+            work_lateness_ramp_ticks: tuning.work_lateness_ramp_ticks,
+            work_lateness_remedy_share: tuning.work_lateness_remedy_share,
+            work_bladder_relief_threshold: tuning.work_bladder_relief_threshold,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -5941,6 +5981,11 @@ mod tests {
             // witnesses the golden vector converts reconstruct, so the
             // vector stays as it was.
             night_shift_premium_percent: crate::Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
+            work_lateness_limit_ticks: crate::Tuning::PRE_LATENESS_WORK_LATENESS_LIMIT_TICKS,
+            work_lateness_ramp_ticks: crate::Tuning::SHIPPED_WORK_LATENESS_RAMP_TICKS,
+            work_lateness_remedy_share: crate::Tuning::SHIPPED_WORK_LATENESS_REMEDY_SHARE,
+            work_bladder_relief_threshold:
+                crate::Tuning::PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD,
             bills: shipped_bills_def(),
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
@@ -11225,6 +11270,89 @@ mod tests {
                 key: "night_shift_premium_percent"
             })
         ));
+    }
+
+    /// Issue 309 ([WL-tuning]): the lateness limit compiles from 0 to 720
+    /// ticks, the ramp from 1 to 720 and at most the limit while the limit
+    /// is above 0, the remedy share strictly between `1 - unrelated_single`
+    /// and 1, and the work Bladder threshold from 0 to 100; each refusal
+    /// names its knob, and non-finite values are refused as such.
+    #[test]
+    fn rejects_work_lateness_knobs_outside_their_ranges() {
+        let refused = |change: fn(&mut TuningFile), key: &str| match compile_tuned(
+            tuning_where(change),
+        ) {
+            Err(ContentError::CareerTuningOutOfRange { key: named }) => {
+                assert_eq!(named, key)
+            }
+            other => panic!("{key}: {other:?}"),
+        };
+        refused(|t| t.work_lateness_limit_ticks = 721, "work_lateness_limit_ticks");
+        refused(|t| t.work_lateness_ramp_ticks = 0, "work_lateness_ramp_ticks");
+        refused(|t| t.work_lateness_ramp_ticks = 721, "work_lateness_ramp_ticks");
+        refused(
+            |t| {
+                t.work_lateness_limit_ticks = 60;
+                t.work_lateness_ramp_ticks = 61;
+            },
+            "work_lateness_ramp_ticks",
+        );
+        refused(|t| t.work_lateness_remedy_share = 1.0, "work_lateness_remedy_share");
+        refused(|t| t.work_lateness_remedy_share = 0.0, "work_lateness_remedy_share");
+        refused(
+            |t| t.work_bladder_relief_threshold = -0.5,
+            "work_bladder_relief_threshold",
+        );
+        refused(
+            |t| t.work_bladder_relief_threshold = 100.5,
+            "work_bladder_relief_threshold",
+        );
+        // The share must exceed what autonomy leaves unrelated with one
+        // critical need (0.95 at the default 0.05), or the ramp would run
+        // the wrong way.
+        for bad in [0.95, 0.9] {
+            match compile_tuned(tuning_where(|t| {
+                t.autonomy = Some(crate::AutonomyTuning::default());
+                t.work_lateness_remedy_share = bad;
+            })) {
+                Err(ContentError::CareerTuningOutOfRange { key }) => {
+                    assert_eq!(key, "work_lateness_remedy_share", "{bad}")
+                }
+                other => panic!("{bad}: {other:?}"),
+            }
+        }
+        for bad in [f32::NAN, f32::INFINITY] {
+            for set in [
+                (|t: &mut TuningFile, v| t.work_lateness_remedy_share = v) as fn(&mut _, f32),
+                |t, v| t.work_bladder_relief_threshold = v,
+            ] {
+                assert!(
+                    matches!(
+                        compile_tuned(tuning_where(|t| set(t, bad))),
+                        Err(ContentError::NonFiniteValue { .. })
+                    ),
+                    "{bad}"
+                );
+            }
+        }
+        // The boundaries are legal: a limit of 0 (leave on time), a ramp
+        // equal to the limit, and the threshold at both ends.
+        for (limit, ramp) in [(0, 1), (0, 720), (60, 60), (720, 720), (720, 1)] {
+            let pack = compile_tuned(tuning_where(|t| {
+                t.work_lateness_limit_ticks = limit;
+                t.work_lateness_ramp_ticks = ramp;
+            }))
+            .unwrap_or_else(|error| panic!("{limit}/{ramp}: {error}"));
+            assert_eq!(pack.tuning.work_lateness_limit_ticks, limit);
+            assert_eq!(pack.tuning.work_lateness_ramp_ticks, ramp);
+        }
+        for threshold in [0.0, 100.0] {
+            let pack = compile_tuned(tuning_where(|t| t.work_bladder_relief_threshold = threshold))
+                .unwrap();
+            assert_eq!(pack.tuning.work_bladder_relief_threshold, threshold);
+        }
+        let pack = compile_tuned(tuning_where(|t| t.work_lateness_remedy_share = 0.9501)).unwrap();
+        assert_eq!(pack.tuning.work_lateness_remedy_share, 0.9501);
     }
 
     #[test]
