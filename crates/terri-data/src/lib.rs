@@ -35,7 +35,7 @@ pub use pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, DomesticTuning, FightRules, Footprint, ObjectDefId, Tuning,
 };
-pub use pack::{BillKind, BillsTuning};
+pub use pack::{BillKind, BillsTuning, LONGEST_PRESENCE_FADE_TICKS};
 pub use pack::{CompiledShift, ShiftView, SHIFT_DAY, SHIFT_EARLY, SHIFT_LATE, SHIFT_NIGHT};
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};
@@ -1231,6 +1231,10 @@ mod tests {
             contextual_pre_books_pack(),
         ] {
             assert_eq!(historical.tuning.night_shift_premium_percent, 15);
+            assert_eq!(
+                historical.tuning.affinity_presence_fade_points_per_hour,
+                5.0
+            );
             assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
         }
         // Households from before bills started with nothing, so only the
@@ -1603,6 +1607,8 @@ mod tests {
         assert_eq!(tuning.affinity_presence_extra_cap, 3);
         assert_eq!(tuning.affinity_use_points, 15.0);
         assert_eq!(tuning.affinity_use_feeling_per_hour, 0.03);
+        // Issue 344: one liked plant (10 points) fades over two game hours.
+        assert_eq!(tuning.affinity_presence_fade_points_per_hour, 5.0);
         assert_eq!(tuning.affinity_band_loves, 0.6);
         assert_eq!(tuning.affinity_band_likes, 0.2);
         assert_eq!(tuning.affinity_from_mild_trait, 0.4);

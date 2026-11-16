@@ -256,7 +256,17 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// on the tree that combines both changes, with the old presence rule
 /// restored behind a temporary switch and then removed. The draw counts and
 /// every job and shift are again unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (13315179661733202479, 7, 2);
+/// The fade of issue 344 (the lift from liked furniture now fades slowly
+/// after a person leaves it) then moved the hash from 13315179661733202479,
+/// on purpose: someone who likes plants or the aquarium and walks out of the
+/// room keeps part of the lift for up to a few game hours, so the mood that
+/// choices read after leaving is higher and a choice scored from it first
+/// goes the other way. The fade's rows also join the world hash while one
+/// is running, but that is not the whole move: with the rows left out of the
+/// hash this test reads 7759203913087002479, still not the old value. The
+/// draw counts and every job and shift are again unchanged. Measured on the
+/// tree that combines both changes.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (11396698444006774953, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

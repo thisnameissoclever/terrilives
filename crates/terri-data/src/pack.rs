@@ -1239,7 +1239,18 @@ pub struct Tuning {
     /// person's pay and the level's range stay without it. Appended after
     /// the shift knobs, per the rule above.
     pub night_shift_premium_percent: u32,
+    /// How many mood points the lift from liked furniture loses per game
+    /// hour once the person has left it, above 0 ([OA-presence] in
+    /// `docs/specs/2026-10-06-object-affinities.md`, issue 344). Appended
+    /// after the night premium, per the rule above.
+    pub affinity_presence_fade_points_per_hour: f32,
 }
+
+/// The most ticks any lift from liked furniture takes to fade (issue 344):
+/// a week, the same ceiling a burnt meal's moodlet has. A fade that the
+/// rate would make longer is cut to this, so a save can bound a saved end
+/// tick without reading the pack's rate.
+pub const LONGEST_PRESENCE_FADE_TICKS: u64 = 10_080;
 
 impl Tuning {
     /// What a pack published before `hated_communal_chance` existed
@@ -1307,6 +1318,10 @@ impl Tuning {
     /// packs published before it existed. It matters only for a held shift
     /// of the night kind, which no published pack has.
     pub const SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT: u32 = 15;
+    /// The shipped presence fade (issue 344), reconstructed the same way for
+    /// packs published before it existed. It matters only to a person who
+    /// leaves liked furniture, whose lift those packs ended at once.
+    pub const SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR: f32 = 5.0;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
@@ -2387,6 +2402,7 @@ mod tests {
             shift_sleep_offset_night: 655,
             career_search_temperature: 0.3125,
             night_shift_premium_percent: 17,
+            affinity_presence_fade_points_per_hour: 6.625,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3252,8 +3268,9 @@ mod tests {
     /// ninety-five of the career knobs and the fifty of the season knobs,
     /// followed by optional autonomy, the meal-appreciation float, the
     /// optional weather, the purposeful-fight knobs, the ten bytes of
-    /// the shift knobs and the one-byte varint of the night premium
-    /// ([WB-wages]); every established field stays put.
+    /// the shift knobs, the one-byte varint of the night premium
+    /// ([WB-wages]) and the four bytes of the presence fade (issue 344);
+    /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3267,9 +3284,20 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Wages (issue 298): the night premium is the last byte, a varint
-        // of 17, and moving it moves that byte alone.
-        let premium = before.len() - 1;
+        // Issue 344: the presence fade is the last four bytes, a float of
+        // 6.625, and moving it to 7.5 changes only the float's third byte.
+        let fade = before.len() - 4;
+        assert_eq!(before[fade..], 6.625f32.to_le_bytes());
+        assert_eq!(
+            changed(Tuning {
+                affinity_presence_fade_points_per_hour: 7.5,
+                ..a_tuning()
+            }),
+            vec![fade + 2]
+        );
+        // Wages (issue 298): the night premium is the byte before it, a
+        // varint of 17, and moving it moves that byte alone.
+        let premium = fade - 1;
         assert_eq!(before[premium], 17);
         assert_eq!(
             changed(Tuning {

@@ -488,7 +488,17 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// on the tree that combines both changes, with the log off and on giving the
 /// same worlds, and with the old presence rule restored behind a temporary
 /// switch and then removed.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x06a6_5d89_3df7_7287;
+/// The fade of issue 344 (the lift from liked furniture now fades slowly
+/// after a person leaves it) then moved it from 0x06a6_5d89_3df7_7287, on
+/// purpose: someone who likes plants or the aquarium and walks out of the
+/// room keeps part of the lift for up to a few game hours, so the mood that
+/// choices read after leaving is higher and a choice scored from it first
+/// goes the other way. The fade's rows also join the world hash while one
+/// is running, but that is not the whole move: with the rows left out of the
+/// hash the fold is 0x7b84_b2cd_3548_7ae7, still not the old value. Measured on the tree
+/// that combines both changes, with the log off and on giving the same
+/// worlds.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x2fc6_81ac_e0f0_e832;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -507,7 +517,11 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x06a6_5d89_3df7_7287;
 /// moved it from 0x9b22_0f1c_a448_e32c for the reason given for the two-day
 /// fold, measured on the tree that combines both changes, in a release
 /// build, with the log off and on giving the same worlds.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4947_38f3_cd9d_3898;
+/// The fade of issue 344 then moved it from 0x4947_38f3_cd9d_3898 for the
+/// reason given for the two-day fold, measured on the tree that combines
+/// both changes, in a debug build with `--ignored`, with the log off and on
+/// giving the same worlds.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4500_2570_f06d_3adb;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

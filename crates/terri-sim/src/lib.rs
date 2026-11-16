@@ -61,6 +61,7 @@ mod need_interactions;
 pub(crate) mod neglect;
 pub mod placement;
 pub mod portals;
+pub mod presence_fade;
 mod privacy;
 mod relationship_dynamics;
 pub mod relationship_effects;
@@ -1471,21 +1472,21 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
@@ -1493,7 +1494,7 @@ impl Sim {
     /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1516,17 +1517,39 @@ impl Sim {
     /// not used to write saves for current content.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
-    /// The current save: schema twenty-two, which adds the household's
-    /// bills (issue 298, [WB-save] in
-    /// `docs/specs/2026-10-18-wages-and-bills.md`).
+    /// Historical schema twenty-two, before the lingering lift of liked
+    /// furniture: the household's bills (issue 298, [WB-save] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`). It has no place for the
+    /// fades, so it is not used to write saves.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v22::capture(self))
+    }
+
+    /// The current save: schema twenty-three, which adds every lift from
+    /// liked furniture that is still fading (issue 344, [OA-presence] in
+    /// `docs/specs/2026-10-06-object-affinities.md`).
+    pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v23::capture(self))
+    }
+
+    pub fn load_snapshot_v23(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV23,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v23::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v22(
@@ -1855,6 +1878,10 @@ impl Sim {
         // Bills (issue 298): pristine until a world with a lot counts its
         // first day, and out of the hash until then.
         world.insert_resource(bills::Bills::default());
+        // The lingering lift of liked furniture (issue 344): empty until
+        // someone stands among things they like, and out of the hash until
+        // then.
+        world.insert_resource(presence_fade::PresenceFade::default());
         world.insert_resource(player_actions::PlayerActions::default());
         world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
@@ -2166,7 +2193,11 @@ impl Sim {
                 // tick_social, where the completion-only rule already
                 // lives.
                 systems::satisfaction::bleed_neglect,
-                (mortality::tick, chores::prune).chain(),
+                // After movement and the deaths of this tick, before mood
+                // adds its contribution: whoever stands among liked
+                // furniture now has the lift recorded, and a fade that has
+                // ended is dropped (issue 344).
+                (mortality::tick, chores::prune, presence_fade::refresh_all).chain(),
                 (mood::accrue_satisfaction, privacy::maintain).chain(),
             )
                 .chain(),
@@ -5306,6 +5337,10 @@ impl Sim {
         // with a lot has counted something, so every older world hashes as
         // it did.
         bills::hash(&self.world, &mut hasher);
+        // The lingering lift of liked furniture (issue 344): after the
+        // bills, and only while some lift is fading, so every older world
+        // hashes as it did.
+        presence_fade::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }

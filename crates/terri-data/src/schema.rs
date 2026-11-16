@@ -478,6 +478,11 @@ pub struct TuningFile {
     /// How much more a shift of the night kind pays, in percent from 0 to
     /// 100 - [WB-wages] in `docs/specs/2026-10-18-wages-and-bills.md`.
     pub night_shift_premium_percent: u32,
+    /// How many mood points the lift from liked furniture loses per game
+    /// hour once the person has left it - [OA-presence] in
+    /// `docs/specs/2026-10-06-object-affinities.md`, issue 344. Finite and
+    /// above 0.
+    pub affinity_presence_fade_points_per_hour: f32,
     /// The household's monthly bills - [WB-tuning].
     pub bills: BillsTuningDef,
 }
@@ -1754,7 +1759,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 155] = [
+    const TUNING_LINES: [(&str, &str); 156] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1852,6 +1857,7 @@ mod tests {
         ("shift_sleep_offset_night", "655"),
         ("career_search_temperature", "0.3125"),
         ("night_shift_premium_percent", "17"),
+        ("affinity_presence_fade_points_per_hour", "6.625"),
         ("bills", BILLS),
         ("days_per_season", "9"),
         ("first_season", "3"),
@@ -2021,6 +2027,7 @@ mod tests {
         assert_eq!(parsed.shift_sleep_offset_night, 655);
         assert_eq!(parsed.career_search_temperature, 0.3125);
         assert_eq!(parsed.night_shift_premium_percent, 17);
+        assert_eq!(parsed.affinity_presence_fade_points_per_hour, 6.625);
         let bills = &parsed.bills;
         assert_eq!(
             (

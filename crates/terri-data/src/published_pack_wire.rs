@@ -615,6 +615,8 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
             career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             night_shift_premium_percent: Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
+            affinity_presence_fade_points_per_hour:
+                Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -1135,6 +1137,26 @@ fn a_published_pack_reconstructs_the_shipped_bills_tuning() {
     assert_eq!(
         old.tuning.night_shift_premium_percent,
         crate::pack().tuning.night_shift_premium_percent
+    );
+}
+
+/// Issue 344: an authentic published pack rebuilds the shipped presence
+/// fade, so a world loaded from one fades the lift of liked furniture at
+/// the rate the content ships, not at some second number.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_presence_fade() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(
+        old.tuning.affinity_presence_fade_points_per_hour,
+        Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR
+    );
+    assert_eq!(
+        old.tuning.affinity_presence_fade_points_per_hour,
+        crate::pack().tuning.affinity_presence_fade_points_per_hour
     );
 }
 

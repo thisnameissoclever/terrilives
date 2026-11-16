@@ -617,7 +617,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 20. The envelope preserves exact player-order and social-execution
+use version 23. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -675,6 +675,8 @@ imports that intent as an explicitly unattributed waiting request; it does not
 invent admission or alter the physical target, path, clock or random streams.
 Current readers still reject orphaned social targets.
 
+V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
+
 V22 wraps the complete V21 payload with the household bills: the last counted day, the open month's start and the month length it is counted under, the month's day, tile, use, daily-object and trip counts, the last month's usage, and every unpaid bill and the bills of the last issued month with their late fees and the terms each was issued under (its month length, days of grace, and daily late fee and cap), so a later change to the tuning never makes a save unloadable. Use and daily kinds are saved by id, so an unknown kind is dropped on load. Loading V21 or earlier starts the bills record empty and raises saved career pay and open shifts' pay to the new wages; settled shifts keep the pay they were settled at ([wages and bills](specs/2026-10-18-wages-and-bills.md)).
 
 V21 wraps the complete V20 payload with each person's held shift other than their level's standard one, by shift id, the shift stream and its draw count, and each queued Assign or Change shift command with its position in the whole queue; the frozen command records stay unchanged and every older writer leaves those commands out. An older save loads with every job on its standard shift ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)).
@@ -720,8 +722,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-21. A V21 primary therefore receives `terri-save-1.v21-backup.bin` before the first
-V22 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+22. A V22 primary therefore receives `terri-save-1.v22-backup.bin` before the first
+V23 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -735,7 +737,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V21 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, and the frozen V21 worker refuses a V22 primary, preserving the bills. The storage writer and load-status controller share the current
+Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;

@@ -14,6 +14,10 @@ use serde::ser::{self, Serialize};
 pub enum Rule {
     Keep,
     Omit,
+    /// Not used by the current proof, which only leaves a field out; the
+    /// wage proof of issue 298 rewrote fields with it, and a later change
+    /// that rewrites an existing field will again.
+    #[allow(dead_code)]
     MapU32(fn(u32) -> u32),
 }
 

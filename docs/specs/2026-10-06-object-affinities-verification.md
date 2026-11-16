@@ -206,3 +206,17 @@ The implementation and this record are on branch `twcl/object-affinities`. Push,
 ## Later change: presence never lowers mood
 
 On the owner's ruling of 2026-10-25 (issue 344), the `Bothered by the {kind} here` moodlet was removed from [OA-presence]. The Mood evidence in item 4 of [OA-evidence] now reads nothing for a negative value, and the guard-deletion row `Zero is not a dislike` above describes a branch that no longer exists; its protection is now carried by `a_zero_value_reads_nothing_under_a_zero_threshold` and `presence_never_lowers_mood`. The rest of this record is the original evidence and is kept as written.
+
+## Later change: the lift fades slowly after leaving
+
+Also on the owner's request of 2026-10-25 (issue 344), the lift from liked furniture no longer ends the moment a person leaves. [OA-presence] now describes the saved end tick, the fade rate `affinity_presence_fade_points_per_hour` and the `Enjoyed the {kind}` label, and save schema 23 carries the rows. Item 4 of [OA-evidence] gains these proofs, all in `crates/terri-sim/src/presence_fade_tests.rs` and `crates/terri-sim/src/save/v23_tests.rs`: the lift falls linearly and reaches zero after 120 ticks for one plant, with the label changing to `Enjoyed the plants` when the person leaves; returning raises the mood to what the room gives and no higher, with the end tick a full fade from the return; a bigger fading lift outlasts a smaller room; each kind fades on its own clock; leaving for work or the yard fades the lift; the rate comes from the tuning; and schema 23 round-trips the rows, loads schema 22 with none and refuses each bad row without touching the running game. Item 3 of [OA-evidence] is unchanged for the values themselves.
+
+The fade moved three pinned values and left the others alone. Each was measured by running the test on the tree that has the fade, and each move is on purpose: a person who likes plants or the aquarium and leaves the room keeps part of the lift for up to a few game hours, so the mood that choices read after leaving is higher, and a choice scored from it first goes the other way. The fade's rows also join the world hash while one is running. With the rows left out of the hash the pinned values were still not the old ones, so the move is in what people chose, not only in the digest.
+
+| Pin | Before | After |
+|---|---|---|
+| `SHIPPED_THURSDAY` in `job_search_tests.rs` | hash 13315179661733202479, 7 careers draws, 2 shift draws | hash 11396698444006774953, 7, 2; every job and shift unchanged; 7759203913087002479 with the rows left out of the hash |
+| `TWO_DAY_FOLD_WITHOUT_THE_LOG` in `activity_log_tests.rs` | 0x06a6_5d89_3df7_7287 | 0x2fc6_81ac_e0f0_e832; 0x7b84_b2cd_3548_7ae7 with the rows left out of the hash |
+| `TWENTY_DAY_FOLD_WITHOUT_THE_LOG` in `activity_log_tests.rs` | 0x4947_38f3_cd9d_3898 | 0x4500_2570_f06d_3adb, measured in a debug build with `--ignored` |
+
+`STANDARD_ONLY_HASH` in `save/v21_tests.rs` and `GOLDEN` in `lib.rs` passed unchanged with the fade in place.
