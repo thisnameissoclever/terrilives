@@ -539,7 +539,7 @@ fn fade_ticks_divides_the_lift_by_the_rate_and_rounds_down() {
     }
 }
 
-/// The unit behaviour of the list itself.
+/// The unit behavior of the list itself.
 mod list {
     use super::super::*;
     use terri_core::FnvHasher;

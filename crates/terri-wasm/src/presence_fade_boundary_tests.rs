@@ -118,3 +118,48 @@ fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
         assert_eq!(loaded.world_hash(), hash, "bad row case {index}");
     }
 }
+
+/// A save the game itself makes, while a fade is running, loads and goes on
+/// exactly as the world that was never reloaded: the shipped lot is ticked
+/// until some fade is on the list, saved, loaded into a second handle, and
+/// both are ticked for 250 more ticks (longer than the longest shipped fade,
+/// 228) with the world hash compared every tick and the saved bytes at the
+/// end. Saves taken along the way must also pass load validation.
+#[test]
+fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
+    let mut original = SimHandle::from_lot();
+    let mut ticks = 0;
+    while original
+        .sim
+        .world()
+        .resource::<PresenceFade>()
+        .entries()
+        .is_empty()
+    {
+        assert!(ticks < 5_000, "no fade appeared in the shipped lot");
+        original.tick();
+        ticks += 1;
+    }
+    let bytes = original.save_bytes();
+    assert!(!decode_current(&bytes).presence_fade.is_empty());
+    let mut reloaded = SimHandle::from_lot();
+    assert!(reloaded.load_bytes(&bytes));
+    assert_eq!(reloaded.world_hash(), original.world_hash());
+    let mut scratch = SimHandle::from_lot();
+    for tick in 1..=250 {
+        original.tick();
+        reloaded.tick();
+        assert_eq!(
+            reloaded.world_hash(),
+            original.world_hash(),
+            "diverged {tick} ticks after the reload"
+        );
+        if tick % 10 == 0 {
+            assert!(
+                scratch.load_bytes(&original.save_bytes()),
+                "the game's own save was refused {tick} ticks after the reload"
+            );
+        }
+    }
+    assert_eq!(reloaded.save_bytes(), original.save_bytes());
+}

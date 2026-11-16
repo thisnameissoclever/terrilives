@@ -1,4 +1,5 @@
-//! The lingering lift of liked furniture rides schema twenty-two: issue 344
+//! The lingering lift of liked furniture extends schema twenty-two into
+//! schema twenty-three: issue 344
 //! (`docs/specs/2026-10-06-object-affinities.md`, [OA-presence]).
 use super::SaveError;
 use crate::{presence_fade::PresenceFade, Content, Sim};
