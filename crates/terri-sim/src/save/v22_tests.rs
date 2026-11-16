@@ -166,8 +166,10 @@ fn a_save_loads_after_each_bills_tuning_change() {
 
 /// Review of 2026-10-25, S1: a save made on day 12 under seven-day months
 /// and loaded under another month length goes on saving, loading and
-/// entering Build on every day after, and the month it was saved in never
-/// counts more days than its saved length.
+/// entering Build on every day after. The month it was saved in runs to its
+/// own end on day index 14 under its own length of seven, issues there, and
+/// the next month opens under the new length on day index 14, short unless
+/// 14 is a multiple of it ([WB-calendar]).
 #[test]
 fn a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change() {
     for (length, grace) in [
@@ -196,6 +198,7 @@ fn a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change(
             Ok(()),
             "length {length}"
         );
+        let next_end = 14 - 14 % length + length;
         for day in 13..45u64 {
             loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY;
             crate::bills::tick(loaded.world_mut());
@@ -206,6 +209,40 @@ fn a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change(
                 bills.month_days,
                 bills.month_length
             );
+            if day == 13 {
+                assert_eq!(
+                    bills.month_length, 7,
+                    "length {length}: the open month keeps its own"
+                );
+                assert!(
+                    bills.bills.iter().all(|bill| bill.due_day <= 7),
+                    "length {length}: nothing new is issued before day 14"
+                );
+            }
+            if day == 14 {
+                let issued: Vec<_> = bills
+                    .bills
+                    .iter()
+                    .filter(|bill| bill.due_day == 14)
+                    .collect();
+                assert!(
+                    !issued.is_empty(),
+                    "length {length}: the saved month is issued on day 14"
+                );
+                assert!(
+                    issued.iter().all(|bill| bill.terms.month_length == 7),
+                    "length {length}: it is issued under its own length of seven"
+                );
+                assert_eq!(
+                    bills.month_length, length,
+                    "length {length}: the next month's own"
+                );
+                assert_eq!(
+                    crate::bills::overview(loaded.world()).unwrap().next_due_day,
+                    next_end,
+                    "length {length}: the next bills are due when the new month ends"
+                );
+            }
             let resaved = loaded.save_snapshot_v22();
             let mut again = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
             assert_eq!(
@@ -353,46 +390,36 @@ fn refuses_a_bad_amount_or_fee() {
 }
 
 #[test]
-fn refuses_an_open_month_outside_the_open_month_range() {
-    refused(|b| b.month_length = crate::bills::MAX_OPEN_MONTH_DAYS + 1);
+fn refuses_an_open_month_outside_the_compiler_range() {
+    refused(|b| b.month_length = 366);
     refused(|b| b.month_length = 0);
     refused(|b| b.month_start = 17);
 }
 
-/// Review of 2026-11-15, 2: the compiler accepts a month of up to 365 days,
-/// and a month that began under another length runs to the next boundary of
-/// the new one, so an open month can hold more than 365 days. A record of
-/// 366 days counted under a length of 366 loads, and one past twice the
-/// compiler's longest month does not.
+/// The open month's end is fixed by its start and length: a save counted at
+/// or past that end is refused ([WB-save]). The record is on day index 16
+/// with its month begun on 14 under seven, so it ends on 21.
 #[test]
-fn an_open_month_may_run_past_the_compilers_longest_month() {
-    let mut live = rich();
-    live.world_mut().resource_mut::<SimClock>().tick = 400 * DAY + 600;
-    let mut snapshot = live.save_snapshot_v22();
-    snapshot.bills.bills.clear();
-    snapshot.bills.previous = None;
-    snapshot.bills.last_counted_day = Some(399);
-    snapshot.bills.month_start = 0;
-    snapshot.bills.month_days = 366;
-    snapshot.bills.month_length = 366;
-    snapshot.bills.indoor_tile_days = 0;
-    snapshot.bills.outdoor_tile_days = 0;
-    let mut loaded = rich();
-    loaded.world_mut().resource_mut::<SimClock>().tick = 400 * DAY + 600;
-    assert_eq!(loaded.load_snapshot_v22(snapshot.clone()), Ok(()));
-    let mut too_long = snapshot;
-    too_long.bills.month_days = crate::bills::MAX_OPEN_MONTH_DAYS + 1;
-    too_long.bills.month_length = crate::bills::MAX_OPEN_MONTH_DAYS + 1;
-    too_long.bills.last_counted_day = Some(799);
-    loaded.world_mut().resource_mut::<SimClock>().tick = 800 * DAY + 600;
-    assert!(loaded.load_snapshot_v22(too_long).is_err());
+fn refuses_a_month_counted_to_or_past_its_own_end() {
+    // Under a length of two it ended on 16, and the last counted day may
+    // not be that day.
+    refused(|b| b.month_length = 2);
+    // Under three it ended on 15: day 16 is past it.
+    refused(|b| b.month_length = 3);
+    // Begun on 12 under four it ends on 16: day 16 is not before its end.
+    refused(|b| {
+        b.month_start = 12;
+        b.month_length = 4;
+        b.month_days = 4;
+    });
 }
 
-/// Review of 2026-11-15, 2: seven-day months run to about day 365, then the
-/// tuning becomes the longest month the compiler accepts. The save goes on
-/// loading on every day around the change.
+/// Review of 2026-11-15, 2, as redesigned: a month length of 365 after
+/// seven-day months. The seven-day month ends at its own boundary, the next
+/// month opens under 365 on that day, and it is short or full by where that
+/// day falls in 365, so every save on every day near the change loads.
 #[test]
-fn a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable() {
+fn a_month_length_of_365_after_seven_day_months_issues_at_its_own_boundary() {
     let shipped = terri_data::pack();
     let mut long_pack = shipped.clone();
     long_pack.bills.days_per_month = 365;
@@ -404,23 +431,152 @@ fn a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable() {
             crate::bills::tick(sim.world_mut());
         }
         let snapshot = sim.save_snapshot_v22();
+        // The seven-day month the save is in ends on the next multiple of 7.
+        let own_end = (save_day as u32) - (save_day as u32) % 7 + 7;
         let mut loaded = Sim::new_from_lot_and_content(&long_pack.lot, Content(long_pack));
         assert_eq!(loaded.load_snapshot_v22(snapshot), Ok(()), "day {save_day}");
-        for day in save_day + 1..save_day + 740 {
+        for day in save_day + 1..own_end as u64 + 3 {
             loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY;
             crate::bills::tick(loaded.world_mut());
             let bills = loaded.world().resource::<Bills>();
-            assert!(bills.month_days <= bills.month_length);
-            if bills.month_days > 300 {
-                let mut again = Sim::new_from_lot_and_content(&long_pack.lot, Content(long_pack));
-                assert_eq!(
-                    again.load_snapshot_v22(loaded.save_snapshot_v22()),
-                    Ok(()),
-                    "saved on day {save_day}, loaded again on day index {day}"
+            if day < own_end as u64 {
+                assert_eq!(bills.month_length, 7, "saved on {save_day}, day {day}");
+                assert!(bills.bills.iter().all(|b| b.due_day < own_end));
+            } else if day == own_end as u64 {
+                // The new month opened on the day the seven-day one ended.
+                assert_eq!(bills.month_length, 365, "saved on {save_day}, day {day}");
+                assert_eq!(bills.month_start, own_end, "saved on {save_day}");
+                assert!(
+                    bills
+                        .bills
+                        .iter()
+                        .any(|b| b.due_day == own_end && b.terms.month_length == 7),
+                    "saved on {save_day}: the seven-day month issued at its own boundary"
                 );
+                let next = crate::bills::overview(loaded.world()).unwrap().next_due_day;
+                assert_eq!(next, own_end - own_end % 365 + 365, "saved on {save_day}");
             }
+            let mut again = Sim::new_from_lot_and_content(&long_pack.lot, Content(long_pack));
+            assert_eq!(
+                again.load_snapshot_v22(loaded.save_snapshot_v22()),
+                Ok(()),
+                "saved on {save_day}, loaded again on day index {day}"
+            );
         }
     }
+}
+
+/// Runs bills alone for `days` days with the tuning's month length given
+/// by `length_on` for each day, saving and loading into a world under that
+/// day's tuning every day. Every load succeeds, the open month never counts
+/// more days than its length and its length never passes 365, no issued
+/// transportation base charge exceeds a full month, and on every counted day
+/// the panel's expected transportation is the month's whole base pro rata,
+/// so on a month's last counted day it equals what is issued next. Returns
+/// the number of months issued.
+fn exercise_month_lengths(length_on: &dyn Fn(u32) -> u32, days: u32) -> u32 {
+    let shipped = terri_data::pack();
+    let base = shipped.bills.transportation_base_cents;
+    let mut packs: std::collections::BTreeMap<u32, &'static terri_data::ContentPack> =
+        Default::default();
+    for day in 0..days {
+        packs.entry(length_on(day)).or_insert_with_key(|length| {
+            let mut pack = shipped.clone();
+            pack.bills.days_per_month = *length;
+            pack.bills.grace_days = 2;
+            Box::leak(Box::new(pack))
+        });
+    }
+    let first = packs[&length_on(0)];
+    let mut sim = Sim::new_from_lot_and_content(&first.lot, Content(first));
+    let mut issued_months = 0;
+    let mut expected_at_end = None;
+    for day in 0..days {
+        let pack = packs[&length_on(day)];
+        let snapshot = sim.save_snapshot_v22();
+        sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+        assert_eq!(
+            sim.load_snapshot_v22(snapshot),
+            Ok(()),
+            "day index {day}: the save loads"
+        );
+        sim.world_mut().resource_mut::<SimClock>().tick = u64::from(day) * DAY;
+        crate::bills::tick(sim.world_mut());
+        let bills = sim.world().resource::<Bills>().clone();
+        assert!(
+            bills.month_days >= 1 && bills.month_days <= bills.month_length,
+            "day index {day}: {} days under {}",
+            bills.month_days,
+            bills.month_length
+        );
+        assert!(bills.month_length <= 365, "day index {day}");
+        let issued: Vec<_> = bills.bills.iter().filter(|b| b.due_day == day).collect();
+        if !issued.is_empty() {
+            issued_months += 1;
+            for bill in issued {
+                assert_eq!(bill.due_day % bill.terms.month_length, 0, "day index {day}");
+                if bill.kind == crate::bills::TRANSPORTATION {
+                    assert!(
+                        bill.amount_cents <= base,
+                        "day index {day}: {} over a full month",
+                        bill.amount_cents
+                    );
+                    if let Some(expected) = expected_at_end.take() {
+                        assert_eq!(
+                            bill.amount_cents, expected,
+                            "day index {day}: issued as expected the day before"
+                        );
+                    }
+                }
+            }
+        }
+        // The panel projects the open month to its fixed end.
+        let end = crate::bills::month_end(bills.month_start, bills.month_length);
+        let whole = i64::from(end - bills.month_start);
+        let length = i64::from(bills.month_length);
+        let expected = crate::bills::next_bills(sim.world())
+            .into_iter()
+            .find(|next| next.kind == crate::bills::TRANSPORTATION)
+            .map_or(0, |next| next.expected_cents);
+        assert_eq!(
+            expected,
+            (base * whole + length - 1) / length,
+            "day index {day}: expected follows the month's own end"
+        );
+        if day == end - 1 {
+            expected_at_end = Some(expected);
+        }
+    }
+    issued_months
+}
+
+/// Review of 2026-11-15, M2, as redesigned: month lengths changed on fixed
+/// days, including 7, then 365 on day 6, then 300, then 365, then 300.
+#[test]
+fn the_month_length_sequence_7_365_300_365_300_keeps_every_save_and_projection_right() {
+    let issued = exercise_month_lengths(
+        &|day| match day {
+            0..=5 => 7,
+            6..=39 => 365,
+            40..=299 => 300,
+            300..=339 => 365,
+            340..=499 => 300,
+            500..=589 => 365,
+            _ => 300,
+        },
+        1000,
+    );
+    // Months end on days 7, 365, 600 and 900.
+    assert_eq!(issued, 4);
+}
+
+/// Month lengths changing every few days among short and long ones: many
+/// short months, each charged pro rata, every save loads.
+#[test]
+fn month_lengths_changing_every_few_days_keep_every_save_and_projection_right() {
+    let lengths = [7u32, 3, 10, 5, 30, 4, 1, 9];
+    let issued = exercise_month_lengths(&|day| lengths[(day as usize / 3) % lengths.len()], 150);
+    assert!(issued >= 20, "the run issued {issued} months");
 }
 
 /// Each edit below makes only the bill's own terms invalid: the electricity
@@ -431,7 +587,16 @@ fn a_month_length_of_365_after_seven_day_months_keeps_every_save_loadable() {
 fn refuses_a_bill_with_terms_the_compiler_would_refuse() {
     refused(|b| b.bills[2].late_fee_percent = 101);
     refused(|b| b.bills[2].late_fee_cap_percent = 101);
-    refused(|b| b.bills[2].grace_days = 7);
+    refused(|b| b.bills[2].grace_days = 365);
+    let mut live = rich();
+    // A bill issued before the tuning shortened months keeps a grace longer
+    // than the month it charges: grace only has to stay under 365 days.
+    let mut long_grace = live.save_snapshot_v22();
+    long_grace.bills.bills[2].grace_days = 20;
+    assert!(
+        live.load_snapshot_v22(long_grace).is_ok(),
+        "a grace longer than the month loads"
+    );
     let mut live = rich();
     let mut oldest = live.save_snapshot_v22();
     oldest.bills.bills.insert(0, bill(0, RENT));

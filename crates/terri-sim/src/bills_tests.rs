@@ -408,11 +408,13 @@ fn a_month_starts_on_its_first_counted_day() {
     assert_eq!(bills(&sim).month_days, 2);
 }
 
-/// [WB-save]: after the tuning shortens months, the open month keeps the
-/// longer length it was counted under, so its days never outnumber it, and
-/// the next month is counted under the new length alone.
+/// [WB-calendar], the coordinator's decision of 2026-11-15: a month's end is
+/// fixed when it opens, so after the tuning shortens months the open month
+/// runs to its own end under its own length, and the next month opens under
+/// the new length, short if the day it opens on is not a multiple of it, and
+/// is charged pro rata.
 #[test]
-fn a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new() {
+fn a_shorter_month_runs_to_its_own_end_and_the_next_opens_under_the_new_length() {
     let mut sim = house_with(|pack| {
         pack.bills.days_per_month = 4;
         pack.bills.grace_days = 3;
@@ -424,40 +426,74 @@ fn a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new() {
         month_start: 7,
         ..Bills::default()
     });
-    set_tick(&mut sim, 10 * DAY);
+    for day in 10..14u64 {
+        set_tick(&mut sim, day * DAY);
+        tick(sim.world_mut());
+        assert_eq!(bills(&sim).month_length, 7, "day index {day}");
+        assert!(bills(&sim).bills.is_empty(), "nothing issued on day {day}");
+    }
+    assert_eq!(bills(&sim).month_days, 7, "the month ran to its own end");
+    assert_eq!(
+        overview(sim.world()).unwrap().next_due_day,
+        14,
+        "the open month ends on day index 14"
+    );
+    // Day index 14 ends it: the bills are due that day and carry its length.
+    set_tick(&mut sim, 14 * DAY);
     tick(sim.world_mut());
-    assert_eq!((bills(&sim).month_days, bills(&sim).month_length), (4, 7));
-    set_tick(&mut sim, 11 * DAY);
-    tick(sim.world_mut());
-    assert_eq!((bills(&sim).month_days, bills(&sim).month_length), (5, 7));
-    set_tick(&mut sim, 12 * DAY);
-    tick(sim.world_mut());
-    assert!(bills(&sim).bills.iter().all(|bill| bill.due_day == 12));
+    assert!(!bills(&sim).bills.is_empty());
+    assert!(bills(&sim).bills.iter().all(|bill| bill.due_day == 14));
+    assert!(bills(&sim)
+        .bills
+        .iter()
+        .all(|bill| bill.terms.month_length == 7 && bill.terms.grace_days == 3));
+    // The next month opens on day index 14 under four days: 14 is not a
+    // multiple of four, so it is short and ends on day index 16.
     assert_eq!(
         (
             bills(&sim).month_start,
             bills(&sim).month_days,
             bills(&sim).month_length
         ),
-        (12, 1, 4)
+        (14, 1, 4)
+    );
+    assert_eq!(overview(sim.world()).unwrap().next_due_day, 16);
+    set_tick(&mut sim, 15 * DAY);
+    tick(sim.world_mut());
+    set_tick(&mut sim, 16 * DAY);
+    tick(sim.world_mut());
+    let short: Vec<&Bill> = bills(&sim)
+        .bills
+        .iter()
+        .filter(|bill| bill.due_day == 16)
+        .collect();
+    assert!(!short.is_empty(), "the short month was issued on day 16");
+    assert!(short.iter().all(|bill| bill.terms.month_length == 4));
+    let transportation = short
+        .iter()
+        .find(|bill| bill.kind == TRANSPORTATION)
+        .expect("a transportation bill");
+    assert_eq!(
+        transportation.amount_cents,
+        pack().bills.transportation_base_cents * 2 / 4,
+        "two days of a four-day month, pro rata"
     );
 }
 
-/// Review of 2026-11-15, 1: after a change of month length the panel
-/// divides by the length the month is counted under, as the issued bills
-/// do. Nine days counted under a length of ten, with the tuning at seven:
+/// Review of 2026-11-15, 1: the panel divides by the length the month is
+/// counted under, as the issued bills do, and projects to the month's fixed
+/// end. Nine days counted under a length of ten, with the tuning at seven:
 /// every bill's lines add up to its amount so far, and the expected bills
-/// never come to more than a full month of them.
+/// are exactly a full month.
 #[test]
 fn the_panel_follows_a_months_own_length_after_a_month_length_change() {
     let mut sim = house();
-    // Day index 10 is the fourth day of a seven-day month, so three more
-    // days are to count before the new boundary: the open month, begun on
-    // day index 2 under a length of ten, will hold twelve.
-    set_tick(&mut sim, 10 * DAY);
+    // Day index 8 is the ninth day of a ten-day month that began on day
+    // index 0, so one more day is to count before its end on day index 10.
+    set_tick(&mut sim, 8 * DAY);
     sim.world_mut().insert_resource(Bills {
-        last_counted_day: Some(10),
-        month_start: 2,
+        last_counted_day: Some(8),
+        month_start: 0,
         month_days: 9,
         month_length: 10,
         indoor_tile_days: 192 * 9,
@@ -480,7 +516,9 @@ fn the_panel_follows_a_months_own_length_after_a_month_length_change() {
     assert_eq!(so_far[TRANSPORTATION as usize], 900 + 2 * 300);
     let base = &pack().bills;
     let full = [
-        base.rent_base_cents + 192 * base.rent_indoor_tile_cents + 112 * base.rent_outdoor_tile_cents,
+        base.rent_base_cents
+            + 192 * base.rent_indoor_tile_cents
+            + 112 * base.rent_outdoor_tile_cents,
         base.electricity_base_cents,
         base.water_base_cents,
         base.transportation_base_cents + 2 * base.commute_cents,
@@ -488,25 +526,14 @@ fn the_panel_follows_a_months_own_length_after_a_month_length_change() {
     let expected = next_bills(sim.world());
     assert_eq!(expected.len(), 4);
     for next in &expected {
-        assert!(
-            next.expected_cents <= full[next.kind as usize],
-            "bill kind {}: {} is more than a full month's {}",
-            next.kind,
-            next.expected_cents,
-            full[next.kind as usize]
+        assert_eq!(
+            next.expected_cents, full[next.kind as usize],
+            "bill kind {}: one more day makes a full month",
+            next.kind
         );
-        assert!(next.expected_cents >= next.so_far_cents);
     }
-    // Three more days are projected, so the month comes to twelve days
-    // counted under a length of twelve: a base charge comes to its whole
-    // month and the usage-free bills are exactly a full month.
-    assert_eq!(expected[0].expected_cents, 25_520, "a full month of rent");
-    assert_eq!(expected[1].expected_cents, base.electricity_base_cents);
-    assert_eq!(expected[2].expected_cents, base.water_base_cents);
-    assert_eq!(
-        expected[3].expected_cents,
-        base.transportation_base_cents + 2 * base.commute_cents
-    );
+    assert_eq!(overview(sim.world()).unwrap().next_due_day, 10);
+    assert_eq!(overview(sim.world()).unwrap().month_length, 10);
 }
 
 /// [WB-usage]: a use is counted once at physical start, and a save and

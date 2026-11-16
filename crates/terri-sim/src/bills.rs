@@ -35,17 +35,10 @@ pub const MAX_SAVED_COUNT: u32 = 100_000;
 /// The largest amount a saved bill may carry, in cents: ten billion
 /// dollars, far above any month and far inside `i64` for payment.
 pub const MAX_SAVED_AMOUNT_CENTS: i64 = 1_000_000_000_000;
-/// The most days an open month may be counted over, and so the longest
-/// length it may be counted under: twice the compiler's longest month. A
-/// month that began under one month length ends on the next boundary of
-/// another, so after a change of tuning it can run past either length
-/// ([WB-save]).
-pub const MAX_OPEN_MONTH_DAYS: u32 = 2 * 365;
-
 /// The terms a bill was issued under, kept with it so a later change to the
 /// tuning applies to later bills only and never makes a saved bill invalid
-/// ([WB-save]): the month length its due day falls on, its days of grace,
-/// and its daily late fee and cap in percent.
+/// ([WB-save]): the length of the month it charges, which its due day ends,
+/// its days of grace, and its daily late fee and cap in percent.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct BillTerms {
     pub month_length: u32,
@@ -55,7 +48,8 @@ pub struct BillTerms {
 }
 
 impl BillTerms {
-    /// The terms `tuning` sets for a bill issued now.
+    /// The terms `tuning` sets for a bill issued now, for a month of the
+    /// tuning's length.
     pub fn of(tuning: &BillsTuning) -> Self {
         Self {
             month_length: tuning.days_per_month,
@@ -65,11 +59,13 @@ impl BillTerms {
         }
     }
 
-    /// Terms the compiler would accept: a month of 1 to 365 days, grace
-    /// shorter than it, and percentages of 0 to 100.
+    /// Terms a bill may carry: a month of 1 to 365 days, grace under 365
+    /// days, and percentages of 0 to 100. The compiler still keeps new
+    /// content's grace below its month length; a bill issued after the
+    /// tuning's month got shorter keeps the grace it was issued with.
     pub fn valid(&self) -> bool {
         (1..=365).contains(&self.month_length)
-            && self.grace_days < self.month_length
+            && self.grace_days < 365
             && self.late_fee_percent <= 100
             && self.late_fee_cap_percent <= 100
     }
@@ -130,8 +126,9 @@ pub struct Bills {
     /// Days counted in the current month.
     pub month_days: u32,
     /// The month length the current month is counted under, which its
-    /// amounts are divided by: the tuning's when it started, or the longer
-    /// one if the tuning changed while it ran; 0 before anything counted.
+    /// amounts are divided by: the tuning's when its first day was counted,
+    /// and never changed while the month runs; 0 before anything counted.
+    /// The month ends at [`month_end`] of its start and this length.
     pub month_length: u32,
     /// The day index the current month's first counted day fell on; 0
     /// before anything counted.
@@ -168,6 +165,15 @@ pub fn day_index(tick: u64, day_ticks: u32) -> u32 {
 /// Whether the day index `day` is the first day of a month.
 pub fn is_month_start(day: u32, days_per_month: u32) -> bool {
     day.is_multiple_of(days_per_month)
+}
+
+/// The day index on which a month that began on `start` under `length` ends
+/// and its bills are issued: the next first day of a month of that length
+/// ([WB-calendar]). A month that began mid-way, as a new game's or the first
+/// after a change of the tuning's month length, is short and charged pro
+/// rata.
+pub fn month_end(start: u32, length: u32) -> u32 {
+    start - start % length + length
 }
 
 /// Bills act only in a world with a lot: a lot frame and a confirmed room
@@ -286,29 +292,27 @@ pub(crate) fn pay_due(world: &mut World) {
 /// day's late fee to every overdue bill.
 fn start_day(world: &mut World, pack: &'static ContentPack, today: u32) {
     let tuning = &pack.bills;
-    let month = tuning.days_per_month;
     let (indoor, outdoor) = rent_tiles(world);
     let daily = daily_counts(world, pack);
     let mut bills = world.resource_mut::<Bills>();
-    if let Some(last) = bills.last_counted_day {
-        // The month changed since the last counted day. With every tick
-        // processed this is the first day of a month; comparing months
-        // keeps a month from being counted into the next whatever happens.
-        if last / month != today / month {
-            issue(&mut bills, today - today % month, tuning);
+    if bills.last_counted_day.is_some() {
+        // The open month ends on a day fixed when it opened. With every
+        // tick processed this is its next first day; `>=` keeps a month
+        // from being counted past its end whatever happens.
+        let end = month_end(bills.month_start, month_length(&bills, tuning));
+        if today >= end {
+            issue(&mut bills, end, tuning);
         }
     }
     bills.last_counted_day = Some(today);
     if bills.month_days == 0 {
+        // A month opens on the first day counted, under the tuning's length
+        // at that moment, and keeps that length until it ends: a later
+        // change to the tuning applies from the next month ([WB-calendar]).
         bills.month_start = today;
+        bills.month_length = tuning.days_per_month;
     }
     bills.month_days += 1;
-    // A month counted across a change of month length keeps the longest
-    // length it was counted under, and at least the days it has counted: it
-    // ends on the new length's boundary, which can come after its own end,
-    // and its amounts are divided by this length, so its days never
-    // outnumber it and its charges never exceed a full month's ([WB-save]).
-    bills.month_length = bills.month_length.max(month).max(bills.month_days);
     bills.indoor_tile_days += u64::from(indoor);
     bills.outdoor_tile_days += u64::from(outdoor);
     // A month with no daily usage keeps an empty list, as a saved month
@@ -354,6 +358,12 @@ fn daily_counts(world: &mut World, pack: &ContentPack) -> Vec<u32> {
 /// months are dropped, and the month's usage becomes the last month's.
 fn issue(bills: &mut Bills, due_day: u32, tuning: &BillsTuning) {
     let amounts = month_amounts(bills, tuning);
+    // The bill's terms carry the length of the month it charges, which its
+    // due day ends; grace and fees come from the tuning now.
+    let terms = BillTerms {
+        month_length: month_length(bills, tuning),
+        ..BillTerms::of(tuning)
+    };
     let (electricity_cents, water_cents) = usage_cents(bills, tuning);
     bills.previous = Some(PreviousUsage {
         electricity_cents,
@@ -369,7 +379,7 @@ fn issue(bills: &mut Bills, due_day: u32, tuning: &BillsTuning) {
                 amount_cents,
                 late_fee_cents: 0,
                 paid_day: None,
-                terms: BillTerms::of(tuning),
+                terms,
             });
         }
     }
@@ -604,16 +614,20 @@ pub fn validate_saved(world: &World, saved: &SavedBills) -> Result<(), crate::Sa
         .map_or(0, |grid| (grid.width() * grid.height()) as u64);
     // The open month is checked against the month length it is counted
     // under, which the save carries, so a later change to the tuning's
-    // month length leaves the save loadable ([WB-save]).
+    // month length leaves the save loadable ([WB-save]). Its end is fixed
+    // by its start and length: nothing counted may lie beyond it.
     match saved.last_counted_day {
         Some(day) => {
             if day > today
-                || !(1..=MAX_OPEN_MONTH_DAYS).contains(&saved.month_length)
+                || !(1..=365).contains(&saved.month_length)
                 || saved.month_start > day
                 || saved.month_days == 0
-                || saved.month_days > saved.month_length
                 || saved.month_days > day - saved.month_start + 1
             {
+                return Err(InvalidValue);
+            }
+            let end = month_end(saved.month_start, saved.month_length);
+            if day >= end || saved.month_days > end - saved.month_start {
                 return Err(InvalidValue);
             }
         }
@@ -758,7 +772,7 @@ pub struct Overview {
     pub keep_aside_cents: i64,
     /// What Funds lack of `keep_aside_cents`, 0 when they cover it.
     pub shortfall_cents: i64,
-    /// The day index the next bills are due: the next month's first day.
+    /// The day index the next bills are due: the day the open month ends.
     pub next_due_day: u32,
     /// The overdue bills and their fees.
     pub overdue_cents: i64,
@@ -858,23 +872,19 @@ fn counted(world: &World) -> Option<(&Bills, &'static ContentPack, u32)> {
 /// last month's ([WB-panel]): rent and base charges are projected exactly
 /// from the days left, usage is projected by that larger amount.
 fn expected_month(world: &World, bills: &Bills, tuning: &BillsTuning, today: u32) -> Bills {
-    let month = tuning.days_per_month;
-    // The days still to count in this month: after the last counted one,
-    // or from today on before a game's first tick has counted anything.
-    let left = u64::from(match bills.last_counted_day {
-        Some(day) => month - 1 - day % month,
-        None => month - today % month,
-    });
+    let length = month_length(bills, tuning);
+    // The days still to count in this month, to its fixed end: after the
+    // last counted one, or from today on before a game's first tick has
+    // counted anything, when the month will open under the tuning's length.
+    let left = match bills.last_counted_day {
+        Some(day) => month_end(bills.month_start, length) - 1 - day,
+        None => month_end(today, length) - today,
+    };
     let (indoor, outdoor) = rent_tiles(world);
-    let projected_days = bills.month_days + left as u32;
     Bills {
-        month_days: projected_days,
-        // The month's own length, or the days it will have counted if that
-        // is more, so the projection is divided as the issued bills will be
-        // and never comes to more than a full month ([WB-save]).
-        month_length: month_length(bills, tuning).max(projected_days),
-        indoor_tile_days: bills.indoor_tile_days + u64::from(indoor) * left,
-        outdoor_tile_days: bills.outdoor_tile_days + u64::from(outdoor) * left,
+        month_days: bills.month_days + left,
+        indoor_tile_days: bills.indoor_tile_days + u64::from(indoor) * u64::from(left),
+        outdoor_tile_days: bills.outdoor_tile_days + u64::from(outdoor) * u64::from(left),
         ..bills.clone()
     }
 }
@@ -1058,6 +1068,11 @@ pub fn overview(world: &World) -> Option<Overview> {
     let overdue = overdue_bills(world);
     let keep_aside_cents = unpaid + expected;
     let month = tuning.days_per_month;
+    let length = month_length(bills, tuning);
+    let end = match bills.last_counted_day {
+        Some(_) => month_end(bills.month_start, length),
+        None => month_end(today, length),
+    };
     let earliest = bills
         .bills
         .iter()
@@ -1072,7 +1087,7 @@ pub fn overview(world: &World) -> Option<Overview> {
         funds_cents,
         keep_aside_cents,
         shortfall_cents: (keep_aside_cents - funds_cents.max(0)).max(0),
-        next_due_day: today - today % month + month,
+        next_due_day: end,
         overdue_cents: overdue.iter().map(|bill| bill.amount_cents).sum(),
         overdue_fee_cents: overdue.iter().map(|bill| bill.late_fee_cents).sum(),
         days_per_month: month,
@@ -1080,7 +1095,7 @@ pub fn overview(world: &World) -> Option<Overview> {
         late_fee_percent: tuning.late_fee_percent,
         late_fee_cap_percent: tuning.late_fee_cap_percent,
         month_days: bills.month_days,
-        month_length: month_length(bills, tuning),
+        month_length: length,
         unpaid_cents: unpaid,
         unpaid_due_day: earliest.map(|bill| bill.due_day),
         pending_due_day: pending.map(|bill| bill.due_day),
