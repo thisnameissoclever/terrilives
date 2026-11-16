@@ -535,7 +535,9 @@ fn activity_log_never_changes_the_world() {
     // shipped household's first two days; their own tests drive them. A
     // nuisance episode used to happen in these two days. After issue 315
     // slowed every need's drain the household's first two days no longer
-    // contain one, so the twenty-day check below requires it instead and
+    // contain one, so `the_nuisance_emitter_never_changes_the_world` runs the
+    // on and off comparison in a small world that provokes one, the manual
+    // twenty-day check also requires one, and
     // `a_nuisance_episode_closes_at_the_end_of_the_day` drives the emitter.
 }
 
@@ -565,6 +567,69 @@ fn activity_log_never_changes_the_world_over_twenty_days() {
             .iter()
             .any(|r| r.kind() == Some(LogKind::Annoyed) && r.label() == nuisance),
         "no nuisance episode in twenty days"
+    );
+}
+
+/// Bill hates the television and Casey watches it in the same room, for one
+/// whole game day, so the nuisance episode that records it closes. Returns
+/// the world hash after every tick and the records the log staged.
+fn run_a_nuisance_day(log: bool) -> (Vec<u64>, Vec<LogRecord>) {
+    use crate::affinity::presence_and_use_tests::{
+        bill_and_casey, order, set_values, tick_until_using,
+    };
+    let (mut sim, bill, casey) = bill_and_casey();
+    sim.set_activity_log_enabled(log);
+    set_values(&mut sim, bill, &[("television", -1.0)]);
+    order(&mut sim, bill, "sofa", "lounge");
+    order(&mut sim, casey, "television", "watch_tv");
+    let day = u64::from(sim.world().resource::<Content>().0.tuning.day_ticks);
+    let mut hashes = Vec::new();
+    let mut ticks = 0_u64;
+    tick_until_using(
+        &mut sim,
+        &[(bill, "sofa"), (casey, "television")],
+        400,
+        |sim| {
+            ticks += 1;
+            hashes.push(sim.world_hash());
+        },
+    );
+    let mut staged = Vec::new();
+    let mut out = Vec::new();
+    while ticks < day {
+        sim.tick();
+        ticks += 1;
+        hashes.push(sim.world_hash());
+    }
+    sim.take_activity_log(&mut out);
+    staged.extend(
+        out.chunks_exact(RECORD_WORDS)
+            .map(|words| LogRecord(words.try_into().unwrap())),
+    );
+    (hashes, staged)
+}
+
+/// The nuisance emitter, in a world that provokes it, never changes the
+/// world either. The shipped household's first two days no longer contain a
+/// nuisance episode (slower drain, issue 315), so this runs one game day of
+/// the smallest world that has one, with the log on and off.
+#[test]
+fn the_nuisance_emitter_never_changes_the_world() {
+    let (off, none) = run_a_nuisance_day(false);
+    let (on, records) = run_a_nuisance_day(true);
+    assert!(none.is_empty(), "a disabled log stages nothing");
+    assert_eq!(off.len(), on.len());
+    if let Some(tick) = on.iter().zip(&off).position(|(a, b)| a != b) {
+        panic!("the world diverged at tick {tick}");
+    }
+    let labels = crate::activity_log::labels(terri_data::pack());
+    let nuisance =
+        labels.index(crate::relationship_effects::RelationshipCause::Nuisance.log_label());
+    assert!(
+        records
+            .iter()
+            .any(|r| r.kind() == Some(LogKind::Annoyed) && r.label() == nuisance),
+        "the day closed no nuisance episode, so the comparison proved nothing"
     );
 }
 
