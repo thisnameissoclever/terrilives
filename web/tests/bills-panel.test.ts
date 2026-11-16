@@ -215,6 +215,35 @@ describe('the Bills panel', () => {
     expect(redrawn.map(row => row.open)).toEqual([false, true, false, false]);
   });
 
+  it('reads a short month opened after a change of the month length as days of its own length', () => {
+    // The tuning went from seven days to four, so a month opened on day index 14 ends on 16: two days
+    // are counted of its four, and each base charge is those days of the month's whole charge.
+    const short: BillsOverview = {
+      ...OVERVIEW, nextDueDay: 16, daysPerMonth: 4, graceDays: 3, monthDays: 2, monthLength: 4,
+    };
+    const lines: Record<number, BillLine[]> = {
+      ...LINES,
+      3: [
+        { line: 0, kindIndex: 0, count: 2, unitCents: 1_000, amountCents: 500, tileDays: 0 },
+        { line: 5, kindIndex: 0, count: 1, unitCents: 300, amountCents: 300, tileDays: 0 },
+      ],
+      0: [
+        { line: 0, kindIndex: 0, count: 2, unitCents: 6_000, amountCents: 3_000, tileDays: 0 },
+        { line: 1, kindIndex: 0, count: 192, unitCents: 90, amountCents: 8_640, tileDays: 384 },
+        { line: 2, kindIndex: 0, count: 112, unitCents: 20, amountCents: 1_120, tileDays: 224 },
+      ],
+    };
+    const { text, root } = opened({ billsOverview: () => short, billsLines: kind => lines[kind] ?? [] });
+    expect(text).toContain('Due Day 17, Wednesday');
+    expect(text).toContain('Base charge, 2 of 4 days: $5.00');
+    expect(text).toContain('Base charge, 2 of 4 days: $30.00');
+    expect(text).toContain('Indoor tiles: 192 at $0.90 a tile a month, 2 of 4 days: $86.40');
+    expect(text).toContain('Outdoor tiles: 112 at $0.20 a tile a month, 2 of 4 days: $11.20');
+    expect(text.join(' ')).toContain('A month is 4 days.');
+    expect(root.find(element => element.tagName === 'details')).toHaveLength(4);
+    expect(formatBillsRow(short)).toBe('$425 due Day 17');
+  });
+
   it('shows the last month with paid and unpaid bills', () => {
     const paid: IssuedBill = { kind: 0, dueDay: 0, amountCents: 29_360, feeCents: 0, paidDay: 0 };
     const late: IssuedBill = { kind: 1, dueDay: 0, amountCents: 4_900, feeCents: 245, paidDay: 6 };
