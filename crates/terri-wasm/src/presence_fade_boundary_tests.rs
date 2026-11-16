@@ -119,34 +119,60 @@ fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
     }
 }
 
-/// A save the game itself makes, while a fade is running, loads and goes on
-/// exactly as the world that was never reloaded: the shipped lot is ticked
-/// until some fade is on the list, saved, loaded into a second handle, and
-/// both are ticked for 250 more ticks (longer than the longest shipped fade,
-/// 228) with the world hash compared every tick and the saved bytes at the
-/// end. Saves taken along the way must also pass load validation.
+/// A save the game itself makes, while a fade is aging, loads and goes on
+/// exactly as the world that was never reloaded, and the fade runs out.
+///
+/// The shipped lot is ticked until some row stops being refreshed (its end
+/// tick is the same as a tick earlier, so the person has left the furniture)
+/// with more than one tick still to run. That is saved and loaded into a
+/// second handle, and both are ticked until the row's end tick has passed
+/// (at most 228 ticks for the largest shipped lift, 19 points * 60 / 5 points
+/// an hour) and for at least 250 ticks, with the world hash compared every
+/// tick and the saved bytes at the end. The row must be gone, or refreshed
+/// to a later end, once its end tick is reached. Saves taken along the way
+/// must also pass load validation.
 #[test]
 fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
+    let rows = |handle: &SimHandle| {
+        handle
+            .sim
+            .world()
+            .resource::<PresenceFade>()
+            .entries()
+            .to_vec()
+    };
+    let now = |handle: &SimHandle| handle.sim.world().resource::<SimClock>().tick;
     let mut original = SimHandle::from_lot();
-    let mut ticks = 0;
-    while original
-        .sim
-        .world()
-        .resource::<PresenceFade>()
-        .entries()
-        .is_empty()
-    {
-        assert!(ticks < 5_000, "no fade appeared in the shipped lot");
+    let mut earlier = rows(&original);
+    let mut aging = None;
+    for ticks in 0..20_000 {
         original.tick();
-        ticks += 1;
+        let current = rows(&original);
+        aging = current
+            .iter()
+            .find(|row| earlier.contains(row) && row.2 > now(&original) + 1)
+            .copied();
+        if aging.is_some() {
+            break;
+        }
+        earlier = current;
+        assert!(ticks < 19_999, "no fade was ever left running down");
     }
+    let (person, kind, end) = aging.unwrap();
+    let saved_at = now(&original);
+    assert!(end > saved_at + 1, "the row is aging, with time left");
     let bytes = original.save_bytes();
-    assert!(!decode_current(&bytes).presence_fade.is_empty());
+    assert!(decode_current(&bytes)
+        .presence_fade
+        .iter()
+        .any(|row| row.sim == person.0 && row.end_tick == end));
     let mut reloaded = SimHandle::from_lot();
     assert!(reloaded.load_bytes(&bytes));
     assert_eq!(reloaded.world_hash(), original.world_hash());
     let mut scratch = SimHandle::from_lot();
-    for tick in 1..=250 {
+    let run = (end - saved_at + 5).max(250);
+    let mut expired = false;
+    for tick in 1..=run {
         original.tick();
         reloaded.tick();
         assert_eq!(
@@ -154,6 +180,20 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
             original.world_hash(),
             "diverged {tick} ticks after the reload"
         );
+        let this_tick = now(&original);
+        let still_listed = rows(&original).contains(&(person, kind, end));
+        if this_tick < end {
+            assert!(
+                still_listed,
+                "the aging row vanished {tick} ticks in, before its end"
+            );
+        } else {
+            assert!(
+                !still_listed,
+                "the row outlived its end tick, {tick} ticks in"
+            );
+            expired = true;
+        }
         if tick % 10 == 0 {
             assert!(
                 scratch.load_bytes(&original.save_bytes()),
@@ -161,5 +201,6 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
             );
         }
     }
+    assert!(expired, "the loop never reached the row's end tick");
     assert_eq!(reloaded.save_bytes(), original.save_bytes());
 }

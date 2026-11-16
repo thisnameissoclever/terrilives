@@ -382,7 +382,7 @@
     "crates/terri-wasm/src/lib.rs": "df0c5ee99e5a7aa49e0130c9d7f9205a8c63efaee62cfa7c071c081d47924336",
     "crates/terri-wasm/src/placement_tests.rs": "64f0bd3c5c046b227b8eb013d3514ea679472f1360013498e34e5b953b335b26",
     "crates/terri-wasm/src/player_order_tests.rs": "4c05c22da7f665613fda3dce1b8929509324541cab4fcf3a1c231269db05c693",
-    "crates/terri-wasm/src/presence_fade_boundary_tests.rs": "5590431b3b7354a0a6d14bbcd49b67d1ae613db903f530cbea3dd8e473832ca6",
+    "crates/terri-wasm/src/presence_fade_boundary_tests.rs": "829f6d51f716baa0885aeb51444e1a100c8909887762550a491acc67f16f94a5",
     "crates/terri-wasm/src/published_v15_tests.rs": "f3cbf9d4c552522126b64aaf49f13297d4a8b168df5005634a167e9210c5b062",
     "crates/terri-wasm/src/published_v19_tests.rs": "c27e682c5590e4855f5a998000559e369ffcb20f8460846495d8472759c211ff",
     "crates/terri-wasm/src/room_save_tests.rs": "da2f61230b584bd684c9c22f47cee11ce1f0f105066c622041a461d398a3ff5c",
