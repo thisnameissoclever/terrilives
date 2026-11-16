@@ -412,6 +412,12 @@ mod tests {
                 "99 percent is a ceiling, not 100: {p:?}"
             );
         }
+        // The ramp is clamped: progress past the end holds the maximum and
+        // progress before the start holds today's cap.
+        let beyond = evaluate_late(&rows, &outcomes, &needs, late(2.0));
+        assert!((beyond[0] - 0.99).abs() < 1e-6, "{beyond:?}");
+        let before = evaluate_late(&rows, &outcomes, &needs, late(-1.0));
+        assert!((before[0] - 0.95).abs() < 1e-6, "{before:?}");
         // Ramping never lowers the share.
         let mut last = 0.;
         for step in 0..=10 {
