@@ -610,3 +610,48 @@ fn bladder_never_falls_below_the_threshold_during_a_shift() {
         "with the relief off the shift does drain it below the threshold"
     );
 }
+
+/// [WL-limit]: the allowance is a window from the scheduled start to the
+/// start plus the limit, cut at the shift's end and closed once the shift
+/// has settled, whatever the limit is. The departure also stops at a shift's
+/// end through `start_tick`'s own open-shift test; this pins the predicate on
+/// its own, so the two cannot drift apart unnoticed.
+#[test]
+fn the_allowance_is_a_window_that_ends_at_the_limit_or_the_shift_end() {
+    let shift = |end_tick, settled| terri_core::save_v17::SavedScheduledShift {
+        sim: 1,
+        career: 0,
+        start_tick: START,
+        end_tick,
+        worked_ticks: 0,
+        accounted_tick: START,
+        pay_cents: 0,
+        settled,
+        legacy: false,
+    };
+    let mut tuning = terri_data::pack().tuning;
+    tuning.work_lateness_limit_ticks = 720;
+    let short = shift(START + 30, false);
+    assert_eq!(
+        late_ticks(&short, START - 1, &tuning),
+        None,
+        "before the start"
+    );
+    assert_eq!(late_ticks(&short, START, &tuning), Some(0));
+    assert_eq!(late_ticks(&short, START + 29, &tuning), Some(29));
+    assert_eq!(
+        late_ticks(&short, START + 30, &tuning),
+        None,
+        "the shift's end closes the allowance well inside the limit"
+    );
+    assert_eq!(
+        late_ticks(&shift(START + 480, true), START + 5, &tuning),
+        None
+    );
+    tuning.work_lateness_limit_ticks = 60;
+    let long = shift(START + 480, false);
+    assert_eq!(late_ticks(&long, START + 59, &tuning), Some(59));
+    assert_eq!(late_ticks(&long, START + 60, &tuning), None, "the limit");
+    tuning.work_lateness_limit_ticks = 0;
+    assert_eq!(late_ticks(&long, START, &tuning), None, "a limit of 0");
+}
