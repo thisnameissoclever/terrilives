@@ -111,6 +111,8 @@ fn bills_exports_mid_month_with_an_overdue_bill() {
     *handle.sim.world_mut().resource_mut::<Bills>() = Bills {
         last_counted_day: Some(11),
         month_days: 5,
+        month_length: 7,
+        month_start: 7,
         bills: vec![Bill {
             due_day: 7,
             kind: terri_sim::bills::RENT,
