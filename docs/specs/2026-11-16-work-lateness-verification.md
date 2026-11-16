@@ -13,7 +13,7 @@ Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured 
 
 ## [before] How needs behaved at work before
 
-Read from the code before designing the Bladder relief. `AtWork` is set by `attendance::finish_tick` when the outbound walk ends. While it is set, `systems::needs::decay_needs` multiplies every need's decay by `at_work_decay_scale` (0.5) and nothing in the simulation restores any need, so a worker's needs only fall. The settled shift debits Energy by the job's cost. A trace of the shipped household for one week with the issue's two knobs at 0 (`trace 10080 --lateness-limit 0 --work-relief-threshold 0`, log `trace-week-before.log`) shows the lowest Bladder seen at work: Tim 31.83, Bill 45.53, Casey 25.08. None was critical in that week, but a worker who arrives lower is. With the relief on (`trace-week-new.log`) the lowest values are 50.01, 50.02 and 50.02, so Bladder at work stays at or above the threshold.
+Read from the code before designing the Bladder relief. `AtWork` is set by `attendance::finish_tick` when the outbound walk ends. While it is set, `systems::needs::decay_needs` multiplies every need's decay by `at_work_decay_scale` (0.5) and nothing in the simulation restores any need, so a worker's needs only fall. The settled shift debits Energy by the job's cost. A trace of the shipped household for one week with the issue's two knobs at 0 (`trace 10080 --lateness-limit 0 --work-relief-threshold 0`, log `trace2-week-before.log`) shows the lowest Bladder seen at work: Tim 31.83, Bill 45.53, Casey 25.08. None was critical in that week, but a worker who arrives lower is. With the relief on (`trace2-week-new.log`) the lowest values are 50.01, 50.02 and 50.02, so Bladder at work stays at or above the threshold.
 
 ## [red] Tests that failed first
 
@@ -87,7 +87,7 @@ The ramp clamp had a gap too: the ramp test passed only progress values from 0 t
 
 ## [trace] Trace figures
 
-`cargo run --release -p terri-sim --example trace -- <ticks> [seed] [flags]` on the branch head, shipped household. The SHIFTS section's LATENESS lines report, for each worker, the shift starts with Hunger or Energy critical at the start tick and how many minutes after the start each left, and the other late departures separately, because another cause is not this issue's. Logs are `trace-*.log`.
+`cargo run --release -p terri-sim --example trace -- <ticks> [seed] [flags]` on the merged branch, shipped household. The SHIFTS section's LATENESS lines report, for each worker, the shift starts with Hunger or Energy critical at the start tick and how many minutes after the start each left, and the other late departures separately, because another cause is not this issue's. Logs are `trace2-*.log`, measured after merging main at `54cf96b46`; the same runs before that merge gave identical figures.
 
 | Run | Starts critical, minutes after the start they left | Longest other late departure | Left after the shift's end | Over the 60 minute limit for a need |
 | --- | --- | --- | --- | --- |
