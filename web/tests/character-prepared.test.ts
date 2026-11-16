@@ -216,6 +216,22 @@ it('retains cover buffers through first sleep, changed occupancy, reentry and ac
   gpu.lose();await gpu.device.lost;await Promise.resolve();expect(gpu.buffers.every(buffer=>buffer.destroyed===1)).toBe(true);
 });
 
+it('leaves a shared sleeping cover showing the appearance of the last selection, also when selections repeat unchanged',()=>{
+  const gpu=recordingDevice(),bed=rigs.find(row=>row.family==='bed')!,rig=prepareClipFamily(base,bed.extra,bed.parts,library,'bed');
+  const first=defaultAppearance(),second=structuredClone(first);second.colors.shirt=[9,8,7];
+  const context:AppearanceContext={wear:'clothed',prop:'none',fixture:'none',eyes_closed:true,includeFixture:false,clip:'bed_sleep'};
+  const cover=new PreparedSleepingCover(gpu.device,{...base,manifest:rig.manifest},false,256,256);
+  const one=new PreparedCharacter(gpu.device,rig,first,context,256,256),two=new PreparedCharacter(gpu.device,rig,second,context,256,256);
+  one.setCoverResource(cover);two.setCoverResource(cover);
+  const applied:unknown[]=[],set=cover.renderer.setCharacterAppearance.bind(cover.renderer);
+  vi.spyOn(cover.renderer,'setCharacterAppearance').mockImplementation(appearance=>{applied.push(appearance);set(appearance);});
+  // The first frame selects each actor in full; later frames repeat the same arguments, which return early.
+  one.select(rig,first,context);two.select(rig,second,context);expect(applied.at(-1)).toBe(second);
+  two.select(rig,second,context);one.select(rig,first,context);expect(applied.at(-1)).toBe(first);
+  one.select(rig,first,context);two.select(rig,second,context);expect(applied.at(-1)).toBe(second);
+  one.destroy();two.destroy();cover.destroy();
+});
+
 it('prepares only live sleeping fixtures and releases their retained cover when removed',()=>{
   const gpu=recordingDevice(),bed=rigs.find(row=>row.family==='bed')!,bunk=rigs.find(row=>row.family==='bunk')!;
   const covers=new Map<number,PreparedSleepingCover>(),geometries=new Map([
