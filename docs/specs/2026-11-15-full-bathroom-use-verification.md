@@ -28,16 +28,18 @@ The trace line "unexplained disappearances" of conversation requests is 0, 1, 0 
 
 ## Drain: pinned values that moved, and why
 
-Every moved value below moved for one cause: each base need drain rate is three quarters of its old value, so needs cross their thresholds at different ticks and the household's choices, and the random draws they spend, differ from the first minutes. No digest encoding changed and no simulation code changed. Each new value was read from the failing assertion and then confirmed by a passing run.
+This change was merged with main at 54cf96b46, which added the wages and bills (issue 298, save schema 22) and stopped furniture presence lowering mood (issue 344). Each value below was recomputed on the merged tree from its own failing assertion, never by taking either side. The "Main" column is the value main at 54cf96b46 pins, which already includes the wages, the bills and the presence rule; the "This change" column adds one more cause. Each moved because each base need drain rate is three quarters of its old value, so needs cross their thresholds at different ticks and the household's choices, and the random draws they spend, differ from the first minutes. No digest encoding changed and no simulation code changed. Each new value was read from the failing assertion and then confirmed by a passing run.
 
-| Value | Where | Old | New |
+| Value | Where | Main | This change |
 | --- | --- | --- | --- |
 | Fixed-scenario world hash `GOLDEN` | `crates/terri-sim/src/lib.rs` | 4733362429942472337 | 15287039064284998688 |
 | Its release-WebAssembly twin | `web/tests/bridge.test.ts` | 4733362429942472337 | 15287039064284998688 |
-| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 17769474122166916875 | 15679464342224380920 |
-| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 1877760251232896320 | 12407989054242721803 |
-| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0xa0fb_785a_e3a4_7b1d | 0x1f5f_7875_d990_cea9 |
-| Twenty-day activity log fold (release, manual) | the same file | 0x78e8_cb74_b70c_d742 | 0x9edb_b19f_679e_fd4b |
+| Shipped household through Thursday, `SHIPPED_THURSDAY` | `crates/terri-sim/src/job_search_tests.rs` | 13315179661733202479 | 5892717548701736568 |
+| Standard-shift hash, `STANDARD_ONLY_HASH` | `crates/terri-sim/src/save/v21_tests.rs` | 3704503324967516506 | 16044876517331188252 |
+| Two-day activity log fold | `crates/terri-sim/src/activity_log_tests.rs` | 0x06a6_5d89_3df7_7287 | 0xcb8f_9954_11cb_4102 |
+| Twenty-day activity log fold (release, manual) | the same file | 0x4947_38f3_cd9d_3898 | 0xfe91_9131_6786_b7dc |
+
+`GOLDEN` is a fixed scenario that main's wages, bills and presence changes did not move: main pins the same 4733362429942472337 as before them. This change's own measurement of 15287039064284998688 still holds on the merged tree (the native assertion passes with it), so the merge added no second cause. Before the merge, the drain change alone had measured the other values as `SHIPPED_THURSDAY` 17769474122166916875 to 15679464342224380920, `STANDARD_ONLY_HASH` 1877760251232896320 to 12407989054242721803, the two-day fold 0xa0fb_785a_e3a4_7b1d to 0x1f5f_7875_d990_cea9 and the twenty-day fold 0x78e8_cb74_b70c_d742 to 0x9edb_b19f_679e_fd4b; those are superseded by the table above.
 
 The draws and jobs in `SHIPPED_THURSDAY` (seven careers draws, two shift draws, the three jobs and shifts) did not change.
 

@@ -178,9 +178,9 @@ fn schema_twenty_one_round_trips_through_the_save_bytes() {
     let bytes = source.save_bytes();
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &21u16.to_le_bytes()
+        &22u16.to_le_bytes()
     );
-    let snapshot = super::current_test_snapshot::decode_current(&bytes);
+    let snapshot = super::current_test_snapshot::decode_current(&bytes).legacy;
     assert!(snapshot.shifts.held.iter().any(|row| row.shift == "late"));
     assert_eq!(snapshot.shifts.draws, 1);
     let mut loaded = SimHandle::from_lot();

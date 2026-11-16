@@ -91,6 +91,25 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #chores-dialog .chore-row { padding: 12px; gap: 7px 10px; }
   #chores-dialog .chore-do-now { min-height: 44px; padding-inline: 12px; }
 }
+/* [WB-panel]: the Bills dialog's type and sticky header match Chores. Below
+   600 pixels it fills the width less 12 pixels a side and its rows keep the
+   name and expected amount on one line with the rest below in 12-pixel text.
+   On a narrow, short or touch screen every control is at least 44 pixels
+   tall, as the neighboring touch rules are. */
+#bills-dialog { font: 13px/1.45 system-ui, sans-serif; }
+#bills-dialog .bills-header { position: sticky; top: -20px; background: var(--hud-bg); padding-block: 10px; z-index: 1; }
+#bills-value { font-size: inherit; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  #bills-dialog { width: calc(100vw - 24px); max-width: none; margin-inline: 12px; padding: 12px; }
+  /* The sticky header covers the dialog's own top padding. */
+  #bills-dialog .bills-header { top: -12px; }
+  #bills-dialog .bill-row .bill-line { font-size: 12px; }
+}
+@media (max-width: 600px), (max-height: 480px), (any-pointer: coarse) {
+  #bills-dialog .bills-header .hud-button { min-height: 44px; padding-inline: 12px; }
+  #bills-dialog .bill-row summary { min-height: 44px; }
+  #bills-value { min-height: 44px; }
+}
 #sim-identity { flex: 1 0 60px; min-width: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 0 10px; }
 #needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock-activity {

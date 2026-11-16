@@ -13,6 +13,7 @@ import {
   careerFactorLines,
   careerAttendanceLine,
   careerJobView,
+  nightPayLine,
   createCareerPanelSurface,
   type CareerPanelSource,
   type CareerPanelState,
@@ -787,5 +788,29 @@ describe('shift selectors (issue 296, [WS-shell] items 3 to 5)', () => {
     render(state({ heldShift: 1, changeChoice: 0, pending: true, status: 'Changing the shift…' }));
     render(state({ heldShift: 1, changeChoice: 0, status: 'Not while they are at work or on the way.' }));
     expect(document.activeElement, 'a refused change keeps the button').toBe(button);
+  });
+});
+
+describe('the night premium on the Career tab (issue 298, [WB-panel])', () => {
+  it('adds the night pay sentence for a night worker and leaves it out for others', () => {
+    expect(nightPayLine({ percent: 15, cents: 12_075 })).toBe('Night shifts pay 15% more: $120.75 per shift.');
+    const night = careerJobView('Guard', 'Night watch', 's', report({ pay: 105, payMin: 105, payMax: 128 }), FACTORS, WEEKS,
+      { percent: 15, cents: 12_075 });
+    expect(night.pay).toBe('$105 per shift, from $105 to $128 at this level. Night shifts pay 15% more: $120.75 per shift.');
+    const day = careerJobView('Guard', 'Night watch', 's', report({ pay: 105, payMin: 105, payMax: 128 }), FACTORS, WEEKS);
+    expect(day.pay).toBe('$105 per shift, from $105 to $128 at this level');
+  });
+
+  it('reads the night pay from the source for the selected person only while they work nights', () => {
+    const source = new Source() as Source & { nightPayCentsOf(entity: number): number | null; nightShiftPremiumPercent(): number };
+    let night: number | null = null;
+    source.nightPayCentsOf = () => night;
+    source.nightShiftPremiumPercent = () => 15;
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().job?.pay).not.toContain('Night shifts');
+    night = 23_000;
+    controller.update(200);
+    expect(last().job?.pay).toContain('Night shifts pay 15% more: $230.00 per shift.');
   });
 });
