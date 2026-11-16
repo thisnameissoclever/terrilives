@@ -1,4 +1,4 @@
-use super::{RoomError, RoomMap, RoomTopology};
+use super::{RoomError, RoomMap, RoomTopology, TopologyCell};
 use bevy_ecs::prelude::*;
 use terri_core::{
     rooms::{RoomId, RoomRecord, RoomSelection, SavedRooms},
@@ -101,13 +101,43 @@ impl CleaningArea {
     }
 }
 
+/// Whether column `x` of the confirmed room map is the street: the grid's
+/// last column when the front door faces it, where commutes end. It is no
+/// one's floor, so neither cleaning nor rent counts it.
+fn is_street_column(world: &World, map: &RoomMap, x: u32) -> bool {
+    crate::lot_frame::street_exit(world).is_some() && x + 1 == map.topology.width
+}
+
+/// The rent tiles of the confirmed layout, `(indoor, outdoor)` - [WB-rent]
+/// in `docs/specs/2026-10-18-wages-and-bills.md`: a tile inside an
+/// enclosed room is indoor, a floor tile outside every room is outdoor
+/// unless it is the street, and a tile that is not floor counts as
+/// neither. Walls, doorways, windows and furniture change nothing, because
+/// they do not change the topology. `None` without a room map.
+pub fn rent_tiles(world: &World) -> Option<(u32, u32)> {
+    let map = world.get_resource::<RoomMap>()?;
+    let width = map.topology.width.max(1);
+    let mut indoor = 0;
+    let mut outdoor = 0;
+    for (index, cell) in map.topology.cells.iter().enumerate() {
+        match cell {
+            TopologyCell::Enclosed(_) => indoor += 1,
+            TopologyCell::Outside if !is_street_column(world, map, index as u32 % width) => {
+                outdoor += 1
+            }
+            _ => {}
+        }
+    }
+    Some((indoor, outdoor))
+}
+
 /// Material eligibility is independent of enclosure and furniture occupancy.
 pub fn cleaning_area_at(world: &World, tile: (i32, i32)) -> Option<CleaningArea> {
     let x = u32::try_from(tile.0).ok()?;
     let y = u32::try_from(tile.1).ok()?;
     let map = world.get_resource::<RoomMap>()?;
     let selection = map.selection_at((x, y))?;
-    if crate::lot_frame::street_exit(world).is_some() && x + 1 == map.topology.width {
+    if is_street_column(world, map, x) {
         return None;
     }
     let covering = world

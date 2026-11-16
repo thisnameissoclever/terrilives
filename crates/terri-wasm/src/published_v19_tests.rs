@@ -129,7 +129,9 @@ fn issue314_published_player_fight_requires_its_exact_execution_witness() {
             _ => unreachable!(),
         }
         assert!(
-            live.sim.load_snapshot_v19(view.0.legacy.legacy).is_err(),
+            live.sim
+                .load_snapshot_v19(view.0.legacy.legacy.legacy)
+                .is_err(),
             "corruption {corruption}"
         );
         assert_eq!(

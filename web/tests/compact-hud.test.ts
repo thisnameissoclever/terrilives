@@ -13,6 +13,39 @@ function setup() {
   return { hud, state: () => state };
 }
 
+/** The rules of the `@media` block whose query is exactly `query` and which styles the Bills panel. */
+function mediaBlock(query: string): string {
+  for (let start = css.indexOf(`@media ${query} {`); start >= 0; start = css.indexOf(`@media ${query} {`, start + 1)) {
+    let depth = 0;
+    for (let at = css.indexOf('{', start); at < css.length; at += 1) {
+      if (css[at] === '{') depth += 1;
+      if (css[at] === '}') depth -= 1;
+      if (depth === 0) {
+        const block = css.slice(start, at + 1);
+        if (block.includes('#bills-')) return block;
+        break;
+      }
+    }
+  }
+  throw new Error(`no Bills rules under ${query}`);
+}
+
+describe('the Bills panel stylesheet (issue 298, [WB-panel])', () => {
+  it('makes the Bills controls 44 pixels tall on a narrow, short or touch screen', () => {
+    const touch = mediaBlock('(max-width: 600px), (max-height: 480px), (any-pointer: coarse)');
+    for (const selector of ['#bills-dialog .bills-header .hud-button', '#bills-dialog .bill-row summary', '#bills-value']) {
+      expect(touch).toMatch(new RegExp(`${selector.replace(/[.#]/g, '\\$&')} \\{[^}]*min-height: 44px`));
+    }
+  });
+
+  it('keeps the sticky header flush with the dialog top at both paddings', () => {
+    expect(css).toMatch(/\n#bills-dialog \.bills-header \{[^}]*top: -20px/);
+    const phone = mediaBlock('(max-width: 600px)');
+    expect(phone).toMatch(/#bills-dialog \{[^}]*padding: 12px/);
+    expect(phone).toMatch(/#bills-dialog \.bills-header \{ top: -12px; \}/);
+  });
+});
+
 describe('compact HUD access and presentation', () => {
   it('starts with all detail panels closed, including Traits', () => {
     const { hud, state } = setup();

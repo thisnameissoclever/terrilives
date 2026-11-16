@@ -7,6 +7,13 @@
 # for television, radio and sleeping actions. Television and radio slots count
 # standing viewers; each free seat in view admits one more.
 # A left click starts default_action when any layer names one, else the first action.
+# Bills (docs/specs/2026-10-18-wages-and-bills.md, [WB-usage]): bill_uses on an
+# action names [bills.uses] kinds in tuning.toml, each charged once when the action
+# starts its physical work; bill_daily on a category, type or model names
+# [bills.daily] kinds, charged once a day for each placed object. A recipe action
+# charges through its chain's steps instead. indoor_only = true ([WB-beds]) means
+# every tile of the object must be inside an enclosed room when it is bought or
+# moved; the sleeping category sets it, so every bed inherits it.
 
 [[category]]
 id = "kitchen"
@@ -15,6 +22,8 @@ label = "Kitchen"
 [[category]]
 id = "sleeping"
 label = "Sleeping"
+[category.properties]
+indoor_only = { set = true }
 
 [[category]]
 id = "hygiene"
@@ -47,6 +56,9 @@ label = "Decoration"
 [[category]]
 id = "lighting"
 label = "Lighting"
+[category.properties]
+# No light switch exists yet, so a placed lamp counts as lit all day.
+bill_daily = { set = ["lamp"] }
 
 [[category]]
 id = "exercise"
@@ -104,6 +116,7 @@ visual = { set = { action = "sleep", anchor = "object_socket", facing = "socket"
 [[action_template]]
 id = "take_shower"
 [action_template.properties]
+bill_uses = { set = ["shower"] }
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "showering" }
 label = { set = "Take a shower" }
@@ -115,6 +128,7 @@ sound_action = { set = "shower_water" }
 [[action_template]]
 id = "relieve_self"
 [action_template.properties]
+bill_uses = { set = ["toilet"] }
 completion_sound = { set = "toilet_flush" }
 visual = { set = { action = "use_toilet", anchor = "object_socket", facing = "socket", socket = "seat" } }
 tags = { set = ["bathroom_privacy"] }
@@ -127,6 +141,7 @@ slots = { set = 1 }
 [[action_template]]
 id = "watch_tv"
 [action_template.properties]
+bill_uses = { set = ["television"] }
 media = { set = "television" }
 activity = { set = "watching_tv" }
 label = { set = "Watch TV" }
@@ -149,6 +164,7 @@ duration_ticks = { set = 40 }
 [[action_template]]
 id = "wash_hands"
 [action_template.properties]
+bill_uses = { set = ["hand_wash"] }
 visual = { set = { action = "wash", anchor = "object", facing = "toward_anchor" } }
 activity = { set = "washing_hands" }
 label = { set = "Wash hands" }
@@ -173,6 +189,7 @@ satisfaction = { set = 3.0 }
 [[action_template]]
 id = "wash_up"
 [action_template.properties]
+bill_uses = { set = ["hand_wash"] }
 visual = { set = { action = "wash", anchor = "object", facing = "toward_anchor" } }
 activity = { set = "washing_hands" }
 label = { set = "Wash hands" }
@@ -205,6 +222,7 @@ visual = { set = { action = "sit", anchor = "object_socket", facing = "socket", 
 [[action_template]]
 id = "listen"
 [action_template.properties]
+bill_uses = { set = ["radio"] }
 media = { set = "radio" }
 activity = { set = "listening_radio" }
 label = { set = "Listen to the radio" }
@@ -252,6 +270,7 @@ visual = { set = { action = "watch", anchor = "object", facing = "toward_anchor"
 [[action_template]]
 id = "soak"
 [action_template.properties]
+bill_uses = { set = ["bath"] }
 visual = { set = { action = "bathe", anchor = "object_socket", facing = "socket", socket = "basin" } }
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "bathing" }
@@ -266,6 +285,7 @@ label = "Fridge"
 category = "kitchen"
 [object_type.properties]
 rooms = { set = ["kitchen"] }
+bill_daily = { set = ["fridge"] }
 
 [[object_type.action]]
 id = "grab_snack"
@@ -605,6 +625,7 @@ label = "Aquarium"
 category = "entertainment"
 [object_type.properties]
 rooms = { set = ["living_room", "office"] }
+bill_daily = { set = ["aquarium"] }
 
 [[object_type.action]]
 id = "watch_fish"
@@ -637,6 +658,7 @@ label = "Pool"
 category = "outdoor"
 [object_type.properties]
 rooms = { set = ["yard"] }
+bill_daily = { set = ["pool"] }
 
 [[object_type]]
 id = "pool_lounger"

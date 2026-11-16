@@ -222,6 +222,9 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     } else {
         keep_usable(world, &rectangles, &grid)?;
     }
+    if super::edit_leaves_a_bed_outside(world, &candidate) {
+        return Err(BedOutside);
+    }
     Ok(RoomPlan {
         changed: true,
         layout: candidate,

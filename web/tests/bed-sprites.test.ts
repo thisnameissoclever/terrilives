@@ -204,9 +204,10 @@ describe('covered double-bed scenes and owner coverage', () => {
         const people=Array.from(sim.ids()).filter((_,row)=>sim.kinds()[row]===0);
         const places=sim.bedPlacesOf(people[0])!;
         const bed=places.find(place=>place.ordinal===1)!.bed;
-        // The open yard supports every authored approach after rotation.
-        expect(sim.placementPreview(bed,17,8,facing).reason).toBeNull();
-        expect(sim.placeObject(bed,17,8,facing)).toBe(true);
+        // An open indoor spot supports every authored approach after
+        // rotation; beds stay inside rooms (issue 298, [WB-beds]).
+        expect(sim.placementPreview(bed,3,8,facing).reason).toBeNull();
+        expect(sim.placeObject(bed,3,8,facing)).toBe(true);
         sim.flushCommands(); expect(sim.lastPlacementResult()?.reason).toBeNull();
         expect(handle.object_facing(bed)).toBe(facing);
         for(const [ordinal,person] of people.slice(0,2).entries()) {
