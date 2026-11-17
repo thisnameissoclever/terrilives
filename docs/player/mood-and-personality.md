@@ -76,7 +76,7 @@ Books also have title-specific familiarity. A new physical copy does not reset a
 
 ## Likes, surroundings and other people {#likes-and-dislikes}
 
-People can like or dislike object kinds. Some reactions concern an object present in the room; others concern active use. Being near a plant or an aquarium they like lifts a person's mood, and the lift ends when they leave the room. Being near something they dislike never lowers mood. Strong dislike of another person's TV or radio use in the same room does lower the observer's mood, and can also reduce their feeling toward the user.
+People can like or dislike object kinds. Some reactions concern an object present in the room; others concern active use. Being near a plant or an aquarium they like lifts a person's mood, and the lift does not end when they leave the room. It fades slowly: one plant's lift is gone within about two game hours after they leave, and the biggest lift, from several plants, within about four. While it fades the mood list reads "Enjoyed the plants" or "Enjoyed the aquarium" instead of "Likes the plants here", and going back to things they like lifts the mood up to what the room gives, but never higher. Being near something they dislike never lowers mood. Strong dislike of another person's TV or radio use in the same room does lower the observer's mood, and can also reduce their feeling toward the user.
 
 Relationships create their own nearby mood effects. Compatibility is based on interests, dispositions and hobbies. It is not the same as current friendship, and changing a preference does not directly set a new opinion. See [relationship causes](relationships/#causes).
 

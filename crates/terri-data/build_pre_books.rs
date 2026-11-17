@@ -260,6 +260,14 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("bills", shipped_bills_without_usage()),
         // Issue 315: the fill limit a pack published before it rebuilds with.
         ("need_fill_max_ticks", toml::Value::Integer(240)),
+        // The presence fade (issue 344): the shipped rate, reconstructed by
+        // the published-pack conversions too.
+        (
+            "affinity_presence_fade_points_per_hour",
+            toml::Value::Float(f64::from(
+                pack::Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
+            )),
+        ),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

@@ -256,7 +256,7 @@ fn schema_twenty_two_round_trips_through_the_save_bytes() {
     let bytes = handle.save_bytes();
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &22u16.to_le_bytes()
+        &23u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));

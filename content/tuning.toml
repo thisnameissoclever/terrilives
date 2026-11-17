@@ -417,6 +417,13 @@ affinity_presence_points = 10.0
 affinity_presence_extra_points = 3.0
 # How many further objects count.
 affinity_presence_extra_cap = 3
+# Mood points the lift from liked furniture loses per game hour once the
+# person has left it (issue 344): a lift of 10 from one plant fades over two
+# game hours, and the biggest lift, 19 beside four plants, over about 3.8.
+# Returning to liked furniture lifts it back up to what the room gives, never
+# above. Finite and above 0; no fade lasts past 10080 ticks, a week. Packs
+# published before it reconstruct 5.0.
+affinity_presence_fade_points_per_hour = 5.0
 # Mood each other person using a use kind costs at a value of -1.0. Finite, not negative.
 affinity_use_points = 15.0
 # How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.

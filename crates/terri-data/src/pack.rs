@@ -1258,7 +1258,18 @@ pub struct Tuning {
     /// A housemate at work is relieved of Bladder below this level. 0 is no
     /// relief.
     pub work_bladder_relief_threshold: f32,
+    /// How many mood points the lift from liked furniture loses per game
+    /// hour once the person has left it, above 0 ([OA-presence] in
+    /// `docs/specs/2026-10-06-object-affinities.md`, issue 344). Appended
+    /// after the night premium, per the rule above.
+    pub affinity_presence_fade_points_per_hour: f32,
 }
+
+/// The most ticks any lift from liked furniture takes to fade (issue 344):
+/// a week, the same ceiling a burnt meal's moodlet has. A fade that the
+/// rate would make longer is cut to this, so a save can bound a saved end
+/// tick without reading the pack's rate.
+pub const LONGEST_PRESENCE_FADE_TICKS: u64 = 10_080;
 
 impl Tuning {
     /// What a pack published before `hated_communal_chance` existed
@@ -1340,6 +1351,10 @@ impl Tuning {
     pub const PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD: f32 = 0.0;
     pub const SHIPPED_WORK_LATENESS_RAMP_TICKS: u32 = 30;
     pub const SHIPPED_WORK_LATENESS_REMEDY_SHARE: f32 = 0.99;
+    /// The shipped presence fade (issue 344), reconstructed the same way for
+    /// packs published before it existed. It matters only to a person who
+    /// leaves liked furniture, whose lift those packs ended at once.
+    pub const SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR: f32 = 5.0;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
@@ -2425,6 +2440,7 @@ mod tests {
             work_lateness_ramp_ticks: 41,
             work_lateness_remedy_share: 0.9375,
             work_bladder_relief_threshold: 37.5,
+            affinity_presence_fade_points_per_hour: 6.625,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3291,8 +3307,9 @@ mod tests {
     /// followed by optional autonomy, the meal-appreciation float, the
     /// optional weather, the purposeful-fight knobs, the ten bytes of the
     /// shift knobs, the one-byte varint of the night premium ([WB-wages]),
-    /// the fill limit's varint and the ten bytes of the work lateness knobs
-    /// ([WL-tuning]); every established field stays put.
+    /// the fill limit's varint, the ten bytes of the work lateness knobs
+    /// ([WL-tuning]) and the four bytes of the presence fade (issue 344);
+    /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3306,13 +3323,24 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Work lateness (issue 309): the four lateness knobs are the last
-        // ten bytes: the limit and the ramp as one-byte varints (73 and
-        // 41), the remedy share and the Bladder threshold as floats
-        // (0.9375 and 37.5).
-        let lateness = before.len() - 10;
+        // Issue 344: the presence fade is the last four bytes, a float of
+        // 6.625, and moving it to 7.5 changes only the float's third byte.
+        let fade = before.len() - 4;
+        assert_eq!(before[fade..], 6.625f32.to_le_bytes());
         assert_eq!(
-            before[lateness..],
+            changed(Tuning {
+                affinity_presence_fade_points_per_hour: 7.5,
+                ..a_tuning()
+            }),
+            vec![fade + 2]
+        );
+        // Work lateness (issue 309): the four lateness knobs are the ten
+        // bytes before the fade: the limit and the ramp as one-byte varints
+        // (73 and 41), the remedy share and the Bladder threshold as floats
+        // (0.9375 and 37.5).
+        let lateness = fade - 10;
+        assert_eq!(
+            before[lateness..fade],
             [
                 &[73u8, 41][..],
                 &0.9375f32.to_le_bytes()[..],

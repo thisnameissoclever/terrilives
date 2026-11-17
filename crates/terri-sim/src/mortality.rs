@@ -135,6 +135,9 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
         if let Some(mut fights) = world.get_resource_mut::<crate::fights::Fights>() {
             fights.forget(person);
         }
+        if let Some(mut fade) = world.get_resource_mut::<crate::presence_fade::PresenceFade>() {
+            fade.forget(person);
+        }
         if let Some(mut careers) = world.get_resource_mut::<crate::careers::Careers>() {
             careers.forget(person);
         }

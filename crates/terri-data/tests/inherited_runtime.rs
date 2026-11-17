@@ -135,19 +135,18 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 309 (work lateness): the four lateness knobs appended to
-            // `Tuning`, after the fill limit of issue 315. The proof always
-            // runs against the fixture as it was on main before issue 309
-            // (26136 bytes, SHA-256
-            // 6f508934a4bdc377690acbd8162ed6286f93c2c60b2c863d032ce968de0afe3d,
-            // main at f58ddcf57): restore that file before regenerating.
+            // Issue 344 (the presence fade): one float appended to `Tuning`.
+            // The proof always runs against the fixture as it was on main
+            // before issue 344 (26146 bytes, SHA-256
+            // 32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15,
+            // main at a56f9beb0): restore that file before regenerating.
             assert_eq!(
-                previous_without_lateness(&pack),
+                previous_without_presence_fade(&pack),
                 old_bytes,
-                "only the fields issue 309 appended may change the current fixture"
+                "only the field issue 344 appended may change the current fixture"
             );
             eprintln!(
-                "Lateness fixture proof: leaving out the fields issue 309 appended recovers every byte of the previous fixture"
+                "Presence fade fixture proof: leaving out the field issue 344 appended recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -165,14 +164,14 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 309 (work lateness),
+/// The fixture's bytes as they were before issue 344 (the presence fade),
 /// rebuilt from the current pack by writing it as postcard does while
-/// leaving out the four fields that issue appended at the end of `Tuning`.
-/// Postcard writes a struct as its fields in order with no names, so leaving
-/// a field out removes exactly its bytes. The unfiltered writer must
-/// reproduce postcard byte for byte first, or the filtered bytes would prove
-/// nothing.
-fn previous_without_lateness(pack: &terri_data::ContentPack) -> Vec<u8> {
+/// leaving out the field that issue appended: the fade rate at the end of
+/// `Tuning`. Postcard writes a struct as its fields in order with no names,
+/// so leaving a field out removes exactly its bytes. The unfiltered writer
+/// must reproduce postcard byte for byte first, or the filtered bytes would
+/// prove nothing.
+fn previous_without_presence_fade(pack: &terri_data::ContentPack) -> Vec<u8> {
     use filtered_postcard::Rule;
     assert_eq!(
         filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
@@ -180,13 +179,7 @@ fn previous_without_lateness(pack: &terri_data::ContentPack) -> Vec<u8> {
         "the filtered writer reproduces postcard when it filters nothing"
     );
     filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
-        (
-            "Tuning",
-            "work_lateness_limit_ticks"
-            | "work_lateness_ramp_ticks"
-            | "work_lateness_remedy_share"
-            | "work_bladder_relief_threshold",
-        ) => Rule::Omit,
+        ("Tuning", "affinity_presence_fade_points_per_hour") => Rule::Omit,
         _ => Rule::Keep,
     })
 }

@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "54cf96b46a4d5c152f4b0f7cd8263698fdfae6d1",
+  "producer": "SimHandle::save_bytes from the release WASM built at the source revision (wasm-pack build crates/terri-wasm --target web), run from Node with a scratch script that was not committed",
+  "records": [
+    {
+      "name": "new-game-day-one-noon.sav",
+      "schema": 22,
+      "length": 6168,
+      "sha256": "e9821911a02fcf3d199c8e5c08e9f92192452f15b2f3c6ed8b7d623562355095",
+      "tick": "720",
+      "contents": "the shipped household, a new game at noon of its first day"
+    },
+    {
+      "name": "new-game-two-days-evening.sav",
+      "schema": 22,
+      "length": 7213,
+      "sha256": "56453a6147b51bd2daeecab7304dfdd568a501d31007c7cd1aa5efde300ba04b",
+      "tick": "3960",
+      "contents": "the shipped household after two days, Wednesday at 18:00"
+    }
+  ]
+}

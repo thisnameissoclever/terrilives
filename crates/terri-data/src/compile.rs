@@ -3363,6 +3363,15 @@ fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
             tuning.affinity_from_mild_trait > 0.0
                 && tuning.affinity_from_mild_trait < tuning.affinity_from_trait,
         ),
+        // Issue 344: the fade rate divides, so it is finite and above 0.
+        // Written as the accepted range so NaN fails it too. Any rate is
+        // safe to save: a fade never lasts past
+        // `LONGEST_PRESENCE_FADE_TICKS`, whatever the rate.
+        (
+            "affinity_presence_fade_points_per_hour",
+            tuning.affinity_presence_fade_points_per_hour > 0.0
+                && tuning.affinity_presence_fade_points_per_hour.is_finite(),
+        ),
     ];
     match rules.into_iter().find(|(_, holds)| !holds) {
         Some((key, _)) => Err(ContentError::AffinityTuningOutOfRange { key }),
@@ -4485,6 +4494,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             work_lateness_ramp_ticks: tuning.work_lateness_ramp_ticks,
             work_lateness_remedy_share: tuning.work_lateness_remedy_share,
             work_bladder_relief_threshold: tuning.work_bladder_relief_threshold,
+            affinity_presence_fade_points_per_hour: tuning.affinity_presence_fade_points_per_hour,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -6011,6 +6021,10 @@ mod tests {
             work_lateness_remedy_share: crate::Tuning::SHIPPED_WORK_LATENESS_REMEDY_SHARE,
             work_bladder_relief_threshold:
                 crate::Tuning::PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD,
+            // Issue 344: the value the published witnesses the golden vector
+            // converts reconstruct, so the vector stays as it was.
+            affinity_presence_fade_points_per_hour:
+                crate::Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
             bills: shipped_bills_def(),
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
@@ -12628,6 +12642,10 @@ mod tests {
                 |t| t.affinity_from_mild_trait = 0.125,
                 |t| t.affinity_from_mild_trait = 0.125,
             ),
+            (
+                |t| t.affinity_presence_fade_points_per_hour = 0.375,
+                |t| t.affinity_presence_fade_points_per_hour = 0.375,
+            ),
         ];
         let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
         for (set_file, set_pack) in setters {
@@ -12653,7 +12671,7 @@ mod tests {
             assert!(error.to_string().starts_with(key), "{error}");
         };
         type Set = fn(&mut TuningFile, f32);
-        let setters: [(&'static str, Set); 9] = [
+        let setters: [(&'static str, Set); 10] = [
             ("affinity_from_trait", |t, v| t.affinity_from_trait = v),
             ("affinity_presence_threshold", |t, v| {
                 t.affinity_presence_threshold = v
@@ -12672,6 +12690,9 @@ mod tests {
             ("affinity_band_likes", |t, v| t.affinity_band_likes = v),
             ("affinity_from_mild_trait", |t, v| {
                 t.affinity_from_mild_trait = v
+            }),
+            ("affinity_presence_fade_points_per_hour", |t, v| {
+                t.affinity_presence_fade_points_per_hour = v
             }),
         ];
         for (key, set) in setters {
@@ -12725,6 +12746,17 @@ mod tests {
             tuning_where(|t| t.affinity_from_mild_trait = 0.6875),
             "affinity_from_mild_trait",
         );
+        // Issue 344: the fade rate divides, so zero is refused, and so is
+        // the smallest positive number's negative; any positive rate is
+        // accepted, because a fade never lasts past a week.
+        refused(
+            tuning_where(|t| t.affinity_presence_fade_points_per_hour = 0.0),
+            "affinity_presence_fade_points_per_hour",
+        );
+        refused(
+            tuning_where(|t| t.affinity_presence_fade_points_per_hour = -f32::MIN_POSITIVE),
+            "affinity_presence_fade_points_per_hour",
+        );
 
         // The other side of every boundary is accepted.
         for accepted in [
@@ -12747,6 +12779,8 @@ mod tests {
             }),
             tuning_where(|t| t.affinity_presence_extra_cap = 0),
             tuning_where(|t| t.affinity_presence_extra_cap = u32::MAX),
+            tuning_where(|t| t.affinity_presence_fade_points_per_hour = f32::MIN_POSITIVE),
+            tuning_where(|t| t.affinity_presence_fade_points_per_hour = f32::MAX),
         ] {
             compile_tuned(accepted).expect("inside every affinity range");
         }

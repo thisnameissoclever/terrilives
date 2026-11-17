@@ -513,7 +513,15 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// twenty-day fold below, and
 /// `the_two_day_fold_without_the_work_knobs_is_unchanged` pins that the value
 /// also holds with both knobs at 0.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6ed5_8e35_ffc8_2f8d;
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved it from 0x6ed5_8e35_ffc8_2f8d, which main at
+/// a56f9beb0 gave with the drain, fill and lateness changes above, on purpose:
+/// someone who likes plants or the aquarium and walks out of the room keeps
+/// part of the lift for up to a few game hours, so the mood that choices read
+/// after leaving is higher and a choice scored from it first goes the other
+/// way. Measured on the tree that merges main at a56f9beb0 into the fade
+/// change, read from the failing assertion.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfa65_449b_54d0_bb84;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -549,26 +557,40 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6ed5_8e35_ffc8_2f8d;
 /// build, from the failing assertion. With both work knobs at 0 it is the
 /// value above again, which
 /// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9224_ed05_3053_97fc;
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved it from 0x9224_ed05_3053_97fc, which main at
+/// a56f9beb0 gave with the drain, fill and lateness changes above, for the
+/// reason given for the two-day fold, measured on the tree that merges main at
+/// a56f9beb0 into the fade change, in a release build, from the failing
+/// assertion. With both work knobs at 0 the fade tree gives
+/// 0xd56e_4229_4318_c6fd, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` pins.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5847_2934_fafd_02d4;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
-/// 0 and the work Bladder relief at 0 is the value main measured before the
-/// issue (0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
-/// reproduces main. It does not show that the knobs move the shipped
+/// 0 and the work Bladder relief at 0 is the shipped two-day value above
+/// (0xfa65_449b_54d0_bb84; main's value before issue 344's fade was
+/// 0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
+/// changes nothing here. It does not show that the knobs move the shipped
 /// household: in its first two days nobody is critical at a shift start or
 /// below the relief threshold at work, so the shipped value is the same. The
 /// behavior is covered by `lateness_tests.rs`.
 #[test]
 fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(2), 0x6ed5_8e35_ffc8_2f8d);
+    assert_eq!(fold_without_the_work_knobs(2), 0xfa65_449b_54d0_bb84);
 }
 
-/// The twenty-day version of the check above, against the value main measured
-/// before the issue (0xb6e3_d213_e72a_6360). Manual, like the pin it guards.
+/// A regression pin with both work knobs at 0 over twenty days, measured with
+/// the presence fade of issue 344 (0xd56e_4229_4318_c6fd; main at a56f9beb0
+/// gave 0xb6e3_d213_e72a_6360 for it without the fade). Unlike the two-day
+/// check above it does not equal the shipped value, and no tree without
+/// issue 309 ever produced it, so it no longer shows that switching the knobs
+/// off reproduces an earlier tree; it only catches a later change to the
+/// knobs-off run. Manual, like the pin above.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0xb6e3_d213_e72a_6360);
+    assert_eq!(fold_without_the_work_knobs(20), 0xd56e_4229_4318_c6fd);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

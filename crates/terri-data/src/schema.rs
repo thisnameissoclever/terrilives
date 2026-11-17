@@ -498,6 +498,11 @@ pub struct TuningFile {
     /// `min_interaction_ticks` to 1440. A person whose rate would need longer
     /// stops here with the need partly filled.
     pub need_fill_max_ticks: u32,
+    /// How many mood points the lift from liked furniture loses per game
+    /// hour once the person has left it - [OA-presence] in
+    /// `docs/specs/2026-10-06-object-affinities.md`, issue 344. Finite and
+    /// above 0.
+    pub affinity_presence_fade_points_per_hour: f32,
 }
 
 /// The `[bills]` section of `tuning.toml` - [WB-tuning] in
@@ -1772,7 +1777,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 160] = [
+    const TUNING_LINES: [(&str, &str); 161] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1876,6 +1881,7 @@ mod tests {
         ("work_bladder_relief_threshold", "37.5"),
         ("bills", BILLS),
         ("need_fill_max_ticks", "245"),
+        ("affinity_presence_fade_points_per_hour", "6.625"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -2083,6 +2089,7 @@ mod tests {
         assert_eq!(bills.uses["drip"].water_cents, 2);
         assert_eq!(bills.daily["glow"].electricity_cents, 6);
         assert_eq!(parsed.need_fill_max_ticks, 245);
+        assert_eq!(parsed.affinity_presence_fade_points_per_hour, 6.625);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(

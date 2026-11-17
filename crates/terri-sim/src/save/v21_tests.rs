@@ -109,6 +109,13 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
         .records
         .values()
         .all(|record| record.shift == 0));
+    // Issue 344's fade: no lift is fading at this tick, so the fade adds
+    // nothing to the hash.
+    assert!(sim
+        .world()
+        .resource::<crate::presence_fade::PresenceFade>()
+        .entries()
+        .is_empty());
     assert_eq!(sim.world_hash(), STANDARD_ONLY_HASH);
 }
 /// Computed at fead3700b, before the shift section of the hash existed, as
@@ -150,6 +157,11 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// or longer than before and the choices and draws that follow differ. The
 /// simulation code is unchanged. Measured on the tree that merges the drain
 /// change at f9b33b2ea into the fill change, read from the failing assertion.
+/// Issue 344's fade (the lift from liked furniture fades after a person
+/// leaves it) left it unchanged: no lift is fading at tick 600, which the
+/// test asserts, so the fade adds no block to the hash, and the hash being
+/// equal shows no choice before then went differently. Measured on the tree
+/// that merges main at a56f9beb0 into the fade change.
 const STANDARD_ONLY_HASH: u64 = 10091986056830211033;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
