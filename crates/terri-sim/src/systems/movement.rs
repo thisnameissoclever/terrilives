@@ -125,6 +125,8 @@ pub fn follow_path(
         Option<&mut terri_core::ChainState>,
         Option<&crate::recipe_actions::Origin>,
         Has<crate::reading::ReadingJourney>,
+        Option<&terri_core::Needs>,
+        Option<&terri_core::Personality>,
     )>,
     objects: Query<&SmartObject>,
     furniture: Query<
@@ -168,8 +170,19 @@ pub fn follow_path(
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target, traits, skills, mut chain_state, origin, reading)) =
-            agents.get_mut(entity)
+        let Ok((
+            _,
+            mut pos,
+            mut path,
+            target,
+            traits,
+            skills,
+            mut chain_state,
+            origin,
+            reading,
+            needs,
+            personality,
+        )) = agents.get_mut(entity)
         else {
             continue;
         };
@@ -329,15 +342,33 @@ pub fn follow_path(
                 // rides as its own component: the whole attempt then
                 // delivers `fail_delta_scale` of its benefits and pays
                 // no satisfaction, while still teaching at completion.
+                let mut fumble = None;
                 if let Some(traits) = traits {
                     if let Some(delta_scale) = super::trait_effects::roll_fumble(
                         traits, skills, content.0, &act.tags, &mut rng,
                     ) {
+                        fumble = Some(delta_scale);
                         commands
                             .entity(entity)
                             .insert(terri_core::Fumbled { delta_scale });
                     }
                 }
+                // **A toilet, shower or bath lasts until its need is full** -
+                // issue 315. The draw above is still taken, so the random
+                // stream is the same as it was, and its result is used only
+                // for every other action and for a fill that cannot be
+                // computed (a person whose net rate is not positive).
+                let remaining_ticks = needs
+                    .and_then(|needs| {
+                        crate::need_interactions::fill::fill_ticks(
+                            content.0,
+                            act,
+                            needs,
+                            personality,
+                            fumble.unwrap_or(1.0),
+                        )
+                    })
+                    .unwrap_or(remaining_ticks);
                 commands.entity(entity).remove::<Path>().insert(Eating {
                     object: placed.0,
                     interaction: target.interaction,

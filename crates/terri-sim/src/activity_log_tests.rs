@@ -496,7 +496,15 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// the tree that merges main at 54cf96b46 into the drain change, read from
 /// the failing assertion, which compares the world with the log on against
 /// this pin.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xcb8f_9954_11cb_4102;
+/// Issue 315's fill change then moved it from 0xcb8f_9954_11cb_4102, which
+/// the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The log emitters are unchanged. Measured on the tree that merges
+/// the drain change at f9b33b2ea into the fill change, read from the failing
+/// assertion.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6ed5_8e35_ffc8_2f8d;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -520,7 +528,10 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xcb8f_9954_11cb_4102;
 /// given for the two-day fold, measured on the tree that merges main at
 /// 54cf96b46 into the drain change, in a release build, from the failing
 /// assertion.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfe91_9131_6786_b7dc;
+/// Issue 315's fill change then moved it from 0xfe91_9131_6786_b7dc for the
+/// reason given for the two-day fold, measured on the same tree in a release
+/// build, from the failing assertion.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb6e3_d213_e72a_6360;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

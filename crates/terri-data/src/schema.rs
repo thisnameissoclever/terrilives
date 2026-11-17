@@ -480,6 +480,11 @@ pub struct TuningFile {
     pub night_shift_premium_percent: u32,
     /// The household's monthly bills - [WB-tuning].
     pub bills: BillsTuningDef,
+    /// Issue 315 (`docs/specs/2026-11-15-full-bathroom-use.md`): the longest
+    /// a toilet, shower or bath use may run while filling its need, from
+    /// `min_interaction_ticks` to 1440. A person whose rate would need longer
+    /// stops here with the need partly filled.
+    pub need_fill_max_ticks: u32,
 }
 
 /// The `[bills]` section of `tuning.toml` - [WB-tuning] in
@@ -1754,7 +1759,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 155] = [
+    const TUNING_LINES: [(&str, &str); 156] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1853,6 +1858,7 @@ mod tests {
         ("career_search_temperature", "0.3125"),
         ("night_shift_premium_percent", "17"),
         ("bills", BILLS),
+        ("need_fill_max_ticks", "245"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -2055,6 +2061,7 @@ mod tests {
         );
         assert_eq!(bills.uses["drip"].water_cents, 2);
         assert_eq!(bills.daily["glow"].electricity_cents, 6);
+        assert_eq!(parsed.need_fill_max_ticks, 245);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(

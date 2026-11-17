@@ -117,6 +117,23 @@ bias toward shorter actions. Longer use therefore gives more total benefit
 and cost; interruption gives only the minutes actually completed. Recipes
 instead pay their food benefit once after consumption.
 
+**The toilet, shower and bath are the exception** (issue 315, identified by
+their compiled activities `using_toilet`, `showering` and `bathing`). A use
+lasts until its need is full: Bladder for the toilet, Hygiene for the shower
+and bath. The rate is unchanged, the authored delta over the authored duration
+scaled by the person's satisfaction multiplier, but the length is the number of
+ticks that rate needs, net of the person's drain, to reach 100, found once at
+arrival. It is at least `min_interaction_ticks` and at most
+`need_fill_max_ticks`, and a person whose net rate is not positive keeps the
+drawn length. A use resumed from a save that has more than the minimum length
+left ends on the tick the need is full. Hand washing is not a fill and stops at
+its ceiling. Per-minute costs and side benefits, such as the shower's Energy
+cost and the bath's Comfort, still accrue every minute, so they follow the
+length. Autonomous scoring and the survival risk of the time spent keep the
+authored delta and duration, a designer's choice; the forecast of a use's
+outcome uses the fill length. See the
+[full bathroom use specification](specs/2026-11-15-full-bathroom-use.md).
+
 Personality's per-need satisfaction multiplier scales positive delivery.
 Costs arrive in full. Failed ordinary actions reduce positive benefits,
 and food quality reduces recipe food benefits. Food quality and a cooking

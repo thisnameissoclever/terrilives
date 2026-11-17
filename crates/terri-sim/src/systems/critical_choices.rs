@@ -4,7 +4,7 @@ use terri_core::{NeedId, Needs, Personality, NEED_COUNT};
 use terri_data::CompiledInteraction;
 use terri_data::{AutonomyTuning, ContentPack};
 mod forecast;
-pub(crate) use forecast::{predict_phases, travel_ticks, Phase};
+pub(crate) use forecast::{after_decay, object_outcome, predict_phases, travel_ticks, Phase};
 
 #[derive(Clone, Debug, Default)]
 pub struct NeedOutcome {

@@ -1,6 +1,5 @@
-//! A postcard-compatible serializer that can leave struct fields out and
-//! rewrite whole-number fields, for proving that a fixture changed only by
-//! the fields a change appended.
+//! A postcard-compatible serializer that can leave struct fields out, for
+//! proving that a fixture changed only by the fields a change appended.
 //!
 //! Postcard writes a struct as its fields in order with no names, so leaving
 //! a field out of the serialization removes exactly that field's bytes,
@@ -9,12 +8,10 @@
 //! the fixture test asserts that before trusting a filtered encoding.
 use serde::ser::{self, Serialize};
 
-/// What to do with a struct field: keep it, leave it out, or replace a
-/// `u32` by a function of it.
+/// What to do with a struct field: keep it or leave it out.
 pub enum Rule {
     Keep,
     Omit,
-    MapU32(fn(u32) -> u32),
 }
 
 /// Encodes `value` as postcard would, applying `rule(struct, field)` to every
@@ -244,12 +241,6 @@ fn field<T: Serialize + ?Sized>(
     match (filtered.rule)(owner, key) {
         Rule::Keep => value.serialize(&mut *filtered),
         Rule::Omit => Ok(()),
-        Rule::MapU32(map) => {
-            let bytes = postcard(value);
-            let number: u32 = postcard::from_bytes(&bytes)
-                .map_err(|_| Error(format!("field '{key}' is not a u32")))?;
-            filtered.raw(&map(number))
-        }
     }
 }
 

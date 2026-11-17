@@ -235,6 +235,8 @@ pub fn compile(root: &Path) -> pack::ContentPack {
             toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT)),
         ),
         ("bills", shipped_bills_without_usage()),
+        // Issue 315: the fill limit a pack published before it rebuilds with.
+        ("need_fill_max_ticks", toml::Value::Integer(240)),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

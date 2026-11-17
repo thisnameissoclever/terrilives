@@ -264,7 +264,15 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// draw counts, jobs and shifts are unchanged. Measured on the tree that
 /// merges main at 54cf96b46 into the drain change, read from the failing
 /// assertion and then confirmed by a passing run.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (5892717548701736568, 7, 2);
+/// Issue 315's fill change then moved the hash from 5892717548701736568,
+/// which the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The draw counts, jobs and shifts are again unchanged. Measured on
+/// the tree that merges the drain change at f9b33b2ea into the fill change,
+/// read from the failing assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (16800902046621430031, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

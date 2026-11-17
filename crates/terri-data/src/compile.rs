@@ -3900,6 +3900,14 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.min_interaction_ticks == 0 {
         return Err(ContentError::ZeroInteractionFloor);
     }
+    // Issue 315: a fill may not be limited below the floor every use
+    // already has, and a day is the longest a bathroom use may hold a room.
+    if !(tuning.min_interaction_ticks..=1440).contains(&tuning.need_fill_max_ticks) {
+        return Err(ContentError::NeedFillMaxTicksOutOfRange {
+            value: tuning.need_fill_max_ticks,
+            floor: tuning.min_interaction_ticks,
+        });
+    }
     if tuning.wander_attempts == 0 {
         return Err(ContentError::ZeroWanderAttempts);
     }
@@ -4421,6 +4429,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             shift_sleep_offset_night: tuning.shift_sleep_offset_night,
             career_search_temperature: tuning.career_search_temperature,
             night_shift_premium_percent: tuning.night_shift_premium_percent,
+            need_fill_max_ticks: tuning.need_fill_max_ticks,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -5918,6 +5927,7 @@ mod tests {
             // The best-fit search of the published witnesses the golden
             // vector converts, which predate issue 296's temperature.
             career_search_temperature: crate::Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
+            need_fill_max_ticks: crate::Tuning::PRE_FILL_NEED_FILL_MAX_TICKS,
             autonomy: None,
             weather: None,
             fight_grievance_ticks: 360,
@@ -7870,6 +7880,27 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.min_interaction_ticks = 1))
             .expect("one tick is a legal floor, if a short one");
         assert_eq!(pack.tuning.min_interaction_ticks, 1);
+    }
+
+    /// Issue 315: the fill limit runs from the interaction floor to a day.
+    /// Both ends are legal, and one tick either side of them is refused, so
+    /// the rule can be neither "at least the floor plus one" nor "below a
+    /// day".
+    #[test]
+    fn rejects_a_fill_limit_outside_the_floor_and_a_day() {
+        let floor = tuning_where(|_| {}).min_interaction_ticks;
+        for bad in [0, floor - 1, 1441, u32::MAX] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.need_fill_max_ticks = bad)).unwrap_err(),
+                ContentError::NeedFillMaxTicksOutOfRange { value: bad, floor },
+                "{bad}"
+            );
+        }
+        for legal in [floor, 240, 1440] {
+            let pack = compile_tuned(tuning_where(|t| t.need_fill_max_ticks = legal))
+                .unwrap_or_else(|error| panic!("{legal}: {error}"));
+            assert_eq!(pack.tuning.need_fill_max_ticks, legal);
+        }
     }
 
     /// Zero wander attempts does not mean "wander less". A wander
