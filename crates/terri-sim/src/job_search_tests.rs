@@ -301,9 +301,10 @@ const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
 /// off, as a pack published before them reconstructs, the shipped household's
 /// run to Thursday is the shipped value, bit for bit (the value main measured
 /// before issue 344 moved it is in the comment on `SHIPPED_THURSDAY`). That
-/// shows that switching the two knobs off changes nothing here; it does not show that the knobs move this run,
-/// because nobody is late or relieved before Thursday at the slower drain. The
-/// behavior is covered by `lateness_tests.rs`.
+/// shows that switching the two knobs off changes nothing here; it does not
+/// show that the knobs move this run, because nobody is late or relieved
+/// before Thursday at the slower drain. The behavior is covered by
+/// `lateness_tests.rs`.
 #[test]
 fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
     let mut sim = Sim::new_from_shipped_lot();

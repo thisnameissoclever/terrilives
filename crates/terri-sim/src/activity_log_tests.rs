@@ -562,8 +562,9 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfa65_449b_54d0_bb84;
 /// a56f9beb0 gave with the drain, fill and lateness changes above, for the
 /// reason given for the two-day fold, measured on the tree that merges main at
 /// a56f9beb0 into the fade change, in a release build, from the failing
-/// assertion. With both work knobs at 0 the fade tree gives 0xd56e_4229_4318_c6fd, which
-/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+/// assertion. With both work knobs at 0 the fade tree gives
+/// 0xd56e_4229_4318_c6fd, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` pins.
 const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5847_2934_fafd_02d4;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
@@ -579,10 +580,13 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
     assert_eq!(fold_without_the_work_knobs(2), 0xfa65_449b_54d0_bb84);
 }
 
-/// The twenty-day version of the check above, against the value measured with
-/// the presence fade of issue 344 and both work knobs at 0 (0xd56e_4229_4318_c6fd; main at
-/// a56f9beb0 gave 0xb6e3_d213_e72a_6360 for it without the fade). Manual, like
-/// the pin it guards.
+/// A regression pin with both work knobs at 0 over twenty days, measured with
+/// the presence fade of issue 344 (0xd56e_4229_4318_c6fd; main at a56f9beb0
+/// gave 0xb6e3_d213_e72a_6360 for it without the fade). Unlike the two-day
+/// check above it does not equal the shipped value, and no tree without
+/// issue 309 ever produced it, so it no longer shows that switching the knobs
+/// off reproduces an earlier tree; it only catches a later change to the
+/// knobs-off run. Manual, like the pin above.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
