@@ -1,6 +1,6 @@
 # Work lateness: verification record
 
-Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured on 2026-11-16 on the branch `twcl/309-late-for-needs`, built on main at `67c988c33` and merged with main at `f58ddcf57` (see [Merge with main](#merge-merge-with-main)). Machine: Windows 11, `CARGO_BUILD_JOBS=2`, another full local check running beside it. Logs are in the task's untracked log directory, named below.
+Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured on 2026-11-16 on the branch `twcl/309-late-for-needs`, built on main at `67c988c33` and merged with main at `f58ddcf57` (see [Merge with main](#merge-merge-with-main)). Machine: Windows 11, `CARGO_BUILD_JOBS=2`, another full local check running beside it. Logs are in the task's untracked log directory, named below. The [before] and [trace] figures were remeasured on the merged tree at `00319418e` after main's slower need drain arrived, and say so where they appear.
 
 ## Contents
 
@@ -14,7 +14,7 @@ Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured 
 
 ## [before] How needs behaved at work before
 
-Read from the code before designing the Bladder relief. `AtWork` is set by `attendance::finish_tick` when the outbound walk ends. While it is set, `systems::needs::decay_needs` multiplies every need's decay by `at_work_decay_scale` (0.5) and nothing in the simulation restores any need, so a worker's needs only fall. The settled shift debits Energy by the job's cost. A trace of the shipped household for one week with the issue's two knobs at 0 (`trace 10080 --lateness-limit 0 --work-relief-threshold 0`, log `trace2-week-before.log`) shows the lowest Bladder seen at work: Tim 31.83, Bill 45.53, Casey 25.08. None was critical in that week, but a worker who arrives lower is. With the relief on (`trace2-week-new.log`) the lowest values are 50.01, 50.02 and 50.02, so Bladder at work stays at or above the threshold.
+Read from the code before designing the Bladder relief. `AtWork` is set by `attendance::finish_tick` when the outbound walk ends. While it is set, `systems::needs::decay_needs` multiplies every need's decay by `at_work_decay_scale` (0.5) and nothing in the simulation restores any need, so a worker's needs only fall. The settled shift debits Energy by the job's cost. A trace of the shipped household for one week with the issue's two knobs at 0 (`trace 10080 --lateness-limit 0 --work-relief-threshold 0`, log `trace3-week-before.log`) shows the lowest Bladder seen at work. Measured on the merged tree at `00319418e` (after the slower drain and the full bathroom use of main at `f58ddcf57`; Windows 11, release build), it is Tim 58.77, Bill 63.63 and Casey 13.02, and Casey spent 85 ticks at work with Bladder critical. With the relief on (`trace3-week-new.log`) the lowest values are 58.36, 50.02 and 70.67, none critical. That is one seed and one week: it shows a worker can be critical at work with the relief off on the shipped household, not how often. Measured before the slower drain merged (`trace2-week-before.log`, at `54cf96b46`) the same trace gave 31.83, 45.53 and 25.08, with none critical.
 
 ## [red] Tests that failed first
 
@@ -91,25 +91,27 @@ The ramp clamp had a gap too: the ramp test passed only progress values from 0 t
 
 ## [trace] Trace figures
 
-`cargo run --release -p terri-sim --example trace -- <ticks> [seed] [flags]` on the merged branch, shipped household. The SHIFTS section's LATENESS lines report, for each worker, the shift starts with Hunger or Energy critical at the start tick and how many minutes after the start each left, and the other late departures separately, because another cause is not this issue's. Logs are `trace2-*.log`, measured after merging main at `54cf96b46`; the same runs before that merge gave identical figures.
+`cargo run --release -p terri-sim --example trace -- <ticks> [seed] [flags]` on the merged branch, shipped household. Remeasured on 2026-11-16 on the merged tree at `00319418e` (Windows 11, release build, the example built once and run for each row), because the first measurement (logs `trace2-*.log`, at `54cf96b46`) predates the slower need drain and the full bathroom use that main added. The new logs are `trace3-*.log`; the build is `trace3-build.log`. The SHIFTS section's LATENESS lines report, for each worker, the shift starts with Hunger or Energy critical at the start tick and how many minutes after the start each left, and the other late departures separately, because another cause is not this issue's. Logs are `trace2-*.log`, measured after merging main at `54cf96b46`; the same runs before that merge gave identical figures.
 
-| Run | Starts critical, minutes after the start they left | Longest other late departure | Left after the shift's end | Over the 60 minute limit for a need |
-| --- | --- | --- | --- | --- |
-| One week, default seed | Bill 60 | Tim 27 | 0 | 0 |
-| Four weeks, default seed | Tim 60, 60, 60, 60, 60; Bill 60, 60, 54 | Bill 61 | 0 | 0 |
-| One week, `--night-worker` | Tim 60, 60; Bill 60 | Tim 45 | 0 | 0 |
-| One week, seed 11 | Tim 60 | Casey 17 | 0 | 0 |
-| One week, seed 22 | none | Casey 69 | 0 | 0 |
-| One week, seed 33 | Tim 60; Bill 33, 60; Casey 60 | none | 0 | 0 |
+| Run | Starts critical, minutes after the start they left | Longest other late departure | Left after the shift's end | Over the 60 minute limit for a need | Lowest Bladder at work |
+| --- | --- | --- | --- | --- | --- |
+| One week, default seed (`trace3-week-new.log`) | Tim 60 | Bill 25 | 0 | 0 | Tim 58.36, Bill 50.02, Casey 70.67 |
+| Four weeks, default seed (`trace3-4weeks.log`) | Tim 60, 60; Bill 60 | Casey 45 | 0 | 0 | 50.01, 50.01, 52.41 |
+| One week, `--night-worker` (`trace3-night.log`) | none | Bill 50 | 0 | 0 | 59.25, 50.02, 59.61 |
+| One week, seed 11 (`trace3-seed-11.log`) | Tim 60; Casey 13 | Casey 66 | 0 | 0 | 50.32, 50.02, 57.34 |
+| One week, seed 22 (`trace3-seed-22.log`) | none | Bill 45 | 0 | 0 | 50.00, 57.54, 50.02 |
+| One week, seed 33 (`trace3-seed-33.log`) | Tim 60 | Bill 14 | 0 | 0 | 57.85, 50.01, 63.88 |
 
-No worker who was critical at a shift start left later than 60 minutes after it, and nobody left after the shift's end. The late departures in the fourth column of the other cause are the walk home of a reading journey: in seed 22 Casey spent 69 minutes walking to the bookshelf with no critical need and no order, which is the behavior of issues 339 and earlier and is the same kind of delay as the 26 minutes the same seed shows with the issue's knobs at 0. This issue does not change it.
+No worker who was critical at a shift start left later than 60 minutes after it, and nobody left after the shift's end. On the shipped household a critical start does happen within a week: it happened in the default seed (Tim), seed 11 (Tim and Casey) and seed 33 (Tim), and not in seed 22 or the night-worker run; over four weeks of the default seed it happened three times. That is six critical starts in five separate runs (the one-week default row is the first week of the four-week row and is not counted twice), too few to say how often it happens in ordinary play. Bladder at work stayed at or above 50 in every run with the relief on (the lowest printed value is 50.00) and no worker spent a tick at work with Bladder critical; with the relief off the default seed's week had Casey at 13.02 for 85 ticks at work, which is the case the relief exists for. Whether the relief itself fired in each other run is not recorded by the trace, only that Bladder never fell below the threshold; the dedicated tests in `lateness_tests.rs` carry the behavior.
 
-Of the 16 critical starts in the runs above, 14 used the whole hour. The case traced tick by tick (`TRACE_LATE_TICKS=1`, Bill, default seed, shift at tick 6600) is an Energy crisis: Energy 15.8 at the start, 23 minutes walking to the bed, asleep from tick 6624, Energy 20 at tick 6633, out of bed at tick 6660 with Energy near 33. The other 13 were not traced tick by tick. Bladder at work never fell below 50 in these runs and no worker spent a tick at work with Bladder critical.
+The late departures in the third column are not this issue's: they are other causes, such as the walk home of a reading journey. The longest on the merged tree is Casey's 66 minutes in seed 11, which was not traced tick by tick after the merge. Before the slower drain merged the same kind of delay showed as 69 minutes for Casey in seed 22, a walk to the bookshelf with no critical need and no order (the behavior of issues 339 and earlier). This issue does not change it.
+
+Of the six critical starts in the runs above, five used the whole hour and one (Casey, seed 11) left after 13 minutes. None was traced tick by tick on the merged tree. Before the slower drain merged, the case traced tick by tick (`TRACE_LATE_TICKS=1`, Bill, default seed, shift at tick 6600, at `54cf96b46`) was an Energy crisis: Energy 15.8 at the start, 23 minutes walking to the bed, asleep from tick 6624, Energy 20 at tick 6633, out of bed at tick 6660 with Energy near 33.
 
 ## [open] Open items
 
-1. **The hour is almost always used up.** 14 of 16 critical starts left at exactly 60 minutes; the one traced in detail was a sleep, which takes longer than the allowance. The owner's rule is working as decided, but the owner may want a shorter walk-and-nap or a longer allowance for Energy; that is a product decision this issue does not make.
-2. **A reading journey can still make a worker later than the limit.** Not changed here; seed 22 shows 69 minutes.
+1. **The hour is almost always used up.** The sample is small. 5 of 6 critical starts on the merged tree left at exactly 60 minutes; before the slower drain merged it was 14 of 16, and the one traced in detail then was a sleep, which takes longer than the allowance. The owner's rule is working as decided, but the owner may want a shorter walk-and-nap or a longer allowance for Energy; that is a product decision this issue does not make.
+2. **A late departure for another cause can still exceed the limit.** Not changed here; seed 11 shows 66 minutes on the merged tree, a cause not traced after the merge (seed 22 showed 69 before the slower drain merged, traced to a reading journey).
 3. **Not done here:** a changelog-driven refresh of the player guide screenshots, which show no changed control. The player guide text and its numbers read from the compiled reference.
 
 ## [merge] Merge with main

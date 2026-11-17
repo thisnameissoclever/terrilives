@@ -290,8 +290,10 @@ const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
 
 /// Issue 309: with the work lateness limit and the work Bladder relief both
 /// off, as a pack published before them reconstructs, the shipped household's
-/// run to Thursday is main's, bit for bit: the issue changes behavior only
-/// through those two knobs.
+/// run to Thursday is main's, bit for bit. That shows that switching the two
+/// knobs off reproduces main; it does not show that the knobs move this run,
+/// because nobody is late or relieved before Thursday at the slower drain. The
+/// behavior is covered by `lateness_tests.rs`.
 #[test]
 fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
     let mut sim = Sim::new_from_shipped_lot();

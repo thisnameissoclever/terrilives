@@ -553,8 +553,11 @@ const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9224_ed05_3053_97fc;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the value main measured before the
-/// issue (0x6ed5_8e35_ffc8_2f8d), so the issue moves the shipped household
-/// only through those two knobs.
+/// issue (0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
+/// reproduces main. It does not show that the knobs move the shipped
+/// household: in its first two days nobody is critical at a shift start or
+/// below the relief threshold at work, so the shipped value is the same. The
+/// behavior is covered by `lateness_tests.rs`.
 #[test]
 fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
     assert_eq!(fold_without_the_work_knobs(2), 0x6ed5_8e35_ffc8_2f8d);
