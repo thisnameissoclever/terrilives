@@ -17,19 +17,24 @@ import type {Vec3} from '../src/render/character/math.js';
 let memory:WebAssembly.Memory;
 beforeAll(async()=>{memory=(await init({module_or_path:readFileSync('src/wasm/terri_wasm_bg.wasm')})).memory;});
 
-it('gives an ordinary shower enough active time to show repeated washing movements',()=>{
+it('ends an ordinary shower on the tick Hygiene is full, after at least the minimum use',()=>{
   const handle=SimHandle.from_lot(),sim=new SimBridge(handle,memory);
   try{
     const person=sim.characterAppearances().find(row=>row.sim===1)!;
     const fixture=Array.from(sim.ids()).find(id=>sim.objectModel(id)?.id==='shower')!;
     expect(sim.useObjectFirst(person.entity,fixture,0)).toBe(true);sim.flushCommands();
-    const row=Array.from(sim.ids()).indexOf(person.entity);
+    const row=Array.from(sim.ids()).indexOf(person.entity),hygiene=2;
     for(let tick=0;tick<650&&sim.activities()[row]!==12;tick++)sim.tick();
     expect(sim.activities()[row]).toBe(12);
     let activeTicks=0;
-    while(sim.activities()[row]===12&&activeTicks<200){activeTicks++;sim.tick();}
-    expect(activeTicks).toBeGreaterThanOrEqual(53);
-    expect(activeTicks).toBeLessThanOrEqual(126);
+    while(sim.activities()[row]===12&&activeTicks<300){activeTicks++;sim.tick();}
+    // A shower lasts until the need it fills is full (docs/specs/2026-11-15-full-bathroom-use.md):
+    // at least the minimum use of 12 ticks, less the tick on which it was first seen, and at most
+    // the longest, 240. How long depends on how dirty the person was, so the length is not pinned;
+    // a new household starts with every need full, so this run is the minimum use.
+    expect(activeTicks).toBeGreaterThanOrEqual(11);
+    expect(activeTicks).toBeLessThanOrEqual(240);
+    expect(sim.needsOf(person.entity)[hygiene]).toBeGreaterThan(99.9);
   }finally{handle.free();}
 });
 
@@ -64,7 +69,8 @@ it('keeps active shower timing and the subsequent simulation identical after sav
     const row=Array.from(a.ids()).indexOf(person.entity);
     for(let tick=0;tick<650&&a.activities()[row]!==12;tick++)a.tick();
     expect(a.activities()[row]).toBe(12);
-    for(let tick=0;tick<17;tick++)a.tick();
+    // Five ticks in: a shower lasts at least the minimum use of 12 ticks, however clean the person is.
+    for(let tick=0;tick<5;tick++)a.tick();
     expect(a.activities()[row]).toBe(12);
     const bytes=a.saveBytes();expect(b.loadBytes(bytes)).toBe(true);expect(b.saveBytes()).toEqual(bytes);
     for(let tick=0;tick<160;tick++){expect(b.worldHash()).toBe(a.worldHash());expect(b.activities()[row]).toBe(a.activities()[row]);a.tick();b.tick();}
