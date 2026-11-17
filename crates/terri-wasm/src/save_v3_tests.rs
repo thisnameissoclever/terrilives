@@ -1414,13 +1414,15 @@ fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter()
 /// Whether `seating::migrate` would re-plan anyone in `world`. It re-plans a
 /// person with a target when either that target's action is a communal seat
 /// use in current content (not the default, exclusive), or the person holds a
-/// dining-chair claim in `dining` (the saved dining leases). Both counts are
-/// checked, so the test cannot break when a household's meal puts someone at
-/// a table chair while their target is something else. The published world's
-/// own content predates communal seats, so current content is the reference,
-/// and any action of the object counts because the published action numbering
-/// is not the current one. Anyone already holding a physical claim is skipped
-/// by `migrate`; counting them anyway only makes this helper more cautious.
+/// dining-chair claim. `dining` is the live source world's dining state, not
+/// the loaded world's: the published prefix this test loads carries no dining
+/// tail, so the loaded world adopts no chair claims and `migrate` never sees
+/// one. Checking the live claims anyway is deliberately over-cautious, so the
+/// test cannot break if a later save format carries them. The published
+/// world's own content predates communal seats, so current content is the
+/// reference, and any action of the object counts because the published action
+/// numbering is not the current one. Anyone already holding a physical claim
+/// is skipped by `migrate`; counting them anyway is cautious in the same way.
 fn someone_would_be_replanned_by_seating(
     current: &SimHandle,
     world: &terri_core::SaveSnapshotV1,
@@ -1525,10 +1527,11 @@ fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() 
             .is_some_and(|chain| chain.chain == "cook_dinner" && chain.step == 3);
         // Loading a published save re-plans a walker bound for a communal
         // seat, or holding a dining chair, and ends a seated use, when its
-        // place is not a legal contact in current content (`seating::migrate`). That is its own migration,
-        // covered by the seating tests, and `current_world` does not model it.
-        // This test is about the domestic group, so it is taken while nobody
-        // is walking to or sitting at a seat; which housemate does what
+        // place is not a legal contact in current content
+        // (`seating::migrate`). That is its own migration, covered by the
+        // seating tests, and `current_world` does not model it. This test is
+        // about the domestic group, so it is taken while the migration would
+        // re-plan nobody; which housemate does what
         // depends on the household's choices and moves whenever a balance
         // value does.
         let dining = source

@@ -40,7 +40,8 @@ it('lets a shower fill Hygiene from a clearly partial level and ends it within a
     }
     // A shower lasts until the need it fills is full (docs/specs/2026-11-15-full-bathroom-use.md),
     // never past the longest, 240 ticks. From a partial level it must run longer than the
-    // 12-tick minimum use, raise Hygiene, and end within one tick of Hygiene reaching full.
+    // 12-tick minimum use, raise Hygiene, and end within one tick of Hygiene reaching full. One
+    // tick of slack is allowed on purpose; a use that ran on past full would count many ticks.
     expect(activeTicks).toBeGreaterThan(12);
     expect(activeTicks).toBeLessThanOrEqual(240);
     expect(sim.needsOf(person.entity)[hygiene]).toBeGreaterThan(atStart);

@@ -386,7 +386,7 @@
     "crates/terri-wasm/src/room_transport_tests.rs": "89b83a9604143d8af632052f699146403b31c1d1c9f7e87ac17a4af24e8fa2c9",
     "crates/terri-wasm/src/save_before_voice.rs": "0f7561516f3b8b8840d23814cae0e499f949c76aacf0325a5a7138510dda0534",
     "crates/terri-wasm/src/save_before_voice_tests.rs": "590c81deae3c97087c5c47229a575f5f56ca4ba345872afb8fbe93367327c257",
-    "crates/terri-wasm/src/save_v3_tests.rs": "6a47aa997ebbb468fd68a5c43e80e312d5bbeaddd4c87c81575f558479bad2bd",
+    "crates/terri-wasm/src/save_v3_tests.rs": "581b0a1023d021783b6148a902f024f4be2975baa292e4af7ffae3d13862a2c2",
     "crates/terri-wasm/src/save_v6_tests.rs": "04ae1c9334e06fa4ffa6d411e1b896b567cca001435600a5da8db340c8832bc7",
     "crates/terri-wasm/src/shift_boundary_tests.rs": "e29f52f9c62fb73d6deeba41eb7ebbf49057e31d508c67069b6180c829cd717e",
     "crates/terri-wasm/src/shift_save_tests.rs": "68b3ea55c31e496bcb3a8c75150adea35a3b9269a93f94362fd56aab6b20cf51",
