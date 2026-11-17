@@ -256,16 +256,32 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// on the tree that combines both changes, with the old presence rule
 /// restored behind a temporary switch and then removed. The draw counts and
 /// every job and shift are again unchanged.
-/// Issue 309 then moved the hash from 13315179661733202479: a housemate at
-/// work is now relieved of Bladder whenever it falls below half, and a
-/// housemate critical for Hunger or Energy at a shift start now leaves late,
-/// so the working household's needs and choices differ from the first shift
-/// on. Measured on the tree that combines the changes; with the Bladder
-/// threshold and the lateness limit both at 0 the run gives
-/// 13315179661733202479 again
-/// (`without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged`).
-/// The draws and jobs are the same.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (17164534138135296707, 7, 2);
+/// Issue 315 then moved the hash from 13315179661733202479, which main at
+/// 54cf96b46 gave with the wages, the bills and the presence rule above, on
+/// purpose: every base need drain rate is three quarters of what it was, so
+/// needs cross their thresholds at different ticks and the household's
+/// choices, and the draws they spend, differ from the first morning. The
+/// draw counts, jobs and shifts are unchanged. Measured on the tree that
+/// merges main at 54cf96b46 into the drain change, read from the failing
+/// assertion and then confirmed by a passing run.
+/// Issue 315's fill change then moved the hash from 5892717548701736568,
+/// which the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The draw counts, jobs and shifts are again unchanged. Measured on
+/// the tree that merges the drain change at f9b33b2ea into the fill change,
+/// read from the failing assertion.
+/// Issue 309 (work lateness) does not move the hash. Main at f58ddcf57 gave
+/// 16800902046621430031 with the drain and fill changes above, and the merged
+/// tree gives the same value with the lateness limit and the work Bladder
+/// relief at their shipped settings: at the slower drain nobody in the shipped
+/// household is critical for Hunger or Energy at a shift start, or below the
+/// Bladder relief threshold at work, before Thursday
+/// (`without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged` pins
+/// that the value also holds with both knobs at 0). The draws and jobs are the
+/// same.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (16800902046621430031, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
@@ -290,8 +306,8 @@ fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
     let careers = sim.world().resource::<Careers>();
     assert_eq!(
         (sim.world_hash(), careers.draws, careers.shift_draws),
-        (13315179661733202479, 7, 2),
-        "main's value before issue 309"
+        (16800902046621430031, 7, 2),
+        "main's value at f58ddcf57, before issue 309"
     );
 }
 

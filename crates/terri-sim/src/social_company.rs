@@ -879,7 +879,18 @@ mod tests {
             let actor = spawn("Lonely", Position { x: 4., y: 5. });
             let private_user = spawn("Private user", Position { x: 5., y: 3. });
             let viewer = spawn("Viewer", Position { x: 3., y: 2. });
+            // A toilet use ends on the tick its need is full (issue 315), so
+            // this person, who would otherwise leave within a few ticks, gets
+            // nothing from the toilet: the fixture needs a bathroom occupied
+            // for the whole test, not a use that fills.
+            let mut unrelieved = sim
+                .world()
+                .get::<terri_core::Personality>(private_user)
+                .unwrap()
+                .clone();
+            unrelieved.satisfaction[NeedId::Bladder.index()] = 0.;
             sim.world_mut().entity_mut(private_user).insert((
+                unrelieved,
                 Target {
                     object: toilet,
                     interaction: 0,
@@ -890,6 +901,10 @@ mod tests {
                     remaining_ticks: 1000,
                 },
             ));
+            sim.world_mut()
+                .get_mut::<Needs>(private_user)
+                .unwrap()
+                .set(NeedId::Bladder, 50.);
             sim.world_mut()
                 .entity_mut(toilet)
                 .insert(terri_core::Reserved);

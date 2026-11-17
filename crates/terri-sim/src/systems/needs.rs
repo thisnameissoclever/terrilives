@@ -83,6 +83,25 @@ type DecayRow<'a> = (
     Option<&'a terri_core::Eating>,
 );
 
+/// How many points one need drains in one tick: the pack's rate for it,
+/// times the person's drain multiplier for it (absent means all ones), times
+/// the at-work and asleep scales.
+///
+/// The one place this product is written, shared by `decay_needs` and by
+/// `need_interactions::fill::fill_ticks`, which runs the same arithmetic ahead
+/// of time to find how long a bathroom use takes to fill a need. Two copies of
+/// it could drift apart and leave a use ending a tick short of full.
+pub(crate) fn drain_amount(
+    rates: &[f32; terri_core::NEED_COUNT],
+    id: NeedId,
+    personality: Option<&Personality>,
+    away: f32,
+    asleep: f32,
+) -> f32 {
+    let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
+    rates[id.index()] * multiplier * away * asleep
+}
+
 pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
     let rates = &content.0.decay_per_tick;
     for (mut needs, personality, at_work, eating) in &mut query {
@@ -97,8 +116,7 @@ pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
             1.0
         };
         for id in NeedId::ALL {
-            let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
-            needs.drain(id, rates[id.index()] * multiplier * away * asleep);
+            needs.drain(id, drain_amount(rates, id, personality, away, asleep));
         }
     }
 }
@@ -467,6 +485,42 @@ mod tests {
                     );
                 }
             }
+        }
+    }
+
+    /// **Every shipped base rate is three quarters of the balance that
+    /// came before issue 315**, which asked that all needs drain on average
+    /// 25 percent slower.
+    ///
+    /// The previous rates are written out here as literals, not read from
+    /// the pack: a test that derived the expectation from the pack would
+    /// agree with whatever the pack said. Personality, sleep and work
+    /// multipliers are not part of this contract; they scale these base
+    /// rates and are pinned by the tests above.
+    ///
+    /// Mutation: restore any one rate to its old value, or change the
+    /// scale to 0.8 (dividing by 1.25 instead of multiplying by 0.75), and
+    /// the named need fails with its own rate in the message.
+    #[test]
+    fn shipped_base_decay_is_three_quarters_of_the_balance_before_issue_315() {
+        const BEFORE_ISSUE_315: [(NeedId, f32); 7] = [
+            (NeedId::Hunger, 0.041333333),
+            (NeedId::Energy, 0.034),
+            (NeedId::Hygiene, 0.048),
+            (NeedId::Bladder, 0.068),
+            (NeedId::Social, 0.017333333),
+            (NeedId::Fun, 0.032),
+            (NeedId::Comfort, 0.021333333),
+        ];
+        let rates = terri_data::pack().decay_per_tick;
+        for (id, before) in BEFORE_ISSUE_315 {
+            let expected = before * 0.75;
+            assert!(
+                (rates[id.index()] - expected).abs() < 1e-7,
+                "{} drains {} a tick; three quarters of the old {before} is {expected}",
+                id.as_str(),
+                rates[id.index()]
+            );
         }
     }
 

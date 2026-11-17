@@ -615,6 +615,7 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
             career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             night_shift_premium_percent: Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
+            need_fill_max_ticks: Tuning::PRE_FILL_NEED_FILL_MAX_TICKS,
             work_lateness_limit_ticks: Tuning::PRE_LATENESS_WORK_LATENESS_LIMIT_TICKS,
             work_lateness_ramp_ticks: Tuning::SHIPPED_WORK_LATENESS_RAMP_TICKS,
             work_lateness_remedy_share: Tuning::SHIPPED_WORK_LATENESS_REMEDY_SHARE,

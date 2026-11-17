@@ -282,6 +282,13 @@ pub enum ContentError {
     /// interaction that can complete on the tick it starts, which reads
     /// as a sim teleporting through an action.
     ZeroInteractionFloor,
+    /// `need_fill_max_ticks` is below `min_interaction_ticks` or above 1440.
+    /// A fill limit under the floor every use already has could never bind,
+    /// and one over a day would let a bathroom use hold a room indefinitely.
+    NeedFillMaxTicksOutOfRange {
+        value: u32,
+        floor: u32,
+    },
     HabituationPerUseOutOfRange {
         value: f32,
     },
@@ -1639,6 +1646,10 @@ impl fmt::Display for ContentError {
             ContentError::ZeroInteractionFloor => write!(
                 f,
                 "tuning.toml has min_interaction_ticks of 0; must be at least 1"
+            ),
+            ContentError::NeedFillMaxTicksOutOfRange { value, floor } => write!(
+                f,
+                "need_fill_max_ticks in tuning.toml is {value}; it must be from min_interaction_ticks ({floor}) to 1440"
             ),
             ContentError::ZeroWanderAttempts => write!(
                 f,

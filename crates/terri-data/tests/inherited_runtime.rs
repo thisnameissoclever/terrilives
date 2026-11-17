@@ -32,15 +32,7 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     // has separate content and delivery regressions.
     assert_eq!(
         result.decay_per_tick,
-        [
-            0.041333333,
-            0.034,
-            0.048,
-            0.068,
-            0.017333333,
-            0.032,
-            0.021333333
-        ]
+        [0.031, 0.0255, 0.036, 0.051, 0.013, 0.024, 0.016]
     );
     result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
@@ -144,10 +136,11 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
             // Issue 309 (work lateness): the four lateness knobs appended to
-            // `Tuning`. The proof always runs against the fixture as it was
-            // on main before issue 309 (26134 bytes, SHA-256
-            // 5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8,
-            // main at 67c988c33): restore that file before regenerating.
+            // `Tuning`, after the fill limit of issue 315. The proof always
+            // runs against the fixture as it was on main before issue 309
+            // (26136 bytes, SHA-256
+            // 6f508934a4bdc377690acbd8162ed6286f93c2c60b2c863d032ce968de0afe3d,
+            // main at f58ddcf57): restore that file before regenerating.
             assert_eq!(
                 previous_without_lateness(&pack),
                 old_bytes,

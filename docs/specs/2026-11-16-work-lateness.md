@@ -110,3 +110,7 @@ The tests are in `crates/terri-sim/src/lateness_tests.rs`, `crates/terri-sim/src
 13. A worker who is not critical but is mid-meal on the start tick leaves on the start tick, and the allowance predicate is pinned on its own: it opens at the start, closes at the limit or at the shift's end, whichever is first, and is shut for a settled shift or a limit of 0.
 14. `select_action` gives a late worker the ramped remedy share: the same critical decision gives the remedy 95 percent on the start tick and 99 percent 45 minutes in, with the television that tempts the worker most scoring far above the weak snack, so the cap decides the shares. A housemate with no job gets no lateness and today's share. With Hunger and Bladder both critical, Hunger keeps the worker home and only the relief of Hunger is a remedy, while the relief of Bladder joins the unrelated choices.
 15. The knob compile, published-pack, pre-books and fixture checks in the data crate.
+
+## Merge with main
+
+Merged with main at `f58ddcf57` on 2026-11-16, after the slower need drain (#349) and the full toilet, shower and bath uses (#350). Nothing in the rules above changed. The four lateness knobs stay the last fields of `Tuning`, after `need_fill_max_ticks`; the numbers and pins that moved are in [the verification record](2026-11-16-work-lateness-verification.md#merge-merge-with-main). At the slower drain the shipped household's first days no longer reach a critical need at a shift start, so the work lateness rules show only in longer runs.

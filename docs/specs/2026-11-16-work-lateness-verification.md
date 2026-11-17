@@ -1,6 +1,6 @@
 # Work lateness: verification record
 
-Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured on 2026-11-16 on the branch `twcl/309-late-for-needs`, built on main at `67c988c33`. Machine: Windows 11, `CARGO_BUILD_JOBS=2`, another full local check running beside it. Logs are in the task's untracked log directory, named below.
+Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured on 2026-11-16 on the branch `twcl/309-late-for-needs`, built on main at `67c988c33` and merged with main at `f58ddcf57` (see [Merge with main](#merge-merge-with-main)). Machine: Windows 11, `CARGO_BUILD_JOBS=2`, another full local check running beside it. Logs are in the task's untracked log directory, named below.
 
 ## Contents
 
@@ -10,6 +10,7 @@ Evidence for [work lateness](2026-11-16-work-lateness.md) (issue 309), measured 
 4. [Targeted mutation checks](#mutations-targeted-mutation-checks)
 5. [Trace figures](#trace-trace-figures)
 6. [Open items](#open-open-items)
+7. [Merge with main](#merge-merge-with-main)
 
 ## [before] How needs behaved at work before
 
@@ -55,7 +56,7 @@ Three guards assert that main's values return with both knobs at 0, which is how
 
 Two tests keep their meaning by leaving on time: `every_search_on_keeps_published_hires_schedules_and_career_randomness` and the schema-21 test run under `test_content::pre_shift_careers`, which now also sets the limit and the threshold to 0, as a pack published before them reconstructs; and `a_kept_errand_is_not_shown_while_the_worker_is_away`, whose worker is critically hungry on purpose and now sets the limit to 0 because the test is about an errand kept across a departure.
 
-Unchanged and asserted by the suite: the `GOLDEN` world hash in `lib.rs` and its twin in the web bridge test, the content fingerprint in `content_hierarchy.rs`, and every save fixture's bytes. The inherited runtime fixture gained exactly the ten bytes of the four appended `Tuning` fields: with those fields left out the writer reproduces the previous fixture (26134 bytes, SHA-256 `5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8`) byte for byte (`fixture-prove.log`). The `MapU32` rule of the filtered writer served only the wage proof and is removed.
+Unchanged and asserted by the suite: the `GOLDEN` world hash in `lib.rs` and its twin in the web bridge test, the content fingerprint in `content_hierarchy.rs`, and every save fixture's bytes. The inherited runtime fixture gained exactly the ten bytes of the four appended `Tuning` fields: with those fields left out the writer reproduces the previous fixture (the fixture on main at `f58ddcf57`: 26136 bytes, SHA-256 `6f508934a4bdc377690acbd8162ed6286f93c2c60b2c863d032ce968de0afe3d`) byte for byte; the regenerated fixture is 26146 bytes, SHA-256 `32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15` (see [Merge with main](#merge-merge-with-main)). The `MapU32` rule of the filtered writer served only the wage proof and is removed.
 
 ## [mutations] Targeted mutation checks
 
@@ -110,3 +111,21 @@ Of the 16 critical starts in the runs above, 14 used the whole hour. The case tr
 1. **The hour is almost always used up.** 14 of 16 critical starts left at exactly 60 minutes; the one traced in detail was a sleep, which takes longer than the allowance. The owner's rule is working as decided, but the owner may want a shorter walk-and-nap or a longer allowance for Energy; that is a product decision this issue does not make.
 2. **A reading journey can still make a worker later than the limit.** Not changed here; seed 22 shows 69 minutes.
 3. **Not done here:** a changelog-driven refresh of the player guide screenshots, which show no changed control. The player guide text and its numbers read from the compiled reference.
+
+## [merge] Merge with main
+
+On 2026-11-16 the branch merged main at `f58ddcf57`, which gained the wages and bills (save schema 22, starting funds), every need draining at three quarters of its old rate (#349) and a toilet, shower or bath use lasting until its need is full (#350, which appended `need_fill_max_ticks` to `Tuning`). Conflicts were in the tuning field lists, the inherited runtime fixture and its proof, the two pins files, the player guide and the changelog entry. Both sides were kept.
+
+1. **Field order.** The four lateness knobs stay appended after main's last field: the compiled `Tuning` now ends `night_shift_premium_percent`, `need_fill_max_ticks`, then `work_lateness_limit_ticks`, `work_lateness_ramp_ticks`, `work_lateness_remedy_share`, `work_bladder_relief_threshold`. The slot test `the_appended_tuning_knobs_keep_their_slots` reads the lateness bytes as the last ten, the fill limit as the two before them and the night premium as the byte before that. The schema test now has 160 scalar knobs.
+2. **Fixture.** The proof ran first against main's fixture (26136 bytes, SHA-256 `6f508934a4bdc377690acbd8162ed6286f93c2c60b2c863d032ce968de0afe3d`): leaving out the four lateness fields recovered every byte of it. The regenerated fixture is 26146 bytes (ten more), SHA-256 `32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15`.
+3. **Pins.** Each was re-read on the merged tree. At the slower drain nobody in the shipped household is critical at a shift start or below the Bladder threshold at work within the first days, so two of the three pins did not move:
+
+| Value | Main at `f58ddcf57` | Merged tree |
+| --- | --- | --- |
+| `SHIPPED_THURSDAY` in `job_search_tests.rs` | 16800902046621430031 | 16800902046621430031 (unchanged) |
+| `TWO_DAY_FOLD_WITHOUT_THE_LOG` | `0x6ed5_8e35_ffc8_2f8d` | `0x6ed5_8e35_ffc8_2f8d` (unchanged) |
+| `TWENTY_DAY_FOLD_WITHOUT_THE_LOG` (manual, release) | `0xb6e3_d213_e72a_6360` | `0x9224_ed05_3053_97fc` (moved by the lateness knobs) |
+| `GOLDEN` in `lib.rs` and its web twin | 15287039064284998688 | unchanged |
+| `STANDARD_ONLY_HASH` | 10091986056830211033 | unchanged |
+
+The three guards that assert main's values return with both knobs at 0 now compare against these main values. The two earlier tables in this record show the values measured before the merge.

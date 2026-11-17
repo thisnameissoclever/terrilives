@@ -70,7 +70,7 @@ fn placed(sim: &mut Sim, id: &str) -> Entity {
 }
 
 /// Gives `who` exactly these values, every other kind at 0.0.
-fn set_values(sim: &mut Sim, who: Entity, values: &[(&str, f32)]) {
+pub(crate) fn set_values(sim: &mut Sim, who: Entity, values: &[(&str, f32)]) {
     let mut all = vec![0.0; terri_data::pack().affinities.len()];
     for &(id, value) in values {
         all[kind(id)] = value;
@@ -341,7 +341,7 @@ fn quiet_relationships(sim: &mut Sim) {
 
 /// Bill and Casey alone in the house, with no shift to leave for and full
 /// needs, and Tim gone so his choices cannot crowd the television.
-fn bill_and_casey() -> (Sim, Entity, Entity) {
+pub(crate) fn bill_and_casey() -> (Sim, Entity, Entity) {
     let mut sim = shipped();
     quiet_relationships(&mut sim);
     let tim = person(&mut sim, "Tim");
@@ -358,7 +358,7 @@ fn bill_and_casey() -> (Sim, Entity, Entity) {
     (sim, bill, casey)
 }
 
-fn order(sim: &mut Sim, who: Entity, object: &str, interaction: &str) {
+pub(crate) fn order(sim: &mut Sim, who: Entity, object: &str, interaction: &str) {
     let object_entity = placed(sim, object);
     sim.world_mut()
         .resource_mut::<CommandQueue>()
@@ -387,7 +387,7 @@ fn is_using(sim: &Sim, who: Entity, object: &str) -> bool {
 /// ticks, asserting it happened and that the clock moved once per tick;
 /// then stretches each running interaction so it outlasts the test.
 /// `during` sees the world after every tick of the approach.
-fn tick_until_using(
+pub(crate) fn tick_until_using(
     sim: &mut Sim,
     users: &[(Entity, &str)],
     bound: u32,

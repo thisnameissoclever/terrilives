@@ -6,7 +6,9 @@ it when changing an interaction, its advertised effects, seating, or need
 delivery. The content files hold balance values; this document explains their
 meaning. Dated verification belongs in `docs/evidence/`.
 
-Base need drain rates are two thirds of the previous balance. Existing
+Base need drain rates are now half of what they were before 2026-10-19: a pass
+on that date cut them to two thirds, and issue 315 cut them again to three
+quarters of that, so every need drains on average 25 percent slower. Existing
 personality, sleep and work multipliers still apply to those rates.
 
 ## What each meter represents
@@ -115,6 +117,23 @@ bias toward shorter actions. Longer use therefore gives more total benefit
 and cost; interruption gives only the minutes actually completed. Recipes
 instead pay their food benefit once after consumption.
 
+**The toilet, shower and bath are the exception** (issue 315, identified by
+their compiled activities `using_toilet`, `showering` and `bathing`). A use
+lasts until its need is full: Bladder for the toilet, Hygiene for the shower
+and bath. The rate is unchanged, the authored delta over the authored duration
+scaled by the person's satisfaction multiplier, but the length is the number of
+ticks that rate needs, net of the person's drain, to reach 100, found once at
+arrival. It is at least `min_interaction_ticks` and at most
+`need_fill_max_ticks`, and a person whose net rate is not positive keeps the
+drawn length. A use resumed from a save that has more than the minimum length
+left ends on the tick the need is full. Hand washing is not a fill and stops at
+its ceiling. Per-minute costs and side benefits, such as the shower's Energy
+cost and the bath's Comfort, still accrue every minute, so they follow the
+length. Autonomous scoring and the survival risk of the time spent keep the
+authored delta and duration, a designer's choice; the forecast of a use's
+outcome uses the fill length. See the
+[full bathroom use specification](specs/2026-11-15-full-bathroom-use.md).
+
 Personality's per-need satisfaction multiplier scales positive delivery.
 Costs arrive in full. Failed ordinary actions reduce positive benefits,
 and food quality reduces recipe food benefits. Food quality and a cooking
@@ -166,13 +185,13 @@ Every need also decays throughout ordinary life:
 
 | Need | Points lost per game minute before modifiers |
 | --- | --- |
-| Hunger | 0.0413333333 |
-| Energy | 0.034 |
-| Hygiene | 0.048 |
-| Bladder | 0.068 |
-| Social | 0.0173333333 |
-| Fun | 0.032 |
-| Comfort | 0.0213333333 |
+| Hunger | 0.031 |
+| Energy | 0.0255 |
+| Hygiene | 0.036 |
+| Bladder | 0.051 |
+| Social | 0.013 |
+| Fun | 0.024 |
+| Comfort | 0.016 |
 
 Personality multiplies each decay rate. Sleeping multiplies decay by 0.4;
 being at work multiplies it by 0.5. Commuting uses normal decay. Work provides

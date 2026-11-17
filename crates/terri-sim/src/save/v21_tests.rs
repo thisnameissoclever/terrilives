@@ -136,7 +136,21 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// every tick of this run. Measured on the tree that combines both changes
 /// with the old presence rule restored behind a temporary switch and then
 /// removed; the combined tree still gives the value above.
-const STANDARD_ONLY_HASH: u64 = 3704503324967516506;
+/// Issue 315 then moved it from 3704503324967516506, which main at 54cf96b46
+/// gave with the wages, the bills and the presence rule above, on purpose:
+/// every base need drain rate is three quarters of what it was, so needs
+/// cross their thresholds at different ticks and the household's choices
+/// differ from the first morning. The simulation code is unchanged. Measured
+/// on the tree that merges main at 54cf96b46 into the drain change, read
+/// from the failing assertion and then confirmed by a passing run.
+/// Issue 315's fill change then moved it from 16044876517331188252, which the
+/// drain change gave on the tree merged with main at 54cf96b46, on purpose: a
+/// toilet, shower or bath now lasts until its need is full and its authored
+/// rates were raised, so every use of them in the household's days is shorter
+/// or longer than before and the choices and draws that follow differ. The
+/// simulation code is unchanged. Measured on the tree that merges the drain
+/// change at f9b33b2ea into the fill change, read from the failing assertion.
+const STANDARD_ONLY_HASH: u64 = 10091986056830211033;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.

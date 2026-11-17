@@ -388,7 +388,7 @@ pub fn band(value: f32, tuning: &Tuning) -> &'static str {
 
 #[cfg(test)]
 #[path = "affinity_tests.rs"]
-mod presence_and_use_tests;
+pub(crate) mod presence_and_use_tests;
 
 #[cfg(test)]
 mod tests {

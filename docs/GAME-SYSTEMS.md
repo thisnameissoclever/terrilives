@@ -89,7 +89,7 @@ These work in normal play today. They appear here because every new system must 
 
 | System | Status | What exists |
 |---|---|---|
-| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
+| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. A toilet, shower or bath used until it finishes fills its need to 100. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
 | Habituation | Substantial | Repeating the same action on the same object lowers its appeal, which recovers with time. This makes people rotate between objects; it does not reduce ordinary need delivery. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |

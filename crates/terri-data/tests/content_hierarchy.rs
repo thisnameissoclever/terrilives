@@ -579,7 +579,20 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
                     _ => (),
                 }
                 match actual.id.as_str() {
-                    "shower" => intended.duration_ticks = 90,
+                    // Issue 315 retuned the three bathroom actions' rates so
+                    // that a use lasts until its need is full.
+                    "shower" => {
+                        intended.duration_ticks = 40;
+                        intended.advertises = vec![(1, -20.0), (2, 110.0)];
+                    }
+                    "toilet" => {
+                        intended.duration_ticks = 20;
+                        intended.advertises = vec![(3, 135.0)];
+                    }
+                    "bathtub" => {
+                        intended.duration_ticks = 40;
+                        intended.advertises = vec![(1, -5.5), (2, 95.0), (6, 55.0)];
+                    }
                     "sink" => intended.advertises = vec![(2, 22.0)],
                     "moving_box" => {
                         intended

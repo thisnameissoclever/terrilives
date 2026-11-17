@@ -1239,11 +1239,15 @@ pub struct Tuning {
     /// person's pay and the level's range stay without it. Appended after
     /// the shift knobs, per the rule above.
     pub night_shift_premium_percent: u32,
+    /// Issue 315: the longest a toilet, shower or bath use may run while
+    /// filling its need, in ticks, from `min_interaction_ticks` to 1440.
+    /// Appended after the night premium, per the rule above.
+    pub need_fill_max_ticks: u32,
     /// Work lateness (issue 309, [WL-tuning] in
     /// `docs/specs/2026-11-16-work-lateness.md`): the longest a critical
     /// Hunger or Energy may keep a housemate home from work, in ticks after
-    /// the scheduled start. 0 leaves on time. Appended after the night
-    /// premium, per the rule above.
+    /// the scheduled start. 0 leaves on time. Appended after the fill limit,
+    /// per the rule above.
     pub work_lateness_limit_ticks: u32,
     /// The lateness, in ticks, at which the remedy share reaches its
     /// maximum.
@@ -1322,6 +1326,12 @@ impl Tuning {
     /// packs published before it existed. It matters only for a held shift
     /// of the night kind, which no published pack has.
     pub const SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT: u32 = 15;
+    /// The fill limit a pack published before issue 315 rebuilds with: the
+    /// shipped 240. The fill is a rule of the simulation, not a knob a pack
+    /// opts into, so a published pack's worlds change behavior with it; this
+    /// only keeps a person with a very low satisfaction multiplier from
+    /// occupying a bathroom for hours.
+    pub const PRE_FILL_NEED_FILL_MAX_TICKS: u32 = 240;
     /// What a pack published before issue 309 reconstructs for the work
     /// lateness knobs: a limit of 0, so its worlds keep leaving on time, and
     /// no Bladder relief at work. The ramp and the share are the shipped
@@ -2410,6 +2420,7 @@ mod tests {
             shift_sleep_offset_night: 655,
             career_search_temperature: 0.3125,
             night_shift_premium_percent: 17,
+            need_fill_max_ticks: 245,
             work_lateness_limit_ticks: 73,
             work_lateness_ramp_ticks: 41,
             work_lateness_remedy_share: 0.9375,
@@ -3278,9 +3289,9 @@ mod tests {
     /// eighteen of the fight knobs, the four of the land knobs, the
     /// ninety-five of the career knobs and the fifty of the season knobs,
     /// followed by optional autonomy, the meal-appreciation float, the
-    /// optional weather, the purposeful-fight knobs, the ten bytes of
-    /// the shift knobs, the one-byte varint of the night premium
-    /// ([WB-wages]) and the ten bytes of the work lateness knobs
+    /// optional weather, the purposeful-fight knobs, the ten bytes of the
+    /// shift knobs, the one-byte varint of the night premium ([WB-wages]),
+    /// the fill limit's varint and the ten bytes of the work lateness knobs
     /// ([WL-tuning]); every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
@@ -3335,9 +3346,22 @@ mod tests {
         })
         .iter()
         .all(|index| (lateness + 6..lateness + 10).contains(index)));
-        // Wages (issue 298): the night premium is the byte before them, a
-        // varint of 17, and moving it moves that byte alone.
-        let premium = lateness - 1;
+        // The fill limit (issue 315) is the two bytes before the lateness
+        // knobs: a varint, 245 in two bytes. Changing it moves exactly
+        // those bytes.
+        let fill = lateness - 2;
+        assert_eq!(before[fill..lateness], [0xF5, 0x01]);
+        assert_eq!(
+            changed(Tuning {
+                need_fill_max_ticks: 246,
+                ..a_tuning()
+            }),
+            vec![fill],
+            "fill limit"
+        );
+        // Wages (issue 298): the night premium is the byte before the fill
+        // limit, a varint of 17, and moving it moves that byte alone.
+        let premium = fill - 1;
         assert_eq!(before[premium], 17);
         assert_eq!(
             changed(Tuning {
@@ -3347,7 +3371,7 @@ mod tests {
             vec![premium]
         );
         // Shifts (issue 296): the five shift knobs are the ten bytes before
-        // it, after the purposeful-fight knobs:
+        // the premium, after the purposeful-fight knobs:
         // four zigzag varints (3 as 6, -61 as 121, 125 as 250 in two bytes
         // and 655 as 1310 in two bytes), then the search temperature's
         // four bytes.
