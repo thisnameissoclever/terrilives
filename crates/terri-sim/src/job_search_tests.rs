@@ -256,22 +256,72 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// on the tree that combines both changes, with the old presence rule
 /// restored behind a temporary switch and then removed. The draw counts and
 /// every job and shift are again unchanged.
-/// The fade of issue 344 (the lift from liked furniture now fades slowly
-/// after a person leaves it) then moved the hash from 13315179661733202479,
-/// on purpose: someone who likes plants or the aquarium and walks out of the
+/// Issue 315 then moved the hash from 13315179661733202479, which main at
+/// 54cf96b46 gave with the wages, the bills and the presence rule above, on
+/// purpose: every base need drain rate is three quarters of what it was, so
+/// needs cross their thresholds at different ticks and the household's
+/// choices, and the draws they spend, differ from the first morning. The
+/// draw counts, jobs and shifts are unchanged. Measured on the tree that
+/// merges main at 54cf96b46 into the drain change, read from the failing
+/// assertion and then confirmed by a passing run.
+/// Issue 315's fill change then moved the hash from 5892717548701736568,
+/// which the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The draw counts, jobs and shifts are again unchanged. Measured on
+/// the tree that merges the drain change at f9b33b2ea into the fill change,
+/// read from the failing assertion.
+/// Issue 309 (work lateness) does not move the hash. Main at f58ddcf57 gave
+/// 16800902046621430031 with the drain and fill changes above, and the merged
+/// tree gives the same value with the lateness limit and the work Bladder
+/// relief at their shipped settings: at the slower drain nobody in the shipped
+/// household is critical for Hunger or Energy at a shift start, or below the
+/// Bladder relief threshold at work, before Thursday
+/// (`without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged` pins
+/// that the value also holds with both knobs at 0). The draws and jobs are the
+/// same.
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved the hash from 16800902046621430031, which
+/// main at a56f9beb0 gave with the drain, fill and lateness changes above, on
+/// purpose: someone who likes plants or the aquarium and walks out of the
 /// room keeps part of the lift for up to a few game hours, so the mood that
-/// choices read after leaving is higher and a choice scored from it first
-/// goes the other way. The fade's rows also join the world hash while one
-/// is running, but that is not the whole move: with the rows left out of the
-/// hash this test reads 7759203913087002479, still not the old value. The
-/// draw counts and every job and shift are again unchanged. Measured on the
-/// tree that combines both changes.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (11396698444006774953, 7, 2);
+/// choices read after leaving is higher and a choice scored from it first goes
+/// the other way. The draw counts and every job and shift are unchanged.
+/// Measured on the tree that merges main at a56f9beb0 into the fade change,
+/// read from the failing assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (1396220020831546344, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
     (2, Some("night_watch_guard"), Some("weekend_nights")),
 ];
+
+/// Issue 309: with the work lateness limit and the work Bladder relief both
+/// off, as a pack published before them reconstructs, the shipped household's
+/// run to Thursday is the shipped value, bit for bit (the value main measured
+/// before issue 344 moved it is in the comment on `SHIPPED_THURSDAY`). That
+/// shows that switching the two knobs off changes nothing here; it does not show that the knobs move this run,
+/// because nobody is late or relieved before Thursday at the slower drain. The
+/// behavior is covered by `lateness_tests.rs`.
+#[test]
+fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let mut pack = terri_data::pack().clone();
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    for _ in 0..THROUGH_THURSDAY {
+        sim.tick();
+    }
+    let careers = sim.world().resource::<Careers>();
+    assert_eq!(
+        (sim.world_hash(), careers.draws, careers.shift_draws),
+        (1396220020831546344, 7, 2),
+        "the shipped value, with the presence fade of issue 344 (main at a56f9beb0 gave 16800902046621430031 without it)"
+    );
+}
 
 /// Rule 1: every person in a new game, and every newcomer, looks for work.
 #[test]

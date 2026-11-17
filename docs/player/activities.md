@@ -73,12 +73,16 @@ Lie down on the long sofa gives Comfort and a small Energy benefit. Sit gives Co
 
 Take a shower restores Hygiene at an Energy cost. Take a bath restores Hygiene and Comfort with a smaller Energy cost. Both are whole-body cleaning. Use the toilet restores Bladder and does not wash hands afterward.
 
+These three run until the meter they fill is full: Hygiene for the shower and bath, Bladder for the toilet. How long that takes depends on how far the meter has to rise, so a nearly full person finishes quickly, though they still use the fixture for a short minimum time. From an empty meter the toilet takes about a quarter of an hour of game time, and a shower or bath a little under an hour (roughly 40 minutes). A shower costs Energy and a bath gives Comfort for every minute the person stays, so a longer use costs or gives more. Stopping early keeps only the gain from the minutes already spent: an order that sends the person elsewhere leaves the meter where it had got to.
+
 Wash hands is partial cleaning. Either sink stops adding Hygiene at the same ceiling, so washing repeatedly cannot replace bathing or remove body odor. The kitchen sink's rate differs from the bathroom sink's. Neither action has an extra Comfort cost. Cleaning household dishes at the kitchen sink is a different action and supplies no personal Hygiene.
 
 Toilets, showers and baths are [private activities](relationships/#privacy). Entering an occupied bathroom, or starting private use with somebody already inside, can harm feelings in different directions.
 
 :::numbers Numbers and limits
-Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from ordinary decay. Body-odor consequences clear only above that level, so bathing is necessary.
+Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from the normal slow fall of Hygiene. Body-odor consequences clear only above that level, so bathing is necessary.
+
+A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} game minutes at most, even if the meter is not yet full. A person reaches that limit only when their personality gives them very little from the activity, so that filling the meter would take that long. If they get almost nothing from it, the use has an ordinary length and the meter is not filled.
 :::
 
 ## Chairs and secondary seats {#chairs}

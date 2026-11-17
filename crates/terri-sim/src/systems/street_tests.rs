@@ -70,6 +70,11 @@ fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
     pack.objects[fridge.0 as usize]
         .interactions
         .retain(|action| action.id == "grab_snack");
+    // Issue 309: a critically hungry worker now finishes the snack and then
+    // leaves late. This test is about an errand kept across the departure,
+    // so the worker leaves on time, as a pack published before the lateness
+    // limit reconstructs.
+    pack.tuning.work_lateness_limit_ticks = 0;
     sim.world_mut()
         .insert_resource(crate::Content(Box::leak(Box::new(pack))));
     let content = sim.world().resource::<crate::Content>().0;

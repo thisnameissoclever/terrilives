@@ -53,6 +53,10 @@ player orders; need decay and death remain enabled.
 
 1. Save scheduled shifts and actual attendance. Player orders delay departure.
    Leave once orders finish if the original scheduled shift has time remaining.
+   Issue 309 adds one more reason to wait, after player orders: a critical
+   Hunger or Energy keeps a worker home for at most `work_lateness_limit_ticks`
+   after the scheduled start and never past the shift's end. Player orders
+   still delay departure without limit. See [work lateness](2026-11-16-work-lateness.md).
 2. A confirmed new order interrupts an outbound commute or brings an off-lot
    worker home along the normal return route. Finish player orders and resume
    work within the original shift. Never extend its end.

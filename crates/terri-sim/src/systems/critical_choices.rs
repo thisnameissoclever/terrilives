@@ -4,7 +4,7 @@ use terri_core::{NeedId, Needs, Personality, NEED_COUNT};
 use terri_data::CompiledInteraction;
 use terri_data::{AutonomyTuning, ContentPack};
 mod forecast;
-pub(crate) use forecast::{predict_phases, travel_ticks, Phase};
+pub(crate) use forecast::{after_decay, object_outcome, predict_phases, travel_ticks, Phase};
 
 #[derive(Clone, Debug, Default)]
 pub struct NeedOutcome {
@@ -84,6 +84,21 @@ pub(crate) fn recipe_outcome(
     )
 }
 
+/// The most the unrelated choices may take: `autonomy`'s cap, or while a
+/// housemate is late for work ([WL-ramp]) a cap that falls in a straight
+/// line with the lateness from that cap to `1 - remedy_share`, and never
+/// rises. Without lateness it is exactly the autonomy cap.
+fn unrelated_cap(autonomy_cap: f32, lateness: Option<crate::lateness::Lateness>) -> f64 {
+    let cap = f64::from(autonomy_cap);
+    let Some(late) = lateness else {
+        return cap;
+    };
+    let floor = (1. - f64::from(late.remedy_share)).min(cap);
+    cap - (cap - floor) * f64::from(late.progress.clamp(0., 1.))
+}
+
+/// `lateness` is `Some` while a housemate is late for work because of a
+/// critical Hunger or Energy; see `crate::lateness`.
 #[allow(clippy::too_many_arguments)]
 pub fn critical_choice_probabilities<K: Eq + Copy>(
     rows: &[(K, u32, f32)],
@@ -95,6 +110,7 @@ pub fn critical_choice_probabilities<K: Eq + Copy>(
     temperature: f32,
     exploration: f32,
     floor: f32,
+    lateness: Option<crate::lateness::Lateness>,
 ) -> Vec<f64> {
     let ordinary =
         || super::autonomy::grouped_probabilities(rows, risks, temperature, exploration, floor);
@@ -106,8 +122,11 @@ pub fn critical_choice_probabilities<K: Eq + Copy>(
         return ordinary();
     };
     assert_eq!(rows.len(), outcomes.len());
-    let (helpful, other): (Vec<usize>, Vec<usize>) =
-        (0..rows.len()).partition(|i| critical_relief_mask(needs, &outcomes[*i], threshold) != 0);
+    // While a housemate is late for work only the relief of a counted need
+    // is a remedy; relief of another critical need is an unrelated choice.
+    let counted = lateness.map_or(u8::MAX, |late| late.counted);
+    let (helpful, other): (Vec<usize>, Vec<usize>) = (0..rows.len())
+        .partition(|i| critical_relief_mask(needs, &outcomes[*i], threshold) & counted != 0);
     if helpful.is_empty() || other.is_empty() {
         return ordinary();
     }
@@ -130,11 +149,14 @@ pub fn critical_choice_probabilities<K: Eq + Copy>(
         exploration,
         floor,
     );
-    let unrelated = weights[1].min(f64::from(if critical > 1 {
-        policy.unrelated_multiple
-    } else {
-        policy.unrelated_single
-    }));
+    let unrelated = weights[1].min(unrelated_cap(
+        if critical > 1 {
+            policy.unrelated_multiple
+        } else {
+            policy.unrelated_single
+        },
+        lateness,
+    ));
     let mut result = vec![0.; rows.len()];
     for (indices, total) in [(&helpful, 1. - unrelated), (&other, unrelated)] {
         let subset: Vec<_> = indices.iter().map(|i| rows[*i]).collect();
@@ -156,11 +178,20 @@ pub fn critical_choice_probabilities<K: Eq + Copy>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// `one_critical_need`'s distribution with no lateness, as main
+    /// computed it before issue 309.
+    const PINNED_TODAY: [f64; 3] = [
+        0.9499999992549419,
+        0.00012499999906867738,
+        0.049875000745989384,
+    ];
     #[test]
     fn review_physical_terminal_reward_arrives_after_work_has_clamped_hunger_at_zero() {
         let pack = terri_data::pack();
         let mut needs = Needs::all_at(60.);
-        needs.set(NeedId::Hunger, 20.);
+        // Ten, not twenty: after issue 315 the 600 ticks of work drain
+        // 18.6 hunger, so only a start below that is clamped at zero.
+        needs.set(NeedId::Hunger, 10.);
         let predicted = predict(
             pack,
             &needs,
@@ -179,7 +210,7 @@ mod tests {
         }
         assert_eq!(executed.get(NeedId::Hunger), 0.);
         executed.fill(NeedId::Hunger, 21.);
-        assert!((predicted.net_change[0] - (executed.get(NeedId::Hunger) - 20.)).abs() < 0.0001);
+        assert!((predicted.net_change[0] - (executed.get(NeedId::Hunger) - 10.)).abs() < 0.0001);
         assert_eq!(predicted.first_relief_ticks[0], Some(600));
     }
     #[test]
@@ -201,6 +232,7 @@ mod tests {
             0.06,
             0.005,
             1e-9,
+            None,
         );
         assert!((p.iter().sum::<f64>() - 1.).abs() < 1e-12);
         assert!((p[0] - 0.99).abs() < 1e-8);
@@ -273,6 +305,7 @@ mod tests {
                 0.06,
                 0.005,
                 1e-9,
+                None,
             )
         };
         let a = run(
@@ -298,7 +331,7 @@ mod tests {
             super::super::autonomy::grouped_probabilities(&rows, &risks, 0.06, 0.005, 1e-9);
         let evaluate = |needs: &Needs, outcomes: &[NeedOutcome]| {
             critical_choice_probabilities(
-                &rows, &risks, outcomes, needs, 20., policy, 0.06, 0.005, 1e-9,
+                &rows, &risks, outcomes, needs, 20., policy, 0.06, 0.005, 1e-9, None,
             )
         };
         needs.set(NeedId::Hunger, f32::from_bits(20f32.to_bits() + 1));
@@ -314,5 +347,162 @@ mod tests {
         let multiple = evaluate(&needs, &outcomes);
         assert!(multiple[0] >= single[0], "Another critical need with unchanged attainable effects and utilities cannot reduce the existing remedy's chance");
         assert!(multiple[1] > 0. && multiple[1] <= 0.010000001);
+    }
+
+    // Issue 309 ([WL-ramp] in `docs/specs/2026-11-16-work-lateness.md`).
+    fn late(progress: f32) -> Option<crate::lateness::Lateness> {
+        Some(crate::lateness::Lateness {
+            progress,
+            counted: crate::lateness::counted_mask(),
+            remedy_share: 0.99,
+        })
+    }
+    fn relieving(need: NeedId) -> NeedOutcome {
+        let mut outcome = NeedOutcome::default();
+        outcome.net_change[need.index()] = 20.;
+        outcome
+    }
+    fn evaluate_late(
+        rows: &[(u8, u32, f32)],
+        outcomes: &[NeedOutcome],
+        needs: &Needs,
+        lateness: Option<crate::lateness::Lateness>,
+    ) -> Vec<f64> {
+        critical_choice_probabilities(
+            rows,
+            &vec![0.; rows.len()],
+            outcomes,
+            needs,
+            20.,
+            Some(AutonomyTuning::default()),
+            0.06,
+            0.005,
+            1e-9,
+            lateness,
+        )
+    }
+    /// One critical need and a remedy that scores far below an unrelated
+    /// choice, so the cap on unrelated choices is what binds.
+    fn one_critical_need() -> (Needs, [(u8, u32, f32); 3], [NeedOutcome; 3]) {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        (
+            needs,
+            [(0, 0, 0.01), (1, 0, 10.), (2, 0, 20.)],
+            [
+                relieving(NeedId::Hunger),
+                NeedOutcome::default(),
+                NeedOutcome::default(),
+            ],
+        )
+    }
+    #[test]
+    fn the_remedy_share_ramps_from_the_autonomy_cap_to_the_lateness_share() {
+        let (needs, rows, outcomes) = one_critical_need();
+        let today = evaluate_late(&rows, &outcomes, &needs, None);
+        assert!((today[0] - 0.95).abs() < 1e-7, "today's cap: {today:?}");
+        for (progress, share) in [(0.0, 0.95), (0.5, 0.97), (1.0, 0.99)] {
+            let p = evaluate_late(&rows, &outcomes, &needs, late(progress));
+            assert!((p.iter().sum::<f64>() - 1.).abs() < 1e-12);
+            assert!(
+                (p[0] - share).abs() < 1e-6,
+                "progress {progress}: remedy {} should be {share}",
+                p[0]
+            );
+            assert!(
+                p[1] > 0. && p[2] > 0.,
+                "99 percent is a ceiling, not 100: {p:?}"
+            );
+        }
+        // The ramp is clamped: progress past the end holds the maximum and
+        // progress before the start holds today's cap.
+        let beyond = evaluate_late(&rows, &outcomes, &needs, late(2.0));
+        assert!((beyond[0] - 0.99).abs() < 1e-6, "{beyond:?}");
+        let before = evaluate_late(&rows, &outcomes, &needs, late(-1.0));
+        assert!((before[0] - 0.95).abs() < 1e-6, "{before:?}");
+        // Ramping never lowers the share.
+        let mut last = 0.;
+        for step in 0..=10 {
+            let p = evaluate_late(&rows, &outcomes, &needs, late(step as f32 / 10.));
+            assert!(p[0] >= last, "step {step}");
+            last = p[0];
+        }
+    }
+    #[test]
+    fn without_lateness_the_choice_probabilities_are_exactly_todays() {
+        let (needs, rows, outcomes) = one_critical_need();
+        let none = evaluate_late(&rows, &outcomes, &needs, None);
+        // The vector the function returned before issue 309.
+        assert_eq!(none, PINNED_TODAY.to_vec());
+    }
+    /// The ramp lowers the unrelated cap and never raises it: with two
+    /// critical needs the cap is already 0.01, so even a remedy share below
+    /// 0.99 (which the compiler refuses for shipped content) leaves it there.
+    #[test]
+    fn the_ramp_never_raises_the_unrelated_cap() {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        needs.set(NeedId::Energy, 10.);
+        let rows = [(0, 0, 0.01), (1, 0, 10.)];
+        let outcomes = [relieving(NeedId::Hunger), NeedOutcome::default()];
+        let mut lateness = late(1.0).unwrap();
+        lateness.remedy_share = 0.9;
+        let p = evaluate_late(&rows, &outcomes, &needs, Some(lateness));
+        let today = evaluate_late(&rows, &outcomes, &needs, None);
+        assert_eq!(p, today, "a share under today's cap changes nothing: {p:?}");
+        assert!(p[0] >= 0.99 - 1e-6);
+    }
+    #[test]
+    fn relief_of_an_uncounted_critical_need_is_unrelated_while_late() {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        needs.set(NeedId::Fun, 10.);
+        let rows = [(0, 0, 1.), (1, 0, 10.), (2, 0, 1.)];
+        let outcomes = [
+            relieving(NeedId::Fun),
+            NeedOutcome::default(),
+            relieving(NeedId::Hunger),
+        ];
+        // Not late: Fun's relief is a remedy like Hunger's.
+        let usual = evaluate_late(&rows, &outcomes, &needs, None);
+        assert!(usual[0] > 0.4 && usual[2] > 0.4, "{usual:?}");
+        // Late: only Hunger's relief counts.
+        let p = evaluate_late(&rows, &outcomes, &needs, late(1.0));
+        assert!((p[2] - 0.99).abs() < 1e-6, "{p:?}");
+        assert!(p[0] > 0. && p[0] < 0.01, "{p:?}");
+    }
+    /// Hunger and Bladder both critical (so the cap is the multiple one):
+    /// while late only the relief of Hunger is a remedy and the relief of
+    /// Bladder is an unrelated choice, as [WL-ramp] says. Not late, both are
+    /// remedies.
+    #[test]
+    fn with_hunger_and_bladder_critical_only_hungers_relief_is_a_remedy_while_late() {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        needs.set(NeedId::Bladder, 10.);
+        let rows = [(0, 0, 1.), (1, 0, 10.), (2, 0, 1.)];
+        let outcomes = [
+            relieving(NeedId::Bladder),
+            NeedOutcome::default(),
+            relieving(NeedId::Hunger),
+        ];
+        let usual = evaluate_late(&rows, &outcomes, &needs, None);
+        assert!(usual[0] > 0.4 && usual[2] > 0.4, "{usual:?}");
+        let p = evaluate_late(&rows, &outcomes, &needs, late(0.0));
+        assert!((p[2] - 0.99).abs() < 1e-6, "{p:?}");
+        assert!(p[0] > 0. && p[0] < 0.01, "{p:?}");
+        assert!(p[1] > 0., "wandering stays possible: {p:?}");
+    }
+    #[test]
+    fn a_late_housemate_with_no_counted_remedy_gets_the_ordinary_distribution() {
+        let mut needs = Needs::all_at(60.);
+        needs.set(NeedId::Hunger, 10.);
+        needs.set(NeedId::Fun, 10.);
+        let rows = [(0, 0, 1.), (1, 0, 10.)];
+        let outcomes = [relieving(NeedId::Fun), NeedOutcome::default()];
+        let ordinary =
+            super::super::autonomy::grouped_probabilities(&rows, &[0.; 2], 0.06, 0.005, 1e-9);
+        assert_eq!(evaluate_late(&rows, &outcomes, &needs, late(1.0)), ordinary);
+        assert_ne!(evaluate_late(&rows, &outcomes, &needs, None), ordinary);
     }
 }

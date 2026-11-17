@@ -303,6 +303,22 @@ pub fn tick_interactions(
                 log.social(id.0, needs.get(NeedId::Social) - before, companion);
             }
         }
+        // **A bathroom use ends on the tick its need is full** - issue 315.
+        // A use that began on this version already has the length that fills
+        // the need, so this is not what ends it; it ends a use resumed from a
+        // save made before the change, whose drawn length may be far longer
+        // than the need takes to fill. Only while more than the minimum use
+        // length is left, so the rule never cuts off the final minimum-length
+        // stretch of a use, and a nearly full person who arrives now still
+        // visibly uses the fixture for the floor. A use resumed mid-use from
+        // an older save can end sooner than that: how long it has already
+        // run is not saved, so one with 14 ticks left and a full need ends
+        // within two.
+        if eating.remaining_ticks > content.0.tuning.min_interaction_ticks
+            && crate::need_interactions::fill::is_full(act, &needs)
+        {
+            eating.remaining_ticks = 1;
+        }
         let was_positive = eating.remaining_ticks > 0;
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 

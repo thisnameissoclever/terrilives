@@ -1412,6 +1412,50 @@ fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter()
     }
 }
 
+/// Whether `seating::migrate` would re-plan anyone in `world`. It re-plans a
+/// person with a target when either that target's action is a communal seat
+/// use in current content (not the default, exclusive), or the person holds a
+/// dining-chair claim. `dining` is the live source world's dining state, not
+/// the loaded world's: the published prefix this test loads carries no dining
+/// tail, so the loaded world adopts no chair claims and `migrate` never sees
+/// one. Checking the live claims anyway is deliberately over-cautious, so the
+/// test cannot break if a later save format carries them. The published
+/// world's own content predates communal seats, so current content is the
+/// reference, and any action of the object counts because the published action
+/// numbering is not the current one. Anyone already holding a physical claim
+/// is skipped by `migrate`; counting them anyway is cautious in the same way.
+fn someone_would_be_replanned_by_seating(
+    current: &SimHandle,
+    world: &terri_core::SaveSnapshotV1,
+    dining: Option<&terri_core::save::SavedDining>,
+) -> bool {
+    let content = current.sim.world().resource::<terri_sim::Content>().0;
+    world.entities.iter().any(|person| {
+        person.agent
+            && person.target.is_some_and(|target| {
+                let seat_action = world
+                    .entities
+                    .iter()
+                    .find(|row| row.index == target.object)
+                    .and_then(|row| row.smart_object.as_deref())
+                    .and_then(|id| content.objects.iter().find(|object| object.id == id))
+                    .is_some_and(|object| {
+                        object
+                            .interactions
+                            .iter()
+                            .any(|action| action.seat_use != Default::default())
+                    });
+                let holds_chair = dining.is_some_and(|state| {
+                    state
+                        .diners
+                        .iter()
+                        .any(|diner| diner.person == person.index && diner.chair.is_some())
+                });
+                seat_action || holds_chair
+            })
+    })
+}
+
 #[test]
 fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() {
     let mut source = published_household();
@@ -1470,19 +1514,32 @@ fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() 
             object: fridge,
             interaction: cook_row,
         });
+    let current = SimHandle::from_lot();
     for _ in 0..2000 {
         source.tick();
-        if source
-            .sim
-            .save_snapshot()
+        let world = source.sim.save_snapshot();
+        let cooking = world
             .entities
             .iter()
             .find(|row| row.index == actor)
             .unwrap()
             .chain
             .as_ref()
-            .is_some_and(|chain| chain.chain == "cook_dinner" && chain.step == 3)
-        {
+            .is_some_and(|chain| chain.chain == "cook_dinner" && chain.step == 3);
+        // Loading a published save re-plans a walker bound for a communal
+        // seat, or holding a dining chair, and ends a seated use, when its
+        // place is not a legal contact in current content
+        // (`seating::migrate`). That is its own migration, covered by the
+        // seating tests, and `current_world` does not model it. This test is
+        // about the domestic group, so it is taken while the migration would
+        // re-plan nobody; which housemate does what
+        // depends on the household's choices and moves whenever a balance
+        // value does.
+        let dining = source
+            .sim
+            .world()
+            .get_resource::<terri_core::save::SavedDining>();
+        if cooking && !someone_would_be_replanned_by_seating(&current, &world, dining) {
             break;
         }
     }

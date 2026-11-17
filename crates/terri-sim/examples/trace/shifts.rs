@@ -20,15 +20,24 @@ pub struct Flags {
     /// first three paths and twelve rows, standard shifts only, every
     /// shift sleep offset 0 and a search temperature of 0.
     pub pre_shift_careers: bool,
+    /// Issue 309: replace `work_lateness_limit_ticks` before the first tick;
+    /// 0 leaves on time, as before the issue.
+    pub lateness_limit: Option<u32>,
+    /// Issue 309: replace `work_bladder_relief_threshold`; 0 is no relief
+    /// at work, as before the issue.
+    pub work_relief_threshold: Option<f32>,
 }
 
-/// Splits `--night-worker`, `--careers-seed <n>` and `--pre-shift-careers`
-/// from the positional arguments, which keep their order.
+/// Splits `--night-worker`, `--careers-seed <n>`, `--pre-shift-careers`,
+/// `--lateness-limit <ticks>` and `--work-relief-threshold <level>` from the
+/// positional arguments, which keep their order.
 pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
     let mut flags = Flags {
         night_worker: false,
         careers_seed: None,
         pre_shift_careers: false,
+        lateness_limit: None,
+        work_relief_threshold: None,
     };
     let mut positional = Vec::new();
     let mut args = args.peekable();
@@ -36,6 +45,20 @@ pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
         match arg.as_str() {
             "--night-worker" => flags.night_worker = true,
             "--pre-shift-careers" => flags.pre_shift_careers = true,
+            "--lateness-limit" => {
+                flags.lateness_limit = Some(
+                    args.next()
+                        .and_then(|value| value.parse().ok())
+                        .expect("--lateness-limit takes a whole number of ticks"),
+                );
+            }
+            "--work-relief-threshold" => {
+                flags.work_relief_threshold = Some(
+                    args.next()
+                        .and_then(|value| value.parse().ok())
+                        .expect("--work-relief-threshold takes a number"),
+                );
+            }
             "--careers-seed" => {
                 flags.careers_seed = Some(
                     args.next()
@@ -64,6 +87,21 @@ pub fn prepare(sim: &mut Sim, flags: &Flags) {
         pack.tuning.shift_sleep_offset_late = 0;
         pack.tuning.shift_sleep_offset_night = 0;
         pack.tuning.career_search_temperature = 0.0;
+        pack.tuning.work_lateness_limit_ticks = 0;
+        pack.tuning.work_bladder_relief_threshold = 0.0;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+    }
+    if flags.lateness_limit.is_some() || flags.work_relief_threshold.is_some() {
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        if let Some(limit) = flags.lateness_limit {
+            pack.tuning.work_lateness_limit_ticks = limit;
+            pack.tuning.work_lateness_ramp_ticks =
+                pack.tuning.work_lateness_ramp_ticks.min(limit.max(1));
+        }
+        if let Some(threshold) = flags.work_relief_threshold {
+            pack.tuning.work_bladder_relief_threshold = threshold;
+        }
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
     }
@@ -115,11 +153,31 @@ struct Start {
     left: Option<bool>,
 }
 
+/// One shift start of a worker as issue 309 reads it: whether a counted
+/// need (Hunger or Energy) was critical at the start tick, and the tick the
+/// worker was first seen away, if ever. The shift's scheduled end is kept to
+/// tell a late departure from a missed shift.
+#[derive(Clone)]
+struct Lateness {
+    start: u64,
+    end: u64,
+    critical: bool,
+    left: Option<u64>,
+}
+
 pub struct Summary {
     /// Sleeping ticks per person by hour of the day clock.
     sleep: Vec<[u64; 24]>,
     /// Per person, the shift starts seen and how they were met.
     starts: Vec<Vec<(u64, Start)>>,
+    /// Per person, each shift start with its lateness (issue 309).
+    lateness: Vec<Vec<Lateness>>,
+    /// Per person, the lowest Bladder seen while at work and the ticks spent
+    /// at work with it at or under the critical level (issue 309).
+    work_bladder: Vec<(f32, u64)>,
+    /// What each worker was doing on the ticks they were late (issue 309), kept
+    /// to the first 200 for the report.
+    late_ticks: Vec<String>,
     /// Consecutive waiting ticks per pending request while its recipient sleeps.
     waits: BTreeMap<u64, u64>,
     longest_wait: u64,
@@ -152,6 +210,9 @@ impl Summary {
         Self {
             sleep: vec![[0; 24]; people],
             starts: vec![Vec::new(); people],
+            lateness: vec![Vec::new(); people],
+            work_bladder: vec![(f32::INFINITY, 0); people],
+            late_ticks: Vec::new(),
             waits: BTreeMap::new(),
             longest_wait: 0,
             longest_detail: String::new(),
@@ -200,6 +261,63 @@ impl Summary {
             }
             let away = sim.world().get::<AtWork>(*entity).is_some()
                 || sim.world().get::<Commuting>(*entity) == Some(&Commuting::Outbound);
+            // Issue 309: lateness of each shift start, and Bladder at work.
+            if now % day == u64::from(shift.shift_start) && shift.works_on(weekday) {
+                let needs = sim.world().get::<terri_core::Needs>(*entity);
+                let level = pack.tuning.mood_critical_need_level;
+                self.lateness[index].push(Lateness {
+                    start: now,
+                    end: now + u64::from(shift.shift_ticks),
+                    critical: needs.is_some_and(|needs| {
+                        [terri_core::NeedId::Hunger, terri_core::NeedId::Energy]
+                            .iter()
+                            .any(|&need| needs.get(need) <= level)
+                    }),
+                    left: None,
+                });
+            }
+            if let Some(record) = self.lateness[index].last_mut() {
+                if record.left.is_none() && away {
+                    record.left = Some(now);
+                }
+                if record.left.is_none()
+                    && now > record.start
+                    && now < record.end
+                    && self.late_ticks.len() < 200
+                {
+                    let needs = sim.world().get::<terri_core::Needs>(*entity);
+                    self.late_ticks.push(format!(
+                        "tick {now} ({} minutes late) {}: critical at start {}, hunger {:.1} energy {:.1} bladder {:.1}, eating {}, target {}, path {}, socialising {}, target {}, queued orders {}",
+                        now - record.start,
+                        sims[index].1,
+                        record.critical,
+                        needs.map_or(f32::NAN, |n| n.get(terri_core::NeedId::Hunger)),
+                        needs.map_or(f32::NAN, |n| n.get(terri_core::NeedId::Energy)),
+                        needs.map_or(f32::NAN, |n| n.get(terri_core::NeedId::Bladder)),
+                        sim.world().get::<Eating>(*entity).is_some(),
+                        sim.world().get::<terri_core::Target>(*entity).is_some(),
+                        sim.world().get::<terri_core::Path>(*entity).is_some(),
+                        sim.world().get::<terri_core::Socialising>(*entity).is_some(),
+                        sim.world()
+                            .get::<terri_core::Target>(*entity)
+                            .and_then(|target| sim.world().get::<terri_core::SmartObject>(target.object))
+                            .map_or("none".to_string(), |object| pack.object(object.0).id.clone()),
+                        sim.world()
+                            .get::<terri_core::IntentQueue>(*entity)
+                            .map_or(0, |queue| queue.entries().len()),
+                    ));
+                }
+            }
+            if sim.world().get::<AtWork>(*entity).is_some() {
+                if let Some(needs) = sim.world().get::<terri_core::Needs>(*entity) {
+                    let bladder = needs.get(terri_core::NeedId::Bladder);
+                    let row = &mut self.work_bladder[index];
+                    row.0 = row.0.min(bladder);
+                    if bladder <= pack.tuning.mood_critical_need_level {
+                        row.1 += 1;
+                    }
+                }
+            }
             if let Some((start, record)) = self.starts[index].last_mut() {
                 if record.left.is_none() {
                     if away {
@@ -334,6 +452,56 @@ impl Summary {
                     starts.len(),
                     rows.join(" ")
                 );
+            }
+        }
+        // Issue 309: how late each worker was, by what the day's first
+        // away tick says, against the limit and the shift's end.
+        let limit = u64::from(pack.tuning.work_lateness_limit_ticks);
+        for (index, (_, name)) in sims.iter().enumerate() {
+            let rows = &self.lateness[index];
+            if rows.is_empty() {
+                continue;
+            }
+            let lateness_of = |row: &Lateness| row.left.map(|left| left - row.start);
+            let critical = rows.iter().filter(|row| row.critical).count();
+            // A start with Hunger or Energy critical is the lateness this
+            // issue bounds; any other late departure has another cause
+            // (a reading journey's walk home, a stuck route), which this
+            // issue does not change.
+            let by_need: Vec<u64> = rows
+                .iter()
+                .filter(|row| row.critical)
+                .filter_map(lateness_of)
+                .collect();
+            let other: Vec<u64> = rows
+                .iter()
+                .filter(|row| !row.critical)
+                .filter_map(lateness_of)
+                .filter(|late| *late > 0)
+                .collect();
+            let never_left = rows.iter().filter(|row| row.left.is_none()).count();
+            let need_over_limit = by_need.iter().filter(|late| **late > limit).count();
+            let after_end = rows
+                .iter()
+                .filter(|row| row.left.is_some_and(|left| left >= row.end))
+                .count();
+            println!(
+                "LATENESS {name}: {} shift starts, {critical} with Hunger or Energy critical at the start (left {:?} minutes after the start, {need_over_limit} over the {limit} minute limit); {} other late departures (longest {} minutes); {after_end} after the shift's end, {never_left} never left",
+                rows.len(),
+                by_need,
+                other.len(),
+                other.iter().max().copied().unwrap_or(0),
+            );
+            let (lowest, critical_ticks) = self.work_bladder[index];
+            if lowest.is_finite() {
+                println!(
+                    "WORK BLADDER {name}: lowest {lowest:.2} while at work, {critical_ticks} ticks at work with Bladder critical"
+                );
+            }
+        }
+        if std::env::var_os("TRACE_LATE_TICKS").is_some() {
+            for line in &self.late_ticks {
+                println!("LATE {line}");
             }
         }
         println!(

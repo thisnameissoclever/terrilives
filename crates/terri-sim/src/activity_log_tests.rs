@@ -488,17 +488,40 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// on the tree that combines both changes, with the log off and on giving the
 /// same worlds, and with the old presence rule restored behind a temporary
 /// switch and then removed.
-/// The fade of issue 344 (the lift from liked furniture now fades slowly
-/// after a person leaves it) then moved it from 0x06a6_5d89_3df7_7287, on
-/// purpose: someone who likes plants or the aquarium and walks out of the
-/// room keeps part of the lift for up to a few game hours, so the mood that
-/// choices read after leaving is higher and a choice scored from it first
-/// goes the other way. The fade's rows also join the world hash while one
-/// is running, but that is not the whole move: with the rows left out of the
-/// hash the fold is 0x7b84_b2cd_3548_7ae7, still not the old value. Measured on the tree
-/// that combines both changes, with the log off and on giving the same
-/// worlds.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x2fc6_81ac_e0f0_e832;
+/// Issue 315 then moved it from 0x06a6_5d89_3df7_7287, which main at 54cf96b46
+/// gave with the wages, the bills and the presence rule above, on purpose:
+/// every base need drain rate is three quarters of what it was, so needs
+/// cross their thresholds at different ticks and the household's choices
+/// differ from the first morning. The log emitters are unchanged. Measured on
+/// the tree that merges main at 54cf96b46 into the drain change, read from
+/// the failing assertion, which compares the world with the log on against
+/// this pin.
+/// Issue 315's fill change then moved it from 0xcb8f_9954_11cb_4102, which
+/// the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The log emitters are unchanged. Measured on the tree that merges
+/// the drain change at f9b33b2ea into the fill change, read from the failing
+/// assertion.
+/// Issue 309 (work lateness) does not move it. Main at f58ddcf57 gave
+/// 0x6ed5_8e35_ffc8_2f8d with the drain and fill changes above, and the merged
+/// tree gives the same value with the lateness limit and the work Bladder
+/// relief at their shipped settings: at the slower drain nobody in the shipped
+/// household is critical for Hunger or Energy at a shift start, or below the
+/// relief threshold for Bladder, in these two days. The change shows in the
+/// twenty-day fold below, and
+/// `the_two_day_fold_without_the_work_knobs_is_unchanged` pins that the value
+/// also holds with both knobs at 0.
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved it from 0x6ed5_8e35_ffc8_2f8d, which main at
+/// a56f9beb0 gave with the drain, fill and lateness changes above, on purpose:
+/// someone who likes plants or the aquarium and walks out of the room keeps
+/// part of the lift for up to a few game hours, so the mood that choices read
+/// after leaving is higher and a choice scored from it first goes the other
+/// way. Measured on the tree that merges main at a56f9beb0 into the fade
+/// change, read from the failing assertion.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfa65_449b_54d0_bb84;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -517,11 +540,77 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x2fc6_81ac_e0f0_e832;
 /// moved it from 0x9b22_0f1c_a448_e32c for the reason given for the two-day
 /// fold, measured on the tree that combines both changes, in a release
 /// build, with the log off and on giving the same worlds.
-/// The fade of issue 344 then moved it from 0x4947_38f3_cd9d_3898 for the
-/// reason given for the two-day fold, measured on the tree that combines
-/// both changes, in a debug build with `--ignored`, with the log off and on
-/// giving the same worlds.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4500_2570_f06d_3adb;
+/// Issue 315 then moved it from 0x4947_38f3_cd9d_3898, which main at 54cf96b46
+/// gave with the wages, the bills and the presence rule above, for the reason
+/// given for the two-day fold, measured on the tree that merges main at
+/// 54cf96b46 into the drain change, in a release build, from the failing
+/// assertion.
+/// Issue 315's fill change then moved it from 0xfe91_9131_6786_b7dc for the
+/// reason given for the two-day fold, measured on the same tree in a release
+/// build, from the failing assertion.
+/// Issue 309 (work lateness) then moved it from 0xb6e3_d213_e72a_6360, which
+/// main at f58ddcf57 gave with the drain and fill changes above: over twenty
+/// days a housemate at work is relieved of Bladder below half, or a worker
+/// critical for Hunger or Energy at a shift start leaves late, and the
+/// household's needs and choices differ from then on. Measured on the tree
+/// that merges main at f58ddcf57 into the work lateness change, in a release
+/// build, from the failing assertion. With both work knobs at 0 it is the
+/// value above again, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved it from 0x9224_ed05_3053_97fc, which main at
+/// a56f9beb0 gave with the drain, fill and lateness changes above, for the
+/// reason given for the two-day fold, measured on the tree that merges main at
+/// a56f9beb0 into the fade change, in a release build, from the failing
+/// assertion. With both work knobs at 0 the fade tree gives 0xd56e_4229_4318_c6fd, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5847_2934_fafd_02d4;
+
+/// Issue 309: the two-day fold with the log off, the work lateness limit at
+/// 0 and the work Bladder relief at 0 is the shipped two-day value above
+/// (0xfa65_449b_54d0_bb84; main's value before issue 344's fade was
+/// 0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
+/// changes nothing here. It does not show that the knobs move the shipped
+/// household: in its first two days nobody is critical at a shift start or
+/// below the relief threshold at work, so the shipped value is the same. The
+/// behavior is covered by `lateness_tests.rs`.
+#[test]
+fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
+    assert_eq!(fold_without_the_work_knobs(2), 0xfa65_449b_54d0_bb84);
+}
+
+/// The twenty-day version of the check above, against the value measured with
+/// the presence fade of issue 344 and both work knobs at 0 (0xd56e_4229_4318_c6fd; main at
+/// a56f9beb0 gave 0xb6e3_d213_e72a_6360 for it without the fade). Manual, like
+/// the pin it guards.
+#[test]
+#[ignore = "manual check: twenty game days; run with --release and --ignored"]
+fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
+    assert_eq!(fold_without_the_work_knobs(20), 0xd56e_4229_4318_c6fd);
+}
+
+/// The fold of the shipped household's per-tick hashes over `days` game
+/// days with the log off, the work lateness limit at 0 and the work Bladder
+/// relief at 0, measured as the pins above are.
+fn fold_without_the_work_knobs(days: usize) -> u64 {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.set_activity_log_enabled(false);
+    let mut pack = terri_data::pack().clone();
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
+    let ticks = days * pack.tuning.day_ticks as usize;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    let mut hashes = Vec::new();
+    for tick in 0..ticks {
+        sim.tick();
+        if tick % 97 == 96 {
+            sim.flush_commands();
+        }
+        hashes.push(sim.world_hash());
+    }
+    fold(&hashes)
+}
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.
@@ -545,8 +634,6 @@ fn activity_log_never_changes_the_world() {
             labels.index(crate::domestic::meal_label(hour * u64::from(day) / 24, day))
         }))
         .collect();
-    let cause =
-        |cause: crate::relationship_effects::RelationshipCause| labels.index(cause.log_label());
     let seen = |name: &str, found: bool| assert!(found, "no {name} in two days");
     // The emitters must have run for the comparison to prove anything.
     for kind in [LogKind::ActionDone, LogKind::ChatDone, LogKind::Annoyed] {
@@ -560,17 +647,16 @@ fn activity_log_never_changes_the_world() {
             .iter()
             .any(|r| r.kind() == Some(LogKind::ActionDone) && labels.contains(&r.label()))
     };
-    let annoyed_by = |cause: u32| {
-        records
-            .iter()
-            .any(|r| r.kind() == Some(LogKind::Annoyed) && r.label() == cause)
-    };
-    use crate::relationship_effects::RelationshipCause as Cause;
     seen("recipe", action_labelled(&recipes));
-    seen("nuisance episode", annoyed_by(cause(Cause::Nuisance)));
     // Fights, dirty place settings, shared meals and mess annoyances, which
     // wait out a grace period before a pile counts, do not happen in the
-    // shipped household's first two days; their own tests drive them.
+    // shipped household's first two days; their own tests drive them. A
+    // nuisance episode used to happen in these two days. After issue 315
+    // slowed every need's drain the household's first two days no longer
+    // contain one, so `the_nuisance_emitter_never_changes_the_world` runs the
+    // on and off comparison in a small world that provokes one, the manual
+    // twenty-day check also requires one, and
+    // `a_nuisance_episode_closes_at_the_end_of_the_day` drives the emitter.
 }
 
 /// The full twenty game days of [AL-perf]. This is a manual check, not a CI
@@ -590,6 +676,81 @@ fn activity_log_never_changes_the_world_over_twenty_days() {
         "the world differs from main without the log"
     );
     assert_every_line_can_show(&records);
+    // The two-day check used to see a nuisance episode; twenty days must.
+    let labels = crate::activity_log::labels(terri_data::pack());
+    let nuisance =
+        labels.index(crate::relationship_effects::RelationshipCause::Nuisance.log_label());
+    assert!(
+        records
+            .iter()
+            .any(|r| r.kind() == Some(LogKind::Annoyed) && r.label() == nuisance),
+        "no nuisance episode in twenty days"
+    );
+}
+
+/// Bill hates the television and Casey watches it in the same room, for one
+/// whole game day, so the nuisance episode that records it closes. Returns
+/// the world hash after every tick and the records the log staged.
+fn run_a_nuisance_day(log: bool) -> (Vec<u64>, Vec<LogRecord>) {
+    use crate::affinity::presence_and_use_tests::{
+        bill_and_casey, order, set_values, tick_until_using,
+    };
+    let (mut sim, bill, casey) = bill_and_casey();
+    sim.set_activity_log_enabled(log);
+    set_values(&mut sim, bill, &[("television", -1.0)]);
+    order(&mut sim, bill, "sofa", "lounge");
+    order(&mut sim, casey, "television", "watch_tv");
+    let day = u64::from(sim.world().resource::<Content>().0.tuning.day_ticks);
+    let mut hashes = Vec::new();
+    let mut ticks = 0_u64;
+    tick_until_using(
+        &mut sim,
+        &[(bill, "sofa"), (casey, "television")],
+        400,
+        |sim| {
+            ticks += 1;
+            hashes.push(sim.world_hash());
+        },
+    );
+    let mut staged = Vec::new();
+    let mut out = Vec::new();
+    // The episode closes on the day's last tick; a few more ticks leave a
+    // margin, so a one tick shift fails on the comparison and not the boundary.
+    while ticks < day + 5 {
+        sim.tick();
+        ticks += 1;
+        hashes.push(sim.world_hash());
+    }
+    sim.take_activity_log(&mut out);
+    staged.extend(
+        out.chunks_exact(RECORD_WORDS)
+            .map(|words| LogRecord(words.try_into().unwrap())),
+    );
+    (hashes, staged)
+}
+
+/// The nuisance emitter, in a world that provokes it, never changes the
+/// world either. The shipped household's first two days no longer contain a
+/// nuisance episode (slower drain, issue 315), so this runs one game day of
+/// the smallest world that has one, with the log on and off.
+#[test]
+fn the_nuisance_emitter_never_changes_the_world() {
+    let (off, none) = run_a_nuisance_day(false);
+    let (on, records) = run_a_nuisance_day(true);
+    assert!(none.is_empty(), "a disabled log stages nothing");
+    assert_eq!(off.len(), on.len());
+    if let Some(tick) = on.iter().zip(&off).position(|(a, b)| a != b) {
+        panic!("the world diverged at tick {tick}");
+    }
+    let labels = crate::activity_log::labels(terri_data::pack());
+    let nuisance =
+        labels.index(crate::relationship_effects::RelationshipCause::Nuisance.log_label());
+    assert!(
+        records
+            .iter()
+            .any(|r| r.kind() == Some(LogKind::Annoyed) && r.label() == nuisance),
+        "the day closed no nuisance episode, so the comparison proved nothing"
+    );
 }
 
 /// Every cause reaches the activity log as the specification classifies it

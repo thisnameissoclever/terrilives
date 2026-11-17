@@ -478,13 +478,31 @@ pub struct TuningFile {
     /// How much more a shift of the night kind pays, in percent from 0 to
     /// 100 - [WB-wages] in `docs/specs/2026-10-18-wages-and-bills.md`.
     pub night_shift_premium_percent: u32,
+    /// Issue 309 ([WL-tuning] in `docs/specs/2026-11-16-work-lateness.md`):
+    /// the longest a critical need may keep a housemate home from work, in
+    /// ticks after the scheduled start, from 0 to 720.
+    pub work_lateness_limit_ticks: u32,
+    /// The lateness at which the remedy share reaches its maximum, from 1
+    /// to 720 and at most the limit while the limit is above 0.
+    pub work_lateness_ramp_ticks: u32,
+    /// The largest share of choices the late need's remedies take,
+    /// strictly between `1 - unrelated_single` and 1.
+    pub work_lateness_remedy_share: f32,
+    /// A housemate at work is relieved of Bladder below this level, from 0
+    /// to 100; 0 is no relief.
+    pub work_bladder_relief_threshold: f32,
+    /// The household's monthly bills - [WB-tuning].
+    pub bills: BillsTuningDef,
+    /// Issue 315 (`docs/specs/2026-11-15-full-bathroom-use.md`): the longest
+    /// a toilet, shower or bath use may run while filling its need, from
+    /// `min_interaction_ticks` to 1440. A person whose rate would need longer
+    /// stops here with the need partly filled.
+    pub need_fill_max_ticks: u32,
     /// How many mood points the lift from liked furniture loses per game
     /// hour once the person has left it - [OA-presence] in
     /// `docs/specs/2026-10-06-object-affinities.md`, issue 344. Finite and
     /// above 0.
     pub affinity_presence_fade_points_per_hour: f32,
-    /// The household's monthly bills - [WB-tuning].
-    pub bills: BillsTuningDef,
 }
 
 /// The `[bills]` section of `tuning.toml` - [WB-tuning] in
@@ -1759,7 +1777,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 156] = [
+    const TUNING_LINES: [(&str, &str); 161] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1857,8 +1875,13 @@ mod tests {
         ("shift_sleep_offset_night", "655"),
         ("career_search_temperature", "0.3125"),
         ("night_shift_premium_percent", "17"),
-        ("affinity_presence_fade_points_per_hour", "6.625"),
+        ("work_lateness_limit_ticks", "73"),
+        ("work_lateness_ramp_ticks", "41"),
+        ("work_lateness_remedy_share", "0.9375"),
+        ("work_bladder_relief_threshold", "37.5"),
         ("bills", BILLS),
+        ("need_fill_max_ticks", "245"),
+        ("affinity_presence_fade_points_per_hour", "6.625"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -2027,7 +2050,10 @@ mod tests {
         assert_eq!(parsed.shift_sleep_offset_night, 655);
         assert_eq!(parsed.career_search_temperature, 0.3125);
         assert_eq!(parsed.night_shift_premium_percent, 17);
-        assert_eq!(parsed.affinity_presence_fade_points_per_hour, 6.625);
+        assert_eq!(parsed.work_lateness_limit_ticks, 73);
+        assert_eq!(parsed.work_lateness_ramp_ticks, 41);
+        assert_eq!(parsed.work_lateness_remedy_share, 0.9375);
+        assert_eq!(parsed.work_bladder_relief_threshold, 37.5);
         let bills = &parsed.bills;
         assert_eq!(
             (
@@ -2062,6 +2088,8 @@ mod tests {
         );
         assert_eq!(bills.uses["drip"].water_cents, 2);
         assert_eq!(bills.daily["glow"].electricity_cents, 6);
+        assert_eq!(parsed.need_fill_max_ticks, 245);
+        assert_eq!(parsed.affinity_presence_fade_points_per_hour, 6.625);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(

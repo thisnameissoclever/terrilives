@@ -32,15 +32,7 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     // has separate content and delivery regressions.
     assert_eq!(
         result.decay_per_tick,
-        [
-            0.041333333,
-            0.034,
-            0.048,
-            0.068,
-            0.017333333,
-            0.032,
-            0.021333333
-        ]
+        [0.031, 0.0255, 0.036, 0.051, 0.013, 0.024, 0.016]
     );
     result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
@@ -145,9 +137,9 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
         if old_bytes != encoded {
             // Issue 344 (the presence fade): one float appended to `Tuning`.
             // The proof always runs against the fixture as it was on main
-            // before issue 344 (26134 bytes, SHA-256
-            // 5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8,
-            // main at 54cf96b46): restore that file before regenerating.
+            // before issue 344 (26146 bytes, SHA-256
+            // 32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15,
+            // main at a56f9beb0): restore that file before regenerating.
             assert_eq!(
                 previous_without_presence_fade(&pack),
                 old_bytes,

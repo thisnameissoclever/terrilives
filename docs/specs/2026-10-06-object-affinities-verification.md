@@ -220,3 +220,20 @@ The fade moved three pinned values and left the others alone. Each was measured 
 | `TWENTY_DAY_FOLD_WITHOUT_THE_LOG` in `activity_log_tests.rs` | 0x4947_38f3_cd9d_3898 | 0x4500_2570_f06d_3adb, measured in a debug build with `--ignored` |
 
 `STANDARD_ONLY_HASH` in `save/v21_tests.rs` and `GOLDEN` in `lib.rs` passed unchanged with the fade in place.
+
+## Later change: merge with main at a56f9beb0
+
+On 2026-11-17 the branch was merged with main at `a56f9beb0`, which had gained the slower need drain (PR 349), the full toilet, shower and bath use with `need_fill_max_ticks` (PR 350) and work lateness with its four tuning fields (PR 351). Save schema stays 23: main was still at 22. The fade rate `affinity_presence_fade_points_per_hour` is appended after main's last `Tuning` field, `work_bladder_relief_threshold`, in `pack.rs`, `compile.rs`, `published_pack_wire.rs`, `build_pre_books.rs`, the slot test and the schema test, and the slot test now reads the fade as the last four bytes, the lateness fields as the ten before it, the fill limit before those and the night premium before that. The conflicts in the changelog, the pinned values and the generated reference were resolved by keeping both sides' intent; the pinned values and the reference were recomputed on the merged tree, not taken from either side.
+
+The inherited runtime fixture was first checked against main's file (26146 bytes, SHA-256 `32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15`): with the fade rate left out, the writer reproduced it byte for byte. It was then regenerated and is 26150 bytes, SHA-256 `79a1b54c6319feb6da4f23bbf58f8c063f4b1ddac4b396e6e5eeebc2ffc0e98a`, the four bytes of the appended float.
+
+The fade moved the pinned values again, each read from its own failing assertion on the merged tree. The fade text was rechecked against the numbers: a plant lifts 10 points and the cap is three extra plants at 3 points each, so 10 and 19 points at 5 points per game hour fade within 2 and about 3.8 hours.
+
+| Pin | Main at a56f9beb0 | Merged tree |
+|---|---|---|
+| `SHIPPED_THURSDAY` | hash 16800902046621430031, 7, 2 | hash 1396220020831546344, 7, 2 |
+| `TWO_DAY_FOLD_WITHOUT_THE_LOG` | 0x6ed5_8e35_ffc8_2f8d | 0xfa65_449b_54d0_bb84 |
+| `TWENTY_DAY_FOLD_WITHOUT_THE_LOG` (release, `--ignored`) | 0x9224_ed05_3053_97fc | 0x5847_2934_fafd_02d4 |
+| the knob-off guards for the two-day fold, the twenty-day fold and Thursday | main's values before issue 309 | the same runs with the fade: 0xfa65_449b_54d0_bb84, 0xd56e_4229_4318_c6fd, and Thursday as above |
+
+`STANDARD_ONLY_HASH` in `save/v21_tests.rs` and `GOLDEN` in `lib.rs`, with its twin in `web/tests/bridge.test.ts`, passed unchanged on the merged tree: no lift is fading at tick 600, and the golden world's hash is unchanged. The end-to-end reload test and the schema 22 to 23 load tests are part of the full local check recorded in the pull request.

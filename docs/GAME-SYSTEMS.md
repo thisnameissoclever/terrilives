@@ -89,7 +89,7 @@ These work in normal play today. They appear here because every new system must 
 
 | System | Status | What exists |
 |---|---|---|
-| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
+| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. A toilet, shower or bath used until it finishes fills its need to 100. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
 | Habituation | Substantial | Repeating the same action on the same object lowers its appeal, which recovers with time. This makes people rotate between objects; it does not reduce ordinary need delivery. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
@@ -479,6 +479,16 @@ home to perform it and can resume within the original shift window. Pay and
 shift rewards reflect actual office time; missing more than two hours deducts
 ten performance points per further hour. The Career tab explains the actual
 attendance and deduction. See [player orders](specs/2026-10-17-player-orders.md).
+
+**Work lateness and Bladder at work.** A housemate whose Hunger or Energy is
+critical when the shift starts deals with it first and leaves for work late,
+at most 60 game minutes after the scheduled start and never after the shift's
+end. A running meal or sleep that raises the need finishes first within that
+hour. While late, the share of their choices that relieve the need rises to
+99 percent. Bladder never delays a departure; a housemate at work is relieved
+of Bladder whenever it falls below half, so it never becomes critical during a
+shift. Player orders still come first and lateness still costs pay and
+performance. See [work lateness](specs/2026-11-16-work-lateness.md).
 
 **What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay, 15 percent more for a night shift; issue 298 raised every level's pay by half ([wages and bills](specs/2026-10-18-wages-and-bills.md)). Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, schema twenty-one saves each held shift, and loading schema twenty-one or earlier raises saved pay to the new wages. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
 

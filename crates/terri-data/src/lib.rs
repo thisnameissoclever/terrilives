@@ -1136,6 +1136,33 @@ mod tests {
             [0, -60, 120, 660]
         );
         assert_eq!(tuning.career_search_temperature, 0.25);
+        assert_eq!(tuning.need_fill_max_ticks, 240);
+    }
+
+    /// Issue 309 ([WL-tuning] in `docs/specs/2026-11-16-work-lateness.md`):
+    /// the shipped lateness limit, ramp and remedy share, and the Bladder
+    /// threshold below which a worker is relieved at work. A published pack
+    /// and every frozen pre-books source reconstruct a limit of 0 and no
+    /// relief, so the worlds they describe behave as before.
+    #[test]
+    fn the_shipped_work_lateness_tuning_matches_the_spec() {
+        let tuning = &pack().tuning;
+        assert_eq!(tuning.work_lateness_limit_ticks, 60);
+        assert_eq!(tuning.work_lateness_ramp_ticks, 30);
+        assert_eq!(tuning.work_lateness_remedy_share, 0.99);
+        assert_eq!(tuning.work_bladder_relief_threshold, 50.0);
+        for historical in [
+            pre_books_pack(),
+            published_pre_books_pack(),
+            affinity_pre_books_pack(),
+            latest_pre_books_pack(),
+            contextual_pre_books_pack(),
+        ] {
+            assert_eq!(historical.tuning.work_lateness_limit_ticks, 0);
+            assert_eq!(historical.tuning.work_bladder_relief_threshold, 0.0);
+            assert_eq!(historical.tuning.work_lateness_ramp_ticks, 30);
+            assert_eq!(historical.tuning.work_lateness_remedy_share, 0.99);
+        }
     }
 
     /// [WB-tuning] in `docs/specs/2026-10-18-wages-and-bills.md`: the
@@ -3186,7 +3213,9 @@ mod tests {
             object.action_sockets[0].facing,
             CompiledSocketFacing::PositiveX
         );
-        assert_eq!((action.duration_ticks, action.slots), (24, 1));
+        // 20 since issue 315, which raised the rate so a full use takes about
+        // 15 minutes; it was 24.
+        assert_eq!((action.duration_ticks, action.slots), (20, 1));
         let mut absent = original.clone();
         absent.objects[id.0 as usize].interactions[0].visual = None;
         absent.objects[id.0 as usize].action_sockets.clear();
@@ -3237,7 +3266,9 @@ mod tests {
             object.action_sockets[0].facing,
             CompiledSocketFacing::PositiveY
         );
-        assert_eq!((action.duration_ticks, action.slots), (78, 1));
+        // 40 since issue 315, which raised the rate so a full use takes under
+        // 45 minutes; it was 78.
+        assert_eq!((action.duration_ticks, action.slots), (40, 1));
         let mut absent = original.clone();
         absent.objects[id.0 as usize].interactions[0].visual = None;
         absent.objects[id.0 as usize].action_sockets.clear();
