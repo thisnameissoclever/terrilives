@@ -272,12 +272,46 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// differ. The draw counts, jobs and shifts are again unchanged. Measured on
 /// the tree that merges the drain change at f9b33b2ea into the fill change,
 /// read from the failing assertion.
+/// Issue 309 (work lateness) does not move the hash. Main at f58ddcf57 gave
+/// 16800902046621430031 with the drain and fill changes above, and the merged
+/// tree gives the same value with the lateness limit and the work Bladder
+/// relief at their shipped settings: at the slower drain nobody in the shipped
+/// household is critical for Hunger or Energy at a shift start, or below the
+/// Bladder relief threshold at work, before Thursday
+/// (`without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged` pins
+/// that the value also holds with both knobs at 0). The draws and jobs are the
+/// same.
 const SHIPPED_THURSDAY: (u64, u64, u64) = (16800902046621430031, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
     (2, Some("night_watch_guard"), Some("weekend_nights")),
 ];
+
+/// Issue 309: with the work lateness limit and the work Bladder relief both
+/// off, as a pack published before them reconstructs, the shipped household's
+/// run to Thursday is main's, bit for bit. That shows that switching the two
+/// knobs off reproduces main; it does not show that the knobs move this run,
+/// because nobody is late or relieved before Thursday at the slower drain. The
+/// behavior is covered by `lateness_tests.rs`.
+#[test]
+fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let mut pack = terri_data::pack().clone();
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    for _ in 0..THROUGH_THURSDAY {
+        sim.tick();
+    }
+    let careers = sim.world().resource::<Careers>();
+    assert_eq!(
+        (sim.world_hash(), careers.draws, careers.shift_draws),
+        (16800902046621430031, 7, 2),
+        "main's value at f58ddcf57, before issue 309"
+    );
+}
 
 /// Rule 1: every person in a new game, and every newcomer, looks for work.
 #[test]

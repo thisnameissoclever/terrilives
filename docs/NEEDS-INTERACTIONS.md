@@ -168,7 +168,11 @@ orders; need decay and death remain enabled under the
 [player-order contract](specs/2026-10-17-player-orders.md). If useful critical relief is available,
 unrelated actions share at most 5% probability with one critical need or 1%
 with several. Self-preservation and preferences still influence which useful
-action appeals most. A chosen conversation remains committed while the
+action appeals most. While a housemate is late for work because of a critical
+Hunger or Energy, only the relief of Hunger or Energy counts as useful, and
+the unrelated share falls in a straight line over the first 30 minutes after
+the scheduled start from that cap to 1%, so it never rises; see
+[work lateness](specs/2026-11-16-work-lateness.md). A chosen conversation remains committed while the
 recipient finishes care; low meters do not repeatedly cancel and restart it.
 Prediction and delivery share physical reward scaling and restoration ceilings.
 Reading retains its physical taste and disposition effects. During critical-need selection, each eligible book and seat contributes its own predicted outcome to the shared choice distribution. Execution uses that selected plan without a second title draw. Forecasts separate

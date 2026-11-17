@@ -651,5 +651,11 @@ pub(crate) fn pre_shift_careers(pack: &ContentPack) -> &'static ContentPack {
     pack.tuning.shift_sleep_offset_late = 0;
     pack.tuning.shift_sleep_offset_night = 0;
     pack.tuning.career_search_temperature = 0.0;
+    // Issue 309: the runs this serves were published before workers could
+    // be late for a critical need or were relieved of Bladder at work, so
+    // they keep leaving on time with no relief, as a pack published before
+    // those knobs reconstructs.
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
     Box::leak(Box::new(pack))
 }

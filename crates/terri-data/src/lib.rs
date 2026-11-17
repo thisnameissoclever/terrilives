@@ -1139,6 +1139,32 @@ mod tests {
         assert_eq!(tuning.need_fill_max_ticks, 240);
     }
 
+    /// Issue 309 ([WL-tuning] in `docs/specs/2026-11-16-work-lateness.md`):
+    /// the shipped lateness limit, ramp and remedy share, and the Bladder
+    /// threshold below which a worker is relieved at work. A published pack
+    /// and every frozen pre-books source reconstruct a limit of 0 and no
+    /// relief, so the worlds they describe behave as before.
+    #[test]
+    fn the_shipped_work_lateness_tuning_matches_the_spec() {
+        let tuning = &pack().tuning;
+        assert_eq!(tuning.work_lateness_limit_ticks, 60);
+        assert_eq!(tuning.work_lateness_ramp_ticks, 30);
+        assert_eq!(tuning.work_lateness_remedy_share, 0.99);
+        assert_eq!(tuning.work_bladder_relief_threshold, 50.0);
+        for historical in [
+            pre_books_pack(),
+            published_pre_books_pack(),
+            affinity_pre_books_pack(),
+            latest_pre_books_pack(),
+            contextual_pre_books_pack(),
+        ] {
+            assert_eq!(historical.tuning.work_lateness_limit_ticks, 0);
+            assert_eq!(historical.tuning.work_bladder_relief_threshold, 0.0);
+            assert_eq!(historical.tuning.work_lateness_ramp_ticks, 30);
+            assert_eq!(historical.tuning.work_lateness_remedy_share, 0.99);
+        }
+    }
+
     /// [WB-tuning] in `docs/specs/2026-10-18-wages-and-bills.md`: the
     /// shipped night premium and every value of the `[bills]` block, the
     /// kinds in id order with their labels and charges.

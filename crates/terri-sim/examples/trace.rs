@@ -19,7 +19,11 @@
 //! `--night-worker` puts Casey on the night watch's standard shift,
 //! `--careers-seed <n>` reseeds the careers stream, and
 //! `--pre-shift-careers` runs the career content and search from before
-//! shifts (`examples/trace/shifts.rs`).
+//! shifts (`examples/trace/shifts.rs`). Issue 309 adds
+//! `--lateness-limit <ticks>` and `--work-relief-threshold <level>`, which
+//! replace the two work knobs; `--lateness-limit 0 --work-relief-threshold 0`
+//! runs the game as it was before that issue, and the LATENESS and WORK
+//! BLADDER lines of the SHIFTS section report how late each worker left.
 //!
 //! What it prints, and why each column is here rather than being eyeballed
 //! from the running game:

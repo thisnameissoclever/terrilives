@@ -1,6 +1,6 @@
-# Higher wages, household bills, slower needs, full bathroom visits and calmer furniture
+# Higher wages, household bills, slower needs, full bathroom visits, calmer furniture and late starts for urgent needs
 
-Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, every need runs down more slowly, a toilet, shower or bath runs until the meter is full, and standing near furniture a housemate dislikes no longer lowers their mood.
+Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, every need runs down more slowly, a toilet, shower or bath runs until the meter is full, standing near furniture a housemate dislikes no longer lowers their mood, and a housemate who is starving or exhausted when a shift starts now sorts that out first.
 
 ## New
 
@@ -13,6 +13,8 @@ Every job pays half as much again and night shifts pay extra, the household pays
 
 ## Improved
 
+- A housemate who is critically hungry or exhausted when their shift starts now deals with it first and leaves for work late, at most one game hour after the shift starts. While they are late they almost always spend the time on that need. A meal or sleep already under way finishes first. Your orders still come first, needing the toilet never makes anyone late for work (housemates take care of it at work), and lateness still costs pay and, past two hours of missed work, performance.
+- A housemate at work is now relieved of their Bladder whenever it falls below half, so it no longer becomes critical during a shift.
 - Older saved games raise their wages to the new pay. A bed already standing outdoors in an older save stays where it is and still works.
 - Housemates who dislike or hate plants or the aquarium no longer get "Bothered by the plants here" or "Bothered by the aquarium here" when they share a room with one. They simply read nothing from it. Housemates who like those things still get "Likes the plants here" or "Likes the aquarium here" while they are in the room.
 - Someone who hates the television or the radio is still bothered when another housemate uses it in the same room. That mood and its effect on how they feel about the user are unchanged.

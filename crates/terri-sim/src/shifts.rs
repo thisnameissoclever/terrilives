@@ -254,6 +254,7 @@ pub fn kind_offset(tuning: &Tuning, kind: u8) -> i32 {
 pub struct ShiftRhythm<'w, 's> {
     content: Res<'w, Content>,
     careers: Option<Res<'w, Careers>>,
+    attendance: Option<Res<'w, crate::attendance::Attendance>>,
     people: Query<'w, 's, (Option<&'static SimId>, &'static Career)>,
 }
 
@@ -270,6 +271,25 @@ impl ShiftRhythm<'_, '_> {
         };
         let record = sim.and_then(|sim| self.careers.as_ref()?.record(*sim));
         kind_offset(&pack.tuning, held_shift(job, record).kind)
+    }
+
+    /// What a late housemate's choice is told ([WL-ramp]): `None` unless
+    /// `entity`'s open shift has started, the lateness allowance has not
+    /// run out and a counted need of `needs` is critical.
+    pub fn lateness(
+        &self,
+        entity: Entity,
+        needs: &terri_core::Needs,
+        now: u64,
+    ) -> Option<crate::lateness::Lateness> {
+        let (sim, career) = self.people.get(entity).ok()?;
+        let shift = self
+            .attendance
+            .as_ref()?
+            .shifts
+            .get(sim?)
+            .filter(|shift| shift.career == career.0)?;
+        crate::lateness::for_choice(shift, needs, now, &self.content.0.tuning)
     }
 }
 

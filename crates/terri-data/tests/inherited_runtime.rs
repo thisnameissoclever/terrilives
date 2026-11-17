@@ -135,21 +135,19 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 315 (a toilet, shower or bath fills its need): the fill
-            // limit appended to `Tuning`, and the authored rates of the
-            // toilet, the shower and the bath retuned. The proof always runs
-            // against the fixture as it was on main before issue 315 merged
-            // (26134 bytes, SHA-256
-            // 5e779fbb7a08c0693d2d76eafd20dffe9cb43bb5066dcf8654d321794b09afe8,
-            // main at 54cf96b46, which already holds the wages and bills of
-            // issue 298): restore that file before regenerating.
+            // Issue 309 (work lateness): the four lateness knobs appended to
+            // `Tuning`, after the fill limit of issue 315. The proof always
+            // runs against the fixture as it was on main before issue 309
+            // (26136 bytes, SHA-256
+            // 6f508934a4bdc377690acbd8162ed6286f93c2c60b2c863d032ce968de0afe3d,
+            // main at f58ddcf57): restore that file before regenerating.
             assert_eq!(
-                previous_without_fill(&pack),
+                previous_without_lateness(&pack),
                 old_bytes,
-                "only the fill limit and the three bathroom actions' authored rates may change the current fixture"
+                "only the fields issue 309 appended may change the current fixture"
             );
             eprintln!(
-                "Fill fixture proof: removing the fill limit and restoring the three actions' authored rates recovers every byte of the previous fixture"
+                "Lateness fixture proof: leaving out the fields issue 309 appended recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -167,43 +165,28 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 315, rebuilt from the
-/// current pack: the three bathroom actions put back to the authored numbers
-/// they had on main at 54cf96b46, and the fill limit left out of the tuning.
+/// The fixture's bytes as they were before issue 309 (work lateness),
+/// rebuilt from the current pack by writing it as postcard does while
+/// leaving out the four fields that issue appended at the end of `Tuning`.
 /// Postcard writes a struct as its fields in order with no names, so leaving
 /// a field out removes exactly its bytes. The unfiltered writer must
 /// reproduce postcard byte for byte first, or the filtered bytes would prove
 /// nothing.
-fn previous_without_fill(pack: &terri_data::ContentPack) -> Vec<u8> {
+fn previous_without_lateness(pack: &terri_data::ContentPack) -> Vec<u8> {
     use filtered_postcard::Rule;
-    // (object, advertised (need index, delta) pairs, duration), as on main.
-    // Need indices: 1 Energy, 2 Hygiene, 3 Bladder, 6 Comfort.
-    type Authored<'a> = (&'a str, &'a [(u8, f32)], u32);
-    let before: [Authored; 3] = [
-        ("toilet", &[(3, 95.0)], 24),
-        ("shower", &[(1, -12.0), (2, 70.0)], 90),
-        ("bathtub", &[(1, -3.0), (2, 58.0), (6, 31.0)], 78),
-    ];
-    let mut old = pack.clone();
-    for (id, advertises, duration) in before {
-        let action = old
-            .objects
-            .iter_mut()
-            .find(|object| object.id == id)
-            .unwrap_or_else(|| panic!("the fixture holds a {id}"))
-            .interactions
-            .first_mut()
-            .unwrap();
-        action.advertises = advertises.to_vec();
-        action.duration_ticks = duration;
-    }
     assert_eq!(
-        filtered_postcard::to_vec(&old, &|_, _| Rule::Keep),
-        postcard::to_allocvec(&old).unwrap(),
+        filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
+        postcard::to_allocvec(pack).unwrap(),
         "the filtered writer reproduces postcard when it filters nothing"
     );
-    filtered_postcard::to_vec(&old, &|owner, field| match (owner, field) {
-        ("Tuning", "need_fill_max_ticks") => Rule::Omit,
+    filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
+        (
+            "Tuning",
+            "work_lateness_limit_ticks"
+            | "work_lateness_ramp_ticks"
+            | "work_lateness_remedy_share"
+            | "work_bladder_relief_threshold",
+        ) => Rule::Omit,
         _ => Rule::Keep,
     })
 }

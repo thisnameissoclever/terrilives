@@ -234,6 +234,29 @@ pub fn compile(root: &Path) -> pack::ContentPack {
             "night_shift_premium_percent",
             toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT)),
         ),
+        // Work lateness (issue 309): a limit of 0 and no Bladder relief at
+        // work, what the published-pack conversions reconstruct, with the
+        // shipped ramp and share, which a limit of 0 leaves inert.
+        (
+            "work_lateness_limit_ticks",
+            toml::Value::Integer(i64::from(
+                pack::Tuning::PRE_LATENESS_WORK_LATENESS_LIMIT_TICKS,
+            )),
+        ),
+        (
+            "work_lateness_ramp_ticks",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_WORK_LATENESS_RAMP_TICKS)),
+        ),
+        (
+            "work_lateness_remedy_share",
+            toml::Value::Float(f64::from(pack::Tuning::SHIPPED_WORK_LATENESS_REMEDY_SHARE)),
+        ),
+        (
+            "work_bladder_relief_threshold",
+            toml::Value::Float(f64::from(
+                pack::Tuning::PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD,
+            )),
+        ),
         ("bills", shipped_bills_without_usage()),
         // Issue 315: the fill limit a pack published before it rebuilds with.
         ("need_fill_max_ticks", toml::Value::Integer(240)),

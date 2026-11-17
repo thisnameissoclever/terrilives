@@ -504,6 +504,15 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// differ. The log emitters are unchanged. Measured on the tree that merges
 /// the drain change at f9b33b2ea into the fill change, read from the failing
 /// assertion.
+/// Issue 309 (work lateness) does not move it. Main at f58ddcf57 gave
+/// 0x6ed5_8e35_ffc8_2f8d with the drain and fill changes above, and the merged
+/// tree gives the same value with the lateness limit and the work Bladder
+/// relief at their shipped settings: at the slower drain nobody in the shipped
+/// household is critical for Hunger or Energy at a shift start, or below the
+/// relief threshold for Bladder, in these two days. The change shows in the
+/// twenty-day fold below, and
+/// `the_two_day_fold_without_the_work_knobs_is_unchanged` pins that the value
+/// also holds with both knobs at 0.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6ed5_8e35_ffc8_2f8d;
 
 /// The same fold over twenty game days, measured the same way. Main at
@@ -531,7 +540,59 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6ed5_8e35_ffc8_2f8d;
 /// Issue 315's fill change then moved it from 0xfe91_9131_6786_b7dc for the
 /// reason given for the two-day fold, measured on the same tree in a release
 /// build, from the failing assertion.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xb6e3_d213_e72a_6360;
+/// Issue 309 (work lateness) then moved it from 0xb6e3_d213_e72a_6360, which
+/// main at f58ddcf57 gave with the drain and fill changes above: over twenty
+/// days a housemate at work is relieved of Bladder below half, or a worker
+/// critical for Hunger or Energy at a shift start leaves late, and the
+/// household's needs and choices differ from then on. Measured on the tree
+/// that merges main at f58ddcf57 into the work lateness change, in a release
+/// build, from the failing assertion. With both work knobs at 0 it is the
+/// value above again, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9224_ed05_3053_97fc;
+
+/// Issue 309: the two-day fold with the log off, the work lateness limit at
+/// 0 and the work Bladder relief at 0 is the value main measured before the
+/// issue (0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
+/// reproduces main. It does not show that the knobs move the shipped
+/// household: in its first two days nobody is critical at a shift start or
+/// below the relief threshold at work, so the shipped value is the same. The
+/// behavior is covered by `lateness_tests.rs`.
+#[test]
+fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
+    assert_eq!(fold_without_the_work_knobs(2), 0x6ed5_8e35_ffc8_2f8d);
+}
+
+/// The twenty-day version of the check above, against the value main measured
+/// before the issue (0xb6e3_d213_e72a_6360). Manual, like the pin it guards.
+#[test]
+#[ignore = "manual check: twenty game days; run with --release and --ignored"]
+fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
+    assert_eq!(fold_without_the_work_knobs(20), 0xb6e3_d213_e72a_6360);
+}
+
+/// The fold of the shipped household's per-tick hashes over `days` game
+/// days with the log off, the work lateness limit at 0 and the work Bladder
+/// relief at 0, measured as the pins above are.
+fn fold_without_the_work_knobs(days: usize) -> u64 {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.set_activity_log_enabled(false);
+    let mut pack = terri_data::pack().clone();
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
+    let ticks = days * pack.tuning.day_ticks as usize;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    let mut hashes = Vec::new();
+    for tick in 0..ticks {
+        sim.tick();
+        if tick % 97 == 96 {
+            sim.flush_commands();
+        }
+        hashes.push(sim.world_hash());
+    }
+    fold(&hashes)
+}
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

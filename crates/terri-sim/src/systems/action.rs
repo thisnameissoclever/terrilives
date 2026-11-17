@@ -2458,6 +2458,9 @@ pub fn select_action(
             temperature,
             exploration,
             content.0.tuning.choice_probability_floor,
+            // Issue 309: a housemate late for work because of Hunger or
+            // Energy takes remedies at a rising share ([WL-ramp]).
+            rhythm.lateness(agent, &needs, clock.tick),
         );
         let picked = super::autonomy::sample(&probabilities, &mut rng);
         decisions.push(super::autonomy::Decision {

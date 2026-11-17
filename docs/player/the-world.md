@@ -44,7 +44,9 @@ A shift's kind moves when the person wants to sleep, on working days and days of
 
 :::illustration sim-career
 
-A person commutes to an off-lot job and returns after the shift. Work has an Energy cost and slows ordinary need loss while at work; it supplies no direct need refill. Commuting uses ordinary need loss. Days off use normal household rules.
+A person commutes to an off-lot job and returns after the shift. Work has an Energy cost and slows ordinary need loss while at work. At work a housemate is relieved of Bladder whenever it falls below {{number:tuning.work_bladder_relief_threshold}} percent, so it never becomes critical during a shift; no other need is refilled there. Commuting uses ordinary need loss. Days off use normal household rules.
+
+A housemate whose Hunger or Energy is critical when the shift starts deals with it first and leaves for work late, at most {{number:tuning.work_lateness_limit_ticks}} game minutes after the shift starts. A meal or sleep already under way that raises the need finishes first, and nobody leaves late for a shift that has already ended. While they are late they almost always spend the time on that need. A critical Bladder never delays leaving. Lateness still counts as missed time, which affects pay and performance.
 
 Your orders can delay a shift or bring someone home. The scheduled end does not move later to compensate, so actual attendance affects pay and performance. Career assignment and quitting are unavailable while the person is at work or commuting.
 

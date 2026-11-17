@@ -583,6 +583,55 @@ fn an_initiators_shift_start_withdraws_a_waiting_game_made_fight() {
     }
 }
 
+/// Issue 309 ([WL-depart]): a critical Hunger keeps the initiator home for
+/// the shift's lateness allowance, but the waiting game-made fight is still
+/// withdrawn at the shift start, not carried through the lateness, and the
+/// grievance stays unfought. The initiator then leaves within the limit.
+#[test]
+fn a_waiting_game_made_fight_is_withdrawn_even_when_its_initiator_stays_home_late() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    let id = game_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the fight waits");
+    employ_from_two_ticks_on(&mut sim, bill);
+    // Critical when the shift starts two ticks on.
+    sim.world_mut()
+        .get_mut::<Needs>(bill)
+        .unwrap()
+        .set(NeedId::Hunger, 5.);
+    sim.tick();
+    sim.tick();
+    assert!(
+        !away(&sim, bill),
+        "a critical need keeps the initiator home"
+    );
+    assert!(
+        !fight_queued(&sim, bill, tim),
+        "the waiting fight is withdrawn at the shift start"
+    );
+    assert!(
+        !sim.world()
+            .resource::<crate::fights::Fights>()
+            .owns_order(bill, id),
+        "the exact system identity is retired"
+    );
+    for person in [bill, tim] {
+        assert!(!had_a_fight(&sim, person), "no fight was had");
+    }
+    // The shift is 60 ticks long, as long as the allowance, so the
+    // initiator may spend all of it at home but never leaves after its end.
+    let end = sim.world().resource::<crate::SimClock>().tick + 60;
+    while sim.world().resource::<crate::SimClock>().tick < end + 5 {
+        sim.tick();
+        assert!(
+            !away(&sim, bill) || sim.world().resource::<crate::SimClock>().tick <= end,
+            "the initiator left after the shift ended"
+        );
+        assert!(!fight_queued(&sim, bill, tim), "the fight stays withdrawn");
+    }
+}
+
 /// Historical reference content runs the published fight rules, whose
 /// outcomes stay as they were published, so there a waiting game-made fight
 /// still delays its initiator's departure, as it did before the decision of
