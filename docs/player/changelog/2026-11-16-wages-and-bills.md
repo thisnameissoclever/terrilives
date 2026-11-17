@@ -1,6 +1,6 @@
 # Higher wages, household bills, slower needs, full bathroom visits, calmer furniture and late starts for urgent needs
 
-Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, every need runs down more slowly, a toilet, shower or bath runs until the meter is full, standing near furniture a housemate dislikes no longer lowers their mood, the lift from furniture they like now fades slowly after they leave, and a housemate who is starving or exhausted when a shift starts now sorts that out first.
+Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, every need runs down more slowly, a toilet, shower or bath runs until the meter is full, standing near furniture a housemate dislikes no longer lowers their mood, and a housemate who is starving or exhausted when a shift starts now sorts that out first.
 
 ## New
 
@@ -24,4 +24,3 @@ Every job pays half as much again and night shifts pay extra, the household pays
 - A visit is shorter when the meter is not empty when it starts. A shower from very dirty takes about 40 minutes of game time.
 - A shower costs Energy and a bath gives Comfort for every minute you stay, so a longer visit costs or gives more.
 - Washing hands is unchanged.
-- The lift a housemate gets from plants or the aquarium they like no longer ends the moment they leave the room. It fades slowly: one plant's lift is gone within about two game hours after they leave, and the biggest lift, from several plants, within about four. While it fades their mood list reads **Enjoyed the plants** or **Enjoyed the aquarium**, and going back to things they like lifts their mood up to what the room gives, but no higher. Saved games from before this start with no lift fading.
