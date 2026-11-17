@@ -1411,18 +1411,26 @@ fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter()
     }
 }
 
-/// Whether any person in `world` is walking to or using an object that offers
-/// a communal seat in current content, the way `seating::migrate` reads one:
-/// an action whose seat use is not the default, exclusive. The published
-/// world's own content predates communal seats, so current content is the
-/// reference, and any action of the object counts because the published
-/// action numbering is not the current one.
-fn someone_is_bound_for_a_seat(current: &SimHandle, world: &terri_core::SaveSnapshotV1) -> bool {
+/// Whether `seating::migrate` would re-plan anyone in `world`. It re-plans a
+/// person with a target when either that target's action is a communal seat
+/// use in current content (not the default, exclusive), or the person holds a
+/// dining-chair claim in `dining` (the saved dining leases). Both counts are
+/// checked, so the test cannot break when a household's meal puts someone at
+/// a table chair while their target is something else. The published world's
+/// own content predates communal seats, so current content is the reference,
+/// and any action of the object counts because the published action numbering
+/// is not the current one. Anyone already holding a physical claim is skipped
+/// by `migrate`; counting them anyway only makes this helper more cautious.
+fn someone_would_be_replanned_by_seating(
+    current: &SimHandle,
+    world: &terri_core::SaveSnapshotV1,
+    dining: Option<&terri_core::save::SavedDining>,
+) -> bool {
     let content = current.sim.world().resource::<terri_sim::Content>().0;
     world.entities.iter().any(|person| {
         person.agent
             && person.target.is_some_and(|target| {
-                world
+                let seat_action = world
                     .entities
                     .iter()
                     .find(|row| row.index == target.object)
@@ -1433,7 +1441,14 @@ fn someone_is_bound_for_a_seat(current: &SimHandle, world: &terri_core::SaveSnap
                             .interactions
                             .iter()
                             .any(|action| action.seat_use != Default::default())
-                    })
+                    });
+                let holds_chair = dining.is_some_and(|state| {
+                    state
+                        .diners
+                        .iter()
+                        .any(|diner| diner.person == person.index && diner.chair.is_some())
+                });
+                seat_action || holds_chair
             })
     })
 }
@@ -1509,14 +1524,18 @@ fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() 
             .as_ref()
             .is_some_and(|chain| chain.chain == "cook_dinner" && chain.step == 3);
         // Loading a published save re-plans a walker bound for a communal
-        // seat, and ends a seated use, when its place is not a legal contact
-        // in current content (`seating::migrate`). That is its own migration,
+        // seat, or holding a dining chair, and ends a seated use, when its
+        // place is not a legal contact in current content (`seating::migrate`). That is its own migration,
         // covered by the seating tests, and `current_world` does not model it.
         // This test is about the domestic group, so it is taken while nobody
         // is walking to or sitting at a seat; which housemate does what
         // depends on the household's choices and moves whenever a balance
         // value does.
-        if cooking && !someone_is_bound_for_a_seat(&current, &world) {
+        let dining = source
+            .sim
+            .world()
+            .get_resource::<terri_core::save::SavedDining>();
+        if cooking && !someone_would_be_replanned_by_seating(&current, &world, dining) {
             break;
         }
     }

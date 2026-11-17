@@ -17,24 +17,35 @@ import type {Vec3} from '../src/render/character/math.js';
 let memory:WebAssembly.Memory;
 beforeAll(async()=>{memory=(await init({module_or_path:readFileSync('src/wasm/terri_wasm_bg.wasm')})).memory;});
 
-it('ends an ordinary shower on the tick Hygiene is full, after at least the minimum use',()=>{
+it('lets a shower fill Hygiene from a clearly partial level and ends it within a tick of full',()=>{
   const handle=SimHandle.from_lot(),sim=new SimBridge(handle,memory);
   try{
     const person=sim.characterAppearances().find(row=>row.sim===1)!;
     const fixture=Array.from(sim.ids()).find(id=>sim.objectModel(id)?.id==='shower')!;
+    const row=Array.from(sim.ids()).indexOf(person.entity),hygiene=2,full=sim.needMax();
+    // A new household starts with every need full and nothing here can set one, so let Hygiene
+    // drain on its own until it is clearly partial before ordering the shower.
+    for(let tick=0;tick<2500&&sim.needsOf(person.entity)[hygiene]>55;tick++)sim.tick();
+    const before=sim.needsOf(person.entity)[hygiene];
+    expect(before).toBeLessThan(60);
     expect(sim.useObjectFirst(person.entity,fixture,0)).toBe(true);sim.flushCommands();
-    const row=Array.from(sim.ids()).indexOf(person.entity),hygiene=2;
     for(let tick=0;tick<650&&sim.activities()[row]!==12;tick++)sim.tick();
     expect(sim.activities()[row]).toBe(12);
-    let activeTicks=0;
-    while(sim.activities()[row]===12&&activeTicks<300){activeTicks++;sim.tick();}
-    // A shower lasts until the need it fills is full (docs/specs/2026-11-15-full-bathroom-use.md):
-    // at least the minimum use of 12 ticks, less the tick on which it was first seen, and at most
-    // the longest, 240. How long depends on how dirty the person was, so the length is not pinned;
-    // a new household starts with every need full, so this run is the minimum use.
-    expect(activeTicks).toBeGreaterThanOrEqual(11);
+    const atStart=sim.needsOf(person.entity)[hygiene];
+    expect(atStart).toBeLessThan(60);
+    let activeTicks=0,ticksAfterFull=0;
+    while(sim.activities()[row]===12&&activeTicks<300){
+      activeTicks++;sim.tick();
+      if(sim.needsOf(person.entity)[hygiene]>=full&&sim.activities()[row]===12)ticksAfterFull++;
+    }
+    // A shower lasts until the need it fills is full (docs/specs/2026-11-15-full-bathroom-use.md),
+    // never past the longest, 240 ticks. From a partial level it must run longer than the
+    // 12-tick minimum use, raise Hygiene, and end within one tick of Hygiene reaching full.
+    expect(activeTicks).toBeGreaterThan(12);
     expect(activeTicks).toBeLessThanOrEqual(240);
-    expect(sim.needsOf(person.entity)[hygiene]).toBeGreaterThan(99.9);
+    expect(sim.needsOf(person.entity)[hygiene]).toBeGreaterThan(atStart);
+    expect(sim.needsOf(person.entity)[hygiene]).toBeGreaterThanOrEqual(full-.01);
+    expect(ticksAfterFull).toBeLessThanOrEqual(1);
   }finally{handle.free();}
 });
 
