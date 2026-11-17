@@ -1,6 +1,6 @@
-# Higher wages, household bills and calmer furniture
+# Higher wages, household bills, slower needs and calmer furniture
 
-Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, and standing near furniture a housemate dislikes no longer lowers their mood.
+Every job pays half as much again and night shifts pay extra, the household pays monthly bills shown in a new Bills row and panel, a new game starts with money for the first bills, beds belong indoors, every need runs down more slowly, and standing near furniture a housemate dislikes no longer lowers their mood.
 
 ## New
 
@@ -16,3 +16,4 @@ Every job pays half as much again and night shifts pay extra, the household pays
 - Older saved games raise their wages to the new pay. A bed already standing outdoors in an older save stays where it is and still works.
 - Housemates who dislike or hate plants or the aquarium no longer get "Bothered by the plants here" or "Bothered by the aquarium here" when they share a room with one. They simply read nothing from it. Housemates who like those things still get "Likes the plants here" or "Likes the aquarium here" while they are in the room.
 - Someone who hates the television or the radio is still bothered when another housemate uses it in the same room. That mood and its effect on how they feel about the user are unchanged.
+- Hunger, Energy, Hygiene, Bladder, Social, Fun and Comfort all fall about 25 percent more slowly. A full meter lasts about a third longer.

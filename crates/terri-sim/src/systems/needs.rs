@@ -470,6 +470,42 @@ mod tests {
         }
     }
 
+    /// **Every shipped base rate is three quarters of the balance that
+    /// came before issue 315**, which asked that all needs drain on average
+    /// 25 percent slower.
+    ///
+    /// The previous rates are written out here as literals, not read from
+    /// the pack: a test that derived the expectation from the pack would
+    /// agree with whatever the pack said. Personality, sleep and work
+    /// multipliers are not part of this contract; they scale these base
+    /// rates and are pinned by the tests above.
+    ///
+    /// Mutation: restore any one rate to its old value, or change the
+    /// scale to 0.8 (dividing by 1.25 instead of multiplying by 0.75), and
+    /// the named need fails with its own rate in the message.
+    #[test]
+    fn shipped_base_decay_is_three_quarters_of_the_balance_before_issue_315() {
+        const BEFORE_ISSUE_315: [(NeedId, f32); 7] = [
+            (NeedId::Hunger, 0.041333333),
+            (NeedId::Energy, 0.034),
+            (NeedId::Hygiene, 0.048),
+            (NeedId::Bladder, 0.068),
+            (NeedId::Social, 0.017333333),
+            (NeedId::Fun, 0.032),
+            (NeedId::Comfort, 0.021333333),
+        ];
+        let rates = terri_data::pack().decay_per_tick;
+        for (id, before) in BEFORE_ISSUE_315 {
+            let expected = before * 0.75;
+            assert!(
+                (rates[id.index()] - expected).abs() < 1e-7,
+                "{} drains {} a tick; three quarters of the old {before} is {expected}",
+                id.as_str(),
+                rates[id.index()]
+            );
+        }
+    }
+
     #[test]
     fn no_need_goes_negative() {
         // Was `hunger_never_goes_negative`, over hunger alone. Decay now

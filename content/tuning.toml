@@ -805,8 +805,10 @@ neglect_bleed_per_tick = 0.00001
 # - [X2] in docs/specs/2026-08-01-alpha-acceptance-findings.md, and the
 # fix for the worst thing the alpha acceptance pass found.
 #
-# MEASURED, not chosen by taste. Over 36 000 ticks (25 game days) of
-# the shipped lot, Tim - the household's only worker - hit 0.0 on six
+# MEASURED, not chosen by taste, under the base rates before 2026-10-19,
+# which were twice the shipped ones now (the balance passes since, the
+# latest being issue 315, have halved them). Over 36 000 ticks (25 game
+# days) of the shipped lot, Tim, the household's only worker, hit 0.0 on six
 # of her seven needs, and her lowest need sat at or below 5 on every
 # one of the 25 days: 27.3% of her life with hunger there, 19.2% with
 # social, 18.8% with fun. Bill and Casey, who hold no job, spent ZERO
@@ -850,6 +852,9 @@ at_work_decay_scale = 0.5
 # that finally goes to bed wakes up starving and filthy, having been
 # punished for doing the one thing the day was pushing it toward. That
 # reads as the game being unfair rather than as a rate being wrong.
+#
+# The reasoning below was written under the base rates before 2026-10-19,
+# which were twice the shipped ones now.
 #
 # 0.4 rather than 0. A sleeping sim genuinely does get hungry and does
 # need the bathroom in the morning; it just does not get hungry as fast
@@ -901,16 +906,19 @@ sleep_tag = "sleep"
 # fails if a balance pass ever makes two of them equal; see [L26] for the
 # instance where a uniform fixture hid exactly this bug one layer down.
 [decay_per_tick]
-# Base rates are two thirds of the previous balance. Personality, sleep and
-# work apply their existing multipliers. Keep every rate distinct so tests
-# can detect a need reading the wrong slot.
-hunger = 0.0413333333
-energy = 0.0340000000
-hygiene = 0.0480000000
-bladder = 0.0680000000
-social = 0.0173333333
-fun = 0.0320000000
-comfort = 0.0213333333
+# Issue 315: every base rate is three quarters of the balance before it, so
+# each need drains on average 25 percent slower and its bar lasts a third
+# longer. That balance was itself two thirds of the one before it, so these
+# are half of the rates before 2026-10-19. Personality, sleep and work apply their
+# existing multipliers. Keep every rate distinct so tests can detect a need
+# reading the wrong slot.
+hunger = 0.0310000000
+energy = 0.0255000000
+hygiene = 0.0360000000
+bladder = 0.0510000000
+social = 0.0130000000
+fun = 0.0240000000
+comfort = 0.0160000000
 
 [circadian]
 #

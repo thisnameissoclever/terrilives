@@ -32,15 +32,7 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     // has separate content and delivery regressions.
     assert_eq!(
         result.decay_per_tick,
-        [
-            0.041333333,
-            0.034,
-            0.048,
-            0.068,
-            0.017333333,
-            0.032,
-            0.021333333
-        ]
+        [0.031, 0.0255, 0.036, 0.051, 0.013, 0.024, 0.016]
     );
     result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);

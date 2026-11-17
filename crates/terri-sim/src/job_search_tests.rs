@@ -256,7 +256,15 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// on the tree that combines both changes, with the old presence rule
 /// restored behind a temporary switch and then removed. The draw counts and
 /// every job and shift are again unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (13315179661733202479, 7, 2);
+/// Issue 315 then moved the hash from 13315179661733202479, which main at
+/// 54cf96b46 gave with the wages, the bills and the presence rule above, on
+/// purpose: every base need drain rate is three quarters of what it was, so
+/// needs cross their thresholds at different ticks and the household's
+/// choices, and the draws they spend, differ from the first morning. The
+/// draw counts, jobs and shifts are unchanged. Measured on the tree that
+/// merges main at 54cf96b46 into the drain change, read from the failing
+/// assertion and then confirmed by a passing run.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (5892717548701736568, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

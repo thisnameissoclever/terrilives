@@ -6,7 +6,9 @@ it when changing an interaction, its advertised effects, seating, or need
 delivery. The content files hold balance values; this document explains their
 meaning. Dated verification belongs in `docs/evidence/`.
 
-Base need drain rates are two thirds of the previous balance. Existing
+Base need drain rates are now half of what they were before 2026-10-19: a pass
+on that date cut them to two thirds, and issue 315 cut them again to three
+quarters of that, so every need drains on average 25 percent slower. Existing
 personality, sleep and work multipliers still apply to those rates.
 
 ## What each meter represents
@@ -162,13 +164,13 @@ Every need also decays throughout ordinary life:
 
 | Need | Points lost per game minute before modifiers |
 | --- | --- |
-| Hunger | 0.0413333333 |
-| Energy | 0.034 |
-| Hygiene | 0.048 |
-| Bladder | 0.068 |
-| Social | 0.0173333333 |
-| Fun | 0.032 |
-| Comfort | 0.0213333333 |
+| Hunger | 0.031 |
+| Energy | 0.0255 |
+| Hygiene | 0.036 |
+| Bladder | 0.051 |
+| Social | 0.013 |
+| Fun | 0.024 |
+| Comfort | 0.016 |
 
 Personality multiplies each decay rate. Sleeping multiplies decay by 0.4;
 being at work multiplies it by 0.5. Commuting uses normal decay. Work provides

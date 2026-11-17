@@ -36,7 +36,8 @@ fn needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost() {
             .unwrap()
             .chair
             .is_some();
-        let expected = 30. - 0.021333333 + if seated { 37. / 62. } else { -2. / 90. };
+        let comfort_decay = terri_data::pack().decay_per_tick[NeedId::Comfort.index()];
+        let expected = 30. - comfort_decay + if seated { 37. / 62. } else { -2. / 90. };
         let actual = sim
             .world()
             .get::<Needs>(*person)
