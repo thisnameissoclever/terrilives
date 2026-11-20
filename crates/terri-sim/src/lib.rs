@@ -1473,21 +1473,23 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy))
+            .map(|snapshot| {
+                save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy.legacy)
+            })
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
@@ -1495,7 +1497,7 @@ impl Sim {
     /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1518,7 +1520,7 @@ impl Sim {
     /// not used to write saves for current content.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
@@ -1528,17 +1530,40 @@ impl Sim {
     /// fades, so it is not used to write saves.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v22::capture(self))
     }
 
-    /// The current save: schema twenty-three, which adds every lift from
-    /// liked furniture that is still fading (issue 344, [OA-presence] in
-    /// `docs/specs/2026-10-06-object-affinities.md`).
+    /// Historical schema twenty-three, before the Career tab's score
+    /// inputs: every lift from liked furniture that is still fading (issue
+    /// 344, [OA-presence] in `docs/specs/2026-10-06-object-affinities.md`).
+    /// It has no place for the inputs or a queued Go to work, which it
+    /// leaves out of the queue, so it is not used to write saves.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v23::capture(self))
+    }
+
+    /// The current save: schema twenty-four, which adds each person's score
+    /// inputs and every queued Go to work (issues 311 and 317, [CT-save] in
+    /// `docs/specs/2026-11-19-career-tab.md`).
+    pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v24::capture(self))
+    }
+
+    pub fn load_snapshot_v24(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV24,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v24::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v23(

@@ -31,10 +31,14 @@ fn main_schema_twenty_two_saves_load_with_no_fade_and_save_as_twenty_three() {
             "{name}: an older save has nothing fading"
         );
         let current = migrated.save_bytes();
-        assert_eq!(&current[8..10], &23u16.to_le_bytes(), "{name}");
+        assert_eq!(&current[8..10], &24u16.to_le_bytes(), "{name}");
         let saved = decode_current(&current);
-        assert!(saved.presence_fade.is_empty(), "{name}");
-        assert_eq!(saved.legacy, original, "{name}: the schema-22 part is kept");
+        assert!(saved.career_inputs.is_empty(), "{name}");
+        assert!(saved.legacy.presence_fade.is_empty(), "{name}");
+        assert_eq!(
+            saved.legacy.legacy, original,
+            "{name}: the schema-22 part is kept"
+        );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");
@@ -66,9 +70,10 @@ fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
         fade.refresh(SimId(2), 0, now, 30);
     }
     let bytes = source.save_bytes();
-    assert_eq!(&bytes[8..10], &23u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &24u16.to_le_bytes());
     let saved = decode_current(&bytes);
     let rows: Vec<(u32, &str, u64)> = saved
+        .legacy
         .presence_fade
         .iter()
         .map(|row| (row.sim, row.kind.as_str(), row.end_tick))
@@ -104,9 +109,9 @@ fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
         |rows| rows.push(rows[0].clone()),
     ] {
         let mut bad = saved.clone();
-        edit(&mut bad.presence_fade);
+        edit(&mut bad.legacy.presence_fade);
         let mut payload = SAVE_MAGIC.to_vec();
-        payload.extend(23u16.to_le_bytes());
+        payload.extend(24u16.to_le_bytes());
         payload.extend(postcard::to_allocvec(&bad).unwrap());
         bad_rows.push(payload);
     }
@@ -163,6 +168,7 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
     assert!(end > saved_at + 1, "the row is aging, with time left");
     let bytes = original.save_bytes();
     assert!(decode_current(&bytes)
+        .legacy
         .presence_fade
         .iter()
         .any(|row| row.sim == person.0 && row.end_tick == end));

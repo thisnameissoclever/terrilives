@@ -4,12 +4,14 @@
 //! writers leave it out. The rest hold the behavior of [CT-work]: each
 //! state of the box, what the command does, lateness and pay, the guards
 //! other code needs for a shift registered before its start, refusals and
-//! determinism ([CT-tests], `go_to_work_tests.rs` items 1 to 7 and 9).
+//! saves taken mid-wait and determinism ([CT-tests], `go_to_work_tests.rs`
+//! items 1 to 9).
 use crate::attendance::Attendance;
 use crate::careers::{CareerRefusal, CareerResult, Careers, ShiftTimes, WorkStatus};
 use crate::{Content, Sim};
 use bevy_ecs::prelude::*;
 use terri_core::save_v17::{SavedScheduledShift, SavedShiftOutcome};
+use terri_core::save_v24::SavedQueuedWorkCommand;
 use terri_core::{
     Agent, AtWork, Career, CommandQueue, Commuting, Eating, IntentQueue, NeedId, Needs,
     Personality, Position, Relationships, Satisfaction, SimClock, SimCommand, SimId,
@@ -109,9 +111,11 @@ fn a_queued_go_to_work_moves_the_hash_by_code_and_person() {
     );
 }
 
-/// [CT-command] item 5: until schema 24 carries it, every writer leaves a
-/// queued `GoToWork` out, with the positions it would count, so the rest of
-/// the queue saves exactly as it does without it and loads in order.
+/// [CT-command] item 5: every writer before schema 24 leaves a queued
+/// `GoToWork` out, with the positions it would count, so the rest of the
+/// queue saves exactly as it does without it and loads in order. Schema 24
+/// carries each one beside its position in the whole queue and loads the
+/// queue back exactly.
 #[test]
 fn older_writers_leave_a_queued_go_to_work_out() {
     let mut with = Sim::new_from_shipped_lot();
@@ -157,6 +161,22 @@ fn older_writers_leave_a_queued_go_to_work_out() {
         loaded.world().resource::<CommandQueue>().as_slice(),
         ordinary.as_slice()
     );
+    let current = with.save_snapshot_v24();
+    assert_eq!(current.legacy, without.save_snapshot_v23());
+    assert_eq!(
+        current.queued_work_commands,
+        vec![
+            (1, SavedQueuedWorkCommand::GoToWork { agent }),
+            (4, SavedQueuedWorkCommand::GoToWork { agent }),
+        ]
+    );
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v24(current).expect("loads");
+    assert_eq!(
+        loaded.world().resource::<CommandQueue>().as_slice(),
+        with.world().resource::<CommandQueue>().as_slice()
+    );
+    assert_eq!(loaded.world_hash(), with.world_hash());
 }
 
 // ---- [CT-work]: the behavior ------------------------------------------
@@ -1127,9 +1147,81 @@ fn a_saved_shift_registered_before_its_start_validates() {
         sim.tick();
     }
     let hash = sim.world_hash();
-    let snapshot = sim.save_snapshot_v23();
-    sim.load_snapshot_v23(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v24();
+    sim.load_snapshot_v24(snapshot).expect("loads");
     assert_eq!(sim.world_hash(), hash);
+}
+
+// ---- Item 8: saves mid-wait ----
+
+/// The fixture as a load leaves it. The fixture as built never assigns its
+/// bed to the worker, while the same world after a load does on its next
+/// tick (measured: the saved bed assignments differ one tick after the
+/// load, with equal hashes at the load). That difference comes from how the
+/// fixture places its objects, not from Go to work, so both sides of the
+/// comparison below start from a loaded world.
+fn loaded_fixture() -> (Sim, Entity, Vec<Entity>) {
+    let (mut sim, actor, objects) = fixture(|_| {});
+    let snapshot = sim.save_snapshot_v24();
+    sim.load_snapshot_v24(snapshot).expect("loads");
+    (sim, actor, objects)
+}
+
+/// Saves `sim` with the current schema, loads it into a fresh fixture and
+/// ticks both until the shift settles, comparing the world hash on every
+/// tick, then once more after the settlement.
+fn assert_reload_continues(mut sim: Sim) {
+    let (mut loaded, _, _) = fixture(|_| {});
+    loaded
+        .load_snapshot_v24(sim.save_snapshot_v24())
+        .expect("loads");
+    assert_eq!(loaded.world_hash(), sim.world_hash(), "after the load");
+    let last = START + u64::from(SHIFT) + window(&sim);
+    while outcomes(&sim) == 0 {
+        assert!(now(&sim) <= last, "the shift settles by its end");
+        sim.tick();
+        loaded.tick();
+        assert_eq!(loaded.world_hash(), sim.world_hash(), "tick {}", now(&sim));
+    }
+    assert_eq!(outcomes(&loaded), 1);
+    sim.tick();
+    loaded.tick();
+    assert_eq!(loaded.world_hash(), sim.world_hash(), "after settling");
+    assert_eq!(
+        sim.save_snapshot_v24().career_inputs.len(),
+        1,
+        "the settled shift's inputs are kept"
+    );
+    assert_eq!(
+        loaded.save_snapshot_v24().career_inputs,
+        sim.save_snapshot_v24().career_inputs
+    );
+}
+
+/// [CT-tests] item 8: a save taken while a worker sent before the start
+/// waits at work, and one taken with Go to work still queued, both reload
+/// and run on with the same world hash on every tick to the shift's
+/// settlement.
+#[test]
+fn saves_while_waiting_at_work_or_with_go_to_work_queued_continue_identically() {
+    let (mut sim, actor, _) = loaded_fixture();
+    due(&mut sim);
+    assert_eq!(send(&mut sim, actor), None);
+    while sim.world().get::<AtWork>(actor).is_none() {
+        assert!(now(&sim) < START, "arrives before the start");
+        sim.tick();
+    }
+    assert_reload_continues(sim);
+
+    let (mut sim, actor, _) = loaded_fixture();
+    due(&mut sim);
+    let agent = actor.index_u32();
+    push(&mut sim, SimCommand::GoToWork { agent });
+    assert_eq!(
+        sim.save_snapshot_v24().queued_work_commands,
+        vec![(0, SavedQueuedWorkCommand::GoToWork { agent })]
+    );
+    assert_reload_continues(sim);
 }
 
 // ---- Item 9: determinism ----

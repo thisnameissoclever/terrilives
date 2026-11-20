@@ -2683,8 +2683,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v23())
-            .expect("SaveSnapshotV23 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v24())
+            .expect("SaveSnapshotV24 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2713,6 +2713,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 24 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v24(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 23 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v23(snapshot).is_ok(),
@@ -4922,20 +4928,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v23()
+            uninterrupted.sim.save_snapshot_v24()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            23,
-            "the public writer must emit the schema-23 envelope"
+            24,
+            "the public writer must emit the schema-24 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v23(),
-            uninterrupted.sim.save_snapshot_v23()
+            resumed.sim.save_snapshot_v24(),
+            uninterrupted.sim.save_snapshot_v24()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4947,8 +4953,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v23(),
-            uninterrupted.sim.save_snapshot_v23()
+            resumed.sim.save_snapshot_v24(),
+            uninterrupted.sim.save_snapshot_v24()
         );
     }
 
@@ -11103,6 +11109,8 @@ mod shift_save_tests;
 
 #[cfg(test)]
 mod bills_boundary_tests;
+#[cfg(test)]
+mod career_inputs_v23_tests;
 #[cfg(test)]
 mod presence_fade_boundary_tests;
 

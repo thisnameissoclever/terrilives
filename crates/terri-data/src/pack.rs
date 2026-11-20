@@ -1371,6 +1371,9 @@ impl Tuning {
     /// The shipped input history (issue 317), reconstructed for packs
     /// published before it.
     pub const SHIPPED_CAREER_INPUT_HISTORY_WEEKS: u32 = 52;
+    /// The most weeks of inputs career_input_history_weeks may keep: ten
+    /// game years. A save never holds more rows than this per person.
+    pub const MAX_CAREER_INPUT_HISTORY_WEEKS: u32 = 520;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium

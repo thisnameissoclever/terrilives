@@ -3831,7 +3831,8 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         ),
         (
             "career_input_history_weeks",
-            (1..=520).contains(&tuning.career_input_history_weeks),
+            (1..=crate::pack::Tuning::MAX_CAREER_INPUT_HISTORY_WEEKS)
+                .contains(&tuning.career_input_history_weeks),
         ),
     ];
     for (key, value) in [

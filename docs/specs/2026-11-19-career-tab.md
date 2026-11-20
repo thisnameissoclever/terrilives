@@ -133,6 +133,8 @@ pub struct SaveSnapshotV24 { pub legacy: SaveSnapshotV23, pub career_inputs: Vec
 
 A save holding more weeks than the current knob allows loads and keeps the newest knob's worth, so lowering the knob never refuses a save. This trims state at load; the hash after load reflects the trimmed rows.
 
+[T5] settled three details the list leaves open. Current shifts are checked against the person's current career row, and the last shift against the widest bounds of any row, since it is kept across a promotion or a path change. A week's mean bounds are the row's bounds put through the same sum in shift order and division by the count in `f32`, so a mean of in-range values is never refused for rounding. The 14-shift limit is `save::v24::MAX_SHIFTS_IN_A_WEEK`, two for each day, and the 520-week limit is `Tuning::MAX_CAREER_INPUT_HISTORY_WEEKS`, which the knob's range check shares.
+
 ### [CT-save-migrate] Older saves
 
 Schema 23 and every earlier schema load with no input rows, no current-week inputs and no last shift. The first review after loading writes a row only if the week's shifts were all settled after the load ([CT-save-row]). Nothing else migrates.

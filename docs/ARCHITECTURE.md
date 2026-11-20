@@ -617,7 +617,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 23. The envelope preserves exact player-order and social-execution
+use version 24. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -674,6 +674,8 @@ retain a target without owning the recipient's reservation. Legacy adoption
 imports that intent as an explicitly unattributed waiting request; it does not
 invent admission or alter the physical target, path, clock or random streams.
 Current readers still reject orphaned social targets.
+
+V24 wraps the complete V23 payload with the Career tab's score inputs and every queued Go to work ([CT-save] in [the Career tab plan](specs/2026-11-19-career-tab.md), issues 311 and 317). Each person whose career record holds inputs has one row, strictly ascending by person: the current week's scored shifts' inputs, the last scored shift's and the reviewed weeks' rows, oldest first. A queued Go to work rides beside its position in the whole command queue, as V21 carries shift commands; every older writer leaves it out of its queue and its positions. Load refuses rows out of order, a row for someone with no career record, more current inputs than the week's scores, weeks out of order or never reviewed, more than 520 weeks, an unknown career row, an impossible shift count, attendance, pay or input value, and a misplaced queued command, and leaves the running game unchanged. A save holding more weeks than `career_input_history_weeks` keeps the newest. The rows join the world hash in the `career-inputs-v1` block, and Build mode's baseline carries them. Loading V23 or earlier starts with none.
 
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
