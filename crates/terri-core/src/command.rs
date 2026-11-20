@@ -358,6 +358,14 @@ pub enum SimCommand {
         agent: u32,
         shift: u32,
     },
+    /// Go to work (issues 311 and 317, [CT-command] in
+    /// `docs/specs/2026-11-19-career-tab.md`): send `agent`, whose shift
+    /// starts within the Go to work window or has started and is open, to
+    /// work now, whatever they are doing. A career command, applied by the
+    /// drain. Code 40.
+    GoToWork {
+        agent: u32,
+    },
 }
 
 /// The finite set of commands that can require a work confirmation.
@@ -1410,6 +1418,28 @@ mod window_wire_tests {
             assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
             assert!(postcard::from_bytes::<SavedCommand>(&bytes).is_err());
         }
+    }
+
+    /// Go to work (issues 311 and 317, [CT-command] item 1): the command
+    /// appends code 40 after `ChangeShift`, carrying one entity index as a
+    /// varint. The published saved command records stay frozen, so it has no
+    /// saved code.
+    #[test]
+    fn go_to_work_keeps_its_wire_code() {
+        for (command, bytes) in [
+            (SimCommand::GoToWork { agent: 34 }, vec![40, 34]),
+            (SimCommand::GoToWork { agent: 300 }, vec![40, 172, 2]),
+        ] {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
+            assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
+            assert!(postcard::from_bytes::<SavedCommand>(&bytes).is_err());
+        }
+        // Nothing was inserted before it: the last shift command still
+        // holds code 39.
+        assert_eq!(
+            postcard::to_allocvec(&SimCommand::ChangeShift { agent: 0, shift: 0 }).unwrap()[0],
+            39
+        );
     }
 }
 

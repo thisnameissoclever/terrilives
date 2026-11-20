@@ -146,6 +146,7 @@ pub(crate) mod v20;
 pub(crate) mod v21;
 pub(crate) mod v22;
 pub(crate) mod v23;
+pub(crate) mod v24;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -400,7 +401,8 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::SetJobSearch { .. }
         | SimCommand::SetCareerChange { .. }
         | SimCommand::AssignCareerShift { .. }
-        | SimCommand::ChangeShift { .. } => {
+        | SimCommand::ChangeShift { .. }
+        | SimCommand::GoToWork { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },

@@ -3823,6 +3823,17 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             "work_bladder_relief_threshold",
             (0.0..=100.0).contains(&tuning.work_bladder_relief_threshold),
         ),
+        // Issues 311 and 317 ([CT-tuning]): up to half a day of Go to work
+        // window, and from one week to ten game years of kept inputs.
+        (
+            "go_to_work_window_ticks",
+            tuning.go_to_work_window_ticks <= 720,
+        ),
+        (
+            "career_input_history_weeks",
+            (1..=crate::pack::Tuning::MAX_CAREER_INPUT_HISTORY_WEEKS)
+                .contains(&tuning.career_input_history_weeks),
+        ),
     ];
     for (key, value) in [
         ("career_review_noise", tuning.career_review_noise),
@@ -4495,6 +4506,8 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             work_lateness_remedy_share: tuning.work_lateness_remedy_share,
             work_bladder_relief_threshold: tuning.work_bladder_relief_threshold,
             affinity_presence_fade_points_per_hour: tuning.affinity_presence_fade_points_per_hour,
+            go_to_work_window_ticks: tuning.go_to_work_window_ticks,
+            career_input_history_weeks: tuning.career_input_history_weeks,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -6025,6 +6038,9 @@ mod tests {
             // converts reconstruct, so the vector stays as it was.
             affinity_presence_fade_points_per_hour:
                 crate::Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
+            // Issues 311 and 317: likewise the shipped window and history.
+            go_to_work_window_ticks: crate::Tuning::SHIPPED_GO_TO_WORK_WINDOW_TICKS,
+            career_input_history_weeks: crate::Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS,
             bills: shipped_bills_def(),
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
@@ -11440,6 +11456,45 @@ mod tests {
         }
         let pack = compile_tuned(tuning_where(|t| t.work_lateness_remedy_share = 0.9501)).unwrap();
         assert_eq!(pack.tuning.work_lateness_remedy_share, 0.9501);
+    }
+
+    /// Issues 311 and 317 ([CT-tuning]): the Go to work window compiles from
+    /// 0 to 720 ticks and the input history from 1 to 520 weeks; each
+    /// refusal names its knob, each boundary is legal, and each knob reaches
+    /// its own compiled field rather than its neighbour's.
+    #[test]
+    fn career_tab_knobs_are_ranged_and_copied_to_their_own_fields() {
+        let refused =
+            |change: fn(&mut TuningFile), key: &str| match compile_tuned(tuning_where(change)) {
+                Err(ContentError::CareerTuningOutOfRange { key: named }) => {
+                    assert_eq!(named, key)
+                }
+                other => panic!("{key}: {other:?}"),
+            };
+        refused(
+            |t| t.go_to_work_window_ticks = 721,
+            "go_to_work_window_ticks",
+        );
+        refused(
+            |t| t.career_input_history_weeks = 0,
+            "career_input_history_weeks",
+        );
+        refused(
+            |t| t.career_input_history_weeks = 521,
+            "career_input_history_weeks",
+        );
+        for window in [0, 120, 720] {
+            let pack = compile_tuned(tuning_where(|t| t.go_to_work_window_ticks = window))
+                .unwrap_or_else(|error| panic!("{window}: {error}"));
+            assert_eq!(pack.tuning.go_to_work_window_ticks, window);
+            assert_eq!(pack.tuning.career_input_history_weeks, 52);
+        }
+        for weeks in [1, 52, 520] {
+            let pack = compile_tuned(tuning_where(|t| t.career_input_history_weeks = weeks))
+                .unwrap_or_else(|error| panic!("{weeks}: {error}"));
+            assert_eq!(pack.tuning.career_input_history_weeks, weeks);
+            assert_eq!(pack.tuning.go_to_work_window_ticks, 120);
+        }
     }
 
     /// Issue 309 ([WL-tuning]): the lateness limit must be below the shift

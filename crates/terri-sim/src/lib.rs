@@ -1473,21 +1473,23 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy))
+            .map(|snapshot| {
+                save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy.legacy)
+            })
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
@@ -1495,7 +1497,7 @@ impl Sim {
     /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1518,7 +1520,7 @@ impl Sim {
     /// not used to write saves for current content.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
@@ -1528,17 +1530,40 @@ impl Sim {
     /// fades, so it is not used to write saves.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v22::capture(self))
     }
 
-    /// The current save: schema twenty-three, which adds every lift from
-    /// liked furniture that is still fading (issue 344, [OA-presence] in
-    /// `docs/specs/2026-10-06-object-affinities.md`).
+    /// Historical schema twenty-three, before the Career tab's score
+    /// inputs: every lift from liked furniture that is still fading (issue
+    /// 344, [OA-presence] in `docs/specs/2026-10-06-object-affinities.md`).
+    /// It has no place for the inputs or a queued Go to work, which it
+    /// leaves out of the queue, so it is not used to write saves.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v23::capture(self))
+    }
+
+    /// The current save: schema twenty-four, which adds each person's score
+    /// inputs and every queued Go to work (issues 311 and 317, [CT-save] in
+    /// `docs/specs/2026-11-19-career-tab.md`).
+    pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v24::capture(self))
+    }
+
+    pub fn load_snapshot_v24(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV24,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v24::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v23(
@@ -4109,6 +4134,39 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// What the Go to work box shows for the person carrying `index` at the
+    /// current tick (`careers::go_to_work_status`), or `None` for anything
+    /// but a living person.
+    pub fn go_to_work_status(&self, index: u32) -> Option<careers::WorkStatus> {
+        let entity = self.person_at(index)?;
+        let now = self.world.get_resource::<terri_core::SimClock>()?.tick;
+        Some(careers::go_to_work_status(&self.world, entity, now))
+    }
+
+    /// The ticks before a shift's start from which Go to work applies: the
+    /// pack's knob, `go_to_work_window_ticks`.
+    pub fn go_to_work_window_ticks(&self) -> u32 {
+        self.world
+            .get_resource::<Content>()
+            .map_or(0, |content| content.0.tuning.go_to_work_window_ticks)
+    }
+
+    /// The weekly score inputs of the person carrying `index`
+    /// (`careers::input_history`); empty without any.
+    pub fn career_input_history(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::input_history(&self.world, entity))
+            .unwrap_or_default()
+    }
+
+    /// The inputs of the last shift scored for the person carrying `index`
+    /// (`careers::last_shift_inputs`); empty before one.
+    pub fn career_last_shift(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::last_shift_inputs(&self.world, entity))
+            .unwrap_or_default()
+    }
+
     /// The factors behind the shift score of the person carrying `index`
     /// (`careers::factors`), or `None` without a job.
     pub fn career_factors(&self, index: u32) -> Option<[f32; 6]> {
@@ -4857,6 +4915,7 @@ impl Sim {
                     ChangeShift { agent, shift } => {
                         vec![39, u64::from(*agent), u64::from(*shift)]
                     }
+                    GoToWork { agent } => vec![40, u64::from(*agent)],
                     ConfirmedOrder {
                         fingerprint,
                         command,
@@ -5351,6 +5410,8 @@ impl Sim {
         // bills, and only while some lift is fading, so every older world
         // hashes as it did.
         presence_fade::hash(&self.world, &mut hasher);
+        // The score inputs the review window reads, only once some are held.
+        careers::hash_inputs(&self.world, &mut hasher);
         hasher.finish()
     }
 }

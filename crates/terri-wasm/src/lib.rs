@@ -2683,8 +2683,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v23())
-            .expect("SaveSnapshotV23 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v24())
+            .expect("SaveSnapshotV24 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2713,6 +2713,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 24 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v24(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 23 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v23(snapshot).is_ok(),
@@ -3144,6 +3150,83 @@ impl SimHandle {
             .collect()
     }
 
+    /// Stages sending the person carrying `entity_index` to work now
+    /// (issues 311 and 317, [CT-command]). Queue acceptance only;
+    /// `last_career_result` reports what the drain did, with refusal 7 for a
+    /// shift more than the window away and 8 for no way out to the street.
+    pub fn go_to_work(&mut self, entity_index: u32) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::GoToWork {
+            agent: entity_index,
+        })
+        .expect("a go to work command serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// What the Go to work box shows ([CT-web] item 2), as `[state,
+    /// start_tick, end_tick, opens_tick]`. State 0 is no job, 1 due, 2
+    /// late, 3 too early, 4 at work, 5 on the way to work and 6 on the way
+    /// home. Due, late and too early name the shift: its start and end, and
+    /// the tick from which the command applies (0 when that is before tick
+    /// 0). Too early with no shift in the next week has all three at 0. At
+    /// work has only the end tick; the rest is 0. Empty for anything but a
+    /// living person.
+    pub fn go_to_work_status(&self, entity_index: u32) -> Vec<f64> {
+        use terri_sim::careers::WorkStatus;
+        let Some(status) = self.sim.go_to_work_status(entity_index) else {
+            return Vec::new();
+        };
+        let window = u64::from(self.sim.go_to_work_window_ticks());
+        let shift = |state: u32, start_tick: u64, end_tick: u64| {
+            vec![
+                f64::from(state),
+                start_tick as f64,
+                end_tick as f64,
+                start_tick.saturating_sub(window) as f64,
+            ]
+        };
+        match status {
+            WorkStatus::NoJob => vec![0.0; 4],
+            WorkStatus::Due(times) => shift(1, times.start_tick, times.end_tick),
+            WorkStatus::Late(times) => shift(2, times.start_tick, times.end_tick),
+            WorkStatus::Early(Some(times)) => shift(3, times.start_tick, times.end_tick),
+            WorkStatus::Early(None) => vec![3.0, 0.0, 0.0, 0.0],
+            WorkStatus::AtWork { end_tick } => vec![4.0, 0.0, end_tick as f64, 0.0],
+            WorkStatus::Outbound => vec![5.0, 0.0, 0.0, 0.0],
+            WorkStatus::Inbound => vec![6.0, 0.0, 0.0, 0.0],
+        }
+    }
+
+    /// The ticks before a shift's start from which Go to work applies:
+    /// the pack's `go_to_work_window_ticks`, for the refusal text.
+    pub fn go_to_work_window_ticks(&self) -> u32 {
+        self.sim.go_to_work_window_ticks()
+    }
+
+    /// The weekly score inputs of the person carrying `entity_index`
+    /// ([CT-web] item 3), oldest week first, fourteen numbers a row:
+    /// `[week, career, path, level, shifts, attended, fit, trait_fit,
+    /// social_capacity, social_demand, mastery, mood, missed_minutes,
+    /// pay]`. Empty without any rows and for anything but a living person.
+    pub fn career_input_history(&self, entity_index: u32) -> Vec<f64> {
+        self.sim
+            .career_input_history(entity_index)
+            .into_iter()
+            .map(f64::from)
+            .collect()
+    }
+
+    /// The inputs of the last shift scored for the person carrying
+    /// `entity_index` ([CT-web] item 4): `[fit, trait_fit,
+    /// social_capacity, mastery, mood, missed_minutes, attended]`, with
+    /// attended 1 or 0. Empty before a shift has been scored.
+    pub fn career_last_shift(&self, entity_index: u32) -> Vec<f64> {
+        self.sim
+            .career_last_shift(entity_index)
+            .into_iter()
+            .map(f64::from)
+            .collect()
+    }
+
     /// The factors behind the person's shift score, as `[fit, trait fit,
     /// social capacity, the job's social demand, skill mastery, mood term]`.
     /// Empty without a job.
@@ -3229,8 +3312,10 @@ impl SimHandle {
     /// `[agent, refusal]` of the last career command a drain handled:
     /// refusal 0 when it applied, else 1 for no such living person, 2 for
     /// a person at work or commuting, 3 for an unknown path, 4 for a shift
-    /// the level does not offer, 5 for a person with no job and 6 for the
-    /// shift already held (issue 296, [WS-select] item 4). Empty before any
+    /// the level does not offer, 5 for a person with no job, 6 for the
+    /// shift already held (issue 296, [WS-select] item 4), 7 for Go to work
+    /// with the next shift beyond the window and 8 for Go to work with no
+    /// way out to the street ([CT-command] item 4). Empty before any
     /// career command.
     pub fn last_career_result(&self) -> Vec<f64> {
         self.sim
@@ -4922,20 +5007,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v23()
+            uninterrupted.sim.save_snapshot_v24()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            23,
-            "the public writer must emit the schema-23 envelope"
+            24,
+            "the public writer must emit the schema-24 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v23(),
-            uninterrupted.sim.save_snapshot_v23()
+            resumed.sim.save_snapshot_v24(),
+            uninterrupted.sim.save_snapshot_v24()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4947,8 +5032,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v23(),
-            uninterrupted.sim.save_snapshot_v23()
+            resumed.sim.save_snapshot_v24(),
+            uninterrupted.sim.save_snapshot_v24()
         );
     }
 
@@ -11103,6 +11188,10 @@ mod shift_save_tests;
 
 #[cfg(test)]
 mod bills_boundary_tests;
+#[cfg(test)]
+mod career_inputs_v23_tests;
+#[cfg(test)]
+mod career_tab_boundary_tests;
 #[cfg(test)]
 mod presence_fade_boundary_tests;
 

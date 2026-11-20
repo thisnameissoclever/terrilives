@@ -754,12 +754,13 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &23u16.to_le_bytes());
-    assert!(decoded.presence_fade.is_empty());
-    let decoded = decoded.legacy.legacy;
+    assert_eq!(&bytes[8..10], &24u16.to_le_bytes());
+    assert!(decoded.career_inputs.is_empty());
+    assert!(decoded.legacy.presence_fade.is_empty());
+    let decoded = decoded.legacy.legacy.legacy;
     assert!(decoded.shifts.held.is_empty());
     let decoded = decoded.legacy;
     assert_eq!(decoded.conflicts, Default::default());
@@ -2032,6 +2033,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .legacy
         .legacy
         .legacy
+        .legacy
         .legacy;
     let expected: terri_core::SaveSnapshotV14 =
         postcard::from_bytes(&fourteen[SAVE_HEADER_BYTES..]).unwrap();
@@ -2066,7 +2068,7 @@ fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        23u16.to_le_bytes()
+        24u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2131,7 +2133,7 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        23u16.to_le_bytes()
+        24u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2199,7 +2201,7 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        23u16.to_le_bytes()
+        24u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2301,7 +2303,7 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        23u16.to_le_bytes()
+        24u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));

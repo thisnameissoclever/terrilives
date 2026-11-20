@@ -1262,6 +1262,10 @@ mod tests {
                 historical.tuning.affinity_presence_fade_points_per_hour,
                 5.0
             );
+            // Issues 311 and 317: a source published before the Career tab
+            // reconstructs the shipped window and history.
+            assert_eq!(historical.tuning.go_to_work_window_ticks, 120);
+            assert_eq!(historical.tuning.career_input_history_weeks, 52);
             assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
         }
         // Households from before bills started with nothing, so only the
@@ -1636,6 +1640,10 @@ mod tests {
         assert_eq!(tuning.affinity_use_feeling_per_hour, 0.03);
         // Issue 344: one liked plant (10 points) fades over two game hours.
         assert_eq!(tuning.affinity_presence_fade_points_per_hour, 5.0);
+        // Issues 311 and 317: Go to work opens two game hours before a
+        // shift, and each person keeps 52 weeks of review inputs.
+        assert_eq!(tuning.go_to_work_window_ticks, 120);
+        assert_eq!(tuning.career_input_history_weeks, 52);
         assert_eq!(tuning.affinity_band_loves, 0.6);
         assert_eq!(tuning.affinity_band_likes, 0.2);
         assert_eq!(tuning.affinity_from_mild_trait, 0.4);

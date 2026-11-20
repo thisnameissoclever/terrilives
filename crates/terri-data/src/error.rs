@@ -2342,8 +2342,9 @@ impl fmt::Display for ContentError {
                  from 0 to 2, the satisfaction rate from 0 to 100, mood \
                  amounts and the misery cost at least 0, moodlet ticks \
                  from 1 to 10080, shift sleep offsets from -720 to 720, the \
-                 search temperature from 0 to 2, and the night shift premium \
-                 from 0 to 100"
+                 search temperature from 0 to 2, the night shift premium \
+                 from 0 to 100, the Go to work window from 0 to 720 and the \
+                 input history from 1 to 520 weeks"
             ),
             ContentError::BillsTuningOutOfRange { key } => write!(
                 f,

@@ -268,22 +268,381 @@
         font-weight: 700;
         cursor: pointer;
       }
-      .career-info[hidden], .career-graph[hidden], .career-heading[hidden] { display: none; }
-      .career-row-graph { padding: 4px 0; }
+      .career-info[hidden], .career-info-tip[hidden], .career-graph[hidden], .career-heading[hidden] { display: none; }
+      /* The Career tab's i: the same round control with a visible focus ring, and a tooltip that
+         appears beside it on hover and on keyboard focus (Mockup 1). */
+      /* The 4px left margin leaves the 2px ring and its 2px offset clear of the title. */
+      .career-heading .career-info { margin-left: 4px; width: 24px; height: 24px; font-size: 13px; }
+      .career-info:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+      .career-info-tip {
+        display: none;
+        margin-left: 4px;
+        /* Under 24px tall in all, so showing it never makes the heading row taller. */
+        padding: 2px 8px;
+        border: 1px solid #4a4a58;
+        border-radius: 6px;
+        background: #20202a;
+        box-shadow: 0 6px 18px #000a;
+        font-size: 12px;
+        line-height: 1.3;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+      .career-info:hover + .career-info-tip, .career-info:focus-visible + .career-info-tip { display: block; }
+      @media (max-width: 600px) { .career-info-tip { white-space: normal; } }
       .career-heading { display: flex; align-items: center; gap: 4px; font-weight: 600; }
       .career-graph { width: 100%; height: auto; display: block; }
-      .career-graph-mini { max-width: 240px; }
+      .career-graph-wrap { position: relative; }
+      .career-graph-wrap[hidden] { display: none; }
+      .career-graph text { font: 10px system-ui, sans-serif; }
+      .career-graph:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       .career-line { stroke: var(--hud-text); stroke-width: 1.5; }
       .career-point { fill: var(--hud-text); }
-      .career-rule { stroke: var(--hud-muted); stroke-dasharray: 3 3; }
+      .career-point-good { fill: var(--career-up); }
+      .career-point-poor { fill: var(--hud-danger); }
+      .career-band-good { fill: var(--career-up); opacity: .07; }
+      .career-band-poor { fill: var(--hud-danger); opacity: .07; }
+      .career-rule { stroke-dasharray: 3 3; }
+      .career-rule-good { stroke: var(--career-up); }
+      .career-rule-poor { stroke: var(--hud-danger); }
       .career-axis-line { stroke: var(--hud-muted); }
-      .career-axis { fill: var(--hud-muted); font-size: 9px; }
-      .career-mark-up, .career-mark-raise { fill: var(--career-up); font-weight: 700; font-size: 11px; }
+      .career-axis { fill: var(--hud-muted); }
+      .career-axis-good { fill: var(--career-up); }
+      .career-axis-poor { fill: var(--hud-danger); }
+      .career-guide { stroke: #fff; opacity: .5; }
+      .career-ring { fill: none; stroke: #fff; stroke-width: 1.5; }
+      .career-guide[hidden], .career-ring[hidden] { display: none; }
+      .career-mark-up, .career-mark-raise { fill: var(--career-up); font-weight: 700; font-size: 12px; }
       .career-mark-down { fill: var(--hud-danger); }
       .career-mark-change { fill: var(--hud-muted); }
+      /* Shown above the plot, 70px left of the chosen week's x, kept inside the graph's width. */
+      .career-tip {
+        position: absolute;
+        top: var(--tip-top, 0px);
+        /* Starts right of the axis labels (the plot begins about 6% in). */
+        left: max(8%, min(calc(var(--tip-x, 0%) - 70px), calc(100% - min(340px, 92%))));
+        width: min(340px, 92%);
+        box-sizing: border-box;
+        padding: 7px 9px;
+        border: 1px solid #4a4a58;
+        border-radius: 6px;
+        background: #20202a;
+        box-shadow: 0 6px 18px #000a;
+        font-size: 12px;
+        line-height: 1.4;
+        pointer-events: none;
+      }
+      .career-tip[hidden], .career-tip-event[hidden], .career-legend[hidden] { display: none; }
+      .career-tip[data-place='low'] { transform: translateY(-100%); }
+      .career-tip-title { font-size: 13px; font-weight: 700; }
+      .career-tip-rest { margin-left: .3em; }
+      .career-tip-kind { font-weight: 600; }
+      .career-tip-kind[data-kind='good'] { color: var(--career-up); }
+      .career-tip-kind[data-kind='poor'] { color: var(--hud-danger); }
+      .career-tip-event { color: var(--career-up); }
+      .career-live { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      .career-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--hud-muted); font-size: 11px; margin-top: 2px; }
+      .career-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+      .career-legend-icon { display: inline-block; width: 22px; text-align: center; }
+      .career-legend-line .career-legend-icon { height: 0; border-top: 1.5px solid var(--hud-text); }
+      .career-legend-good .career-legend-icon { height: 0; border-top: 1.5px dashed var(--career-up); }
+      .career-legend-poor .career-legend-icon { height: 0; border-top: 1.5px dashed var(--hud-danger); }
+      .career-legend-promotion { color: var(--career-up); }
+      .career-legend-promotion .career-legend-icon::before { content: '▲'; }
+      .career-legend-demotion { color: var(--hud-danger); }
+      .career-legend-demotion .career-legend-icon::before { content: '▼'; }
+      .career-legend-raise { color: var(--career-up); }
+      .career-legend-raise .career-legend-icon::before { content: '$'; font-weight: 700; }
+      .career-legend-change .career-legend-icon::before { content: '◆'; }
       .career-warning { color: var(--hud-danger); }
-      .career-factors { margin: 0; padding-left: 18px; }
-      .career-factors-heading, .career-graph-heading { color: var(--hud-muted); margin-bottom: 2px; }
+      /* The review window (Mockup 2 and its approved phone layout): a modal dialog that pauses the
+         game. Desktop is 1160 by 800 where the screen allows; a phone fills the screen. */
+      #career-graph-dialog {
+        --career-c-mastery: #4aa3ef;
+        --career-c-mood: #f59a2f;
+        --career-c-missed: #ef4f4f;
+        --career-c-fit: #b07cf5;
+        --career-c-trait: #3fcf7f;
+        --career-c-social: #ec5fb8;
+        --career-c-pay: #f2e64a;
+        --career-row-bg: #1c1c24;
+        width: min(1160px, calc(100vw - 48px));
+        height: min(800px, calc(100dvh - 48px));
+        max-width: none;
+        max-height: none;
+        padding: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+        color: var(--hud-text);
+        background: var(--hud-bg);
+        border: 1px solid #3a3a46;
+        border-radius: 10px;
+        box-shadow: 0 18px 50px #000c;
+      }
+      #career-graph-dialog::backdrop { background: rgba(0, 0, 0, .62); }
+      .career-win-frame { display: flex; flex-direction: column; height: 100%; }
+      .career-win-header {
+        display: grid;
+        grid-template-columns: auto auto 1fr auto;
+        grid-template-areas: "title pill . close" "who pill . close";
+        align-items: center;
+        column-gap: 16px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--hud-edge);
+      }
+      .career-win-title { grid-area: title; margin: 0; font-size: 20px; }
+      .career-win-title:focus { outline: none; }
+      .career-win-who { grid-area: who; margin: 0; color: var(--hud-muted); }
+      .career-win-paused {
+        grid-area: pill;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 12px;
+        border: 1px solid #b89a52;
+        border-radius: 999px;
+        background: #3a3220;
+        color: #f3e2b5;
+        font-weight: 600;
+      }
+      .career-win-paused-badge { display: inline-flex; align-items: center; gap: 8px; }
+      .career-win-paused-icon { flex: none; fill: #f3e2b5; }
+      .career-win-paused-note { font-weight: 400; color: #e4d3a8; }
+      .career-win-close { grid-area: close; min-height: 36px; padding: 0 12px; }
+      .career-win-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 250px minmax(0, 1fr); }
+      .career-win-aside { border-right: 1px solid var(--hud-edge); padding: 14px 16px; display: grid; align-content: start; gap: 16px; overflow-y: auto; }
+      .career-win-filters > summary { display: none; }
+      .career-win-filter-body { display: grid; gap: 16px; }
+      .career-win-filter-body fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 6px; }
+      .career-win-filter-body legend { font-weight: 700; margin-bottom: 6px; padding: 0; }
+      .career-check { display: flex; align-items: center; gap: 8px; min-height: 26px; }
+      .career-check input { width: 16px; height: 16px; margin: 0; flex: none; accent-color: var(--need-fill); }
+      .career-swatch { width: 14px; height: 4px; border-radius: 2px; flex: none; }
+      .career-swatch-mastery { background: var(--career-c-mastery); }
+      .career-swatch-mood { background: var(--career-c-mood); }
+      .career-swatch-missed { background: var(--career-c-missed); }
+      .career-swatch-fit { background: var(--career-c-fit); }
+      .career-swatch-trait { background: var(--career-c-trait); }
+      .career-swatch-social { background: var(--career-c-social); }
+      .career-swatch-pay { background: var(--career-c-pay); }
+      .career-muted { color: var(--hud-muted); }
+      .career-win-key { display: grid; gap: 7px; font-size: 12px; align-content: start; }
+      .career-win-key-title { font-weight: 700; font-size: 13px; }
+      .career-win-key-flow { display: none; }
+      .career-key-item { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: start; }
+      .career-key-item[hidden] { display: none; }
+      .career-key-words { display: block; }
+      .career-key-words .career-muted { display: block; }
+      .career-key-dash { stroke-width: 1.5; stroke-dasharray: 5 4; }
+      .career-key-dash-good { stroke: var(--career-up); }
+      .career-key-dash-poor { stroke: var(--hud-danger); }
+      .career-key-good { color: var(--career-up); }
+      .career-key-poor { color: var(--hud-danger); margin-left: .8em; }
+      .career-point-steady { fill: var(--hud-text); }
+      .career-win-main { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow-y: auto; }
+      .career-win-toolbar { display: flex; align-items: center; gap: 12px; }
+      .career-win-show { color: var(--hud-muted); }
+      .career-win-range { display: inline-flex; border: 1px solid var(--hud-edge); border-radius: 6px; overflow: hidden; }
+      .career-win-range button { min-height: 32px; padding: 0 14px; border: 0; border-right: 1px solid var(--hud-edge); background: #202028; color: var(--hud-text); font: inherit; cursor: pointer; }
+      .career-win-range button:last-child { border-right: 0; }
+      .career-win-range button[aria-pressed='true'] { background: #29313a; box-shadow: inset 0 0 0 1px var(--need-fill); font-weight: 600; }
+      .career-win-range button:focus-visible { outline: 2px solid var(--need-fill); outline-offset: -2px; }
+      .career-win-summary { margin: 0 0 0 auto; color: var(--hud-muted); }
+      .career-win-summary b { color: var(--hud-text); font-weight: 600; }
+      .career-win-hint { display: none; margin: 0; color: var(--hud-muted); }
+      .career-win-plots { position: relative; }
+      .career-win-charts { display: grid; gap: 4px; }
+      .career-win-rows-heading { display: none; margin: 4px 0 -4px; font-size: 13px; }
+      .career-chart { display: grid; gap: 2px; min-width: 0; }
+      .career-chart-label { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 0 2px 0 64px; }
+      .career-chart-name { font-weight: 600; }
+      .career-chart-name-mastery { color: var(--career-c-mastery); }
+      .career-chart-name-mood { color: var(--career-c-mood); }
+      .career-chart-name-missed { color: var(--career-c-missed); }
+      .career-chart-name-fit { color: var(--career-c-fit); }
+      .career-chart-name-trait { color: var(--career-c-trait); }
+      .career-chart-name-social { color: var(--career-c-social); }
+      .career-chart-name-pay { color: var(--career-c-pay); }
+      .career-chart-value { color: var(--hud-muted); }
+      .career-plotline { display: flex; }
+      .career-axis-svg { flex: none; display: block; }
+      .career-scroll { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+      .career-scroll::-webkit-scrollbar { display: none; }
+      .career-scroll:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+      .career-chart-svg { display: block; max-width: none; cursor: pointer; }
+      .career-chart-svg text, .career-axis-svg text { font: 11px system-ui, sans-serif; }
+      .career-tick, .career-week-number { fill: var(--hud-muted); }
+      .career-week-selected { fill: #fff; font-weight: 700; }
+      .career-grid { stroke: #24242e; }
+      .career-chart-svg .career-line { stroke: var(--hud-text); stroke-width: 2; }
+      .career-win-rule { stroke-width: 1.5; stroke-dasharray: 5 4; }
+      .career-win-rule-good { stroke: var(--career-up); }
+      .career-win-rule-poor { stroke: var(--hud-danger); }
+      .career-win-rule-label-good { fill: var(--career-up); }
+      .career-win-rule-label-poor { fill: var(--hud-danger); }
+      .career-level { fill: var(--hud-muted); }
+      .career-level-rule { stroke: var(--hud-muted); stroke-dasharray: 2 4; opacity: .6; }
+      .career-win-guide { stroke: #fff; opacity: .35; }
+      .career-win-ring { fill: none; stroke: #fff; stroke-width: 2; }
+      .career-win-point { stroke: var(--hud-bg); stroke-width: 1.5; }
+      .career-row-bg { fill: var(--career-row-bg); }
+      .career-zero { stroke: #3a3a46; }
+      .career-chart-svg .career-line-mastery { stroke: var(--career-c-mastery); }
+      .career-chart-svg .career-line-mood { stroke: var(--career-c-mood); }
+      .career-chart-svg .career-line-fit { stroke: var(--career-c-fit); }
+      .career-chart-svg .career-line-trait { stroke: var(--career-c-trait); }
+      .career-chart-svg .career-line-social { stroke: var(--career-c-social); }
+      .career-chart-svg .career-line-pay { stroke: var(--career-c-pay); }
+      .career-dot-mastery { fill: var(--career-c-mastery); }
+      .career-dot-mood { fill: var(--career-c-mood); }
+      .career-dot-fit { fill: var(--career-c-fit); }
+      .career-dot-trait { fill: var(--career-c-trait); }
+      .career-dot-social { fill: var(--career-c-social); }
+      .career-dot-pay { fill: var(--career-c-pay); }
+      .career-dot-selected { stroke: var(--hud-bg); stroke-width: 1.5; }
+      .career-bar { fill: var(--career-c-missed); opacity: .85; }
+      .career-demand { stroke: var(--career-c-social); stroke-dasharray: 4 3; opacity: .7; }
+      .career-win-tip {
+        position: absolute;
+        top: var(--tip-top, 0px);
+        /* Beside the week's point, never over it, and never left of the 64px axis column. */
+        left: var(--tip-left, 64px);
+        width: 420px;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid #55556a;
+        border-radius: 8px;
+        background: #20202a;
+        box-shadow: 0 10px 26px #000c;
+        font-size: 12px;
+        line-height: 1.45;
+        pointer-events: none;
+        z-index: 2;
+      }
+      .career-win-tip[hidden], .career-win-tip [hidden] { display: none; }
+      .career-win-tip[data-place='low'] { transform: translateY(-100%); }
+      .career-win-tip .career-tip-title { font-size: 14px; margin-bottom: 4px; }
+      .career-tip-missing { margin-top: 6px; color: var(--hud-muted); }
+      .career-win-tip dl { display: grid; grid-template-columns: auto auto auto auto; gap: 1px 10px; margin: 6px 0 0; padding-top: 6px; border-top: 1px solid #3a3a46; }
+      .career-win-tip dt, .career-win-tip dd { white-space: nowrap; }
+      .career-win-tip dt { color: var(--hud-muted); }
+      .career-win-tip dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+      .career-win-steps { display: none; }
+      /* The same query as CAREER_PHONE_QUERY in career-graph-modal.ts, in range syntax. */
+      @media (width <= 600px), (height <= 480px) {
+        #career-graph-dialog { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border: 0; border-radius: 0; }
+        .career-win-header {
+          grid-template-columns: auto 1fr auto;
+          grid-template-areas: "title pill close" "who who close" "note note close";
+          column-gap: 10px;
+          row-gap: 2px;
+          padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+        }
+        .career-win-title { font-size: 18px; }
+        .career-win-paused { display: contents; }
+        .career-win-paused-badge {
+          grid-area: pill;
+          justify-self: start;
+          gap: 6px;
+          padding: 2px 10px;
+          border: 1px solid #b89a52;
+          border-radius: 999px;
+          background: #3a3220;
+          color: #f3e2b5;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+        .career-win-paused-note { grid-area: note; font-size: 12px; }
+        .career-win-close { min-height: 44px; align-self: start; }
+        .career-win-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; align-content: start; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0 16px 16px; }
+        .career-win-body:has(.career-win-tip:not([hidden])) { padding-bottom: 230px; }
+        .career-win-aside { border-right: 0; padding: 0; overflow: visible; margin: 0 -16px; }
+        .career-win-key-side { display: none; }
+        .career-win-key-flow { display: grid; }
+        .career-win-key-title { display: none; }
+        .career-win-filters { border-bottom: 1px solid var(--hud-edge); padding: 0 16px; }
+        .career-win-filters > summary { display: flex; align-items: center; gap: 8px; min-height: 44px; list-style: none; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .career-win-filters > summary::-webkit-details-marker { display: none; }
+        .career-win-filters > summary::before { content: ''; border-block: 5px solid transparent; border-left: 6px solid currentColor; }
+        .career-win-filters[open] > summary::before { transform: rotate(90deg); }
+        .career-win-filter-count { margin-left: auto; font-weight: 400; font-size: 13px; color: var(--hud-muted); }
+        .career-win-filter-body { gap: 8px; padding-bottom: 12px; }
+        .career-win-filter-body fieldset:first-child { grid-template-columns: 1fr 1fr; column-gap: 8px; }
+        .career-win-filter-body fieldset:first-child legend { grid-column: 1 / 3; }
+        .career-win-also { border-top: 1px solid var(--hud-edge) !important; padding-top: 4px !important; }
+        .career-check { min-height: 44px; }
+        .career-check input { width: 20px; height: 20px; }
+        .career-win-main { padding: 12px 0 0; overflow: visible; gap: 12px; }
+        .career-win-toolbar { display: block; }
+        .career-win-show { display: none; }
+        .career-win-range { display: flex; }
+        .career-win-range button { flex: 1; min-height: 44px; padding: 0 6px; font-size: 14px; }
+        .career-win-summary { margin: 8px 0 0; }
+        .career-win-hint { display: block; }
+        /* The space stays when the hint goes, so choosing a week does not move the charts. */
+        .career-win-hint[hidden] { display: block; visibility: hidden; }
+        .career-win-rows-heading { display: block; }
+        .career-win-charts { gap: 12px; }
+        .career-chart-label { padding: 0; }
+        .career-win-tip {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: auto;
+          top: auto;
+          transform: none !important;
+          border-width: 1px 0 0;
+          border-radius: 0;
+          padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+          box-shadow: 0 -10px 26px #000a;
+          pointer-events: auto;
+        }
+        .career-win-tip .career-tip-title { font-size: 15px; }
+        .career-win-tip dt, .career-win-tip dd { white-space: normal; }
+        .career-win-steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .career-win-steps button { min-height: 44px; padding: 0 6px; }
+        .career-win-steps button:disabled { opacity: .5; }
+      }
+      .career-heading { font-size: 16px; font-weight: 700; position: relative; }
+      .career-sub { color: var(--hud-muted); margin: 2px 0 8px; }
+      .career-work {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 4px 12px;
+        margin: 0 0 4px;
+        padding: 8px 10px;
+        border: 1px solid var(--hud-edge);
+        border-radius: 6px;
+        background: #1b1d24;
+      }
+      .career-work[hidden] { display: none; }
+      .career-work-button { grid-row: span 2; min-height: 40px; padding: 0 16px; border: 1px solid var(--hud-edge);
+        border-radius: 4px; font: inherit; font-weight: 600; cursor: pointer; }
+      .career-work-button:disabled { cursor: default; }
+      .career-work-button:focus-visible, .career-work:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+      #sim-career .career-work p { margin: 0; }
+      .career-work-note { color: var(--hud-muted); font-size: 12px; }
+      .career-work-late { color: #f0c36b; font-weight: 600; }
+      .career-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 18px; margin: 10px 0 4px; }
+      .career-facts[hidden] { display: none; }
+      .career-facts > div { display: flex; justify-content: space-between; gap: 8px; min-width: 0; }
+      .career-facts .career-fact-wide { grid-column: 1 / 3; }
+      .career-fact-label, .career-hint, .career-graph-heading, .career-inputs-heading { color: var(--hud-muted); }
+      .career-fact-value { text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+      .career-night, .career-attendance { color: var(--hud-muted); font-size: 12px; }
+      .career-night[hidden] { display: none; }
+      .career-inputs-heading, .career-graph-heading { font-weight: 600; margin: 12px 0 4px; }
+      .career-inputs[hidden] { display: none; }
+      .career-inputs > div { display: grid; grid-template-columns: minmax(0, 1fr) auto 76px; gap: 2px 12px; }
+      .career-hint { font-size: 12px; }
+      .career-input-value { text-align: right; font-variant-numeric: tabular-nums; }
+      .career-effect { font-size: 12px; font-weight: 600; }
+      .career-effect[data-effect='help'] { color: var(--career-up); }
+      .career-effect[data-effect='hurt'] { color: var(--hud-danger); }
+      .career-effect[data-effect='none'] { color: var(--hud-muted); font-weight: 400; }
       .career-controls { display: grid; gap: 6px; }
       .career-controls select { width: 100%; }
       .career-actions { display: flex; gap: 8px; }
@@ -1434,9 +1793,8 @@
           <section id="mood-details" aria-label="Mood details"><ul id="moodlet-list" hidden></ul></section>
           <div id="career-row" class="summary-row" hidden>
             <span class="summary-label">Career</span>
-            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Show the review graph" aria-expanded="false" aria-controls="career-row-graph" hidden>i</button></span>
+            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Open the review graph. Pauses the game." aria-haspopup="dialog" aria-controls="career-graph-dialog" hidden>i</button></span>
           </div>
-          <div id="career-row-graph" class="career-row-graph" hidden></div>
           <div class="summary-row">
             <span class="summary-label">Doing</span>
             <span id="activity-value" class="summary-value">Nothing selected</span>
