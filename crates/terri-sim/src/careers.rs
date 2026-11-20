@@ -1351,12 +1351,11 @@ fn go_to_work_or_refuse(world: &mut World, agent: u32) -> Option<CareerRefusal> 
     }
     // A waiting game-made fight never delays a shift, as at a shift start.
     crate::fights::withdraw_waiting_for_shift(world, entity);
-    // 2. A reader returns the book first and leaves when the journey ends:
-    // the open shift's departure at the start tick follows the return, and
-    // before the start no need holds them back. [CT-merge] item 3 records
-    // that this becomes putting the book down where they stand.
-    if crate::reading::request_return(world, entity) {
-        return None;
+    // 2. A reader puts the book down where they stand and leaves at once
+    // ([CT-merge] item 3, owner ruling): the same helper the lateness cap
+    // uses, so a carried copy keeps its home and a housemate shelves it.
+    if world.get::<crate::reading::ReadingJourney>(entity).is_some() {
+        crate::reading::floor::put_down_and_end(world, entity);
     }
     // 4. Leave now, dropping sleep, a meal, a conversation and the rest.
     crate::attendance::depart(world, entity);

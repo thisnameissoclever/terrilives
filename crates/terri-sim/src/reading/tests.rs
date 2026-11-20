@@ -3074,12 +3074,12 @@ fn book_completion_logs_label_and_skill_without_stale_company() {
 }
 
 /// Go to work ([CT-q-reading] and [CT-merge] item 3 in
-/// `docs/specs/2026-11-19-career-tab.md`): until the late departure cap's
-/// helper lands, a reader sent to work before the start returns the book
-/// and leaves when the journey ends, still before the start, with the shift
-/// registered at its scheduled times.
+/// `docs/specs/2026-11-19-career-tab.md`, owner ruling): a reader sent to
+/// work puts the carried book down on the floor where they stand, keeping
+/// its home, and leaves on the drain tick, with the shift registered at its
+/// scheduled times.
 #[test]
-fn go_to_work_sends_a_reader_after_the_book_is_returned() {
+fn go_to_work_sends_a_reader_with_the_book_left_on_the_floor() {
     let (mut sim, p, shelf, seat, title) = fixture("armchair");
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.lot.front_door = Some((0, 0));
@@ -3099,6 +3099,12 @@ fn go_to_work_sends_a_reader_after_the_book_is_returned() {
             .go_to_work_window_ticks,
     );
     sim.world_mut().resource_mut::<SimClock>().tick = start - window;
+    assert!(matches!(
+        sim.book_copies()[0].location,
+        BookLocation::Carried(_)
+    ));
+    let home = sim.book_copies()[0].home;
+    let stood = *sim.world().get::<Position>(p).unwrap();
     issue(
         &mut sim,
         SimCommand::GoToWork {
@@ -3115,25 +3121,20 @@ fn go_to_work_sends_a_reader_after_the_book_is_returned() {
         "sent"
     );
     assert!(
-        sim.world().get::<Commuting>(p).is_none(),
-        "returns the book first"
+        sim.world().get::<Commuting>(p).is_some(),
+        "leaves on the drain tick"
     );
-    assert!(matches!(
-        stage(&sim, p),
-        Some(ReadingStage::Return | ReadingStage::WaitingReturn | ReadingStage::Shelve)
-    ));
-    while sim.world().get::<Commuting>(p).is_none() {
-        assert!(
-            sim.world().resource::<SimClock>().tick < start,
-            "left before the start"
-        );
-        sim.tick();
-    }
     assert!(sim.world().get::<ReadingJourney>(p).is_none());
-    assert!(matches!(
-        sim.book_copies()[0].location,
-        BookLocation::Shelf(_)
-    ));
+    let book = &sim.book_copies()[0];
+    assert_eq!(
+        book.location,
+        BookLocation::Lot {
+            x: stood.x,
+            y: stood.y
+        },
+        "the book is on the floor where they stood"
+    );
+    assert_eq!(book.home, home, "the floor book keeps its home");
     let registered = &sim
         .world()
         .resource::<crate::attendance::Attendance>()
