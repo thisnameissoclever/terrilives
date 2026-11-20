@@ -3,7 +3,7 @@ import type {
   CareerFactors, CareerInputWeek, CareerReport, CareerResult, CareerShift, CareerShiftInputs, CareerWeek, GoToWorkState,
   GoToWorkStatus,
 } from '../bridge.js';
-import { CareerGraph, careerGraphKey, renderCareerGraph } from './career-graph.js';
+import { CareerGraph } from './career-graph.js';
 import {
   signedTwoDecimals, withEventTitles, type CareerGraphThresholds, type CareerGraphWeek,
 } from './career-graph-words.js';
@@ -666,10 +666,9 @@ export interface CareerPanelRoots {
   readonly section: HTMLElement;
   readonly empty: HTMLElement;
   readonly content: HTMLElement;
-  /** The Overview's Career row title and its information control. */
+  /** The Overview's Career row title and its information control, which opens the same window as the tab's i. */
   readonly rowTitle?: HTMLElement;
   readonly rowInfo?: HTMLButtonElement;
-  readonly rowGraph?: HTMLElement;
 }
 
 /** What the surface asks of the panel; every action but the first four is optional for a surface built without it. */
@@ -877,29 +876,21 @@ export function createCareerPanelSurface(
       update(node, row);
     }
   };
-  let drawn = '';
-  let rowMiniOpen = false;
   let wasPending = false;
   // The control that sent the pending command, which takes focus back once
   // the command settles ([WS-shell]); null when the command came from
   // somewhere else, such as the keyboard on the path list.
   let sender: HTMLButtonElement | null = null;
-  const rowGraphSvg = roots.rowGraph ? doc.createElementNS('http://www.w3.org/2000/svg', 'svg') : null;
-  if (rowGraphSvg && roots.rowGraph) {
-    rowGraphSvg.setAttribute('class', 'career-graph career-graph-mini');
-    rowGraphSvg.setAttribute('role', 'img');
-    rowGraphSvg.setAttribute('aria-label', 'Reviewed weeks');
-    roots.rowGraph.append(rowGraphSvg);
-    roots.rowGraph.hidden = true;
-    if (!roots.rowGraph.id) roots.rowGraph.id = 'career-row-graph';
-    roots.rowInfo?.setAttribute('aria-controls', roots.rowGraph.id);
+  // Both i controls name themselves, say they open a dialog, and open the same window.
+  const rowInfo = roots.rowInfo;
+  if (rowInfo) {
+    rowInfo.setAttribute('aria-label', REVIEW_GRAPH_LABEL);
+    rowInfo.setAttribute('aria-haspopup', 'dialog');
+    rowInfo.setAttribute('aria-controls', REVIEW_WINDOW_ID);
+    rowInfo.removeAttribute('aria-expanded');
+    rowInfo.addEventListener('click', () => actions.openReviewGraph?.(rowInfo));
   }
   info.addEventListener('click', () => actions.openReviewGraph?.(info));
-  roots.rowInfo?.addEventListener('click', () => {
-    rowMiniOpen = !rowMiniOpen;
-    roots.rowInfo?.setAttribute('aria-expanded', String(rowMiniOpen));
-    if (roots.rowGraph) roots.rowGraph.hidden = !rowMiniOpen;
-  });
   select.addEventListener('change', () => actions.choose(select.value === '' ? null : Number(select.value)));
   assign.addEventListener('click', () => { sender = assign; actions.assign(); });
   quit.addEventListener('click', () => { sender = quit; actions.quit(); });
@@ -986,11 +977,6 @@ export function createCareerPanelSurface(
       setTextIfChanged(warning, job.warning ?? '');
       warning.hidden = job.warning === null;
       graph.update(job.weeks, job.thresholds);
-      const key = careerGraphKey(job.weeks, job.thresholds);
-      if (rowGraphSvg && key !== drawn) {
-        renderCareerGraph(doc, rowGraphSvg, job.weeks, job.thresholds);
-        drawn = key;
-      }
       const reviewed = job.weeks.length > 0;
       graph.element.hidden = !reviewed;
       noReviews.hidden = !reviewed ? false : true;
@@ -1003,20 +989,11 @@ export function createCareerPanelSurface(
       noReviews.hidden = true;
       info.hidden = true;
       infoTip.hidden = true;
-      drawn = '';
     }
     if (roots.rowTitle) {
       roots.rowTitle.dataset.trend = job ? (job.trend === 1 ? 'up' : job.trend === -1 ? 'down' : 'level') : 'level';
     }
-    if (roots.rowInfo) {
-      const reviewed = job !== null && job.weeks.length > 0;
-      roots.rowInfo.hidden = !reviewed;
-      if (!reviewed) {
-        rowMiniOpen = false;
-        roots.rowInfo.setAttribute('aria-expanded', 'false');
-        if (roots.rowGraph) roots.rowGraph.hidden = true;
-      }
-    }
+    if (rowInfo) rowInfo.hidden = !(job !== null && job.weeks.length > 0);
     while (options.length > state.paths.length) options.pop()!.remove();
     for (const [index, name] of state.paths.entries()) {
       let option = options[index];

@@ -846,14 +846,13 @@ async function main(): Promise<void> {
   const careerContent = document.querySelector<HTMLElement>('#career-content');
   const careerRowTitle = document.querySelector<HTMLElement>('#career-value');
   const careerRowInfo = document.querySelector<HTMLButtonElement>('#career-info');
-  const careerRowGraph = document.querySelector<HTMLElement>('#career-row-graph');
-  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo || !careerRowGraph) {
+  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo) {
     throw new Error('missing career markup');
   }
   const careerReview: { open: ((opener: HTMLButtonElement) => void) | null } = { open: null };
   const careerSurface = createCareerPanelSurface(document, {
     section: careerSection, empty: careerEmpty, content: careerContent,
-    rowTitle: careerRowTitle, rowInfo: careerRowInfo, rowGraph: careerRowGraph,
+    rowTitle: careerRowTitle, rowInfo: careerRowInfo,
   }, {
     choose: path => careerPanel.choose(path),
     assign: () => careerPanel.assign(),

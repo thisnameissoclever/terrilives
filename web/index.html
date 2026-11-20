@@ -287,10 +287,8 @@
       }
       .career-info:hover + .career-info-tip, .career-info:focus-visible + .career-info-tip { display: block; }
       @media (max-width: 600px) { .career-info-tip { white-space: normal; } }
-      .career-row-graph { padding: 4px 0; }
       .career-heading { display: flex; align-items: center; gap: 4px; font-weight: 600; }
       .career-graph { width: 100%; height: auto; display: block; }
-      .career-graph-mini { max-width: 240px; }
       .career-graph-wrap { position: relative; }
       .career-graph-wrap[hidden] { display: none; }
       .career-graph text { font: 10px system-ui, sans-serif; }
@@ -1783,9 +1781,8 @@
           <section id="mood-details" aria-label="Mood details"><ul id="moodlet-list" hidden></ul></section>
           <div id="career-row" class="summary-row" hidden>
             <span class="summary-label">Career</span>
-            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Show the review graph" aria-expanded="false" aria-controls="career-row-graph" hidden>i</button></span>
+            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Open the review graph. Pauses the game." aria-haspopup="dialog" aria-controls="career-graph-dialog" hidden>i</button></span>
           </div>
-          <div id="career-row-graph" class="career-row-graph" hidden></div>
           <div class="summary-row">
             <span class="summary-label">Doing</span>
             <span id="activity-value" class="summary-value">Nothing selected</span>

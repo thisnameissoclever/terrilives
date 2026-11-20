@@ -556,9 +556,8 @@ describe('career panel surface', () => {
     const content = document.createElement('div');
     const rowTitle = document.createElement('span');
     const rowInfo = document.createElement('button');
-    const rowGraph = document.createElement('div');
     section.append(empty, content);
-    document.body.append(section, rowTitle, rowInfo, rowGraph);
+    document.body.append(section, rowTitle, rowInfo);
     const actions = { chosen: [] as (number | null)[], assigned: 0, quit: 0, search: [] as boolean[], work: 0,
       review: [] as unknown[] };
     const handlers: CareerPanelActions = { choose: path => actions.chosen.push(path), assign: () => { actions.assigned += 1; },
@@ -567,9 +566,8 @@ describe('career panel surface', () => {
     const render = createCareerPanelSurface(document as unknown as Document, {
       section: section as unknown as HTMLElement, empty: empty as unknown as HTMLElement, content: content as unknown as HTMLElement,
       rowTitle: rowTitle as unknown as HTMLElement, rowInfo: rowInfo as unknown as HTMLButtonElement,
-      rowGraph: rowGraph as unknown as HTMLElement,
     }, handlers);
-    return { section, empty, content, rowTitle, rowInfo, rowGraph, render, actions, document };
+    return { section, empty, content, rowTitle, rowInfo, render, actions, document };
   }
 
   const employed = (overrides: Partial<CareerPanelState> = {}): CareerPanelState => ({
@@ -663,6 +661,23 @@ describe('career panel surface', () => {
     expect(INDEX_HTML).toContain('.career-info:focus-visible');
     expect(INDEX_HTML).toContain('.career-info:hover + .career-info-tip');
     expect(INDEX_HTML).toContain('.career-info:focus-visible + .career-info-tip');
+  });
+
+  it('opens the same window from the Overview row, which names itself and no longer expands', () => {
+    const { rowInfo, render, actions } = build();
+    render(employed());
+    expect(rowInfo.hidden).toBe(false);
+    expect(rowInfo.getAttribute('aria-label')).toBe('Open the review graph. Pauses the game.');
+    expect(rowInfo.getAttribute('aria-controls')).toBe('career-graph-dialog');
+    expect(rowInfo.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(rowInfo.hasAttribute('aria-expanded')).toBe(false);
+    rowInfo.click();
+    expect(actions.review).toEqual([rowInfo]);
+    expect(INDEX_HTML).toMatch(/id="career-info"[^>]*aria-label="Open the review graph. Pauses the game."/);
+    expect(INDEX_HTML).toMatch(/id="career-info"[^>]*aria-controls="career-graph-dialog"/);
+    expect(INDEX_HTML).not.toMatch(/id="career-info"[^>]*aria-expanded/);
+    render(employed({ job: careerJobView('t', 'p', 's', report(), FACTORS, []) }));
+    expect(rowInfo.hidden, 'no reviewed week, no i on the row either').toBe(true);
   });
 
   it('renders the facts, the Score inputs rows and the night note', () => {
@@ -837,7 +852,8 @@ describe('career panel surface', () => {
     expect(INDEX_HTML).toContain('data-open-sim-panel="career"');
     expect(INDEX_HTML).toContain('id="sim-career"');
     expect(INDEX_HTML).toContain('id="career-info"');
-    expect(INDEX_HTML).toContain('id="career-row-graph"');
+    expect(INDEX_HTML, 'the Overview row opens the window, not a second copy of the graph').not.toContain('career-row-graph');
+    expect(INDEX_HTML).not.toContain('career-graph-mini');
     expect(INDEX_HTML).toContain('id="career-autonomous-change"');
     expect(INDEX_HTML, 'job search is set for each person in the Career tab').not.toContain('career-autonomous-search');
     expect(MAIN_TS).toContain('createCareerPanelSurface(');

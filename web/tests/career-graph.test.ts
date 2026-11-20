@@ -156,7 +156,7 @@ describe('the drawn graph', () => {
     expect(svg.querySelectorAll('.career-point')).toHaveLength(0);
   });
 
-  it('draws the old renderer into any svg for the Overview row', () => {
+  it('draws the graph into any svg', () => {
     const { doc } = fakeDocument();
     const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as SVGSVGElement;
     renderCareerGraph(doc, svg, WEEKS, THRESHOLDS);
