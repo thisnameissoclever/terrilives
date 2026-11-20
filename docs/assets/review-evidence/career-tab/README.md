@@ -98,3 +98,14 @@ Rechecked on 2026-11-20 against the dev server serving `52a0a9d5c` (served `care
 
 D2 and N1 are fixed. Layout check on these states: no page overflow, only the two Career fieldset leading-space findings seen before. No guide image shows the review window tooltip or the phone details, so the guide images were not changed in this recheck.
 
+## Stills retaken at 52a0a9d5c
+
+A visual review found stills that predated the fixes. These were retaken from the same states on the build serving `52a0a9d5c` and replaced under the same names, so every still in this folder now shows that build:
+
+- `d-01`, `d-06a`, `d-06f`, `d-07`, `d-14`: the inline graph now starts directly under "Reviews"; no blank band.
+- `d-05b`, `d-11`, `m-03`: the score plot now starts directly under the "Review score" row; no blank band.
+- `p-05`, `p-12`: with a week chosen the score chart stays where it was (its top measured at 291 pixels before and after choosing).
+- `p-07-window-filters`: no Good or Poor label inside the phone plot, so no point covers one.
+
+The state findings recorded for these files in the first table still hold; only the layout around them changed.
+
