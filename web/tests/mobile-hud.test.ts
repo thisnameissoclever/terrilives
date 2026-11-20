@@ -107,3 +107,16 @@ describe('the compact activity log', () => {
       .toContain('#activity-log { top: calc(max(8px, env(safe-area-inset-top)) + 52px); }');
   });
 });
+
+describe('the Sim Details panel on a phone or a short screen (issue 317)', () => {
+  it('keeps the full-width sheet and the 420 pixel cap there', () => {
+    const phone = mediaBlock(/@media \(max-width: 600px\), \(max-height: 480px\) \{\s*#hud \{ width: 182px; \}/, DOCK_CSS);
+    expect(phone).toMatch(/#sim-sheet \{ left: -1px; right: -1px; width: auto; \}/);
+    expect(DOCK_CSS).toMatch(/#sim-sheet \{[^}]*max-height: min\(420px, /);
+  });
+
+  it('applies the 560 pixel width only at 601 by 481 pixels or larger', () => {
+    const desktop = mediaBlock(/@media \(min-width: 601px\) and \(min-height: 481px\) \{\s*#sim-sheet \{/, DOCK_CSS);
+    expect(desktop).toContain('--sim-sheet-width: 560px');
+  });
+});
