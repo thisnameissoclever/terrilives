@@ -243,8 +243,8 @@ export function careerInputRows(factors: CareerFactors, last: CareerShiftInputs 
   return [
     { name: 'Fit', hint: '(from -1 to 1)', value: signed(factors.fit), effect: effectOf(factors.fit) },
     { name: 'Trait fit', hint: '(part of fit)', value: signed(factors.traitFit), effect: effectOf(factors.traitFit) },
-    { name: `Social capacity ${percent(factors.socialCapacity)}`, hint: `(job needs ${percent(factors.socialDemand)})`,
-      value: '', effect: factors.socialCapacity >= factors.socialDemand ? 'none' : 'hurt' },
+    { name: 'Social capacity', hint: `(job needs ${percent(factors.socialDemand)})`,
+      value: percent(factors.socialCapacity), effect: factors.socialCapacity >= factors.socialDemand ? 'none' : 'hurt' },
     { name: 'Skill mastery', hint: '(50% is neutral)', value: `${mastery}%`,
       effect: mastery > 50 ? 'help' : mastery < 50 ? 'hurt' : 'none' },
     last === null

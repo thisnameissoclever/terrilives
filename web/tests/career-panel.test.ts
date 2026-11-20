@@ -233,7 +233,7 @@ describe('Score inputs', () => {
     expect(rows({ fit: 0.4, traitFit: 0.4, socialCapacity: 0.62, socialDemand: 0.3, mastery: 0.41 })).toEqual([
       { name: 'Fit', hint: '(from -1 to 1)', value: '+0.40', effect: 'help' },
       { name: 'Trait fit', hint: '(part of fit)', value: '+0.40', effect: 'help' },
-      { name: 'Social capacity 62%', hint: '(job needs 30%)', value: '', effect: 'none' },
+      { name: 'Social capacity', hint: '(job needs 30%)', value: '62%', effect: 'none' },
       { name: 'Skill mastery', hint: '(50% is neutral)', value: '41%', effect: 'hurt' },
       { name: 'Mood on the last shift', hint: '', value: '+0.18', effect: 'help' },
     ]);
@@ -259,7 +259,7 @@ describe('Score inputs', () => {
     expect(named(rows({ mastery: 0.49 }), 'Skill').effect).toBe('hurt');
     expect(named(rows({ socialCapacity: 0.3, socialDemand: 0.3 }), 'Social').effect, 'at the demand').toBe('none');
     expect(named(rows({ socialCapacity: 0.29, socialDemand: 0.3 }), 'Social').effect, 'below it').toBe('hurt');
-    expect(named(rows({ socialCapacity: 0.29, socialDemand: 0.3 }), 'Social').value, 'no value column').toBe('');
+    expect(named(rows({ socialCapacity: 0.29, socialDemand: 0.3 }), 'Social').value, 'the capacity sits in the value column').toBe('29%');
   });
 
   it('shows No shift yet for the mood row before any shift is scored', () => {
@@ -694,7 +694,7 @@ describe('career panel surface', () => {
       cell(row, '.career-effect')])).toEqual([
       ['Fit ', '(from -1 to 1)', '+0.40', 'Helps'],
       ['Trait fit ', '(part of fit)', '+0.40', 'Helps'],
-      ['Social capacity 70% ', '(job needs 30%)', '', 'No effect'],
+      ['Social capacity ', '(job needs 30%)', '70%', 'No effect'],
       ['Skill mastery ', '(50% is neutral)', '25%', 'Hurts'],
       ['Mood on the last shift', '', '-0.10', 'Hurts'],
     ]);

@@ -242,7 +242,7 @@ Every string below is functional text proposed for the owner's review under the 
 | S-sub | {path} path, level {n} of {m} | tab subtitle, window subtitle |
 | S-facts | Shift; Pay; Pay range at this level; This week; Last review; Promotion; {n} shift(s), scoring {x}; No shifts yet; {x} of 100; None yet; {g} of {a} good week(s) in a row; At the top of this path; ${p} per shift; ${min} to ${max} | facts grid |
 | S-inputs | Score inputs | section heading (rename) |
-| S-rows | Fit (from -1 to 1); Trait fit (part of fit); Social capacity {x}% (job needs {y}%); Skill mastery (50% is neutral); Mood on the last shift; No shift yet | score input rows |
+| S-rows | Fit (from -1 to 1); Trait fit (part of fit); Social capacity (job needs {y}%) with {x}% in the value column; Skill mastery (50% is neutral); Mood on the last shift; No shift yet | score input rows |
 | S-eff | Helps; Hurts; No effect | score input effects |
 | S-info | Open the review graph. Pauses the game. | both i controls: tooltip and accessible name |
 | S-tip | Week {n} review: {x} of 100; Good week: {good} or more counts toward promotion.; Steady week: between {poor} and {good} counts toward neither.; Poor week: under {poor}. Poor weeks in a row bring a warning.; Promoted to {title}.; Got a raise.; Demoted to {title}.; Changed path to {title}.; Fired. | inline and window tooltips ([CT-q-tipwords]) |
