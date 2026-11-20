@@ -1263,6 +1263,15 @@ pub struct Tuning {
     /// `docs/specs/2026-10-06-object-affinities.md`, issue 344). Appended
     /// after the night premium, per the rule above.
     pub affinity_presence_fade_points_per_hour: f32,
+    /// How many game minutes before a shift starts Go to work becomes
+    /// available, from 0 to 720 ([CT-tuning] in
+    /// `docs/specs/2026-11-19-career-tab.md`, issue 311). 0 allows it only
+    /// once the shift has started. Appended after the presence fade, per the
+    /// rule above.
+    pub go_to_work_window_ticks: u32,
+    /// How many reviewed weeks of score inputs each person keeps for the
+    /// review window, from 1 to 520 ([CT-tuning], issue 317).
+    pub career_input_history_weeks: u32,
 }
 
 /// The most ticks any lift from liked furniture takes to fade (issue 344):
@@ -1355,6 +1364,13 @@ impl Tuning {
     /// packs published before it existed. It matters only to a person who
     /// leaves liked furniture, whose lift those packs ended at once.
     pub const SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR: f32 = 5.0;
+    /// The shipped Go to work window (issue 311), reconstructed for packs
+    /// published before it. Inert there: no older world can hold the
+    /// command.
+    pub const SHIPPED_GO_TO_WORK_WINDOW_TICKS: u32 = 120;
+    /// The shipped input history (issue 317), reconstructed for packs
+    /// published before it.
+    pub const SHIPPED_CAREER_INPUT_HISTORY_WEEKS: u32 = 52;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
@@ -2441,6 +2457,8 @@ mod tests {
             work_lateness_remedy_share: 0.9375,
             work_bladder_relief_threshold: 37.5,
             affinity_presence_fade_points_per_hour: 6.625,
+            go_to_work_window_ticks: 97,
+            career_input_history_weeks: 321,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3308,8 +3326,9 @@ mod tests {
     /// optional weather, the purposeful-fight knobs, the ten bytes of the
     /// shift knobs, the one-byte varint of the night premium ([WB-wages]),
     /// the fill limit's varint, the ten bytes of the work lateness knobs
-    /// ([WL-tuning]) and the four bytes of the presence fade (issue 344);
-    /// every established field stays put.
+    /// ([WL-tuning]), the four bytes of the presence fade (issue 344) and
+    /// the three bytes of the Career tab knobs (issues 311 and 317,
+    /// [CT-tuning]); every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3323,10 +3342,31 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Issue 344: the presence fade is the last four bytes, a float of
-        // 6.625, and moving it to 7.5 changes only the float's third byte.
-        let fade = before.len() - 4;
-        assert_eq!(before[fade..], 6.625f32.to_le_bytes());
+        // Issues 311 and 317 ([CT-tuning]): the Go to work window and the
+        // input history are the last three bytes: a one-byte varint (97)
+        // and a two-byte varint (321). Changing either moves only its own
+        // bytes.
+        let career_tab = before.len() - 3;
+        assert_eq!(before[career_tab..], [97, 0xC1, 0x02]);
+        assert_eq!(
+            changed(Tuning {
+                go_to_work_window_ticks: 98,
+                ..a_tuning()
+            }),
+            vec![career_tab]
+        );
+        assert_eq!(
+            changed(Tuning {
+                career_input_history_weeks: 322,
+                ..a_tuning()
+            }),
+            vec![career_tab + 1]
+        );
+        // Issue 344: the presence fade is the four bytes before them, a
+        // float of 6.625, and moving it to 7.5 changes only the float's
+        // third byte.
+        let fade = career_tab - 4;
+        assert_eq!(before[fade..career_tab], 6.625f32.to_le_bytes());
         assert_eq!(
             changed(Tuning {
                 affinity_presence_fade_points_per_hour: 7.5,
