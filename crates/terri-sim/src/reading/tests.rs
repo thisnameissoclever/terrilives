@@ -1,6 +1,7 @@
 use super::*;
 use crate::Sim;
 use terri_core::command::BookCommand;
+mod floor;
 mod order_reachability;
 mod priority;
 mod shelf_contact;

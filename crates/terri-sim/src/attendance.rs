@@ -434,8 +434,18 @@ pub(crate) fn start_tick(world: &mut World) {
             continue;
         }
         if world.get::<crate::reading::ReadingJourney>(actor).is_some() {
-            crate::reading::request_return(world, actor);
-            continue;
+            // [LB-cap] (owner ruling 2026-11-17): a reader is asked home
+            // and returns the book first, but only until the lateness
+            // limit. From the shift start plus `work_lateness_limit_ticks`
+            // on, a book still in hand is left on the floor where they
+            // stand and they leave this tick. A limit of 0 keeps the
+            // return unbounded, as a published pack's world always had.
+            if crate::lateness::book_return_cap_reached(world, sim, now) {
+                crate::reading::floor::put_down_and_end(world, actor);
+            } else {
+                crate::reading::request_return(world, actor);
+                continue;
+            }
         }
         // Issue 309 ([WL-depart]): a critical Hunger or Energy, or the
         // meal or sleep that answers it, keeps the person home for at most

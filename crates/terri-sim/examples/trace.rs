@@ -20,8 +20,13 @@
 //! `--careers-seed <n>` reseeds the careers stream, and
 //! `--pre-shift-careers` runs the career content and search from before
 //! shifts (`examples/trace/shifts.rs`). Set `--lateness-limit <ticks>` to
-//! change the time a critical need can delay a worker. Set it to 0 to
-//! disable the allowance. The SHIFTS section reports lateness and Bladder.
+//! change how long a critical need or a book return can delay a worker.
+//! A limit of 0 disables need delays and leaves book returns uncapped.
+//! The SHIFTS section reports lateness and Bladder.
+//! Each late departure prints a LATE DEPARTURE line.
+//! `TRACE_LATE_TICKS=1` lists what the worker did on each late tick, and
+//! `TRACE_LATE_START=<tick>` keeps only the shifts starting at that tick.
+//! The FLOOR BOOKS line counts books left on the floor and put back.
 //!
 //! What it prints, and why each column is here rather than being eyeballed
 //! from the running game:
