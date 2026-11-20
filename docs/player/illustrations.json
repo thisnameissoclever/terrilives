@@ -498,7 +498,7 @@
         "height": 458
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "a5fc75ef04e0eed1184029bc8818118a64e2f8d0bc9d8bb1ad01dfbef2f1b799",
+      "sourceSha256": "3e9fd5449941118ffbd1e3363282ff86a7a2496d6d3359560b49b02143dd7fa5",
       "outputSha256": "db22129a8c916c0e3372902c3e8871a5783acdcaa433619a3214ca3f076e716f"
     },
     {
@@ -511,7 +511,7 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "f2a653605d560c76edee50f5483f3de23559114b593a53801ed6bbe734ad822c",
+      "sourceSha256": "48880f2dd707d0d6fc3c8cba5476743f7552e1c54ef1383f5722f9290450bf1e",
       "outputSha256": "4c611fb9c6f6cc63dce2688804fa0cb8f808466ace96fa9a6359cc8168d01c3d"
     },
     {
@@ -537,7 +537,7 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "f72f67148348e9b4242cf188743d094eb6c76f3fe025172980229dca5ceb1396",
+      "sourceSha256": "7b9272c2dbeb8da97a255aa05aef4dc0c3a55bde5a844da3385adcfafb1a6b6f",
       "outputSha256": "a9e66f59388e0d3a3010526344ea40b4ea8c12380a08f27cbdee6bb5b252fee3"
     },
     {
@@ -550,7 +550,7 @@
         "height": 370
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "55a819d53e461773d67b6b0494e5187e0f6c0e7b52bd0da87d33f7217f8869a3",
+      "sourceSha256": "69addac3f7958ba7cfa23821fd52e34c51e6fb25b8b4637d0755463ca91ccc94",
       "outputSha256": "612b725dbba77074c7ac793ab88f03b6f95fe87e727e07caf8d72a1c11dc1a24"
     },
     {
@@ -563,7 +563,7 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "52c6fe7a56cb646df1217562edd7e6aa06ba3558af206c929d0303aee11f8ace",
+      "sourceSha256": "c9f9d0a10a2a820d889564b73377c6dd50518f51705092365f80b066ea364761",
       "outputSha256": "bfe804209f60c1be6f77f724af1c8bb599c846ea130907e98f8d10182c859cf7"
     },
     {
@@ -576,7 +576,7 @@
         "height": 175
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "3b725abc798cf21586c9d3a2c4f43f9868872ed531c8367f0400b1748cee3818",
+      "sourceSha256": "36da8787d70ceec1fe2a154cd75a02f454dcca7f281468d27f35378fefaf158c",
       "outputSha256": "e190fdc5353d0445031b536b3e9fcba45f2c08c9849a3ff98b15c0e9b385215a"
     },
     {
@@ -589,7 +589,7 @@
         "height": 256
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "2ed8d577f9cd410e1e158d4ae5bef379d7adaa24a1f923dca6026c461618cb42",
+      "sourceSha256": "6c155227f30a11fc7490e919688f3ebc51686389ac588d0c2417fa4448f7577d",
       "outputSha256": "979ee57830eee0fd03e351a4d4cc42369a5d74de2e95ee6558e1625d41c201c9"
     },
     {
@@ -615,7 +615,7 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "0e7966dea3884782de399784c7ba2ec1343748993742ea0832cb476fad2c190f",
+      "sourceSha256": "3697835cb55aea800bcdf879c89369f30cf15daf0e73c34dbee5018677b6237a",
       "outputSha256": "55142d3d4e56e8b2f41fcde5cec326ed010c57ea7f639c298a8dc884889f7721"
     },
     {
@@ -641,7 +641,7 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "d4657e7931075532379722b5cb6f7fbe4f04dbc2e8acf64ac68e4de6150632d9",
+      "sourceSha256": "44ca0c26de62406211560d8c3d28af92b225636a5b22824c8a7b8687a16462fe",
       "outputSha256": "7feab88daf4397bd5834d79b792adca7a2baf9b1a221bb14df3c5acc3510b568"
     },
     {
@@ -667,7 +667,7 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "368aca1d02a1ff9ca4da5af6c29fca0fe3ea9d448d2264f09ba39f50550712d3",
+      "sourceSha256": "74fa8b2b429b730f7b49f9a1879244cb265bac223872936a53c092b998806fd8",
       "outputSha256": "a9a1b8e494d4c08a8048d0690b1aad17973f49ec5469a212fcf4543685aeaec8"
     },
     {
@@ -680,8 +680,8 @@
         "height": 690
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "e52246060c578dbe77dc3dde4c5357dc63c5f0ded0c7e351260bb89fe7c119bd",
-      "outputSha256": "e522c1ec299e4e95a493f70e6307eb3d47e0154eaee78d4af29df1570eb98c49"
+      "sourceSha256": "d01d39cdfe939af61c4a5a136d3d52782d9609ee1cc4d46be351c3c131e68ab0",
+      "outputSha256": "98fe5dc032c9704a0a69e021ed71ddead6c642792a5f93444ef5c3020361661f"
     },
     {
       "output": "images/guide/sim-career-mobile.png",
@@ -693,8 +693,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "2cb1c2a9a5e132c4030b0bbee10b6d137860dc0f5ab869b34a3e8a9cc416f24c",
-      "outputSha256": "1379b727f0be787945a638986e0d49d2fc13c61e53abe3976dca624a43ca0d95"
+      "sourceSha256": "82dfbf7aabba4a236b6891e6cfcd13fe67540f1a8a0e4f8f5df6e274431c8e67",
+      "outputSha256": "09102e1f9ea5a427ccfc6e86c6aaa7a3d3c4eccf26ce75443eb8fe434283b30b"
     },
     {
       "output": "images/guide/career-shift-desktop.png",
@@ -706,8 +706,8 @@
         "height": 357
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "27d70134694b1c00d2bab5b284f75adaacd96c106c7ba2708f7aab91fd1c1b5a",
-      "outputSha256": "be7fc425c3aa8361147220bdf731eea9e5d1d18e74dd5b99031006ac482a9781"
+      "sourceSha256": "e74b7114e9c149d3df6e8e3ea8f00494eafc872bcda26486a782da73081d0520",
+      "outputSha256": "b5a6e95ac67967c4da486eef74b82840e2372361e73a572ea937fcc98f0fde0a"
     },
     {
       "output": "images/guide/career-shift-mobile.png",
@@ -719,8 +719,8 @@
         "height": 373
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "818b2381a631ffc66bd02a44b5c47e116d7354bd374e65308a316f6059ea3273",
-      "outputSha256": "ec350d93ca2e79fd62c6ee60064809f33f5ddfc233d731bad859bc02e1d69a5b"
+      "sourceSha256": "e76bfa8047597cae6f202a6a9a3f3b18b97646fd072feab648bcd4b40193c978",
+      "outputSha256": "7848294138d2844de4d61d7414de81a3b37cd286438f23f7a5ef91fdd13f3950"
     },
     {
       "output": "images/guide/career-review-desktop.png",
@@ -732,8 +732,8 @@
         "height": 690
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "65e8203e104b55054b57dda942c2da2f283a1dab98e7233abfd40c8a48947477",
-      "outputSha256": "5ddae0b1d55d976ac8206383972d6fc2a51d38797fcfdf447e3a78b6d5156f79"
+      "sourceSha256": "e74b7114e9c149d3df6e8e3ea8f00494eafc872bcda26486a782da73081d0520",
+      "outputSha256": "af0f382b9520d9ab43e8a554bf593558fd4275a4dd9dd5f91b8658f9d8ccd5cf"
     },
     {
       "output": "images/guide/career-review-mobile.png",
@@ -745,8 +745,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "61a7dc2c319dc093df5c982e8ff0db0956612e0c242659c3555a4c5fd16cbcfd",
-      "outputSha256": "1e2de8374e62ba8f8dfc4866700f5b07733dab3c278b424c49e035b3d7821557"
+      "sourceSha256": "60cae3027130c057591c2c3634292b4cfed71585eae6a8daf8a997c52384e815",
+      "outputSha256": "d16e6c0159bed2108025340e915691720b6e214a506711d68905929a7f6152c4"
     },
     {
       "output": "images/guide/chores-board-desktop.png",

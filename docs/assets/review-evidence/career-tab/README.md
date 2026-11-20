@@ -11,6 +11,8 @@ Stills from the played pass for the Career tab plan ([CT-tests], played visual p
 
 ## Images
 
+The files named in [Recheck after the fixes](#recheck-after-the-fixes) were replaced with captures of the fixed build; the findings in this table describe the first pass at `b46bfec53`.
+
 | File | Viewport | State | Findings |
 | --- | --- | --- | --- |
 | `d-01-career-early-night.png` | desktop | Tim, 03:30, too early | Go to work disabled; "Next shift: Monday, 06:00 to 14:00." and "available at 04:00, two hours before the shift." Matches Mockup 1 variant B. |
@@ -23,7 +25,7 @@ Stills from the played pass for the Career tab plan ([CT-tests], played visual p
 | `d-06c-walking-out.png`, `d-06d-walking-out-later.png`, `d-06e-off-the-lot.png` | desktop | 04:09, 04:21, 05:26 | Tim stopped cooking breakfast, walked through the kitchen to the front door and left the lot. |
 | `d-06f-career-after-arrival.png`, `d-07-career-at-work-day.png` | desktop | 05:26 and 09:00 | "At work until 14:00." disabled (variant C). 0 missed while waiting before 06:00. |
 | `d-14-career-after-shift-day.png` | desktop | 15:00 | "Last shift: 480 of 480 scheduled minutes worked; 0 missed ... Earned $180.00." |
-| `d-09-window-last4-all-inputs-day.png`, `d-09b-window-last4-all-inputs-scrolled.png` | desktop | Last 4 weeks, all seven inputs | Weeks 2 to 5, all seven rows drawn. |
+| `d-09-window-last4-all-inputs-day.png` | desktop | Last 4 weeks, all seven inputs | Weeks 2 to 5, all seven rows drawn. |
 | `d-10-window-tooltip-poor-week.png` | desktop | hover on week 1 | Poor week text and inputs. Observation O2: Trait fit and Social capacity are missing from the tooltip although their rows are switched on. |
 | `d-11-window-from-overview-day.png` | desktop | window from the Overview row i | Opens the same window; Escape returns focus to the Overview i. |
 | `d-12-overview-personality-open-night.png` | desktop | Overview, Personality open | 560 pixels wide, as Mockup 3. Measured 560 on Overview, Queue, People, Traits, Career and with each Overview section open; height at most 690. |
@@ -57,3 +59,27 @@ Stills from the played pass for the Career tab plan ([CT-tests], played visual p
 - No promotion week occurred in five weeks, so the promotion tooltip and level split were not seen.
 - Headless Chrome hides scrollbars, so scrollbars do not appear in these stills.
 - No fresh independent visual review was run in this pass.
+
+## Recheck after the fixes
+
+Rechecked on 2026-11-20 against the dev server serving `03bd42ae0` (served `career-graph-modal.ts`, `career-graph.ts`, `career-panel.ts`, `compact-hud.ts` and the `index.html` rules matched the worktree). Same save, browser, muting and viewports as above, plus a phone run without touch emulation.
+
+| File | Viewport | Recheck | Result |
+| --- | --- | --- | --- |
+| `d-02-career-due-night.png`, `p-01-career-due-night.png` | both | O3, Score inputs, blank band | Pass. After scrolling Overview to 400 pixels, Career opened at scroll 0 at both widths. Social capacity shows 11% in the value column. The inline graph starts 10 pixels under Reviews. |
+| `d-03-info-tooltip-keyboard.png`, `d-03z-info-focus-ring-zoom.png` | desktop | D1 | Pass. The i starts 8 pixels after the title, so its 2 pixel ring at a 2 pixel offset stays clear; the heading row stays 24 pixels tall and nothing moves. |
+| `d-04-inline-graph-tooltip-week5.png`, `d-04b-inline-graph-tooltip-week1.png`, `p-02-inline-graph-tap-week1.png` | both | D4 inline | Pass. The tooltip floats over the plot, clear of the axis labels and of the chosen point. |
+| `d-05-window-all-weeks-paused-night.png`, `d-09-window-last4-all-inputs-day.png` | desktop | blank band | Pass. The score plot starts under its heading. |
+| `d-10-window-tooltip-poor-week.png`, `d-10b-window-tooltip-week5-all-inputs.png` | desktop | O2, D4 window | O2 pass: Trait fit and Social capacity are listed when switched on. D4 pass for the axis labels. New defect N1. |
+| `p-03-window-night.png`, `p-10-window-last4-day.png` | phone | D3 | Pass. No Good or Poor label inside the phone plot. |
+| `p-04-window-week3-details.png`, `p-05-window-next-week.png`, `p-06-window-details-hidden.png`, `p-12-window-week1-all-inputs.png` | phone, touch | D2 | Tap on week 3 selected it; Next week went to week 4, Previous week twice to week 2, Hide details closed the panel and brought back the hint, and focus plus Left arrow selected week 4. These passed only with the emulated mouse moved off the chart first; see D2 below. |
+| `pn-06-window-week3-details-no-touch.png` | phone, no touch | D2 | Click and Left arrow select a week and show the docked details; reaching its buttons with a mouse fails; see D2 below. |
+
+**D2, still failing in two cases.** Selecting a week hides "Tap a week for details." and the charts move up 30 pixels. When a mouse pointer rests over the score chart, Chrome then sends that chart's `svg` a `pointerleave` with `pointerType` "mouse" (traced: click at 8167 ms selects week 3, the mouse `pointerleave` at 8181 ms, the selection gone at 8182 ms). The `svg` `pointerleave` handler ignores only "touch", so it calls `choose(null)`. With touch emulation, a tap on week 3 was undone this way whenever the emulated mouse rested over the chart; moving it away first made the tap, Previous week, Next week, Hide details and the arrow keys all work. Without touch emulation at 390 pixels, a click selects the week, but moving the mouse from the chart down to the docked Next week button fires `pointermove` and `pointerleave` on the charts on the way. These change or clear the selection, so the details close before the click lands. Playwright reported the click intercepted by `rect.career-row-bg`, then the button was hidden.
+
+**N1, new.** Desktop review window with all seven inputs on: the taller tooltip covers the hovered week's own point and the line beside it (weeks 1 and 5 checked), and its two narrow columns wrap labels such as "Shifts worked" and "11% (job needs 30%)".
+
+**Layout check on the recheck.** No page overflow. Only the same leading-space findings on the two Career fieldsets in every Career tab state, at both widths; none in the review window states.
+
+**Limit.** The touch result depends on Chrome's emulated mouse position; a real phone was not tested.
+
