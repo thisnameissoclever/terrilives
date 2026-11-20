@@ -290,7 +290,12 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// the other way. The draw counts and every job and shift are unchanged.
 /// Measured on the tree that merges main at a56f9beb0 into the fade change,
 /// read from the failing assertion.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (1396220020831546344, 7, 2);
+/// The career score inputs block (`career-inputs-v1`, [CT-save-hash]) then
+/// moved it from 1396220020831546344 to 4153549014150304213, because the
+/// shipped household settles scored shifts by Thursday; nothing else moved
+/// (checked by turning the block off, which gave the old value). Read from
+/// the failing assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (4153549014150304213, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
@@ -319,8 +324,8 @@ fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
     let careers = sim.world().resource::<Careers>();
     assert_eq!(
         (sim.world_hash(), careers.draws, careers.shift_draws),
-        (1396220020831546344, 7, 2),
-        "the shipped value, with the presence fade of issue 344 (main at a56f9beb0 gave 16800902046621430031 without it)"
+        SHIPPED_THURSDAY,
+        "the shipped value, with the presence fade of issue 344 and the career inputs block"
     );
 }
 

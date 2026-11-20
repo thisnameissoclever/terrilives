@@ -302,11 +302,16 @@ fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
         return_home(world, actor);
     }
     // Mood reads live needs and room context, as the original return did.
-    let base = crate::careers::shift_score(
-        crate::careers::fit(world, pack, job, actor),
-        crate::careers::mastery(world, pack, job, actor),
-        crate::careers::mood_term(world, actor),
-    );
+    let read = crate::careers::ShiftInputs {
+        fit: crate::careers::fit(world, pack, job, actor),
+        trait_fit: crate::careers::trait_fit(world, job, actor),
+        social_capacity: crate::careers::social_capacity(world, pack, actor),
+        mastery: crate::careers::mastery(world, pack, job, actor),
+        mood: crate::careers::mood_term(world, actor),
+        missed_minutes: (scheduled - shift.worked_ticks) as f32,
+        attended: shift.worked_ticks > 0,
+    };
+    let base = crate::careers::shift_score(read.fit, read.mastery, read.mood);
     let (pay, deduction, score) = settlement(
         shift.pay_cents,
         scheduled,
@@ -342,7 +347,7 @@ fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
         shift.career,
         pay,
         ratio,
-        (scoring == Scoring::Week).then_some(score),
+        (scoring == Scoring::Week).then_some((score, read)),
         crate::careers::week_of(shift.start_tick, pack.tuning.day_ticks),
     );
     world

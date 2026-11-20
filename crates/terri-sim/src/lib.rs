@@ -5343,6 +5343,8 @@ impl Sim {
         // bills, and only while some lift is fading, so every older world
         // hashes as it did.
         presence_fade::hash(&self.world, &mut hasher);
+        // The score inputs the review window reads, only once some are held.
+        careers::hash_inputs(&self.world, &mut hasher);
         hasher.finish()
     }
 }

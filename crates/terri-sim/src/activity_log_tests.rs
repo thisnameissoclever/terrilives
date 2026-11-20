@@ -521,7 +521,11 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// after leaving is higher and a choice scored from it first goes the other
 /// way. Measured on the tree that merges main at a56f9beb0 into the fade
 /// change, read from the failing assertion.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfa65_449b_54d0_bb84;
+/// The career score inputs block ([CT-save-hash]) then moved the two-day fold
+/// from 0xfa65_449b_54d0_bb84 to 0x7d8f_c646_2384_8e1f, because the shipped
+/// household settles scored shifts in two days; nothing else moved (checked by
+/// turning the block off). Read from the failing assertion.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7d8f_c646_2384_8e1f;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -569,7 +573,7 @@ const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5847_2934_fafd_02d4;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
-/// (0xfa65_449b_54d0_bb84; main's value before issue 344's fade was
+/// (0x7d8f_c646_2384_8e1f, from 0xfa65_449b_54d0_bb84 before the career inputs block; main's value before issue 344's fade was
 /// 0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
 /// changes nothing here. It does not show that the knobs move the shipped
 /// household: in its first two days nobody is critical at a shift start or
@@ -577,7 +581,7 @@ const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5847_2934_fafd_02d4;
 /// behavior is covered by `lateness_tests.rs`.
 #[test]
 fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(2), 0xfa65_449b_54d0_bb84);
+    assert_eq!(fold_without_the_work_knobs(2), TWO_DAY_FOLD_WITHOUT_THE_LOG);
 }
 
 /// A regression pin with both work knobs at 0 over twenty days, measured with
