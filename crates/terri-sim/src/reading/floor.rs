@@ -1,5 +1,5 @@
 //! Books left on the floor, and the book a late worker puts down
-//! (`docs/specs/2026-11-17-late-book-returns.md`).
+//! (`docs/specs/2026-11-19-late-book-returns.md`).
 //!
 //! Owner ruling 2026-11-17: at the lateness limit a reader still returning
 //! a book drops it where they stand and leaves; housemates pick up floor
@@ -34,10 +34,12 @@ pub(super) fn free_to_tidy(world: &World, person: Entity, now: u64) -> bool {
         && !entity.contains::<Reserved>()
         && !entity.contains::<terri_core::chores::ChoreWork>()
         && !entity.contains::<crate::social_episode::requests::CommittedConversation>()
+        && !entity.contains::<PendingShift>()
         && entity.get::<IntentQueue>().is_none_or(|q| q.is_empty())
         && !crate::player_actions::has_player_work(world, person)
         && !has_chore_task(world, person)
         && !due_at_work(world, person, now)
+        && !shift_starts_soon(world, person, now)
 }
 
 /// A housemate with a chore on the board finishes it first; a journey may
@@ -62,6 +64,23 @@ fn due_at_work(world: &World, person: Entity, now: u64) -> bool {
         .get_resource::<crate::attendance::Attendance>()
         .and_then(|attendance| attendance.shifts.get(id).cloned())
         .is_some_and(|shift| !shift.settled && shift.start_tick <= now && now < shift.end_tick)
+}
+
+/// A worker whose next shift starts within `work_lateness_limit_ticks`
+/// does not start tidying, so a floor book never adds to their lateness:
+/// the walk and the return could otherwise run into the start ([LB-floor]).
+fn shift_starts_soon(world: &World, person: Entity, now: u64) -> bool {
+    let (Some(sim), Some(career)) = (world.get::<SimId>(person), world.get::<Career>(person))
+    else {
+        return false;
+    };
+    let pack = world.resource::<Content>().0;
+    let limit = u64::from(pack.tuning.work_lateness_limit_ticks);
+    (now..=now + limit).any(|tick| {
+        crate::shifts::shift_today(world, pack, person, tick).is_some_and(|shift| {
+            crate::shifts::starts_at(world, pack, *sim, career.0, &shift, tick)
+        })
+    })
 }
 
 /// The tile a floor copy lies on.
@@ -97,14 +116,65 @@ fn claimed_tiles(world: &mut World) -> std::collections::BTreeSet<(i32, i32)> {
         .collect()
 }
 
-/// Whether the copy can go back on a shelf, and that shelf can take a
-/// return: it exists and has a reading row to target.
-fn shelvable(world: &World, copy: BookCopyId) -> bool {
+/// Whether the floor copy at `tile` can be put back: it has a shelf slot
+/// to go to (its own, or a free one), that bookcase exists, has no seats
+/// and has a reading row for the return to target, and some legal contact
+/// of the bookcase can be reached on foot from the book's tile. A tidier
+/// therefore never picks up a book it cannot shelve ([LB-floor]).
+fn shelvable(world: &World, copy: BookCopyId, tile: (i32, i32)) -> bool {
     let library = world.resource::<BookLibrary>();
-    with_book_world(world, |context| {
-        Ok(library.floor_copy_shelvable(copy, context))
-    })
-    .unwrap_or(false)
+    let Ok(Some(home)) =
+        with_book_world(world, |context| Ok(library.floor_copy_home(copy, context)))
+    else {
+        return false;
+    };
+    let Some(shelf) = u32::try_from(home.shelf.0)
+        .ok()
+        .and_then(|index| crate::dining::entity(world, index))
+    else {
+        return false;
+    };
+    if shelf_reading_row(world, shelf).is_none() {
+        return false;
+    }
+    let (Some(object), Some(at)) = (
+        world.get::<SmartObject>(shelf),
+        world.get::<Position>(shelf),
+    ) else {
+        return false;
+    };
+    let def = world.resource::<Content>().0.object(object.0);
+    let facing = world
+        .get::<ObjectFacing>(shelf)
+        .map_or(def.base_facing, |f| f.0);
+    let origin = (at.x.round() as i32, at.y.round() as i32);
+    let grid = world.resource::<TileGrid>();
+    def.shelf_approaches_at(facing)
+        .into_iter()
+        .filter_map(|offset| crate::seating::contact_offset(origin, offset))
+        .filter(|&contact| legal_shelf_contact(world, grid, shelf, contact))
+        .any(|contact| contact == tile || grid.find_path(tile, contact).is_some())
+}
+
+/// The reading row a return to `shelf` targets: the bookcase's own reading
+/// interaction, when it has no seats (a seated origin needs a seat claim).
+fn shelf_reading_row(world: &World, shelf: Entity) -> Option<usize> {
+    let pack = world.resource::<Content>().0;
+    let def = pack.object(world.get::<SmartObject>(shelf)?.0);
+    if !def.seats.is_empty() {
+        return None;
+    }
+    def.interactions.iter().position(|a| a.book_reading)
+}
+
+/// Floor copies that can be put back, checked once per pass before any
+/// walk is planned, so a book nobody can shelve costs one check a tick and
+/// never a path search per housemate.
+fn shelvable_floor(world: &World) -> Vec<(BookCopyId, (i32, i32))> {
+    floor_copies(world)
+        .into_iter()
+        .filter(|&(copy, tile)| shelvable(world, copy, tile))
+        .collect()
 }
 
 /// Whether any need is at or under the critical level every crisis rule
@@ -122,18 +192,24 @@ fn any_need_critical(world: &World, person: Entity) -> bool {
 
 /// Runs directly before selection: each free housemate between activities
 /// with no need critical, in entity order, sets off for the nearest
-/// unclaimed floor book they can reach,
+/// unclaimed floor book they can reach and that can be shelved,
 /// nearest by path length with the lower copy id first on a tie. A book
 /// someone is already walking to is not offered again, so two housemates
 /// never race for one. Does nothing, and costs one scan, when no book is on
 /// the floor.
 pub(crate) fn claim(world: &mut World) {
-    let floor = floor_copies(world);
+    if floor_copies(world).is_empty() {
+        return;
+    }
+    let mut claimed = claimed_tiles(world);
+    let floor: Vec<_> = shelvable_floor(world)
+        .into_iter()
+        .filter(|(_, tile)| !claimed.contains(tile))
+        .collect();
     if floor.is_empty() {
         return;
     }
     let now = world.resource::<SimClock>().tick;
-    let mut claimed = claimed_tiles(world);
     let mut idle: Vec<Entity> = world
         .query_filtered::<Entity, (With<Agent>, Without<Path>)>()
         .iter(world)
@@ -158,7 +234,6 @@ pub(crate) fn claim(world: &mut World) {
                 };
                 Some((steps.len(), copy, tile, steps))
             })
-            .filter(|(_, copy, _, _)| shelvable(world, *copy))
             .min_by_key(|(length, copy, _, _)| (*length, *copy));
         let Some((_, copy, tile, steps)) = best else {
             continue;
@@ -175,14 +250,15 @@ pub(crate) fn claim(world: &mut World) {
     }
 }
 
-/// Runs after movement: a free housemate standing on an unclaimed floor
-/// book with no walk left picks it up and starts putting it back. The
+/// Runs after movement: a free housemate with no need critical standing on
+/// an unclaimed floor book that can be shelved, with no walk left, picks it
+/// up and starts putting it back. The
 /// lowest entity index wins a tile two people reach together.
 pub(crate) fn pick_up_arrivals(world: &mut World) {
-    let floor = floor_copies(world);
-    if floor.is_empty() {
+    if floor_copies(world).is_empty() {
         return;
     }
+    let floor = shelvable_floor(world);
     let now = world.resource::<SimClock>().tick;
     let mut people: Vec<(Entity, (i32, i32))> = world
         .query_filtered::<(Entity, &Position), (With<Agent>, Without<Path>)>()
@@ -191,15 +267,12 @@ pub(crate) fn pick_up_arrivals(world: &mut World) {
         .collect();
     people.sort_by_key(|(e, _)| e.index_u32());
     for (copy, tile) in floor {
-        let Some(&(person, _)) = people
-            .iter()
-            .find(|(person, at)| *at == tile && free_to_tidy(world, *person, now))
-        else {
+        let Some(&(person, _)) = people.iter().find(|(person, at)| {
+            *at == tile && free_to_tidy(world, *person, now) && !any_need_critical(world, *person)
+        }) else {
             continue;
         };
-        if shelvable(world, copy) {
-            start_return(world, person, copy);
-        }
+        start_return(world, person, copy);
     }
 }
 
@@ -225,14 +298,7 @@ fn start_return(world: &mut World, person: Entity, copy: BookCopyId) {
     else {
         return;
     };
-    let pack = world.resource::<Content>().0;
-    let Some(row) = world.get::<SmartObject>(shelf).and_then(|object| {
-        let def = pack.object(object.0);
-        def.seats
-            .is_empty()
-            .then(|| def.interactions.iter().position(|a| a.book_reading))
-            .flatten()
-    }) else {
+    let Some(row) = shelf_reading_row(world, shelf) else {
         return;
     };
     world.insert_resource(library);

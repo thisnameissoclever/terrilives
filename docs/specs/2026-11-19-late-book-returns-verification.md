@@ -10,7 +10,8 @@ Evidence for [late book returns and floor books](2026-11-19-late-book-returns.md
 4. [Targeted mutation checks](#mutations-targeted-mutation-checks)
 5. [Pinned values](#pins-pinned-values)
 6. [Trace figures after the change](#after-trace-figures-after-the-change)
-7. [Open items](#open-open-items)
+7. [Review fixes](#review-review-fixes)
+8. [Open items](#open-open-items)
 
 ## [before] Late departures before the change
 
@@ -97,8 +98,26 @@ The same runs on this tree (logs `trace-after-*.log`). A run whose world never r
 
 Every 60-minute departure other than Casey's in seed 11 is a start with Hunger or Energy critical, as before. Casey now leaves 60 minutes after the start with her book on the floor. The one-week run ends at tick 10080, while the book is being carried back; the same seed run to tick 10200 (`trace-after-seed-11-10200.log`) reports the book back on its shelf 62 minutes after it was left.
 
+## [review] Review fixes
+
+An independent review of head `e31f269dc` found nothing blocking; the coordinator triaged its findings on 2026-11-20 and each was applied on this branch.
+
+| Finding | Change | Evidence |
+| --- | --- | --- |
+| M1: a tidier could pick up a book it cannot shelve | A floor book counts only when a legal contact of its bookcase can be reached on foot from the book's tile, as well as when the bookcase exists, has no seats and has a reading row | `a_book_that_cannot_reach_its_bookcase_is_never_picked_up` (a wall across the lot, the bookcase on one side) fails with the reachability check made always true (R1) |
+| M2: path searches for a book nobody can shelve, every tick | Shelvability, including that route, is checked once per book per tick before any walk is planned; only shelvable, unclaimed books are offered to each housemate | `a_book_on_an_unreachable_tile_is_never_claimed`, a guard that also held before the change, since the old path search failed too; the change removes repeated work, not a wrong result |
+| L1: pickup ignored a critical need | Pickup applies the same critical-need exclusion as the claim | `a_sleeping_working_or_busy_housemate_never_picks_up_a_floor_book` now also stands a critically hungry housemate on the book; fails without the exclusion (R3) |
+| L2: the shelvable comment did not match the check | The check now tests what its comment says, sharing `shelf_reading_row` with the return | covered by the M1 test and the floor tests |
+| L3: tidying could add lateness | A worker whose shift starts within `work_lateness_limit_ticks` is not free to tidy | `a_worker_due_soon_or_with_a_deferred_departure_does_not_tidy`; fails without the check (R4) |
+| L4: a legacy deferred departure | A person with `PendingShift` is not free to tidy, as selection skips them | the same test; fails without the check (R5) |
+| L5: three comments named a spec file that does not exist | Corrected to `2026-11-19-late-book-returns.md` | text |
+| L6: the spec said pins moved | Corrected: none moved | text |
+| L7: the save test compared only the loaded state | Each save now loads into a second world that runs beside an uninterrupted one, comparing hashes every tick until 20 ticks after the book is shelved | `a_save_mid_walk_and_mid_return_continues_identically` |
+
+The changelog entry moved to `docs/player/changelog/2026-11-20-late-book-returns.md`, the delivery date, with its text unchanged. The earlier floor mutations were rerun on the revised code and still fail their tests (M5 against the claim's inner filter, M6, M7, M8, M10, M11). Each R mutation ran alone and its file was restored with the hash compared (`mutation-results.jsonl`).
+
 ## [open] Open items
 
 1. **A walk to a floor book looks like a stroll.** The activity shown while a housemate walks to a book on the floor is the one a stroll shows; once they pick it up they show the ordinary return. No new player-visible text was added.
-2. **A floor book on an unreachable tile stays there.** A book whose tile nobody can reach is never claimed; the player's **Recover book** still puts it back.
+2. **A floor book that cannot be shelved stays there.** A book on a tile nobody can reach, or whose bookcase cannot be reached from it, is never claimed; the player's **Recover book** still puts it back. A housemate walled off from a book that can be shelved still tries one path search for it each tick while they are free.
 3. **Not done here:** a played browser pass. The change is simulation timing with no rendering change; floor books already render as dropped books.

@@ -117,7 +117,7 @@ Repeated reading makes a title familiar and reduces its novelty, lowering its Fu
 
 Buy book on a bookcase chooses automatically, preferring affordable unowned titles. Copies go to the least-filled case with usable space; a borrowed book still reserves its home slot. With no free shelf space, buying is disabled. Sell book chooses an unborrowed copy on that case, preferring duplicates and then titles without unfinished progress. The exact price appears before purchase or sale. Title progress survives selling a copy. Recover book returns a dropped copy when shelf capacity is available.
 
-A book left on the floor, by someone who had to leave for work or by someone who died, does not stay there. A housemate with nothing else to do walks over, picks it up and puts it back in its place on the bookcase, or in a free place if it never had one. Only one housemate goes for each book. Nobody does this while asleep, at work or busy with something else.
+A book left on the floor, by someone who had to leave for work or by someone who died, does not stay there. A housemate with nothing else to do walks over, picks it up and puts it back in its place on the bookcase, or in a free place if it never had one. Only one housemate goes for each book. Nobody does this while asleep, at work, busy with something else, in need of something urgent or about to leave for work. A book that cannot be carried back to its bookcase stays where it is until you recover it.
 
 ## Correspondence, exercise and fish {#other-pastimes}
 

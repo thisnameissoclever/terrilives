@@ -367,7 +367,15 @@ fn a_sleeping_working_or_busy_housemate_never_picks_up_a_floor_book() {
     });
     crate::reading::floor::pick_up_arrivals(sim.world_mut());
     assert!(on_the_floor(&copy(&sim)), "a sleeper leaves it");
-    sim.world_mut().entity_mut(person).remove::<Eating>();
+    sim.world_mut()
+        .entity_mut(person)
+        .remove::<Eating>()
+        .insert(Needs::with(NeedId::Hunger, 0.0));
+    crate::reading::floor::pick_up_arrivals(sim.world_mut());
+    assert!(on_the_floor(&copy(&sim)), "a critical need comes first");
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Needs::all_at(100.0));
     crate::reading::floor::pick_up_arrivals(sim.world_mut());
     assert_eq!(
         stage(&sim, person),
@@ -429,10 +437,9 @@ fn a_book_dropped_by_a_death_is_shelved_by_a_housemate() {
     assert!(sim.world().get_entity(other).is_ok());
 }
 
-/// A save on the way to a floor book and a save on the way back to the
-/// bookcase both load into the same world and continue identically.
-#[test]
-fn a_save_mid_walk_and_mid_return_continues_identically() {
+/// The fixture with its only book on the floor at (15, 12) and a reader
+/// with every need full, the start of every floor book walk below.
+fn floor_world() -> (Sim, Entity) {
     let (mut sim, person, shelf, _seat, title) = fixture("armchair");
     purchase(&mut sim, Some(shelf), &title);
     sim.world_mut()
@@ -441,30 +448,69 @@ fn a_save_mid_walk_and_mid_return_continues_identically() {
     edit_copy(&mut sim, |book| {
         book.location = BookLocation::Lot { x: 15.0, y: 12.0 }
     });
-    let mut checked = [false, false];
-    for _ in 0..1500 {
-        sim.tick();
-        let walking = sim.world().get::<Target>(person).is_none()
-            && sim.world().get::<Path>(person).is_some()
-            && on_the_floor(&copy(&sim));
-        let returning = stage(&sim, person) == Some(ReadingStage::Return)
-            && sim.world().get::<Path>(person).is_some();
-        for (n, now) in [walking, returning].into_iter().enumerate() {
-            if now && !checked[n] {
-                checked[n] = true;
-                let saved = sim.current_v19_view();
-                let before = sim.world_hash();
-                sim.load_current_v19_view(saved.clone()).unwrap();
-                assert_eq!(sim.current_v19_view(), saved);
-                assert_eq!(sim.world_hash(), before);
+    (sim, person)
+}
+
+/// Whether a world has reached the state a save is taken in.
+type Reached = fn(&Sim, Entity) -> bool;
+
+/// A save on the way to a floor book and a save on the way back to the
+/// bookcase each load into a second world that then runs beside an
+/// uninterrupted one, tick for tick with equal hashes, until well after the
+/// book is back on its shelf.
+#[test]
+fn a_save_mid_walk_and_mid_return_continues_identically() {
+    let phases: [(&str, Reached); 2] = [
+        ("on the way to the book", |sim, person| {
+            sim.world().get::<Target>(person).is_none()
+                && sim
+                    .world()
+                    .get::<Path>(person)
+                    .is_some_and(|path| path.steps.last() == Some(&(15, 12)))
+        }),
+        ("on the way back", |sim, person| {
+            stage(sim, person) == Some(ReadingStage::Return)
+                && sim.world().get::<Path>(person).is_some()
+        }),
+    ];
+    for (name, reached) in phases {
+        let (mut uninterrupted, person) = floor_world();
+        for _ in 0..1500 {
+            if reached(&uninterrupted, person) {
+                break;
+            }
+            uninterrupted.tick();
+        }
+        assert!(reached(&uninterrupted, person), "never {name}");
+        let saved = uninterrupted.current_v19_view();
+        let (mut loaded, _) = floor_world();
+        loaded.load_current_v19_view(saved).unwrap();
+        assert_eq!(
+            loaded.world_hash(),
+            uninterrupted.world_hash(),
+            "{name}: on load"
+        );
+        let mut after_shelving = None;
+        for tick in 0..1500 {
+            uninterrupted.tick();
+            loaded.tick();
+            assert_eq!(
+                loaded.world_hash(),
+                uninterrupted.world_hash(),
+                "{name}: tick {tick} after the load"
+            );
+            if after_shelving.is_none()
+                && matches!(copy(&uninterrupted).location, BookLocation::Shelf(_))
+            {
+                after_shelving = Some(tick + 20);
+            }
+            if after_shelving == Some(tick) {
+                break;
             }
         }
-        if matches!(copy(&sim).location, BookLocation::Shelf(_)) {
-            break;
-        }
+        assert!(after_shelving.is_some(), "{name}: the book was shelved");
+        assert_eq!(copy(&loaded).location, copy(&uninterrupted).location);
     }
-    assert_eq!(checked, [true, true], "both states were saved and loaded");
-    assert!(matches!(copy(&sim).location, BookLocation::Shelf(_)));
 }
 
 /// The traced case (`docs/specs/2026-11-19-late-book-returns-verification.md`):
@@ -605,4 +651,77 @@ fn a_reader_cut_off_mid_reading_keeps_the_satisfaction_earned() {
     );
     assert!(on_the_floor(&copy(&sim)));
     assert!(sim.world().get::<ReadingJourney>(person).is_none());
+}
+
+/// [LB-floor]: a book whose bookcase cannot be reached from it is never
+/// picked up. A wall across the lot leaves the bookcase on one side and the
+/// housemate and the book on the other; before the check a tidier would
+/// pick the book up and stand waiting to return it forever.
+#[test]
+fn a_book_that_cannot_reach_its_bookcase_is_never_picked_up() {
+    let (mut sim, person) = floor_world();
+    wall_across_the_lot(&mut sim);
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Position { x: 2.0, y: 15.0 });
+    for _ in 0..600 {
+        sim.tick();
+        assert!(on_the_floor(&copy(&sim)), "the book stays on the floor");
+        assert!(sim.world().get::<ReadingJourney>(person).is_none());
+        let heading_for_it = sim
+            .world()
+            .get::<Path>(person)
+            .is_some_and(|path| path.steps.last() == Some(&(15, 12)));
+        assert!(!heading_for_it, "nobody sets off for it");
+    }
+}
+
+/// [LB-floor]: a book on a tile nobody can reach is never claimed, and the
+/// housemate goes on with their day. The bookcase and the housemate share
+/// one side of the wall; the book lies on the other.
+#[test]
+fn a_book_on_an_unreachable_tile_is_never_claimed() {
+    let (mut sim, person) = floor_world();
+    wall_across_the_lot(&mut sim);
+    for _ in 0..600 {
+        sim.tick();
+        assert!(on_the_floor(&copy(&sim)));
+        assert!(sim.world().get::<ReadingJourney>(person).is_none());
+    }
+}
+
+/// Blocks every tile of row 8, splitting the 20 by 20 fixture lot into the
+/// bookcase's side (rows 0 to 7) and the far side (rows 9 to 19).
+fn wall_across_the_lot(sim: &mut Sim) {
+    for x in 0..20 {
+        sim.world_mut()
+            .resource_mut::<TileGrid>()
+            .set_blocked(x, 8, true);
+    }
+}
+
+/// A worker whose shift starts within the lateness limit, or who has a
+/// departure an older save deferred, does not start tidying; the same
+/// worker earlier in the day does.
+#[test]
+fn a_worker_due_soon_or_with_a_deferred_departure_does_not_tidy() {
+    let (mut sim, person, _shelf, _far, _title) = working_reader(60);
+    sim.world_mut().resource_mut::<SimClock>().tick = START - 30;
+    assert!(
+        !super::super::floor::free_to_tidy(sim.world(), person, START - 30),
+        "the shift starts in 30 minutes"
+    );
+    sim.world_mut().resource_mut::<SimClock>().tick = START - 120;
+    assert!(
+        super::super::floor::free_to_tidy(sim.world(), person, START - 120),
+        "two hours before the shift"
+    );
+    sim.world_mut().entity_mut(person).insert(PendingShift {
+        scheduled_tick: START - 120,
+        career: 0,
+    });
+    assert!(
+        !super::super::floor::free_to_tidy(sim.world(), person, START - 120),
+        "a deferred departure"
+    );
 }

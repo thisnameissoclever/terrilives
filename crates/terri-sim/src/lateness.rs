@@ -43,7 +43,7 @@ pub(crate) fn late_ticks(shift: &SavedScheduledShift, now: u64, tuning: &Tuning)
 }
 
 /// Whether a reader's book return has run out of time for the open shift
-/// of `sim` ([LB-cap], `docs/specs/2026-11-17-late-book-returns.md`): the
+/// of `sim` ([LB-cap], `docs/specs/2026-11-19-late-book-returns.md`): the
 /// shift has started, is not settled and `now` is at or past its start plus
 /// `work_lateness_limit_ticks`. The same allowance bounds a critical need,
 /// so nobody leaves later than the limit for either reason. A limit of 0
