@@ -14,8 +14,8 @@ use bevy_ecs::prelude::*;
 use terri_core::save_v21::{SavedHeldShift, SavedShiftChange, SavedShifts};
 use terri_core::{
     save_v14::{SavedCareerMoodlet, SavedCareerRecord, SavedCareerWeek, SavedCareers},
-    Agent, AtWork, Career, Commuting, FnvHasher, Funds, Satisfaction, SimClock, SimId, SimRng,
-    Skills, Traits,
+    Agent, AtWork, Career, CommandQueue, Commuting, FnvHasher, Funds, Satisfaction, SimClock,
+    SimCommand, SimId, SimRng, Skills, Traits,
 };
 use terri_data::{CompiledCareer, ContentPack};
 
@@ -69,6 +69,44 @@ pub enum CareerRefusal {
 pub struct CareerResult {
     pub agent: u32,
     pub reason: Option<CareerRefusal>,
+}
+
+/// The scheduled start and end ticks of one shift.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ShiftTimes {
+    pub start_tick: u64,
+    pub end_tick: u64,
+}
+
+/// What the Career tab's Go to work box shows for one person, and whether
+/// the command applies ([CT-work-state] in
+/// `docs/specs/2026-11-19-career-tab.md`). One function decides it for the
+/// shell and the drain, so the two can never disagree.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WorkStatus {
+    /// [CT-ws-none]: no job.
+    NoJob,
+    /// [CT-ws-due]: at home, and the next shift starts within the window.
+    Due(ShiftTimes),
+    /// [CT-ws-late]: at home, and the open shift has started.
+    Late(ShiftTimes),
+    /// [CT-ws-early]: at home, and the next shift starts later than the
+    /// window: the next start found today, tomorrow or in the following
+    /// week, if any.
+    Early(Option<ShiftTimes>),
+    /// [CT-ws-work]: at work until `end_tick`.
+    AtWork { end_tick: u64 },
+    /// [CT-ws-out]: on the way to work.
+    Outbound,
+    /// [CT-ws-home]: on the way home.
+    Inbound,
+}
+
+impl WorkStatus {
+    /// Whether Go to work applies: the shift is due or has started.
+    pub fn can_go(&self) -> bool {
+        matches!(self, Self::Due(_) | Self::Late(_))
+    }
 }
 
 /// One reviewed week.
@@ -1170,11 +1208,108 @@ pub(crate) fn change_shift(world: &mut World, agent: u32, shift: u32) {
     record_command(world, agent, reason);
 }
 
-/// [CT-command]: the player sends `agent` to work now. The behavior is
-/// [CT-work] and arrives with the next task; until then every request is
-/// counted and refused as not due, which changes nothing in the world.
+/// [CT-command] and [CT-work-effect]: the player sends `agent` to work now,
+/// whatever they are doing and however low their needs, when their shift
+/// is due within the window or has started and is open. Refused, with
+/// nothing changed, for anyone else or without a way out to the street.
 pub(crate) fn go_to_work(world: &mut World, agent: u32) {
-    record_command(world, agent, Some(CareerRefusal::NotDue));
+    let reason = go_to_work_or_refuse(world, agent);
+    record_command(world, agent, reason);
+}
+
+fn go_to_work_or_refuse(world: &mut World, agent: u32) -> Option<CareerRefusal> {
+    let Some(entity) = crate::family::sim_id_at(world, agent)
+        .and_then(|sim| crate::edit::living_entity(world, sim))
+    else {
+        return Some(CareerRefusal::NotAPerson);
+    };
+    let now = world.resource::<SimClock>().tick;
+    let before_start = match go_to_work_status(world, entity, now) {
+        WorkStatus::NoJob => return Some(CareerRefusal::NotEmployed),
+        WorkStatus::AtWork { .. } | WorkStatus::Outbound | WorkStatus::Inbound => {
+            return Some(CareerRefusal::AtWork)
+        }
+        WorkStatus::Early(_) => return Some(CareerRefusal::NotDue),
+        WorkStatus::Due(shift) => Some(shift.start_tick),
+        WorkStatus::Late(_) => None,
+    };
+    // The route is checked before anything changes, so a refusal leaves the
+    // orders and the attendance register as they were.
+    if !crate::attendance::can_depart(world, entity) {
+        return Some(CareerRefusal::NoRoute);
+    }
+    // 1. Player orders end exactly as Cancel orders ends them, through the
+    // same ordinary command. The drain has already applied every ordinary
+    // command before this one, so the queue holds only this cancel.
+    world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents { agent });
+    crate::systems::lot_edit::flush_ordinary(world);
+    // 3. A shift that has not started is registered now, so the arrival
+    // before the start is tracked work rather than legacy work.
+    if let Some(start) = before_start {
+        crate::attendance::register_before_start(world, entity, start);
+    }
+    // A waiting game-made fight never delays a shift, as at a shift start.
+    crate::fights::withdraw_waiting_for_shift(world, entity);
+    // 2. A reader returns the book first and leaves when the journey ends:
+    // the open shift's departure at the start tick follows the return, and
+    // before the start no need holds them back. [CT-merge] item 3 records
+    // that this becomes putting the book down where they stand.
+    if crate::reading::request_return(world, entity) {
+        return None;
+    }
+    // 4. Leave now, dropping sleep, a meal, a conversation and the rest.
+    crate::attendance::depart(world, entity);
+    None
+}
+
+/// The days after today [`go_to_work_status`] looks through for a next
+/// start: tomorrow, then the following week.
+const NEXT_START_DAYS: u64 = 1 + terri_core::clock::WEEKDAY_COUNT as u64;
+
+/// [CT-work-state]: what the Go to work box shows for `entity` at tick
+/// `now`, and so whether the command applies. Reads only the world and
+/// draws nothing.
+pub fn go_to_work_status(world: &World, entity: Entity, now: u64) -> WorkStatus {
+    let Some(pack) = world.get_resource::<Content>().map(|content| content.0) else {
+        return WorkStatus::NoJob;
+    };
+    if job_of(world, pack, entity).is_none() {
+        return WorkStatus::NoJob;
+    }
+    let open = crate::attendance::open_shift(world, entity)
+        .filter(|shift| shift.end_tick > now)
+        .map(|shift| ShiftTimes {
+            start_tick: shift.start_tick,
+            end_tick: shift.end_tick,
+        });
+    if let Some(work) = world.get::<AtWork>(entity) {
+        // A worker from before scheduled shifts has only a countdown.
+        let end_tick = open.map_or(now + u64::from(work.remaining_ticks), |s| s.end_tick);
+        return WorkStatus::AtWork { end_tick };
+    }
+    match world.get::<Commuting>(entity) {
+        Some(Commuting::Outbound) => return WorkStatus::Outbound,
+        Some(Commuting::Inbound) => return WorkStatus::Inbound,
+        None => {}
+    }
+    let next = match open {
+        Some(shift) if shift.start_tick <= now => return WorkStatus::Late(shift),
+        // Registered before its start, and since sent home by an order.
+        Some(shift) => Some(shift),
+        None => crate::shifts::next_start(world, pack, entity, now, NEXT_START_DAYS).map(
+            |(start_tick, shift)| ShiftTimes {
+                start_tick,
+                end_tick: start_tick + u64::from(shift.shift_ticks),
+            },
+        ),
+    };
+    let window = u64::from(pack.tuning.go_to_work_window_ticks);
+    match next {
+        Some(shift) if shift.start_tick - now <= window => WorkStatus::Due(shift),
+        next => WorkStatus::Early(next),
+    }
 }
 
 /// Every career command, applied or refused, is counted and reported.

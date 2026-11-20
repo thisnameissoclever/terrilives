@@ -32,7 +32,7 @@ pub struct WorkPreflight {
     pub conflicts: Vec<WorkConflict>,
 }
 
-fn identity(world: &World, actor: Entity) -> SimId {
+pub(crate) fn identity(world: &World, actor: Entity) -> SimId {
     world
         .get::<SimId>(actor)
         .copied()
@@ -124,7 +124,9 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
             phase,
             start_tick,
             end_tick,
-            remaining_minutes: (end_tick - now) as f32,
+            // [CT-work-guards] item 3: a shift registered before its start
+            // has its whole length remaining until the start.
+            remaining_minutes: (end_tick - now.max(start_tick)) as f32,
             total_minutes: (end_tick - start_tick) as f32,
             pay_cents,
         });
@@ -196,7 +198,10 @@ pub(crate) fn account_and_settle(world: &mut World) {
         let expired = {
             let mut attendance = world.resource_mut::<Attendance>();
             let shift = attendance.shifts.get_mut(&sim).unwrap();
-            if shift.settled {
+            // [CT-work-guards]: a shift registered before its start by Go
+            // to work accrues nothing, and its accounting stays at the
+            // start, until the start.
+            if shift.settled || now < shift.start_tick {
                 continue;
             }
             let until = now.min(shift.end_tick);
@@ -234,12 +239,20 @@ pub(crate) fn close_for_shift_change(world: &mut World, actor: Entity) {
 fn close_open_shift(world: &mut World, actor: Entity, scoring: Scoring) {
     account_and_settle(world);
     let sim = identity(world, actor);
-    if world
+    let now = world.resource::<SimClock>().tick;
+    let open = world
         .get_resource::<Attendance>()
         .and_then(|a| a.shifts.get(&sim))
-        .is_some_and(|s| !s.settled)
-    {
-        settle(world, actor, sim, scoring);
+        .filter(|s| !s.settled)
+        .map(|s| s.start_tick);
+    match open {
+        // [CT-work-guards] item 2: a shift Go to work registered before its
+        // start is removed rather than scored as a shift fully missed.
+        Some(start) if start > now => {
+            world.resource_mut::<Attendance>().shifts.remove(&sim);
+        }
+        Some(_) => settle(world, actor, sim, scoring),
+        None => {}
     }
 }
 fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
@@ -340,28 +353,11 @@ pub(crate) fn start_tick(world: &mut World) {
                 .get(&sim)
                 .is_none_or(|s| s.start_tick != now)
         {
-            let pay = world
-                .get_resource::<Careers>()
-                .and_then(|c| c.record(sim))
-                .map_or(job.pay, |r| r.pay);
-            // [WB-wages]: a night shift records the premium in its pay; the
-            // kind is that of the shift worked today, which on the day of a
-            // shift change is the shift held when the day began.
-            let pay_cents = pack.tuning.shift_pay_cents(pay, shift.kind);
-            world.resource_mut::<Attendance>().shifts.insert(
-                sim,
-                SavedScheduledShift {
-                    sim: sim.0,
-                    career,
-                    start_tick: now,
-                    end_tick: now + u64::from(shift.shift_ticks),
-                    worked_ticks: 0,
-                    accounted_tick: now,
-                    pay_cents,
-                    settled: false,
-                    legacy: false,
-                },
-            );
+            let registered = scheduled(world, job, sim, career, &shift, now);
+            world
+                .resource_mut::<Attendance>()
+                .shifts
+                .insert(sim, registered);
         }
         let active = world
             .resource::<Attendance>()
@@ -397,21 +393,105 @@ pub(crate) fn start_tick(world: &mut World) {
         depart(world, actor);
     }
 }
-fn depart(world: &mut World, actor: Entity) {
+/// The shift `sim` works at career row `career` with `shift`'s schedule,
+/// registered to start at `start`: nothing worked, accounted from the
+/// start, and the pay the person holds with the night premium of the
+/// shift's kind ([WB-wages]). The kind is that of the shift worked that
+/// day, which on the day of a shift change is the shift held when the day
+/// began.
+fn scheduled(
+    world: &World,
+    job: &terri_data::CompiledCareer,
+    sim: SimId,
+    career: u32,
+    shift: &terri_data::ShiftView<'_>,
+    start: u64,
+) -> SavedScheduledShift {
+    let pay = world
+        .get_resource::<Careers>()
+        .and_then(|c| c.record(sim))
+        .map_or(job.pay, |r| r.pay);
+    SavedScheduledShift {
+        sim: sim.0,
+        career,
+        start_tick: start,
+        end_tick: start + u64::from(shift.shift_ticks),
+        worked_ticks: 0,
+        accounted_tick: start,
+        pay_cents: world
+            .resource::<Content>()
+            .0
+            .tuning
+            .shift_pay_cents(pay, shift.kind),
+        settled: false,
+        legacy: false,
+    }
+}
+
+/// The open shift of `actor`'s current career, started or registered
+/// before its start, or `None`.
+pub(crate) fn open_shift(world: &World, actor: Entity) -> Option<&SavedScheduledShift> {
+    let career = world.get::<Career>(actor)?.0;
+    world
+        .get_resource::<Attendance>()?
+        .shifts
+        .get(&identity(world, actor))
+        .filter(|s| !s.settled && s.career == career)
+}
+
+/// [CT-work-effect] item 3: registers `actor`'s shift starting at `start`
+/// now, before its start, exactly as the start tick would register it, so
+/// an early arrival never counts as untracked legacy work. A shift already
+/// registered for that start is kept as it is.
+pub(crate) fn register_before_start(world: &mut World, actor: Entity, start: u64) {
+    ensure(world);
+    let sim = identity(world, actor);
+    if world
+        .resource::<Attendance>()
+        .shifts
+        .get(&sim)
+        .is_some_and(|s| !s.settled && s.start_tick == start)
+    {
+        return;
+    }
+    let pack = world.resource::<Content>().0;
+    let Some(career) = world.get::<Career>(actor).map(|c| c.0) else {
+        return;
+    };
+    let Some(shift) = crate::shifts::shift_today(world, pack, actor, start) else {
+        return;
+    };
+    let registered = scheduled(
+        world,
+        &pack.careers[career as usize],
+        sim,
+        career,
+        &shift,
+        start,
+    );
+    world
+        .resource_mut::<Attendance>()
+        .shifts
+        .insert(sim, registered);
+}
+
+/// Whether `actor` has a way out to the street, as a departure needs.
+pub(crate) fn can_depart(world: &World, actor: Entity) -> bool {
+    departure_route(world, actor).is_some()
+}
+
+/// The walk from `actor` to the street exit, or failing that to the front
+/// door; `None` when neither can be reached.
+fn departure_route(world: &World, actor: Entity) -> Option<Vec<(i32, i32)>> {
     let pack = world.resource::<Content>().0;
     let origin = world
         .get_resource::<crate::lot_frame::LotFrame>()
         .map_or((0, 0), |f| f.origin);
-    let Some(door) = pack
+    let door = pack
         .lot
         .front_door
-        .map(|(x, y)| (x + origin.0, y + origin.1))
-    else {
-        return;
-    };
-    let Some(position) = world.get::<Position>(actor).copied() else {
-        return;
-    };
+        .map(|(x, y)| (x + origin.0, y + origin.1))?;
+    let position = world.get::<Position>(actor).copied()?;
     let grid = world.resource::<TileGrid>();
     let from = if grid.blocked_edges().next().is_some() {
         (position.x.round() as i32, position.y.round() as i32)
@@ -422,10 +502,15 @@ fn depart(world: &mut World, actor: Entity) {
         grid.find_path(from, (to.0 as i32, to.1 as i32))
             .and_then(|p| grid.anchor_path((position.x, position.y), p))
     };
-    let Some(steps) = crate::portals::street_exit_at(pack, origin, grid.width() as u32)
+    crate::portals::street_exit_at(pack, origin, grid.width() as u32)
         .and_then(route)
         .or_else(|| route(door))
-    else {
+}
+
+/// Sends `actor` out to work along [`departure_route`], dropping whatever
+/// they were doing, as at a shift start. Nothing happens without a route.
+pub(crate) fn depart(world: &mut World, actor: Entity) {
+    let Some(steps) = departure_route(world, actor) else {
         return;
     };
     crate::recipe_actions::suspend(world, actor);
@@ -1218,6 +1303,22 @@ fn longest_listed_shift(job: &terri_data::CompiledCareer) -> u32 {
 }
 
 /// Refuse inconsistent accounting before changing the live world.
+/// [CT-work-guards] item 1: whether `shift`, whose start is after `now`,
+/// is one Go to work registered before its start: open, starting within
+/// the window, accounted at its start and with nothing worked. The caller
+/// checks that it names the person's current career, as it does for every
+/// open shift. Saves from before Go to work can never hold one.
+fn registered_before_start(
+    shift: &SavedScheduledShift,
+    now: u64,
+    tuning: &terri_data::Tuning,
+) -> bool {
+    !shift.settled
+        && shift.start_tick - now <= u64::from(tuning.go_to_work_window_ticks)
+        && shift.accounted_tick == shift.start_tick
+        && shift.worked_ticks == 0
+}
+
 pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crate::SaveError> {
     use crate::SaveError::InvalidValue;
     let pack = world.resource::<Content>().0;
@@ -1241,9 +1342,9 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
             d == 0
                 || d > u64::from(longest_listed_shift(job))
                 || (!shift.legacy && !matches_a_listed_shift(job, &pack.tuning, start, d))
-        }) || start > now
+        }) || (start > now && !registered_before_start(shift, now, &pack.tuning))
             || shift.accounted_tick < start
-            || shift.accounted_tick > now.min(shift.end_tick)
+            || (start <= now && shift.accounted_tick > now.min(shift.end_tick))
             || shift.worked_ticks > shift.accounted_tick - start
             // An open shift pays at least the level's starting pay; a
             // settled record keeps the pay it was settled at, which its

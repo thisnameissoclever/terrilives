@@ -361,7 +361,7 @@ pub fn drain_commands(world: &mut World) {
     }
 }
 
-fn flush_ordinary(world: &mut World) {
+pub(crate) fn flush_ordinary(world: &mut World) {
     if !world.resource::<CommandQueue>().is_empty() {
         // System::run applies its deferred Commands before returning. A cached
         // registered system would allocate an entity and alter saved identities.

@@ -3071,3 +3071,74 @@ fn book_completion_logs_label_and_skill_without_stale_company() {
     );
     assert_eq!(record.triggers(), ACTIONS);
 }
+
+/// Go to work ([CT-q-reading] and [CT-merge] item 3 in
+/// `docs/specs/2026-11-19-career-tab.md`): until the late departure cap's
+/// helper lands, a reader sent to work before the start returns the book
+/// and leaves when the journey ends, still before the start, with the shift
+/// registered at its scheduled times.
+#[test]
+fn go_to_work_sends_a_reader_after_the_book_is_returned() {
+    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.lot.front_door = Some((0, 0));
+    let career = pack.careers[0].clone();
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut().entity_mut(p).insert(Career(0));
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, p, seat, &title, false);
+    until(&mut sim, p, ReadingStage::Read);
+    let start = u64::from(career.shift_start);
+    let window = u64::from(
+        sim.world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .go_to_work_window_ticks,
+    );
+    sim.world_mut().resource_mut::<SimClock>().tick = start - window;
+    issue(
+        &mut sim,
+        SimCommand::GoToWork {
+            agent: p.index_u32(),
+        },
+    );
+    sim.flush_commands();
+    assert_eq!(
+        sim.world()
+            .resource::<crate::careers::Careers>()
+            .last_result
+            .and_then(|result| result.reason),
+        None,
+        "sent"
+    );
+    assert!(
+        sim.world().get::<Commuting>(p).is_none(),
+        "returns the book first"
+    );
+    assert!(matches!(
+        stage(&sim, p),
+        Some(ReadingStage::Return | ReadingStage::WaitingReturn | ReadingStage::Shelve)
+    ));
+    while sim.world().get::<Commuting>(p).is_none() {
+        assert!(
+            sim.world().resource::<SimClock>().tick < start,
+            "left before the start"
+        );
+        sim.tick();
+    }
+    assert!(sim.world().get::<ReadingJourney>(p).is_none());
+    assert!(matches!(
+        sim.book_copies()[0].location,
+        BookLocation::Shelf(_)
+    ));
+    let registered = &sim
+        .world()
+        .resource::<crate::attendance::Attendance>()
+        .shifts[sim.world().get::<SimId>(p).unwrap()];
+    assert_eq!(
+        (registered.start_tick, registered.end_tick),
+        (start, start + u64::from(career.shift_ticks))
+    );
+}
