@@ -232,7 +232,7 @@
     "crates/terri-sim/src/reading/placement.rs": "96ba1ae2a7db3306a9457791488a97f250ab18bf2357fca50cd6dacc90e9eedb",
     "crates/terri-sim/src/reading/planning.rs": "aa919821953a2e8b9e60e0ac69b3b351b8e8283343e9afc3ce9154e1c57011fa",
     "crates/terri-sim/src/reading/tests.rs": "493af9ef771bb435cf9f43b218d5f684c577590c9e385e7d09c1dcaa89767849",
-    "crates/terri-sim/src/reading/tests/floor.rs": "e9bf2d959aa85a153af00fcd0b0b6659041344e991793c319de6d8cc330bae51",
+    "crates/terri-sim/src/reading/tests/floor.rs": "98579beae295230f70325fc6ff647f5b2c38f1c4b4b4979f524a6d6bc6470cf7",
     "crates/terri-sim/src/reading/tests/order_reachability.rs": "5641ad95f48fcd72f11cd11a31b528a7edede4c88f1e4fb7c7cc74dca388bcee",
     "crates/terri-sim/src/reading/tests/priority.rs": "260b0279a2c385bbb9cd5e9d1967117d836a97ebaebf7c1ab67c101043eaf274",
     "crates/terri-sim/src/reading/tests/review.rs": "68acc36eae1f34750c4f69092d31b07ec801859df860132585e1a3d6b28eb133",
