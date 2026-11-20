@@ -849,6 +849,7 @@ async function main(): Promise<void> {
   if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo || !careerRowGraph) {
     throw new Error('missing career markup');
   }
+  const careerReview: { open: ((opener: HTMLButtonElement) => void) | null } = { open: null };
   const careerSurface = createCareerPanelSurface(document, {
     section: careerSection, empty: careerEmpty, content: careerContent,
     rowTitle: careerRowTitle, rowInfo: careerRowInfo, rowGraph: careerRowGraph,
@@ -860,6 +861,10 @@ async function main(): Promise<void> {
     chooseShift: shift => careerPanel.chooseShift(shift),
     chooseChange: shift => careerPanel.chooseChange(shift),
     changeShift: () => careerPanel.changeShift(),
+    goToWork: () => careerPanel.goToWork(),
+    // The review window itself arrives with its own module; until it is
+    // created the i has nothing to open.
+    openReviewGraph: opener => careerReview.open?.(opener),
   });
   const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
     () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);

@@ -1,7 +1,11 @@
 import { setActionIntent } from './action-intent.js';
-import type { CareerFactors, CareerReport, CareerResult, CareerShift, CareerWeek } from '../bridge.js';
+import type {
+  CareerFactors, CareerReport, CareerResult, CareerShift, CareerShiftInputs, CareerWeek, GoToWorkState, GoToWorkStatus,
+} from '../bridge.js';
 import { careerGraphKey, renderCareerGraph, type CareerGraphThresholds } from './career-graph.js';
-import { formatCareerSchedule, formatShiftHours, shiftName, type CareerSchedule } from './game-hud.js';
+import {
+  WEEKDAY_NAMES, formatShiftHours, formatTimeOfDay, shiftName, type CareerSchedule,
+} from './game-hud.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
 // The Career section of Sim details - rule 18 of
@@ -24,6 +28,14 @@ export interface CareerPanelSource {
   careerReport(entity: number): CareerReport | null;
   careerHistory(entity: number): readonly CareerWeek[];
   careerFactors(entity: number): CareerFactors | null;
+  /** The inputs of the last scored shift, which the mood row reads. */
+  careerLastShift(entity: number): CareerShiftInputs | null;
+  /** What the Go to work box shows, or null when it cannot be read. */
+  goToWorkStatus(entity: number): GoToWorkStatus | null;
+  goToWork(entity: number): boolean;
+  /** The simulation clock in ticks and the weekday it falls on, 0 for Monday. */
+  clockTick(): number;
+  weekdayIndex(): number;
   careerAttendanceOf?(entity: number): readonly number[];
   careerPathLabels(): readonly string[];
   assignCareer(entity: number, path: number): boolean;
@@ -51,19 +63,48 @@ export function nightPayLine(night: NightPay): string {
   return `Night shifts pay ${night.percent}% more: $${(night.cents / 100).toFixed(2)} per shift.`;
 }
 
+/** One row of the facts grid; a wide row spans both columns. */
+export interface CareerFact {
+  readonly label: string;
+  readonly value: string;
+  readonly wide?: boolean;
+}
+
+/** One row of Score inputs: the name, a muted hint, the value and whether it helps the score. */
+export interface CareerInputRow {
+  readonly name: string;
+  readonly hint: string;
+  readonly value: string;
+  /** Null for a row with nothing to judge yet. */
+  readonly effect: 'help' | 'hurt' | 'none' | null;
+}
+
+/** What the Go to work box shows, every line already worded ([CT-work-state]). */
+export interface CareerWorkView {
+  readonly state: GoToWorkState;
+  readonly enabled: boolean;
+  /** The shift has started: the line reads in the warning style. */
+  readonly late: boolean;
+  readonly text: string;
+  readonly note: string;
+}
+
 /** What the section says about a held job, every line already worded. */
 export interface CareerJobView {
   readonly title: string;
   readonly pathLabel: string;
-  readonly level: string;
-  readonly pay: string;
+  /** `{path} path, level {n} of {m}`. */
+  readonly subtitle: string;
+  /** The held shift's name, days and hours, or the job title when they cannot be read. */
   readonly schedule: string;
-  readonly weekSoFar: string;
-  readonly lastReview: string;
+  readonly facts: readonly CareerFact[];
+  /** A night worker's premium sentence, shown under the facts. */
+  readonly nightNote: string | null;
   readonly attendance?: string | null;
-  readonly factors: readonly string[];
+  readonly inputs: readonly CareerInputRow[];
+  /** The Go to work box, or null when there is nothing to show. */
+  readonly work?: CareerWorkView | null;
   readonly streaks: string;
-  readonly nextPromotion: string;
   readonly warning: string | null;
   readonly weeks: readonly CareerWeek[];
   readonly thresholds: CareerGraphThresholds;
@@ -176,26 +217,119 @@ function percent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+/** Two decimals with an explicit sign; a value that rounds to zero reads +0.00, never -0.00. */
 function signed(value: number): string {
   const rounded = Math.round(value * 100) / 100;
-  return rounded > 0 ? `+${rounded}` : String(rounded);
+  return `${rounded < 0 ? '-' : '+'}${Math.abs(rounded).toFixed(2)}`;
 }
 
-/** The factor lines, each naming what it measures. */
-export function careerFactorLines(factors: CareerFactors): string[] {
+/** Helps above zero, Hurts below it, No effect at zero, judged after rounding to two decimals. */
+function effectOf(value: number): 'help' | 'hurt' | 'none' {
+  const rounded = Math.round(value * 100) / 100;
+  return rounded > 0 ? 'help' : rounded < 0 ? 'hurt' : 'none';
+}
+
+/**
+ * The Score inputs rows: fit, trait fit, social capacity, skill mastery and
+ * the mood of the last shift. Fit, trait fit and mastery read the person now;
+ * mood reads the last scored shift, and says so until there is one.
+ */
+export function careerInputRows(factors: CareerFactors, last: CareerShiftInputs | null): CareerInputRow[] {
+  const mastery = Math.round(factors.mastery * 100);
   return [
-    `Fit ${signed(factors.fit)} (from -1 to 1)`,
-    `Trait fit ${signed(factors.traitFit)}`,
-    `Social capacity ${percent(factors.socialCapacity)} against the job's ${percent(factors.socialDemand)}`,
-    `Skill mastery ${percent(factors.mastery)}`,
-    `Mood on the last shift ${signed(factors.mood)}`,
+    { name: 'Fit', hint: '(from -1 to 1)', value: signed(factors.fit), effect: effectOf(factors.fit) },
+    { name: 'Trait fit', hint: '(part of fit)', value: signed(factors.traitFit), effect: effectOf(factors.traitFit) },
+    { name: `Social capacity ${percent(factors.socialCapacity)}`, hint: `(job needs ${percent(factors.socialDemand)})`,
+      value: '', effect: factors.socialCapacity >= factors.socialDemand ? 'none' : 'hurt' },
+    { name: 'Skill mastery', hint: '(50% is neutral)', value: `${mastery}%`,
+      effect: mastery > 50 ? 'help' : mastery < 50 ? 'hurt' : 'none' },
+    last === null
+      ? { name: 'Mood on the last shift', hint: '', value: 'No shift yet', effect: null }
+      : { name: 'Mood on the last shift', hint: '', value: signed(last.mood), effect: effectOf(last.mood) },
   ];
+}
+
+/** `1 hour 20 minutes`, `35 minutes`, `2 hours`. A tick is a minute at the shipped day length. */
+export function careerDurationWords(minutes: number): string {
+  const total = Math.round(minutes);
+  if (total < 1) return 'less than a minute';
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  const parts: string[] = [];
+  if (hours > 0) parts.push(hours === 1 ? '1 hour' : `${hours} hours`);
+  if (rest > 0) parts.push(rest === 1 ? '1 minute' : `${rest} minutes`);
+  return parts.join(' ');
+}
+
+/** The Go to work window in words: `two hours` at the shipped 120, otherwise whole hours or minutes. */
+export function careerWindowWords(minutes: number): string {
+  if (minutes === 120) return 'two hours';
+  if (minutes % 60 === 0) return minutes === 60 ? '1 hour' : `${minutes / 60} hours`;
+  return `${minutes} minutes`;
+}
+
+/** What `careerWorkView` needs to word the box besides the status. */
+export interface CareerWorkContext {
+  readonly now: number;
+  readonly dayTicks: number;
+  /** The weekday the clock is on, 0 for Monday. */
+  readonly weekday: number;
+  readonly shiftKind: number | null | undefined;
+  /** The held shift's schedule line, which the box repeats while the command does not apply. */
+  readonly schedule: string;
+}
+
+// [CT-strings] S-note and the box's other lines. Functional text, for the owner's review.
+export const GO_TO_WORK_NOTE = 'Stops what they are doing and leaves now, even with low needs.';
+
+/**
+ * Words the Go to work box from the simulation's status ([CT-work-state]).
+ * Null hides it: no job, or a status the shell cannot read. A tick is a
+ * minute at the shipped day length; `dayTicks` scales it to the clock.
+ */
+export function careerWorkView(status: GoToWorkStatus | null, context: CareerWorkContext): CareerWorkView | null {
+  if (status === null || status.state === 'none') return null;
+  const { now, dayTicks, weekday, shiftKind, schedule } = context;
+  if (!Number.isFinite(dayTicks) || dayTicks <= 0) return null;
+  const minutes = (ticks: number) => (ticks * 1440) / dayTicks;
+  const clock = (tick: number) => formatTimeOfDay(tick % dayTicks, dayTicks);
+  const view = (enabled: boolean, text: string, note: string, late = false): CareerWorkView =>
+    ({ state: status.state, enabled, late, text, note });
+  const { startTick, endTick, opensTick } = status;
+  switch (status.state) {
+    case 'due':
+      if (startTick === null) return null;
+      return view(true, `${shiftName(shiftKind) ?? 'Shift'} starts at ${clock(startTick)}, in ${careerDurationWords(minutes(startTick - now))}.`,
+        GO_TO_WORK_NOTE);
+    case 'late':
+      if (startTick === null) return null;
+      return view(true, `Started at ${clock(startTick)}, ${careerDurationWords(minutes(now - startTick))} ago. `
+        + 'Time before they arrive counts as missed work.', GO_TO_WORK_NOTE, true);
+    case 'early': {
+      if (startTick === null || endTick === null || opensTick === null) {
+        return view(false, 'No shift in the next seven days.', schedule);
+      }
+      const count = WEEKDAY_NAMES.length;
+      const day = ((weekday + Math.floor(startTick / dayTicks) - Math.floor(now / dayTicks)) % count + count) % count;
+      return view(false, `Next shift: ${WEEKDAY_NAMES[day]}, ${clock(startTick)} to ${clock(endTick)}.`,
+        `Go to work becomes available at ${clock(opensTick)}, `
+        + `${careerWindowWords(Math.round(minutes(startTick - opensTick)))} before the shift.`);
+    }
+    case 'atWork':
+      return endTick === null ? null : view(false, `At work until ${clock(endTick)}.`, schedule);
+    case 'outbound':
+      return view(false, 'On the way to work.', schedule);
+    case 'inbound':
+      return view(false, 'On the way home.', schedule);
+    default:
+      return null;
+  }
 }
 
 /**
  * Words one job. `title`, `pathLabel` and `schedule` come from the row the
  * Overview already shows; the rest from the report, the factors and the
- * reviewed weeks. A night worker's pay line gains the premium's sentence.
+ * reviewed weeks. A night worker gains the premium's sentence as a note.
  */
 export function careerJobView(
   title: string,
@@ -205,34 +339,36 @@ export function careerJobView(
   factors: CareerFactors | null,
   weeks: readonly CareerWeek[],
   night: NightPay | null = null,
+  lastShift: CareerShiftInputs | null = null,
 ): CareerJobView {
-  const weekSoFar = report.shifts === 0 || report.mean === null
-    ? 'No shifts completed this week.'
-    : `${report.shifts} ${report.shifts === 1 ? 'shift' : 'shifts'} this week, scoring ${Math.round(report.mean)} on average.`;
-  const lastReview = report.last === null
-    ? 'No review yet.'
-    : `Last review: ${Math.round(report.last)} of 100.`;
+  const count = report.shifts;
+  const thisWeek = count === 0 || report.mean === null
+    ? 'No shifts yet'
+    : `${count} ${count === 1 ? 'shift' : 'shifts'}, scoring ${Math.round(report.mean)}`;
   const streaks = report.good > 0
     ? `Good weeks in a row: ${report.good}.`
     : report.poor > 0
       ? `Poor weeks in a row: ${report.poor}.`
       : 'No streak running.';
-  const nextPromotion = report.level + 1 >= report.levels
-    ? 'At the top of this path.'
-    : `The next promotion needs ${report.advanceWeeks} good ${report.advanceWeeks === 1 ? 'week' : 'weeks'} in a row.`;
+  const promotion = report.level + 1 >= report.levels
+    ? 'At the top of this path'
+    : `${Math.min(report.good, report.advanceWeeks)} of ${report.advanceWeeks} good ${report.advanceWeeks === 1 ? 'week' : 'weeks'} in a row`;
   return {
     title,
     pathLabel,
-    level: `Level ${report.level + 1} of ${report.levels}`,
-    pay: night === null
-      ? `$${report.pay} per shift, from $${report.payMin} to $${report.payMax} at this level`
-      : `$${report.pay} per shift, from $${report.payMin} to $${report.payMax} at this level. ${nightPayLine(night)}`,
+    subtitle: `${pathLabel} path, level ${report.level + 1} of ${report.levels}`,
     schedule,
-    weekSoFar,
-    lastReview,
-    factors: factors === null ? [] : careerFactorLines(factors),
+    facts: [
+      { label: 'Shift', value: schedule, wide: true },
+      { label: 'Pay', value: `$${report.pay} per shift` },
+      { label: 'Pay range at this level', value: `$${report.payMin} to $${report.payMax}` },
+      { label: 'This week', value: thisWeek },
+      { label: 'Last review', value: report.last === null ? 'None yet' : `${Math.round(report.last)} of 100` },
+      { label: 'Promotion', value: promotion, wide: true },
+    ],
+    nightNote: night === null ? null : nightPayLine(night),
+    inputs: factors === null ? [] : careerInputRows(factors, lastShift),
     streaks,
-    nextPromotion,
     warning: report.warned ? CAREER_WARNING : null,
     weeks,
     thresholds: { poor: report.poorThreshold, good: report.goodThreshold },
@@ -244,15 +380,17 @@ const RESULT_TEXT: Readonly<Record<string, string>> = {
   assign: 'Career assigned.',
   quit: 'Job left.',
   shift: 'Shift changed.',
+  work: 'Left for work.',
 };
 
 const SENT_TEXT: Readonly<Record<string, string>> = {
   assign: 'Assigning the career…',
   quit: 'Leaving the job…',
   shift: 'Changing the shift…',
+  work: 'Sending them to work…',
 };
 
-type CareerCommand = 'assign' | 'quit' | 'shift';
+type CareerCommand = 'assign' | 'quit' | 'shift' | 'work';
 
 /** One pending UI command; `afterCommands` reads what the drain did with it. */
 export class CareerPanel {
@@ -372,13 +510,20 @@ export class CareerPanel {
       this.changeChoice = this.heldShift;
     }
     this.heldKey = heldKey;
-    const schedule = formatCareerSchedule(title, held, this.source.dayTicks());
+    const hours = held === null ? null : formatShiftHours(held, this.source.dayTicks());
+    const schedule = held === null || hours === null ? title : shiftWords(held.kind, hours);
     const nightCents = this.source.nightPayCentsOf?.(this.agent) ?? null;
     const percent = this.source.nightShiftPremiumPercent?.();
     const night = nightCents === null || percent === undefined ? null : { percent, cents: nightCents };
     this.job = careerJobView(title, this.paths[report.path], schedule, report,
-      this.source.careerFactors(this.agent), this.source.careerHistory(this.agent), night);
-    this.job = {...this.job, attendance: careerAttendanceLine(this.source.careerAttendanceOf?.(this.agent) ?? [])};
+      this.source.careerFactors(this.agent), this.source.careerHistory(this.agent), night,
+      this.source.careerLastShift(this.agent));
+    const work = careerWorkView(this.source.goToWorkStatus(this.agent), {
+      now: this.source.clockTick(), dayTicks: this.source.dayTicks(), weekday: this.source.weekdayIndex(),
+      shiftKind: held?.kind, schedule,
+    });
+    this.job = {...this.job, work,
+      attendance: careerAttendanceLine(this.source.careerAttendanceOf?.(this.agent) ?? [])};
   }
 
   choose(path: number | null): void {
@@ -413,6 +558,9 @@ export class CareerPanel {
 
   quit(): void { this.stage('quit'); }
 
+  /** Sends the person to work now ([CT-work-effect]); the drain decides whether it applies. */
+  goToWork(): void { this.stage('work'); }
+
   /** Sends the selected shift for the employed person ([WS-shell] item 4). */
   changeShift(): void {
     if (this.changeChoice !== null && this.changeChoice !== this.heldShift) this.stage('shift');
@@ -445,6 +593,7 @@ export class CareerPanel {
     let sent = false;
     if (command === 'quit') sent = this.source.quitCareer(this.agent);
     else if (command === 'shift') sent = change !== null && this.source.changeShift(this.agent, change);
+    else if (command === 'work') sent = this.source.goToWork(this.agent);
     else if (path !== null) {
       sent = shift === null ? this.source.assignCareer(this.agent, path)
         : this.source.assignCareerShift(this.agent, path, shift);
@@ -503,8 +652,36 @@ export interface CareerPanelRoots {
   readonly rowGraph?: HTMLElement;
 }
 
+/** What the surface asks of the panel; every action but the first four is optional for a surface built without it. */
+export interface CareerPanelActions {
+  choose(path: number | null): void;
+  assign(): void;
+  quit(): void;
+  setJobSearch(search: boolean): void;
+  chooseShift?(shift: number | null): void;
+  chooseChange?(shift: number | null): void;
+  changeShift?(): void;
+  /** Sends the person to work now. */
+  goToWork?(): void;
+  /** Opens the review window; `opener` takes focus back when it closes. */
+  openReviewGraph?(opener: HTMLButtonElement): void;
+}
+
+// [CT-strings] S-info, S-btn, S-inputs and S-eff. Functional text, for the owner's review.
+export const REVIEW_GRAPH_LABEL = 'Open the review graph. Pauses the game.';
+export const REVIEW_WINDOW_ID = 'career-graph-dialog';
+export const GO_TO_WORK_LABEL = 'Go to work';
+export const SCORE_INPUTS_HEADING = 'Score inputs';
+const EFFECT_TEXT = { help: 'Helps', hurt: 'Hurts', none: 'No effect' } as const;
+
 function line(doc: Document, className: string): HTMLParagraphElement {
   const node = doc.createElement('p');
+  node.className = className;
+  return node;
+}
+
+function span(doc: Document, className: string): HTMLSpanElement {
+  const node = doc.createElement('span');
   node.className = className;
   return node;
 }
@@ -512,17 +689,13 @@ function line(doc: Document, className: string): HTMLParagraphElement {
 /**
  * Builds the section's markup once and keeps it current from each state.
  * The graph is redrawn only when its weeks or thresholds change. The
- * Overview row's title takes the trend as `data-trend`, and its
- * information control shows a miniature of the same graph beneath the
- * row.
+ * title takes the trend as `data-trend`, here and on the Overview row, and
+ * the i beside it opens the review window.
  */
 export function createCareerPanelSurface(
   doc: Document,
   roots: CareerPanelRoots,
-  actions: {
-    choose(path: number | null): void; assign(): void; quit(): void; setJobSearch(search: boolean): void;
-    chooseShift?(shift: number | null): void; chooseChange?(shift: number | null): void; changeShift?(): void;
-  },
+  actions: CareerPanelActions,
 ): (state: CareerPanelState) => void {
   const { section, empty, content } = roots;
   const heading = doc.createElement('div');
@@ -533,29 +706,43 @@ export function createCareerPanelSurface(
   info.type = 'button';
   info.className = 'career-info';
   info.textContent = 'i';
-  info.setAttribute('aria-label', 'Show the review graph');
-  info.setAttribute('aria-expanded', 'false');
-  info.setAttribute('aria-controls', 'career-tab-mini-graph');
-  heading.append(title, info);
-  const path = line(doc, 'career-path');
-  const level = line(doc, 'career-level');
-  const pay = line(doc, 'career-pay');
-  const schedule = line(doc, 'career-schedule');
-  const week = line(doc, 'career-week');
-  const lastReview = line(doc, 'career-last-review');
+  // The window is a dialog, not a disclosure: the i has no expanded state.
+  info.setAttribute('aria-label', REVIEW_GRAPH_LABEL);
+  info.setAttribute('aria-haspopup', 'dialog');
+  info.setAttribute('aria-controls', REVIEW_WINDOW_ID);
+  // Shown by hover and keyboard focus through CSS; the button's own name
+  // already says it, so assistive technology skips the visible copy.
+  const infoTip = span(doc, 'career-info-tip');
+  infoTip.setAttribute('role', 'tooltip');
+  infoTip.setAttribute('aria-hidden', 'true');
+  infoTip.textContent = REVIEW_GRAPH_LABEL;
+  heading.append(title, info, infoTip);
+  const subtitle = line(doc, 'career-sub');
+  // The Go to work box: the command beside what it is about to do.
+  const work = doc.createElement('div');
+  work.className = 'career-work';
+  work.setAttribute('tabindex', '-1');
+  const workButton = doc.createElement('button');
+  workButton.type = 'button';
+  workButton.className = 'career-work-button';
+  workButton.textContent = GO_TO_WORK_LABEL;
+  setActionIntent(workButton, 'affirmative');
+  const workText = line(doc, 'career-work-text');
+  const workNote = line(doc, 'career-work-note');
+  work.append(workButton, workText, workNote);
+  const facts = doc.createElement('div');
+  facts.className = 'career-facts';
+  const nightNote = line(doc, 'career-night');
   const attendance = line(doc, 'career-attendance');
-  const factorsHeading = doc.createElement('p');
-  factorsHeading.className = 'career-factors-heading';
-  factorsHeading.textContent = 'What the score reads';
-  const factors = doc.createElement('ul');
-  factors.className = 'career-factors';
+  const inputsHeading = line(doc, 'career-inputs-heading');
+  inputsHeading.textContent = SCORE_INPUTS_HEADING;
+  const inputs = doc.createElement('div');
+  inputs.className = 'career-inputs';
   const streaks = line(doc, 'career-streaks');
-  const nextPromotion = line(doc, 'career-next');
   const warning = line(doc, 'career-warning');
-  const graphHeading = doc.createElement('p');
-  graphHeading.className = 'career-graph-heading';
+  const graphHeading = line(doc, 'career-graph-heading');
   graphHeading.textContent = 'Reviews';
-  // Each graph is one picture to assistive technology (`role="img"`), named
+  // The graph is one picture to assistive technology (`role="img"`), named
   // Reviewed weeks; the markers' titles are hover tooltips, and the lines
   // of text above say what the graph shows.
   const graph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -564,12 +751,6 @@ export function createCareerPanelSurface(
   graph.setAttribute('aria-label', 'Reviewed weeks');
   const noReviews = line(doc, 'career-no-reviews');
   noReviews.textContent = 'No reviews yet.';
-  const miniGraph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  miniGraph.setAttribute('class', 'career-graph career-graph-mini');
-  miniGraph.setAttribute('id', 'career-tab-mini-graph');
-  miniGraph.setAttribute('role', 'img');
-  miniGraph.setAttribute('aria-label', 'Reviewed weeks');
-  miniGraph.setAttribute('hidden', '');
   const fieldset = doc.createElement('fieldset');
   fieldset.className = 'career-controls';
   const legend = doc.createElement('legend');
@@ -648,10 +829,8 @@ export function createCareerPanelSurface(
   searchLabel.append(searchBox, searchText);
   const status = doc.createElement('p');
   status.setAttribute('role', 'status');
-  // The miniature sits under the heading its control belongs to, so
-  // pressing i changes what is on screen wherever the tab is scrolled.
-  content.append(heading, miniGraph, path, level, pay, schedule, week, lastReview, attendance, factorsHeading, factors,
-    streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, change, searchLabel, status);
+  content.append(heading, subtitle, work, facts, nightNote, attendance, inputsHeading, inputs, graphHeading, graph,
+    noReviews, streaks, warning, fieldset, change, searchLabel, status);
 
   const options: HTMLOptionElement[] = [];
   const shiftOptions: HTMLOptionElement[] = [];
@@ -670,8 +849,19 @@ export function createCareerPanelSurface(
       setTextIfChanged(option, row.text);
     }
   };
+  /** Keeps `host` holding one element per entry, built by `make` and refreshed by `update`. */
+  const keep = <T>(host: HTMLElement, rows: readonly T[], make: () => HTMLElement, update: (node: HTMLElement, row: T) => void) => {
+    while (host.children.length > rows.length) host.lastElementChild!.remove();
+    for (const [index, row] of rows.entries()) {
+      let node = host.children.item(index) as HTMLElement | null;
+      if (!node) {
+        node = make();
+        host.append(node);
+      }
+      update(node, row);
+    }
+  };
   let drawn = '';
-  let miniOpen = false;
   let rowMiniOpen = false;
   let wasPending = false;
   // The control that sent the pending command, which takes focus back once
@@ -688,12 +878,7 @@ export function createCareerPanelSurface(
     if (!roots.rowGraph.id) roots.rowGraph.id = 'career-row-graph';
     roots.rowInfo?.setAttribute('aria-controls', roots.rowGraph.id);
   }
-  info.addEventListener('click', () => {
-    miniOpen = !miniOpen;
-    info.setAttribute('aria-expanded', String(miniOpen));
-    if (miniOpen) miniGraph.removeAttribute('hidden');
-    else miniGraph.setAttribute('hidden', '');
-  });
+  info.addEventListener('click', () => actions.openReviewGraph?.(info));
   roots.rowInfo?.addEventListener('click', () => {
     rowMiniOpen = !rowMiniOpen;
     roots.rowInfo?.setAttribute('aria-expanded', String(rowMiniOpen));
@@ -702,6 +887,7 @@ export function createCareerPanelSurface(
   select.addEventListener('change', () => actions.choose(select.value === '' ? null : Number(select.value)));
   assign.addEventListener('click', () => { sender = assign; actions.assign(); });
   quit.addEventListener('click', () => { sender = quit; actions.quit(); });
+  workButton.addEventListener('click', () => { sender = workButton; actions.goToWork?.(); });
   searchBox.addEventListener('change', () => actions.setJobSearch(searchBox.checked));
   shiftSelect.addEventListener('change', () =>
     actions.chooseShift?.(shiftSelect.value === '' ? null : Number(shiftSelect.value)));
@@ -712,20 +898,24 @@ export function createCareerPanelSurface(
   /**
    * Returns focus to the control that sent the settled command. A sender the
    * result disabled or hid hands focus to its nearest usable neighbor: Change
-   * shift to its selector, Assign and Quit to the path list.
+   * shift to its selector, Go to work to its box, Assign and Quit to the path
+   * list.
    */
   const settleFocus = () => {
-    const usable = (node: HTMLSelectElement | HTMLButtonElement) =>
-      !node.disabled && !node.hidden && (!change.contains(node) || !change.hidden)
+    const usable = (node: HTMLElement) =>
+      !(node as HTMLButtonElement).disabled && !node.hidden && (!change.contains(node) || !change.hidden)
       && (node !== select || select.options.length > 1);
-    const candidates: (HTMLSelectElement | HTMLButtonElement)[] = sender === changeButton
+    const candidates: HTMLElement[] = sender === changeButton
       ? [changeButton, changeSelect, select]
-      : sender === assign || sender === quit ? [sender, select] : [select];
+      : sender === workButton ? [workButton, work]
+        : sender === assign || sender === quit ? [sender, select] : [select];
     candidates.find(usable)?.focus();
   };
 
   return state => {
-    const focusedHere = fieldset.contains(doc.activeElement) || change.contains(doc.activeElement);
+    const focusedHere = fieldset.contains(doc.activeElement) || change.contains(doc.activeElement)
+      || work.contains(doc.activeElement);
+    const workWasFocused = doc.activeElement === workButton;
     const job = state.job;
     section.dataset.state = state.agent === null ? 'unselected' : state.unavailable ? 'unavailable' : job ? 'employed' : 'unemployed';
     setTextIfChanged(empty, state.agent === null ? 'Select a person to see their career.'
@@ -734,35 +924,54 @@ export function createCareerPanelSurface(
     const detail = job !== null;
     attendance.hidden = !job?.attendance;
     setTextIfChanged(attendance, job?.attendance ?? '');
-    for (const node of [heading, path, level, pay, schedule, week, lastReview, factorsHeading, factors, streaks, nextPromotion, graphHeading]) {
+    for (const node of [heading, subtitle, facts, inputsHeading, inputs, streaks, graphHeading]) {
       node.hidden = !detail;
     }
+    const view = job?.work ?? null;
+    work.hidden = view === null;
     if (job) {
       setTextIfChanged(title, job.title);
       title.dataset.trend = job.trend === 1 ? 'up' : job.trend === -1 ? 'down' : 'level';
-      setTextIfChanged(path, `Path: ${job.pathLabel}`);
-      setTextIfChanged(level, job.level);
-      setTextIfChanged(pay, job.pay);
-      setTextIfChanged(schedule, job.schedule);
-      setTextIfChanged(week, job.weekSoFar);
-      setTextIfChanged(lastReview, job.lastReview);
-      while (factors.children.length > job.factors.length) factors.lastElementChild!.remove();
-      for (const [index, text] of job.factors.entries()) {
-        let item = factors.children.item(index) as HTMLElement | null;
-        if (!item) {
-          item = doc.createElement('li');
-          factors.append(item);
-        }
-        setTextIfChanged(item, text);
+      setTextIfChanged(subtitle, job.subtitle);
+      keep(facts, job.facts, () => {
+        const row = doc.createElement('div');
+        row.append(span(doc, 'career-fact-label'), span(doc, 'career-fact-value'));
+        return row;
+      }, (node, fact) => {
+        node.className = fact.wide ? 'career-fact-wide' : '';
+        setTextIfChanged(node.children.item(0) as HTMLElement, fact.label);
+        setTextIfChanged(node.children.item(1) as HTMLElement, fact.value);
+      });
+      setTextIfChanged(nightNote, job.nightNote ?? '');
+      nightNote.hidden = job.nightNote === null;
+      keep(inputs, job.inputs, () => {
+        const row = doc.createElement('div');
+        const name = span(doc, 'career-input-label');
+        name.append(span(doc, 'career-input-name'), span(doc, 'career-hint'));
+        row.append(name, span(doc, 'career-input-value'), span(doc, 'career-effect'));
+        return row;
+      }, (node, input) => {
+        const name = node.children.item(0) as HTMLElement;
+        // A trailing space keeps the name and its hint apart for a reader.
+        setTextIfChanged(name.children.item(0) as HTMLElement, input.hint === '' ? input.name : `${input.name} `);
+        setTextIfChanged(name.children.item(1) as HTMLElement, input.hint);
+        setTextIfChanged(node.children.item(1) as HTMLElement, input.value);
+        const effect = node.children.item(2) as HTMLElement;
+        setTextIfChanged(effect, input.effect === null ? '' : EFFECT_TEXT[input.effect]);
+        if (input.effect === null) delete effect.dataset.effect;
+        else effect.dataset.effect = input.effect;
+      });
+      if (view) {
+        setTextIfChanged(workText, view.text);
+        workText.className = view.late ? 'career-work-text career-work-late' : 'career-work-text';
+        setTextIfChanged(workNote, view.note);
       }
       setTextIfChanged(streaks, job.streaks);
-      setTextIfChanged(nextPromotion, job.nextPromotion);
       setTextIfChanged(warning, job.warning ?? '');
       warning.hidden = job.warning === null;
       const key = careerGraphKey(job.weeks, job.thresholds);
       if (key !== drawn) {
         renderCareerGraph(doc, graph, job.weeks, job.thresholds);
-        renderCareerGraph(doc, miniGraph, job.weeks, job.thresholds);
         if (rowGraphSvg) renderCareerGraph(doc, rowGraphSvg, job.weeks, job.thresholds);
         drawn = key;
       }
@@ -770,19 +979,14 @@ export function createCareerPanelSurface(
       graph.toggleAttribute('hidden', !reviewed);
       noReviews.hidden = !reviewed ? false : true;
       info.hidden = !reviewed;
-      if (!reviewed) {
-        miniOpen = false;
-        info.setAttribute('aria-expanded', 'false');
-        miniGraph.setAttribute('hidden', '');
-      }
+      infoTip.hidden = !reviewed;
     } else {
+      nightNote.hidden = true;
       warning.hidden = true;
       graph.setAttribute('hidden', '');
       noReviews.hidden = true;
-      miniGraph.setAttribute('hidden', '');
       info.hidden = true;
-      miniOpen = false;
-      info.setAttribute('aria-expanded', 'false');
+      infoTip.hidden = true;
       drawn = '';
     }
     if (roots.rowTitle) {
@@ -814,6 +1018,10 @@ export function createCareerPanelSurface(
     // back to the page; the controls take focus back once the command
     // settles, as the sleeping place controls do.
     if (focusedHere && disabled && doc.activeElement !== section) section.focus();
+    workButton.disabled = disabled || !(view?.enabled ?? false);
+    // A button disabled by a state change, not by a pending command, hands
+    // its focus to the box that still says what is happening.
+    if (workWasFocused && workButton.disabled && !state.pending && doc.activeElement === workButton) work.focus();
     fieldset.disabled = disabled;
     select.disabled = state.paths.length === 0;
     const assignShifts = state.assignShifts ?? [];
