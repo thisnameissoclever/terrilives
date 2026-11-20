@@ -4134,6 +4134,39 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// What the Go to work box shows for the person carrying `index` at the
+    /// current tick (`careers::go_to_work_status`), or `None` for anything
+    /// but a living person.
+    pub fn go_to_work_status(&self, index: u32) -> Option<careers::WorkStatus> {
+        let entity = self.person_at(index)?;
+        let now = self.world.get_resource::<terri_core::SimClock>()?.tick;
+        Some(careers::go_to_work_status(&self.world, entity, now))
+    }
+
+    /// The ticks before a shift's start from which Go to work applies: the
+    /// pack's knob, `go_to_work_window_ticks`.
+    pub fn go_to_work_window_ticks(&self) -> u32 {
+        self.world
+            .get_resource::<Content>()
+            .map_or(0, |content| content.0.tuning.go_to_work_window_ticks)
+    }
+
+    /// The weekly score inputs of the person carrying `index`
+    /// (`careers::input_history`); empty without any.
+    pub fn career_input_history(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::input_history(&self.world, entity))
+            .unwrap_or_default()
+    }
+
+    /// The inputs of the last shift scored for the person carrying `index`
+    /// (`careers::last_shift_inputs`); empty before one.
+    pub fn career_last_shift(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::last_shift_inputs(&self.world, entity))
+            .unwrap_or_default()
+    }
+
     /// The factors behind the shift score of the person carrying `index`
     /// (`careers::factors`), or `None` without a job.
     pub fn career_factors(&self, index: u32) -> Option<[f32; 6]> {

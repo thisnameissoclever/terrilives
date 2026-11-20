@@ -2029,6 +2029,75 @@ pub fn history(world: &World, entity: Entity) -> Vec<f32> {
         .unwrap_or_default()
 }
 
+/// [CT-web] item 3: the weekly score inputs of `entity`, oldest week first,
+/// fourteen numbers a row: `[week, career, path, level, shifts, attended,
+/// fit, trait_fit, social_capacity, social_demand, mastery, mood,
+/// missed_minutes, pay]`. The path, level and the job's social demand come
+/// from the career row the week was held at. A row naming no known career
+/// row is left out; saves never hold one. Empty without a record.
+pub fn input_history(world: &World, entity: Entity) -> Vec<f32> {
+    let Some(sim) = world.get::<SimId>(entity) else {
+        return Vec::new();
+    };
+    let Some(pack) = world.get_resource::<Content>().map(|content| content.0) else {
+        return Vec::new();
+    };
+    let Some(record) = world
+        .get_resource::<Careers>()
+        .and_then(|careers| careers.record(*sim))
+    else {
+        return Vec::new();
+    };
+    record
+        .input_weeks
+        .iter()
+        .filter_map(|week| {
+            let job = pack.careers.get(week.career as usize)?;
+            Some([
+                week.week as f32,
+                week.career as f32,
+                job.path as f32,
+                job.level as f32,
+                week.shifts as f32,
+                week.attended as f32,
+                week.fit,
+                week.trait_fit,
+                week.social_capacity,
+                job.social_demand,
+                week.mastery,
+                week.mood,
+                week.missed_minutes,
+                week.pay as f32,
+            ])
+        })
+        .flatten()
+        .collect()
+}
+
+/// [CT-web] item 4: the inputs of the last scored shift of `entity`, as
+/// `[fit, trait_fit, social_capacity, mastery, mood, missed_minutes,
+/// attended]` with attended 1 or 0. Empty before a shift has been scored.
+pub fn last_shift_inputs(world: &World, entity: Entity) -> Vec<f32> {
+    let Some(sim) = world.get::<SimId>(entity) else {
+        return Vec::new();
+    };
+    world
+        .get_resource::<Careers>()
+        .and_then(|careers| careers.record(*sim))
+        .and_then(|record| record.last_shift)
+        .map_or_else(Vec::new, |last| {
+            vec![
+                last.fit,
+                last.trait_fit,
+                last.social_capacity,
+                last.mastery,
+                last.mood,
+                last.missed_minutes,
+                f32::from(u8::from(last.attended)),
+            ]
+        })
+}
+
 #[cfg(test)]
 #[path = "career_inputs_tests.rs"]
 mod career_inputs_tests;
