@@ -83,3 +83,18 @@ Rechecked on 2026-11-20 against the dev server serving `03bd42ae0` (served `care
 
 **Limit.** The touch result depends on Chrome's emulated mouse position; a real phone was not tested.
 
+## Second recheck, commit 52a0a9d5c
+
+Rechecked on 2026-11-20 against the dev server serving `52a0a9d5c` (served `career-graph-modal.ts` and the new `index.html` rules matched the worktree).
+
+| File | Viewport | Recheck | Result |
+| --- | --- | --- | --- |
+| `p-04-window-week3-details.png` | phone, touch | D2 with the emulated mouse resting over the chart | Pass. The tap on week 3 selected it and it stayed; Next week went to week 4, Previous week twice to week 2, Hide details closed it and the hint returned. |
+| `p-07-window-keyboard.png` | phone, touch | D2 keyboard | Pass. Focus and Left arrow chose week 4, then week 3. |
+| `pm-05-mouse-next-week.png`, `pm-06-mouse-hide-details.png` | phone, mouse | D2 mouse | Pass. Clicked week 2, moved across weeks 4, 5 and 1 and off the chart: week 2 stayed chosen. Next week then went to week 3, Previous week back to week 2, Hide details closed it; focus and Left arrow chose week 4. |
+| all phone stills above | phone | hint | Pass. The score chart stayed at the same position (291 pixels with touch, 310 without) with and without a chosen week; the hint's line stays as blank space. |
+| none (measured) | desktop | hover preview | Pass. Clicked week 2, hovered week 4 (preview showed week 4), moved off: week 2 came back. |
+| `d-10-window-tooltip-poor-week.png`, `d-10b-window-tooltip-week5-all-inputs.png`, `d-10c-window-tooltip-week4-all-inputs.png` | desktop | N1, all seven inputs, weeks 1, 5 (right edge) and 4 | Pass. The 420 pixel tooltip sits beside the point (right of week 1, left of weeks 4 and 5), never over the hovered point, inside the window, and no label or value wraps (measured and seen). It does cover neighbouring weeks' points and the line between them. |
+
+D2 and N1 are fixed. Layout check on these states: no page overflow, only the two Career fieldset leading-space findings seen before. No guide image shows the review window tooltip or the phone details, so the guide images were not changed in this recheck.
+
