@@ -4,7 +4,9 @@ import type {
   GoToWorkStatus,
 } from '../bridge.js';
 import { CareerGraph, careerGraphKey, renderCareerGraph } from './career-graph.js';
-import { withEventTitles, type CareerGraphThresholds, type CareerGraphWeek } from './career-graph-words.js';
+import {
+  signedTwoDecimals, withEventTitles, type CareerGraphThresholds, type CareerGraphWeek,
+} from './career-graph-words.js';
 import {
   WEEKDAY_NAMES, formatShiftHours, formatTimeOfDay, shiftName, type CareerSchedule,
 } from './game-hud.js';
@@ -223,11 +225,7 @@ function percent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
-/** Two decimals with an explicit sign; a value that rounds to zero reads +0.00, never -0.00. */
-function signed(value: number): string {
-  const rounded = Math.round(value * 100) / 100;
-  return `${rounded < 0 ? '-' : '+'}${Math.abs(rounded).toFixed(2)}`;
-}
+const signed = signedTwoDecimals;
 
 /** Helps above zero, Hurts below it, No effect at zero, judged after rounding to two decimals. */
 function effectOf(value: number): 'help' | 'hurt' | 'none' {

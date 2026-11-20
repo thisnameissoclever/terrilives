@@ -39,6 +39,9 @@ export class FakeNode {
   listeners = new Map<string, Listener[]>();
   style = new FakeStyle();
   rect = { left: 0, top: 0, width: 0, height: 0 };
+  /** False models a node inside a hidden ancestor: it has no boxes. */
+  rendered = true;
+  isConnected = true;
   private text = '';
 
   constructor(readonly tagName: string, readonly document: FakeDocument) {}
@@ -84,7 +87,11 @@ export class FakeNode {
       preventDefault() { event.defaultPrevented = true; },
       stopPropagation() { event.propagationStopped = true; },
     };
-    for (const listener of this.listeners.get(type) ?? []) listener(event);
+    // Pointer, key and click events rise through the ancestors, as they do in a page.
+    const rises = ['click', 'keydown', 'pointermove', 'change'].includes(type);
+    for (let node: FakeNode | null = this; node !== null; node = rises && !event.propagationStopped ? node.parent : null) {
+      for (const listener of node.listeners.get(type) ?? []) listener(event);
+    }
     return event;
   }
   click() { this.dispatch('click'); }
@@ -97,6 +104,7 @@ export class FakeNode {
   }
   blur() { if (this.document.activeElement === this) { this.document.activeElement = null; this.dispatch('blur'); } }
   getBoundingClientRect() { return { ...this.rect, right: this.rect.left + this.rect.width, bottom: this.rect.top + this.rect.height }; }
+  getClientRects() { return this.rendered ? [this.getBoundingClientRect()] : []; }
   showModal() { this.open = true; this.document.modals.push(this); }
   close() {
     if (!this.open) return;
@@ -108,7 +116,9 @@ export class FakeNode {
   matches(simple: string): boolean {
     const attributes = [...simple.matchAll(/\[([a-z-]+)(?:="([^"]*)")?\]/g)];
     const rest = simple.replace(/\[[^\]]*\]/g, '');
-    const [tag, ...classes] = rest.split('.');
+    const [selectorPart, id] = rest.split('#');
+    const [tag, ...classes] = selectorPart.split('.');
+    if (id !== undefined && id !== this.id) return false;
     if (tag && tag !== this.tagName) return false;
     if (!classes.every(cls => this.classes().includes(cls))) return false;
     return attributes.every(([, key, expected]) =>
@@ -116,12 +126,13 @@ export class FakeNode {
   }
   all(): FakeNode[] { return [this, ...this.nodes.flatMap(node => node.all())]; }
   querySelectorAll(selector: string): FakeNode[] {
-    return selector.split(',').flatMap(part => {
+    const found = new Set(selector.split(',').flatMap(part => {
       const [first, second] = part.trim().split(/\s+/);
       const heads = this.all().filter(node => node !== this && node.matches(first));
       if (!second) return heads;
       return heads.flatMap(head => head.all().filter(node => node !== head && node.matches(second)));
-    });
+    }));
+    return this.all().filter(node => found.has(node));
   }
   querySelector(selector: string): FakeNode | null { return this.querySelectorAll(selector)[0] ?? null; }
 }

@@ -362,7 +362,7 @@ Send a housemate to work from the Career tab, and read their weekly reviews in a
 
 ## [CT-questions] Open questions
 
-Decided on 2026-11-20 by the coordinator, following the owner's earlier rulings: every question below is decided as its recommendation, except [CT-q-phone], which stays open. A phone mockup of the review window must be drawn, reviewed and approved by the owner before the phone part of [T11].
+Decided on 2026-11-20 by the coordinator, following the owner's earlier rulings: every question below is decided as its recommendation. [CT-q-phone] was open until the owner approved the phone layout the same day.
 
 1. **[CT-q-asleep] Can a sleeping housemate be sent?** Decided as recommended (coordinator, 2026-11-20): yes; they wake and leave. The issue says "regardless of needs or anything else".
 2. **[CT-q-orders] What happens to their queued orders?** Decided as recommended (coordinator, 2026-11-20): cancelled, as Cancel orders does. Go to work is the newest instruction.
@@ -370,7 +370,7 @@ Decided on 2026-11-20 by the coordinator, following the owner's earlier rulings:
 4. **[CT-q-inbound] Someone on the way home while their shift is still open (sent home by an order)?** Decided as recommended (coordinator, 2026-11-20): disabled until they are home ("On the way home."); turning a walk around adds a path rule for little gain.
 5. **[CT-q-early-pay] Is the wait before the start paid?** Decided as recommended (coordinator, 2026-11-20): no; it counts as on time and earns nothing.
 6. **[CT-q-overview] What does the Overview row's i do?** Decided as recommended (coordinator, 2026-11-20): open the same window. The issue removes duplicates, and a third inline copy would remain otherwise.
-7. **[CT-q-phone] The review window's phone layout has no approved mockup.** Still open. Recommended: have a T1 or T2 agent produce a phone mockup, reviewed by `first-use-review`, and get the owner's approval before [T11]'s phone part; [CT-web] item 10 is the starting point.
+7. **[CT-q-phone] The review window's phone layout has no approved mockup.** Approved by the owner on 2026-11-20: `career-graph-modal-phone.html` with its renders `career-graph-modal-phone.png`, `-tapped.png`, `-filters.png` and `-full.png` in `D:/VIBES/.worktrees/mockups-career/`, with two changes to build: the tapped-week panel's pay row reads just "Pay per shift" (not "Also shown: ..."), and the "Tap a week for details." hint hides while a week's details are open. The Filters checkbox reads "Also show: Pay per shift" and sits below the score inputs ([CT-c-pay]).
 8. **[CT-q-resume] Which speed does closing the window restore?** Decided as recommended (coordinator, 2026-11-20): the speed chosen before opening, named in the pill; if the player had paused, it stays paused.
 9. **[CT-q-missed] Missed work's scale.** Decided as recommended (coordinator, 2026-11-20): weekly total, scale to the larger of the longest shift in view and the largest weekly total.
 10. **[CT-q-decimals] Number formats.** Decided as recommended (coordinator, 2026-11-20): two decimals for both fit and trait fit.

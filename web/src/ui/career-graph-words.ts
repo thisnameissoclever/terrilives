@@ -42,6 +42,12 @@ export function careerWeekKind(performance: number, thresholds: CareerGraphThres
   return performance < thresholds.poor ? 'poor' : 'steady';
 }
 
+/** Two decimals with an explicit sign; a value that rounds to zero reads +0.00, never -0.00. */
+export function signedTwoDecimals(value: number): string {
+  const rounded = Math.round(value * 100) / 100;
+  return `${rounded < 0 ? '-' : '+'}${Math.abs(rounded).toFixed(2)}`;
+}
+
 /** A threshold as the player reads it, a whole number. */
 export function careerThresholdText(value: number): string {
   return String(Math.round(value));
