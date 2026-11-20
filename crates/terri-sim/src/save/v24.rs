@@ -124,6 +124,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV24 {
         legacy: super::v23::capture(sim),
         career_inputs: rows(sim),
         queued_work_commands: queued_work_commands(sim),
+        replaced_shifts: crate::attendance::replaced_to_saved(sim.world()),
     }
 }
 
@@ -133,6 +134,7 @@ pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV24 {
         legacy: super::v23::capture_without_commands(sim),
         career_inputs: rows(sim),
         queued_work_commands: Vec::new(),
+        replaced_shifts: crate::attendance::replaced_to_saved(sim.world()),
     }
 }
 
@@ -344,7 +346,9 @@ fn validated(
 /// against the restored careers; any bad row refuses the whole save before
 /// the live world is touched. The queued Go to work commands then return
 /// to their positions among the commands it restored. A save holding more
-/// weeks than the current knob keeps keeps the newest ones.
+/// weeks than the current knob keeps keeps the newest ones. Each replaced
+/// attendance record is checked against the restored register and its
+/// outcomes before it is kept ([CT-work-guards] item 2).
 pub(crate) fn restore(
     snapshot: SaveSnapshotV24,
     content: &'static ContentPack,
@@ -359,6 +363,8 @@ pub(crate) fn restore(
     let mut candidate = super::v23::restore(snapshot.legacy, content, carried)?;
     let pack = candidate.world().resource::<Content>().0;
     let records = validated(&candidate, &rows, pack, &pack.tuning)?;
+    crate::attendance::validate_replaced(candidate.world(), &snapshot.replaced_shifts)?;
+    crate::attendance::restore_replaced(candidate.world_mut(), snapshot.replaced_shifts);
     {
         let mut careers = candidate.world_mut().resource_mut::<Careers>();
         for (id, record) in records {

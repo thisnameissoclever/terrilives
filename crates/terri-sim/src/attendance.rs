@@ -12,6 +12,10 @@ use terri_core::{
 pub struct Attendance {
     pub shifts: BTreeMap<SimId, SavedScheduledShift>,
     pub outcomes: Vec<SavedShiftOutcome>,
+    /// [CT-work-guards] item 2: the settled record a shift Go to work
+    /// registered before its start replaced, kept exactly as it was until
+    /// that shift starts, so removing the shift before then gives it back.
+    pub replaced: BTreeMap<SimId, SavedScheduledShift>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -191,19 +195,27 @@ pub(crate) fn account_and_settle(world: &mut World) {
         .collect();
     for sim in ids {
         let Some(actor) = entity_of(world, sim) else {
-            world.resource_mut::<Attendance>().shifts.remove(&sim);
+            let mut attendance = world.resource_mut::<Attendance>();
+            attendance.shifts.remove(&sim);
+            attendance.replaced.remove(&sim);
             continue;
         };
         let working = world.get::<AtWork>(actor).is_some();
         let expired = {
             let mut attendance = world.resource_mut::<Attendance>();
-            let shift = attendance.shifts.get_mut(&sim).unwrap();
+            let Attendance {
+                shifts, replaced, ..
+            } = &mut *attendance;
+            let shift = shifts.get_mut(&sim).unwrap();
             // [CT-work-guards]: a shift registered before its start by Go
             // to work accrues nothing, and its accounting stays at the
             // start, until the start.
             if shift.settled || now < shift.start_tick {
                 continue;
             }
+            // Once it has started it settles rather than being removed, so
+            // the record it replaced is no longer needed.
+            replaced.remove(&sim);
             let until = now.min(shift.end_tick);
             if working {
                 shift.worked_ticks += until.saturating_sub(shift.accounted_tick);
@@ -257,27 +269,16 @@ fn close_open_shift(world: &mut World, actor: Entity, scoring: Scoring) {
 }
 /// Removes the shift Go to work registered before its start. The register
 /// holds one record a person, so registering it replaced the shift settled
-/// before it; that record is rebuilt from the person's latest outcome, so
-/// the one-paid-shift-a-day rule keeps its history. Its pay is the pay the
-/// outcome settled, which no rule reads from a settled record.
+/// before it; that record comes back exactly as it was, so the
+/// one-paid-shift-a-day rule keeps its history and the record still
+/// matches its outcome when a later save loads. A person with no record
+/// before the registration is left with none.
 fn remove_pre_registered(world: &mut World, sim: SimId) {
     let mut attendance = world.resource_mut::<Attendance>();
     attendance.shifts.remove(&sim);
-    let Some(last) = attendance.outcomes.iter().rev().find(|o| o.sim == sim.0) else {
-        return;
-    };
-    let previous = SavedScheduledShift {
-        sim: sim.0,
-        career: last.career,
-        start_tick: last.start_tick,
-        end_tick: last.end_tick,
-        worked_ticks: last.worked_minutes as u64,
-        accounted_tick: last.end_tick,
-        pay_cents: last.pay_cents,
-        settled: true,
-        legacy: false,
-    };
-    attendance.shifts.insert(sim, previous);
+    if let Some(previous) = attendance.replaced.remove(&sim) {
+        attendance.shifts.insert(sim, previous);
+    }
 }
 fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
     let shift = {
@@ -508,10 +509,15 @@ pub(crate) fn register_before_start(world: &mut World, actor: Entity, start: u64
         &shift,
         start,
     );
-    world
-        .resource_mut::<Attendance>()
-        .shifts
-        .insert(sim, registered);
+    let mut attendance = world.resource_mut::<Attendance>();
+    // A settled record is kept aside until the registered shift starts
+    // ([CT-work-guards] item 2). An open record is never replaced here:
+    // its person would be due or late for it, not early.
+    if let Some(previous) = attendance.shifts.insert(sim, registered) {
+        if previous.settled {
+            attendance.replaced.insert(sim, previous);
+        }
+    }
 }
 
 /// Whether `actor` has a way out to the street, as a departure needs.
@@ -695,7 +701,20 @@ pub fn restore(world: &mut World, saved: SavedAttendance) {
             .map(|s| (SimId(s.sim), s))
             .collect(),
         outcomes: saved.outcomes,
+        replaced: BTreeMap::new(),
     });
+}
+/// The replaced settled records, ascending by person, for schema 24.
+pub fn replaced_to_saved(world: &World) -> Vec<SavedScheduledShift> {
+    world
+        .get_resource::<Attendance>()
+        .map_or_else(Vec::new, |a| a.replaced.values().cloned().collect())
+}
+/// Installs records [`validate_replaced`] accepted.
+pub fn restore_replaced(world: &mut World, saved: Vec<SavedScheduledShift>) {
+    ensure(world);
+    world.resource_mut::<Attendance>().replaced =
+        saved.into_iter().map(|s| (SimId(s.sim), s)).collect();
 }
 pub fn hash(world: &World, hash: &mut FnvHasher) {
     let Some(a) = world.get_resource::<Attendance>() else {
@@ -707,20 +726,35 @@ pub fn hash(world: &World, hash: &mut FnvHasher) {
     hash.write_bytes(b"attendance15");
     hash.write_u64(a.shifts.len() as u64);
     for s in a.shifts.values() {
-        for n in [
-            u64::from(s.sim),
-            u64::from(s.career),
-            s.start_tick,
-            s.end_tick,
-            s.worked_ticks,
-            s.accounted_tick,
-            s.pay_cents as u64,
-            u64::from(s.settled),
-            u64::from(s.legacy),
-        ] {
-            hash.write_u64(n)
+        hash_shift(s, hash);
+    }
+    hash_outcomes(a, hash);
+    // Schema 24's replaced records, only when there are any, so a world
+    // without Go to work hashes as before.
+    if !a.replaced.is_empty() {
+        hash.write_bytes(b"attendance-replaced-v1");
+        hash.write_u64(a.replaced.len() as u64);
+        for s in a.replaced.values() {
+            hash_shift(s, hash);
         }
     }
+}
+fn hash_shift(s: &SavedScheduledShift, hash: &mut FnvHasher) {
+    for n in [
+        u64::from(s.sim),
+        u64::from(s.career),
+        s.start_tick,
+        s.end_tick,
+        s.worked_ticks,
+        s.accounted_tick,
+        s.pay_cents as u64,
+        u64::from(s.settled),
+        u64::from(s.legacy),
+    ] {
+        hash.write_u64(n)
+    }
+}
+fn hash_outcomes(a: &Attendance, hash: &mut FnvHasher) {
     hash.write_u64(a.outcomes.len() as u64);
     for s in &a.outcomes {
         for n in [
@@ -1358,26 +1392,21 @@ fn registered_before_start(
         && shift.worked_ticks == 0
 }
 
-pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crate::SaveError> {
-    use crate::SaveError::InvalidValue;
+/// Whether `shift`, a saved record of a living person at a known career
+/// row, holds times, accounting and pay that row allows at `now`. Every
+/// record on the register passes, and so does every replaced record
+/// ([`validate_replaced`]).
+fn record_fits(world: &World, now: u64, shift: &SavedScheduledShift) -> bool {
     let pack = world.resource::<Content>().0;
-    let now = world.resource::<SimClock>().tick;
-    if saved.shifts.len() > 100_000
-        || saved.outcomes.len() > 100_000
-        || saved.shifts.windows(2).any(|p| p[0].sim >= p[1].sim)
-    {
-        return Err(InvalidValue);
-    }
-    for shift in &saved.shifts {
-        let Some(actor) = crate::edit::living_entity(world, shift.sim) else {
-            return Err(InvalidValue);
-        };
-        let Some(job) = pack.careers.get(shift.career as usize) else {
-            return Err(InvalidValue);
-        };
-        let start = shift.start_tick;
-        let duration = shift.end_tick.checked_sub(start);
-        if duration.is_none_or(|d| {
+    let Some(actor) = crate::edit::living_entity(world, shift.sim) else {
+        return false;
+    };
+    let Some(job) = pack.careers.get(shift.career as usize) else {
+        return false;
+    };
+    let start = shift.start_tick;
+    let duration = shift.end_tick.checked_sub(start);
+    !(duration.is_none_or(|d| {
             d == 0
                 || d > u64::from(longest_listed_shift(job))
                 || (!shift.legacy && !matches_a_listed_shift(job, &pack.tuning, start, d))
@@ -1394,13 +1423,30 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
                 shift.pay_cents > pay_ceiling_cents(job, &pack.tuning, start, d, shift.legacy)
             })
             || (!shift.settled && shift.end_tick <= now)
-            || (shift.settled
-                && (world.get::<AtWork>(actor).is_some()
-                    || world.get::<Commuting>(actor) == Some(&Commuting::Outbound)))
             || (!shift.settled
                 && world
                     .get::<Career>(actor)
-                    .is_none_or(|c| c.0 != shift.career))
+                    .is_none_or(|c| c.0 != shift.career)))
+}
+
+pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crate::SaveError> {
+    use crate::SaveError::InvalidValue;
+    let pack = world.resource::<Content>().0;
+    let now = world.resource::<SimClock>().tick;
+    if saved.shifts.len() > 100_000
+        || saved.outcomes.len() > 100_000
+        || saved.shifts.windows(2).any(|p| p[0].sim >= p[1].sim)
+    {
+        return Err(InvalidValue);
+    }
+    for shift in &saved.shifts {
+        let Some(actor) = crate::edit::living_entity(world, shift.sim) else {
+            return Err(InvalidValue);
+        };
+        if !record_fits(world, now, shift)
+            || (shift.settled
+                && (world.get::<AtWork>(actor).is_some()
+                    || world.get::<Commuting>(actor) == Some(&Commuting::Outbound)))
         {
             return Err(InvalidValue);
         }
@@ -1470,10 +1516,56 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
     }
     Ok(())
 }
+/// [CT-save]: refuses schema 24's replaced records unless each, ascending
+/// by person, belongs to someone whose shift registered by Go to work still
+/// waits for its start on the restored register, is settled, began before
+/// that shift, passes every check a record on the register passes and
+/// matches the outcome it settled to, as it did when it was replaced. A
+/// person waiting at work or on the way holds one, so the at-home check of
+/// a settled record on the register does not apply.
+pub fn validate_replaced(
+    world: &World,
+    saved: &[SavedScheduledShift],
+) -> Result<(), crate::SaveError> {
+    use crate::SaveError::InvalidValue;
+    let now = world.resource::<SimClock>().tick;
+    if saved.len() > 100_000 || saved.windows(2).any(|p| p[0].sim >= p[1].sim) {
+        return Err(InvalidValue);
+    }
+    let Some(attendance) = world.get_resource::<Attendance>() else {
+        return if saved.is_empty() {
+            Ok(())
+        } else {
+            Err(InvalidValue)
+        };
+    };
+    for shift in saved {
+        let Some(waiting) = attendance
+            .shifts
+            .get(&SimId(shift.sim))
+            .filter(|open| !open.settled && open.start_tick > now)
+        else {
+            return Err(InvalidValue);
+        };
+        let outcome = attendance
+            .outcomes
+            .iter()
+            .find(|o| o.sim == shift.sim && o.start_tick == shift.start_tick);
+        if !shift.settled
+            || shift.start_tick >= waiting.start_tick
+            || !record_fits(world, now, shift)
+            || !matching_settlement(shift, outcome)
+        {
+            return Err(InvalidValue);
+        }
+    }
+    Ok(())
+}
 /// Death removes attendance records along with the person's career record.
 pub(crate) fn forget(world: &mut World, sim: SimId) {
     if let Some(mut a) = world.get_resource_mut::<Attendance>() {
         a.shifts.remove(&sim);
+        a.replaced.remove(&sim);
         a.outcomes.retain(|s| s.sim != sim.0);
     }
 }

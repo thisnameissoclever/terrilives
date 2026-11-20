@@ -125,9 +125,9 @@ it.each(['new-game-day-one-noon', 'new-game-two-days-evening'])(
       expect(migrated.load_bytes(original)).toBe(true);
       const current = migrated.save_bytes();
       expect([...current.slice(8, 10)]).toEqual([24, 0]);
-      // Schemas 23 and 24 add three empty lists between them, one byte each.
-      expect(current.length).toBe(original.length + 3);
-      expect([...current.slice(-3)]).toEqual([0, 0, 0]);
+      // Schemas 23 and 24 add four empty lists between them, one byte each.
+      expect(current.length).toBe(original.length + 4);
+      expect([...current.slice(-4)]).toEqual([0, 0, 0, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }

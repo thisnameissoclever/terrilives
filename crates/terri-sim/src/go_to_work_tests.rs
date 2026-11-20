@@ -519,6 +519,7 @@ fn status_after_a_settled_shift_today_is_tomorrow() {
         )]
         .into(),
         outcomes: Vec::new(),
+        replaced: Default::default(),
     });
     at(&mut sim, end + 10);
     let day = day_ticks(&sim);
@@ -1018,17 +1019,10 @@ fn removing_a_not_started_shift_keeps_the_record_of_the_one_settled_today() {
         None,
         "quit"
     );
-    // The record is rebuilt from the outcome, so its pay is the settled pay.
-    let back = shift(&sim, actor).expect("today's record is back");
-    assert_eq!(
-        SavedScheduledShift {
-            pay_cents: settled.pay_cents,
-            ..back
-        },
-        settled,
-        "today's record is back"
-    );
-    assert_eq!(back.pay_cents, the_outcome(&sim).pay_cents);
+    // The record the registration replaced comes back exactly, its shift
+    // pay included, whatever the outcome paid
+    // (`go_to_work_removal_tests.rs` holds the saves).
+    assert_eq!(shift(&sim, actor), Some(settled), "today's record is back");
     assert_eq!(outcomes(&sim), 1, "nothing scored by the removal");
     // One paid shift a day: no other shift starts on the day that record
     // began, whatever its start time.
@@ -1251,3 +1245,6 @@ fn go_to_work_is_deterministic_and_draws_nothing() {
     };
     assert_eq!(run(), run());
 }
+
+#[path = "go_to_work_removal_tests.rs"]
+mod removal;

@@ -1,6 +1,7 @@
 //! The Career tab's score inputs and a queued Go to work extend schema
 //! twenty-three: issues 311 and 317
 //! (`docs/specs/2026-11-19-career-tab.md`, [CT-save]).
+use crate::save_v17::SavedScheduledShift;
 use crate::SaveSnapshotV23;
 use serde::{Deserialize, Serialize};
 
@@ -62,10 +63,16 @@ pub enum SavedQueuedWorkCommand {
 /// Schema twenty-four: the schema-twenty-three envelope, then each person's
 /// score inputs that hold any data, strictly ascending by person, then
 /// every queued Go to work with its position in the whole command queue,
-/// positions ascending. A save from before schema twenty-four has none.
+/// positions ascending, then each settled attendance record a shift Go to
+/// work registered before its start replaced, strictly ascending by person
+/// ([CT-work-guards] item 2). A save from before schema twenty-four has
+/// none of them.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV24 {
     pub legacy: SaveSnapshotV23,
     pub career_inputs: Vec<SavedCareerInputs>,
     pub queued_work_commands: Vec<(u32, SavedQueuedWorkCommand)>,
+    /// Kept while the registered shift waits for its start, so removing
+    /// that shift before then gives the record back exactly.
+    pub replaced_shifts: Vec<SavedScheduledShift>,
 }

@@ -69,6 +69,7 @@ pub(crate) fn current_from_v23(legacy: terri_core::SaveSnapshotV23) -> terri_cor
         legacy,
         career_inputs: Vec::new(),
         queued_work_commands: Vec::new(),
+        replaced_shifts: Vec::new(),
     }
 }
 macro_rules! current_view {

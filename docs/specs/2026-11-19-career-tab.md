@@ -79,7 +79,7 @@ At the drain, for a person in [CT-ws-due] or [CT-ws-late]:
 ### [CT-work-guards] Other code that must accept a pre-registered shift
 
 1. `attendance::validate_saved` refuses `start > now` today. It accepts a not-settled shift whose start is in the future only when `start - now <= go_to_work_window_ticks`, `accounted_tick == start_tick`, `worked_ticks == 0` and the shift is the person's current career. Older schemas can never contain one.
-2. `attendance::close_open_shift` (a quit, a reassignment or a shift change) removes a not-yet-started shift instead of settling it, so it is never scored as a fully missed shift. Today those commands are refused while away, so this only matters for a person sent home by an order before the start.
+2. `attendance::close_open_shift` (a quit, a reassignment or a shift change) removes a not-yet-started shift instead of settling it, so it is never scored as a fully missed shift. Today those commands are refused while away, so this only matters for a person sent home by an order before the start. The register holds one record a person, so pre-registering replaces the person's settled record (normally the shift settled that day). `register_before_start` keeps that settled record unchanged in `Attendance::replaced`, and the removal puts it back exactly, with its shift pay, worked time and legacy flag, so the one-paid-shift-a-day rule keeps its history and the record still matches its outcome on every later load. A person with no record before has none after. The kept record is dropped when the registered shift starts, since a started shift settles rather than being removed, and when the person dies. Review finding F1 (2026-11-20): an earlier version rebuilt the record from the latest outcome, which set its pay to the pay settled and cleared the legacy flag, so every later save of a partly worked or legacy shift failed to load and Build mode would not open.
 3. `attendance::work_conflicts` reports `remaining_minutes` as `end - max(now, start)` so the order confirmation never shows more minutes remaining than the shift has.
 4. `attendance::report` (the Career tab's attendance line) reports 0 worked and 0 missed for a shift that has not started.
 5. `shifts::starts_at` already lets the start tick of a registered shift pass (`last.start_tick == now`), and `attendance::start_tick` skips re-registering a shift whose `start_tick` equals `now`. A test pins both.
@@ -116,8 +116,10 @@ pub struct SavedShiftInputs { pub fit: f32, pub trait_fit: f32, pub social_capac
 pub struct SavedWeekInputs { pub week: u64, pub career: u32, pub shifts: u32, pub attended: u32, pub fit: f32, pub trait_fit: f32, pub social_capacity: f32, pub mastery: f32, pub mood: f32, pub missed_minutes: f32, pub pay: u32 }
 pub struct SavedCareerInputs { pub sim: u32, pub current: Vec<SavedShiftInputs>, pub last_shift: Option<SavedShiftInputs>, pub weeks: Vec<SavedWeekInputs> }
 pub enum SavedQueuedWorkCommand { GoToWork { agent: u32 } }
-pub struct SaveSnapshotV24 { pub legacy: SaveSnapshotV23, pub career_inputs: Vec<SavedCareerInputs>, pub queued_work_commands: Vec<(u32, SavedQueuedWorkCommand)> }
+pub struct SaveSnapshotV24 { pub legacy: SaveSnapshotV23, pub career_inputs: Vec<SavedCareerInputs>, pub queued_work_commands: Vec<(u32, SavedQueuedWorkCommand)>, pub replaced_shifts: Vec<SavedScheduledShift> }
 ```
+
+`replaced_shifts` holds the settled records Go to work's pre-registration replaced ([CT-work-guards] item 2), strictly ascending by sim id. It is empty unless a registered shift waits for its start.
 
 `SAVE_SCHEMA_VERSION` becomes 24. Only records holding any input data are written, ascending by sim id. The `legacy` chain grows one level in every `save_snapshot_v17` to `save_snapshot_v23` projection, exactly as the presence fade commit (`e31afe285`) did for schema 23; `save_snapshot_v23` becomes a historical projection and `save_snapshot_v24` the current save, with `load_snapshot_v24` beside it. Build mode's baseline (`build_transaction`) carries the rows, as it carries the fades.
 
@@ -130,6 +132,7 @@ pub struct SaveSnapshotV24 { pub legacy: SaveSnapshotV23, pub career_inputs: Vec
 3. `weeks` are not strictly ascending, a week is not one of the record's reviewed weeks in `history`, or there are more than 520 (the knob's maximum).
 4. A `career` row index is unknown, `shifts` is 0 or above 14, `attended > shifts`, `pay` lies outside that row's `pay..=pay_max`, or a value is non-finite or outside its range: fit, mood -1 to 1; social capacity, mastery 0 to 1; trait fit between the sum of the row's negative weights and the sum of its positive weights; missed minutes from 0 to `shifts` times the row's longest listed shift.
 5. A queued work command's position is out of the queue's range or repeats a position, as schema 21 checks.
+6. A replaced record is out of sim order, names someone whose restored register holds no open shift starting after the save's tick, is not settled, began at or after that shift's start, fails any check a record on the register must pass (except the at-home check, since its person may be waiting at work), or does not match the restored outcome with its sim and start exactly as `matching_settlement` requires.
 
 A save holding more weeks than the current knob allows loads and keeps the newest knob's worth, so lowering the knob never refuses a save. This trims state at load; the hash after load reflects the trimmed rows.
 
@@ -142,6 +145,8 @@ Schema 23 and every earlier schema load with no input rows, no current-week inpu
 ### [CT-save-hash] World hash
 
 A tagged block `career-inputs-v1`, appended in `Sim::hash` after `presence_fade::hash`, written only when some record holds input data: the number of records, then for each in sim order its id, the current inputs, the last shift and the weekly rows, every `f32` by `to_bits`. A world with no settled shift since the change hashes as before. Every run that settles a scored shift moves its hash, so pins move ([CT-merge]).
+
+The replaced records of [CT-work-guards] item 2 hash at the end of `attendance::hash`, as a tagged block `attendance-replaced-v1` written only when there are any: their count, then each record's fields in sim order, as the register's records are hashed. No shipped run uses Go to work, so no pin moves for them.
 
 ## [CT-tuning] Tuning
 

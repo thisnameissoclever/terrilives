@@ -20,7 +20,7 @@ fn fixtures() -> [(&'static str, &'static [u8]); 2] {
 }
 
 /// Every schema-23 fixture loads with no inputs and no queued Go to work,
-/// keeps its schema-23 part exactly, saves as schema 24 with two empty
+/// keeps its schema-23 part exactly, saves as schema 24 with three empty
 /// trailing lists, and continues tick for tick after a reload.
 #[test]
 fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
@@ -35,11 +35,12 @@ fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
         let saved = decode_current(&current);
         assert!(saved.career_inputs.is_empty(), "{name}");
         assert!(saved.queued_work_commands.is_empty(), "{name}");
+        assert!(saved.replaced_shifts.is_empty(), "{name}");
         assert_eq!(saved.legacy, original, "{name}: the schema-23 part is kept");
-        // Schema 24 adds two trailing lists, and an older save has nothing
-        // in either: one zero length byte each.
-        assert_eq!(current.len(), bytes.len() + 2, "{name}");
-        assert_eq!(&current[current.len() - 2..], &[0, 0], "{name}");
+        // Schema 24 adds three trailing lists, and an older save has
+        // nothing in any: one zero length byte each.
+        assert_eq!(current.len(), bytes.len() + 3, "{name}");
+        assert_eq!(&current[current.len() - 3..], &[0, 0, 0], "{name}");
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");
