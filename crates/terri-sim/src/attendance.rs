@@ -103,13 +103,15 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
                 None => 1,
             }
         };
+        // A due shift reports what registering it would record, the night
+        // premium included ([WB-wages]).
         let pay_cents = saved.map_or_else(
             || {
-                world
+                let pay = world
                     .get_resource::<Careers>()
                     .and_then(|c| c.record(sim))
-                    .map_or(job.pay, |r| r.pay) as i64
-                    * Funds::CENTS_PER_DOLLAR
+                    .map_or(job.pay, |r| r.pay);
+                pack.tuning.shift_pay_cents(pay, shift.kind)
             },
             |s| s.pay_cents,
         );
@@ -177,13 +179,15 @@ fn return_home(world: &mut World, actor: Entity) {
                 Commuting::Inbound,
                 Path { steps, cursor: 0 },
             ));
-        } else {
+        } else if was_away {
             // AtWork keeps the outside worker out of household autonomy and rendering.
             // WaitingToReturn owns retries and prevents another wage settlement.
             world.entity_mut(actor).insert((
                 crate::world_geometry::WaitingToReturn,
                 AtWork { remaining_ticks: 1 },
             ));
+        } else {
+            crate::world_geometry::finish_visible_commute_next_tick(world, actor);
         }
         return;
     }
@@ -333,6 +337,12 @@ fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
     };
     let reason = format!("Scheduled {:.1} min; worked {:.1} min; missed {:.1} min; base {:.2}; attendance deduction {:.2}; score {:.2}; pay {} cents", outcome.scheduled_minutes,outcome.worked_minutes,outcome.missed_minutes,outcome.base_score,outcome.deduction,outcome.score,outcome.pay_cents);
     world.resource_mut::<Attendance>().outcomes.push(outcome);
+    // A shift with time worked was a trip to work ([WB-bills]); settlement
+    // happens once per scheduled shift, so a worker sent home and back
+    // counts one trip and a missed shift counts none.
+    if shift.worked_ticks > 0 {
+        crate::bills::count_trip(world);
+    }
     crate::player_actions::record_work_outcome(world, actor, &reason);
     crate::careers::complete_attended_shift(
         world,
@@ -386,6 +396,10 @@ pub(crate) fn start_tick(world: &mut World) {
                 .get_resource::<Careers>()
                 .and_then(|c| c.record(sim))
                 .map_or(job.pay, |r| r.pay);
+            // [WB-wages]: a night shift records the premium in its pay; the
+            // kind is that of the shift worked today, which on the day of a
+            // shift change is the shift held when the day began.
+            let pay_cents = pack.tuning.shift_pay_cents(pay, shift.kind);
             world.resource_mut::<Attendance>().shifts.insert(
                 sim,
                 SavedScheduledShift {
@@ -395,7 +409,7 @@ pub(crate) fn start_tick(world: &mut World) {
                     end_tick: now + u64::from(shift.shift_ticks),
                     worked_ticks: 0,
                     accounted_tick: now,
-                    pay_cents: i64::from(pay) * Funds::CENTS_PER_DOLLAR,
+                    pay_cents,
                     settled: false,
                     legacy: false,
                 },
@@ -421,6 +435,15 @@ pub(crate) fn start_tick(world: &mut World) {
         }
         if world.get::<crate::reading::ReadingJourney>(actor).is_some() {
             crate::reading::request_return(world, actor);
+            continue;
+        }
+        // Issue 309 ([WL-depart]): a critical Hunger or Energy, or the
+        // meal or sleep that answers it, keeps the person home for at most
+        // `work_lateness_limit_ticks` after the start and never past the
+        // shift's end. After the fight withdrawal and the player-work and
+        // reading checks above, so those keep their priority.
+        let open = world.resource::<Attendance>().shifts.get(&sim).cloned();
+        if open.is_some_and(|shift| crate::lateness::waits_for_needs(world, actor, &shift, now)) {
             continue;
         }
         depart(world, actor);
@@ -555,6 +578,9 @@ pub(crate) fn finish_tick(world: &mut World) {
                     }
                 }
                 return_home(world, actor);
+                // A saved countdown from before schema fifteen is one trip,
+                // paid now ([WB-bills]).
+                crate::bills::count_trip(world);
                 crate::careers::complete_shift(world, actor);
             }
         }
@@ -1206,6 +1232,38 @@ fn matches_a_listed_shift(
         })
 }
 
+/// The most a scheduled shift or outcome at `job` from `start` for `ticks`
+/// may pay, in cents ([WB-wages]): the level's pay maximum, with the night
+/// premium when one of the listed shifts it matches is of the night kind. A
+/// legacy record began at an arrival rather than a scheduled start and
+/// predates the premium.
+fn pay_ceiling_cents(
+    job: &terri_data::CompiledCareer,
+    tuning: &terri_data::Tuning,
+    start: u64,
+    ticks: u64,
+    legacy: bool,
+) -> i64 {
+    let weekday = terri_core::clock::weekday(start, tuning.day_ticks, tuning.first_weekday);
+    let night = !legacy
+        && (0..job.shift_count())
+            .filter_map(|index| job.shift(index))
+            .any(|listed| {
+                listed.kind == terri_data::SHIFT_NIGHT
+                    && u64::from(listed.shift_ticks) == ticks
+                    && start % u64::from(tuning.day_ticks) == u64::from(listed.shift_start)
+                    && listed.works_on(weekday)
+            });
+    tuning.shift_pay_cents(
+        job.pay_max,
+        if night {
+            terri_data::SHIFT_NIGHT
+        } else {
+            terri_data::SHIFT_DAY
+        },
+    )
+}
+
 /// The longest shift `job` lists: no scheduled shift or outcome at that
 /// row can run longer.
 fn longest_listed_shift(job: &terri_data::CompiledCareer) -> u32 {
@@ -1244,8 +1302,14 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
             || shift.accounted_tick < start
             || shift.accounted_tick > now.min(shift.end_tick)
             || shift.worked_ticks > shift.accounted_tick - start
-            || shift.pay_cents < i64::from(job.pay) * Funds::CENTS_PER_DOLLAR
-            || shift.pay_cents > i64::from(job.pay_max) * Funds::CENTS_PER_DOLLAR
+            // An open shift pays at least the level's starting pay; a
+            // settled record keeps the pay it was settled at, which its
+            // outcome must match below ([WB-wages]).
+            || (!shift.settled && shift.pay_cents < i64::from(job.pay) * Funds::CENTS_PER_DOLLAR)
+            || shift.pay_cents < 0
+            || duration.is_some_and(|d| {
+                shift.pay_cents > pay_ceiling_cents(job, &pack.tuning, start, d, shift.legacy)
+            })
             || (!shift.settled && shift.end_tick <= now)
             || (shift.settled
                 && ((world.get::<AtWork>(actor).is_some()
@@ -1307,7 +1371,13 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
             .abs()
                 > 0.001
             || outcome.pay_cents < 0
-            || outcome.pay_cents > i64::from(job.pay_max) * Funds::CENTS_PER_DOLLAR
+            || outcome
+                .end_tick
+                .checked_sub(outcome.start_tick)
+                .is_none_or(|d| {
+                    outcome.pay_cents
+                        > pay_ceiling_cents(job, &pack.tuning, outcome.start_tick, d, false)
+                })
             || (outcome.worked_minutes == 0.0 && outcome.pay_cents != 0)
         {
             return Err(InvalidValue);
@@ -1452,9 +1522,9 @@ mod editable_return_tests {
         assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
         assert_eq!(sim.activity_status_of(actor.index_u32()).unwrap().code, 9);
         assert!(sim.world().get::<Path>(actor).is_none());
-        let saved = sim.save_snapshot_v21();
-        sim.load_snapshot_v21(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v21(), saved);
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), saved);
         let layout = sim.world().resource::<SavedLayout>();
         let edges = layout
             .edges()
@@ -1523,9 +1593,9 @@ mod editable_return_tests {
         sim.world_mut()
             .entity_mut(actor)
             .insert(Needs::all_at(20.0));
-        let saved = sim.save_snapshot_v21();
-        sim.load_snapshot_v21(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v21(), saved);
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), saved);
         let paid = sim.funds();
         for _ in 0..20 {
             sim.tick();
@@ -1562,10 +1632,10 @@ mod editable_return_tests {
                 .iter(sim.world())
                 .any(|c| *c == Commuting::Inbound)
             {
-                let saved = sim.save_snapshot_v21();
+                let saved = sim.save_snapshot_v25();
                 let hash = sim.world_hash();
-                sim.load_snapshot_v21(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v21(), saved);
+                sim.load_snapshot_v25(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v25(), saved);
                 assert_eq!(sim.world_hash(), hash);
                 return;
             }

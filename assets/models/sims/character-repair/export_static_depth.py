@@ -88,7 +88,7 @@ def main():
             bpy.ops.wm.open_mainfile(filepath=str(source), load_ui=False, use_scripts=False)
             root = next(obj for obj in bpy.data.objects if obj.type == 'EMPTY' and obj.name.endswith('_MODEL_ROOT'))
             for obj in root.children_recursive:
-                obj.hide_render = False
+                obj.hide_render = bool(obj.get('pool_rail_authoring_path'))
             if entry['name'] == 'offlineBunk':
                 export(entry['name'], root, source, canvas=(320, 352), crop=(60, 40))
             else:

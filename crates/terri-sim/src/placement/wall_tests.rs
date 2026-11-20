@@ -923,8 +923,8 @@ fn assert_wall_reconciles_pending_route() {
     assert!(super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok());
     assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_ok());
     applied(&mut sim, request);
-    let saved = sim.save_snapshot_v21();
-    sim.load_snapshot_v21(saved).unwrap();
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved).unwrap();
 }
 
 /// [WT-hash]: an edge-wall house with no walls is a different save from a

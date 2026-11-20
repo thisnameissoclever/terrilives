@@ -4,7 +4,7 @@ use super::*;
 fn current_bytes_use_the_complete_strict_envelope() {
     let source = SimHandle::from_lot();
     let bytes = source.save_bytes();
-    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v24());
+    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v25());
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&bytes));
     assert_eq!(restored.save_bytes(), bytes);

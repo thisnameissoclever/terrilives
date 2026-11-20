@@ -129,13 +129,20 @@
         "content/objects.toml",
         "content/tuning.toml",
         "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/fill.rs",
         "crates/terri-sim/src/need_interactions/physical.rs",
         "crates/terri-sim/src/systems/interact.rs",
-        "crates/terri-sim/src/systems/interpersonal.rs"
+        "crates/terri-sim/src/systems/interpersonal.rs",
+        "crates/terri-sim/src/bath.rs",
+        "web/src/render/character/bath-motion.ts",
+        "web/src/render/character/world.ts",
+        "crates/terri-sim/src/systems/movement.rs"
       ],
-      "numbers": [],
+      "numbers": [
+        "tuning.need_fill_max_ticks"
+      ],
       "review": {
-        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+        "basis": "A toilet, shower or bath runs until its main need is full, subject to need_fill_max_ticks. Early cancellation retains only elapsed effects. Hand washing has a strict partial-cleanliness ceiling and no extra Comfort cost. Bath water and one randomly selected toy belong to the current bath. Saving preserves the toy and elapsed animation; completion or cancellation clears water and toy and restores ordinary clothing."
       }
     },
     {
@@ -591,13 +598,17 @@
         "content/objects.toml",
         "content/tuning.toml",
         "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/fill.rs",
         "crates/terri-sim/src/need_interactions/physical.rs",
         "crates/terri-sim/src/systems/interact.rs",
-        "crates/terri-sim/src/systems/interpersonal.rs"
+        "crates/terri-sim/src/systems/interpersonal.rs",
+        "crates/terri-sim/src/systems/movement.rs"
       ],
-      "numbers": [],
+      "numbers": [
+        "tuning.need_fill_max_ticks"
+      ],
       "review": {
-        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost. A toilet, shower or bath lasts until its need is full, limited by need_fill_max_ticks; stopping early keeps only the minutes used."
       }
     },
     {
@@ -684,13 +695,17 @@
         "content/objects.toml",
         "content/tuning.toml",
         "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/fill.rs",
         "crates/terri-sim/src/need_interactions/physical.rs",
         "crates/terri-sim/src/systems/interact.rs",
-        "crates/terri-sim/src/systems/interpersonal.rs"
+        "crates/terri-sim/src/systems/interpersonal.rs",
+        "crates/terri-sim/src/systems/movement.rs"
       ],
-      "numbers": [],
+      "numbers": [
+        "tuning.need_fill_max_ticks"
+      ],
       "review": {
-        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost. A toilet, shower or bath lasts until its need is full, limited by need_fill_max_ticks; stopping early keeps only the minutes used."
       }
     },
     {
@@ -981,15 +996,18 @@
       "article": "home-and-controls",
       "section": "build",
       "sources": [
+        "crates/terri-sim/src/build_transaction.rs",
+        "crates/terri-sim/src/world_geometry.rs",
         "web/src/main.ts",
         "web/src/ui/build-exit.ts",
+        "web/src/ui/prepared-build-commit.ts",
         "web/src/ui/build-session.ts",
         "web/src/ui/build-tools.ts",
         "web/src/ui/land-tool.ts",
         "web/src/ui/room-review.ts"
       ],
       "review": {
-        "basis": "Footer Confirm adopts the batch and exits; footer Cancel restores the baseline and exits. Land resolves pending changes before starting a fresh paused batch. Keep building and room-review Back preserve the current draft and tool. Land's purchase confirmation adds its purchase to the draft; it does not confirm the whole batch."
+        "basis": "Footer Confirm adopts the batch and exits; footer Cancel restores the baseline and exits. Access review highlights ground and asks for approval of the exact draft. The first pool waits for the household's swimming contacts before either confirmation path adopts it. Return to build mode and Escape cancel that preparation and preserve the draft. Another edit requires a fresh access review. Ordinary Save does not repeat access review. Land resolves pending changes before starting a fresh paused batch. Its purchase confirmation adds the purchase to the draft."
       }
     },
     {
@@ -1012,10 +1030,11 @@
       "sources": [
         "content/tuning.toml",
         "content/personalities.toml",
-        "crates/terri-sim/src/systems/needs.rs"
+        "crates/terri-sim/src/systems/needs.rs",
+        "crates/terri-sim/src/attendance.rs"
       ],
       "review": {
-        "basis": "Every need decays during travel, waiting and activity; personality, sleeping and working modifiers change rates, commuting does not inherit work reduction."
+        "basis": "Every need decays during travel, waiting and activity. Personality, sleeping and working change the rate. Commuting uses ordinary decay. At work, Hunger, Bladder and Social refill to 50 on the tick that would make them Critical. Arrival also refills those needs when Low or Critical. Waiting to return home receives no refill."
       }
     },
     {

@@ -109,8 +109,9 @@ function point(r: PostcardReader, c: RoomContext): Point { const p: Point = [r.n
 function list<T>(r: PostcardReader, max: number, min: number, read: () => T): T[] { const count = r.count(min); check(count <= max); return Array.from({ length: count }, read); }
 function failure(r: PostcardReader): RoomFailure {
     const code = r.byte(), detail = r.option(() => r.uint(64));
-    check(code >= 1 && code <= 15);
-    check((code === 7 || code === 8 || code === 10) === (detail !== null));
+    check(code >= 1 && code <= 16);
+    // A bed left outside carries its entity index. Access acknowledgment has no detail.
+    check((code === 7 || code === 8 || code === 10 || code === 15) === (detail !== null));
     if (code === 7)
         check(detail! >= 1n && detail! <= 13n);
     if (code === 10)
@@ -132,6 +133,7 @@ function packet<T>(bytes: Uint8Array, read: (r: PostcardReader) => T): RoomResul
     }
 }
 export function decodeRoomUnit(bytes: Uint8Array): RoomResult<void> { return packet(bytes, () => undefined); }
+export function decodeRoomBoolean(bytes: Uint8Array): RoomResult<boolean> { return packet(bytes, r => { const value = r.byte(); check(value <= 1); return value === 1; }); }
 export function decodeBuildError(bytes: Uint8Array): RoomResult<RoomFailure | null> { return packet(bytes, r => r.option(() => failure(r))); }
 function summary(r: PostcardReader, c: RoomContext): RoomSummary { const id = r.number(), anchor = r.option(() => point(r, c)), label = name(r.text()), area = r.number(); check((id === 0) === (anchor === null)); check(area <= dimensions(c) && (id === 0 || area > 0)); return { id, anchor, name: label, area, outside: id === 0 }; }
 function roomRelations(rooms: readonly RoomSummary[]): void { unique(rooms, r => r.id); unique(rooms.filter(r => r.anchor !== null), r => pointKey(r.anchor!)); check(rooms.filter(r => r.outside).length === 1); }

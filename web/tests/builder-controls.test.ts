@@ -44,7 +44,7 @@ class ElementPort {
 function fixture() {
   const nodes = new Map<string, ElementPort>();
   for (const id of ['builder-controls', 'build-toggle', 'builder-object', 'builder-name',
-    'builder-facing', 'builder-status', 'builder-rotate', 'builder-confirm', 'builder-cancel', 'builder-sell',
+    'builder-facing', 'builder-rotate', 'builder-confirm', 'builder-cancel', 'builder-sell',
     'builder-sale-note', 'builder-colour', 'builder-rotation-note', 'builder-desktop', 'builder-dock', 'builder-keyboard-help',
     'builder-touch-help']) nodes.set(`#${id}`, new ElementPort());
   const doc = {
@@ -90,7 +90,7 @@ it('moves one live control panel between hosts and routes native control events 
   expect(selector.value).toBe('15');
   builder.moveTo(-1, 2);
   expect(!action('confirm')?.enabled).toBe(true);
-  expect(node('builder-status').attributes.get('data-valid')).toBe('false');
+  expect(builder.feedback?.state).toBe('failure');
   builder.moveTo(7, 0);
   const revision = source.lotRevision();
   action('confirm')?.invoke();
@@ -99,7 +99,7 @@ it('moves one live control panel between hosts and routes native control events 
   expect(node('build-toggle').disabled).toBe(true);
   source.flushCommands(); builder.afterCommands();
   expect(source.lotRevision()).toBe(revision + 1);
-  expect(node('builder-status').textContent).toBe('Furniture placed.');
+  expect(builder.feedback).toBeNull();
   action('cancel')?.invoke();
   expect(builder.selected).toBeNull();
   node('build-toggle').fire('click');
@@ -165,13 +165,13 @@ it('sells the chosen furniture for part of its price and clears the choice', () 
   const name = furnitureLabel(source, 15);
   const funds = source.funds();
   action('sell')?.invoke();
-  expect([builder.pending, !action('sell')?.enabled, node('builder-status').textContent])
+  expect([builder.pending, !action('sell')?.enabled, builder.status])
     .toEqual([true, true, 'Selling…']);
   action('sell')?.invoke();
   source.flushCommands(); builder.afterCommands();
   expect(source.lastSaleResult()).toEqual({ object: 15, reason: null, payout });
   expect(source.funds()).toBe(funds + payout);
-  expect([builder.selected, builder.pending, node('builder-status').textContent])
+  expect([builder.selected, builder.pending, builder.status])
     .toEqual([null, false, `${name} sold.`]);
   expect(builder.objects.some((object) => object.id === 15)).toBe(false);
   expect(selector.children.some((child) => child.value === '15')).toBe(false);
@@ -215,13 +215,14 @@ it('recolours the chosen furniture from the Colour list', () => {
   colour.value = '2'; colour.fire('change');
   // The list stays enabled, so keyboard focus stays on it, and shows the
   // choice rather than jumping back while the change is on its way.
-  expect([builder.pending, colour.disabled, colour.value, node('builder-status').textContent])
+  expect([builder.pending, colour.disabled, colour.value, builder.status])
     .toEqual([true, false, '2', 'Recolouring…']);
   source.flushCommands(); builder.afterCommands();
   expect(source.lastColourwayResult()).toEqual({ object: 15, reason: null, colourway: 2 });
-  expect([builder.pending, builder.selected, colour.value, node('builder-status').textContent])
+  expect([builder.pending, builder.selected, colour.value, builder.status])
     .toEqual([false, 15, '2', `${furnitureLabel(source, 15)} recoloured.`]);
   expect(source.objectColourway(15)).toBe(2);
+  expect(builder.feedback).toBeNull();
   action('cancel')?.invoke();
   expect([colour.disabled, colour.value]).toEqual([true, '0']);
   selector.value = '15'; selector.fire('change');

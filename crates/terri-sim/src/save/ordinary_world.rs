@@ -1,7 +1,10 @@
 //! Shared ordinary-world validation selected before nested save reconstruction.
-use crate::{world_geometry::{WaitingToReturn, WorldSurfaces}, SaveError, Sim};
+use crate::{
+    world_geometry::{WaitingToReturn, WorldSurfaces},
+    SaveError, Sim,
+};
 use bevy_ecs::prelude::*;
-use terri_core::{Agent, Commuting, SaveSnapshotV20, TileGrid};
+use terri_core::{Agent, AtWork, Commuting, Path, Position, SaveSnapshotV20, Target, TileGrid};
 
 pub(crate) fn commutes(world: &World) -> Vec<(u32, u8)> {
     let mut rows = Vec::new();
@@ -80,6 +83,50 @@ pub(crate) fn validate_restored(sim: &Sim, surfaces: &WorldSurfaces) -> Result<(
     Ok(())
 }
 
+pub(crate) enum CommuteEndpoints {
+    DepartureOnly,
+    DepartureAndHome,
+}
+
+pub(crate) fn validate_commutes(world: &World, endpoints: CommuteEndpoints) -> Result<(), SaveError> {
+    let Some(mut actors) = world.try_query::<EntityRef>() else {
+        return Ok(());
+    };
+    let grid = world.resource::<TileGrid>();
+    let mut exits = None;
+    let mut home_targets = None;
+    for actor in actors.iter(world) {
+        let Some(direction) = actor.get::<Commuting>() else {
+            continue;
+        };
+        if actor.contains::<AtWork>() || actor.contains::<Target>() {
+            return Err(SaveError::InvalidValue);
+        }
+        let position = actor.get::<Position>().ok_or(SaveError::InvalidValue)?;
+        let path = actor.get::<Path>();
+        if *direction == Commuting::Outbound {
+            let endpoint = crate::world_geometry::route_endpoint(*position, path)
+                .ok_or(SaveError::InvalidGrid)?;
+            if exits.get_or_insert_with(|| crate::world_geometry::boundary_tiles(world, grid))
+                .binary_search(&endpoint).is_err()
+            {
+                return Err(SaveError::InvalidGrid);
+            }
+        } else if path.is_some() && matches!(endpoints, CommuteEndpoints::DepartureAndHome) {
+            let (x, y) = crate::world_geometry::route_endpoint(*position, path)
+                .ok_or(SaveError::InvalidGrid)?;
+            let targets = home_targets
+                .get_or_insert_with(|| crate::world_geometry::home_targets(world, grid))
+                .as_ref()
+                .ok_or(SaveError::InvalidGrid)?;
+            if !grid.is_walkable(x, y) || !targets[y as usize * grid.width() + x as usize] {
+                return Err(SaveError::InvalidGrid);
+            }
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn restore_commutes(world: &mut World, rows: Vec<(u32, u8)>) -> Result<(), SaveError> {
     if rows.len() > 100_000 || rows.windows(2).any(|pair| pair[0].0 >= pair[1].0) {
         return Err(SaveError::InvalidValue);
@@ -96,8 +143,8 @@ pub(crate) fn restore_commutes(world: &mut World, rows: Vec<(u32, u8)>) -> Resul
         }
         if direction == 2 {
             if world.get::<Commuting>(entity).is_some()
-                || world.get::<terri_core::AtWork>(entity).is_none()
-                || world.get::<terri_core::Path>(entity).is_some()
+                || world.get::<AtWork>(entity).is_none_or(|work| work.remaining_ticks != 1)
+                || world.get::<Path>(entity).is_some()
             {
                 return Err(SaveError::InvalidValue);
             }

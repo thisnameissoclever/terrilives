@@ -10,6 +10,11 @@
 # supply resolved total work and need benefits; compilation allocates
 # that work across the steps. Tags ride per step: the hob step is what a cooking
 # hobby loves and a cooking capability may fumble.
+#
+# bill_uses on a step names [bills.uses] kinds in tuning.toml, each charged once
+# when the step starts its physical work (docs/specs/2026-10-18-wages-and-bills.md,
+# [WB-usage]). The stove is charged on the Cook step only, so Simmer and stir
+# does not charge it twice.
 
 [[chain]]
 id = "cook_dinner"
@@ -54,6 +59,7 @@ satisfaction = 3.0
   visual = { action = "cook", anchor = "station", facing = "toward_anchor" }
   duration_ticks = 150
   tags = ["cooking"]
+  bill_uses = ["stove"]
   transforms = { from = "ingredients", to = "dinner" }
   sound_action = "stove_cooking"
 
@@ -127,6 +133,7 @@ satisfaction = 0.0
   label = "Wash dishes"
   sound_action = "sink_water"
   duration_ticks = 25
+  bill_uses = ["dishes"]
   visual = { action = "wash", anchor = "station", facing = "toward_anchor" }
 
 [[chain]]

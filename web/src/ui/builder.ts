@@ -304,7 +304,8 @@ export class FurnitureBuilder {
         this.pending = false;
         this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
         this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
-        this.outcome = operationFeedback('recolour', result.reason === null ? 'success' : 'failure', this.name, this.status);
+        this.outcome = result.reason === null ? null
+          : operationFeedback('recolour', 'failure', this.name, this.status);
         if (result.reason !== null) logWarning('Furniture', 'Colour change refused.', { ...result });
         const next = this.nextColourway;
         this.nextColourway = null;
@@ -324,7 +325,8 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? 'Furniture placed.';
-        this.outcome = operationFeedback('place', result.reason === null ? 'success' : 'failure', 'Furniture', this.status, result.reason === null ? undefined : 'move');
+        this.outcome = result.reason === null ? null
+          : operationFeedback('place', 'failure', 'Furniture', this.status, 'move');
         if (result.reason !== null) logWarning('Furniture', 'Move refused.', { ...result });
         if (next !== null) {
           this.selectNow(next);

@@ -1,0 +1,134 @@
+{
+  "state": "complete",
+  "object": "pool",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "outdoor/render_pool_activity_v4.py": "0af6bbd2750283654b415a2d767ec2886666c9ee702206e763f8af81405b6a76",
+    "outdoor/pool_activity_model_v4.py": "944105b11f70918a60e39dc535c1b2b37c39d1f468b1bc9f31212c886900015a",
+    "outdoor/pool_activity_layout_v4.py": "328036d76e5ba5a259e4b18cb344e2bbd20a9b4ee9329a06006bd80400361723",
+    "outdoor/pool_activity_rail_v4.py": "5aa93b6357c9952c9f9b6056b967f13b5a354c4e10adfd1ae73f7306c1c6a004",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "dcc5c920ab567cce065f8ad0307836ae5abc19d3ae1eac0ef2478edc91be994c"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "b02b6d622f399bbf5a3b1c579cc32a583c6878cb98d209180dd9799289c263f3"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "8bd9d7d14d9121f6b018ff1e2e57150624a234fa7a079fcdf128ee01a0d42395"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "a3abf992ac002b158ed1da6216f9f156a9e1a51de0445459a36f2e2c058a3cc5"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.15 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "footprint": [
+      2,
+      2
+    ],
+    "rim_outer": [
+      1.92,
+      1.92
+    ],
+    "coping_top": 0.9,
+    "water_z": 0.82,
+    "outer_bounds": [
+      1.92,
+      2.0,
+      2.163
+    ],
+    "toe_recess_back": 0.86,
+    "liner_backing_inner": 0.82,
+    "liner_backing_thickness": 0.040000000000000036,
+    "declared_maximum_exterior_y": 1.0,
+    "decorative": false,
+    "rungs": 6,
+    "ladder_side": "+Y"
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Pool basin floor",
+    "Pool inside ladder tread 1",
+    "Pool inside ladder tread 2",
+    "Pool inside ladder tread 3",
+    "Pool ladder crest landing",
+    "Pool ladder rail 1",
+    "Pool ladder rail 1 authoring path",
+    "Pool ladder rail 2",
+    "Pool ladder rail 2 authoring path",
+    "Pool ladder stringer 1 1",
+    "Pool ladder stringer 1 1 upper",
+    "Pool ladder stringer 2 1",
+    "Pool ladder stringer 2 1 upper",
+    "Pool outside ladder tread 1",
+    "Pool outside ladder tread 2",
+    "Pool outside ladder tread 3",
+    "Pool stone coping",
+    "Pool wall",
+    "Pool wall trim band 1",
+    "Pool wall trim band 2",
+    "Pool wall trim band 3",
+    "Pool wall trim band 4",
+    "Pool wall trim band 5",
+    "Pool water surface"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "deec5d8a5253fd60468423767dca763984afeca381cab52c0c012ebac1abd792"
+}

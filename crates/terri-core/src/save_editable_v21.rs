@@ -12,9 +12,13 @@ pub struct LegacyEditableWorldSnapshotV21 {
 
 impl std::ops::Deref for LegacyEditableWorldSnapshotV21 {
     type Target = SaveSnapshotV20;
-    fn deref(&self) -> &Self::Target { &self.previous }
+    fn deref(&self) -> &Self::Target {
+        &self.previous
+    }
 }
 
 impl std::ops::DerefMut for LegacyEditableWorldSnapshotV21 {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.previous }
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.previous
+    }
 }

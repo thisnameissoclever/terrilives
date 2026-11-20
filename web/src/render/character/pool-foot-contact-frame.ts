@@ -4,6 +4,7 @@ import type {PoolFixtureV1,PoolSupport} from './pool-contact-types.js';
 import type {Vec3} from './math.js';
 import {canonicalPoolValue,poolByteViewsEqual} from './pool-contact-identity.js';
 import {poolSourceSupport,requirePoolSourceSupport,type PoolSupportLocation} from './pool-source-policy.js';
+import {countPoolOwnedWork,poolOwnedConfiguredIdentity,poolOwnedParts,poolOwnedRigKey,poolOwnedStaticIdentity} from './pool-owned-compilation.js';
 import {requirePoolInterpolatedFootRotation,type PoolInterpolatedFootRotation} from './pool-matrix-producer.js';
 import {poolExact as number,poolExactAdd as add,poolExactSubtract as sub,poolExactMultiply as mul,poolExactCompare as compare,
   poolRatioCompare,poolRatioNumber,poolRatioRoundingError,type PoolDyadic,type PoolRatio} from './pool-exact-number.js';
@@ -16,9 +17,10 @@ export interface PoolFootContactFrame {
   readonly exactVerticalTarget:{readonly numerator:string;readonly denominator:string;readonly exponent:number};
 }
 interface Certificate {geometry:Geometry;cage:Float32Array<ArrayBuffer>;inverse:readonly number[];fixture:PoolFixtureV1;patch:PreparedPoolPatch;target:PoolRatio;
-  support:PoolSupport;supportKey:string;revision:string;solidKey:string;rigKey:string|undefined;partRange:readonly [number,number];snapshots:Uint8Array[]}
+  support:PoolSupport;supportKey:string;revision:string;solidKey:string;rigKey:string|undefined;partRange:readonly [number,number];snapshots:Uint8Array[];owned?:object}
 const certificates=new WeakMap<PoolFootContactFrame,Certificate>();
-const rigKey=(bundle:Bundle|undefined)=>bundle?canonicalPoolValue({sourceSha256:bundle.sourceSha256,bones:bundle.bones}):undefined;
+const rigKey=(bundle:Bundle|undefined)=>bundle?(poolOwnedRigKey(bundle)??canonicalPoolValue({sourceSha256:bundle.sourceSha256,bones:bundle.bones})):undefined;
+const exactCoefficients=new WeakMap<Geometry,Map<number,Map<number,PoolDyadic[]>>>();
 
 /** A rational quaternion rotation is exactly proper before its matrix is serialized. */
 function intendedRotation(matrix:readonly number[]) {
@@ -62,11 +64,23 @@ export function preparePoolFootContactFrame(fixture:PoolFixtureV1,support:PoolSu
   const heights=ground?[ground.bounds[1][2]]:(support.region.triangles??[]).flatMap(index=>solid!.triangles[index].map(id=>solid!.vertices[id][2]));
   if(!heights.length||heights.some(height=>height!==heights[0]))throw new Error('Pool foot contact needs one actual horizontal plane.');
   const parts=geometry.description.parts.filter(part=>part.name===patch.part),part=parts[0];if(parts.length!==1)throw new Error('Pool foot contact has no unique selected full-foot owner.');
-  const vertices=[...new Set(geometry.indices.subarray(part.start,part.start+part.count))],patchVertices=new Set(patch.vertices.map(vertex=>vertex.id));
+  const owned=poolOwnedConfiguredIdentity(geometry,cage,inverse,patch.bone,patch);
+  if(owned&&poolOwnedStaticIdentity(fixture,geometry,cage,patch)!==owned)throw new Error('Pool foot contact uses another physical dataset.');
+  const vertices=(owned?poolOwnedParts(geometry)?.find(row=>row.name===patch.part)?.vertices:undefined)??[...new Set(geometry.indices.subarray(part.start,part.start+part.count))];
+  const patchVertices=new Set(patch.vertices.map(vertex=>vertex.id));
+  let cached:Map<number,PoolDyadic[]>|undefined;
+  if(owned){
+    let byBone=exactCoefficients.get(geometry);
+    if(!byBone){byBone=new Map();exactCoefficients.set(geometry,byBone);}
+    cached=byBone.get(patch.bone);
+    if(!cached){cached=new Map();byBone.set(patch.bone,cached);}
+  }
   const rotation=intendedRotation(orientation);
   let target:PoolRatio|undefined,activeVertex=-1;
   const targets=vertices.map(vertex=>{
-    const c=coefficient(geometry,cage,inverse,patch.bone,vertex),height=add(add(mul(rotation.numerators[2],c[0]),mul(rotation.numerators[6],c[1])),mul(rotation.numerators[10],c[2]));
+    let c=cached?.get(vertex);
+    if(!c){c=coefficient(geometry,cage,inverse,patch.bone,vertex);cached?.set(vertex,c);countPoolOwnedWork(geometry,'exactCoefficientBuilds');}
+    const height=add(add(mul(rotation.numerators[2],c[0]),mul(rotation.numerators[6],c[1])),mul(rotation.numerators[10],c[2]));
     const ratio={numerator:sub(mul(number(heights[0]),rotation.denominator),height),denominator:mul(c[3],rotation.denominator)};
     if(!target||poolRatioCompare(ratio,target)>0||poolRatioCompare(ratio,target)===0&&patchVertices.has(vertex)&&!patchVertices.has(activeVertex)){target=ratio;activeVertex=vertex;}
     return ratio;
@@ -79,23 +93,28 @@ export function preparePoolFootContactFrame(fixture:PoolFixtureV1,support:PoolSu
     orientationError:Object.freeze(rotation.errors),rotationQuaternion:Object.freeze(rotation.q),
     translation:Object.freeze([translationXY[0],translationXY[1],z]) as Vec3,translationError:Object.freeze([0,0,error]) as Vec3,activeVertex,
     patchVertices:Object.freeze([...patchVertices]),exactVerticalTarget:Object.freeze({numerator:target.numerator.numerator.toString(),denominator:target.denominator.numerator.toString(),exponent:target.numerator.exponent-target.denominator.exponent})});
-  const snapshots=[cage,geometry.indices,geometry.stencilRanges,new Uint8Array(geometry.stencilWeights)].map(data=>new Uint8Array(data.buffer,data.byteOffset,data.byteLength).slice());
-  certificates.set(frame,{geometry,cage,inverse:[...inverse],fixture,patch,target,support,supportKey:canonicalPoolValue(support),revision:canonicalPoolValue(fixture.revisions),solidKey:canonicalPoolValue(solid??ground),rigKey:rigKey(geometry.manifest),partRange:[part.start,part.count],snapshots});return frame;
+  const snapshots=owned?[]:[cage,geometry.indices,geometry.stencilRanges,new Uint8Array(geometry.stencilWeights)].map(data=>new Uint8Array(data.buffer,data.byteOffset,data.byteLength).slice());
+  certificates.set(frame,{geometry,cage,inverse:owned?inverse:[...inverse],fixture,patch,target,support,supportKey:canonicalPoolValue(support),
+    revision:owned?'':canonicalPoolValue(fixture.revisions),solidKey:owned?'':canonicalPoolValue(solid??ground),rigKey:rigKey(geometry.manifest),partRange:[part.start,part.count],snapshots,owned});
+  return frame;
 }
 
 export function requirePoolFootContactFrame(frame:PoolFootContactFrame,fixture:PoolFixtureV1,geometry:Geometry,cage:Float32Array<ArrayBuffer>,patch:PreparedPoolPatch,actualInverse?:readonly number[],suppliedSupport?:PoolSupport,actualRig?:Bundle):void {
   const certificate=certificates.get(frame);
   if(!certificate||certificate.fixture!==fixture||certificate.geometry!==geometry||certificate.cage!==cage||certificate.patch!==patch)throw new Error('Pool foot contact certificate does not own these physical inputs.');
+  if(certificate.owned&&poolOwnedStaticIdentity(fixture,geometry,cage,patch,...(actualRig?[actualRig]:[]))!==certificate.owned)throw new Error('Pool foot contact certificate belongs to another dataset.');
   if(certificate.rigKey!==rigKey(geometry.manifest))throw new Error('Pool foot actual selected rig changed after reference construction.');
   if(actualRig&&(!certificate.rigKey||certificate.rigKey!==rigKey(actualRig)))throw new Error('Pool foot uses a different actual selected rig.');
   if(actualInverse&&(actualInverse.length!==certificate.inverse.length||certificate.inverse.some((value,index)=>value!==actualInverse[index])))throw new Error('Pool foot contact certificate used a different configured inverse.');
   if(suppliedSupport&&(canonicalPoolValue(suppliedSupport)!==certificate.supportKey||suppliedSupport.surface!==frame.surface))throw new Error('Pool foot contact certificate used a different finite support descriptor.');
+  if(certificate.owned)return;
   const {support}=certificate,solid=fixture.solids.find(solid=>solid.id===frame.surface),ground=fixture.ground.id===frame.surface?fixture.ground:null;
   const heights=ground?[ground.bounds[1][2]]:(support.region?.kind==='top-face'?support.region.triangles??[]:[]).flatMap(index=>solid!.triangles[index].map(id=>solid!.vertices[id][2]));
   if(!heights.length||heights.some(height=>height!==frame.planeHeight)||certificate.revision!==canonicalPoolValue(fixture.revisions)||certificate.supportKey!==canonicalPoolValue(support))throw new Error('Pool foot contact certificate has stale fixture ownership.');
   const parts=geometry.description.parts.filter(part=>part.name===frame.part),part=parts[0];
   if(parts.length!==1||part.start!==certificate.partRange[0]||part.count!==certificate.partRange[1]||patch.bone!==frame.bone||canonicalPoolValue(patch.vertices.map(vertex=>vertex.id))!==canonicalPoolValue(frame.patchVertices))throw new Error('Pool foot contact certificate has stale patch ownership.');
   const actual=[cage,geometry.indices,geometry.stencilRanges,new Uint8Array(geometry.stencilWeights)];
+  countPoolOwnedWork(geometry,'fullBufferChecks',actual.length);
   actual.forEach((data,index)=>{const bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength),snapshot=certificate.snapshots[index];if(!poolByteViewsEqual(bytes,snapshot))throw new Error('Pool foot contact certificate has changed physical coefficients.');});
 }
 export function requirePoolFootContactFrameInstance(frame:PoolFootContactFrame,actualInverse?:readonly number[],actualRig?:Bundle):void {
@@ -108,7 +127,7 @@ export function requirePoolFootClearanceReference(frame:PoolFootContactFrame,tar
   requirePoolFootContactFrameInstance(frame,actualInverse,actualRig);
   const certificate=certificates.get(frame)!,solid=certificate.fixture.solids.find(solid=>solid.id===frame.surface);
   if(!certificate.rigKey||actualRig&&certificate.rigKey!==rigKey(actualRig))throw new Error('Pool free foot uses a different actual selected rig.');
-  if(!solid||canonicalPoolValue(solid)!==certificate.solidKey)throw new Error('Pool free foot reference solid changed.');
+  if(!solid||!certificate.owned&&canonicalPoolValue(solid)!==certificate.solidKey)throw new Error('Pool free foot reference solid changed.');
   if(target.length!==3||target.some(value=>!Number.isFinite(value))||target[0]!==frame.translation[0]||target[1]!==frame.translation[1])throw new Error('Pool free foot differs from its reference plane coordinates.');
   if(orientation.length!==16||orientation.some((value,at)=>value!==frame.orientation[at]))throw new Error('Pool free foot differs from its intended reference rotation.');
   const numerator=sub(mul(number(target[2]),certificate.target.denominator),certificate.target.numerator);

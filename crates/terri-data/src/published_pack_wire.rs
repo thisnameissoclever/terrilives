@@ -614,6 +614,14 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_late: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
             career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
+            night_shift_premium_percent: Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT,
+            need_fill_max_ticks: Tuning::PRE_FILL_NEED_FILL_MAX_TICKS,
+            work_lateness_limit_ticks: Tuning::PRE_LATENESS_WORK_LATENESS_LIMIT_TICKS,
+            work_lateness_ramp_ticks: Tuning::SHIPPED_WORK_LATENESS_RAMP_TICKS,
+            work_lateness_remedy_share: Tuning::SHIPPED_WORK_LATENESS_REMEDY_SHARE,
+            work_bladder_relief_threshold: Tuning::PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD,
+            affinity_presence_fade_points_per_hour:
+                Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -682,7 +690,7 @@ pub struct PublishedContentPack {
     pub item_kinds: Vec<String>,
     /// The multi-step chains - [K1]. May be empty in a test pack. It was
     /// last until the circadian rhythm arrived.
-    pub chains: Vec<CompiledChain>,
+    pub chains: Vec<PublishedCompiledChain>,
     /// The circadian rhythm, if `tuning.toml` authored one - [ML-curve].
     ///
     /// `None` means a flat sleep drive of 1.0, which is exactly the
@@ -744,6 +752,64 @@ pub struct PublishedContentPack {
     pub affinities: Vec<CompiledAffinityKind>,
 }
 
+/// A chain as published, before its steps carried usage kinds (issue 298).
+#[derive(Serialize, Deserialize)]
+pub struct PublishedCompiledChain {
+    pub id: String,
+    pub label: String,
+    pub advertised_by: ObjectDefId,
+    pub advertises: Vec<(u8, f32)>,
+    pub satisfaction: f32,
+    pub steps: Vec<PublishedCompiledChainStep>,
+}
+
+/// A chain step as published, before `bill_uses` was appended (issue 298).
+#[derive(Serialize, Deserialize)]
+pub struct PublishedCompiledChainStep {
+    pub role: u32,
+    pub label: String,
+    pub duration_ticks: u32,
+    pub tags: Vec<String>,
+    pub yields: Option<u32>,
+    pub transforms: Option<(u32, u32)>,
+    pub consumes: Option<u32>,
+    pub visual: Option<CompiledVisual>,
+    pub sound_action: Option<CompiledSoundAction>,
+    pub activity: Option<CompiledActivity>,
+}
+
+impl From<PublishedCompiledChain> for CompiledChain {
+    fn from(old: PublishedCompiledChain) -> Self {
+        Self {
+            id: old.id,
+            label: old.label,
+            advertised_by: old.advertised_by,
+            advertises: old.advertises,
+            satisfaction: old.satisfaction,
+            steps: old.steps.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<PublishedCompiledChainStep> for CompiledChainStep {
+    fn from(old: PublishedCompiledChainStep) -> Self {
+        Self {
+            role: old.role,
+            label: old.label,
+            duration_ticks: old.duration_ticks,
+            tags: old.tags,
+            yields: old.yields,
+            transforms: old.transforms,
+            consumes: old.consumes,
+            visual: old.visual,
+            sound_action: old.sound_action,
+            activity: old.activity,
+            // Bills (issue 298): published content declares no usage.
+            bill_uses: Vec::new(),
+        }
+    }
+}
+
 impl From<PublishedCompiledInteraction> for CompiledInteraction {
     fn from(old: PublishedCompiledInteraction) -> Self {
         Self {
@@ -763,6 +829,8 @@ impl From<PublishedCompiledInteraction> for CompiledInteraction {
             seat_use: SeatUse::Exclusive,
             media: None,
             recipe: None,
+            // Bills (issue 298): published content declares no usage.
+            bill_uses: Vec::new(),
         }
     }
 }
@@ -791,6 +859,10 @@ impl From<PublishedCompiledObject> for CompiledObject {
             shelf_access: Vec::new(),
             cooking_front: None,
             seat_comfort_per_tick: 0.,
+            // Bills (issue 298): no daily usage, and no room rule, because
+            // a published pack predates both.
+            bill_daily: Vec::new(),
+            indoor_only: false,
         }
     }
 }
@@ -811,7 +883,7 @@ impl From<PublishedContentPack> for ContentPack {
             careers,
             roles: old.roles,
             item_kinds: old.item_kinds,
-            chains: old.chains,
+            chains: old.chains.into_iter().map(Into::into).collect(),
             circadian: old.circadian,
             sleep_tag: old.sleep_tag,
             voice_clips: old.voice_clips,
@@ -823,6 +895,9 @@ impl From<PublishedContentPack> for ContentPack {
             books: Vec::new(),
             reading: None,
             career_paths,
+            // Bills (issue 298): the shipped charges, and no usage, because
+            // a published pack's content declares none.
+            bills: crate::pack::BillsTuning::shipped_without_usage(),
         }
     }
 }
@@ -912,7 +987,7 @@ pub struct Published2fContentPack {
     pub item_kinds: Vec<String>,
     /// The multi-step chains - [K1]. May be empty in a test pack. It was
     /// last until the circadian rhythm arrived.
-    pub chains: Vec<CompiledChain>,
+    pub chains: Vec<PublishedCompiledChain>,
     /// The circadian rhythm, if `tuning.toml` authored one - [ML-curve].
     ///
     /// `None` means a flat sleep drive of 1.0, which is exactly the
@@ -989,7 +1064,7 @@ impl From<Published2fContentPack> for ContentPack {
             careers,
             roles: old.roles,
             item_kinds: old.item_kinds,
-            chains: old.chains,
+            chains: old.chains.into_iter().map(Into::into).collect(),
             circadian: old.circadian,
             sleep_tag: old.sleep_tag,
             voice_clips: old.voice_clips,
@@ -1001,6 +1076,9 @@ impl From<Published2fContentPack> for ContentPack {
             books: Vec::new(),
             reading: None,
             career_paths,
+            // Bills (issue 298): the shipped charges, and no usage, because
+            // a published pack's content declares none.
+            bills: crate::pack::BillsTuning::shipped_without_usage(),
         }
     }
 }
@@ -1037,6 +1115,75 @@ fn a_published_pack_keeps_the_best_fit_search() {
             .tuning
             .career_search_temperature,
         0.0
+    );
+}
+
+/// Wages and bills (issue 298, [WB-tuning]): an authentic published pack
+/// rebuilds the shipped night premium and the shipped charges with no usage
+/// kinds, because its content declares none.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_bills_tuning() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(
+        old.tuning.night_shift_premium_percent,
+        Tuning::SHIPPED_NIGHT_SHIFT_PREMIUM_PERCENT
+    );
+    assert_eq!(old.bills, crate::BillsTuning::shipped_without_usage());
+    assert!(old.bills.uses.is_empty() && old.bills.daily.is_empty());
+    // The reconstruction is the shipped content's charges, not a second
+    // set of numbers that could drift from them.
+    let shipped = &crate::pack().bills;
+    assert_eq!(old.bills.rent_base_cents, shipped.rent_base_cents);
+    assert_eq!(old.bills.days_per_month, shipped.days_per_month);
+    assert_eq!(
+        old.tuning.night_shift_premium_percent,
+        crate::pack().tuning.night_shift_premium_percent
+    );
+}
+
+/// Issue 309, [WL-tuning]: an authentic published pack leaves on time and
+/// is never relieved at work, the behavior it was published with, and
+/// keeps the shipped ramp and share, which are inert at a limit of 0.
+#[test]
+fn a_published_pack_keeps_leaving_on_time_and_never_relieves_bladder_at_work() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(old.tuning.work_lateness_limit_ticks, 0);
+    assert_eq!(old.tuning.work_bladder_relief_threshold, 0.0);
+    assert_eq!(
+        old.tuning.work_lateness_ramp_ticks,
+        crate::pack().tuning.work_lateness_ramp_ticks
+    );
+    assert_eq!(
+        old.tuning.work_lateness_remedy_share,
+        crate::pack().tuning.work_lateness_remedy_share
+    );
+}
+
+/// Issue 344: an authentic published pack rebuilds the shipped presence
+/// fade, so a world loaded from one fades the lift of liked furniture at
+/// the rate the content ships, not at some second number.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_presence_fade() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(
+        old.tuning.affinity_presence_fade_points_per_hour,
+        Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR
+    );
+    assert_eq!(
+        old.tuning.affinity_presence_fade_points_per_hour,
+        crate::pack().tuning.affinity_presence_fade_points_per_hour
     );
 }
 

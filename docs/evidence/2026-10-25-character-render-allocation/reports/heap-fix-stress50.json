@@ -1,0 +1,72 @@
+[
+ {
+  "n": 0,
+  "ms": 0,
+  "jsUsed": 49712012,
+  "tick": 16,
+  "wasm": 4194304,
+  "buffers": 1604495080,
+  "geometries": 56,
+  "visibility": "visible"
+ },
+ {
+  "n": 1,
+  "ms": 30000,
+  "jsUsed": 53404140,
+  "tick": 923,
+  "wasm": 4587520,
+  "buffers": 1604495080,
+  "geometries": 56,
+  "visibility": "visible"
+ },
+ {
+  "n": 2,
+  "ms": 60000,
+  "jsUsed": 55765360,
+  "tick": 1808,
+  "wasm": 6553600,
+  "buffers": 1604710976,
+  "geometries": 57,
+  "visibility": "visible"
+ },
+ {
+  "n": 3,
+  "ms": 90000,
+  "jsUsed": 58104152,
+  "tick": 2713,
+  "wasm": 7798784,
+  "buffers": 1544122584,
+  "geometries": 54,
+  "visibility": "visible"
+ },
+ {
+  "n": 4,
+  "ms": 120000,
+  "jsUsed": 58618436,
+  "tick": 3620,
+  "wasm": 8519680,
+  "buffers": 1272446352,
+  "geometries": 45,
+  "visibility": "visible"
+ },
+ {
+  "n": 5,
+  "ms": 150000,
+  "jsUsed": 57007548,
+  "tick": 4482,
+  "wasm": 9502720,
+  "buffers": 1423377592,
+  "geometries": 50,
+  "visibility": "visible"
+ },
+ {
+  "n": 6,
+  "ms": 180000,
+  "jsUsed": 56824500,
+  "tick": 5361,
+  "wasm": 9502720,
+  "buffers": 1181887608,
+  "geometries": 42,
+  "visibility": "visible"
+ }
+]

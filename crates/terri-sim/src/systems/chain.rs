@@ -970,6 +970,7 @@ mod tests {
             satisfaction: 2.5,
             steps: vec![
                 CompiledChainStep {
+                    bill_uses: Vec::new(),
                     role: 0,
                     label: "Fetch".to_string(),
                     duration_ticks: 16,
@@ -982,6 +983,7 @@ mod tests {
                     activity: None,
                 },
                 CompiledChainStep {
+                    bill_uses: Vec::new(),
                     role: 1,
                     label: "Eat".to_string(),
                     duration_ticks: 20,
@@ -1067,6 +1069,7 @@ mod tests {
         chain.steps.insert(
             1,
             CompiledChainStep {
+                bill_uses: Vec::new(),
                 role: 2,
                 label: "Cook".to_string(),
                 duration_ticks: 10,

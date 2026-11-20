@@ -217,6 +217,24 @@ fn held_shift<'a>(job: &'a CompiledCareer, record: Option<&Record>) -> ShiftView
         .expect("every level has its standard shift")
 }
 
+/// What one shift pays `entity` with the night premium, in cents, when the
+/// shift they hold is of the night kind ([WB-panel] and [WB-wages] in
+/// `docs/specs/2026-10-18-wages-and-bills.md`): the Career tab's night pay
+/// line. `None` for anyone not holding a night shift.
+pub fn night_pay_cents(world: &World, entity: Entity) -> Option<i64> {
+    let pack = world.get_resource::<Content>()?.0;
+    let shift = shift_of(world, pack, entity)?;
+    if shift.kind != terri_data::SHIFT_NIGHT {
+        return None;
+    }
+    let job = job_of(world, pack, entity)?;
+    let pay = world
+        .get::<SimId>(entity)
+        .and_then(|sim| world.get_resource::<Careers>()?.record(*sim))
+        .map_or(job.pay, |record| record.pay);
+    Some(pack.tuning.shift_pay_cents(pay, terri_data::SHIFT_NIGHT))
+}
+
 /// The ticks a shift of `kind` adds to its holder's sleep rhythm
 /// ([WS-sleep]); a kind past the four named ones counts as day.
 pub fn kind_offset(tuning: &Tuning, kind: u8) -> i32 {
@@ -236,6 +254,7 @@ pub fn kind_offset(tuning: &Tuning, kind: u8) -> i32 {
 pub struct ShiftRhythm<'w, 's> {
     content: Res<'w, Content>,
     careers: Option<Res<'w, Careers>>,
+    attendance: Option<Res<'w, crate::attendance::Attendance>>,
     people: Query<'w, 's, (Option<&'static SimId>, &'static Career)>,
 }
 
@@ -252,6 +271,25 @@ impl ShiftRhythm<'_, '_> {
         };
         let record = sim.and_then(|sim| self.careers.as_ref()?.record(*sim));
         kind_offset(&pack.tuning, held_shift(job, record).kind)
+    }
+
+    /// What a late housemate's choice is told ([WL-ramp]): `None` unless
+    /// `entity`'s open shift has started, the lateness allowance has not
+    /// run out and a counted need of `needs` is critical.
+    pub fn lateness(
+        &self,
+        entity: Entity,
+        needs: &terri_core::Needs,
+        now: u64,
+    ) -> Option<crate::lateness::Lateness> {
+        let (sim, career) = self.people.get(entity).ok()?;
+        let shift = self
+            .attendance
+            .as_ref()?
+            .shifts
+            .get(sim?)
+            .filter(|shift| shift.career == career.0)?;
+        crate::lateness::for_choice(shift, needs, now, &self.content.0.tuning)
     }
 }
 

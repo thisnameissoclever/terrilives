@@ -42,11 +42,13 @@ A layout can leave ground, objects or people unreachable. At Confirm, inspect th
 
 Choose **Confirm** to accept the reviewed layout. Choose **Return to build mode**, or press Escape, to keep editing with the draft and highlight available. An edit requires a fresh review. Ordinary Save and autosave do not repeat this approval after the layout is confirmed.
 
+The first pool can take time to prepare for the household. While Build shows **Preparing swimming**, choose **Return to build mode** or press Escape to stop waiting and keep the draft.
+
 ## Furniture and buying {#furniture}
 
 In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. A physical conflict or object restriction can refuse placement; the reason appears beside Place. Otherwise valid disconnected layouts use the [access review](#access-review).
 
-Buy lists items with prices and filters. Select an item, point at a destination, rotate as needed and choose Buy. The cost comes from household Funds. Unaffordable items are disabled. Room associations organize the store; they do not restrict where an object can be placed.
+Buy lists items with prices and filters. Select an item, point at a destination, rotate as needed and choose Buy. The cost comes from household Funds. Unaffordable items are disabled. Room associations organize the store; they do not restrict where an object can be placed. Beds must stand inside a closed room: Buy and Place refuse a bed on the yard. In Build you may remove a wall or change a room around a bed while you work, but Confirm is refused while the change would leave a bed outside; move the bed into a room or choose Cancel. A bed already outdoors in an older saved game stays there and works.
 
 Choose **Back to catalogue** beside the preview to return to the item cards. The filters, scroll position, highlighted card and other draft edits remain. Choose the card again to resume placement. A blocked Buy shows its current reason beside the button, separately from a completed purchase receipt.
 

@@ -43,7 +43,7 @@ fn exiting_pool() -> SimHandle {
         handle.sim.tick();
         if handle
             .sim
-            .save_snapshot_v24()
+            .save_snapshot_v25()
             .pools
             .first()
             .is_some_and(|episode| episode.phase == 3)
@@ -167,7 +167,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
         handle.tick();
         if handle
             .sim
-            .save_snapshot_v24()
+            .save_snapshot_v25()
             .pools
             .first()
             .is_some_and(|episode| episode.phase > 0)
@@ -175,7 +175,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
             break;
         }
     }
-    assert_eq!(handle.sim.save_snapshot_v24().pools[0].phase, 1);
+    assert_eq!(handle.sim.save_snapshot_v25().pools[0].phase, 1);
     let current = handle.sim.current_v5_view().world.clone();
     let position = current
         .entities
@@ -184,7 +184,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
         .unwrap()
         .position
         .unwrap();
-    assert_eq!((position.x, position.y), (3., 4.));
+    assert_eq!((position.x, position.y), (3., 5.));
     let bytes = handle.save_bytes();
     let mut twin = SimHandle::new(12, 12);
     assert!(twin.load_bytes(&bytes));
@@ -273,7 +273,10 @@ fn pool_codec_complete_physical_contract_negative_controls() {
                 });
             }
             "wrong approach" => snapshot.0.pools[0].approach = (3, 3),
-            "duplicate episode" => { let duplicate = snapshot.0.pools[0].clone(); snapshot.0.pools.push(duplicate); },
+            "duplicate episode" => {
+                let duplicate = snapshot.0.pools[0].clone();
+                snapshot.0.pools.push(duplicate);
+            }
             "active step work" => {
                 snapshot
                     .world
@@ -326,7 +329,7 @@ fn pool_codec_complete_physical_contract_negative_controls() {
 #[test]
 fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
     let natural = exiting_pool();
-    let origin = natural.sim.save_snapshot_v24().pools[0].clone();
+    let origin = natural.sim.save_snapshot_v25().pools[0].clone();
     // Reproduce each checkpoint through full public ticks, not DTO fabrication.
     for (phase, elapsed, cancel) in [
         (1, 0, false),
@@ -342,7 +345,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
     ] {
         let mut handle = SimHandle::new(12, 12);
         assert!(handle.spawn_object(4., 4., "pool"));
-        handle.spawn_agent(3., 4., 50.);
+        handle.spawn_agent(3., 5., 50.);
         handle
             .sim
             .world_mut()
@@ -356,7 +359,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
         for _ in 0..150 {
             if handle
                 .sim
-                .save_snapshot_v24()
+                .save_snapshot_v25()
                 .pools
                 .first()
                 .is_some_and(|e| e.phase == phase && e.elapsed == elapsed)
@@ -365,7 +368,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
             }
             handle.tick();
         }
-        let current = handle.sim.save_snapshot_v24().pools[0].clone();
+        let current = handle.sim.save_snapshot_v25().pools[0].clone();
         assert_eq!((current.phase, current.elapsed), (phase, elapsed));
         if cancel {
             handle
@@ -423,7 +426,7 @@ fn reach(handle: &mut SimHandle, phase: u8, elapsed: u32) {
     for _ in 0..200 {
         if handle
             .sim
-            .save_snapshot_v24()
+            .save_snapshot_v25()
             .pools
             .iter()
             .any(|e| e.actor == 1 && e.phase == phase && e.elapsed == elapsed)
@@ -440,7 +443,7 @@ fn pool_codec_exact_approaches_all_facings_and_queued_command_boundaries() {
     for (facing, endpoint) in
         terri_core::Facing::ALL
             .into_iter()
-            .zip([(3., 4.), (4., 6.), (6., 5.), (5., 3.)])
+            .zip([(3., 5.), (4., 3.), (6., 4.), (5., 6.)])
     {
         for offset in [0., 0.2] {
             let mut handle = public_pool((endpoint.0 + offset, endpoint.1), facing, true);
@@ -470,8 +473,8 @@ fn pool_codec_exact_approaches_all_facings_and_queued_command_boundaries() {
 
 #[test]
 fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
-    let mut handle = public_pool((3., 4.), terri_core::Facing::SouthEast, true);
-    assert!(handle.spawn_object(1., 3., "pool"));
+    let mut handle = public_pool((3., 5.), terri_core::Facing::SouthEast, true);
+    assert!(handle.spawn_object(1., 5., "pool"));
     let pool = terri_sim::placement::object_definition(handle.sim.world(), 2)
         .unwrap()
         .0;
@@ -484,7 +487,7 @@ fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
         handle.object_facing(2.),
         Some(u32::from(terri_core::Facing::NorthWest.code()))
     );
-    handle.spawn_agent(3., 4., 50.);
+    handle.spawn_agent(3., 5., 50.);
     command(
         &mut handle,
         SimCommand::UseObjectFirst {
@@ -507,11 +510,11 @@ fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
     roundtrip_pool(&mut handle, "waiting for another pool's ladder");
     for _ in 0..110 {
         handle.tick();
-        if handle.sim.save_snapshot_v24().pools.is_empty() {
+        if handle.sim.save_snapshot_v25().pools.is_empty() {
             break;
         }
     }
-    assert!(handle.sim.save_snapshot_v24().pools.is_empty());
+    assert!(handle.sim.save_snapshot_v25().pools.is_empty());
     let waiting = handle.sim.current_v5_view();
     let actor = waiting
         .world
@@ -526,7 +529,7 @@ fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
 #[test]
 fn pool_codec_preserves_exact_orders_without_adopting_a_later_repeated_order() {
     for autonomous in [false, true] {
-        let mut handle = public_pool((3., 4.), terri_core::Facing::SouthEast, !autonomous);
+        let mut handle = public_pool((3., 5.), terri_core::Facing::SouthEast, !autonomous);
         reach(&mut handle, 2, 17);
         command(
             &mut handle,
@@ -549,7 +552,7 @@ fn pool_codec_preserves_exact_orders_without_adopting_a_later_repeated_order() {
                 .all(|o| !o.served));
         }
         handle.tick();
-        assert!(handle.sim.save_snapshot_v24().pools[0].interrupted);
+        assert!(handle.sim.save_snapshot_v25().pools[0].interrupted);
         assert!(handle
             .sim
             .current_v17_view()

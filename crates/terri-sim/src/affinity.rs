@@ -4,6 +4,7 @@
 //! 1.0 (loves), drawn once when the person is created ([OA-values]).
 
 use std::cmp::Ordering;
+use std::collections::BTreeMap;
 
 use bevy_ecs::prelude::*;
 use terri_core::{
@@ -12,6 +13,7 @@ use terri_core::{
 };
 use terri_data::{AffinityReach, CompiledTrait, CompiledTraitKind, ContentPack, Tuning};
 
+use crate::presence_fade::PresenceFade;
 use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use crate::room_regions::RoomRegions;
 use crate::{Content, Moodlet};
@@ -145,59 +147,159 @@ fn using_kind(world: &World, pack: &ContentPack, person: Entity) -> Option<u32> 
     pack.affinity_kind_of(eating.object.0)
 }
 
-/// The moodlets the things in `subject`'s room give - [OA-presence]: one
-/// per `presence` kind with at least one object in the room and a value
-/// that is not zero and whose magnitude is at least
-/// `affinity_presence_threshold`, in kinds order. Nobody in the yard, off the lot or at work gets one, and nothing
-/// outside the house counts.
-pub(crate) fn presence_moodlets(
+/// What the liked things in `subject`'s room give them right now -
+/// [OA-presence]: one `(kind index, points)` pair per `presence` kind with
+/// at least one object in the room and a value that is positive and at least
+/// `affinity_presence_threshold`, in kinds order. Being near a thing never
+/// lowers mood, so a dislike gives nothing (owner ruling of 2026-10-25; only
+/// a use bothers, see [`nuisances`]). Nobody in the yard, off the lot or at
+/// work gets any, and nothing outside the house counts.
+pub(crate) fn presence_lifts(
     world: &World,
     pack: &ContentPack,
     subject: Entity,
-) -> Vec<Moodlet> {
-    let Some(affinities) = world.get::<Affinities>(subject) else {
-        return Vec::new();
-    };
+) -> Vec<(u32, f32)> {
     let rooms = RoomRegions::from_world(world);
     let Some(room) = room_of(world, subject, &rooms) else {
         return Vec::new();
     };
-    let mut counts = vec![0_u32; pack.affinities.len()];
+    let counts = kind_counts_by_room(world, pack, &rooms, Some(room));
+    lifts_from_counts(world, pack, subject, counts.get(&room))
+}
+
+/// Everybody's [`presence_lifts`] in one pass over the objects, for the
+/// once-a-tick record of the fade: each living person's `SimId` with what
+/// their room gives them, ascending by `SimId`. A person with nothing to
+/// read is left out.
+pub(crate) fn everyones_presence_lifts(
+    world: &World,
+    pack: &ContentPack,
+) -> Vec<(SimId, Vec<(u32, f32)>)> {
+    let rooms = RoomRegions::from_world(world);
+    let counts = kind_counts_by_room(world, pack, &rooms, None);
+    let mut people: Vec<(SimId, Vec<(u32, f32)>)> = world
+        .try_query_filtered::<(Entity, &SimId), With<Agent>>()
+        .map_or_else(Vec::new, |mut query| {
+            query
+                .iter(world)
+                .filter_map(|(person, &id)| {
+                    let room = room_of(world, person, &rooms)?;
+                    let lifts = lifts_from_counts(world, pack, person, counts.get(&room));
+                    (!lifts.is_empty()).then_some((id, lifts))
+                })
+                .collect()
+        });
+    people.sort_unstable_by_key(|&(id, _)| id);
+    people
+}
+
+/// How many objects of each affinity kind stand in each room, by kind index,
+/// for `only` that room or every room.
+fn kind_counts_by_room(
+    world: &World,
+    pack: &ContentPack,
+    rooms: &RoomRegions,
+    only: Option<u32>,
+) -> BTreeMap<u32, Vec<u32>> {
+    let mut counts: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
     if let Some(mut objects) = world.try_query::<(&SmartObject, &Position)>() {
         for (object, position) in objects.iter(world) {
-            if tile_room(&rooms, position) != Some(room) {
+            let Some(room) = tile_room(rooms, position) else {
+                continue;
+            };
+            if only.is_some_and(|wanted| wanted != room) {
                 continue;
             }
             if let Some(kind) = pack.affinity_kind_of(object.0 .0) {
-                counts[kind as usize] += 1;
+                counts
+                    .entry(room)
+                    .or_insert_with(|| vec![0_u32; pack.affinities.len()])[kind as usize] += 1;
             }
         }
     }
+    counts
+}
+
+/// The lift each liked presence kind gives `subject`, given how many of
+/// its objects stand in their room.
+fn lifts_from_counts(
+    world: &World,
+    pack: &ContentPack,
+    subject: Entity,
+    counts: Option<&Vec<u32>>,
+) -> Vec<(u32, f32)> {
+    let (Some(affinities), Some(counts)) = (world.get::<Affinities>(subject), counts) else {
+        return Vec::new();
+    };
     let tuning = &pack.tuning;
     pack.affinities
         .iter()
         .zip(counts)
         .enumerate()
-        .filter(|(_, (kind, count))| kind.reach == AffinityReach::Presence && *count > 0)
-        .filter_map(|(index, (kind, count))| {
+        .filter(|(_, (kind, count))| kind.reach == AffinityReach::Presence && **count > 0)
+        .filter_map(|(index, (_, &count))| {
             let value = affinities.value(index as u32);
-            if value.abs() < tuning.affinity_presence_threshold {
+            // Only a liked kind gives a lift. A value of exactly zero is
+            // indifference whatever the threshold, a negative value is a
+            // dislike that presence never charges, and NaN has no sign.
+            if value.partial_cmp(&0.0) != Some(Ordering::Greater)
+                || value < tuning.affinity_presence_threshold
+            {
                 return None;
             }
-            // A value of exactly zero is indifference whatever the
-            // threshold, so it has no sign to read.
-            let label = match value.partial_cmp(&0.0) {
-                Some(Ordering::Greater) => format!("Likes the {} here", kind.label),
-                Some(Ordering::Less) => format!("Bothered by the {} here", kind.label),
-                _ => return None,
-            };
             let extra = (count - 1).min(tuning.affinity_presence_extra_cap);
-            Some(Moodlet {
-                label,
-                score: value
+            Some((
+                index as u32,
+                value
                     * (tuning.affinity_presence_points
                         + tuning.affinity_presence_extra_points * extra as f32),
-            })
+            ))
+        })
+        .collect()
+}
+
+/// The moodlets the liked things around `subject` give - [OA-presence]: one
+/// per `presence` kind, in kinds order, worth the larger of what the room
+/// gives now ([`presence_lifts`]) and what is left of the lift from when
+/// they last stood among that kind, which fades after they leave
+/// ([`crate::presence_fade`], issue 344). It reads `Likes the {kind} here`
+/// while the room gives something and `Enjoyed the {kind}` once it does not,
+/// so returning raises the mood up to the room's lift and never above it.
+pub(crate) fn presence_moodlets(
+    world: &World,
+    pack: &ContentPack,
+    subject: Entity,
+) -> Vec<Moodlet> {
+    let near = presence_lifts(world, pack, subject);
+    let lingering = world
+        .get::<SimId>(subject)
+        .zip(world.get_resource::<PresenceFade>())
+        .zip(world.get_resource::<SimClock>())
+        .map(|((&person, fade), clock)| (person, fade, clock.tick));
+    let rate = pack.tuning.affinity_presence_fade_points_per_hour;
+    pack.affinities
+        .iter()
+        .enumerate()
+        .filter(|(_, kind)| kind.reach == AffinityReach::Presence)
+        .filter_map(|(index, kind)| {
+            let index = index as u32;
+            let here = near
+                .iter()
+                .find(|(near_kind, _)| *near_kind == index)
+                .map(|&(_, points)| points);
+            let fading = lingering.map_or(0.0, |(person, fade, now)| {
+                fade.lift(person, index, now, rate)
+            });
+            let score = here.unwrap_or(0.0).max(fading);
+            if score.partial_cmp(&0.0) != Some(Ordering::Greater) {
+                return None;
+            }
+            let label = if here.is_some() {
+                format!("Likes the {} here", kind.label)
+            } else {
+                format!("Enjoyed the {}", kind.label)
+            };
+            Some(Moodlet { label, score })
         })
         .collect()
 }
@@ -387,7 +489,7 @@ pub fn band(value: f32, tuning: &Tuning) -> &'static str {
 
 #[cfg(test)]
 #[path = "affinity_tests.rs"]
-mod presence_and_use_tests;
+pub(crate) mod presence_and_use_tests;
 
 #[cfg(test)]
 mod tests {

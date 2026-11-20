@@ -353,6 +353,229 @@ fn attendance_v17_roundtrips_outbound_working_early_return_and_settled_inbound()
 }
 
 #[test]
+fn current_save_rejects_an_outbound_route_that_stops_inside_the_lot() {
+    let (mut sim, actor, _) = full_fixture(60, 180, 1440);
+    until(&mut sim, "outbound commute", 100, |s| {
+        s.world().get::<Commuting>(actor) == Some(&Commuting::Outbound)
+    });
+    let original = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(original.clone()).unwrap();
+    let path = sim.world().get::<Path>(actor).unwrap().clone();
+    assert!(path.steps.len() > path.cursor + 1);
+    sim.world_mut().get_mut::<Path>(actor).unwrap().steps.pop();
+    let truncated = sim.save_snapshot_v25();
+    sim.world_mut().entity_mut(actor).remove::<Path>();
+    let missing = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(original.clone()).unwrap();
+    for invalid in [truncated, missing] {
+        assert!(sim.load_snapshot_v25(invalid).is_err());
+        assert_eq!(sim.save_snapshot_v25(), original);
+    }
+    let (x, y) = *path.steps.last().unwrap();
+    sim.world_mut().entity_mut(actor).insert((
+        Position { x: x as f32, y: y as f32 },
+        Path { steps: vec![], cursor: 0 },
+    ));
+    let at_exit = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(at_exit.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), at_exit);
+    sim.tick();
+    assert!(sim.world().get::<AtWork>(actor).is_some());
+}
+
+#[test]
+fn current_save_rejects_a_waiting_return_with_an_office_countdown() {
+    let (mut sim, actor, _) = full_fixture(60, 180, 1440);
+    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    until(&mut sim, "office arrival", 180, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    assert!(sim.world().get::<AtWork>(actor).unwrap().remaining_ticks > 1);
+    let working = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(working.clone()).unwrap();
+    assert!(working.commutes.is_empty());
+
+    let mut forged = working.clone();
+    forged.commutes.push((actor.index_u32(), 2));
+    assert_eq!(sim.load_snapshot_v25(forged), Err(crate::SaveError::InvalidValue));
+    assert_eq!(sim.save_snapshot_v25(), working);
+}
+
+#[test]
+fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
+    let (mut sim, actor, object) = full_fixture(60, 180, 1440);
+    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    until(&mut sim, "office arrival", 180, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    hold(&mut sim, actor, object);
+    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
+    assert_eq!(sim.world().get::<Position>(actor), Some(&Position { x: 0., y: 1. }));
+    assert_eq!(sim.world().get::<Path>(actor).unwrap().steps, [(1, 1)]);
+    let original = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(original.clone()).unwrap();
+
+    // This adjacent tile is walkable grass. The explicit path still has
+    // to reach a home destination because the lot already contains floor.
+    let mut invalid = crate::current_test_snapshot::CurrentV5View(original.clone());
+    let saved_actor = invalid.world.entities.iter_mut()
+        .find(|entity| entity.index == actor.index_u32())
+        .unwrap();
+    saved_actor.path.as_mut().unwrap().steps = vec![(0, 2)];
+    assert_eq!(sim.load_snapshot_v25(invalid.0), Err(crate::SaveError::InvalidGrid));
+    assert_eq!(sim.save_snapshot_v25(), original);
+}
+
+#[test]
+fn a_player_order_can_leave_a_worker_waiting_to_return_during_an_open_shift() {
+    use crate::world_geometry::{WaitingToReturn, WorldSurfaces};
+
+    let (mut sim, actor, object) = full_fixture(60, 180, 1440);
+    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    {
+        let mut surfaces = sim.world_mut().resource_mut::<WorldSurfaces>();
+        surfaces.tiles.fill(1);
+        surfaces.tiles[21] = 0;
+    }
+    until(&mut sim, "office arrival", 180, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    assert!(crate::household::arrival(sim.world()).is_ok());
+    let review = enclose_inbound_destination(&mut sim);
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    assert!(crate::household::arrival(sim.world()).is_err());
+
+    hold(&mut sim, actor, object);
+    assert!(crate::player_actions::has_player_work(sim.world(), actor));
+    assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+    assert_eq!(sim.world().get::<AtWork>(actor).unwrap().remaining_ticks, 1);
+    let id = *sim.world().get::<SimId>(actor).unwrap();
+    let shift = |s: &Sim| s.world().resource::<Attendance>().shifts[&id].clone();
+    let before = shift(&sim);
+    assert!(!before.settled);
+    assert!(sim.world().resource::<SimClock>().tick < before.end_tick);
+
+    let saved = sim.save_snapshot_v25();
+    assert_eq!(saved.commutes, [(actor.index_u32(), 2)]);
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
+    sim.tick();
+    assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+    assert_eq!(shift(&sim).worked_ticks, before.worked_ticks);
+    assert!(!shift(&sim).settled);
+}
+
+#[test]
+fn build_reroutes_an_inbound_worker_from_their_visible_position() {
+    let (mut sim, actor, object) = full_fixture(60, 180, 1440);
+    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    until(&mut sim, "office arrival", 180, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    hold(&mut sim, actor, object);
+    let start = *sim.world().get::<Position>(actor).unwrap();
+    assert_eq!(start, Position { x: 0., y: 1. });
+    assert_eq!(sim.world().get::<Path>(actor).unwrap().steps, [(1, 1)]);
+    let review = enclose_inbound_destination(&mut sim);
+    assert!(review.access.requires_acknowledgment());
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    assert_eq!(sim.world().get::<Position>(actor), Some(&start));
+    assert!(sim.world().get::<AtWork>(actor).is_none());
+    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
+    assert_eq!(sim.world().get::<Path>(actor).unwrap().steps, [(0, 2), (1, 2)]);
+    continue_roundtrip(&mut sim, 5);
+}
+
+fn enclose_inbound_destination(sim: &mut Sim) -> crate::build_transaction::BuildReview {
+    use terri_core::layout::{EdgeAxis, WallState};
+    sim.begin_build().unwrap();
+    for (axis, x, y) in [
+        (EdgeAxis::Vertical, 1, 1), (EdgeAxis::Vertical, 2, 1),
+        (EdgeAxis::Horizontal, 1, 1), (EdgeAxis::Horizontal, 1, 2),
+    ] {
+        issue(sim, SimCommand::SetWallEdge { axis, x, y, state: WallState::Wall });
+        assert_eq!(
+            sim.world().resource::<crate::placement::LotEditState>()
+                .last_wall_result.unwrap().reason,
+            None,
+            "wall at {axis:?} {x},{y} must be staged"
+        );
+    }
+    sim.prepare_build_commit(crate::rooms::RoomChoices::default()).unwrap()
+}
+
+#[test]
+fn stranded_inbound_worker_can_confirm_build_and_settles_review_next_tick() {
+    let (mut sim, actor, _) = full_fixture(60, 180, 1440);
+    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    let mut surfaces = sim.world_mut().resource_mut::<crate::world_geometry::WorldSurfaces>();
+    surfaces.tiles.fill(1);
+    surfaces.tiles[21] = 0;
+    until(&mut sim, "office arrival", 180, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    sim.world_mut().resource_mut::<SimClock>().tick = 240;
+    account_and_settle(sim.world_mut());
+    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
+    let start = *sim.world().get::<Position>(actor).unwrap();
+    assert_eq!(start, Position { x: 0., y: 1. });
+    let id = *sim.world().get::<SimId>(actor).unwrap();
+    let record = |s: &Sim| s.world().resource::<Careers>().record(id).unwrap().clone();
+    let tick = 7 * 1440;
+    sim.world_mut().resource_mut::<SimClock>().tick = tick;
+    crate::careers::review(sim.world_mut(), 0, tick);
+    assert_eq!(record(&sim).review_due, Some(0));
+
+    let review = enclose_inbound_destination(&mut sim);
+    assert!(review.access.requires_acknowledgment());
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
+    assert!(sim.world().get::<Path>(actor).is_none());
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
+    assert_eq!(sim.world().get::<Position>(actor), Some(&start));
+    assert!(sim.world().get::<AtWork>(actor).is_none());
+    assert!(sim.world().get::<Path>(actor).is_none());
+    assert_eq!(record(&sim).review_due, Some(0));
+    sim.tick();
+    assert!(sim.world().get::<Commuting>(actor).is_none());
+    assert_eq!(sim.world().get::<Position>(actor), Some(&start));
+    assert_eq!(record(&sim).review_due, None);
+    assert_eq!(record(&sim).history.last().unwrap().week, 0);
+}
+
+#[test]
+fn imported_private_commutes_resave_with_a_current_boundary_exit() {
+    let (mut sim, actor, _) = full_fixture(60, 180, 1440);
+    until(&mut sim, "outbound commute", 100, |s| {
+        s.world().get::<Commuting>(actor) == Some(&Commuting::Outbound)
+    });
+    let original = sim.save_snapshot_v25();
+    let exit = *sim.world().get::<Path>(actor).unwrap().steps.last().unwrap();
+    for shortened in [false, true] {
+        for version in [22, 23] {
+            sim.load_snapshot_v25(original.clone()).unwrap();
+            if shortened {
+                sim.world_mut().get_mut::<Path>(actor).unwrap().steps.pop();
+            }
+            if version == 22 {
+                sim.load_snapshot_editable_world_v22(sim.try_save_snapshot_editable_world_v22().unwrap()).unwrap();
+            } else {
+                sim.load_snapshot_editable_world_v23(sim.save_snapshot_editable_world_v23()).unwrap();
+            }
+            let current = sim.save_snapshot_v25();
+            sim.load_snapshot_v25(current.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v25(), current);
+            assert_eq!(sim.world().get::<Path>(actor).unwrap().steps.last(), Some(&exit));
+        }
+    }
+}
+
+#[test]
 fn attendance_v17_home_hold_crosses_midnight_and_scheduled_week() {
     let (mut sim, actor, object) = full_fixture(1380, 180, 1440);
     sim.world_mut().resource_mut::<SimClock>().tick = 6 * 1440 + 1378;
@@ -2338,4 +2561,186 @@ fn legacy_adoption_registers_the_held_shifts_length() {
     let shift = scheduled(&sim, actor).expect("adoption registers the commute");
     assert!(shift.legacy);
     assert_eq!(shift.end_tick - shift.start_tick, 540);
+}
+
+/// `full_fixture`'s worker, 06:00 shifts of 480 ticks every day, on the
+/// shipped night watch guard's row (pay $105) with its standard shift of
+/// kind `kind` (issue 298, [WB-wages]).
+fn premium_fixture(kind: u8) -> (Sim, Entity, Entity) {
+    let (mut sim, actor, object) = full_fixture(60, 480, 1440);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let guard = pack
+        .careers
+        .iter()
+        .position(|job| job.id == "night_watch_guard")
+        .expect("shipped");
+    let row = terri_data::CompiledCareer {
+        shift_start: 60,
+        shift_ticks: 480,
+        working_days: 0b1111111,
+        standard_kind: kind,
+        shifts: Vec::new(),
+        ..pack.careers[guard].clone()
+    };
+    pack.careers[0] = row;
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    (sim, actor, object)
+}
+
+/// [WB-wages]: a night shift registers its pay with the 15 percent premium:
+/// the night watch guard's $105 shift records 12075 cents, and the order
+/// preflight quotes the same.
+#[test]
+fn a_night_shift_records_the_premium_in_cents() {
+    let (mut sim, actor, _) = premium_fixture(terri_data::SHIFT_NIGHT);
+    assert_eq!(
+        sim.world().resource::<Content>().0.careers[0].pay,
+        105,
+        "the raised guard's pay"
+    );
+    sim.world_mut().resource_mut::<SimClock>().tick = 60;
+    let quote = work_conflicts(sim.world(), &[actor.index_u32()]);
+    assert_eq!(quote.conflicts[0].pay_cents, 12_075);
+    start_tick(sim.world_mut());
+    assert_eq!(scheduled(&sim, actor).map(|s| s.pay_cents), Some(12_075));
+    assert_eq!(
+        validate_saved(sim.world(), &to_saved(sim.world())),
+        Ok(()),
+        "a premium shift validates"
+    );
+}
+
+/// [WB-wages]: day, early and late shifts record the plain pay.
+#[test]
+fn day_early_and_late_shifts_record_no_premium() {
+    for kind in [
+        terri_data::SHIFT_DAY,
+        terri_data::SHIFT_EARLY,
+        terri_data::SHIFT_LATE,
+    ] {
+        let (mut sim, actor, _) = premium_fixture(kind);
+        sim.world_mut().resource_mut::<SimClock>().tick = 60;
+        start_tick(sim.world_mut());
+        assert_eq!(
+            scheduled(&sim, actor).map(|s| s.pay_cents),
+            Some(10_500),
+            "kind {kind}"
+        );
+    }
+}
+
+/// [WB-wages]: proration by minutes worked acts on the premium pay: a night
+/// shift cut short pays its share of 12075 cents, with the settlement's one
+/// rounding step, and Funds rise by exactly that.
+#[test]
+fn a_prorated_night_shift_pays_its_share_of_the_premium() {
+    let (mut sim, actor, object) = premium_fixture(terri_data::SHIFT_NIGHT);
+    until(&mut sim, "the worker at work", 200, |sim| {
+        sim.world().get::<AtWork>(actor).is_some()
+    });
+    for _ in 0..100 {
+        sim.tick();
+    }
+    hold(&mut sim, actor, object);
+    let before = sim.world().resource::<Funds>().0;
+    until(&mut sim, "the shift settles", 600, |sim| {
+        !sim.world().resource::<Attendance>().outcomes.is_empty()
+    });
+    let outcome = sim.world().resource::<Attendance>().outcomes[0].clone();
+    let worked = outcome.worked_minutes as i64;
+    assert!(worked > 0 && worked < 480, "cut short: {worked}");
+    assert_eq!(outcome.pay_cents, 12_075 * worked / 480);
+    assert_eq!(
+        sim.world().resource::<Funds>().0 - before,
+        outcome.pay_cents
+    );
+}
+
+/// [WB-wages]: on the day of a shift change the shift worked that day is
+/// the one held when the day began, and its kind decides the premium: a
+/// night worker who changes to the day shift is paid that day's night shift
+/// with the premium, and the first day shift without it.
+#[test]
+fn the_premium_follows_the_shift_worked_on_a_change_day() {
+    let (mut sim, actor, _) = premium_fixture(terri_data::SHIFT_NIGHT);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.careers[0].standard_weight = 1;
+    pack.careers[0].shifts = vec![terri_data::CompiledShift {
+        id: "days".to_string(),
+        kind: terri_data::SHIFT_DAY,
+        shift_start: 900,
+        shift_ticks: 300,
+        working_days: 0b1111111,
+        weight: 1,
+    }];
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    let sim_id = *sim.world().get::<SimId>(actor).expect("an id");
+    sim.world_mut()
+        .resource_mut::<Careers>()
+        .records
+        .insert(sim_id, crate::careers::Record::new(&pack.careers[0]));
+    for _ in 0..30 {
+        sim.tick();
+    }
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
+    until(&mut sim, "the day's old shift registers", 100, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| (s.start_tick, s.pay_cents)),
+        Some((60, 12_075)),
+        "the night schedule still runs, at the night rate"
+    );
+    until(&mut sim, "the day shift registers", 3_000, |sim| {
+        scheduled(sim, actor).is_some_and(|s| s.start_tick != 60)
+    });
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| (s.start_tick, s.pay_cents)),
+        Some((1440 + 900, 10_500)),
+        "the first day shift pays the plain rate"
+    );
+}
+
+/// [WB-wages]: the saved-attendance validator accepts an open shift's pay
+/// up to the level's maximum with the premium when the shift is a night
+/// shift, and refuses a cent more; a day shift's ceiling is the plain
+/// maximum.
+#[test]
+fn the_open_shift_validator_accepts_the_premium_range_and_refuses_above_it() {
+    // The guard's pay maximum is $128: 14720 cents with the premium, 12800
+    // without.
+    for (kind, ceiling) in [
+        (terri_data::SHIFT_NIGHT, 14_720),
+        (terri_data::SHIFT_DAY, 12_800),
+    ] {
+        let (mut sim, _, _) = premium_fixture(kind);
+        assert_eq!(sim.world().resource::<Content>().0.careers[0].pay_max, 128);
+        sim.world_mut().resource_mut::<SimClock>().tick = 60;
+        start_tick(sim.world_mut());
+        let mut saved = to_saved(sim.world());
+        saved.shifts[0].pay_cents = ceiling;
+        assert_eq!(
+            validate_saved(sim.world(), &saved),
+            Ok(()),
+            "kind {kind} at its ceiling"
+        );
+        saved.shifts[0].pay_cents = ceiling + 1;
+        assert!(
+            validate_saved(sim.world(), &saved).is_err(),
+            "kind {kind} above it"
+        );
+        saved.shifts[0].pay_cents = 10_499;
+        assert!(
+            validate_saved(sim.world(), &saved).is_err(),
+            "below the starting pay"
+        );
+    }
 }

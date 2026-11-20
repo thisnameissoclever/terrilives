@@ -26,10 +26,10 @@ fn worker(position: Position, waiting: bool) -> (Sim, Entity) {
             .entity_mut(actor)
             .insert(crate::world_geometry::WaitingToReturn);
     }
-    let saved = sim.save_snapshot_v21();
-    sim.load_snapshot_v21(saved.clone())
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone())
         .expect("valid current hidden-worker control");
-    assert_eq!(sim.save_snapshot_v21(), saved);
+    assert_eq!(sim.save_snapshot_v25(), saved);
     (sim, actor)
 }
 fn confirm(sim: &mut Sim) {
@@ -38,9 +38,9 @@ fn confirm(sim: &mut Sim) {
         .unwrap();
     sim.commit_build_with_access_ack(review.token).unwrap();
     sim.end_build().unwrap();
-    let saved = sim.save_snapshot_v21();
-    sim.load_snapshot_v21(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v21(), saved);
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
 }
 fn wall(sim: &mut Sim, x: u32, y: u32) {
     sim.world_mut()
@@ -110,7 +110,7 @@ fn hidden_fractional_body_does_not_block_a_wall_but_visible_body_does() {
         .unwrap();
     visible.world_mut().entity_mut(actor).insert(position);
     visible
-        .load_snapshot_v21(visible.save_snapshot_v21())
+        .load_snapshot_v25(visible.save_snapshot_v25())
         .expect("valid visible actor control");
     visible.begin_build().unwrap();
     visible
@@ -169,7 +169,7 @@ fn hidden_state_with_a_live_path_still_refuses_build_atomically() {
         steps: vec![],
         cursor: 0,
     });
-    let saved = sim.save_snapshot_v21();
+    let saved = sim.save_snapshot_v25();
     assert_eq!(
         walls::validate_wall_edit(
             sim.world(),
@@ -184,5 +184,5 @@ fn hidden_state_with_a_live_path_still_refuses_build_atomically() {
         Some(PlacementRefusal::SimOverlap)
     );
     assert!(sim.begin_build().is_err());
-    assert_eq!(sim.save_snapshot_v21(), saved);
+    assert_eq!(sim.save_snapshot_v25(), saved);
 }

@@ -9,6 +9,15 @@ export interface OrderEvent {
   phase: string;
   reason: string | null;
   blockingState: string | null;
+  failureCause?: string;
+}
+
+export function orderFailureMessage(event: OrderEvent, actor: string): string {
+  if (event.failureCause === 'no-reachable-media-position') {
+    return `${actor} can't reach a spot to use this item.`;
+  }
+  const summary = `${actor}: ${event.action} ${event.phase === 'rejected' ? 'was not added' : 'failed'}.`;
+  return event.failureCause ? summary : `${summary} ${event.reason || 'The order could not be completed.'}`;
 }
 export interface OrderEventBatch { events: OrderEvent[]; nextCursor: string; expired: boolean }
 export interface OrderEventSource {
@@ -74,8 +83,9 @@ export class OrderDiagnostics {
       if (event.phase !== 'failed' && event.phase !== 'rejected') continue;
       if (event.phase === 'failed') this.failures.set(event.actor, nowMs + 3000);
       const outcome = event.phase === 'failed' ? 'failed' : 'was not added';
-      const message = `${source.simName(event.actor) || `Person ${event.actor}`}: ${event.action} ${outcome}. ${event.reason || 'The order could not be completed.'}`;
-      this.status.textContent = message;
+      const actor = source.simName(event.actor) || `Person ${event.actor}`;
+      const message = `${actor}: ${event.action} ${outcome}. ${event.reason || 'The order could not be completed.'}`;
+      this.status.textContent = orderFailureMessage(event, actor);
       this.status.setAttribute('data-kind', 'error');
       this.warn(message, event);
     }

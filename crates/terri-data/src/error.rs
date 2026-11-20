@@ -282,6 +282,13 @@ pub enum ContentError {
     /// interaction that can complete on the tick it starts, which reads
     /// as a sim teleporting through an action.
     ZeroInteractionFloor,
+    /// `need_fill_max_ticks` is below `min_interaction_ticks` or above 1440.
+    /// A fill limit under the floor every use already has could never bind,
+    /// and one over a day would let a bathroom use hold a room indefinitely.
+    NeedFillMaxTicksOutOfRange {
+        value: u32,
+        floor: u32,
+    },
     HabituationPerUseOutOfRange {
         value: f32,
     },
@@ -974,6 +981,31 @@ pub enum ContentError {
     CareerTuningOutOfRange {
         key: &'static str,
     },
+    /// Bills (issue 298, [WB-tuning]): a `[bills]` value outside its range,
+    /// named by its dotted key, such as `bills.grace_days` or
+    /// `bills.uses.shower.water_cents`.
+    BillsTuningOutOfRange {
+        key: String,
+    },
+    /// Bills (issue 298, [WB-tuning]): a usage kind whose id or label is
+    /// malformed, or whose id names both a use kind and a daily kind.
+    InvalidBillKind {
+        id: String,
+        reason: &'static str,
+    },
+    /// Bills (issue 298, [WB-usage]): an action, chain step or object whose
+    /// `bill_uses` or `bill_daily` names a kind the tables do not define,
+    /// names one twice, or sits where no use can be counted.
+    InvalidBillMark {
+        context: String,
+        kind: String,
+        reason: &'static str,
+    },
+    /// Bills (issue 298, [WB-usage]): a usage kind that no action, chain
+    /// step or object carries.
+    UnusedBillKind {
+        kind: String,
+    },
     /// A career path with no levels.
     CareerPathWithoutLevels {
         id: String,
@@ -1614,6 +1646,10 @@ impl fmt::Display for ContentError {
             ContentError::ZeroInteractionFloor => write!(
                 f,
                 "tuning.toml has min_interaction_ticks of 0; must be at least 1"
+            ),
+            ContentError::NeedFillMaxTicksOutOfRange { value, floor } => write!(
+                f,
+                "need_fill_max_ticks in tuning.toml is {value}; it must be from min_interaction_ticks ({floor}) to 1440"
             ),
             ContentError::ZeroWanderAttempts => write!(
                 f,
@@ -2281,7 +2317,8 @@ impl fmt::Display for ContentError {
                  affinity_use_points and affinity_use_feeling_per_hour finite \
                  and not negative; affinity_band_likes above 0 and below \
                  affinity_band_loves, which is at most 1; \
-                 affinity_from_mild_trait above 0 and below affinity_from_trait"
+                 affinity_from_mild_trait above 0 and below affinity_from_trait; \
+                 affinity_presence_fade_points_per_hour finite and above 0"
             ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,
@@ -2304,8 +2341,29 @@ impl fmt::Display for ContentError {
                  tick at most a week, the change fit from -1 to 1 and its gap \
                  from 0 to 2, the satisfaction rate from 0 to 100, mood \
                  amounts and the misery cost at least 0, moodlet ticks \
-                 from 1 to 10080, shift sleep offsets from -720 to 720, and the \
-                 search temperature from 0 to 2"
+                 from 1 to 10080, shift sleep offsets from -720 to 720, the \
+                 search temperature from 0 to 2, and the night shift premium \
+                 from 0 to 100"
+            ),
+            ContentError::BillsTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: days_per_month from \
+                 1 to 365, grace_days below days_per_month, percentages from 0 \
+                 to 100, overdue_mood finite and at least 0, and every cent \
+                 amount from 0 to 1,000,000"
+            ),
+            ContentError::InvalidBillKind { id, reason } => {
+                write!(f, "bills usage kind '{id}' in tuning.toml is invalid: {reason}")
+            }
+            ContentError::InvalidBillMark {
+                context,
+                kind,
+                reason,
+            } => write!(f, "{context} names usage kind '{kind}': {reason}"),
+            ContentError::UnusedBillKind { kind } => write!(
+                f,
+                "bills usage kind '{kind}' in tuning.toml is carried by no action, \
+                 chain step or object, so it can never be charged"
             ),
             ContentError::CareerPathWithoutLevels { id } => {
                 write!(f, "career path '{id}' has no levels")

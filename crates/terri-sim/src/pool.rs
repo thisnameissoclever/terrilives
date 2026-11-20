@@ -2,7 +2,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::{Agent, Eating, IntentQueue, NeedId, Needs, ObjectFacing, Path, Personality,
     Position, SmartObject, Target};
-use terri_core::save_v22::SavedPoolEpisode;
+use terri_core::save_editable_v22::SavedPoolEpisode;
 use crate::Content;
 
 pub(crate) const ENTER_TICKS: u32 = 20;
@@ -24,6 +24,13 @@ pub(crate) fn is_swimming(action: &terri_data::CompiledInteraction) -> bool {
 }
 pub(crate) fn has_pool(object: &terri_data::CompiledObject) -> bool {
     object.interactions.iter().any(is_swimming)
+}
+
+pub(crate) fn contacts_required(world: &World) -> bool {
+    let pack = world.resource::<Content>().0;
+    world.try_query::<&SmartObject>().is_some_and(|mut objects| {
+        objects.iter(world).any(|object| has_pool(pack.object(object.0)))
+    }) || has_swimming_state(world)
 }
 
 pub(crate) fn has_swimming_state(world: &World) -> bool {

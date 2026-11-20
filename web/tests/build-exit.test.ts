@@ -139,7 +139,7 @@ const REFUSED = 'Move the furniture somewhere it fits, or choose Cancel beside i
 const ROLLBACK_FAILED = 'Changes could not be cancelled. Build mode remains open.';
 
 /** Build mode wired as main.ts wires it, for the Furniture and Buy tools. */
-function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) => Promise<boolean>) {
+function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) => Promise<boolean>, cancelPending?: () => boolean) {
   const sim = new SimBridge(handle, memory);
   const doc = new FakeDocument();
   const element = (id: string, made: FakeElement = new FakeElement(doc)) => {
@@ -184,6 +184,7 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
     restored: () => { builder.resetAfterLoad(); buy.resetAfterLoad(handle.lot_width(), handle.lot_height()); },
   });
   const exit = new BuildExit(doc as unknown as Document, {
+    cancelPending,
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(draft()),
     confirm: () => {
       clock.time += work.ms;
@@ -227,6 +228,25 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
 }
 
 describe('the footer', () => {
+  it('keeps the draft when a long preparation is canceled by a double-click', async () => {
+    let finish!: (adopted: boolean) => void;
+    const pending = new Promise<boolean>(resolve => { finish = resolve; });
+    const f = fixture(undefined, undefined, () => { finish(false); return true; });
+    try {
+      f.enterWithMove();
+      const before = f.sim.saveBytes();
+      const confirm = vi.spyOn(f.session, 'confirm').mockReturnValue(pending);
+      f.doc.click(f.confirmButton, 1);
+      expect(confirm).toHaveBeenCalledOnce();
+      f.clock.time += 10_000;
+      expect(f.doc.click(f.cancelButton, 1)).toBe(true);
+      await vi.waitFor(() => expect(f.exit.resolving).toBe(false));
+      expect(f.doc.click(f.cancelButton, 2)).toBe(false);
+      expect(f.builder.active).toBe(true);
+      expect(f.sim.buildDirty()).toBe(true);
+      expect(f.sim.saveBytes()).toEqual(before);
+    } finally { f.handle.free(); }
+  });
   it.each(['Enter', ' '])('leaves fresh %s disclosure activation to the native default after its held-key guard', key => {
     const f = fixture();
     try {
@@ -1103,7 +1123,7 @@ describe('the page', () => {
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');
     expect(MAIN_TS).not.toContain('cancelBuildBatch');
     expect(MAIN_TS).toContain('roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange)');
-    expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);buildExit\.dismiss\(\);/);
+    expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);preparedBuildCommit\.cancel\(\);buildExit\.dismiss\(\);/);
   });
 
   it('main.ts source: a discard resets the Land tool as a Load does, inside restoreBuildPresentation', () => {

@@ -2,7 +2,7 @@ import type {PoolHierarchy} from './pool-canonical-pose.js';
 import type {PoolFixtureV1,PoolSupport} from './pool-contact-types.js';
 import type {PreparedPoolPatch} from './pool-contact-patch.js';
 import type {PoolObservation,PoolSurfaceInput,PoolWitness} from './pool-observer.js';
-import {poolRigidSurfaceReference,poolSurfaceArithmetic} from './pool-skin-arithmetic.js';
+import {poolRigidSurfaceReference,poolPartSurfaceArithmetic} from './pool-skin-arithmetic.js';
 import {poolUpper,poolSubtract,poolNumber} from './pool-arithmetic.js';
 import {requirePoolFootContactFrame,requirePoolInterpolatedFootReference,type PoolFootContactFrame,type PoolFreeFootClearanceReference} from './pool-foot-contact-frame.js';
 import {requirePoolFootConstruction} from './pool-limb-construction-arithmetic.js';
@@ -12,6 +12,7 @@ import {requirePoolFreeFootConstruction} from './pool-free-leg.js';
 import type {PoolFreeLegPlan} from './pool-matrix-producer.js';
 import {requirePoolObservationSupport,requirePoolObservedSurface,poolObservationOwnsWitness} from './pool-observer.js';
 import {poolSourceSupport} from './pool-source-policy.js';
+import {poolOwnedObservationIdentity,poolOwnedParts,requirePoolArithmeticReplay} from './pool-owned-compilation.js';
 
 export interface PoolSupportArithmetic {
   readonly part:string;readonly surface:string;readonly geometry:PoolSurfaceInput['geometry'];
@@ -28,12 +29,25 @@ export interface PoolApproachClearanceArithmetic {
 export type PoolContactArithmetic=PoolSupportArithmetic|PoolRailSupportArithmetic|PoolApproachClearanceArithmetic;
 const derived=new WeakSet<PoolSupportArithmetic>();
 const ownership=new WeakMap<PoolSupportArithmetic,{fixture:PoolFixtureV1;surface:PoolSurfaceInput;points:Float32Array<ArrayBuffer>;observation:PoolObservation;observationKey:string;pose:PoolHierarchy;frame:PoolFootContactFrame;cage:Float32Array<ArrayBuffer>;patch:PreparedPoolPatch}>();
+interface ClosedProof {fixture:PoolFixtureV1;surface:PoolSurfaceInput;observation:PoolObservation;identity:object}
+const closedProofs=new WeakMap<PoolSupportArithmetic|PoolApproachClearanceArithmetic,ClosedProof>();
+
+function closedBound(proof:PoolSupportArithmetic|PoolApproachClearanceArithmetic,owner:ClosedProof,part:string,surface:string,geometry?:PoolSurfaceInput['geometry'],
+  observation?:PoolObservation,witness?:PoolWitness,consumedSurface?:PoolSurfaceInput):number {
+  if(!observation||owner.observation!==observation||owner.identity!==poolOwnedObservationIdentity(owner.fixture,observation)
+    ||proof.part!==part||proof.surface!==surface||geometry&&proof.geometry!==geometry)return 0;
+  if(consumedSurface&&(consumedSurface.geometry!==owner.surface.geometry||consumedSurface.points!==owner.surface.points))return 0;
+  if(witness&&!poolObservationOwnsWitness(owner.fixture,observation,owner.surface,witness))return 0;
+  return proof.maximumOutputError;
+}
 
 /** Only a mathematically tangent, rigid full foot receives this numerical classification. */
 export function derivePoolSupportArithmetic(fixture:PoolFixtureV1,surface:PoolSurfaceInput,cage:Float32Array<ArrayBuffer>,pose:PoolHierarchy,patch:PreparedPoolPatch,support:PoolSupport,frame?:PoolFootContactFrame,observation?:PoolObservation):PoolSupportArithmetic {
   if(!frame||!observation)throw new Error('Pool support arithmetic requires its independent contact frame and exact observation owner.');
   requirePoolObservedSurface(fixture,observation,surface,patch.part);
+  const closed=requirePoolArithmeticReplay(fixture,observation,surface.geometry,cage,pose);
   requirePoolFootContactFrame(frame,fixture,surface.geometry,cage,patch,pose.inverse[patch.bone],support,pose.bundle);
+  if(closed)requirePoolObservationSupport(fixture,observation,pose.bundle.bones[patch.bone].name==='foot.L'?'footL':'footR',support);
   const construction=requirePoolFootConstruction(frame,pose);
   if(support.region?.kind!=='top-face'||!support.surface)throw new Error('Pool support arithmetic requires a finite horizontal support.');
   const solid=fixture.solids.find(solid=>solid.id===support.surface),ground=fixture.ground.id===support.surface?fixture.ground:null;
@@ -42,7 +56,8 @@ export function derivePoolSupportArithmetic(fixture:PoolFixtureV1,surface:PoolSu
   const geometry=surface.geometry,parts=geometry.description.parts.filter(part=>part.name===patch.part),part=parts[0];
   if(parts.length!==1)throw new Error('Pool support arithmetic has no unique selected patch owner.');
   const worldErrors=pose.world.map((_,bone)=>bone===patch.bone?construction.worldError:new Array(16).fill(0));
-  const vertices=new Set(geometry.indices.subarray(part.start,part.start+part.count)),arithmetic=poolSurfaceArithmetic(geometry,cage,pose.world,pose.inverse,vertices,worldErrors),height=heights[0];
+  const vertices=poolOwnedParts(geometry)?.find(row=>row.name===part.name)?.vertices??new Set(geometry.indices.subarray(part.start,part.start+part.count));
+  const arithmetic=poolPartSurfaceArithmetic(geometry,cage,pose.world,pose.inverse,vertices,worldErrors),height=heights[0];
   let maximumOutputError=0,nominalMinimumGap=Infinity,nominalOperationError=0,actualMinimumGap=Infinity;
   for(const vertex of vertices){
     for(let axis=0;axis<3;axis++)if(surface.points[vertex*3+axis]!==arithmetic.values[vertex*3+axis])throw new Error('Pool arithmetic proof does not match the observed skin/subdivision output.');
@@ -58,12 +73,16 @@ export function derivePoolSupportArithmetic(fixture:PoolFixtureV1,surface:PoolSu
   }
   const proof=Object.freeze({part:patch.part,surface:support.surface,geometry,maximumOutputError,
     nominalMinimumGap,nominalOperationError,actualMinimumGap,contactEstablished:true,constructionMaximumError:Math.max(...construction.worldError),activeVertex:frame.activeVertex});
-  derived.add(proof);ownership.set(proof,{fixture,surface:Object.freeze({geometry:surface.geometry,points:surface.points}),points:surface.points.slice(),observation,observationKey:canonicalPoolValue(observation),pose,frame,cage,patch});return proof;
+  if(closed)closedProofs.set(proof,{fixture,surface,observation,identity:closed});
+  else {derived.add(proof);ownership.set(proof,{fixture,surface:Object.freeze({geometry:surface.geometry,points:surface.points}),points:surface.points.slice(),observation,observationKey:canonicalPoolValue(observation),pose,frame,cage,patch});}
+  return proof;
 }
 
 export function poolSupportArithmeticBound(proof:PoolContactArithmetic,part:string,surface:string,geometry?:PoolSurfaceInput['geometry'],observation?:PoolObservation,witness?:PoolWitness,consumedSurface?:PoolSurfaceInput):number {
   if('kind' in proof)return 0;
   if('method' in proof)return poolRailArithmeticBound(proof,part,surface,geometry,observation,witness,consumedSurface);
+  const closed=closedProofs.get(proof);
+  if(closed)return closedBound(proof,closed,part,surface,geometry,observation,witness,consumedSurface);
   const owner=ownership.get(proof);
   if(!derived.has(proof)||!owner||owner.observation!==observation||owner.observationKey!==canonicalPoolValue(observation)||!proof.contactEstablished||proof.part!==part||proof.surface!==surface||(geometry&&proof.geometry!==geometry))return 0;
   if(consumedSurface&&(consumedSurface.geometry!==owner.surface.geometry||consumedSurface.points!==owner.surface.points))return 0;
@@ -73,11 +92,12 @@ export function poolSupportArithmeticBound(proof:PoolContactArithmetic,part:stri
   return proof.maximumOutputError;
 }
 
-interface ApproachOwner {fixture:PoolFixtureV1;surface:PoolSurfaceInput;points:Float32Array<ArrayBuffer>;observation:PoolObservation;observationKey:string;
-  pose:PoolHierarchy;frame:PoolFreeFootClearanceReference;plan:PoolFreeLegPlan;cage:Float32Array<ArrayBuffer>;patch:PreparedPoolPatch;support:PoolSupport;limb:'footL'|'footR';solidKey:string}
+interface ApproachInputs {fixture:PoolFixtureV1;surface:PoolSurfaceInput;observation:PoolObservation;
+  pose:PoolHierarchy;frame:PoolFreeFootClearanceReference;plan:PoolFreeLegPlan;cage:Float32Array<ArrayBuffer>;patch:PreparedPoolPatch;support:PoolSupport;limb:'footL'|'footR';solidKey?:string}
+interface ApproachOwner extends ApproachInputs {points:Float32Array<ArrayBuffer>;observationKey:string;solidKey:string}
 const approachOwners=new WeakMap<PoolApproachClearanceArithmetic,ApproachOwner>();
 
-function requireApproachOwner(owner:ApproachOwner) {
+function requireApproachOwner(owner:ApproachInputs) {
   const {fixture,surface,cage,pose,patch,support,frame,plan,observation,limb}=owner;
   requirePoolObservedSurface(fixture,observation,surface,patch.part);
   const location=requirePoolObservationSupport(fixture,observation,limb,support),actual=poolSourceSupport(fixture,{...location,limb});
@@ -96,12 +116,14 @@ function requireApproachOwner(owner:ApproachOwner) {
 /** Own-plane collision classification grants no contact, support area or other-solid allowance. */
 export function derivePoolApproachClearanceArithmetic(fixture:PoolFixtureV1,surface:PoolSurfaceInput,cage:Float32Array<ArrayBuffer>,pose:PoolHierarchy,patch:PreparedPoolPatch,
   support:PoolSupport,limb:'footL'|'footR',frame:PoolFreeFootClearanceReference,plan:PoolFreeLegPlan,observation:PoolObservation):PoolApproachClearanceArithmetic {
-  const owner:ApproachOwner={fixture,surface:Object.freeze({geometry:surface.geometry,points:surface.points}),cage,pose,patch,support,limb,frame,plan,observation,points:surface.points.slice(),observationKey:canonicalPoolValue(observation),solidKey:''};
-  const {construction,solidKey}=requireApproachOwner(owner);owner.solidKey=solidKey;
+  const closed=requirePoolArithmeticReplay(fixture,observation,surface.geometry,cage,pose),owner={fixture,surface,cage,pose,patch,support,limb,frame,plan,observation};
+  const raw=closed?undefined:{...owner,surface:Object.freeze({geometry:surface.geometry,points:surface.points}),points:surface.points.slice(),observationKey:canonicalPoolValue(observation),solidKey:''};
+  const {construction,solidKey}=requireApproachOwner(raw??owner);
   const geometry=surface.geometry,parts=geometry.description.parts.filter(part=>part.name===patch.part),part=parts[0];
   if(parts.length!==1)throw new Error('Pool approach clearance has no unique selected full-foot owner.');
-  const vertices=new Set(geometry.indices.subarray(part.start,part.start+part.count)),worldErrors=pose.world.map((_,bone)=>bone===patch.bone?construction.worldError:new Array(16).fill(0));
-  const arithmetic=poolSurfaceArithmetic(geometry,cage,pose.world,pose.inverse,vertices,worldErrors);
+  const vertices=poolOwnedParts(geometry)?.find(row=>row.name===part.name)?.vertices??new Set(geometry.indices.subarray(part.start,part.start+part.count));
+  const worldErrors=pose.world.map((_,bone)=>bone===patch.bone?construction.worldError:new Array(16).fill(0));
+  const arithmetic=poolPartSurfaceArithmetic(geometry,cage,pose.world,pose.inverse,vertices,worldErrors);
   let maximumOutputError=0,actualMinimumGap=Infinity;
   for(const vertex of vertices){
     for(let axis=0;axis<3;axis++)if(surface.points[vertex*3+axis]!==arithmetic.values[vertex*3+axis])throw new Error('Pool approach arithmetic does not match the observed skin/subdivision output.');
@@ -111,10 +133,14 @@ export function derivePoolApproachClearanceArithmetic(fixture:PoolFixtureV1,surf
   if(!Number.isFinite(maximumOutputError)||maximumOutputError<0)throw new Error('Pool approach arithmetic has an unresolved forward bound.');
   const proof=Object.freeze({kind:'free-foot-approach-clearance' as const,part:patch.part,surface:support.surface!,geometry,maximumOutputError,actualMinimumGap,
     constructionMaximumError:Math.max(...construction.worldError),contactEstablished:false as const,required:false as const,activeVertex:frame.activeVertex,exactTargetMargin:construction.premise.exactTargetMargin});
-  approachOwners.set(proof,owner);return proof;
+  if(closed)closedProofs.set(proof,{fixture,surface,observation,identity:closed});
+  else approachOwners.set(proof,{...raw!,solidKey});
+  return proof;
 }
 
 function approachClearanceBound(proof:PoolApproachClearanceArithmetic,witness:PoolWitness,observation:PoolObservation):number {
+  const closed=closedProofs.get(proof);
+  if(closed)return closedBound(proof,closed,witness.part??'',witness.surface,undefined,observation,witness);
   const owner=approachOwners.get(proof);
   if(!owner||owner.observation!==observation||owner.observationKey!==canonicalPoolValue(observation)||proof.part!==witness.part||proof.surface!==witness.surface
       ||owner.surface.points.length!==owner.points.length||owner.points.some((value,at)=>value!==owner.surface.points[at]))return 0;

@@ -94,8 +94,8 @@ fn the_exports_read_and_set_each_persons_search_and_current_schema_keeps_it() {
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
         terri_core::SAVE_SCHEMA_VERSION.to_le_bytes()
     );
-    let saved = payload!(&bytes, 24, terri_core::SaveSnapshotV24);
-    assert_eq!(saved.previous.legacy.legacy.legacy.job_search_off.len(), 1);
+    let saved = payload!(&bytes, 25, terri_core::SaveSnapshotV25);
+    assert_eq!(saved.gameplay_v20().legacy.legacy.job_search_off.len(), 1);
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
     assert_eq!(loaded.job_search_of(people[1]), vec![0]);
@@ -105,10 +105,13 @@ fn the_exports_read_and_set_each_persons_search_and_current_schema_keeps_it() {
 
     // A list naming nobody alive refuses the load and leaves the game.
     let mut bad = saved.clone();
-    bad.previous.legacy.legacy.legacy.job_search_off = vec![999];
+    bad.gameplay_v20_mut().legacy.legacy.job_search_off = vec![999];
     let mut target = SimHandle::from_lot();
     let before = target.world_hash();
-    assert!(!target.load_bytes(&encoded(terri_core::SAVE_SCHEMA_VERSION, postcard::to_allocvec(&bad).unwrap())));
+    assert!(!target.load_bytes(&encoded(
+        terri_core::SAVE_SCHEMA_VERSION,
+        postcard::to_allocvec(&bad).unwrap()
+    )));
     assert_eq!(target.world_hash(), before);
 }
 
@@ -166,8 +169,8 @@ fn older_saves_give_every_living_person_the_household_setting() {
     // The migrated game saves in the current schema with everyone listed.
     let mut migrated = SimHandle::from_lot();
     assert!(migrated.load_bytes(&off));
-    let resaved = payload!(&migrated.save_bytes(), 24, terri_core::SaveSnapshotV24);
-    let resaved = resaved.previous.legacy.legacy;
+    let resaved = payload!(&migrated.save_bytes(), 25, terri_core::SaveSnapshotV25);
+    let resaved = resaved.previous.legacy.legacy.legacy.legacy;
     assert_eq!(
         resaved.legacy.job_search_off.len(),
         living_people(&migrated).len()
@@ -218,8 +221,8 @@ fn main_schema_seventeen_saves_move_to_current_with_their_setting() {
             assert_eq!(employed, 1, "only the shipped worker holds a job");
         }
         let current = game.save_bytes();
-        let resaved = payload!(&current, 24, terri_core::SaveSnapshotV24);
-        let resaved = resaved.previous.legacy.legacy;
+        let resaved = payload!(&current, 25, terri_core::SaveSnapshotV25);
+        let resaved = resaved.previous.legacy.legacy.legacy.legacy;
         assert_eq!(
             resaved.legacy.job_search_off.len(),
             if search { 0 } else { people.len() },

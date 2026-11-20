@@ -46,7 +46,7 @@ it('projects sparse inherited choices from the actual prepared matcher', () => {
         value(sim.beginBuild());
         wall(4, 1);
         const initial=value(sim.prepareBuildCommit());
-        expect(sim.commitBuild(initial.token)).toEqual({ok:false,error:{code:15,detail:null}});
+        expect(sim.commitBuild(initial.token)).toEqual({ok:false,error:{code:16,detail:null}});
         value(sim.commitBuildWithAccessAck(initial.token));value(sim.endBuild());
         const before = value(sim.roomSummaries());
         const a = before.rooms.find(room => room.anchor?.[0] === 1)!.id, b = before.rooms.find(room => room.anchor?.[0] === 4)!.id;

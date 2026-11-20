@@ -1,12 +1,13 @@
 import type { PersistableSim } from './persistence-controller.js';
 import type { SimBridge } from '../bridge.js';
-import type { BuildReview, RoomFailure } from '../rooms/codec.js';
-import { confirmFailure, enterFailure, failureDetails, failureWhat, type BuildFailureReport } from '../rooms/failure.js';
+import type { BuildReview, RoomFailure, RoomResult } from '../rooms/codec.js';
+import type { BuildCommitAttempt } from './prepared-build-commit.js';
+import { BED_OUTSIDE, bedName, confirmFailure, enterFailure, failureDetails, failureWhat, type BuildFailureReport } from '../rooms/failure.js';
 import { logError, logWarning } from '../diagnostics/log.js';
 
 type BuildSource = PersistableSim & Pick<SimBridge, 'flushCommands' | 'buildActive' | 'buildDirty' | 'beginBuild'
   | 'prepareBuildCommit' | 'commitBuild' | 'cancelBuild' | 'endBuild' | 'takeBuildError'>
-  & Partial<Pick<SimBridge, 'buildFailureReport'>>;
+  & Partial<Pick<SimBridge, 'buildFailureReport' | 'objectDetails' | 'objectName'>>;
 export interface BuildSessionHooks {
   /** Stage the current valid preview, or refuse confirmation. */
   prepare(): boolean;
@@ -17,6 +18,7 @@ export interface BuildSessionHooks {
   review?(review: BuildReview): Promise<boolean>;
   needsReview?(): boolean;
   replaced?(reason: 'load' | 'cancel' | 'end'): void;
+  commit?: BuildCommitAttempt;
 }
 
 /** The paused world is a draft; persistent storage only sees the last confirmed world. */
@@ -32,6 +34,7 @@ export class BuildSession implements PersistableSim {
   clockTick(): number { return this.source.clockTick(); }
   dayTicks(): number { return this.source.dayTicks(); }
   saveBytes(): Uint8Array { return this.source.saveBytes(); }
+  settlesQueuedOnLoad(): boolean { return this.active; }
 
   /**
    * Native semantic dirtiness includes authored edits and normalized names.
@@ -73,15 +76,29 @@ export class BuildSession implements PersistableSim {
           return false;
         }).finally(() => { this.confirming = false; });
       }
-      const committed = this.source.commitBuild(prepared.value.token);
-      if (committed.ok) this.error = ''; else this.refuse('The changes could not be committed.', committed.error);
+      const adopt = () => this.source.commitBuild(prepared.value.token);
+      const committed = this.hooks.commit?.(prepared.value.token, adopt) ?? adopt();
+      if (committed instanceof Promise) {
+        return committed.then(result => this.receiveCommit(result), error => {
+          this.error = 'Swimming could not be prepared. Try Confirm again.';
+          logError('Build', 'Preparing swimming for this layout failed.', { error });
+          return false;
+        }).finally(() => { this.confirming = false; });
+      }
       this.confirming = false;
-      return committed.ok;
+      return this.receiveCommit(committed);
     } catch (error) {
       this.error = 'The changes could not be confirmed. See Console for details.';
       logError('Build', 'Confirm failed unexpectedly.', { error });
       this.confirming = false; return false;
     }
+  }
+
+  private receiveCommit(result: RoomResult<void> | null): boolean {
+    if (!result) { this.reviewWasCancelled = true; return false; }
+    if (result.ok) this.error = '';
+    else this.refuse('The changes could not be committed.', result.error);
+    return result.ok;
   }
 
   cancel(): boolean {
@@ -107,7 +124,11 @@ export class BuildSession implements PersistableSim {
 
   private refuse(message: string, error: RoomFailure): void {
     const report = this.report(error);
-    this.error = confirmFailure(error, report);
+    // A bed left outside is named by its entity index in the draft: its type, then its model.
+    const entity = error.code === BED_OUTSIDE && error.detail !== null ? Number(error.detail) : null;
+    const bed = entity === null ? ''
+      : bedName(this.source.objectName?.(entity) ?? '', this.source.objectDetails?.(entity)?.modelName ?? '');
+    this.error = confirmFailure(error, report, bed);
     logError('Build', message, failureDetails(error, report));
   }
 

@@ -44,7 +44,7 @@ On a narrow screen, scroll a table sideways to read its remaining columns. With 
 | Clean floor | No direct need benefit | Cleans reachable dirty patches | Completed cleaning earns appreciation toward the cleaner |
 | Wipe surface | No direct need benefit | Cleans grime rather than dishes or the person | Completed cleaning earns appreciation toward the cleaner |
 | Empty bin | No direct need benefit | Removes accumulated waste | Completed emptying earns appreciation toward the cleaner |
-| Work | No direct need benefit | Scheduled Energy cost and time away | No household company while away |
+| Work | Hunger, Bladder and Social refill halfway at the [work thresholds](needs/#timing-and-decay) | Scheduled Energy cost and time away | No household company while away |
 | Walk, wait, carry or prepare | No direct need benefit | Time passes before relief | No Social from these stages |
 | Buy, sell, move, rotate, recolor, recover a book or edit the home | No direct need benefit | Funds, space and placement rules apply | No direct relationship reward |
 | Stove and counter without a recipe running | No standalone need benefit | They are stations within food preparation, not separate eating actions | No Social |
@@ -74,12 +74,18 @@ Lie down on the long sofa gives Comfort and a small Energy benefit. Sit gives Co
 
 Take a shower restores Hygiene at an Energy cost. Take a bath restores Hygiene and Comfort with a smaller Energy cost. Both are whole-body cleaning. Use the toilet restores Bladder and does not wash hands afterward.
 
+These three run until the meter they fill is full: Hygiene for the shower and bath, Bladder for the toilet. How long that takes depends on how far the meter has to rise, so a nearly full person finishes quickly, though they still use the fixture for a short minimum time. From an empty meter the toilet takes about a quarter of an hour of game time, and a shower or bath a little under an hour (roughly 40 minutes). A shower costs Energy and a bath gives Comfort for every minute the person stays, so a longer use costs or gives more. Stopping early keeps only the gain from the minutes already spent: an order that sends the person elsewhere leaves the meter where it had got to.
+
+During a bath, water covers the person's legs and feet. Each bath gets one randomly chosen rubber duck, toy boat or toy submarine to play with. Save and Load preserve the toy and the animation's progress. Finishing or canceling the bath removes its water and toy and restores the person's usual clothes.
+
 Wash hands is partial cleaning. Either sink stops adding Hygiene at the same ceiling, so washing repeatedly cannot replace bathing or remove body odor. The kitchen sink's rate differs from the bathroom sink's. Neither action has an extra Comfort cost. Cleaning household dishes at the kitchen sink is a different action and supplies no personal Hygiene.
 
 Toilets, showers and baths are [private activities](relationships/#privacy). Entering an occupied bathroom, or starting private use with somebody already inside, can harm feelings in different directions.
 
 :::numbers Numbers and limits
-Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from ordinary decay. Body-odor consequences clear only above that level, so bathing is necessary.
+Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from the normal slow fall of Hygiene. Body-odor consequences clear only above that level, so bathing is necessary.
+
+A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} game minutes at most, even if the meter is not yet full. A person reaches that limit only when their personality gives them very little from the activity, so that filling the meter would take that long. If they get almost nothing from it, the use has an ordinary length and the meter is not filled.
 :::
 
 ## Swimming {#swimming}

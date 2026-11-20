@@ -16,6 +16,7 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
 mod book_commerce_tests;
+mod browser_bills;
 mod browser_rooms;
 #[cfg(test)]
 mod character_tests;
@@ -2118,18 +2119,42 @@ impl SimHandle {
     pub fn chore_progress_ptr(&self) -> *const u32 {
         self.sim.render_buffer().chore_progress.as_ptr()
     }
-    pub fn pool_phases_ptr(&self) -> *const u32 { self.sim.render_buffer().pool_phases.as_ptr() }
-    pub fn pool_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().pool_elapsed.as_ptr() }
-    pub fn prev_pool_phases_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_phases.as_ptr() }
-    pub fn prev_pool_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_elapsed.as_ptr() }
-    pub fn prev_pool_exit_origins_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_exit_origins.as_ptr() }
-    pub fn prev_pool_targets_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_targets.as_ptr() }
-    pub fn pool_exit_origins_ptr(&self) -> *const u32 { self.sim.render_buffer().pool_exit_origins.as_ptr() }
-    pub fn bath_toys_ptr(&self) -> *const u32 { self.sim.render_buffer().bath_toys.as_ptr() }
-    pub fn bath_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().bath_elapsed.as_ptr() }
-    pub fn prev_bath_toys_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_bath_toys.as_ptr() }
-    pub fn prev_bath_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_bath_elapsed.as_ptr() }
-    pub fn prev_bath_targets_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_bath_targets.as_ptr() }
+    pub fn pool_phases_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_phases.as_ptr()
+    }
+    pub fn pool_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_elapsed.as_ptr()
+    }
+    pub fn prev_pool_phases_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_phases.as_ptr()
+    }
+    pub fn prev_pool_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_elapsed.as_ptr()
+    }
+    pub fn prev_pool_exit_origins_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_exit_origins.as_ptr()
+    }
+    pub fn prev_pool_targets_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_targets.as_ptr()
+    }
+    pub fn pool_exit_origins_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_exit_origins.as_ptr()
+    }
+    pub fn bath_toys_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().bath_toys.as_ptr()
+    }
+    pub fn bath_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().bath_elapsed.as_ptr()
+    }
+    pub fn prev_bath_toys_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_bath_toys.as_ptr()
+    }
+    pub fn prev_bath_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_bath_elapsed.as_ptr()
+    }
+    pub fn prev_bath_targets_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_bath_targets.as_ptr()
+    }
 
     /// Authored object-audio category per row. Re-read after every sync or
     /// memory growth like every other zero-copy render column.
@@ -2698,8 +2723,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v24())
-            .expect("SaveSnapshotV24 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v25())
+            .expect("SaveSnapshotV25 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2728,15 +2753,41 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV25>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v25(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 24 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v24(snapshot).is_ok(),
                 _ => false,
             };
         }
+        // The two private producers used the same header numbers as the
+        // published bills and fade releases. Their first field identifies
+        // the pool-enabled content they wrote, before either layout diverges.
+        let private_editable = matches!(version, 22 | 23)
+            && matches!(
+                postcard::take_from_bytes::<u64>(payload),
+                Ok((0x7229_9218_57a2_e3ae, _))
+            );
+        if version == 23 && private_editable {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV23>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v23(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 23 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v23(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 22 && private_editable {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV22>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v22(snapshot).is_ok(),
                 _ => false,
             };
         }
@@ -3383,6 +3434,18 @@ impl SimHandle {
                 ]
             })
             .collect()
+    }
+
+    /// Optional cause for one exact session event; the event stream stays unchanged.
+    pub fn order_failure_cause(&self, sequence: &str) -> String {
+        if sequence.is_empty() || !sequence.bytes().all(|byte| byte.is_ascii_digit()) {
+            return String::new();
+        }
+        sequence
+            .parse::<u64>()
+            .ok()
+            .and_then(|sequence| self.sim.action_failure_cause(sequence))
+            .map_or_else(String::new, |cause| cause.as_str().to_owned())
     }
 
     /// Cursor and expired flag, then nine strings per event. Reading never drains.
@@ -5033,7 +5096,7 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v24()
+            uninterrupted.sim.save_snapshot_v25()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
@@ -5045,8 +5108,8 @@ mod boundary_tests {
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v24(),
-            uninterrupted.sim.save_snapshot_v24()
+            resumed.sim.save_snapshot_v25(),
+            uninterrupted.sim.save_snapshot_v25()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -5058,8 +5121,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v24(),
-            uninterrupted.sim.save_snapshot_v24()
+            resumed.sim.save_snapshot_v25(),
+            uninterrupted.sim.save_snapshot_v25()
         );
     }
 
@@ -9470,7 +9533,9 @@ mod boundary_tests {
         // Zero at move-in AND a nonzero read-through, because a funds()
         // stubbed to 0.0 satisfies the first alone - the sweep found
         // exactly that mutant surviving.
-        assert_eq!(handle.funds(), 0.0, "move-in day, before any shift");
+        // A new household moves in with its starting funds, $400
+        // ([WB-rulings] ruling 18).
+        assert_eq!(handle.funds(), 400.0, "move-in day, before any shift");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260 * 100;
         assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
@@ -9621,7 +9686,11 @@ mod boundary_tests {
             );
             assert_eq!(
                 handle.mood_snapshot_of(subject.index_u32()),
-                if label.is_some() { vec![score, score] } else { vec![score] }
+                if label.is_some() {
+                    vec![score, score]
+                } else {
+                    vec![score]
+                }
             );
         }
 
@@ -11238,15 +11307,15 @@ mod social_boundary_regressions {
 #[cfg(test)]
 mod job_search_tests;
 #[cfg(test)]
+mod pool_save_tests;
+#[cfg(test)]
+mod pool_v22_migration_tests;
+#[cfg(test)]
 mod published_v15_tests;
 #[cfg(test)]
 mod published_v19_tests;
 #[cfg(test)]
 mod room_save_tests;
-#[cfg(test)]
-mod pool_save_tests;
-#[cfg(test)]
-mod pool_v22_migration_tests;
 #[cfg(test)]
 mod shift_boundary_tests;
 /// `[index, kind, shift_start, shift_ticks, working_days, weight]` for each
@@ -11269,6 +11338,13 @@ fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
 
 #[cfg(test)]
 mod shift_save_tests;
+
+#[cfg(test)]
+mod published_v21_tests;
+#[cfg(test)]
+mod bills_boundary_tests;
+#[cfg(test)]
+mod presence_fade_boundary_tests;
 
 #[cfg(test)]
 mod current_test_snapshot;

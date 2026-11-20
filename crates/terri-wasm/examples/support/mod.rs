@@ -1,14 +1,14 @@
 //! Complete current save ownership for scene-authoring tools.
 use terri_core::{
-    SaveSnapshotV19, SaveSnapshotV24, SaveSnapshotV5, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+    SaveSnapshotV19, SaveSnapshotV25, SaveSnapshotV5, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
 };
 use terri_sim::{Content, Sim};
 
-const _: () = assert!(SAVE_SCHEMA_VERSION == 24);
+const _: () = assert!(SAVE_SCHEMA_VERSION == 25);
 
 /// A field view keeps scene tools on V19 fields while retaining the complete current state.
 #[derive(Clone, Debug, PartialEq)]
-pub struct CurrentSnapshot(pub SaveSnapshotV24);
+pub struct CurrentSnapshot(pub SaveSnapshotV25);
 impl std::ops::Deref for CurrentSnapshot {
     type Target = SaveSnapshotV19;
     fn deref(&self) -> &Self::Target {
@@ -29,13 +29,13 @@ pub trait CurrentSnapshotViews {
 }
 impl CurrentSnapshotViews for Sim {
     fn current_snapshot(&self) -> CurrentSnapshot {
-        CurrentSnapshot(self.save_snapshot_v24())
+        CurrentSnapshot(self.save_snapshot_v25())
     }
     fn load_current_snapshot(
         &mut self,
         snapshot: CurrentSnapshot,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v24(snapshot.0)
+        self.load_snapshot_v25(snapshot.0)
     }
 }
 

@@ -2,7 +2,7 @@
 use bevy_ecs::prelude::*;
 use crate::{Content, SaveError};
 use terri_core::{Agent, AtWork, Commuting, Eating, Path, SimRng, SmartObject, Socialising, StepWork, Target};
-use terri_core::save_v23::SavedBathEpisode;
+use terri_core::save_editable_v23::SavedBathEpisode;
 
 #[derive(Component, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct BathEpisode {

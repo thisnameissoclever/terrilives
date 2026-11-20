@@ -62,9 +62,9 @@ fn build_replans_an_owned_fetch_contact_without_replacing_the_book_or_seat() {
         sim.world().get::<Path>(person).unwrap().steps.last(),
         Some(&(3, 2))
     );
-    let saved = sim.save_snapshot_v21();
-    sim.load_snapshot_v21(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v21(), saved);
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
 }
 
 #[test]
@@ -116,9 +116,9 @@ fn build_keeps_a_carried_book_waiting_when_its_return_contact_is_blocked() {
             .location,
         location
     );
-    let saved = sim.save_snapshot_v21();
-    sim.load_snapshot_v21(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v21(), saved);
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
 }
 
 #[test]
@@ -134,18 +134,40 @@ fn pool_continuation_survives_active_shelf_move_and_build_commit() {
 fn shelf_move_with_optional_pool(with_pool: bool) {
     let (mut sim, p, shelf, seat, title) = fixture("armchair");
     let swimmer = with_pool.then(|| {
-        let pool = sim.spawn_object(Position { x: 12., y: 8. }, terri_data::pack().find("pool").unwrap());
+        let pool = sim.spawn_object(
+            Position { x: 12., y: 8. },
+            terri_data::pack().find("pool").unwrap(),
+        );
         let actor = sim.spawn_agent(Position { x: 11., y: 8. }, 80.);
-        issue(&mut sim, SimCommand::UseObjectFirst { agent: actor.index_u32(), object: pool.index_u32(), interaction: 0 });
+        issue(
+            &mut sim,
+            SimCommand::UseObjectFirst {
+                agent: actor.index_u32(),
+                object: pool.index_u32(),
+                interaction: 0,
+            },
+        );
         actor
     });
     block_furniture(&mut sim);
     if let Some(swimmer) = swimmer {
         for _ in 0..50 {
             sim.tick();
-            if sim.world().get::<crate::pool::PoolEpisode>(swimmer).is_some_and(|e| e.phase == 1) { break; }
+            if sim
+                .world()
+                .get::<crate::pool::PoolEpisode>(swimmer)
+                .is_some_and(|e| e.phase == 1)
+            {
+                break;
+            }
         }
-        assert_eq!(sim.world().get::<crate::pool::PoolEpisode>(swimmer).unwrap().phase, 1);
+        assert_eq!(
+            sim.world()
+                .get::<crate::pool::PoolEpisode>(swimmer)
+                .unwrap()
+                .phase,
+            1
+        );
     }
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
@@ -211,9 +233,9 @@ fn shelf_move_with_optional_pool(with_pool: bool) {
     let saved = sim.current_v19_view();
     sim.load_current_v19_view(saved.clone()).unwrap();
     assert_eq!(sim.current_v19_view(), saved);
-    let saved = sim.save_snapshot_v22();
-    sim.load_snapshot_v22(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v22(), saved);
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
 }
 
 #[test]
@@ -905,21 +927,21 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         let pack = sim.world().resource::<Content>().0;
         let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
         historical.load_snapshot_v10(frozen.clone()).unwrap();
-        let adopted = historical.save_snapshot_v21();
+        let adopted = historical.save_snapshot_v25();
         let historical_hash = historical.world_hash();
         let mut bad = frozen.clone();
         bad.legacy.reading[0].copy = BookCopyId(999);
         assert!(historical.load_snapshot_v10(bad).is_err());
-        assert_eq!(historical.save_snapshot_v21(), adopted);
+        assert_eq!(historical.save_snapshot_v25(), adopted);
         assert_eq!(historical.world_hash(), historical_hash);
         let mut unearned = frozen.clone();
         unearned.legacy.reading[0].earned_satisfaction = 10.0;
         assert!(historical.load_snapshot_v10(unearned).is_err());
-        assert_eq!(historical.save_snapshot_v21(), adopted);
+        assert_eq!(historical.save_snapshot_v25(), adopted);
         let mut bad = frozen.clone();
         bad.legacy.reading.clear();
         assert!(historical.load_snapshot_v10(bad).is_err());
-        assert_eq!(historical.save_snapshot_v21(), adopted);
+        assert_eq!(historical.save_snapshot_v25(), adopted);
         assert_eq!(sim.current_v10_view(), saved);
         assert_eq!(sim.world_hash(), hash);
         for fault in 0..3 {
@@ -3081,7 +3103,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v24::restore(
+    let mut returning = crate::save::v25::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

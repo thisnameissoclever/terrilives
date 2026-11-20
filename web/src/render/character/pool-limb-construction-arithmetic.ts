@@ -6,11 +6,12 @@ import type {Vec3} from './math.js';
 import {vector,identity,point,multiply,inverse,boneFrame,properRotation,solve,length,type M,type V} from './pool-matrix-arithmetic.js';
 import {requirePoolMatrixRepresentation,requirePoolOrientedLeg,type PoolOrientedLegPlan} from './pool-matrix-producer.js';
 import {canonicalPoolValue} from './pool-contact-identity.js';
+import {poolOwnedRigKey} from './pool-owned-compilation.js';
 
 interface ConstructionBounds {readonly worldError:readonly number[];readonly legPlan?:PoolOrientedLegPlan;readonly basisError:readonly (readonly number[])[]}
 interface Construction {pose:PoolHierarchy;world:number[];inverse:number[];rigKey:string;bounds:ConstructionBounds;ancestors:{bone:number;basis:number[];rest:number[];inverse:number[];world:number[]}[]}
 const constructions=new WeakMap<PoolFootContactFrame,WeakMap<PoolHierarchy,Construction>>();
-const rigKey=(pose:PoolHierarchy)=>canonicalPoolValue({sourceSha256:pose.bundle.sourceSha256,bones:pose.bundle.bones});
+const rigKey=(pose:PoolHierarchy)=>poolOwnedRigKey(pose.bundle)??canonicalPoolValue({sourceSha256:pose.bundle.sourceSha256,bones:pose.bundle.bones});
 
 /** Mirror and bound the existing configured IK path, then require exact operation parity. */
 export function solveCertifiedPoolFoot(pose:PoolHierarchy,upper:number,lower:number,end:number,frame:PoolFootContactFrame,pole:Vec3,legPlan?:PoolOrientedLegPlan):void {

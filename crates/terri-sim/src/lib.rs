@@ -8,18 +8,20 @@ mod activity_log_tests;
 pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
-#[cfg(test)]
-mod pool_tests;
-mod pool;
-mod bath;
 pub mod affinity;
+mod bath;
 pub mod beds;
+pub mod bills;
 pub mod books;
 pub mod build_transaction;
 pub mod burnt_meals;
+mod pool;
+#[cfg(test)]
+mod pool_tests;
 pub use burnt_meals::BurntMeals;
 pub mod attendance;
 pub mod careers;
+pub mod lateness;
 pub mod player_actions;
 pub mod shifts;
 pub use careers::Careers;
@@ -65,6 +67,7 @@ mod need_interactions;
 pub(crate) mod neglect;
 pub mod placement;
 pub mod portals;
+pub mod presence_fade;
 mod privacy;
 mod relationship_dynamics;
 pub mod relationship_effects;
@@ -1435,7 +1438,7 @@ impl Sim {
         let candidate = save::v16::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(self.world()),
+            save::Carried::for_older_load(self.world()),
         )?;
         self.adopt_current(candidate)
     }
@@ -1466,7 +1469,7 @@ impl Sim {
         let candidate = save::v15::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(self.world()),
+            save::Carried::for_older_load(self.world()),
         )?;
         self.adopt_current(candidate)
     }
@@ -1475,35 +1478,35 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.previous.legacy.legacy.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.gameplay_v20().legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.gameplay_v20().legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
+            .map(|snapshot| snapshot.gameplay_v20().legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
     /// Historical schema twenty, before held shifts and explicit world state.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.clone())
+            .map(|snapshot| snapshot.gameplay_v20().clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
     /// Published schema twenty-one retains shift and queued-command ownership.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.clone())
+            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
@@ -1515,60 +1518,153 @@ impl Sim {
         save::editable_v21::capture(self)
     }
 
+    /// Frozen private pool format with historical coordinates.
+    pub fn try_save_snapshot_editable_world_v22(
+        &self,
+    ) -> Result<terri_core::LegacyEditableWorldSnapshotV22, SaveError> {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.try_save_snapshot_editable_world_v22();
+        }
+        if pool::has_swimming_state(&self.world) {
+            return Err(SaveError::InvalidValue);
+        }
+        Ok(save::editable_v22::capture_current_layer(self))
+    }
+
+    /// Frozen private continuation for fixtures without the published shifts.
+    pub fn save_snapshot_editable_world_v23(&self) -> terri_core::LegacyEditableWorldSnapshotV23 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_editable_world_v23();
+        }
+        save::editable_v23::capture(self)
+    }
+
+    /// The published household bills projection.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
-        self.try_save_snapshot_v22().expect("current swimming is not representable in historical V22; use V24 or the fallible projection")
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.legacy.clone())
+            .unwrap_or_else(|| save::v22::capture(self))
     }
 
-    /// Private V22 omits shifts and bath toys and uses historical pool coordinates.
-    pub fn try_save_snapshot_v22(&self) -> Result<terri_core::SaveSnapshotV22, SaveError> {
-        if let Some(baseline) = self.committed_projection() { return baseline.try_save_snapshot_v22(); }
-        if pool::has_swimming_state(&self.world) { return Err(SaveError::InvalidValue); }
-        Ok(save::v22::capture_current_layer(self))
-    }
-
-    /// Private historical continuation without the published shift layer.
+    /// The published bills and lingering preference projection.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
-        if let Some(baseline) = self.committed_projection() { return baseline.save_snapshot_v23(); }
-        save::v23::capture(self)
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.clone())
+            .unwrap_or_else(|| save::v23::capture(self))
     }
 
-    pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
-        build_transaction::committed(&self.world).cloned().unwrap_or_else(|| save::v24::capture(self))
+    /// The current save with explicit surfaces, commutes, swimming and baths.
+    pub fn save_snapshot_v25(&self) -> terri_core::SaveSnapshotV25 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v25::capture(self))
     }
 
-    pub fn load_snapshot_v24(&mut self, snapshot: terri_core::SaveSnapshotV24) -> Result<(), SaveError> {
-        let candidate = save::v24::restore(snapshot, self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world))?;
+    pub fn load_snapshot_v25(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV25,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v25::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
         self.adopt_complete_activity_state(candidate)
     }
 
-    pub fn load_snapshot_v23(&mut self, snapshot: terri_core::SaveSnapshotV23) -> Result<(), SaveError> {
-        let candidate = save::v23::restore(snapshot, self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world))?;
+    pub fn load_snapshot_v24(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV24,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v24::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
         self.adopt_complete_activity_state(candidate)
     }
 
-    pub fn load_snapshot_v22(&mut self, snapshot: terri_core::SaveSnapshotV22) -> Result<(), SaveError> {
-        let candidate = save::v22::restore(snapshot, self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world))?;
+    pub fn load_snapshot_v23(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV23,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v23::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
         self.adopt_restored(candidate, false, false)
     }
 
-    pub fn load_snapshot_editable_world_v21(&mut self, snapshot: terri_core::LegacyEditableWorldSnapshotV21) -> Result<(), SaveError> {
-        let candidate = save::editable_v21::restore(snapshot, self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world))?;
+    pub fn load_snapshot_v22(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV22,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v22::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
         self.adopt_restored(candidate, false, false)
     }
 
-    pub fn load_snapshot_v21(&mut self, snapshot: terri_core::SaveSnapshotV21) -> Result<(), SaveError> {
-        let candidate = save::v21::restore(snapshot, self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world))?;
+    pub fn load_snapshot_editable_world_v23(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV23,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v23::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_editable_world_v22(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV22,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v22::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
         self.adopt_restored(candidate, false, false)
     }
 
-    pub fn load_snapshot_v20(&mut self, snapshot: terri_core::SaveSnapshotV20) -> Result<(), SaveError> {
-        let candidate = save::v20::restore(snapshot, self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world))?;
+    pub fn load_snapshot_editable_world_v21(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV21,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v21::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    pub fn load_snapshot_v21(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV21,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v21::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    pub fn load_snapshot_v20(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV20,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v20::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
         self.adopt_restored(candidate, false, false)
     }
 
@@ -1579,7 +1675,7 @@ impl Sim {
         let candidate = save::v19::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
+            save::Carried::for_older_load(&self.world),
         )?;
         self.adopt_current_with_saved_state(candidate)
     }
@@ -1589,7 +1685,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV18,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let carried = save::Carried::for_load(&self.world);
+        let carried = save::Carried::for_older_load(&self.world);
         let candidate = save::v18::restore(snapshot, content, carried)?;
         self.adopt_current_with_saved_state(candidate)
     }
@@ -1612,7 +1708,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV17,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let carried = save::Carried::for_load(&self.world);
+        let carried = save::Carried::for_older_load(&self.world);
         let candidate = save::v17::restore(snapshot, content, carried)?;
         self.adopt_current_with_saved_state(candidate)
     }
@@ -1622,7 +1718,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV14,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = save::Carried::for_load(&self.world);
+        let portals = save::Carried::for_older_load(&self.world);
         let candidate = save::v14::restore(snapshot, content, portals)?;
         self.adopt_current(candidate)?;
         Ok(())
@@ -1824,8 +1920,10 @@ impl Sim {
         }
         character_draft::ensure_appearance_components(&mut restored.world);
         // Historical baths select once from the restored simulation stream.
-        // V23 has already required a complete current bath continuation.
-        if infer_legacy_bath { bath::begin(&mut restored.world); }
+        // The current format already requires a complete current bath continuation.
+        if infer_legacy_bath {
+            bath::begin(&mut restored.world);
+        }
         // Restoration attaches activity state in stages; seed interpolation from the final snapshot.
         restored.render_rows.clear();
         restored.sync_render_buffer_after_commands();
@@ -1902,6 +2000,13 @@ impl Sim {
         world.insert_resource(social_conflicts::State::default());
         world.insert_resource(careers::Careers::default());
         world.insert_resource(attendance::Attendance::default());
+        // Bills (issue 298): pristine until a world with a lot counts its
+        // first day, and out of the hash until then.
+        world.insert_resource(bills::Bills::default());
+        // The lingering lift of liked furniture (issue 344): empty until
+        // someone stands among things they like, and out of the hash until
+        // then.
+        world.insert_resource(presence_fade::PresenceFade::default());
         world.insert_resource(player_actions::PlayerActions::default());
         world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
@@ -2077,7 +2182,11 @@ impl Sim {
                 // is what fails if this line moves.
                 systems::command::drain_commands,
                 (mortality::cleanup, waiting::clear, beds::automatic::assign).chain(),
-                advance_clock,
+                // A new day is counted, and a month's bills issued, right
+                // after the clock and before anything this tick counts a use
+                // or a trip, so a use on a month's first tick belongs to the
+                // new month ([WB-usage]).
+                (advance_clock, bills::begin_day).chain(),
                 systems::needs::decay_needs,
                 // Immediately after decay, because it reads the energy
                 // decay just produced. Before selection, because
@@ -2143,7 +2252,12 @@ impl Sim {
                 // station walk on the same tick a chosen fridge gets
                 // its path - and there is exactly ONE targeting code
                 // path for chains, this system ([K4]).
-                (dining::advance, systems::chain::advance_chains, pool::prepare).chain(),
+                (
+                    dining::advance,
+                    systems::chain::advance_chains,
+                    pool::prepare,
+                )
+                    .chain(),
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -2175,6 +2289,11 @@ impl Sim {
                 // reused). Handles clock-in, the countdown, and the
                 // paid return.
                 systems::career::commute_and_work,
+                // Immediately after the paid return, so pay a shift settles
+                // this tick is in Funds before the bills look, and before any
+                // command next tick can spend money a bill is owed
+                // ([WB-paying] in docs/specs/2026-10-18-wages-and-bills.md).
+                bills::pay_due,
                 (
                     reading::tick,
                     domestic::gather_diners,
@@ -2207,7 +2326,11 @@ impl Sim {
                 // tick_social, where the completion-only rule already
                 // lives.
                 systems::satisfaction::bleed_neglect,
-                (mortality::tick, chores::prune).chain(),
+                // After movement and the deaths of this tick, before mood
+                // adds its contribution: whoever stands among liked
+                // furniture now has the lift recorded, and a fade that has
+                // ended is dropped (issue 344).
+                (mortality::tick, chores::prune, presence_fade::refresh_all).chain(),
                 (mood::accrue_satisfaction, privacy::maintain).chain(),
             )
                 .chain(),
@@ -2474,6 +2597,11 @@ impl Sim {
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+        // A new household starts with its content's starting funds, enough
+        // for the first month's bills ([WB-rulings] ruling 18); historical
+        // content starts with nothing, as those households did.
+        sim.world
+            .insert_resource(terri_core::Funds(pack.bills.starting_funds_cents));
         if pack.reading.is_some()
             && books::MIGRATION_STARTER_TITLES[..3]
                 .iter()
@@ -2794,13 +2922,29 @@ impl Sim {
 
         if advance_interpolation {
             std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
-            std::mem::swap(&mut self.render.prev_pool_phases, &mut self.render.pool_phases);
-            std::mem::swap(&mut self.render.prev_pool_elapsed, &mut self.render.pool_elapsed);
-            std::mem::swap(&mut self.render.prev_pool_exit_origins, &mut self.render.pool_exit_origins);
-            self.render.prev_pool_targets.clone_from(&self.render.interaction_targets);
+            std::mem::swap(
+                &mut self.render.prev_pool_phases,
+                &mut self.render.pool_phases,
+            );
+            std::mem::swap(
+                &mut self.render.prev_pool_elapsed,
+                &mut self.render.pool_elapsed,
+            );
+            std::mem::swap(
+                &mut self.render.prev_pool_exit_origins,
+                &mut self.render.pool_exit_origins,
+            );
+            self.render
+                .prev_pool_targets
+                .clone_from(&self.render.interaction_targets);
             std::mem::swap(&mut self.render.prev_bath_toys, &mut self.render.bath_toys);
-            std::mem::swap(&mut self.render.prev_bath_elapsed, &mut self.render.bath_elapsed);
-            self.render.prev_bath_targets.clone_from(&self.render.interaction_targets);
+            std::mem::swap(
+                &mut self.render.prev_bath_elapsed,
+                &mut self.render.bath_elapsed,
+            );
+            self.render
+                .prev_bath_targets
+                .clone_from(&self.render.interaction_targets);
         }
         self.render.positions.clear();
         self.render.kinds.clear();
@@ -3446,18 +3590,37 @@ impl Sim {
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
             self.render.ids.push(row.index);
-            let pool = self.world.get::<pool::PoolEpisode>(row.entity).filter(|episode| episode.phase > 0);
-            self.render.activities.push(if pool.is_some() { render_buffer::activity::SWIMMING } else { row.activity });
-            self.render.pool_phases.push(pool.map_or(0, |e| u32::from(e.phase)));
+            let pool = self
+                .world
+                .get::<pool::PoolEpisode>(row.entity)
+                .filter(|episode| episode.phase > 0);
+            self.render.activities.push(if pool.is_some() {
+                render_buffer::activity::SWIMMING
+            } else {
+                row.activity
+            });
+            self.render
+                .pool_phases
+                .push(pool.map_or(0, |e| u32::from(e.phase)));
             self.render.pool_elapsed.push(pool.map_or(0, |e| e.elapsed));
-            self.render.pool_exit_origins.push(pool.map_or(0, |e| e.exit_origin));
+            self.render
+                .pool_exit_origins
+                .push(pool.map_or(0, |e| e.exit_origin));
             let bath = bath::current(&self.world, row.entity);
-            self.render.bath_toys.push(bath.map_or(0, |episode| u32::from(episode.toy)));
-            self.render.bath_elapsed.push(bath.map_or(0, |episode| episode.elapsed));
+            self.render
+                .bath_toys
+                .push(bath.map_or(0, |episode| u32::from(episode.toy)));
+            self.render
+                .bath_elapsed
+                .push(bath.map_or(0, |episode| episode.elapsed));
             let (topic, preference) = social_episode::bubble(&self.world, row.index);
             self.render.conversation_topics.push(topic);
             self.render.conversation_preferences.push(preference);
-            self.render.visual_actions.push(if pool.is_some() { render_buffer::visual_action::SWIM } else { row.visual_action });
+            self.render.visual_actions.push(if pool.is_some() {
+                render_buffer::visual_action::SWIM
+            } else {
+                row.visual_action
+            });
             let bin_progress = self
                 .world
                 .get_resource::<terri_core::chores::SavedChores>()
@@ -3473,7 +3636,9 @@ impl Sim {
             self.render
                 .chore_progress
                 .push(row.chore_progress.max(bin_progress));
-            self.render.interaction_targets.push(pool.map_or(row.interaction_target, |e| e.pool.index_u32()));
+            self.render
+                .interaction_targets
+                .push(pool.map_or(row.interaction_target, |e| e.pool.index_u32()));
             self.render.meal_tables.push(row.meal_table);
             self.render.sleeping_beds.push(row.sleeping_bed);
             self.render.sleeping_places.push(row.sleeping_place);
@@ -3614,13 +3779,27 @@ impl Sim {
             || self.render.prev_positions.len() != self.render.positions.len()
         {
             self.render.prev_positions = self.render.positions.clone();
-            self.render.prev_pool_phases.clone_from(&self.render.pool_phases);
-            self.render.prev_pool_elapsed.clone_from(&self.render.pool_elapsed);
-            self.render.prev_pool_exit_origins.clone_from(&self.render.pool_exit_origins);
-            self.render.prev_pool_targets.clone_from(&self.render.interaction_targets);
-            self.render.prev_bath_toys.clone_from(&self.render.bath_toys);
-            self.render.prev_bath_elapsed.clone_from(&self.render.bath_elapsed);
-            self.render.prev_bath_targets.clone_from(&self.render.interaction_targets);
+            self.render
+                .prev_pool_phases
+                .clone_from(&self.render.pool_phases);
+            self.render
+                .prev_pool_elapsed
+                .clone_from(&self.render.pool_elapsed);
+            self.render
+                .prev_pool_exit_origins
+                .clone_from(&self.render.pool_exit_origins);
+            self.render
+                .prev_pool_targets
+                .clone_from(&self.render.interaction_targets);
+            self.render
+                .prev_bath_toys
+                .clone_from(&self.render.bath_toys);
+            self.render
+                .prev_bath_elapsed
+                .clone_from(&self.render.bath_elapsed);
+            self.render
+                .prev_bath_targets
+                .clone_from(&self.render.interaction_targets);
         } else {
             for (slot, row) in rows.iter().enumerate() {
                 if previous_socket_projection.contains(&row.entity) != row.socket_projected
@@ -5410,6 +5589,14 @@ impl Sim {
                 hasher.write_u64(u64::from(frame.purchased_area));
             }
         }
+        // Bills (issue 298, [WB-determinism]): last, and only once a world
+        // with a lot has counted something, so every older world hashes as
+        // it did.
+        bills::hash(&self.world, &mut hasher);
+        // The lingering lift of liked furniture (issue 344): after the
+        // bills, and only while some lift is fading, so every older world
+        // hashes as it did.
+        presence_fade::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -5496,6 +5683,8 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                bill_daily: Vec::new(),
+                indoor_only: false,
                 default_interaction: 0,
                 cooking_front: None,
                 shelf_capacity: 0,

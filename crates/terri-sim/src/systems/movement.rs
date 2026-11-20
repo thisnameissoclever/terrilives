@@ -125,6 +125,8 @@ pub fn follow_path(
         Option<&mut terri_core::ChainState>,
         Option<&crate::recipe_actions::Origin>,
         Has<crate::reading::ReadingJourney>,
+        Option<&terri_core::Needs>,
+        Option<&terri_core::Personality>,
     )>,
     objects: Query<&SmartObject>,
     furniture: Query<
@@ -168,8 +170,19 @@ pub fn follow_path(
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target, traits, skills, mut chain_state, origin, reading)) =
-            agents.get_mut(entity)
+        let Ok((
+            _,
+            mut pos,
+            mut path,
+            target,
+            traits,
+            skills,
+            mut chain_state,
+            origin,
+            reading,
+            needs,
+            personality,
+        )) = agents.get_mut(entity)
         else {
             continue;
         };
@@ -264,15 +277,21 @@ pub fn follow_path(
                     },
                 ));
                 let contact = *target;
+                let (chain_index, step_index) = (chain_state.chain, chain_state.step);
                 commands.queue(move |world: &mut World| {
-                    crate::player_actions::record_physical_work_start(world, entity, contact)
+                    crate::player_actions::record_physical_work_start(world, entity, contact);
+                    // The step's physical work starts here, so its usage is
+                    // charged here, once ([WB-usage]).
+                    crate::bills::count_step(world, chain_index, step_index);
                 });
             } else if let Ok(placed) = objects.get(target.object) {
                 // Both indices are in range by construction: `select_action`
                 // read them out of this same pack when it scored the advert,
                 // and the pack is fixed at build time.
                 let act = &content.0.object(placed.0).interactions[target.interaction as usize];
-                if crate::pool::is_swimming(act) && beds.pools.get(entity).is_err() { continue; }
+                if crate::pool::is_swimming(act) && beds.pools.get(entity).is_err() {
+                    continue;
+                }
                 if act
                     .tags
                     .iter()
@@ -313,12 +332,16 @@ pub fn follow_path(
                 // because that is what an advert can honestly promise; the
                 // sim only finds out how long this particular meal took by
                 // sitting through it.
-                let remaining_ticks = if crate::pool::is_swimming(act) { 100 } else { sample_duration(
-                    act.duration_ticks,
-                    tuning.duration_variance,
-                    tuning.min_interaction_ticks,
-                    &mut rng,
-                ) };
+                let remaining_ticks = if crate::pool::is_swimming(act) {
+                    100
+                } else {
+                    sample_duration(
+                        act.duration_ticks,
+                        tuning.duration_variance,
+                        tuning.min_interaction_ticks,
+                        &mut rng,
+                    )
+                };
                 // **The capability roll, at the attempt's start** - [E3].
                 // Rolled here beside the duration draw, from the same
                 // generator and in the same entity order, so PRNG
@@ -326,15 +349,33 @@ pub fn follow_path(
                 // rides as its own component: the whole attempt then
                 // delivers `fail_delta_scale` of its benefits and pays
                 // no satisfaction, while still teaching at completion.
+                let mut fumble = None;
                 if let Some(traits) = traits {
                     if let Some(delta_scale) = super::trait_effects::roll_fumble(
                         traits, skills, content.0, &act.tags, &mut rng,
                     ) {
+                        fumble = Some(delta_scale);
                         commands
                             .entity(entity)
                             .insert(terri_core::Fumbled { delta_scale });
                     }
                 }
+                // **A toilet, shower or bath lasts until its need is full** -
+                // issue 315. The draw above is still taken, so the random
+                // stream is the same as it was, and its result is used only
+                // for every other action and for a fill that cannot be
+                // computed (a person whose net rate is not positive).
+                let remaining_ticks = needs
+                    .and_then(|needs| {
+                        crate::need_interactions::fill::fill_ticks(
+                            content.0,
+                            act,
+                            needs,
+                            personality,
+                            fumble.unwrap_or(1.0),
+                        )
+                    })
+                    .unwrap_or(remaining_ticks);
                 commands.entity(entity).remove::<Path>().insert(Eating {
                     object: placed.0,
                     interaction: target.interaction,
@@ -344,8 +385,12 @@ pub fn follow_path(
                     log.begin_activity(id.0);
                 }
                 let contact = *target;
+                let (object, interaction) = (placed.0, target.interaction);
                 commands.queue(move |world: &mut World| {
-                    crate::player_actions::record_physical_work_start(world, entity, contact)
+                    crate::player_actions::record_physical_work_start(world, entity, contact);
+                    // The action's physical work starts here, so its usage
+                    // is charged here, once ([WB-usage]).
+                    crate::bills::count_action(world, object, interaction);
                 });
                 if act
                     .tags
@@ -490,7 +535,11 @@ pub fn follow_path(
         };
 
         let dx = tx as f32 - pos.x;
-        if beds.pools.iter().any(|(owner, episode)| owner != entity && episode.approach == (tx, ty)) {
+        if beds
+            .pools
+            .iter()
+            .any(|(owner, episode)| owner != entity && episode.approach == (tx, ty))
+        {
             continue;
         }
         let dy = ty as f32 - pos.y;

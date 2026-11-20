@@ -27,7 +27,10 @@ export function parseBuildFailureReport(json: string): BuildFailureReport {
 export const FAILURE_NAMES: readonly string[] = ['Unknown error', 'Build is closed', 'Build is already open', 'Not enough memory',
   'Room counter exhausted', 'Room no longer exists', 'Invalid room name', 'Room choices refused', 'Build replay differs',
   'Build draft differs', 'Build validation failed', 'Review is out of date', 'Command unavailable during Build',
-  'Invalid room request', 'Room request too large', 'Access acknowledgment required'];
+  'Invalid room request', 'Room request too large', 'Bed left outside', 'Access acknowledgment required'];
+
+/** The failure a Confirm reports when it would leave a bed outside every room ([WB-beds]). */
+export const BED_OUTSIDE = 15;
 
 /** What happened, in one sentence for the player. */
 const WHAT: Readonly<Record<number, string>> = {
@@ -44,7 +47,9 @@ const WHAT: Readonly<Record<number, string>> = {
   12: 'That action is not available in Build mode.',
   13: 'The room request was not valid.',
   14: 'The room request is too large.',
-  15: 'Review the unreachable areas before confirming.',
+  // Issue 298, [WB-beds]: functional text proposed for the owner's review.
+  15: 'A bed would be left outside.',
+  16: 'Review the unreachable areas before confirming.',
 };
 
 /**
@@ -82,8 +87,20 @@ export function failureWhat(error: RoomFailure, report: BuildFailureReport = { r
   return cause ? `These changes can't be confirmed: ${cause}.` : "These changes can't be confirmed. See Console for details.";
 }
 
+/** The bed a refusal names: its type first, then its model, for example `bunk bed (Basic Oak)`. */
+export function bedName(type: string, model: string): string {
+  if (type === '') return '';
+  const lower = type.charAt(0).toLowerCase() + type.slice(1);
+  return model === '' ? lower : `${lower} (${model})`;
+}
+
 /** A refused Confirm, with what the player can do about it. */
-export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
+export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }, bed = ''): string {
+  if (error.code === BED_OUTSIDE) {
+    // The refusal names the bed it would leave outside when its type is known.
+    const what = bed === '' ? WHAT[BED_OUTSIDE] : `The ${bed} would be left outside.`;
+    return `${what} Move it into a room, or choose Cancel, before confirming.`;
+  }
   const fix = error.code === 10 && obstacle(report) ? ' Adjust the affected layout.' : '';
   return `${failureWhat(error, report)}${fix}`;
 }

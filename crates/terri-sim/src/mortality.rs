@@ -122,7 +122,7 @@ fn clear_action(world: &mut World, entity: Entity) {
 
 pub(crate) fn remove_person(world: &mut World, dead: Entity) {
     if world.get::<crate::pool::PoolEpisode>(dead).is_some() {
-        crate::player_actions::cancel_all(world,dead,"Person is no longer available");
+        crate::player_actions::cancel_all(world, dead, "Person is no longer available");
     }
     crate::social_conflicts::remove_actor(world, dead);
     crate::social_episode::forget_person(world, dead);
@@ -138,6 +138,9 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
         }
         if let Some(mut fights) = world.get_resource_mut::<crate::fights::Fights>() {
             fights.forget(person);
+        }
+        if let Some(mut fade) = world.get_resource_mut::<crate::presence_fade::PresenceFade>() {
+            fade.forget(person);
         }
         if let Some(mut careers) = world.get_resource_mut::<crate::careers::Careers>() {
             careers.forget(person);

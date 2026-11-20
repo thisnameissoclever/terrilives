@@ -125,8 +125,11 @@ impl BedState<'_, '_> {
         );
         result.historical_endpoints(terri_data::is_pre_books_pack(self.content.0));
         for (owner, episode) in self.pools.iter() {
-            result.claim_endpoint(crate::seating::EndpointUse { owner,
-                endpoint: episode.approach, kind: crate::seating::UseKind::Standing });
+            result.claim_endpoint(crate::seating::EndpointUse {
+                owner,
+                endpoint: episode.approach,
+                kind: crate::seating::UseKind::Standing,
+            });
         }
         for (owner, claim) in self.seat_claims.iter() {
             if let Ok(definition) = self.definitions.get(claim.furniture) {
@@ -771,7 +774,11 @@ pub fn serve_intents(
         if journeys.contains(agent) {
             continue;
         }
-        if beds.pools.get(agent).is_ok_and(|(_, episode)| episode.phase != 0) {
+        if beds
+            .pools
+            .get(agent)
+            .is_ok_and(|(_, episode)| episode.phase != 0)
+        {
             commands.queue(move |world: &mut World| crate::pool::before_orders(world, agent));
             continue;
         }
@@ -1276,12 +1283,15 @@ pub fn serve_intents(
             if plan.is_none() && media_requested {
                 if let Some(entry) = queue.entries().first().cloned() {
                     commands.queue(move |world: &mut World| {
-                        crate::player_actions::terminal(
+                        crate::player_actions::terminal_with_cause(
                             world,
                             agent,
                             entry.id,
                             "failed",
                             Some("No reachable media position"),
+                            Some(
+                                crate::player_actions::OrderFailureCause::NoReachableMediaPosition,
+                            ),
                         )
                     });
                 }
@@ -1375,11 +1385,11 @@ pub fn serve_intents(
             ));
             continue;
         };
-        let Some(steps) = reachable
-            .route
-            .path(&grid, from)
-            .and_then(|steps| reachable.route.bind_path(&grid, (agent_pos.x, agent_pos.y), steps))
-        else {
+        let Some(steps) = reachable.route.path(&grid, from).and_then(|steps| {
+            reachable
+                .route
+                .bind_path(&grid, (agent_pos.x, agent_pos.y), steps)
+        }) else {
             if let Some(entry) = queue.entries().first().cloned() {
                 commands.queue(move |world: &mut World| {
                     crate::player_actions::terminal(
@@ -2033,6 +2043,11 @@ pub fn select_action(
                             &content.0.tuning,
                         );
                     }
+                    // Attractiveness and survival risk both keep the authored
+                    // delta and duration for a toilet, shower or bath, a
+                    // designer's choice recorded in
+                    // `docs/specs/2026-11-15-full-bathroom-use.md`. Only the
+                    // forecast of the use's outcome plans its fill length.
                     let risk = super::autonomy::survival_penalty(
                         content.0,
                         &needs,
@@ -2115,21 +2130,14 @@ pub fn select_action(
                                 company: company_scale,
                             },
                         );
-                        super::critical_choices::predict_phases(
+                        super::critical_choices::object_outcome(
                             content.0,
                             &needs,
                             &personality,
-                            &[
-                                super::critical_choices::Phase::Decay(
-                                    super::critical_choices::travel_ticks(distance),
-                                ),
-                                super::critical_choices::Phase::Active {
-                                    ticks: duration,
-                                    effects,
-                                    action: Some(advert),
-                                    asleep: sleep,
-                                },
-                            ],
+                            advert,
+                            effects,
+                            super::critical_choices::travel_ticks(distance),
+                            sleep,
                         )
                     };
                     outcomes.insert((object, index as u32), outcome);
@@ -2469,6 +2477,9 @@ pub fn select_action(
             temperature,
             exploration,
             content.0.tuning.choice_probability_floor,
+            // Issue 309: a housemate late for work because of Hunger or
+            // Energy takes remedies at a rising share ([WL-ramp]).
+            rhythm.lateness(agent, &needs, clock.tick),
         );
         let picked = super::autonomy::sample(&probabilities, &mut rng);
         decisions.push(super::autonomy::Decision {

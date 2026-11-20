@@ -38,11 +38,7 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
             .legacy;
         assert_eq!(
             view.world.content_fingerprint,
-            native_control
-                .sim
-                .current_v5_view()
-                .world
-                .content_fingerprint,
+            0x5111_16ef_ac94_ae24,
             "authentic fixture content shape"
         );
         native_control
@@ -55,7 +51,11 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
         assert_eq!(migrated.sim_tick(), tick);
         let current = migrated.sim.save_snapshot_v20();
         let mut expected = published.clone();
-        let layout = &mut expected
+        let careers = &mut expected.legacy.legacy.legacy.legacy.legacy.careers;
+        for record in &mut careers.records {
+            record.pay = (record.pay * 3).div_ceil(2);
+        }
+        let five = &mut expected
             .legacy
             .legacy
             .legacy
@@ -66,12 +66,12 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
             .legacy
             .legacy
             .legacy
-            .legacy
-            .layout;
-        *layout = current_test_snapshot::materialized_shell(layout, 0, 0, 16, 12);
+            .legacy;
+        five.layout = current_test_snapshot::materialized_shell(&five.layout, 0, 0, 16, 12);
+        five.world.content_fingerprint = 0x7229_9218_57a2_e3ae;
         assert_eq!(
             current.legacy, expected,
-            "only the frozen implicit rear shell is materialized"
+            "migration materializes the rear shell, remaps content and raises pre-bill pay"
         );
         assert_eq!(current.conflicts.next_id, 1);
         assert!(current.conflicts.grievances.is_empty());

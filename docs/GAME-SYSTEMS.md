@@ -29,7 +29,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-skills] | Skills | Partial | Cooking, Fitness and Reading, learned by doing, read by the fumble roll and listed in Sim details; shipped 2026-10-05 |
 | [S-pets] | Pets as full characters | Not started | None |
 | [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
-| [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
+| [S-money] | Money: deep earning and spending | Partial | Wages, purchases, sale proceeds and monthly household bills |
 | [S-catalogue] | Furniture and visual asset volume | Partial | Authored object models, reviewed replacements and recolour controls |
 | [S-household-size] | More people in the house | Partial | Six-member capacity, creation and removal by death |
 | [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | Placement, buying/selling, walls, rooms, floors and windows |
@@ -65,7 +65,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
 | [S-town] | Town, neighbours, and other households | Not started | None |
 | [S-ghosts] | Ghosts shared between players | Not started | None |
-| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends, working days and seasons |
+| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends, working days, seasons and seven-day billing months |
 | [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
@@ -89,14 +89,14 @@ These work in normal play today. They appear here because every new system must 
 
 | System | Status | What exists |
 |---|---|---|
-| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
+| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. A toilet, shower or bath used until it finishes fills its need to 100. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
 | Habituation | Substantial | Repeating the same action on the same object lowers its appeal, which recovers with time. This makes people rotate between objects; it does not reduce ordinary need delivery. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
 | Player orders | Substantial | Unlimited stored orders per person, front or back placement, incoming conversations and current/queued action cards. Each order completes or has an explicit cancellation or failure reason. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
 | Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting, instinct and bounded life satisfaction persist. |
-| Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges; lot edits validate reachability from the front door. |
+| Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges. Current lot edges, ground and object approaches determine reachability. |
 | HUD | Substantial | Roster, needs, mood, relationships, career, action cards, audio, saves, help and compact controls. Speed sits below Time and Funds; Build and Exit build sit at the sidebar's bottom. |
 | Tuning file | Complete | Every system-wide tunable number lives in `content/tuning.toml`. Numbers that belong to one piece of content, such as a job's pay or an object's benefit, live in that content file. The build rejects invalid values in both. New systems follow the same split. |
 | Content compiler | Substantial | The build refuses content with a broken reference, an unreachable interaction point, or inconsistent tuning. |
@@ -212,7 +212,9 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 **Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it. Since PR 96 the household has something to spend on.
 
-**What exists.** Shared Funds are saved and shown in the HUD. Tim's office job pays 120 per completed shift, purchases charge the object's price, and sales refund the tuned fraction of that price. Sales shipped in PR 101. Building walls, rooms and floors does not yet charge Funds.
+**What exists.** Shared Funds are saved and shown in the HUD. Tim's office job pays $180 per completed shift, a night shift pays 15 percent more, purchases charge the object's price, and sales refund the tuned fraction of that price. Sales shipped in PR 101. Building walls, rooms and floors does not yet charge Funds.
+
+Since issue 298 the household pays four bills on the first day of each seven-day month: rent from the base charge and the lot's indoor and outdoor tiles, electricity and water from a base charge and counted use, and transportation from a base charge and a fare per shift worked. Bills are paid from Funds automatically, oldest first; an unpaid bill becomes overdue after five days, gains a daily late fee up to a cap, and gives every housemate the Behind on bills moodlet. The Bills row and panel show what is due. Nothing is shut off. See `docs/specs/2026-10-18-wages-and-bills.md`.
 
 Book purchases deduct the title's price and create one owned copy atomically.
 Short, standard and long titles cost 6, 10 and 14 Funds. Furniture prices and
@@ -221,9 +223,9 @@ identifiable advantage, which may trade speed, footprint or another benefit for
 comfort, capacity, convenience or an explicit cosmetic premium. The catalogue
 balance pass keeps wages and global need decay fixed.
 
-**What is missing.** Costs for walls, floors and lot expansion, plus the recurring costs and income routes below. Purchase prices and sale refunds already work.
+**What is missing.** Costs for walls, floors and lot expansion, plus the recurring costs and income routes below. Purchase prices, sale refunds, rent and utility bills already work.
 
-Recurring costs: rent or a mortgage, utility bills that scale with the house and what runs in it, groceries, and pet food and vet fees. Consequences for not paying, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
+Recurring costs: a mortgage, groceries, and pet food and vet fees. Consequences for not paying beyond late fees and the moodlet, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
 
 A household ledger in the HUD, so the player can see where money went. Per-person money is a later question; shared household funds is the right first version.
 
@@ -314,7 +316,7 @@ Tiles, Carpet, and Outdoor patio are cleanable indoors and outdoors. Outdoor
 counters and tables also receive duties; grass and the street do not receive floor
 cleaning. Outside does not create lot-wide indoor privacy or affinity effects.
 
-**What exists.** Build mode pauses the game. Edits remain a draft until Confirm at the bottom of the build flyout; footer Confirm keeps paused Build open, and footer Cancel restores the last confirmed state, including purchases and refunds, while keeping Build open. Exit build asks to confirm, discard, or keep building when changes remain. Contextual Escape and Cancel clear the active selection. Saves contain only confirmed changes. Rooms include solid walls on the owned plot perimeter. See [build confirmation](specs/2026-10-13-build-confirmation.md). The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
+**What exists.** Build mode pauses the game and holds edits in a draft. Players can move, rotate, buy or sell furniture, paint floors, and change ordinary walls, doorways and windows. Confirm checks placement and saves the draft. If edits cut off ground, people or usable object approaches, the game highlights the affected area and offers Confirm or Return to build mode. Structural conflicts such as a wall crossing furniture still prevent confirmation. Saves contain only confirmed edits.
 
 **Completed slices.** Buy mode (PR 96), walls (95), whole rooms (97), vertical hinged doors (98), front-door reachability (99), catalogue need filtering (100), sales (101), compact build controls (102), rotated lighting (103), placed and purchased colourways (104, 105), the larger yard lot (106), street (107), visible build walls (112), floating placement controls (113), daylight (116), windows (126) and floor painting (128). These are merged features, not branch-only work. FEATURES.md records the individual merge and play evidence.
 
@@ -478,7 +480,17 @@ shift rewards reflect actual office time; missing more than two hours deducts
 ten performance points per further hour. The Career tab explains the actual
 attendance and deduction. See [player orders](specs/2026-10-17-player-orders.md).
 
-**What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, and schema twenty-one saves each held shift. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
+**Work lateness and Bladder at work.** A housemate whose Hunger or Energy is
+critical when the shift starts deals with it first and leaves for work late,
+at most 60 game minutes after the scheduled start and never after the shift's
+end. A running meal or sleep that raises the need finishes first within that
+hour. While late, the share of their choices that relieve the need rises to
+99 percent. Bladder never delays a departure. At work, Hunger, Bladder and
+Social refill halfway on Low or Critical arrival, or when decay would make
+them Critical during the shift. Player orders still come first and lateness still costs pay and
+performance. See [work lateness](specs/2026-11-16-work-lateness.md).
+
+**What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A person leaves through a reachable open lot edge and returns through a reachable opening. Attendance determines paid time, with 15 percent more pay for a night shift; issue 298 raised every level's pay by half ([wages and bills](specs/2026-10-18-wages-and-bills.md)). Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, schema twenty-one saves each held shift, and loading schema twenty-one or earlier raises saved pay to the new wages. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -518,7 +530,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-outside] A playable outside
 
-**Status: Partial.** Yard and street merged in PRs 106 and 107. Workers cross the yard to leave via the street, and newcomers enter from it. PR 116 added outdoor daylight reaching rooms through doorways, and PR 126 added windows admitting that daylight. The store sells a decorative pool, a pool lounger with Sit and a decorative patio umbrella for the yard (issue 250, `docs/specs/2026-10-17-outdoor-furniture.md`). Roofs, further exterior presentation, more outdoor objects, outdoor activities such as swimming, and ambience remain. See [B-outside].
+**Status: Partial.** Yard and street merged in PRs 106 and 107. Workers and newcomers use reachable open lot edges. Doorways and windows let outdoor daylight reach rooms. The store sells a pool with Hop in, a pool lounger with Sit and a decorative patio umbrella (issue 250, `docs/specs/2026-10-17-outdoor-furniture.md`). Roofs, more outdoor objects and activities, and outdoor ambience remain planned. See [B-outside].
 
 ### [S-swim-laps] Exercise swimming
 
@@ -538,13 +550,13 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. Bills run on seven-day months that start on day 1, so every month starts on a Monday; see [WB-calendar] in `docs/specs/2026-10-18-wages-and-bills.md`. There are no dates or named months. Pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-weather-preferences] Weather preferences and longer-term variation
 
 **Status: Owner-requested future work, October 19, 2026. Not implemented.** Each Sim should prefer warmer or cooler weather. Weather that matches or conflicts with that preference should slightly raise or lower overall mood. Keep this effect small; the request does not add weather damage, need loss or survival mechanics. The preference model, numerical strength and presentation need a design before implementation.
 
-Weather should also vary more from month to month and year to year. Current weather already varies by day; the requested change adds longer-term variation. Months do not exist in the current calendar, so monthly variation requires a calendar decision rather than treating the current seven-day seasons as months. Do not assign a release date or priority from the phrase "Coming soon" in player documentation.
+Weather should also vary more from month to month and year to year. Current weather already varies by day; the requested change adds longer-term variation. The only months in the calendar are seven-day billing months, the same length as a season, so monthly variation requires a calendar decision rather than reusing either. Do not assign a release date or priority from the phrase "Coming soon" in player documentation.
 
 See [the calendar](#s-calendar-calendar-and-weekly-schedules) for the current season cycle. The [player guide's weather section](player/the-world.md#weather) separates current visual weather from these coming features.
 
@@ -733,7 +745,7 @@ infrastructure. FEATURES.md owns the same current priority.
    reading, TV and listening. Keep location-bound activities at their objects,
    including watching fish near the tank. Deliver missing sitting poses and
    animations in this slice rather than leaving them in the later art backlog.
-2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].** The first object-affinities slice shipped on 2026-10-06: each Sim holds a value for plants, the aquarium, the television and the radio, the first two move mood in their room, and a Sim who dislikes the television or the radio is bothered when another Sim uses it in the same room. Colour preferences remain, with editing the values, the general nuisance field [P-nuisance] and pets.
+2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].** The first object-affinities slice shipped on 2026-10-06: each Sim holds a value for plants, the aquarium, the television and the radio, the first two lift the mood of a Sim who likes them in their room, a lift that fades slowly after the Sim leaves (a dislike never lowers mood), and a Sim who dislikes the television or the radio is bothered when another Sim uses it in the same room. Colour preferences remain, with editing the values, the general nuisance field [P-nuisance] and pets.
 3. **[S-skills] consequences and [S-sim-details].** The first skills slice
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.

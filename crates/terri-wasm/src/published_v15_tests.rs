@@ -202,7 +202,9 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let original = decode(bytes);
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
-        let migrated = decode_current(&source.save_bytes()).room_world_v16().clone();
+        let migrated = decode_current(&source.save_bytes())
+            .room_world_v16()
+            .clone();
         let mut expected_requests = original.conversation_requests.clone();
         if name == "chat-talking-later-identical" {
             use terri_core::save_v15::{

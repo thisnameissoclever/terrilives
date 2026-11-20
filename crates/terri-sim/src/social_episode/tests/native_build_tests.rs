@@ -81,10 +81,7 @@ fn exercise(sim: &mut Sim) {
         house.height,
     );
     expected.layout = adopted_layout;
-    assert_eq!(
-        legacy.save_snapshot_v16(),
-        *expected.0.room_world_v16()
-    );
+    assert_eq!(legacy.save_snapshot_v16(), *expected.0.room_world_v16());
 }
 
 #[test]

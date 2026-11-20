@@ -883,7 +883,7 @@ mod tests {
         let old = custom.save_snapshot();
         let mut live = Sim::new_from_shipped_lot();
         live.load_snapshot(old.clone()).unwrap();
-        let current = live.save_snapshot_v21();
+        let current = live.save_snapshot_v25();
         let mut expected = old;
         expected.blocked_tiles[7] = false;
         assert_eq!(live.save_snapshot(), expected);
@@ -902,8 +902,8 @@ mod tests {
             }));
         }
         let mut resumed = Sim::new();
-        resumed.load_snapshot_v21(current.clone()).unwrap();
-        assert_eq!(resumed.save_snapshot_v21(), current);
+        resumed.load_snapshot_v25(current.clone()).unwrap();
+        assert_eq!(resumed.save_snapshot_v25(), current);
     }
 
     #[test]

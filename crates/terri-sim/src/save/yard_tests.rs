@@ -128,9 +128,9 @@ fn a_grown_house_keeps_the_walls_it_was_saved_with() {
                 EdgeAxis::Vertical => edge.x == 0,
                 EdgeAxis::Horizontal => edge.y == 0,
             }));
-    let current = loaded.save_snapshot_v21();
-    loaded.load_snapshot_v21(current.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v21(), current);
+    let current = loaded.save_snapshot_v25();
+    loaded.load_snapshot_v25(current.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v25(), current);
 }
 
 /// [OS-migrate]: a house already at the lot's size is not grown again, so

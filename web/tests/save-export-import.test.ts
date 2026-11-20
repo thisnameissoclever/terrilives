@@ -175,9 +175,9 @@ describe('Import save', () => {
   });
 
   it.each([
-    ['a file that is not a save', new Uint8Array([1, 2, 3]), 'That file is not a Natural Causes save. Current game kept.'],
-    ['an unsupported version', saveBytes(CURRENT_SAVE_VERSION + 1), `Saved game version ${CURRENT_SAVE_VERSION + 1} is not supported. Current game kept.`],
-    ['a save the game cannot read', saveBytes(), 'Import failed. Current game kept.'],
+    ['a file that is not a save', new Uint8Array([1, 2, 3]), 'That file is not a Natural Causes save.'],
+    ['an unsupported version', saveBytes(CURRENT_SAVE_VERSION + 1), `Saved game version ${CURRENT_SAVE_VERSION + 1} is not supported.`],
+    ['a save the game cannot read', saveBytes(), 'Could not open that save. Use Report bug in Options.'],
   ])('rejects %s without touching the slot', async (_name, file, message) => {
     const backend = store(null);
     const view = status();
@@ -200,7 +200,7 @@ describe('Import save', () => {
 
     expect(await controller.importSave(saveBytes())).toBe(false);
     expect(backend.saves).toEqual([]);
-    expect(view.textContent).toBe('Import failed. Current game kept.');
+    expect(view.textContent).toBe('Could not open that save. Use Report bug in Options.');
     expect(errors).toHaveLength(1);
   });
 
@@ -231,7 +231,7 @@ describe('Import save', () => {
     expect(game.loadBytes).not.toHaveBeenCalled();
     expect(backend.saves).toEqual([]);
     expect(view.textContent).toBe(
-      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Current game kept. Saving paused.',
+      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Saving paused.',
     );
     expect(controller.isSavingPaused()).toBe(true);
     expect(controller.controlState().importDisabled).toBe(false);
@@ -244,7 +244,7 @@ describe('Import save', () => {
 
     expect(controller.acceptImportFile(saveBytes().slice(0, 10))).toBe(false);
     expect(view.textContent).toBe(
-      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Current game kept. Saving paused.',
+      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Saving paused.',
     );
   });
 
@@ -259,7 +259,7 @@ describe('Import save', () => {
 
     expect(await controller.importSave(saveBytes())).toBe(false);
     expect(loadBytes).not.toHaveBeenCalled();
-    expect(view.textContent).toBe('Could not check the saved data in this browser. Current game kept. Saving paused.');
+    expect(view.textContent).toBe('Could not check the saved data in this browser. Saving paused.');
   });
 
   it('allows current-world export and Save retry after a confirmed import fails to save', async () => {
@@ -294,7 +294,7 @@ describe('Import save', () => {
     const available = controller.hasSavedGame();
 
     expect(await controller.importSave(saveBytes())).toBe(false);
-    expect(view.textContent).toBe('Import failed. Current game kept. Saving paused.');
+    expect(view.textContent).toBe('Could not open that save. Use Report bug in Options. Saving paused.');
     expect(controller.isSavingPaused()).toBe(true);
     expect(controller.hasSavedGame()).toBe(available);
     game.tick = 500;
@@ -324,14 +324,14 @@ describe('Import save', () => {
     expect(controller.acceptImportFile(saveBytes().slice(0, 10))).toBe(true);
     expect(view.textContent).toBe('');
     expect(controller.acceptImportFile(new Uint8Array([60, 104, 116, 109, 108]))).toBe(false);
-    expect(view.textContent).toBe('That file is not a Natural Causes save. Current game kept.');
+    expect(view.textContent).toBe('That file is not a Natural Causes save.');
     expect(controller.acceptImportFile(saveBytes(CURRENT_SAVE_VERSION + 1).slice(0, 10))).toBe(false);
-    expect(view.textContent).toBe(`Saved game version ${CURRENT_SAVE_VERSION + 1} is not supported. Current game kept.`);
+    expect(view.textContent).toBe(`Saved game version ${CURRENT_SAVE_VERSION + 1} is not supported.`);
     expect(controller.acceptImportFile(saveBytes(0).slice(0, 10))).toBe(false);
-    expect(view.textContent).toBe('Saved game version 0 is not supported. Current game kept.');
+    expect(view.textContent).toBe('Saved game version 0 is not supported.');
 
     controller.importFileUnreadable(new Error('permission'));
-    expect(view.textContent).toBe('Could not read that file. Current game kept.');
+    expect(view.textContent).toBe('Could not read that file. Choose it again.');
   });
 });
 

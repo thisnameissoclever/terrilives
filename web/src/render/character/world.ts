@@ -17,12 +17,14 @@ import type {Vec3} from './math.js';
 import {WORLD_CHARACTER_FRAME} from './camera.js';
 import type {SceneHit} from '../scene-picks.js';
 import type {CharacterContactRoster} from './contact-admission.js';
+import type {CharacterPreparationMode} from './character-preparation-service.js';
 import type {CharacterAppearanceV1} from '../../character/schema.js';
 import {ShowerSteam} from './shower-steam.js';
 import {showerSteamEnvelopes,showerSteamCabin} from './steam-envelope.js';
 import {bathToySelector} from './bath-motion.js';
 
-interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1}
+type WorldContacts=Pick<CharacterContactRoster,'require'> & Partial<Pick<CharacterContactRoster,'mode'>>;
+interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1;contactMode?:CharacterPreparationMode}
 let nextResourceId=1;
 export interface CharacterSceneView {originX:number;originY:number;scale:number;width:number;height:number;gridSize:number;ambient:Ambient;skyShade:number;lighting:TileLighting|null;sky:SkyExposure;fixtureDepthBase:number}
 export type CharacterHit=SceneHit;
@@ -41,14 +43,14 @@ export class CharacterWorld {
   private currentView:CharacterSceneView|null=null;
   private readonly steam:ShowerSteam;
   private constructor(private readonly device:GPUDevice,private readonly format:GPUTextureFormat,
-    private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:Pick<CharacterContactRoster,'require'>){
+    private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:WorldContacts){
     this.plan=new CharacterScenePlan(action=>{
       const geometry=geometries.get(action);if(!geometry)throw new Error('Configured character clip is unavailable: '+action);
       return geometry.manifest.actions[action].length;
     },()=>{if(this.currentSource&&this.currentView)this.prepare(this.currentSource,this.currentView);});
     this.steam=new ShowerSteam(device);
   }
-  static async create(device:GPUDevice,format:GPUTextureFormat,sceneTarget:()=>SceneTarget,contacts?:Pick<CharacterContactRoster,'require'>):Promise<CharacterWorld>{
+  static async create(device:GPUDevice,format:GPUTextureFormat,sceneTarget:()=>SceneTarget,contacts?:WorldContacts):Promise<CharacterWorld>{
     const base=await loadCreatorGeometry(),baseRig=await loadCreatorRig('idle'),geometries=new Map<string,CharacterRig>();
     for(const action of Object.keys(base.manifest.actions))geometries.set(action,baseRig);
     const families=new Map<string,string>();for(const [name,clip] of Object.entries(creatorClips.clips))families.set(clip.family,name);
@@ -75,6 +77,7 @@ export class CharacterWorld {
 
   prepare(source:SimBridge,view:CharacterSceneView):void {
     if(this.closed)throw new Error('Character world renderer is closed.');
+    const contactMode=this.contacts?.mode;
     for(const actor of this.plan.actors){
       const clip=creatorClips.clips[actor.action.clip],sample=clip?clip.samples[clipSample(clip.samples.length,actor.action.sample,clip.playback).index]:undefined;
       const context={wear:['bath','shower'].includes(actor.action.clip)||actor.action.clip.startsWith('pool_')?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
@@ -86,8 +89,10 @@ export class CharacterWorld {
         const frame=WORLD_CHARACTER_FRAME,renderer=new PreparedCharacter(this.device,rig,actor.appearance,context,frame.size,frame.size,{zoom:frame.zoom,groundFraction:frame.groundFraction});
         resources={geometry:renderer.geometry,renderer,resourceId:nextResourceId++};this.actors.set(actor.entity,resources);
       }else resources.renderer.select(rig,actor.appearance,context);
-      // The scene plan replaces appearance records only after the admitted native hash changes.
-      if(resources.appearance!==actor.appearance){resources.renderer.setContacts(this.contacts?.require(actor.entity,actor.appearance));resources.appearance=actor.appearance;}
+      if(resources.appearance!==actor.appearance||resources.contactMode!==contactMode){
+        resources.renderer.setContacts(this.contacts?.require(actor.entity,actor.appearance));
+        resources.appearance=actor.appearance;resources.contactMode=contactMode;
+      }
       resources.geometry=resources.renderer.geometry;
     }
     for(const actor of this.plan.actors)if(actor.includeFixture&&['bed_sleep','bunk_sleep'].includes(actor.action.clip)){

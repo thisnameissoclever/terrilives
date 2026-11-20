@@ -3,7 +3,7 @@ use super::{boundary_tiles, WorldSurfaces};
 use bevy_ecs::world::World;
 use terri_core::{Position, TileGrid};
 
-fn home_targets(world: &World, grid: &TileGrid) -> Option<Vec<bool>> {
+pub(crate) fn home_targets(world: &World, grid: &TileGrid) -> Option<Vec<bool>> {
     let surfaces = world.get_resource::<WorldSurfaces>()?;
     let (width, height) = (grid.width(), grid.height());
     let size = width.checked_mul(height)?;

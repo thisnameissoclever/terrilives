@@ -60,8 +60,10 @@ pub(crate) struct Carried {
     pub current_fight_topics: bool,
     pub surfaces: Option<terri_core::WorldSurfaces>,
     pub commutes: Option<Vec<(u32, u8)>>,
-    pub pools: Option<Vec<terri_core::save_v22::SavedPoolEpisode>>,
-    pub baths: Option<Vec<terri_core::save_v23::SavedBathEpisode>>,
+    pub pools: Option<Vec<terri_core::save_editable_v22::SavedPoolEpisode>>,
+    pub baths: Option<Vec<terri_core::save_editable_v23::SavedBathEpisode>>,
+    /// Apply the historical pay increase when this producer predates bills.
+    pub wage_migration: bool,
 }
 
 impl Carried {
@@ -79,6 +81,18 @@ impl Carried {
             commutes: None,
             pools: None,
             baths: None,
+            wage_migration: false,
+        }
+    }
+
+    /// For loading a save from schema fourteen to twenty-one, which holds
+    /// pay from before issue 298's raise: [`Self::for_load`] with the pay
+    /// migration selected ([WB-save] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`).
+    pub(crate) fn for_older_load(world: &World) -> Self {
+        Self {
+            wage_migration: true,
+            ..Self::for_load(world)
         }
     }
 
@@ -97,12 +111,12 @@ impl Carried {
                 .unwrap_or_default(),
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
-            surfaces: world
-                .get_resource::<terri_core::WorldSurfaces>()
-                .cloned(),
-            commutes: crate::world_geometry::current(world).then(|| ordinary_world::commutes(world)),
+            surfaces: world.get_resource::<terri_core::WorldSurfaces>().cloned(),
+            commutes: crate::world_geometry::current(world)
+                .then(|| ordinary_world::commutes(world)),
             pools: Some(crate::pool::capture(world)),
             baths: Some(crate::bath::capture(world)),
+            wage_migration: false,
         }
     }
 }
@@ -122,7 +136,11 @@ mod bathtub;
 mod bathtub_tests;
 pub(crate) mod books_migration;
 pub(super) mod chronotype;
+pub(crate) mod editable_v21;
+pub(crate) mod editable_v22;
+pub(crate) mod editable_v23;
 mod meal_migration;
+pub(crate) mod ordinary_world;
 pub(super) mod self_preservation;
 pub(super) mod skills;
 pub(super) mod sleeping_places;
@@ -140,11 +158,10 @@ pub(crate) mod v18;
 pub(crate) mod v19;
 pub(crate) mod v20;
 pub(crate) mod v21;
-pub(crate) mod editable_v21;
-pub(crate) mod ordinary_world;
 pub(crate) mod v22;
 pub(crate) mod v23;
 pub(crate) mod v24;
+pub(crate) mod v25;
 #[cfg(test)]
 mod v3_tests;
 #[cfg(test)]
@@ -152,6 +169,7 @@ pub(crate) use v3_tests::assert_materialized_rear_shell;
 pub(crate) mod v6;
 #[cfg(test)]
 mod v6_tests;
+pub(crate) mod wage_migration;
 mod wall_migration;
 #[cfg(test)]
 mod wall_migration_tests;
@@ -760,8 +778,12 @@ pub(crate) fn restore_with_facings(
     if let Some(commutes) = active_portals.commutes {
         ordinary_world::restore_commutes(&mut sim.world, commutes)?;
     }
-    if let Some(pools) = active_portals.pools { crate::pool::restore_physical(&mut sim.world, pools)?; }
-    if let Some(baths) = active_portals.baths { crate::bath::restore(&mut sim.world, baths)?; }
+    if let Some(pools) = active_portals.pools {
+        crate::pool::restore_physical(&mut sim.world, pools)?;
+    }
+    if let Some(baths) = active_portals.baths {
+        crate::bath::restore(&mut sim.world, baths)?;
+    }
 
     // Sleep pressure, after every entity exists so an index can be
     // resolved. Restored rather than recomputed: it counts elapsed ticks,
@@ -3272,7 +3294,7 @@ mod tests {
         assert_eq!(historical.save_snapshot(), before.clone());
         let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         restored
-            .load_snapshot_v21(source.save_snapshot_v21())
+            .load_snapshot_v25(source.save_snapshot_v25())
             .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);

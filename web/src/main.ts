@@ -4,6 +4,7 @@ import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
 import { WeatherScene } from './render/weather-scene.js';
 import {ChoresBoard} from './ui/chores-board.js';
+import { BillsPanel } from './ui/bills-panel.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
@@ -59,7 +60,8 @@ import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.
 import {CharacterFrameMeasurement,type CharacterFrameReport} from './render/character/measurement.js';
 import {DeviceLifetime} from './render/character/device-lifetime.js';
 import {CharacterContactOwner,CharacterContactRoster,sharedCharacterPreparation} from './render/character/contact-admission.js';
-import {loadPreparedCharacterState} from './render/character/prepared-character-load.js';
+import {CharacterContactFrameSync,loadPreparedCharacterState} from './render/character/prepared-character-load.js';
+import {PreparedBuildCommit} from './ui/prepared-build-commit.js';
 import {StressCharacterAdmission,guardedCharacterStressSource,type StressCharacterActions} from './render/character/stress-admission.js';
 import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
 import { activeFloorFinishKeys } from './render/floor-materials.js';
@@ -437,10 +439,19 @@ async function main(): Promise<void> {
   const [seedLow, seedHigh] = newGameSeed();
   const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
+  const contactFrameSync = new CharacterContactFrameSync(sim, contactRoster);
   let replaceBuildLocalState = (_reason: 'load' | 'cancel' | 'end'): void => {};
   let resetSceneBuildFeedback = ():void => {};
   let hasRetainedReviewChoices = (): boolean => false;
   let requestRoomReview: (review: BuildReview) => Promise<boolean> = async () => false;
+  let buildPoolPending = false;
+  let reflectBuildPoolPending = (_pending: boolean): void => {};
+  const preparedBuildCommit = new PreparedBuildCommit(contactRoster, {
+    poolRequired: token => sim.buildPoolContactRequired(token),
+    appearances: () => sim.characterAppearances(),
+    pending: active => { buildPoolPending = active; reflectBuildPoolPending(active); },
+  });
+  const runPreparedBuildCommit: typeof preparedBuildCommit.run = (token, adopt) => preparedBuildCommit.run(token, adopt);
   const buildSession = new BuildSession(sim, {
     prepare: () => prepareBuildConfirmation(),
     settled: () => settleBuildControllers(),
@@ -448,15 +459,19 @@ async function main(): Promise<void> {
     replaced: reason => replaceBuildLocalState(reason),
     needsReview: () => hasRetainedReviewChoices(),
     review: review => requestRoomReview(review),
+    commit: runPreparedBuildCommit,
   });
-  let contactAppearanceHash:bigint|null=null;
+  let restoringStartup = true;
   const loadCharacters=async(bytes:Uint8Array):Promise<boolean>=>{
     const loaded=await loadPreparedCharacterState(bytes,buildSession,()=>{
       const candidate=SimHandle.from_lot(),source=new SimBridge(candidate,wasm.memory);
       return {loadBytes:(bytes:Uint8Array)=>source.loadBytes(bytes),characterAppearances:()=>source.characterAppearances(),
-        flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
-    },contactRoster);
-    if(loaded)contactAppearanceHash=null;return loaded;
+        poolContactRequired:()=>source.poolContactRequired(),flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
+    },contactRoster,undefined,()=>{
+      if(restoringStartup)loading.note('Preparing swimming');
+      else persistence.preparingSwimming();
+    });
+    if(loaded)contactFrameSync.reset();return loaded;
   };
   // The names of the conversation recordings come from the compiled content
   // pack, so this is the first moment they exist. The controller decides WHEN
@@ -481,6 +496,7 @@ async function main(): Promise<void> {
   );
   loading.step('Loading the household');
   await persistence.restoreAtStartup();
+  restoringStartup = false;
 
   const canvas = document.querySelector<HTMLCanvasElement>('#stage');
   if (!canvas) {
@@ -541,7 +557,7 @@ async function main(): Promise<void> {
     characterWorld.drawEffects(encoder, target);
     weatherScene.draw(encoder, target);
   };
-  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;renderer.destroy();characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
+  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;preparedBuildCommit.cancel();renderer.destroy();characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
   // Let the cover paint before assembling the controls and character resources.
   loading.step('Setting up the game');
   await afterPaint();
@@ -635,14 +651,11 @@ async function main(): Promise<void> {
   // refuses furniture cells; count actual additions rather than attempts.
   // Hunger 100 leaves selection autonomous without immediate hunger pressure.
   spawnStressAgents(sim, lotWidth, lotHeight, stress);
-  loading.note('Preparing characters');
+  const initialContactMode=sim.poolContactRequired()?'pool-required':'base';
+  loading.note(initialContactMode==='pool-required'?'Preparing characters and swimming':'Preparing characters');
   await afterPaint();
-  await contactRoster.prepareCurrent(sim.characterAppearances());characterWorld.prepareFixtures(sim);contactAppearanceHash=sim.appearanceHash();
+  await contactRoster.prepareCurrent(sim.characterAppearances(),initialContactMode);characterWorld.prepareFixtures(sim);contactFrameSync.reset();
   loading.step('Setting up the game');
-  const syncCharacterContacts=()=>{
-    const hash=sim.appearanceHash();if(hash===contactAppearanceHash&&!contactRoster.hasQueued)return;
-    contactRoster.afterCommands(sim.characterAppearances());contactAppearanceHash=hash;
-  };
   if (stress > 0) {
     // Startup, not steady state, and it is superlinear: `spawn_agent`
     // calls `sync_render_buffer`, which sorts and clones on every
@@ -903,6 +916,8 @@ async function main(): Promise<void> {
   );
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
+  const billsRow = document.querySelector<HTMLElement>('#bills-row');
+  const billsValue = document.querySelector<HTMLButtonElement>('#bills-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
   const satisfactionSummary = document.querySelector<HTMLElement>('#satisfaction-summary');
   const satisfactionLabel = document.querySelector<HTMLElement>('#satisfaction-label');
@@ -920,6 +935,8 @@ async function main(): Promise<void> {
   if (
     !clockValue ||
     !fundsValue ||
+    !billsRow ||
+    !billsValue ||
     !satisfactionValue ||
     !satisfactionSummary ||
     !satisfactionLabel ||
@@ -1076,6 +1093,8 @@ async function main(): Promise<void> {
       activity: activityValue,
       ordersRow,
       orders: ordersValue,
+      billsRow,
+      bills: billsValue,
     },
     sim.needBarRefreshMs(),
     createSatisfactionSurface(satisfactionSummary, satisfactionLabel, satisfactionMeter),
@@ -1882,6 +1901,14 @@ async function main(): Promise<void> {
   choresClose.addEventListener('click',()=>choresDialog.close());
   document.querySelector('#chores-toggle')!.addEventListener('click',()=>{if(buildSession.active)return;optionsMenu.close();menu.close(); overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
   choresDialog.addEventListener('close',()=>overlayPause.resume('chores'));
+  // [WB-panel]: the read-only Bills panel pauses the game while it is open.
+  const billsPanel = new BillsPanel(sim, document, overlayPause);
+  document.body.append(billsPanel.element());
+  billsValue.addEventListener('click', () => {
+    if (buildSession.active) return;
+    optionsMenu.close(); menu.close();
+    billsPanel.open(billsValue);
+  });
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
   let builderControls: BuilderControls;
@@ -1955,7 +1982,7 @@ async function main(): Promise<void> {
   let finishReview: ((adopted: boolean) => void) | null = null;
   const roomSelection = new RoomSelection(sim, () => {
     selectionControls?.render(); cameraDirty = true;
-    if (buildSession.active && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
+    if (buildSession.active && !buildPoolPending && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
       setBuildStatus(roomSelection.error, roomSelection.error !== '');
     }
   });
@@ -1964,8 +1991,11 @@ async function main(): Promise<void> {
   });
   const roomReview = new RoomReviewController(sim, {
     changed: () => { reviewControls?.render(); placementActions?.invalidate(); cameraDirty = true; },
+    commit: runPreparedBuildCommit,
+    cancelPending: () => preparedBuildCommit.cancel(),
+    preparing: () => buildPoolPending,
     completed: adopted => {
-      if (!adopted) { buildSession.noteReviewCancellation(); buildExit.clearExitIntent(); }
+      if (!adopted) { buildSession.noteReviewCancellation(); buildExit.protectReturnToBuild(); buildExit.clearExitIntent(); }
       const finish = finishReview; finishReview = null; finish?.(adopted);
     },
     refused: () => buildExit.cancelDestination(),
@@ -2141,6 +2171,15 @@ async function main(): Promise<void> {
     buildBatchStatus.textContent = text;
     if (error) buildBatchStatus.setAttribute('data-kind', 'error'); else buildBatchStatus.removeAttribute('data-kind');
   }
+  reflectBuildPoolPending = pending => {
+    const confirm = document.querySelector<HTMLButtonElement>('#build-batch-confirm')!;
+    const cancel = document.querySelector<HTMLButtonElement>('#build-batch-cancel')!;
+    confirm.disabled = pending;
+    cancel.textContent = pending ? 'Return to build mode' : 'Cancel';
+    buildBatchStatus.dataset.pending = String(pending && !roomReview.active);
+    if (roomReview.active) reviewControls?.render();
+    else setBuildStatus(pending ? 'Preparing swimming…' : '');
+  };
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {
     session: buildSession, furniture: builder,
@@ -2150,6 +2189,7 @@ async function main(): Promise<void> {
   function syncBuildIsolation(): void {
     syncNewHousemateButton(); syncEditHousemateButton();
     document.querySelector<HTMLButtonElement>('#chores-toggle')!.disabled = buildSession.active;
+    gameHud.setBuilding(buildSession.active);
     document.querySelector<HTMLElement>('#sim-dock')!.inert = buildSession.active;
     deathInput!.disabled = buildSession.active;
     careerAutonomy.setDisabled(buildSession.active);
@@ -2185,7 +2225,7 @@ async function main(): Promise<void> {
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
-    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
+    if (buildSession.active && !buildPoolPending && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
   }
   /**
    * Reads the lot's size and the house's place from the simulation; true
@@ -2250,6 +2290,7 @@ async function main(): Promise<void> {
   const buildExit: BuildExit = new BuildExit(document, {
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,
     confirm: confirmBuildBatch,
+    cancelPending: () => preparedBuildCommit.cancel(),
     discard: () => {
       const cancelled = buildSession.end();
       if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be cancelled. Try Cancel again.', true);
@@ -2259,12 +2300,16 @@ async function main(): Promise<void> {
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
-    escapeBuild: () => { if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder); },
+    escapeBuild: () => {
+      if (roomReview.active) roomReview.back();
+      else if (!preparedBuildCommit.cancel()) routeBuildKey('Escape', buildTools, builder);
+    },
     escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder') && !document.querySelector('dialog:popover-open'),
     beforeAsk: () => { optionsMenu.close(); menu.close(); },
     focusReviewReturn: () => { if (roomReview.active) document.querySelector<HTMLButtonElement>('#room-review-back')?.focus(); },
   });
   replaceBuildLocalState = reason => {
+    preparedBuildCommit.cancel();
     resetSceneBuildFeedback();
     buildExit.dismiss(); roomReview.reset(); roomSelection.reset();
     if (reason === 'load' || reason === 'end') roomSelection.select(null);
@@ -2616,7 +2661,7 @@ async function main(): Promise<void> {
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
     floorResources.pause(); floorTool.setBlocked(true); renderer.destroy();
     void audio.setBackgrounded(true);
-    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
+    overlayPause.suspend('graphics');menu.close();preparedBuildCommit.cancel();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
     graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics...';graphicsPending.start();
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
@@ -2722,10 +2767,11 @@ async function main(): Promise<void> {
     landTool.afterCommands();
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands();
-    syncCharacterContacts();
+    contactFrameSync.afterFrame();
     bedAssignmentPanel.afterCommands();
     careerPanel.afterCommands();
     if(choresDialog.open)choresBoard.update();
+    if (billsPanel.isOpen()) billsPanel.update();
     if (builder.afterCommands()) {
       refreshBuildArchitecture();
     }

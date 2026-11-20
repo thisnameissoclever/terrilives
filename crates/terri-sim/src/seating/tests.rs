@@ -97,9 +97,9 @@ fn build_replans_the_same_media_seat_and_updates_its_owned_endpoint() {
         sim.world().get::<Path>(person).unwrap().steps.last(),
         Some(&(4, 3))
     );
-    let saved = sim.save_snapshot_v21();
-    sim.load_snapshot_v21(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v21(), saved);
+    let saved = sim.save_snapshot_v25();
+    sim.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v25(), saved);
 }
 
 #[test]
@@ -139,7 +139,10 @@ fn review_physical_media_prediction_includes_the_actual_company_multiplier() {
         .unwrap()
         .remaining_ticks = 300;
     let mut personality = Personality::neutral();
-    personality.drain[NeedId::Social.index()] = 2.;
+    // 8 / 3 times the shipped 0.013 is the 0.03467 a minute that 2 times the
+    // 0.017333 before issue 315 gave. The test needs Social to fall faster
+    // than disliked company can refill it over the use.
+    personality.drain[NeedId::Social.index()] = 8. / 3.;
     let mut feelings = Relationships::default();
     feelings.bump(*sim.world().get::<terri_core::SimId>(b).unwrap(), -1.);
     let mut needs = Needs::all_at(90.);
@@ -222,7 +225,9 @@ fn needs_correction_media_gains_only_the_occupied_seats_comfort() {
                 .unwrap()
                 .set(terri_core::NeedId::Fun, 30.);
             sim.tick();
-            let expected = 30. - 0.021333333 + if seated { 29. / 41. } else { 0. };
+            let comfort_decay =
+                terri_data::pack().decay_per_tick[terri_core::NeedId::Comfort.index()];
+            let expected = 30. - comfort_decay + if seated { 29. / 41. } else { 0. };
             let actual = sim
                 .world()
                 .get::<terri_core::Needs>(person)
@@ -245,13 +250,20 @@ fn needs_correction_media_gains_only_the_occupied_seats_comfort() {
                 .find(|(n, _)| *n as usize == terri_core::NeedId::Fun.index())
                 .unwrap()
                 .1;
+            let decay = terri_data::pack().decay_per_tick;
             assert!(
                 (levels.get(terri_core::NeedId::Fun)
-                    - (30. - 0.032 + fun / action.duration_ticks as f32))
+                    - (30. - decay[terri_core::NeedId::Fun.index()]
+                        + fun / action.duration_ticks as f32))
                     .abs()
                     < 0.00001
             );
-            assert!((levels.get(terri_core::NeedId::Energy) - (30. - 0.034)).abs() < 0.00001);
+            assert!(
+                (levels.get(terri_core::NeedId::Energy)
+                    - (30. - decay[terri_core::NeedId::Energy.index()]))
+                .abs()
+                    < 0.00001
+            );
             let endpoint = crate::seating::claim(sim.world(), person.index_u32())
                 .map_or((0, 3), |lease| lease.endpoint);
             sim.world_mut().entity_mut(person).insert(Path {

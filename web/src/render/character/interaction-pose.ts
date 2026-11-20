@@ -15,7 +15,7 @@ import {fitDiningGrip} from './dining-contact.js';
 import type {SeatFitResolver} from './seat-contact-types.js';
 import {fitBathLegs} from './bath-fit.js';
 
-interface Context {bundle:Bundle;appearance:ShapeParameters;action:string;frame:number;top:number;source:number[][];rest:number[][];matrices:number[][];audit?:PoseDiagnostics;geometry?:Geometry;bikeFit:BikeFitResolver;seatFit?:SeatFitResolver}
+interface Context {bundle:Bundle;appearance:ShapeParameters;action:string;frame:number;top:number;source:number[][];rest:number[][];inverse:number[][];matrices:number[][];audit?:PoseDiagnostics;geometry?:Geometry;bikeFit:BikeFitResolver;seatFit?:SeatFitResolver}
 type Matrices=number[][];
 type Targets={wrists:[Vec3,Vec3];grips:[Vec3,Vec3];references:[Vec3,Vec3];hands:[number[],number[]];assemblies:Record<string,number[]>};
 const sides=['L','R'] as const;
@@ -24,6 +24,20 @@ const point=(m:readonly number[]):[number,number,number]=>[m[12],m[13],m[14]];
 const rotation=(m:readonly number[],p:Vec3):[number,number,number]=>sub(transform(m,p),point(m));
 const translation=(p:Vec3)=>{const m=identity();m.splice(12,3,...p);return m;};
 const mix=(a:Vec3,b:Vec3,t:number):Vec3=>add(scale(a,1-t),scale(b,t));
+
+/*
+ * `rig * (matrix * inverse)` for the skinned bones, as private copies of
+ * `multiply` so their element reads see only this solver's rows and stay
+ * unboxed. Each sums in `multiply`'s order, so the stored values are the
+ * ones `output.set(multiply(rig, multiply(matrix, inverse)))` stored.
+ */
+const skinned=new Float64Array(16);
+function skinnedInto(a:readonly number[],b:readonly number[]):void {
+  for(let c=0;c<4;c++)for(let r=0;r<4;r++){let sum=0;for(let k=0;k<4;k++)sum+=a[k*4+r]*b[c*4+k];skinned[c*4+r]=sum;}
+}
+function rigInto(out:Float32Array<ArrayBuffer>,rig:readonly number[],offset:number):void {
+  for(let c=0;c<4;c++)for(let r=0;r<4;r++){let sum=0;for(let k=0;k<4;k++)sum+=rig[k*4+r]*skinned[c*4+k];out[offset+c*4+r]=sum;}
+}
 
 function sampleContacts(a:ContactFrame,b:ContactFrame,t:number):ContactFrame {
   if(t===0)return a;if(t===1)return b;
@@ -47,7 +61,8 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
   const sampled=clipSample(clip.rigs.length,clip.stepSamples?Math.floor(frame):frame,clip.playback),rig=interpolateAffine(clip.rigs[sampled.index],clip.rigs[sampled.next],sampled.t);
   const contactFrame=sampleContacts(clip.contactFrames[sampled.index],clip.contactFrames[sampled.next],sampled.t);
   const bones=bundle.bones,index=(name:string)=>{const id=bones.findIndex(bone=>bone.name===name);if(id<0)throw new Error(`Missing contact bone: ${name}`);return id;};
-  const inverse=rest.map(inverseAffine),originalInverse=bones.map(bone=>bone.inverseRest),matrices=context.matrices.map(matrix=>[...matrix]);
+  // `inverse` is `rest.map(inverseAffine)`, shared by every frame of this body shape.
+  const inverse=context.inverse,originalInverse=bones.map(bone=>bone.inverseRest),matrices=context.matrices.map(matrix=>[...matrix]);
   const evaluate=(landmark:ContactLandmark,pose:Matrices,configured:boolean):Vec3=>{
     return evaluateContactLandmark(bones,landmark,pose,configured?inverse:originalInverse,configured?appearance:undefined,top);
   };
@@ -215,7 +230,7 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
         const thigh=index('thigh.'+side),restPoint=transform(multiply(bones[thigh].rest,inverseAffine(source[thigh])),sourceGrips[i]);
         const preferred=transform(multiply(pose[thigh],inverse[thigh]),shapePoint(restPoint,3,appearance,top));
         if(restingPatches){
-          const contact=nearestReachableContact(restingPatches[i],preferred,offsets[i],point(pose[index('upper_arm.'+side)]),...armLengths[i]);
+          const contact=nearestReachableContact(restingPatches.points[i],restingPatches.counts[i],preferred,offsets[i],point(pose[index('upper_arm.'+side)]),...armLengths[i]);
           if(!contact)return null;grips[i]=contact;continue;
         }
         const direction=unit(sub(point(pose[index('shin.'+side)]),point(pose[thigh])));
@@ -282,7 +297,7 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
   }
   const output=new Float32Array(bones.length*16),rigInverse=inverseAffine(rig);
   bones.forEach((bone,i)=>{
-    if(i<17){output.set(multiply(rig,multiply(matrices[i],inverse[i])),i*16);return;}
+    if(i<17){skinnedInto(matrices[i],inverse[i]);rigInto(output,rig,i*16);return;}
     let matrix=[...source[i]];const sourceName=bone.name.slice(`prop:${clip.family}:`.length),assembly=contacts.assemblies[sourceName],updated=solvedTargets?.assemblies[assembly];
     if(updated){const delta=multiply(updated,inverseAffine(contactFrame.assemblies[assembly]));matrix=multiply(rig,multiply(delta,multiply(rigInverse,matrix)));}
     if(!clip.visibility[sampled.index][i-17])matrix[15]=-1;

@@ -282,9 +282,13 @@ fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
                 .world
                 .content_fingerprint,
         );
+        let mut raised = original.clone();
+        for record in &mut raised.careers.records {
+            record.pay = (record.pay * 3).div_ceil(2);
+        }
         assert_eq!(
             projected,
-            materialized_room_fixture(original),
+            materialized_room_fixture(raised),
             "source state changed beyond explicit walls and projected room seeds: {name}"
         );
         let current = game.save_bytes();
@@ -672,7 +676,11 @@ fn review_authentic_land_careers_and_money_keep_their_actual_source_values() {
                 .world
                 .content_fingerprint,
         );
-        assert_eq!(projected, materialized_room_fixture(source));
+        let mut raised = source.clone();
+        for record in &mut raised.careers.records {
+            record.pay = (record.pay * 3).div_ceil(2);
+        }
+        assert_eq!(projected, materialized_room_fixture(raised));
         let current = game.save_bytes();
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&current));

@@ -197,11 +197,11 @@ fn a_loaded_reach_resumes_halfway_and_the_save_is_unchanged() {
     sim.world_mut()
         .entity_mut(fridge)
         .insert(terri_core::Reserved);
-    let save = sim.save_snapshot_v21();
+    let save = sim.save_snapshot_v25();
     let hash = sim.world_hash();
     let mut loaded = Sim::new_with_lot(1, 1);
-    loaded.load_snapshot_v21(save.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v21(), save);
+    loaded.load_snapshot_v25(save.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v25(), save);
     assert_eq!(loaded.world_hash(), hash);
     assert_eq!(
         loaded.world().get::<StepWorkTotal>(user),

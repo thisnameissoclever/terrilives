@@ -3,8 +3,8 @@
  "objects": [
   {
    "name": "offlinePool",
-   "directory": "outdoor/owner-review-pending/pool/activity-v2",
-   "proof_sha256": "bcbd3e4bc4f1d01c17fd4697fa2a32ef3469dad466ad1064c3f181c5fed587f6",
+   "directory": "outdoor/owner-review-pending/pool/activity-v4",
+   "proof_sha256": "881b32bd6089e0d9963949b73975e4a86d0802ec34f179e7ead68170b44f6aaf",
    "review_status": "accepted-independent-review"
   },
   {

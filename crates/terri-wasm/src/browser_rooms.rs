@@ -16,7 +16,7 @@ fn error(error: BuildCommitError) -> Failure {
     match error {
         NotActive => (1, None),
         AlreadyActive => (2, None),
-        AccessAcknowledgmentRequired => (15, None),
+        AccessAcknowledgmentRequired => (16, None),
         AllocationFailed => ALLOCATION,
         CounterExhausted => (4, None),
         InvalidRoom => (5, None),
@@ -66,6 +66,9 @@ fn error(error: BuildCommitError) -> Failure {
         }
         StaleToken => (11, None),
         CommandNotAllowed => (12, None),
+        // Issue 298 ([WB-beds]): the bed a Confirm would leave outside, by
+        // its entity index in the draft.
+        BedOutside { object } => (15, Some(u64::from(object))),
     }
 }
 
@@ -470,6 +473,15 @@ impl SimHandle {
     }
     pub fn commit_build(&mut self, session: u64, revision: u64, preparation: u64) -> Vec<u8> {
         unit(self.sim.commit_build(token(session, revision, preparation)))
+    }
+    pub fn pool_contacts_required(&self) -> bool {
+        self.sim.pool_contacts_required()
+    }
+    pub fn build_pool_contacts_required(&self, session: u64, revision: u64, preparation: u64) -> Vec<u8> {
+        response(|w| {
+            let required = self.sim.build_pool_contacts_required(token(session, revision, preparation)).map_err(error)?;
+            w.byte(u8::from(required))
+        })
     }
     pub fn commit_build_with_access_ack(
         &mut self,

@@ -5,6 +5,7 @@ import {poolSourceSupport,requirePoolSourceSupport,type PoolSupportLocation} fro
 import type {Vec3} from './math.js';
 import {derivePoolRailRegion,type PoolRailEdge} from './pool-rail-region.js';
 import {canonicalPoolValue,poolByteViewsEqual} from './pool-contact-identity.js';
+import {countPoolOwnedWork,poolOwnedConfiguredIdentity,poolOwnedParts,poolOwnedStaticIdentity} from './pool-owned-compilation.js';
 import {poolExact as number,poolExactAdd as add,poolExactSubtract as sub,poolExactMultiply as mul,poolExactCompare as compare,
   poolRatioCompare,poolRatioNumber,poolRatioRoundingError,type PoolDyadic,type PoolRatio} from './pool-exact-number.js';
 
@@ -24,10 +25,11 @@ export interface PoolPreparedRailGeometry {
   readonly edges:readonly {readonly edge:PoolRailEdge;readonly from:Vec3;readonly to:Vec3;readonly incidentFacets:readonly number[]}[];
 }
 interface Certificate {fixture:PoolFixtureV1;support:PoolSupport;supportKey:string;railKey:string;railMetaKey:string;revisions:string;geometry:Geometry;cage:Float32Array<ArrayBuffer>;
-  patch:PreparedPoolPatch;patchKey:string;inverse:number[];partKey:string;rigKey:string;snapshots:Uint8Array[];edgePoint:PoolDyadic[];targets:PoolRatio[]}
+  patch:PreparedPoolPatch;patchKey:string;inverse:readonly number[];partKey:string;rigKey:string;snapshots:Uint8Array[];edgePoint:PoolDyadic[];targets:PoolRatio[];owned?:object}
 interface PreparedOwner {certificate:Omit<Certificate,'edgePoint'|'targets'>;coefficients:PoolDyadic[][];limb:'handL'|'handR'}
 const preparedOwners=new WeakMap<PoolPreparedRailGeometry,PreparedOwner>();
 const certificates=new WeakMap<PoolRailContactFrame,Certificate>();
+const exactCoefficients=new WeakMap<Geometry,Map<number,Map<number,PoolDyadic[]>>>();
 const bytes=(view:ArrayBufferView)=>new Uint8Array(view.buffer,view.byteOffset,view.byteLength);
 const inputs=(geometry:Geometry,cage:Float32Array<ArrayBuffer>)=>[cage,geometry.indices,geometry.stencilRanges,new Uint8Array(geometry.stencilWeights)];
 
@@ -85,12 +87,26 @@ export function preparePoolRailGeometry(fixture:PoolFixtureV1,support:PoolSuppor
   });
   const parts=geometry.description.parts.filter(part=>part.name===patch.part),part=parts[0];
   if(parts.length!==1||part.name!==(limb==='handL'?'Relaxed palm':'Relaxed palm.001'))throw new Error('Pool rail contact has no unique complete selected palm.');
-  const vertices=[...new Set(geometry.indices.subarray(part.start,part.start+part.count))],patchVertices=new Set(patch.vertices.map(vertex=>vertex.id)),actualPatch=new Set<number>();
+  const owned=poolOwnedConfiguredIdentity(geometry,cage,inverse,patch.bone,patch);
+  if(owned&&poolOwnedStaticIdentity(fixture,geometry,cage,patch)!==owned)throw new Error('Pool rail contact uses another physical dataset.');
+  const vertices=(owned?poolOwnedParts(geometry)?.find(row=>row.name===patch.part)?.vertices:undefined)??[...new Set(geometry.indices.subarray(part.start,part.start+part.count))];
+  const patchVertices=new Set(patch.vertices.map(vertex=>vertex.id)),actualPatch=new Set<number>();
   for(const triangle of patch.sourceTriangles){if(triangle*3<part.start||triangle*3+3>part.start+part.count)throw new Error('Pool rail patch leaves its selected palm.');for(let offset=0;offset<3;offset++)actualPatch.add(geometry.indices[triangle*3+offset]);}
   if(actualPatch.size!==patchVertices.size||[...actualPatch].some(vertex=>!patchVertices.has(vertex)))throw new Error('Pool rail patch vertices differ from the unchanged source fan.');
-  const coefficients=vertices.map(vertex=>coefficient(geometry,cage,inverse,patch.bone,vertex));
-  const certificate={fixture,support,supportKey:canonicalPoolValue(support),railKey:canonicalPoolValue(solid),railMetaKey:canonicalPoolValue(fixture.rails),revisions:canonicalPoolValue(fixture.revisions),geometry,cage,patch,patchKey:canonicalPoolValue(patch),inverse:[...inverse],
-    partKey:canonicalPoolValue(geometry.description.parts),rigKey:canonicalPoolValue(geometry.manifest.bones),snapshots:inputs(geometry,cage).map(view=>bytes(view).slice())};
+  let cached:Map<number,PoolDyadic[]>|undefined;
+  if(owned){
+    let byBone=exactCoefficients.get(geometry);
+    if(!byBone){byBone=new Map();exactCoefficients.set(geometry,byBone);}
+    cached=byBone.get(patch.bone);
+    if(!cached){cached=new Map();byBone.set(patch.bone,cached);}
+  }
+  const coefficients=vertices.map(vertex=>{
+    let value=cached?.get(vertex);
+    if(!value){value=coefficient(geometry,cage,inverse,patch.bone,vertex);cached?.set(vertex,value);countPoolOwnedWork(geometry,'exactCoefficientBuilds');}
+    return value;
+  });
+  const certificate={fixture,support,supportKey:canonicalPoolValue(support),railKey:canonicalPoolValue(solid),railMetaKey:canonicalPoolValue(fixture.rails),revisions:canonicalPoolValue(fixture.revisions),geometry,cage,patch,patchKey:canonicalPoolValue(patch),inverse:owned?inverse:[...inverse],
+    partKey:canonicalPoolValue(geometry.description.parts),rigKey:canonicalPoolValue(geometry.manifest.bones),snapshots:owned?[]:inputs(geometry,cage).map(view=>bytes(view).slice()),owned};
   const data=Object.freeze({version:'pool-rail-goal-v1' as const,part:patch.part,bone:patch.bone,surface:support.surface!,side,planeX,
     sourceKey:canonicalPoolValue({source:geometry.manifest.sourceSha256,parts:certificate.partKey,rig:certificate.rigKey,rail:certificate.railKey,rails:certificate.railMetaKey,revisions:certificate.revisions}),
     support:freezeRailData(structuredClone(support)),inverse:Object.freeze([...inverse]),patch:freezeRailData(structuredClone(patch)),vertices:Object.freeze(vertices),
@@ -104,13 +120,17 @@ function freezeRailData<T>(value:T):T {
 
 /** Program ownership accepts only a frozen, physically prepared or independently bound record. */
 export function requirePoolPreparedRailGeometry(data:PoolPreparedRailGeometry):void {
-  if(!preparedOwners.has(data)||!Object.isFrozen(data))throw new Error('Pool attached goal has no owned immutable physical geometry.');
+  const certificate=preparedOwners.get(data)?.certificate;
+  if(!certificate||!Object.isFrozen(data))throw new Error('Pool attached goal has no owned immutable physical geometry.');
+  if(certificate.owned&&poolOwnedStaticIdentity(certificate.fixture,certificate.geometry,certificate.cage,certificate.patch)!==certificate.owned)throw new Error('Pool attached goal belongs to another dataset.');
 }
 
 const physicalRailData=(data:PoolPreparedRailGeometry)=>({...data,support:{surface:data.support.surface,region:data.support.region}});
 const compatibleGeometry=new WeakMap<PoolPreparedRailGeometry,WeakSet<PoolPreparedRailGeometry>>();
 /** Compare immutable physical rail ownership once for each endpoint pair. */
 export function requirePoolRailGeometryPair(a:PoolPreparedRailGeometry,b:PoolPreparedRailGeometry):void {
+  const left=preparedOwners.get(a)?.certificate.owned,right=preparedOwners.get(b)?.certificate.owned;
+  if(left!==right&&(left||right))throw new Error('Pool attached interval uses different physical datasets.');
   if(a===b||compatibleGeometry.get(a)?.has(b))return;
   if(canonicalPoolValue(physicalRailData(a))!==canonicalPoolValue(physicalRailData(b)))throw new Error('Pool attached interval has incompatible physical ownership.');
   let set=compatibleGeometry.get(a);if(!set){set=new WeakSet();compatibleGeometry.set(a,set);}set.add(b);
@@ -130,6 +150,7 @@ export function bindPoolRailGeometry(data:PoolPreparedRailGeometry,fixture:PoolF
 export function resolvePoolRailContactFrame(data:PoolPreparedRailGeometry,orientation:readonly number[],parameter:number,requiredActiveVertex?:number,location?:PoolSupportLocation):PoolRailContactFrame {
   const owner=preparedOwners.get(data);if(!owner)throw new Error('Pool attached goal has no bound actual rail geometry.');
   const {certificate,coefficients}=owner,{patch}=certificate,{side,planeX,vertices}=data;
+  if(certificate.owned&&poolOwnedStaticIdentity(certificate.fixture,certificate.geometry,certificate.cage,patch)!==certificate.owned)throw new Error('Pool attached goal belongs to another dataset.');
   const support=location?poolSourceSupport(certificate.fixture,location).support:certificate.support;
   if(location&&(location.limb!==owner.limb||canonicalPoolValue({surface:support.surface,region:support.region})!==canonicalPoolValue({surface:data.surface,region:data.support.region})))throw new Error('Pool rail goal differs from its actual observation source context.');
   if(!Number.isFinite(parameter))throw new Error('Pool rail frame requires its actual finite rail support.');
@@ -168,8 +189,14 @@ export function preparePoolRailContactFrame(fixture:PoolFixtureV1,support:PoolSu
 export function requirePoolRailContactFrame(frame:PoolRailContactFrame,fixture:PoolFixtureV1,geometry:Geometry,cage:Float32Array<ArrayBuffer>,patch:PreparedPoolPatch,inverse:readonly number[],support:PoolSupport){
   const owner=certificates.get(frame),solid=fixture.solids.find(solid=>solid.id===support.surface);
   if(!owner||owner.fixture!==fixture||owner.geometry!==geometry||owner.cage!==cage||owner.patch!==patch||owner.inverse.some((value,index)=>value!==inverse[index])||inverse.length!==16
-      ||owner.supportKey!==canonicalPoolValue(support)||owner.railKey!==canonicalPoolValue(solid)||owner.railMetaKey!==canonicalPoolValue(fixture.rails)||owner.revisions!==canonicalPoolValue(fixture.revisions)||owner.patchKey!==canonicalPoolValue(patch)
-      ||owner.partKey!==canonicalPoolValue(geometry.description.parts)||owner.rigKey!==canonicalPoolValue(geometry.manifest.bones))throw new Error('Pool rail certificate does not own these unchanged physical inputs.');
+      ||owner.supportKey!==canonicalPoolValue(support))throw new Error('Pool rail certificate does not own these unchanged physical inputs.');
+  if(owner.owned){
+    if(poolOwnedStaticIdentity(fixture,geometry,cage,patch)!==owner.owned)throw new Error('Pool rail contact certificate belongs to another dataset.');
+    return;
+  }
+  if(owner.railKey!==canonicalPoolValue(solid)||owner.railMetaKey!==canonicalPoolValue(fixture.rails)||owner.revisions!==canonicalPoolValue(fixture.revisions)
+    ||owner.patchKey!==canonicalPoolValue(patch)||owner.partKey!==canonicalPoolValue(geometry.description.parts)||owner.rigKey!==canonicalPoolValue(geometry.manifest.bones))throw new Error('Pool rail certificate does not own these unchanged physical inputs.');
+  countPoolOwnedWork(geometry,'fullBufferChecks',4);
   inputs(geometry,cage).forEach((view,index)=>{const current=bytes(view),saved=owner.snapshots[index];if(!poolByteViewsEqual(current,saved))throw new Error('Pool rail physical coefficients changed after construction.');});
   if(canonicalPoolValue(patch.vertices.map(vertex=>vertex.id))!==canonicalPoolValue(frame.patchVertices))throw new Error('Pool rail source patch changed after construction.');
 }

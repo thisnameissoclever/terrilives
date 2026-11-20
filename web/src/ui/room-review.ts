@@ -3,6 +3,7 @@ import type { TileHighlight } from '../render/placement-preview.js';
 import { confirmFailure, failureDetails } from '../rooms/failure.js';
 import { logError } from '../diagnostics/log.js';
 import { RoomFailureLog, roomNameError, type RoomBridge } from './room-selection.js';
+import type { BuildCommitAttempt } from './prepared-build-commit.js';
 
 const key = (anchor: Point) => `${anchor[0]},${anchor[1]}`;
 const same = (a: Point | null, b: Point) => a !== null && a[0] === b[0] && a[1] === b[1];
@@ -12,6 +13,9 @@ export interface RoomReviewHooks {
   changed?(): void;
   completed?(adopted: boolean): void;
   refused?(): void;
+  commit?: BuildCommitAttempt;
+  cancelPending?(): boolean;
+  preparing?(): boolean;
 }
 
 const uniquePeople = (ids: readonly number[]): number[] => [...new Set(ids)].sort((a,b) => a - b);
@@ -159,8 +163,9 @@ export class RoomReviewController {
     return opening ? [opening.x - (opening.axis === 0 ? 0.5 : 0), opening.y - (opening.axis === 1 ? 0.5 : 0)] : null;
   }
   get needsUpdate(): boolean { return this.edited; }
+  get preparing(): boolean { return this.hooks.preparing?.() ?? false; }
   back(): void {
-    if (!this.active || this.busy) return;
+    if (!this.active || (this.busy && !this.hooks.cancelPending?.())) return;
     const result = this.source.discardBuildReview();
     if (!result.ok) { this.error = this.failures.report('The room review could not be closed.', result.error); this.hooks.refused?.(); this.hooks.changed?.(); return; }
     this.active = false; this.hooks.completed?.(false); this.hooks.changed?.();
@@ -188,7 +193,16 @@ export class RoomReviewController {
       }
       if (this.hasAccess && !this.accessActive) { this.accessActive = true; this.error = ''; return false; }
       if (this.accessActive && !this.source.commitBuildWithAccessAck) { this.error = 'Access review is unavailable. See Console for details.'; return false; }
-      const result = this.accessActive ? this.source.commitBuildWithAccessAck!(this.review.token) : this.source.commitBuild(this.review.token);
+      const token = this.review.token, acknowledge = this.accessActive;
+      const adopt = () => acknowledge ? this.source.commitBuildWithAccessAck!(token) : this.source.commitBuild(token);
+      const attempt = this.hooks.commit?.(token, adopt) ?? adopt();
+      const result = attempt instanceof Promise ? await attempt.catch(error => {
+        logError('Build', 'Preparing swimming for this layout failed.', { error });
+        this.error = 'Swimming could not be prepared. Try Confirm again.';
+        this.hooks.refused?.();
+        return null;
+      }) : attempt;
+      if (!result) return false;
       if (!result.ok) { this.refuseConfirm('The reviewed changes could not be committed.', result.error); return false; }
       this.active = false; this.accessTiles = []; this.choices.clear(); this.error = ''; this.hooks.completed?.(true); return true;
     } catch (error) {
@@ -233,12 +247,14 @@ export class RoomReviewControls {
     heading.textContent = controller.accessActive ? 'Review unreachable areas' : 'Review room changes';
     const back = doc.querySelector<HTMLButtonElement>('#room-review-back')!;
     back.textContent = controller.accessActive ? 'Return to build mode' : 'Back to build';
-    back.disabled = controller.busy;
+    back.disabled = controller.busy && !controller.preparing;
     if (accessOpening) back.focus(); else if (opening) heading.focus();
     const submit = doc.querySelector<HTMLButtonElement>('#room-review-confirm')!;
     if (controller.busy && doc.activeElement === submit) heading.focus();
     submit.disabled = controller.busy; submit.textContent = controller.accessActive ? 'Confirm' : controller.needsUpdate ? 'Update review' : controller.hasAccess ? 'Review access' : 'Confirm changes';
-    doc.querySelector<HTMLElement>('#room-review-status')!.textContent = controller.error;
+    const status = doc.querySelector<HTMLElement>('#room-review-status')!;
+    status.textContent = controller.preparing ? 'Preparing swimming…' : controller.error;
+    status.dataset.pending = String(controller.preparing);
     const review = controller.review, selector = doc.querySelector<HTMLSelectElement>('#room-review-group')!;
     selector.hidden = controller.accessActive;
     const selectorLabel = doc.querySelector<HTMLElement>('label[for="room-review-group"]');

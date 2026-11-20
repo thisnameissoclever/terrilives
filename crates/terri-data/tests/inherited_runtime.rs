@@ -1,5 +1,7 @@
 use terri_data::{compile, schema::*};
 
+mod filtered_postcard;
+
 fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentError> {
     let source = format!(
         "{}\n{}\n{extra}",
@@ -30,15 +32,7 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     // has separate content and delivery regressions.
     assert_eq!(
         result.decay_per_tick,
-        [
-            0.041333333,
-            0.034,
-            0.048,
-            0.068,
-            0.017333333,
-            0.032,
-            0.021333333
-        ]
+        [0.031, 0.0255, 0.036, 0.051, 0.013, 0.024, 0.016]
     );
     result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
@@ -141,20 +135,18 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 296 (shifts): the shift tuning appended to `Tuning`, the
-            // shift fields appended to every `CompiledCareer`, and the new
-            // career rows and paths. The proof always runs against the
-            // fixture as it was on main before issue 296 merged (23113 bytes,
-            // SHA-256
-            // 48f32c6ffaeae3d9885f444efd8c2ca7b785bf67a00865557f711b28377a435a,
-            // main at 2fa3eac56): restore that file before regenerating.
+            // Issue 344 (the presence fade): one float appended to `Tuning`.
+            // The proof always runs against the fixture as it was on main
+            // before issue 344 (26146 bytes, SHA-256
+            // 32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15,
+            // main at a56f9beb0): restore that file before regenerating.
             assert_eq!(
-                previous_without_shifts(&pack),
+                previous_without_presence_fade(&pack),
                 old_bytes,
-                "only the shift tuning, the shift fields and the new careers may change the current fixture"
+                "only the field issue 344 appended may change the current fixture"
             );
             eprintln!(
-                "Shift fixture proof: removing the shift tuning, the career shift fields and the new careers recovers every byte of the previous fixture"
+                "Presence fade fixture proof: leaving out the field issue 344 appended recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -172,89 +164,24 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 296 (shifts), rebuilt
-/// from the current pack: the five shift knobs left off the end of the
-/// tuning, the three shift fields left off each career row, and only the
-/// twelve rows and three paths that existed then. Postcard writes a struct
-/// as its fields in order, so a tuple of the old fields encodes exactly as
-/// the old struct did.
-fn previous_without_shifts(pack: &terri_data::ContentPack) -> Vec<u8> {
-    const SHIFT_TUNING_BYTES: usize = 10;
-    const OLD_ROWS: usize = 12;
-    const OLD_PATHS: usize = 3;
-    let mut bytes = postcard::to_allocvec(&(
-        &pack.decay_per_tick,
-        &pack.objects,
-        pack.sim_sprite,
-        &pack.lot,
-    ))
-    .unwrap();
-    let tuning = postcard::to_allocvec(&pack.tuning).unwrap();
+/// The fixture's bytes as they were before issue 344 (the presence fade),
+/// rebuilt from the current pack by writing it as postcard does while
+/// leaving out the field that issue appended: the fade rate at the end of
+/// `Tuning`. Postcard writes a struct as its fields in order with no names,
+/// so leaving a field out removes exactly its bytes. The unfiltered writer
+/// must reproduce postcard byte for byte first, or the filtered bytes would
+/// prove nothing.
+fn previous_without_presence_fade(pack: &terri_data::ContentPack) -> Vec<u8> {
+    use filtered_postcard::Rule;
     assert_eq!(
-        &tuning[tuning.len() - SHIFT_TUNING_BYTES..],
-        postcard::to_allocvec(&(
-            pack.tuning.shift_sleep_offset_day,
-            pack.tuning.shift_sleep_offset_early,
-            pack.tuning.shift_sleep_offset_late,
-            pack.tuning.shift_sleep_offset_night,
-            pack.tuning.career_search_temperature,
-        ))
-        .unwrap(),
-        "the shift knobs are the tuning's last bytes"
+        filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
+        postcard::to_allocvec(pack).unwrap(),
+        "the filtered writer reproduces postcard when it filters nothing"
     );
-    bytes.extend_from_slice(&tuning[..tuning.len() - SHIFT_TUNING_BYTES]);
-    bytes.extend(
-        postcard::to_allocvec(&(
-            &pack.personalities,
-            &pack.household,
-            &pack.social,
-            &pack.traits,
-        ))
-        .unwrap(),
-    );
-    let rows: Vec<_> = pack.careers[..OLD_ROWS]
-        .iter()
-        .map(|c| {
-            (
-                &c.id,
-                &c.label,
-                c.shift_start,
-                c.shift_ticks,
-                c.pay,
-                c.energy_cost,
-                c.satisfaction,
-                c.working_days,
-                c.path,
-                c.level,
-                c.pay_max,
-                c.advance_weeks,
-                c.social_demand,
-                &c.skill_tag,
-                &c.trait_fit,
-            )
-        })
-        .collect();
-    bytes.extend(postcard::to_allocvec(&rows).unwrap());
-    bytes.extend(
-        postcard::to_allocvec(&(
-            &pack.roles,
-            &pack.item_kinds,
-            &pack.chains,
-            &pack.circadian,
-            &pack.sleep_tag,
-            &pack.voice_clips,
-            &pack.portals,
-            &pack.colourways,
-            &pack.coverings,
-            &pack.skills,
-            &pack.affinities,
-            &pack.books,
-            &pack.reading,
-            &pack.career_paths[..OLD_PATHS],
-        ))
-        .unwrap(),
-    );
-    bytes
+    filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
+        ("Tuning", "affinity_presence_fade_points_per_hour") => Rule::Omit,
+        _ => Rule::Keep,
+    })
 }
 
 #[test]

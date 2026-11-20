@@ -407,7 +407,9 @@ sick_penalty = 25.0
 # Starting value a disposition trait sets for its kind: this for a trait that
 # loves, its negative for one that hates. In (0, 1].
 affinity_from_trait = 0.8
-# Below this magnitude a value gives no moodlet. In [0, 1).
+# A value below this gives no presence moodlet (presence never lowers mood,
+# so a dislike gives none at any strength), and a value at or below its
+# negative is bothered by another person's use of a use kind. In [0, 1).
 affinity_presence_threshold = 0.2
 # Mood for one object of a presence kind at a value of 1.0. Finite, not negative.
 affinity_presence_points = 10.0
@@ -415,6 +417,13 @@ affinity_presence_points = 10.0
 affinity_presence_extra_points = 3.0
 # How many further objects count.
 affinity_presence_extra_cap = 3
+# Mood points the lift from liked furniture loses per game hour once the
+# person has left it (issue 344): a lift of 10 from one plant fades over two
+# game hours, and the biggest lift, 19 beside four plants, over about 3.8.
+# Returning to liked furniture lifts it back up to what the room gives, never
+# above. Finite and above 0; no fade lasts past 10080 ticks, a week. Packs
+# published before it reconstruct 5.0.
+affinity_presence_fade_points_per_hour = 5.0
 # Mood each other person using a use kind costs at a value of -1.0. Finite, not negative.
 affinity_use_points = 15.0
 # How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.
@@ -705,6 +714,45 @@ shift_sleep_offset_night = 660
 # How far the job search spreads its choice of path over fit, from 0 to 2.
 # 0 restores the best-fit search: the best fit wins and nothing is drawn.
 career_search_temperature = 0.25
+# Issue 315: the longest a toilet, shower or bath use may run while it fills
+# its need, in ticks (game minutes). A use lasts until the need is full, so
+# this only binds for a person whose satisfaction multiplier for the need is
+# so low that filling would take hours; they stop here with the need partly
+# filled. A neutral person from an empty bar needs about 15 ticks at the
+# toilet and under 45 in the shower or bath. From `min_interaction_ticks` to
+# 1440. Packs published before this knob existed rebuild with 240.
+need_fill_max_ticks = 240
+
+# WAGES - issue 298 (docs/specs/2026-10-18-wages-and-bills.md, [WB-wages]).
+# A shift of the night kind pays this many percent more, from 0 to 100,
+# applied to each night shift's pay when it starts. The person's pay and the
+# level's range stay without it. Packs published before it reconstruct 15.
+night_shift_premium_percent = 15
+
+# WORK LATENESS - issue 309 (docs/specs/2026-11-16-work-lateness.md,
+# [WL-tuning]). A housemate whose Hunger or Energy is critical when their
+# shift starts deals with it first and leaves for work late. Bladder never
+# delays a departure, and a player's own order still comes first.
+#
+# The longest a critical need may keep a housemate home, in game minutes
+# after the shift's scheduled start, from 0 to 720. The shift's end is a
+# bound too: nobody leaves after it. 0 restores leaving on time, which is
+# what a pack published before this knob reconstructs.
+work_lateness_limit_ticks = 60
+# How many minutes late the remedy share below is reached, from 1 to 720
+# and at most the limit while the limit is above 0. Up to it the share
+# rises in a straight line from the `[autonomy]` share (95 percent with one
+# critical need) to the maximum.
+work_lateness_ramp_ticks = 30
+# The most that choices relieving the late need can take while a housemate
+# is late for it, strictly between 1 minus `[autonomy] unrelated_single`
+# and 1. Below 1 on purpose: other choices stay possible, only rare.
+work_lateness_remedy_share = 0.99
+# A housemate at work is relieved of Bladder whenever it falls below this
+# level, from 0 to 100, so it never becomes critical during a shift. 0
+# switches the relief off, which is what a pack published before this knob
+# reconstructs. Bladder is the only need relieved at work.
+work_bladder_relief_threshold = 50.0
 
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
@@ -797,8 +845,10 @@ neglect_bleed_per_tick = 0.00001
 # - [X2] in docs/specs/2026-08-01-alpha-acceptance-findings.md, and the
 # fix for the worst thing the alpha acceptance pass found.
 #
-# MEASURED, not chosen by taste. Over 36 000 ticks (25 game days) of
-# the shipped lot, Tim - the household's only worker - hit 0.0 on six
+# MEASURED, not chosen by taste, under the base rates before 2026-10-19,
+# which were twice the shipped ones now (the balance passes since, the
+# latest being issue 315, have halved them). Over 36 000 ticks (25 game
+# days) of the shipped lot, Tim, the household's only worker, hit 0.0 on six
 # of her seven needs, and her lowest need sat at or below 5 on every
 # one of the 25 days: 27.3% of her life with hunger there, 19.2% with
 # social, 18.8% with fun. Bill and Casey, who hold no job, spent ZERO
@@ -842,6 +892,9 @@ at_work_decay_scale = 0.5
 # that finally goes to bed wakes up starving and filthy, having been
 # punished for doing the one thing the day was pushing it toward. That
 # reads as the game being unfair rather than as a rate being wrong.
+#
+# The reasoning below was written under the base rates before 2026-10-19,
+# which were twice the shipped ones now.
 #
 # 0.4 rather than 0. A sleeping sim genuinely does get hungry and does
 # need the bathroom in the morning; it just does not get hungry as fast
@@ -893,16 +946,19 @@ sleep_tag = "sleep"
 # fails if a balance pass ever makes two of them equal; see [L26] for the
 # instance where a uniform fixture hid exactly this bug one layer down.
 [decay_per_tick]
-# Base rates are two thirds of the previous balance. Personality, sleep and
-# work apply their existing multipliers. Keep every rate distinct so tests
-# can detect a need reading the wrong slot.
-hunger = 0.0413333333
-energy = 0.0340000000
-hygiene = 0.0480000000
-bladder = 0.0680000000
-social = 0.0173333333
-fun = 0.0320000000
-comfort = 0.0213333333
+# Issue 315: every base rate is three quarters of the balance before it, so
+# each need drains on average 25 percent slower and its bar lasts a third
+# longer. That balance was itself two thirds of the one before it, so these
+# are half of the rates before 2026-10-19. Personality, sleep and work apply their
+# existing multipliers. Keep every rate distinct so tests can detect a need
+# reading the wrong slot.
+hunger = 0.0310000000
+energy = 0.0255000000
+hygiene = 0.0360000000
+bladder = 0.0510000000
+social = 0.0130000000
+fun = 0.0240000000
+comfort = 0.0160000000
 
 [circadian]
 #
@@ -1036,3 +1092,68 @@ earliest_hour = 7.0
 latest_hour = 17.0
 leaf_ground_hours = 2.0
 fall_minutes = 15.0
+
+# ============================================================================
+# BILLS - issue 298 (docs/specs/2026-10-18-wages-and-bills.md). Every amount
+# is whole cents. Base charges are a whole month's amount, counted one day at
+# a time, so a month the household lived through completely pays them in
+# full. Packs published before bills, and the frozen pre-books sources,
+# reconstruct these charges with no usage kinds.
+[bills]
+# Days in a billing month, from 1 to 365 ([WB-calendar]). Seven puts the
+# first day of every month on a Monday.
+days_per_month = 7
+# Days a bill may stay unpaid without a fee, counting the due day; below
+# days_per_month ([WB-paying]).
+grace_days = 5
+# The late fee added each day after the grace, in percent of the bill
+# ([WB-paying]).
+late_fee_percent = 5
+# Late fees stop at this percent of the bill ([WB-paying]).
+late_fee_cap_percent = 50
+# How much an overdue bill lowers every housemate's mood, the Behind on bills
+# moodlet ([WB-paying]).
+overdue_mood = 8.0
+# Rent's base charge a month ([WB-rent]).
+rent_base_cents = 6000
+# Rent for each tile inside an enclosed room, a month ([WB-rent]).
+rent_indoor_tile_cents = 90
+# Rent for each floor tile outside every room, the street left out, a month
+# ([WB-rent]).
+rent_outdoor_tile_cents = 20
+# The electricity bill's base charge a month ([WB-bills]).
+electricity_base_cents = 3000
+# The water bill's base charge a month ([WB-bills]).
+water_base_cents = 2000
+# The transportation bill's base charge a month ([WB-bills]).
+transportation_base_cents = 1000
+# The fare for each trip to work, counted when a shift with time worked is
+# paid ([WB-bills]).
+commute_cents = 300
+# The money a new household starts with: at least its first month's bills
+# before any usage, so the Bills panel shows a shortfall only when money
+# really runs short (the owner's ruling of 2026-10-24, [WB-rulings]).
+# Older saves keep their own Funds.
+starting_funds_cents = 40000
+
+# Use kinds ([WB-usage]): charged once each time an action or chain step
+# carrying the kind in its bill_uses starts its physical work. The label is
+# what the Bills panel shows, 1 to 32 characters.
+[bills.uses]
+shower = { label = "Showers", water_cents = 60, electricity_cents = 15 }
+bath = { label = "Baths", water_cents = 90, electricity_cents = 25 }
+hand_wash = { label = "Hand washing", water_cents = 5, electricity_cents = 0 }
+toilet = { label = "Toilet flushes", water_cents = 10, electricity_cents = 0 }
+dishes = { label = "Dish washing", water_cents = 20, electricity_cents = 0 }
+television = { label = "Television", water_cents = 0, electricity_cents = 20 }
+radio = { label = "Radio", water_cents = 0, electricity_cents = 3 }
+stove = { label = "Stove cooking", water_cents = 0, electricity_cents = 40 }
+
+# Daily kinds ([WB-usage]): charged once a day for each placed object carrying
+# the kind in its bill_daily. Lamps have no switch yet, so a placed lamp
+# counts as lit all day.
+[bills.daily]
+fridge = { label = "Fridges", water_cents = 0, electricity_cents = 20 }
+lamp = { label = "Lamps", water_cents = 0, electricity_cents = 5 }
+aquarium = { label = "Aquariums", water_cents = 0, electricity_cents = 10 }
+pool = { label = "Pools", water_cents = 50, electricity_cents = 60 }

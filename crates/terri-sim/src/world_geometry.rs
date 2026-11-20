@@ -11,6 +11,7 @@ use terri_core::{
 mod migration;
 #[path = "world_geometry_navigation.rs"]
 mod navigation;
+pub(crate) use navigation::home_targets;
 #[path = "world_geometry_occupancy.rs"]
 mod occupancy;
 #[path = "world_geometry_routes.rs"]
@@ -318,6 +319,17 @@ pub fn route_to_boundary(world: &World, position: Position) -> Option<Vec<(i32, 
     )
 }
 
+pub(crate) fn route_endpoint(
+    position: Position,
+    path: Option<&terri_core::Path>,
+) -> Option<(i32, i32)> {
+    let tile = (position.x.round() as i32, position.y.round() as i32);
+    match path {
+        Some(path) => Some(path.steps.get(path.cursor..)?.last().copied().unwrap_or(tile)),
+        None => Some(tile),
+    }
+}
+
 /// Current floor surfaces provide arrival destinations. A bare lot uses open ground.
 pub fn route_home(world: &World, position: Position) -> Option<Vec<(i32, i32)>> {
     navigation::route_home(world, position)
@@ -422,12 +434,20 @@ pub fn access_report(world: &World) -> AccessReport {
                     x.saturating_add(footprint.width as i32),
                     y.saturating_add(footprint.depth as i32),
                 );
-                let approaches: BTreeSet<_> = (x..right)
-                    .flat_map(|x| [(x, y.saturating_sub(1)), (x, bottom)])
-                    .chain((y..bottom).flat_map(|y| [(x.saturating_sub(1), y), (right, y)]))
-                    .filter(|&at| grid.can_interact_with_rect(at, (x, y), footprint))
-                    .filter_map(|at| membership.get(&at).copied())
-                    .collect();
+                let component_at = |at| {
+                    grid.can_interact_with_rect(at, (x, y), footprint)
+                        .then(|| membership.get(&at).copied())
+                        .flatten()
+                };
+                let approaches: BTreeSet<_> = if crate::pool::has_pool(definition) {
+                    component_at(crate::pool::approach((x, y), facing)).into_iter().collect()
+                } else {
+                    (x..right)
+                        .flat_map(|x| [(x, y.saturating_sub(1)), (x, bottom)])
+                        .chain((y..bottom).flat_map(|y| [(x.saturating_sub(1), y), (right, y)]))
+                        .filter_map(component_at)
+                        .collect()
+                };
                 if approaches.is_empty() {
                     let tiles = (y..bottom)
                         .flat_map(|ty| (x..right).map(move |tx| (tx, ty)))
@@ -485,59 +505,90 @@ pub fn access_report(world: &World) -> AccessReport {
 
 /// Retain valid work and fail only the order whose current route was obstructed.
 pub(crate) fn revalidate_routes(world: &mut World) {
-    use terri_core::Path;
+    revalidate_routes_for(world, false);
+}
+
+pub(crate) fn revalidate_legacy_commutes(world: &mut World) {
+    revalidate_routes_for(world, true);
+}
+
+fn revalidate_routes_for(world: &mut World, commutes_only: bool) {
+    use terri_core::{Commuting, Path};
     if !current(world) {
         return;
     }
+    let mut exits = None;
+    let mut home_targets = None;
     let invalid: Vec<_> = world
-        .query::<(Entity, &Position, &Path)>()
+        .query_filtered::<
+            (Entity, &Position, Option<&Path>, Option<&Commuting>),
+            Or<(With<Path>, With<Commuting>)>,
+        >()
         .iter(world)
-        .filter_map(|(entity, pos, path)| {
+        .filter_map(|(entity, &pos, path, commute)| {
+            if commutes_only && commute.is_none() {
+                return None;
+            }
             let grid = world.resource::<TileGrid>();
-            let Some(remaining) = path.steps.get(path.cursor..) else {
-                return Some((entity, false));
+            let Some(endpoint) = route_endpoint(pos, path) else {
+                return Some(entity);
             };
             let mut previous = (pos.x, pos.y);
+            let remaining = path.map_or(&[][..], |p| &p.steps[p.cursor..]);
             let valid = remaining.iter().all(|&(x, y)| {
                 let next = (x as f32, y as f32);
                 let valid = grid.is_walkable(x, y) && grid.segment_can_cross(previous, next);
                 previous = next;
                 valid
             });
-            let endpoint = remaining
-                .last()
-                .copied()
-                .unwrap_or((pos.x.round() as i32, pos.y.round() as i32));
-            let contact = routes::endpoint_valid(world, entity, endpoint);
-            let exit_valid = world.get::<terri_core::Commuting>(entity)
-                != Some(&terri_core::Commuting::Outbound)
-                || remaining
-                    .last()
-                    .is_some_and(|tile| boundary_tiles(world, grid).contains(tile));
-            (!valid || !contact || !exit_valid).then_some((entity, contact))
+            let destination = match commute {
+                Some(Commuting::Outbound) => exits
+                    .get_or_insert_with(|| boundary_tiles(world, grid))
+                    .binary_search(&endpoint)
+                    .is_ok(),
+                Some(Commuting::Inbound) => {
+                    let (x, y) = endpoint;
+                    grid.is_walkable(x, y)
+                        && home_targets
+                            .get_or_insert_with(|| navigation::home_targets(world, grid))
+                            .as_ref()
+                            .is_some_and(|targets| targets[y as usize * grid.width() + x as usize])
+                }
+                None => routes::endpoint_valid(world, entity, endpoint),
+            };
+            (!valid || !destination).then_some(entity)
         })
         .collect();
-    for (actor, _contact) in invalid {
+    for actor in invalid {
         let position = *world
             .get::<Position>(actor)
             .expect("route owner has a position");
-        let replacement = if world.get::<terri_core::Commuting>(actor)
-            == Some(&terri_core::Commuting::Outbound)
-        {
-            route_to_boundary(world, position)
-        } else {
-            routes::replan(world, actor)
+        let replacement = match world.get::<Commuting>(actor) {
+            Some(Commuting::Outbound) => route_to_boundary(world, position),
+            Some(Commuting::Inbound) => route_home(world, position),
+            None => routes::replan(world, actor),
         };
         if let Some(steps) = replacement {
             world.entity_mut(actor).insert(Path { steps, cursor: 0 });
+            continue;
+        }
+        if world.get::<Commuting>(actor).is_some() {
+            finish_visible_commute_next_tick(world, actor);
             continue;
         }
         end_obstructed_work(world, actor, "The route was blocked by a building change.");
     }
 }
 
+/// Let attendance finish the interrupted return and any due career review when time resumes.
+pub(crate) fn finish_visible_commute_next_tick(world: &mut World, actor: Entity) {
+    world.entity_mut(actor)
+        .remove::<terri_core::Path>()
+        .insert(terri_core::Commuting::Inbound);
+}
+
 fn end_obstructed_work(world: &mut World, actor: Entity, reason: &str) {
-    use terri_core::{Commuting, Path, Target};
+    use terri_core::{Path, Target};
     let target = world.get::<Target>(actor).copied();
     let recipe = target
         .filter(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
@@ -604,19 +655,12 @@ fn end_obstructed_work(world: &mut World, actor: Entity, reason: &str) {
         crate::reading::request_return(world, actor);
         return;
     }
-    let commute = world.get::<Commuting>(actor).copied();
     world
         .entity_mut(actor)
         .remove::<Path>()
         .remove::<Target>()
         .remove::<terri_core::Eating>()
-        .remove::<terri_core::StepWork>()
-        .remove::<Commuting>();
-    if commute == Some(Commuting::Inbound) {
-        world
-            .entity_mut(actor)
-            .insert((WaitingToReturn, terri_core::AtWork { remaining_ticks: 1 }));
-    }
+        .remove::<terri_core::StepWork>();
 }
 
 #[cfg(test)]
@@ -659,11 +703,11 @@ mod tests {
         );
         sim.commit_build_with_access_ack(review.token).unwrap();
         sim.end_build().unwrap();
-        let snapshot = sim.save_snapshot_v24();
+        let snapshot = sim.save_snapshot_v25();
         let hash = sim.world_hash();
         let mut restored = Sim::new_with_lot(1, 1);
-        restored.load_snapshot_v24(snapshot.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v24(), snapshot);
+        restored.load_snapshot_v25(snapshot.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v25(), snapshot);
         assert_eq!(restored.world_hash(), hash);
         assert_eq!(
             access_report(restored.world()).regions[0].tiles,
@@ -713,8 +757,8 @@ mod tests {
         sim.world_mut()
             .resource_mut::<crate::LotFrame>()
             .purchased_area += 16;
-        let saved = sim.save_snapshot_v24();
-        sim.load_snapshot_v24(saved).unwrap();
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved).unwrap();
         assert!(sim.world().resource::<TileGrid>().can_step((0, 2), (1, 2)));
     }
 }
@@ -786,9 +830,9 @@ mod migration_tests {
                 }
             }
         }
-        let saved = sim.save_snapshot_v24();
-        sim.load_snapshot_v24(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v24(), saved);
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), saved);
         sim.begin_build().unwrap();
         assert!(crate::placement::walls::validate_wall_edit(
             sim.world(),
@@ -804,7 +848,7 @@ mod migration_tests {
     #[test]
     fn surface_dimensions_are_checked_before_nested_world_restoration() {
         let mut sim = crate::Sim::new_with_lot(5, 5);
-        let before = sim.save_snapshot_v24();
+        let before = sim.save_snapshot_v25();
         let mut malformed = before.clone();
         malformed.surfaces = WorldSurfaces {
             width: 1,
@@ -812,10 +856,10 @@ mod migration_tests {
             tiles: vec![0],
         };
         assert_eq!(
-            sim.load_snapshot_v24(malformed),
+            sim.load_snapshot_v25(malformed),
             Err(crate::SaveError::InvalidGrid)
         );
-        assert_eq!(sim.save_snapshot_v24(), before);
+        assert_eq!(sim.save_snapshot_v25(), before);
     }
 }
 
@@ -853,9 +897,9 @@ mod generic_migration_tests {
         );
         assert!(sim.world().resource::<SavedLayout>().has_edges());
         assert!(!sim.world().resource::<TileGrid>().can_step((8, 7), (8, 8)));
-        let saved = sim.save_snapshot_v24();
-        sim.load_snapshot_v24(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v24(), saved);
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), saved);
         sim.begin_build().unwrap();
         assert!(crate::placement::walls::validate_wall_edit(
             sim.world(),
@@ -873,6 +917,31 @@ mod generic_migration_tests {
 #[cfg(test)]
 mod access_tests {
     use super::*;
+    #[test]
+    fn connected_ground_beside_a_pool_cannot_replace_its_blocked_ladder() {
+        let mut sim = crate::Sim::new_with_lot(9, 9);
+        let pack = sim.world().resource::<crate::Content>().0;
+        let model = pack.find("pool").unwrap();
+        let origin = (4, 4);
+        let pool = sim.spawn_object(Position { x: 4., y: 4. }, model);
+        let facing = pack.object(model).base_facing;
+        let ladder = crate::pool::approach(origin, facing);
+        let footprint = pack.object(model).footprint_at(facing);
+        let mut grid = sim.world_mut().resource_mut::<TileGrid>();
+        for x in origin.0..origin.0 + footprint.width as i32 {
+            for y in origin.1..origin.1 + footprint.depth as i32 {
+                grid.set_blocked(x as usize, y as usize, true);
+            }
+        }
+        assert!(access_report(sim.world()).blocked_targets.is_empty());
+        sim.world_mut().resource_mut::<TileGrid>()
+            .set_blocked(ladder.0 as usize, ladder.1 as usize, true);
+        let report = access_report(sim.world());
+        assert!(report.regions.is_empty());
+        assert_eq!(report.blocked_targets.len(), 1);
+        assert_eq!(report.blocked_targets[0].target, pool.index_u32());
+    }
+
     #[test]
     fn access_report_does_not_repeat_numeric_object_lookup() {
         for occupied in [false, true] {
@@ -1253,9 +1322,9 @@ mod route_revalidation_tests {
                     .iter()
                     .any(|event| event.order_id == ids[0] && event.phase == "failed"));
             }
-            let saved = sim.save_snapshot_v24();
-            sim.load_snapshot_v24(saved.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v24(), saved);
+            let saved = sim.save_snapshot_v25();
+            sim.load_snapshot_v25(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v25(), saved);
         }
     }
     #[test]
@@ -1378,9 +1447,9 @@ mod route_revalidation_tests {
                 cursor: 0,
             },
         ));
-        let positive = sim.save_snapshot_v24();
-        sim.load_snapshot_v24(positive.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v24(), positive);
+        let positive = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(positive.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), positive);
         sim.begin_build().unwrap();
         sim.world_mut()
             .resource_mut::<CommandQueue>()
@@ -1437,9 +1506,9 @@ mod route_revalidation_tests {
             .iter()
             .any(|event| event.order_id == ids[0] && event.phase == "completed"));
         assert!(sim.world().get::<terri_core::ChainState>(actor).is_none());
-        let saved = sim.save_snapshot_v24();
-        sim.load_snapshot_v24(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v24(), saved);
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), saved);
     }
     fn build_barrier(sim: &mut crate::Sim, rows: impl Iterator<Item = u32>) {
         sim.begin_build().unwrap();
@@ -1480,7 +1549,7 @@ mod route_revalidation_tests {
             .events
             .iter()
             .any(|event| event.phase == "failed"));
-        sim.load_snapshot_v24(sim.save_snapshot_v24()).unwrap();
+        sim.load_snapshot_v25(sim.save_snapshot_v25()).unwrap();
     }
 
     #[test]
@@ -1546,9 +1615,9 @@ mod route_revalidation_tests {
             .events
             .iter()
             .any(|event| event.phase == "failed"));
-        let saved = sim.save_snapshot_v24();
-        sim.load_snapshot_v24(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v24(), saved);
+        let saved = sim.save_snapshot_v25();
+        sim.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v25(), saved);
     }
     #[test]
     fn a_cut_off_current_order_fails_once_and_keeps_the_later_queue_entry() {
@@ -1577,7 +1646,7 @@ mod route_revalidation_tests {
             failed[0].reason.as_deref(),
             Some("The route was blocked by a building change.")
         );
-        sim.load_snapshot_v24(sim.save_snapshot_v24()).unwrap();
+        sim.load_snapshot_v25(sim.save_snapshot_v25()).unwrap();
     }
 }
 
@@ -1623,14 +1692,14 @@ mod current_contract_tests {
                 .position = Some(position);
             let mut live = crate::Sim::new_from_shipped_lot();
             live.load_snapshot(historical).expect("positive historical worker admission with unchanged shipped content and valid career");
-            let current = live.save_snapshot_v24();
+            let current = live.save_snapshot_v25();
             let mut resumed = crate::Sim::new_from_shipped_lot();
             resumed
-                .load_snapshot_v24(current.clone())
+                .load_snapshot_v25(current.clone())
                 .unwrap_or_else(|error| {
                     panic!("supported historical work at {position:?} must reload: {error:?}")
                 });
-            assert_eq!(resumed.save_snapshot_v24(), current);
+            assert_eq!(resumed.save_snapshot_v25(), current);
             assert_eq!(
                 resumed.world().get::<Position>(actor),
                 Some(&Position {
@@ -1720,12 +1789,12 @@ mod current_contract_tests {
         let mut live = crate::Sim::new_with_lot(6, 6);
         live.load_snapshot_v5(old)
             .expect("positive supported historical occupied overlap");
-        let current = live.save_snapshot_v24();
+        let current = live.save_snapshot_v25();
         let mut resumed = crate::Sim::new_with_lot(6, 6);
         resumed
-            .load_snapshot_v24(current.clone())
+            .load_snapshot_v25(current.clone())
             .expect("historical adoption must produce reloadable current state");
-        assert_eq!(resumed.save_snapshot_v24(), current);
+        assert_eq!(resumed.save_snapshot_v25(), current);
         let after = live.save_snapshot();
         let objects: Vec<_> = after
             .entities
@@ -1785,9 +1854,9 @@ mod current_contract_tests {
             restored.world().get::<Position>(bed),
             Some(&Position { x: 1., y: 1. })
         );
-        let current = restored.save_snapshot_v24();
-        restored.load_snapshot_v24(current.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v24(), current);
+        let current = restored.save_snapshot_v25();
+        restored.load_snapshot_v25(current.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v25(), current);
         assert_eq!(
             restored.world().resource::<crate::beds::BedAssignments>(),
             &assignments
@@ -1802,11 +1871,11 @@ mod current_contract_tests {
         for _ in 0..2 {
             developer.spawn_object(Position { x: 1., y: 1. }, model);
         }
-        let positive = developer.save_snapshot_v24();
+        let positive = developer.save_snapshot_v25();
         developer
-            .load_snapshot_v24(positive.clone())
+            .load_snapshot_v25(positive.clone())
             .expect("supported low-level spawns do not claim grid occupancy");
-        assert_eq!(developer.save_snapshot_v24(), positive);
+        assert_eq!(developer.save_snapshot_v25(), positive);
 
         let mut live = purchased_pair();
         let before = live.current_v5_view();
@@ -1940,7 +2009,7 @@ mod current_contract_tests {
     #[test]
     fn current_geometry_cannot_select_a_historical_implicit_layout() {
         let mut sim = crate::Sim::new_with_lot(4, 4);
-        let before = sim.save_snapshot_v24();
+        let before = sim.save_snapshot_v25();
         let mut malformed = before.clone();
         let rooms = malformed.room_world_v16_mut();
         rooms
@@ -1954,12 +2023,12 @@ mod current_contract_tests {
             .legacy
             .layout = SavedLayout::LegacyCells { walls: vec![] };
         assert_eq!(
-            sim.load_snapshot_v24(malformed.clone()),
+            sim.load_snapshot_v25(malformed.clone()),
             Err(crate::SaveError::InvalidGrid)
         );
-        assert_eq!(sim.save_snapshot_v24(), before);
+        assert_eq!(sim.save_snapshot_v25(), before);
         assert!(crate::save::v20::restore(
-            malformed.previous.legacy,
+            malformed.previous.legacy.legacy.legacy,
             terri_data::pack(),
             crate::save::Carried::default()
         )
@@ -1968,7 +2037,7 @@ mod current_contract_tests {
     #[test]
     fn current_objects_require_saved_facings_instead_of_starting_placement_inference() {
         let mut sim = crate::Sim::new_from_shipped_lot();
-        let before = sim.save_snapshot_v24();
+        let before = sim.save_snapshot_v25();
         let mut malformed = before.clone();
         let rooms = malformed.room_world_v16_mut();
         rooms
@@ -1983,10 +2052,10 @@ mod current_contract_tests {
             .object_facings
             .clear();
         assert_eq!(
-            sim.load_snapshot_v24(malformed),
+            sim.load_snapshot_v25(malformed),
             Err(crate::SaveError::InvalidValue)
         );
-        assert_eq!(sim.save_snapshot_v24(), before);
+        assert_eq!(sim.save_snapshot_v25(), before);
     }
 }
 
@@ -2019,7 +2088,7 @@ mod door_model_tests {
         sim.commit_build_with_access_ack(review.token).unwrap();
         sim.end_build().unwrap();
         let mut restored = crate::Sim::new_with_lot(1, 1);
-        restored.load_snapshot_v24(sim.save_snapshot_v24()).unwrap();
+        restored.load_snapshot_v25(sim.save_snapshot_v25()).unwrap();
         assert_eq!(restored.portal_buffer().states.len(), 1);
         assert_eq!(restored.portal_buffer().frames, sim.portal_buffer().frames);
     }

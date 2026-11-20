@@ -28,7 +28,7 @@ Sleep rhythm influences when a person wants bed. Your orders can still keep them
 
 ## Hygiene {#hygiene}
 
-Take a shower or Take a bath for whole-body cleaning. A shower costs more Energy; a bath also supplies Comfort. Exercise reduces Hygiene.
+Take a shower or Take a bath for whole-body cleaning. Either one runs until Hygiene is full, so a quick top-up is short and a shower from a very dirty start lasts longer. A person who gets very little from it can reach the time limit first and leave with Hygiene not full. A shower costs more Energy; a bath also supplies Comfort. They cost or give that for every minute you stay, so a longer use costs or gives more. Stopping early, for example by giving another order, keeps only the Hygiene gained in the minutes already spent. Exercise reduces Hygiene.
 
 Wash hands at either sink provides partial cleaning only. Repeated washing cannot raise Hygiene beyond its ceiling. It also cannot remove the body-odor consequences of low Hygiene; bathe to get above that threshold. Washing when already cleaner than the ceiling does not lower the existing meter.
 
@@ -36,7 +36,7 @@ Cleaning dishes, floors, furniture or a bin cleans the home. It does not wash th
 
 ## Bladder {#bladder}
 
-Use the toilet. It supplies direct Bladder relief during actual use. The person does not wash their hands automatically afterward, and showers, baths and sinks provide no Bladder benefit.
+Use the toilet. It supplies direct Bladder relief during actual use and runs until Bladder is full, unless the person gets very little from it and reaches the time limit first. Stopping early keeps only the Bladder gained in the minutes already spent. The person does not wash their hands automatically afterward, and showers, baths and sinks provide no Bladder benefit. At work, Bladder refills halfway before it becomes Critical. Arriving with Low or Critical Bladder also provides relief.
 
 Toilet, shower and bath use establish [privacy boundaries](relationships/#privacy). A route or fixture may be available physically while someone would prefer to wait out of respect.
 

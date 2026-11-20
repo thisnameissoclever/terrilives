@@ -285,7 +285,11 @@
   },
   {
     "label": "Work",
-    "helps": [],
+    "helps": [
+      "Hunger",
+      "Bladder",
+      "Social"
+    ],
     "costs": [
       "Energy"
     ],

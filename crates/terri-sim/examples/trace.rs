@@ -19,7 +19,9 @@
 //! `--night-worker` puts Casey on the night watch's standard shift,
 //! `--careers-seed <n>` reseeds the careers stream, and
 //! `--pre-shift-careers` runs the career content and search from before
-//! shifts (`examples/trace/shifts.rs`).
+//! shifts (`examples/trace/shifts.rs`). Set `--lateness-limit <ticks>` to
+//! change the time a critical need can delay a worker. Set it to 0 to
+//! disable the allowance. The SHIFTS section reports lateness and Bladder.
 //!
 //! What it prints, and why each column is here rather than being eyeballed
 //! from the running game:
@@ -44,6 +46,10 @@
 //!   targetless path. This is the measured contract for local idle wandering:
 //!   endpoint distance alone cannot reveal a short-looking destination whose
 //!   route takes a sim around a wall and across the house.
+//! - **Bathroom uses** (issue 315): how long each toilet, shower and bath use
+//!   lasted, where the need started and ended, how many ended full, the net
+//!   Energy and Comfort change, and how long each fixture was occupied
+//!   (`examples/trace/bathroom.rs`).
 //! - **Activity log volume**: records per kind per game day, the largest
 //!   tick and five-tick burst, and dropped records, drained once a tick as
 //!   the shell drains once a frame. The staging ring's size rests on it.
@@ -59,6 +65,10 @@ use terri_core::{
 use terri_sim::Sim;
 #[path = "trace/activity_log.rs"]
 mod activity_log;
+#[path = "trace/bathroom.rs"]
+mod bathroom;
+#[path = "trace/bills.rs"]
+mod bills;
 #[path = "trace/catalogue.rs"]
 mod catalogue;
 #[path = "trace/catalogue_meals.rs"]
@@ -279,6 +289,8 @@ fn main() {
     let mut capped_handwash_choices = 0u64;
 
     let mut shift_summary = shifts::Summary::new(sims.len());
+    let mut bathroom_summary = bathroom::Summary::new(sims.len());
+    let mut bills_summary = bills::Summary::new(&sim);
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
     };
@@ -290,6 +302,7 @@ fn main() {
         log_volume.observe(&mut sim);
         let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
+        bills_summary.observe(&sim);
 
         let current = sim.save_snapshot_v17();
         let saved_requests = current.legacy.legacy.conversation_requests;
@@ -367,6 +380,7 @@ fn main() {
             }
         }
         previous_requests = current_requests;
+        bathroom_summary.observe(&sim, &sims);
         shift_summary.observe(
             &sim,
             &sims,
@@ -1422,6 +1436,8 @@ fn main() {
         );
     }
     shift_summary.print(&sim, &sims);
+    bathroom_summary.print(ticks);
+    bills_summary.print(&sim);
     println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());

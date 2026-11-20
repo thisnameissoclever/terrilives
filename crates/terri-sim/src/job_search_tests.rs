@@ -125,9 +125,11 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
         .collect();
     assert_eq!(
         outcomes,
+        // The published hires at issue 298's wages, 1.5 times the published
+        // $120 and $80 ([WB-wages]).
         vec![
-            (0, 0, "office_job", 31, 360, 480, 120, Some(240), false),
-            (1, 0, "office_job", 31, 360, 480, 120, Some(240), false),
+            (0, 0, "office_job", 31, 360, 480, 180, Some(240), false),
+            (1, 0, "office_job", 31, 360, 480, 180, Some(240), false),
             (
                 2,
                 4,
@@ -135,7 +137,7 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
                 62,
                 330,
                 420,
-                80,
+                120,
                 Some(150),
                 false
             ),
@@ -182,9 +184,9 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
     assert_eq!(
         ongoing,
         vec![
-            (0, 0, 4680, 5160, 12000, false, false),
-            (1, 0, 4680, 5160, 12000, false, false),
-            (2, 4, 4650, 5070, 8000, false, false),
+            (0, 0, 4680, 5160, 18000, false, false),
+            (1, 0, 4680, 5160, 18000, false, false),
+            (2, 4, 4650, 5070, 12000, false, false),
         ]
     );
 }
@@ -236,12 +238,42 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. The draw counts and every job and
 /// shift are again unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (17769474122166916875, 7, 2);
+/// Explicit world surfaces/travel and the approved need/work-care rules move
+/// the current trajectory. Native and Wasm independently measured this hash
+/// on 2026-10-25. Career draws, shift draws and every held job/shift stay pinned.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (10164250803165790774, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
     (2, Some("night_watch_guard"), Some("weekend_nights")),
 ];
+
+/// Issue 309: with the work lateness limit and the work Bladder relief both
+/// off, as a pack published before them reconstructs, the shipped household's
+/// run to Thursday is the shipped value, bit for bit (the value main measured
+/// before issue 344 moved it is in the comment on `SHIPPED_THURSDAY`). That
+/// shows that switching the two knobs off changes nothing here; it does not
+/// show that the knobs move this run, because nobody is late or relieved
+/// before Thursday at the slower drain. The behavior is covered by
+/// `lateness_tests.rs`.
+#[test]
+fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let mut pack = terri_data::pack().clone();
+    pack.tuning.work_lateness_limit_ticks = 0;
+    pack.tuning.work_bladder_relief_threshold = 0.0;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    for _ in 0..THROUGH_THURSDAY {
+        sim.tick();
+    }
+    let careers = sim.world().resource::<Careers>();
+    assert_eq!(
+        (sim.world_hash(), careers.draws, careers.shift_draws),
+        (1396220020831546344, 7, 2),
+        "the shipped value, with the presence fade of issue 344 (main at a56f9beb0 gave 16800902046621430031 without it)"
+    );
+}
 
 /// Rule 1: every person in a new game, and every newcomer, looks for work.
 #[test]

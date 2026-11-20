@@ -9,7 +9,7 @@ dialog menu > * { min-width: 0; }
 .builder-row { flex-wrap: wrap; }
 .builder-row:empty { display: none; }
 /* Keep selection guidance available to assistive technology; visible outcomes sit with the action. */
-#builder-status, #buy-status, #wall-status, #window-status, #room-status, #floor-status {
+#buy-status, #wall-status, #window-status, #room-status, #floor-status {
   position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
 }
 .catalogue-filter-row[data-catalogue-open='false'] { display: none; }
@@ -180,7 +180,7 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 #room-name, #room-review input, #room-review select { scroll-margin-block: var(--room-focus-clearance); }
 #room-name-status:empty, #room-review-status:empty { display: none; }
 #room-name-status, #room-review-status { overflow-wrap: anywhere; }
-#room-review-status:not(:empty) { color: var(--hud-danger); border-left: 3px solid var(--hud-danger); padding-left: 8px; }
+#room-review-status:not(:empty):not([data-pending='true']) { color: var(--hud-danger); border-left: 3px solid var(--hud-danger); padding-left: 8px; }
 #room-review { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 #room-review[hidden] { display: none; }
 #room-review-heading { flex: none; margin: 0; font-size: 16px; }
@@ -214,7 +214,7 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 }
 
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
-#build-batch-status:empty, #builder-status:empty, #buy-status:empty, #floor-status:empty,
+#build-batch-status:empty, #buy-status:empty, #floor-status:empty,
 #land-status:empty, #land-touch-help:empty, #room-status:empty { display: none; }
 #build-zoom-out svg { display: block; margin: auto; }
 /* A refusal must not read like routine status: danger colour and a rule

@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## [L-frame-code-allocation-has-four-sources] Profile frame code for repeated setup, rebuilt surfaces, shared helpers and retained per-actor maps
+
+1. What happened: the 3D character renderer allocated 0.75 to 1.2 MB a frame for a three-person household and 8 to 11 MB a frame at stress 50, and a stress 50 page held 937 MB of JavaScript heap. Profiles named small vector helpers, and the [V11] rule against per-entity objects had no check on the character code.
+2. Root cause: four different defects looked alike in the profile. Pose setup recomputed per-shape rest data every frame. The bath contact rebuilt the whole configured thigh surface, about 10,000 triangles, on every bath frame. Shared math helpers received so many kinds of array that V8 compiled their element reads generically and boxed every number, so arithmetic with no visible allocation allocated anyway. Each prepared character kept head selections as maps of per-vertex arrays, about 17 MB a character.
+3. Prevention: attribute an allocation profile by caller before rewriting a helper. Cache what depends only on the appearance, write per-frame surface queries into reused buffers, give a hot path its own small kernels over one kind of array, and store per-actor lookup tables in typed arrays. Keep `Math.hypot` and similar builtins out of per-vertex loops unless an exact fallback decides the close cases.
+4. Verification: `web/tests/character-pose-allocation.test.ts` requires bit-identical poses against frozen originals and bounds the bytes per pose call with V8's sampling heap profiler; disabling the rest cache or the bath fast path fails it. `scripts/character-allocation-proof.cjs` reports per-frame allocation by source module in the browser. The [measurement record](evidence/2026-10-25-character-render-allocation/README.md) has the procedure and numbers.
+
 ## [L-backlog-document-ownership] Put engineering tasks in the engineering backlog
 
 **What happened.** A detailed sound implementation backlog was added to Tim's
@@ -39,6 +46,15 @@ Document relocation must not change implementation or listening approval status.
 4. Verification: round-trip queued, admitted and running named-to-bare, bare-to-named and bare-to-bare conversations. Reject missing and non-agent references transactionally. Require the corresponding historical reader controls to retain their original rejection behavior.
 
 The same ordering issue applies to travel state. A return journey ending on ordinary ground was interpreted as an outbound commute because its current direction and waiting state were restored after historical attendance validation. Carry the outer schema's travel context into entity reconstruction before validating attendance. Round-trip real return journeys and workers waiting outside a blocked lot; waiting must not accrue wages or appear as unfinished office work.
+
+## [L-access-endpoints-follow-capabilities] Check the endpoint the action actually uses
+
+1. What happened: current saves admitted a shortened work route that stopped inside the lot. Build also missed an unusable pool when its ladder was blocked and other sides were open.
+2. Root cause: save validation checked each walk step without checking the work destination. Build treated any side of an object's footprint as a usable approach.
+3. Prevention: validate both the path and the destination required by the action. Use the open lot edge for departures and the rotated ladder contact for swimming. Keep historical save checks under their original contracts.
+4. Verification: remove or truncate a real outbound path and require transactional refusal. Preserve an empty route that starts on an open lot edge. Block the pool ladder alone and require an access warning while the rest of the ground remains connected.
+
+A return journey already on the lot stays on the lot when Build changes its route. Replan from the visible position using current home destinations. If none is reachable, leave the person in place and let the next simulation tick finish the return and any deferred career review. Verify an acknowledged layout and a save round trip before time resumes. When a legacy reader accepts a travel route under an older contract, reconcile it before writing a current save.
 
 ## [L-single-social-admission-owner] Keep compatibility metadata separate from physical ownership
 
@@ -13141,15 +13157,15 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Verification.** Add a controlled startup delay that exceeds the old fixture window and require the original result and source-integrity assertions to pass. Separately run the production controller without the fixture clock and require an expired deadline to stop before accepting later output. Do not present fixture timings as native capacity measurements.
 ## [L-error-copy-cause-and-remedy] Explain the failure and a supported remedy
 
-**What happened.** A Build confirmation mock-up paired a generic failure with "Your pending changes are kept." The extra sentence described the visible scene and made the confirmation outcome ambiguous. It repeated a mistake already prohibited by the player-visible string rules.
+**What happened.** A Build confirmation mock-up paired a generic failure with "Your pending changes are kept." The extra sentence described the visible scene and made the confirmation outcome ambiguous. Save import repeated the same mistake through a shared formatter that appended "Current game kept" to every refusal.
 
 **Root cause.** Reassurance was drafted before inspecting the available failure reason. The copy review accepted visible-state narration as useful feedback. Subsequent review relied on a display-text mapping without tracing the condition that produced it.
 
 **Feasibility check.** Before depicting functional behavior in a mock-up, trace the required data and detection through their producers and consumers. A label or error-message mapping alone does not establish the capability. Identify any implementation work needed to support a proposal and establish a feasible approach before presenting it. Match error specificity to the actual signal: an object overlap, a blocked interaction contact, and a failed return route require different explanations even when a legacy display mapping groups them together. Source inspection establishes the available mechanism; a played test establishes its observed behavior.
 
-**Prevention.** Write UI errors from the reported cause and a supported next action. Keep them succinct and describe ordinary objects by their type. A technically available distinction still needs to match the intended gameplay model; the starter door must not acquire a special player-facing identity because an old detector depends on it. Log the full technical error, operation and diagnostic context in the console. Omit statements about objects remaining visible or panels staying open. Avoid vague preservation words such as "kept" that can imply a successful commit. Apply these rules to mock-ups as well as implementation.
+**Prevention.** Write UI errors from the reported cause and a supported next action. Keep them succinct and describe ordinary objects by their type. A technically available distinction still needs to match the intended gameplay model; the starter door must not acquire a special player-facing identity because an old detector depends on it. Log the full technical error, operation and diagnostic context in the console. Audit shared message formatters for automatic reassurance. Keep useful consequences such as paused saving. Omit statements about objects remaining visible or panels staying open. Avoid vague preservation words such as "kept" that can imply a successful commit. Apply these rules to mock-ups as well as implementation.
 
-**Verification.** Compare every error example with its actual failure mapping. Check that the player can identify the obstacle and next action, that neither is invented, and that the text adds information beyond the visible scene. Reject generic reassurance that could be mistaken for success. During implementation, verify that the corresponding console entry retains the full diagnostics.
+**Verification.** Compare every error example with its actual failure mapping. Exercise the real producer: a history label can include an object suffix that makes it unsuitable as a phrase in an error. Check that the player can identify the obstacle and next action, that neither is invented, and that the text adds information beyond the visible scene. Reject generic reassurance that could be mistaken for success. During implementation, verify that the corresponding console entry retains the full diagnostics.
 
 ## [L-starter-assets-are-ordinary-world-state] Keep starter assets interchangeable with player-built assets
 
@@ -13862,3 +13878,52 @@ A shell exit or process identifier does not establish exporter completion. Do no
 2. Root cause: an implicit field view hid the version that owned each field. Updating an outer envelope did not make older field chains or encoded headers correct.
 3. Prevention: use named, typed accessors at current-to-historical boundaries. Preserve frozen historical readers and fixtures. Encode current corruption controls with the current header so the intended state validator must reject them.
 4. Verification: compile library and test targets, exercise authentic historical bytes, and check exact current continuation, transactional rejection and Build rollback. A successful type check alone does not prove save compatibility.
+
+## [L-producer-supervision-scope] Match supervision to the actual producer
+
+1. What happened: a supervisor for static render views was reused for a larger depth export. Its result fields were adapted, but its observation budget was too short. The exporter completed after the supervisor had recorded a timeout.
+2. Root cause: matching the application and runtime did not establish that the result schema, workload or completion budget also matched.
+3. Prevention: define the expected result fields, cardinality and observation budget before launch. Preserve timed-out receipts and late files separately. Require a fresh supervised result rather than treating a late file as a passing original command.
+4. Verification: observe the authenticated runtime, complete source status and process exit within the declared budget. Verify output hashes and unchanged inputs, then compare unaffected generated data.
+
+## [L-current-trajectory-versus-legacy-hash] Test historical encoding separately from current trajectories
+
+1. What happened: explicit world surfaces and changed need behavior moved the shipped household's hash. A test described its old whole-world value as proof that standard shifts added no career hash bytes.
+2. Root cause: the test ran the current world and reused a value from an earlier world. Its hash covered more than the career encoding it intended to protect.
+3. Prevention: compare the historical encoding directly for the compatibility claim. Keep separate pins for each current trajectory, its random draws and its expected outcomes. Preserve authentic historical save fixtures and their original readers.
+4. Verification: measure each full trajectory before updating its pin, and compare independent runtimes where available. Make an unwanted shift write fail the encoding comparison even if the whole-world pin matches. Keep per-tick log-on and log-off comparisons and random-stream checks.
+
+## [L-played-animation-motion-preference] Record the motion preference during animation review
+
+1. What happened: the game advanced through pool entry and exit while the paddle loop appeared frozen.
+2. Root cause: the browser requested reduced motion. The renderer holds a swim pose under that preference while retaining the position changes needed to enter and leave the pool.
+3. Prevention: record the browser's motion preference before judging animation. When checking both preferences, use a test tab and restore its settings afterward.
+4. Verification: play the same save and prepared body under each preference. Confirm the intended reduced-motion pose, watch the normal loop through several distinct phases, and check the entry and exit in both modes.
+
+## [L-pool-proof-active-replay] Bind contact evidence to the active replay
+
+1. What happened: a separately constructed pose with equal matrix values could claim an owned foot observation. A live collision witness also retained its authority after changes to its clearance, coordinates or list membership.
+2. Root cause: the compiler shared static geometry authority across dynamic poses. It treated witness identity as sufficient while the witness and its containing list were writable.
+3. Prevention: bind each proof to the active replay, its configured rig and matrices, and the actual observed row. Seal witness values, nested coordinates and list membership before classification. Clear the active scope before calling diagnostics, and pass detached values to those callbacks.
+4. Verification: solve an equal-valued foreign pose during a live observation and require refusal. Attempt to edit a genuine witness and its list before admission. Preserve the raw observer's mutation controls and its rejection of an actual crossing.
+
+## [L-pool-fit-across-appearances] Verify the complete motion on different bodies
+
+1. What happened: the complete ladder motion fit the default feminine body. The default masculine body's upper arms crossed both rail crowns during the same entry transition, so the preparation worker refused that body.
+2. Root cause: the authored grip kept both elbows at nearly the shoulders' depth as the hands moved to the inside of the ladder. The configured arm placement and skin extent changed across bodies.
+3. Prevention: fit the motion to the actual configured body and swimwear. When changing an elbow guide, use the measured arm length and keep the hand's attachment and the feet's support constraints. Bind the exact motion bytes to the unchanged physical fixture.
+4. Verification: preserve the old crossing as a negative control. Check the repaired phase, both adjacent intervals and the reversed exits through the actual observer. Run full preparation for both presentations and representative shapes, then watch the complete actions in the displayed game.
+
+## [L-collision-summary-witness-scope] Read a worst witness as a summary
+
+1. What happened: a rail collision report changed its deepest witness from a triangle to a vertex. The new identifier did not establish that the earlier triangle had cleared.
+2. Root cause: the observer retains the deepest violation for each body part and solid. Its report does not enumerate every crossing.
+3. Prevention: use the deepest reported penetration to compare severity. Use the actual primitive check to establish whether a named triangle or vertex has cleared.
+4. Verification: reproduce the old collision, then require complete admission of the selected body and garments at the repaired pose and relevant neighboring samples.
+
+## [L-unused-report-validation] Preserve validation when removing an unused report
+
+1. What happened: the pool compiler calculated an old contact report that admission never read. Removing the report also removed incidental refusals for invalid contact data.
+2. Root cause: reference checks and numeric measurements shared one function. Invalid limb names and sparse facet lists failed during measurement instead of explicit validation.
+3. Prevention: trace both report consumers and failures before removing expensive work. Retain the input checks at the observation boundary and leave the public report available to its actual callers.
+4. Verification: make malformed active contacts and facet lists fail at the existing observation stage. Require the same physical and support decisions for valid inputs, and compare the complete prepared result before claiming a speed improvement.

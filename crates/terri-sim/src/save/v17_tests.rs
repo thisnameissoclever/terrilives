@@ -682,10 +682,7 @@ fn v14_bare_waiter_is_adopted_before_a_current_save_without_claiming_admission()
     let mut orphan = migrated.current_v5_view();
     orphan
         .0
-        .legacy
-        .legacy
-        .legacy
-        .legacy
+        .room_world_v16_mut()
         .legacy
         .conversation_requests
         .requests

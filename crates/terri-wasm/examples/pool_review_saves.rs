@@ -8,7 +8,7 @@ use terri_sim::{Content, Sim};
 use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
-    let snapshot = sim.save_snapshot_v24();
+    let snapshot = sim.save_snapshot_v25();
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -19,12 +19,11 @@ fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32)
     fs::write(folder.join(format!("{name}.bin")), &bytes).unwrap();
     let (entity, _, facing) = terri_sim::placement::object_definition(sim.world(), pool).unwrap();
     let position = sim.world().get::<Position>(entity).unwrap();
-    let offset = match facing {
-        Facing::SouthEast => (-1, 0),
-        Facing::SouthWest => (0, 2),
-        Facing::NorthWest => (2, 1),
-        Facing::NorthEast => (1, -1),
-    };
+    let (x, y) = facing.rotate_axis(-3, 1);
+    let offset = ((x + 1) / 2, (y + 1) / 2);
+    if let Some(episode) = episode {
+        assert_eq!(episode.approach, (position.x as i32 + offset.0, position.y as i32 + offset.1));
+    }
     format!("{{\"file\":\"{name}.bin\",\"actor\":{actor},\"pool\":{pool},\"hasEpisode\":{},\"phase\":{},\"elapsed\":{},\"exitOrigin\":{},\"facing\":{},\"poolOrigin\":[{},{}],\"approach\":[{},{}],\"bytes\":{}}}",
         episode.is_some(),episode.map_or(0,|e|e.phase),episode.map_or(0,|e|e.elapsed),episode.map_or(0,|e|e.exit_origin),facing.code(),
         position.x,position.y,position.x as i32+offset.0,position.y as i32+offset.1,bytes.len())
@@ -183,7 +182,7 @@ fn main() {
             for _ in 0..100 {
                 sim.tick();
                 if sim
-                    .save_snapshot_v24()
+                    .save_snapshot_v25()
                     .pools
                     .iter()
                     .any(|p| p.actor == actor.index_u32() && p.phase == 1)
@@ -191,7 +190,7 @@ fn main() {
                     break;
                 }
             }
-            let baseline = sim.save_snapshot_v24();
+            let baseline = sim.save_snapshot_v25();
             let prefix = format!("pool-f{}-{presentation}-{preset}", facing.code());
             for (label, ticks, cancel) in [
                 ("entry", 0, false),
@@ -208,7 +207,7 @@ fn main() {
                 {
                     continue;
                 }
-                sim.load_snapshot_v24(baseline.clone()).unwrap();
+                sim.load_snapshot_v25(baseline.clone()).unwrap();
                 for _ in 0..ticks {
                     sim.tick();
                 }
@@ -285,7 +284,7 @@ fn main() {
             .get::<terri_core::Eating>(actor)
             .expect("ordinary bath begins")
             .remaining_ticks;
-        let snapshot = sim.save_snapshot_v24();
+        let snapshot = sim.save_snapshot_v25();
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());

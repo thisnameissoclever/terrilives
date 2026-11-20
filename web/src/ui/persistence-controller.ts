@@ -115,6 +115,8 @@ function unloadableReason(bytes: Uint8Array, fallback: string): string {
     : fallback;
 }
 
+const IMPORT_FAILURE = 'Could not open that save. Use Report bug in Options.';
+
 /**
  * Whether the storage worker will write a current save over these slot
  * bytes. It refuses an unreadable or newer slot rather than lose it. This
@@ -147,6 +149,10 @@ export class PersistenceController {
     private readonly loadPrepared:(bytes:Uint8Array)=>boolean|Promise<boolean>=bytes=>this.sim.loadBytes(bytes),
     private readonly presentFeedback?: (event: PersistenceFeedbackEvent) => void,
   ) { this.pendingIndicator = new PendingIndicator(status); }
+
+  preparingSwimming(): void {
+    if (this.activeOperation === 'load' || this.activeOperation === 'import') this.show('Preparing swimming', 'pending');
+  }
 
   async restoreAtStartup(): Promise<StartupRestore> {
     try {
@@ -296,11 +302,11 @@ export class PersistenceController {
    */
   acceptImportFile(prefix: Uint8Array): boolean {
     if (saveSchemaVersion(prefix) === null) {
-      this.keepCurrentGame('That file is not a Natural Causes save.');
+      this.showImportFailure('That file is not a Natural Causes save.');
       return false;
     }
     if (!slotAcceptsCurrentWrite(prefix)) {
-      this.keepCurrentGame(unloadableReason(prefix, 'Import failed.'));
+      this.showImportFailure(unloadableReason(prefix, IMPORT_FAILURE));
       return false;
     }
     if (this.savingPaused && this.protectedBytes !== null && !slotAcceptsCurrentWrite(this.protectedBytes)) {
@@ -313,7 +319,7 @@ export class PersistenceController {
   /** The browser could not read the chosen file. */
   importFileUnreadable(error: unknown): void {
     this.reportError(error);
-    this.keepCurrentGame('Could not read that file.');
+    this.showImportFailure('Could not read that file. Choose it again.');
   }
 
   /**
@@ -334,7 +340,7 @@ export class PersistenceController {
           stored = this.protectedBytes ?? await this.store.load();
         } catch (error: unknown) {
           this.reportError(error);
-          this.keepCurrentGame('Could not check the saved data in this browser.');
+          this.showImportFailure('Could not check the saved data in this browser.');
           return false;
         }
         if (stored !== null && !slotAcceptsCurrentWrite(stored)) {
@@ -349,10 +355,10 @@ export class PersistenceController {
         this.reportError(error);
       }
       if (!loaded) {
-        this.keepCurrentGame(
+        this.showImportFailure(
           saveSchemaVersion(bytes) === null
             ? 'That file is not a Natural Causes save.'
-            : unloadableReason(bytes, 'Import failed.'),
+            : unloadableReason(bytes, IMPORT_FAILURE),
         );
         return false;
       }
@@ -425,12 +431,12 @@ export class PersistenceController {
   }
 
   /** Ends a rejected import or file choice, keeping the paused-saving note visible. */
-  private keepCurrentGame(reason: string): void {
-    this.showKeepingPausedNote(`${reason} Current game kept.`, true);
+  private showImportFailure(reason: string): void {
+    this.showKeepingPausedNote(reason, true);
   }
 
   private refuseUnreplaceableSlot(): void {
-    this.keepCurrentGame(
+    this.showImportFailure(
       'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again.',
     );
   }

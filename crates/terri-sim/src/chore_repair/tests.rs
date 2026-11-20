@@ -325,10 +325,10 @@ fn gradual_cleaning_retains_identity_but_reassignment_and_new_dirt_do_not() {
             .len(),
         1
     );
-    let snapshot = sim.save_snapshot_v24();
+    let snapshot = sim.save_snapshot_v25();
     let mut restored = Sim::new_with_lot(16, 8);
-    restored.load_snapshot_v24(snapshot.clone()).unwrap();
-    assert_eq!(snapshot, restored.save_snapshot_v24());
+    restored.load_snapshot_v25(snapshot.clone()).unwrap();
+    assert_eq!(snapshot, restored.save_snapshot_v25());
     canceled(sim.world_mut(), people[1]);
     sim.world_mut().resource_mut::<SavedChores>().tasks.clear();
     sim.world_mut().resource_mut::<SavedChores>().floors[0].1 = 1000;
@@ -623,11 +623,11 @@ fn declined_then_natural_work_survives_current_save() {
         .next()
         .unwrap();
     assert!(!row.accepted && row.working && row.attempted);
-    let saved = sim.save_snapshot_v24();
+    let saved = sim.save_snapshot_v25();
     let hash = sim.world_hash();
     let mut loaded = Sim::new_with_lot(16, 8);
-    loaded.load_snapshot_v24(saved.clone()).unwrap();
-    assert_eq!(saved, loaded.save_snapshot_v24());
+    loaded.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(saved, loaded.save_snapshot_v25());
     assert_eq!(hash, loaded.world_hash());
 }
 
@@ -758,10 +758,10 @@ fn late_recipient_can_finish_original_dishes_below_tolerance_after_partial_reloa
             .len(),
         1
     );
-    let saved = sim.save_snapshot_v24();
+    let saved = sim.save_snapshot_v25();
     let mut loaded = Sim::new_with_lot(16, 8);
-    loaded.load_snapshot_v24(saved.clone()).unwrap();
-    assert_eq!(saved, loaded.save_snapshot_v24());
+    loaded.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(saved, loaded.save_snapshot_v25());
     finish_washing(&mut loaded, people[1], sink, vec![1]);
     assert_eq!(
         loaded
@@ -787,11 +787,11 @@ fn maximum_authored_response_window_writes_a_loadable_current_save() {
     sim.world_mut().insert_resource(crate::Content(pack));
     let initiator = *sim.world().get::<SimId>(people[0]).unwrap();
     fight_completed(sim.world_mut(), initiator, SimId(scope.owner), scope);
-    let saved = sim.save_snapshot_v24();
+    let saved = sim.save_snapshot_v25();
     let mut loaded = Sim::new_with_lot(16, 8);
     loaded.world_mut().insert_resource(crate::Content(pack));
-    loaded.load_snapshot_v24(saved.clone()).unwrap();
-    assert_eq!(saved, loaded.save_snapshot_v24());
+    loaded.load_snapshot_v25(saved.clone()).unwrap();
+    assert_eq!(saved, loaded.save_snapshot_v25());
 }
 
 #[test]
@@ -838,7 +838,7 @@ fn published_partial_washing_keeps_a_loadable_current_envelope_without_new_recei
                 .len(),
             1
         );
-        let saved = sim.save_snapshot_v24();
+        let saved = sim.save_snapshot_v25();
         assert_eq!(
             saved.conflicts.dish_contributions.is_empty(),
             published,
@@ -846,8 +846,8 @@ fn published_partial_washing_keeps_a_loadable_current_envelope_without_new_recei
         );
         let mut loaded = Sim::new_with_lot(16, 8);
         loaded.world_mut().insert_resource(crate::Content(pack));
-        loaded.load_snapshot_v24(saved.clone()).unwrap();
-        assert_eq!(saved, loaded.save_snapshot_v24());
+        loaded.load_snapshot_v25(saved.clone()).unwrap();
+        assert_eq!(saved, loaded.save_snapshot_v25());
         assert_eq!(sim.world_hash(), loaded.world_hash());
     }
 }
