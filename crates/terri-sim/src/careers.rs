@@ -1354,7 +1354,10 @@ fn go_to_work_or_refuse(world: &mut World, agent: u32) -> Option<CareerRefusal> 
     // 2. A reader puts the book down where they stand and leaves at once
     // ([CT-merge] item 3, owner ruling): the same helper the lateness cap
     // uses, so a carried copy keeps its home and a housemate shelves it.
-    if world.get::<crate::reading::ReadingJourney>(entity).is_some() {
+    if world
+        .get::<crate::reading::ReadingJourney>(entity)
+        .is_some()
+    {
         crate::reading::floor::put_down_and_end(world, entity);
     }
     // 4. Leave now, dropping sleep, a meal, a conversation and the rest.
