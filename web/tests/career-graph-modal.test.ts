@@ -755,7 +755,7 @@ describe('review defects found in the played pass', () => {
     over(h, 13);
     expect(h.q('.career-win-tip').getAttribute('data-place'), 'a high score sits in the bottom of the plot').toBe('low');
     const tip = /\.career-win-tip \{[^}]*\}/.exec(INDEX_HTML)![0];
-    expect(tip).toContain('clamp(64px,');
+    expect(tip).toContain('64px');
   });
 
   it('D1: the info tooltip cannot grow the heading row, and the focus ring clears the title', () => {
@@ -767,5 +767,83 @@ describe('review defects found in the played pass', () => {
 
   it('keeps the phone window from changing width when the details dock appears', () => {
     expect(INDEX_HTML).toMatch(/\.career-win-body \{[^}]*scrollbar-gutter: stable/);
+  });
+});
+
+describe('a chosen week and a hover preview are separate', () => {
+  const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const title = (h: ReturnType<typeof build>) => h.q('.career-win-tip .career-tip-title').textContent;
+  const leave = (h: ReturnType<typeof build>, pointerType = 'mouse') => h.scoreSvg().dispatch('pointerleave', { pointerType });
+
+  it('D2 sequence 1: a week chosen by click survives the mouse pointerleave the layout shift causes', () => {
+    for (const phone of [true, false]) {
+      const h = build({ phone });
+      h.open();
+      over(h, 2, 'mouse', 'click');
+      expect(title(h)).toBe('Week 3 review: 61 of 100');
+      leave(h);
+      expect(h.q('.career-win-tip').hidden, phone ? 'phone' : 'desktop').toBe(false);
+      expect(title(h)).toBe('Week 3 review: 61 of 100');
+    }
+  });
+
+  it('D2 sequence 2: on a phone, mouse moves and a leave on the way to Next week change nothing', () => {
+    const h = build({ phone: true });
+    h.open();
+    over(h, 5, 'mouse', 'click');
+    for (const week of [1, 2, 9]) over(h, week);
+    leave(h);
+    expect(title(h)).toBe('Week 6 review: 63 of 100');
+    h.all('.career-win-steps button')[1].click();
+    expect(title(h)).toBe('Week 7 review: 45 of 100');
+  });
+
+  it('on a phone a hover alone shows nothing and the hint stays', () => {
+    const h = build({ phone: true });
+    h.open();
+    over(h, 4);
+    expect(h.q('.career-win-tip').hidden).toBe(true);
+    expect(h.q('.career-win-hint').hidden).toBe(false);
+  });
+
+  it('on a desktop a hover previews another week and the chosen week returns when it leaves', () => {
+    const h = build();
+    h.open();
+    over(h, 2, 'mouse', 'click');
+    over(h, 8);
+    expect(title(h)).toBe('Week 9 review: 55 of 100');
+    leave(h);
+    expect(title(h)).toBe('Week 3 review: 61 of 100');
+    over(h, 2, 'mouse', 'click');
+    expect(h.q('.career-win-tip').hidden, 'clicking the chosen week again clears it').toBe(true);
+  });
+
+  it('a hover preview alone still clears when the mouse leaves', () => {
+    const h = build();
+    h.open();
+    over(h, 4);
+    leave(h);
+    expect(h.q('.career-win-tip').hidden).toBe(true);
+  });
+
+  it('keeps the hint space on a phone so choosing a week does not move the charts', () => {
+    expect(INDEX_HTML).toMatch(/\.career-win-hint\[hidden\] \{[^}]*visibility: hidden/);
+  });
+
+  it('N1: puts the desktop tooltip beside the point, flipping near the right edge, wide enough not to wrap', () => {
+    const h = build();
+    h.open();
+    const plots = h.q('.career-win-tip').parent!;
+    plots.clientWidth = 780;
+    const left = () => Number.parseFloat(h.q('.career-win-tip').style.getPropertyValue('--tip-left'));
+    const pointX = () => Number.parseFloat(h.q('.career-win-tip').style.getPropertyValue('--tip-x'));
+    over(h, 0);
+    expect(left(), 'right of the first week').toBeGreaterThan(pointX());
+    over(h, 13);
+    expect(left() + 420, 'left of the last week').toBeLessThan(pointX());
+    const tip = /\.career-win-tip \{[^}]*\}/.exec(INDEX_HTML)![0];
+    expect(tip).toContain('width: 420px');
+    expect(tip).toContain('left: var(--tip-left');
+    expect(INDEX_HTML).toMatch(/\.career-win-tip dt, \.career-win-tip dd \{[^}]*white-space: nowrap/);
   });
 });

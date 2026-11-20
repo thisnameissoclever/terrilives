@@ -38,6 +38,9 @@ const PAUSE_OWNER = 'career-graph';
 const DIALOG_ID = 'career-graph-dialog';
 const TITLE_ID = 'career-graph-title';
 const SVG = 'http://www.w3.org/2000/svg';
+/** The desktop tooltip's width, which holds its longest label without wrapping, and its gap from the point. */
+const TIP_WIDTH = 420;
+const TIP_GAP = 16;
 /** The chart area's width when the layout cannot be measured. */
 const DEFAULT_WIDTH = 780;
 
@@ -210,7 +213,12 @@ export class CareerReviewWindow {
   private thresholds: CareerGraphThresholds = { poor: 40, good: 65 };
   private shiftMinutes = 0;
   private range: Range = 'all';
+  /** The week picked by a tap, a click or the keyboard: it stays until another pick, Previous or Next week, or Hide details. */
   private chosen: number | null = null;
+  /** How the chosen week was picked: only a keyboard pick is dropped when the graph loses focus. */
+  private chosenBy: 'keyboard' | 'pointer' = 'pointer';
+  /** The week under a mouse on a desktop: a preview that only shows or clears, never touching the chosen week. */
+  private hover: number | null = null;
   private handles: Chart[] = [];
   /** True while the charts are replaced, so the old graph losing focus is not a person leaving it. */
   private rebuilding = false;
@@ -343,6 +351,7 @@ export class CareerReviewWindow {
     this.opener = opener;
     this.range = 'all';
     this.chosen = null;
+    this.hover = null;
     const speed = this.pause.selectedSpeed;
     this.heading.textContent = `${read.name}'s reviews`;
     this.who.textContent = read.subtitle;
@@ -397,6 +406,7 @@ export class CareerReviewWindow {
   private afterClose(): void {
     this.pause.resume(PAUSE_OWNER);
     this.chosen = null;
+    this.hover = null;
     this.pointerDown = false;
     const opener = this.opener;
     this.opener = null;
@@ -523,21 +533,47 @@ export class CareerReviewWindow {
   private setRange(range: Range): void {
     if (range === this.range) return;
     this.range = range;
+    this.hover = null;
     if (this.chosen !== null && this.chosen < this.shownStart()) this.chosen = null;
     this.rebuild();
   }
 
-  private choose(index: number | null): void {
-    const valid = index !== null && index >= this.shownStart() && index < this.rows.length ? index : null;
-    if (valid === this.chosen) return;
+  private valid(index: number | null): number | null {
+    return index !== null && index >= this.shownStart() && index < this.rows.length ? index : null;
+  }
+
+  /** Picks a week, or none, and keeps it: no pointer move or leave undoes it. */
+  private choose(index: number | null, by: 'keyboard' | 'pointer' = 'pointer'): void {
+    const valid = this.valid(index);
+    const hadHover = this.hover !== null;
+    this.hover = null;
+    this.chosenBy = by;
+    if (valid === this.chosen) {
+      if (hadHover) this.paint();
+      return;
+    }
     this.chosen = valid;
     this.paint();
     if (valid !== null) this.reveal(valid);
   }
 
+  /** Previews the week under a mouse, or clears the preview; a phone has no preview, and the chosen week is never touched. */
+  private preview(index: number | null): void {
+    if (this.layout === PHONE) return;
+    const valid = this.valid(index);
+    if (valid === this.hover) return;
+    this.hover = valid;
+    this.paint();
+  }
+
+  /** The week the charts and tooltip show: the preview over the chosen week. */
+  private shownWeek(): number | null {
+    return this.hover ?? this.chosen;
+  }
+
   private step(direction: -1 | 1): void {
     if (this.chosen === null) return;
-    this.choose(this.chosen + direction);
+    this.choose(this.chosen + direction, this.chosenBy);
   }
 
   /** The shown week under `clientX` on a chart, or null beyond its columns. */
@@ -563,7 +599,7 @@ export class CareerReviewWindow {
       default: return;
     }
     event.preventDefault();
-    this.choose(next);
+    this.choose(next, 'keyboard');
   }
 
   /** Scrolls every chart so the week's column is in view, when the plot scrolls. */
@@ -652,28 +688,33 @@ export class CareerReviewWindow {
       scroller.addEventListener('pointerdown', () => { this.pointerDown = true; });
       scroller.addEventListener('focus', () => {
         // Keyboard focus starts at the newest week; a pointer chooses its own.
-        if (!this.rebuilding && !this.pointerDown && this.chosen === null) this.choose(this.rows.length - 1);
+        if (!this.rebuilding && !this.pointerDown && this.chosen === null) this.choose(this.rows.length - 1, 'keyboard');
       });
       scroller.addEventListener('blur', event => {
         if (this.rebuilding || !scroller.isConnected) return;
         this.pointerDown = false;
         const to = (event as FocusEvent).relatedTarget as Node | null;
         if (to && this.tip.contains(to)) return;
-        this.choose(null);
+        this.hover = null;
+        if (this.chosenBy === 'keyboard') this.choose(null);
+        else this.paint();
       });
     } else {
       svg.setAttribute('aria-hidden', 'true');
     }
+    // A move or a leave only shows or clears a hover preview. Choosing a week changes the layout under
+    // the pointer, which can make the browser send a leave; that must not undo the choice.
     svg.addEventListener('pointermove', event => {
       if (event.pointerType === 'touch') return;
-      this.choose(this.weekAt(svg, event.clientX));
+      this.preview(this.weekAt(svg, event.clientX));
     });
-    svg.addEventListener('pointerleave', event => { if (event.pointerType !== 'touch') this.choose(null); });
+    svg.addEventListener('pointerleave', event => { if (event.pointerType !== 'touch') this.preview(null); });
     svg.addEventListener('click', event => {
       this.pointerDown = false;
       const index = this.weekAt(svg, event.clientX);
-      // Tapping the chosen week again closes its details; a mouse keeps what it hovers.
-      this.choose(index !== null && index === this.chosen && event.pointerType === 'touch' ? null : index);
+      if (index === null) return;
+      // Choosing the chosen week again closes its details.
+      this.choose(index === this.chosen ? null : index);
     });
     scroller.addEventListener('scroll', () => {
       for (const other of this.handles) if (other.scroller !== scroller && other.scroller.scrollLeft !== scroller.scrollLeft) other.scroller.scrollLeft = scroller.scrollLeft;
@@ -691,7 +732,8 @@ export class CareerReviewWindow {
   private paint(): void {
     const shown = this.shown();
     const start = this.shownStart();
-    const sel = this.chosen === null ? -1 : this.chosen - start;
+    const at = this.shownWeek();
+    const sel = at === null ? -1 : at - start;
     const good = shown.filter(row => careerWeekKind(row.week.performance, this.thresholds) === 'good').length;
     const poor = shown.filter(row => careerWeekKind(row.week.performance, this.thresholds) === 'poor').length;
     const average = shown.length === 0 ? 0 : Math.round(shown.reduce((sum, row) => sum + row.week.performance, 0) / shown.length);
@@ -944,12 +986,15 @@ export class CareerReviewWindow {
     this.positionTip(sel);
   }
 
-  /** Puts the floating tooltip over the chosen week's column, clear of the edges; a phone docks it instead. */
-  private positionTip(sel = this.chosen === null ? -1 : this.chosen - this.shownStart()): void {
+  /** Puts the floating tooltip beside the week's point, flipping near the right edge, never over the point; a phone docks it instead. */
+  private positionTip(sel = this.shownWeek() === null ? -1 : this.shownWeek()! - this.shownStart()): void {
     if (sel < 0) return;
     const scroller = this.handles[0]?.scroller;
     const left = this.layout.axis + this.column * sel + this.column / 2 - (scroller?.scrollLeft ?? 0);
     this.tip.style.setProperty('--tip-x', `${c(left)}px`);
+    const edge = this.tip.parentElement?.clientWidth || this.charts.clientWidth || DEFAULT_WIDTH;
+    const beside = left + TIP_GAP + TIP_WIDTH <= edge ? left + TIP_GAP : left - TIP_GAP - TIP_WIDTH;
+    this.tip.style.setProperty('--tip-left', `${c(Math.max(this.layout.axis, beside))}px`);
     // A week scored under half sits low on the plot, so the tooltip takes the top of it; a better week
     // takes the bottom. Either way the tooltip stays off the line and clear of the axis labels.
     const row = this.rows[this.shownStart() + sel];
