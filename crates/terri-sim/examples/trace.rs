@@ -24,6 +24,10 @@
 //! replace the two work knobs; `--lateness-limit 0 --work-relief-threshold 0`
 //! runs the game as it was before that issue, and the LATENESS and WORK
 //! BLADDER lines of the SHIFTS section report how late each worker left.
+//! Each late departure also prints its own LATE DEPARTURE line;
+//! `TRACE_LATE_TICKS=1` lists what the worker did on each late tick, and
+//! `TRACE_LATE_START=<tick>` keeps only the shifts starting at that tick.
+//! The FLOOR BOOKS line counts books left on the floor and put back.
 //!
 //! What it prints, and why each column is here rather than being eyeballed
 //! from the running game:

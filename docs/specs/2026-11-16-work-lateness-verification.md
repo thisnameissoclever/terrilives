@@ -111,7 +111,7 @@ Of the six critical starts in the runs above, five used the whole hour and one (
 ## [open] Open items
 
 1. **The hour is almost always used up.** The sample is small. 5 of 6 critical starts on the merged tree left at exactly 60 minutes; before the slower drain merged it was 14 of 16, and the one traced in detail then was a sleep, which takes longer than the allowance. The owner's rule is working as decided, but the owner may want a shorter walk-and-nap or a longer allowance for Energy; that is a product decision this issue does not make.
-2. **A late departure for another cause can still exceed the limit.** Not changed here; seed 11 shows 66 minutes on the merged tree, a cause not traced after the merge (seed 22 showed 69 before the slower drain merged, traced to a reading journey).
+2. **A late departure for another cause can still exceed the limit.** Not changed here; seed 11 shows 66 minutes on the merged tree, a cause not traced after the merge (seed 22 showed 69 before the slower drain merged, traced to a reading journey). Resolved on 2026-11-19: the seed 11 case was traced to a book return, and [late book returns](2026-11-19-late-book-returns.md) caps it at the same limit.
 3. **Not done here:** a changelog-driven refresh of the player guide screenshots, which show no changed control. The player guide text and its numbers read from the compiled reference.
 
 ## [merge] Merge with main

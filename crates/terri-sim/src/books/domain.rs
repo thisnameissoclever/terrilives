@@ -584,6 +584,19 @@ impl BookLibrary {
         position: (f32, f32),
         world: &BookWorld<'_>,
     ) -> Result<(), BookError> {
+        self.put_down(person, position, world)
+    }
+
+    /// Leaves every copy `person` carries on the floor at `position` and
+    /// releases every claim they hold, keeping each copy's home. Death uses
+    /// it, and so does a worker still returning a book at the lateness limit
+    /// (`docs/specs/2026-11-17-late-book-returns.md` [LB-cap]).
+    pub fn put_down(
+        &mut self,
+        person: SimId,
+        position: (f32, f32),
+        world: &BookWorld<'_>,
+    ) -> Result<(), BookError> {
         if !world.known_sims.contains(&person) {
             return Err(BookError::UnknownSim(person));
         }
@@ -606,6 +619,58 @@ impl BookLibrary {
             }
             copy.borrower = None;
         }
+        validate_saved(&candidate, world)?;
+        self.saved = candidate;
+        Ok(())
+    }
+
+    /// Whether the copy lies on the floor, unclaimed, with a home shelf slot
+    /// it can be put back in: its own, or a free slot chosen the way a
+    /// recovered copy's is ([LB-floor]).
+    pub fn floor_copy_shelvable(&self, copy: BookCopyId, world: &BookWorld<'_>) -> bool {
+        self.copy(copy).is_some_and(|book| {
+            book.borrower.is_none()
+                && matches!(book.location, BookLocation::Lot { .. })
+                && (book.home.is_some() || self.automatic_home(copy, world).is_some())
+        })
+    }
+
+    /// `person` picks up a copy lying on the floor to put it back on its
+    /// home shelf: the copy is claimed and carried in one step, and a copy
+    /// with no home (one an older save left on the floor) is given a free
+    /// slot first ([LB-floor]).
+    pub fn pick_up_from_floor(
+        &mut self,
+        copy: BookCopyId,
+        person: SimId,
+        world: &BookWorld<'_>,
+    ) -> Result<(), BookError> {
+        validate_saved(&self.saved, world)?;
+        world.living(person)?;
+        let index = self.index(copy)?;
+        let book = &self.saved.copies[index];
+        if book.borrower.is_some() {
+            return Err(BookError::Borrowed(copy));
+        }
+        if !matches!(book.location, BookLocation::Lot { .. }) {
+            return Err(BookError::NotReadable);
+        }
+        if self
+            .saved
+            .copies
+            .iter()
+            .any(|other| other.borrower == Some(person))
+        {
+            return Err(BookError::AlreadyBorrowing(person));
+        }
+        let home = book
+            .home
+            .or_else(|| self.automatic_home(copy, world))
+            .ok_or(BookError::NoShelfSpace)?;
+        let mut candidate = self.saved.clone();
+        candidate.copies[index].home = Some(home);
+        candidate.copies[index].borrower = Some(person);
+        candidate.copies[index].location = BookLocation::Carried(person);
         validate_saved(&candidate, world)?;
         self.saved = candidate;
         Ok(())
