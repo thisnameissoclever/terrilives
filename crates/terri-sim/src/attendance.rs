@@ -249,11 +249,35 @@ fn close_open_shift(world: &mut World, actor: Entity, scoring: Scoring) {
         // [CT-work-guards] item 2: a shift Go to work registered before its
         // start is removed rather than scored as a shift fully missed.
         Some(start) if start > now => {
-            world.resource_mut::<Attendance>().shifts.remove(&sim);
+            remove_pre_registered(world, sim);
         }
         Some(_) => settle(world, actor, sim, scoring),
         None => {}
     }
+}
+/// Removes the shift Go to work registered before its start. The register
+/// holds one record a person, so registering it replaced the shift settled
+/// before it; that record is rebuilt from the person's latest outcome, so
+/// the one-paid-shift-a-day rule keeps its history. Its pay is the pay the
+/// outcome settled, which no rule reads from a settled record.
+fn remove_pre_registered(world: &mut World, sim: SimId) {
+    let mut attendance = world.resource_mut::<Attendance>();
+    attendance.shifts.remove(&sim);
+    let Some(last) = attendance.outcomes.iter().rev().find(|o| o.sim == sim.0) else {
+        return;
+    };
+    let previous = SavedScheduledShift {
+        sim: sim.0,
+        career: last.career,
+        start_tick: last.start_tick,
+        end_tick: last.end_tick,
+        worked_ticks: last.worked_minutes as u64,
+        accounted_tick: last.end_tick,
+        pay_cents: last.pay_cents,
+        settled: true,
+        legacy: false,
+    };
+    attendance.shifts.insert(sim, previous);
 }
 fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
     let shift = {

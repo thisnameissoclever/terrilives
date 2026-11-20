@@ -957,6 +957,82 @@ fn a_not_started_shift_closed_by_a_quit_is_removed() {
     assert_eq!(sim.funds(), funds);
 }
 
+/// Registering tomorrow's shift for Go to work replaces the person's one
+/// attendance record, so removing it on a quit must give back the shift
+/// settled today. Without it the one-paid-shift-a-day rule loses its
+/// history and a shift later the same day would start and be paid twice.
+#[test]
+fn removing_a_not_started_shift_keeps_the_record_of_the_one_settled_today() {
+    let (mut sim, actor, objects) = fixture(|_| {});
+    work_the_shift(&mut sim, actor);
+    for _ in 0..400 {
+        if commuting(&sim, actor).is_none() && sim.world().get::<AtWork>(actor).is_none() {
+            break;
+        }
+        sim.tick();
+    }
+    let settled = shift(&sim, actor).expect("today's shift is on record");
+    assert!(settled.settled);
+    let tomorrow = day_ticks(&sim) + START - window(&sim);
+    at(&mut sim, tomorrow);
+    assert_eq!(send(&mut sim, actor), None);
+    assert!(shift(&sim, actor).is_some_and(|s| !s.settled && s.start_tick > START + 100));
+    order(&mut sim, actor, objects[HOLD]);
+    sim.world_mut()
+        .entity_mut(actor)
+        .remove::<terri_core::Path>();
+    crate::attendance::finish_tick(sim.world_mut());
+    assert_eq!(commuting(&sim, actor), None, "home");
+    issue(
+        &mut sim,
+        SimCommand::QuitCareer {
+            agent: actor.index_u32(),
+        },
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .last_result
+            .unwrap()
+            .reason,
+        None,
+        "quit"
+    );
+    // The record is rebuilt from the outcome, so its pay is the settled pay.
+    let back = shift(&sim, actor).expect("today's record is back");
+    assert_eq!(
+        SavedScheduledShift {
+            pay_cents: settled.pay_cents,
+            ..back
+        },
+        settled,
+        "today's record is back"
+    );
+    assert_eq!(back.pay_cents, the_outcome(&sim).pay_cents);
+    assert_eq!(outcomes(&sim), 1, "nothing scored by the removal");
+    // One paid shift a day: no other shift starts on the day that record
+    // began, whatever its start time.
+    let pack = sim.world().resource::<Content>().0;
+    let id = *sim.world().get::<SimId>(actor).unwrap();
+    let later = terri_data::ShiftView {
+        index: 0,
+        id: "standard",
+        kind: 0,
+        shift_start: (START + 50) as u32,
+        shift_ticks: SHIFT,
+        working_days: 0b111_1111,
+        weight: 1,
+    };
+    assert!(!crate::shifts::starts_at(
+        sim.world(),
+        pack,
+        id,
+        0,
+        &later,
+        START + 50
+    ));
+}
+
 /// [CT-work-guards] items 3 and 4: before the start the order preflight
 /// never reports more minutes remaining than the shift has, and the
 /// attendance line reports nothing worked and nothing missed.
