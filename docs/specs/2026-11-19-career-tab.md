@@ -200,7 +200,7 @@ Order inside the tab: heading (title with trend color, then the i), subtitle "{p
 
 1. **Open and pause.** `open(entity, opener)` calls `overlayPause.suspend('career-graph')` and `dialog.showModal()`. Close (the button, Escape, a backdrop click) calls `dialog.close()` and `overlayPause.resume('career-graph')`. The pause is shell time, not a replayable command, through the existing `OverlayPauseController`, so determinism is untouched. The data is read once at open; the game is paused, so it cannot change.
 2. **Header.** "{name}'s reviews"; under it "{title}, {path} path, level {n} of {m}"; the paused pill with `role="status"`: "Game paused" and "Closing this window resumes the game at {speed}." where `{speed}` is the speed selected before opening (`OverlayPauseController` gains a read-only `selectedSpeed`); when the player had already paused, "The game stays paused after you close this window." ([CT-q-resume]). Close at the right with the negative intent.
-3. **Filters column.** Score inputs: seven checkboxes, each with its color swatch, in [CT-inputs] order; Skill mastery, Mood on shifts, Missed work and Fit start checked, Trait fit, Social capacity and Pay per shift unchecked (Mockup 2). On the score graph: Good and poor lines; Promotions and other events, both checked. Key: the three point colors, promoted and demoted, got a raise and changed path. Choices last until the page reloads, like the activity log's filters.
+3. **Filters column.** Score inputs: six checkboxes, each with its color swatch, in [CT-inputs] order; Skill mastery, Mood on shifts, Missed work and Fit start checked, Trait fit and Social capacity unchecked (Mockup 2). Below them, under the short label "Also shown: Pay per shift" ([CT-c-pay], the owner's ruling of 2026-11-20), one more checkbox with its swatch, unchecked, for the pay line. Pay is not a score input and is never listed under the "Score inputs" heading. On the score graph: Good and poor lines; Promotions and other events, both checked. Key: the three point colors, promoted and demoted, got a raise and changed path. Choices last until the page reloads, like the activity log's filters.
 4. **Toolbar.** "Show" and a segmented control, `role="group"` named "Weeks shown", buttons with `aria-pressed`: Last 4 weeks, Last 12 weeks, All weeks (selected at open). The summary at the right counts the shown weeks: "{n} reviewed weeks. Average {a}. Good weeks {g}, poor weeks {p}."
 5. **Score graph.** Grid lines every 20 points, "Review score" rotated on the left, threshold rules and labels "Good, {good}" and "Poor, {poor}", bands, the level labels centered over each run of weeks at one title with a dotted rule at each level change (weeks without an input row carry no label, [CT-c-levels]), week numbers under every column (every second or fifth when crowded), the selected week's number in bold white.
 6. **Input rows.** One small chart per checked series, in filter order, all sharing the week columns: label in the series color at left, "Week {n}: {value}" at right for the selected week, scale ticks at left (0% and 100%; -1 and +1 with a zero rule; 0 min and the scale top for missed work as bars; $ low and high for pay). Missed work's scale top is the larger of the longest shift in view and the largest weekly total, labelled in hours ([CT-q-missed]). A week with no input row shows no mark and its label reads "Week {n}: not recorded".
@@ -246,7 +246,7 @@ Every string below is functional text proposed for the owner's review under the 
 | S-tip | Week {n} review: {x} of 100; Good week: {good} or more counts toward promotion.; Steady week: between {poor} and {good} counts toward neither.; Poor week: under {poor}. Poor weeks in a row bring a warning.; Promoted to {title}.; Got a raise.; Demoted to {title}.; Changed path to {title}.; Fired. | inline and window tooltips ([CT-q-tipwords]) |
 | S-legend | Weekly review score; Good, {good}; Poor, {poor}; Promoted; Demoted; Raise; Changed path | inline legend |
 | S-win | {name}'s reviews; Game paused; Closing this window resumes the game at {speed}.; The game stays paused after you close this window.; Close | window header |
-| S-filters | Score inputs; Skill mastery; Mood on shifts; Missed work; Fit; Trait fit; Social capacity; Pay per shift; On the score graph; Good and poor lines; Promotions and other events; Key; One weekly review; Green: good. White: steady. Red: poor.; Promoted, demoted; Got a raise, changed path; Filters (phone disclosure) | window filters |
+| S-filters | Score inputs; Skill mastery; Mood on shifts; Missed work; Fit; Trait fit; Social capacity; Also shown: Pay per shift; On the score graph; Good and poor lines; Promotions and other events; Key; One weekly review; Green: good. White: steady. Red: poor.; Promoted, demoted; Got a raise, changed path; Filters (phone disclosure) | window filters |
 | S-scale | Show; Last 4 weeks; Last 12 weeks; All weeks; Weeks shown (accessible name); {n} reviewed weeks. Average {a}. Good weeks {g}, poor weeks {p}.; Review score; Week; Review score by week (accessible name) | window toolbar and graph |
 | S-rowlabels | Week {n}: {value}; Week {n}: not recorded; {n} minutes; {x} h; 0 min; ${p} per shift | window input rows |
 | S-tipfacts | Shifts worked; {a} of {s}; Missed work; Skill mastery; Mood on shifts; Fit; Pay | window tooltip list |
@@ -347,7 +347,7 @@ Send a housemate to work from the Career tab, and read their weekly reviews in a
 
 ## [CT-conflicts] Mockup and code conflicts
 
-1. **[CT-c-pay] Pay per shift is not a score input.** Mockup 2 lists it under Score inputs. The score reads fit, mastery, mood and missed time only. Recommended: keep it as approved, and say in the player guide that pay is shown for comparison.
+1. **[CT-c-pay] Pay per shift is not a score input.** Mockup 2 lists it under Score inputs. The score reads fit, mastery, mood and missed time only. Owner's ruling of 2026-11-20: Pay per shift stays in the graph as a line the player can turn on, but it is listed below the score inputs under its own short label, "Also shown: Pay per shift", so the "Score inputs" heading stays true. The player guide says pay is shown for comparison.
 2. **[CT-c-mood] "Mood on the last shift" shows today's mood.** `careers::factors` reads `mood_term` live. The plan stores the last shift's inputs so the label becomes true.
 3. **[CT-c-height] The panel's height.** Mockup 3 lets the sheet grow to 690px; the code caps it at 420px. The plan raises the cap.
 4. **[CT-c-levels] Level labels and "Shifts worked" need data the history lacks.** `Week` holds only week, performance and event. The schema 24 rows carry the career row and shift counts; weeks reviewed before schema 24 have no labels and no counts.
@@ -360,23 +360,23 @@ Send a housemate to work from the Career tab, and read their weekly reviews in a
 
 ## [CT-questions] Open questions
 
-Each has a recommendation the implementer follows unless the owner answers otherwise.
+Decided on 2026-11-20 by the coordinator, following the owner's earlier rulings: every question below is decided as its recommendation, except [CT-q-phone], which stays open. A phone mockup of the review window must be drawn, reviewed and approved by the owner before the phone part of [T11].
 
-1. **[CT-q-asleep] Can a sleeping housemate be sent?** Recommended: yes; they wake and leave. The issue says "regardless of needs or anything else".
-2. **[CT-q-orders] What happens to their queued orders?** Recommended: cancelled, as Cancel orders does. Go to work is the newest instruction.
-3. **[CT-q-reading] A reader with a book?** Recommended: the book goes on the floor where they stand and they leave, reusing the late departure cap's helper.
-4. **[CT-q-inbound] Someone on the way home while their shift is still open (sent home by an order)?** Recommended: disabled until they are home ("On the way home."); turning a walk around adds a path rule for little gain.
-5. **[CT-q-early-pay] Is the wait before the start paid?** Recommended: no; it counts as on time and earns nothing.
-6. **[CT-q-overview] What does the Overview row's i do?** Recommended: open the same window. The issue removes duplicates, and a third inline copy would remain otherwise.
-7. **[CT-q-phone] The review window's phone layout has no approved mockup.** Recommended: have a T1 or T2 agent produce a phone mockup, reviewed by `first-use-review`, and get the owner's approval before [T11]'s phone part; [CT-web] item 10 is the starting point.
-8. **[CT-q-resume] Which speed does closing the window restore?** Recommended: the speed chosen before opening, named in the pill; if the player had paused, it stays paused.
-9. **[CT-q-missed] Missed work's scale.** Recommended: weekly total, scale to the larger of the longest shift in view and the largest weekly total.
-10. **[CT-q-decimals] Number formats.** Recommended: two decimals for both fit and trait fit.
-11. **[CT-q-tipwords] One wording for both tooltips.** Recommended: the "{Kind} week: …" form of Mockup 1 everywhere.
-12. **[CT-q-history] How long is the input history?** Recommended: 52 reviewed weeks (13 game years, since a year is four weeks), with the score history left unbounded as today.
-13. **[CT-q-coarse] A touch screen at desktop size.** Recommended: the 560px width applies; only the phone and short layouts keep the full-width sheet.
-14. **[CT-q-presets] Do the 4 and 12 week presets belong in tuning?** Recommended: no; they are view labels, kept as named constants in one web module.
-15. **[CT-q-log] Should Go to work write an activity log line?** Recommended: no new line; the departure and the attendance result already show.
+1. **[CT-q-asleep] Can a sleeping housemate be sent?** Decided as recommended (coordinator, 2026-11-20): yes; they wake and leave. The issue says "regardless of needs or anything else".
+2. **[CT-q-orders] What happens to their queued orders?** Decided as recommended (coordinator, 2026-11-20): cancelled, as Cancel orders does. Go to work is the newest instruction.
+3. **[CT-q-reading] A reader with a book?** Decided as recommended (coordinator, 2026-11-20): the book goes on the floor where they stand and they leave, reusing the late departure cap's helper.
+4. **[CT-q-inbound] Someone on the way home while their shift is still open (sent home by an order)?** Decided as recommended (coordinator, 2026-11-20): disabled until they are home ("On the way home."); turning a walk around adds a path rule for little gain.
+5. **[CT-q-early-pay] Is the wait before the start paid?** Decided as recommended (coordinator, 2026-11-20): no; it counts as on time and earns nothing.
+6. **[CT-q-overview] What does the Overview row's i do?** Decided as recommended (coordinator, 2026-11-20): open the same window. The issue removes duplicates, and a third inline copy would remain otherwise.
+7. **[CT-q-phone] The review window's phone layout has no approved mockup.** Still open. Recommended: have a T1 or T2 agent produce a phone mockup, reviewed by `first-use-review`, and get the owner's approval before [T11]'s phone part; [CT-web] item 10 is the starting point.
+8. **[CT-q-resume] Which speed does closing the window restore?** Decided as recommended (coordinator, 2026-11-20): the speed chosen before opening, named in the pill; if the player had paused, it stays paused.
+9. **[CT-q-missed] Missed work's scale.** Decided as recommended (coordinator, 2026-11-20): weekly total, scale to the larger of the longest shift in view and the largest weekly total.
+10. **[CT-q-decimals] Number formats.** Decided as recommended (coordinator, 2026-11-20): two decimals for both fit and trait fit.
+11. **[CT-q-tipwords] One wording for both tooltips.** Decided as recommended (coordinator, 2026-11-20): the "{Kind} week: …" form of Mockup 1 everywhere.
+12. **[CT-q-history] How long is the input history?** Decided as recommended (coordinator, 2026-11-20): 52 reviewed weeks (13 game years, since a year is four weeks), with the score history left unbounded as today.
+13. **[CT-q-coarse] A touch screen at desktop size.** Decided as recommended (coordinator, 2026-11-20): the 560px width applies; only the phone and short layouts keep the full-width sheet.
+14. **[CT-q-presets] Do the 4 and 12 week presets belong in tuning?** Decided as recommended (coordinator, 2026-11-20): no; they are view labels, kept as named constants in one web module.
+15. **[CT-q-log] Should Go to work write an activity log line?** Decided as recommended (coordinator, 2026-11-20): no new line; the departure and the attendance result already show.
 
 ## [CT-merge] Merging after the late departure cap
 
