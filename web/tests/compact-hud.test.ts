@@ -335,3 +335,15 @@ describe('the Sim Details panel width (issue 317, [CT-web])', () => {
     expect(css).toMatch(/#personal-details th, #personal-details td \{[^}]*overflow-wrap: anywhere/);
   });
 });
+
+it('O3: starts each Sim details tab at the top of the panel, not where the last tab was scrolled', () => {
+  const { hud, node } = page();
+  const content = node('sim-sheet-content') as unknown as { scrollTop: number };
+  hud.show('overview');
+  content.scrollTop = 189;
+  hud.show('career');
+  expect(content.scrollTop).toBe(0);
+  content.scrollTop = 50;
+  hud.show('career');
+  expect(content.scrollTop, 'choosing the open tab again leaves it where it is').toBe(50);
+});
