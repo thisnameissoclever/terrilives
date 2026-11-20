@@ -1,8 +1,10 @@
 import { setActionIntent } from './action-intent.js';
 import type {
-  CareerFactors, CareerReport, CareerResult, CareerShift, CareerShiftInputs, CareerWeek, GoToWorkState, GoToWorkStatus,
+  CareerFactors, CareerInputWeek, CareerReport, CareerResult, CareerShift, CareerShiftInputs, CareerWeek, GoToWorkState,
+  GoToWorkStatus,
 } from '../bridge.js';
-import { careerGraphKey, renderCareerGraph, type CareerGraphThresholds } from './career-graph.js';
+import { CareerGraph, careerGraphKey, renderCareerGraph } from './career-graph.js';
+import { withEventTitles, type CareerGraphThresholds, type CareerGraphWeek } from './career-graph-words.js';
 import {
   WEEKDAY_NAMES, formatShiftHours, formatTimeOfDay, shiftName, type CareerSchedule,
 } from './game-hud.js';
@@ -28,6 +30,10 @@ export interface CareerPanelSource {
   careerReport(entity: number): CareerReport | null;
   careerHistory(entity: number): readonly CareerWeek[];
   careerFactors(entity: number): CareerFactors | null;
+  /** The weekly score inputs, which say what level each reviewed week was worked at. */
+  careerInputHistory(entity: number): readonly CareerInputWeek[];
+  /** The titles of a path's levels, in level order. */
+  careerLevelTitles(path: number): readonly string[];
   /** The inputs of the last scored shift, which the mood row reads. */
   careerLastShift(entity: number): CareerShiftInputs | null;
   /** What the Go to work box shows, or null when it cannot be read. */
@@ -106,7 +112,7 @@ export interface CareerJobView {
   readonly work?: CareerWorkView | null;
   readonly streaks: string;
   readonly warning: string | null;
-  readonly weeks: readonly CareerWeek[];
+  readonly weeks: readonly CareerGraphWeek[];
   readonly thresholds: CareerGraphThresholds;
   /** 1 after three good reviews in a row, -1 after three poor, else 0. */
   readonly trend: -1 | 0 | 1;
@@ -337,7 +343,7 @@ export function careerJobView(
   schedule: string,
   report: CareerReport,
   factors: CareerFactors | null,
-  weeks: readonly CareerWeek[],
+  weeks: readonly CareerGraphWeek[],
   night: NightPay | null = null,
   lastShift: CareerShiftInputs | null = null,
 ): CareerJobView {
@@ -516,7 +522,7 @@ export class CareerPanel {
     const percent = this.source.nightShiftPremiumPercent?.();
     const night = nightCents === null || percent === undefined ? null : { percent, cents: nightCents };
     this.job = careerJobView(title, this.paths[report.path], schedule, report,
-      this.source.careerFactors(this.agent), this.source.careerHistory(this.agent), night,
+      this.source.careerFactors(this.agent), this.readWeeks(this.agent, title), night,
       this.source.careerLastShift(this.agent));
     const work = careerWorkView(this.source.goToWorkStatus(this.agent), {
       now: this.source.clockTick(), dayTicks: this.source.dayTicks(), weekday: this.source.weekdayIndex(),
@@ -524,6 +530,22 @@ export class CareerPanel {
     });
     this.job = {...this.job, work,
       attendance: careerAttendanceLine(this.source.careerAttendanceOf?.(this.agent) ?? [])};
+  }
+
+  /** The reviewed weeks, each event carrying the title it led to when that can be told. */
+  private readWeeks(agent: number, currentTitle: string): readonly CareerGraphWeek[] {
+    const weeks = this.source.careerHistory(agent);
+    if (!weeks.some(week => week.event !== 0)) return weeks;
+    const cache = new Map<number, readonly string[]>();
+    const titleOf = (path: number, level: number): string | null => {
+      let titles = cache.get(path);
+      if (titles === undefined) {
+        titles = this.source.careerLevelTitles(path);
+        cache.set(path, titles);
+      }
+      return titles[level] ?? null;
+    };
+    return withEventTitles(weeks, this.source.careerInputHistory(agent), titleOf, currentTitle);
   }
 
   choose(path: number | null): void {
@@ -742,13 +764,9 @@ export function createCareerPanelSurface(
   const warning = line(doc, 'career-warning');
   const graphHeading = line(doc, 'career-graph-heading');
   graphHeading.textContent = 'Reviews';
-  // The graph is one picture to assistive technology (`role="img"`), named
-  // Reviewed weeks; the markers' titles are hover tooltips, and the lines
-  // of text above say what the graph shows.
-  const graph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  graph.setAttribute('class', 'career-graph');
-  graph.setAttribute('role', 'img');
-  graph.setAttribute('aria-label', 'Reviewed weeks');
+  // One group a keyboard can enter, named Reviewed weeks; hover, focus and
+  // taps show what each week was, and a polite line repeats it.
+  const graph = new CareerGraph(doc);
   const noReviews = line(doc, 'career-no-reviews');
   noReviews.textContent = 'No reviews yet.';
   const fieldset = doc.createElement('fieldset');
@@ -829,7 +847,7 @@ export function createCareerPanelSurface(
   searchLabel.append(searchBox, searchText);
   const status = doc.createElement('p');
   status.setAttribute('role', 'status');
-  content.append(heading, subtitle, work, facts, nightNote, attendance, inputsHeading, inputs, graphHeading, graph,
+  content.append(heading, subtitle, work, facts, nightNote, attendance, inputsHeading, inputs, graphHeading, graph.element,
     noReviews, streaks, warning, fieldset, change, searchLabel, status);
 
   const options: HTMLOptionElement[] = [];
@@ -969,21 +987,21 @@ export function createCareerPanelSurface(
       setTextIfChanged(streaks, job.streaks);
       setTextIfChanged(warning, job.warning ?? '');
       warning.hidden = job.warning === null;
+      graph.update(job.weeks, job.thresholds);
       const key = careerGraphKey(job.weeks, job.thresholds);
-      if (key !== drawn) {
-        renderCareerGraph(doc, graph, job.weeks, job.thresholds);
-        if (rowGraphSvg) renderCareerGraph(doc, rowGraphSvg, job.weeks, job.thresholds);
+      if (rowGraphSvg && key !== drawn) {
+        renderCareerGraph(doc, rowGraphSvg, job.weeks, job.thresholds);
         drawn = key;
       }
       const reviewed = job.weeks.length > 0;
-      graph.toggleAttribute('hidden', !reviewed);
+      graph.element.hidden = !reviewed;
       noReviews.hidden = !reviewed ? false : true;
       info.hidden = !reviewed;
       infoTip.hidden = !reviewed;
     } else {
       nightNote.hidden = true;
       warning.hidden = true;
-      graph.setAttribute('hidden', '');
+      graph.element.hidden = true;
       noReviews.hidden = true;
       info.hidden = true;
       infoTip.hidden = true;

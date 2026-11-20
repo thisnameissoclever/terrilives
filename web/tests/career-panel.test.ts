@@ -25,7 +25,6 @@ import {
   type CareerPanelState,
   type CareerWorkView,
 } from '../src/ui/career-panel.js';
-import { careerEventTitle, careerGraphKey, renderCareerGraph } from '../src/ui/career-graph.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -337,35 +336,6 @@ describe('the Go to work box', () => {
   });
 });
 
-describe('career graph', () => {
-  it('names every event and keys the drawing by its weeks and thresholds', () => {
-    expect([0, 1, 2, 3, 4, 5].map(careerEventTitle)).toEqual([null, 'Promoted', 'Got a raise', 'Demoted', 'Fired', 'Changed path']);
-    expect(careerGraphKey(WEEKS, { poor: 40, good: 65 })).not.toBe(careerGraphKey(WEEKS.slice(1), { poor: 40, good: 65 }));
-    expect(careerGraphKey(WEEKS, { poor: 40, good: 65 })).not.toBe(careerGraphKey(WEEKS, { poor: 30, good: 65 }));
-  });
-
-  it('draws a line, the two rules and one titled marker per event', () => {
-    const document = doc();
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as SVGSVGElement;
-    renderCareerGraph(document, svg, WEEKS, { poor: 40, good: 65 });
-    const model = svg as unknown as Node_;
-    expect(model.querySelectorAll('polyline')).toHaveLength(1);
-    expect(model.querySelectorAll('.career-rule')).toHaveLength(2);
-    expect(model.querySelectorAll('.career-point')).toHaveLength(5);
-    const marks = model.querySelectorAll('.career-mark');
-    expect(marks.map(mark => mark.dataset.event)).toEqual(['2', '1', '3', '5']);
-    expect(marks.map(mark => mark.querySelector('title')?.textContent)).toEqual([
-      'Week 2: Got a raise', 'Week 3: Promoted', 'Week 4: Demoted', 'Week 5: Changed path']);
-    expect(model.querySelector('.career-mark-up')).not.toBeNull();
-    expect(model.querySelector('.career-mark-down')).not.toBeNull();
-    expect(model.querySelector('.career-mark-raise')?.textContent).toBe('$');
-    expect(model.querySelectorAll('.career-axis').map(axis => axis.textContent)).toContain('Week 5');
-    renderCareerGraph(document, svg, [], { poor: 40, good: 65 });
-    expect(model.querySelectorAll('polyline')).toHaveLength(0);
-    expect(model.querySelectorAll('.career-rule')).toHaveLength(2);
-  });
-});
-
 function panel(source: Source, active = () => true) {
   const states: CareerPanelState[] = [];
   const controller = new CareerPanel(source, state => states.push(state), 100, active);
@@ -462,6 +432,25 @@ describe('CareerPanel', () => {
     controller.assign();
     expect(last().status).toBe('The career change could not be sent.');
     expect(last().pending).toBe(false);
+  });
+
+  it('tells each promotion which title it led to, from the score inputs and the level titles', () => {
+    const source = new Source();
+    source.history = [
+      { week: 0, performance: 70, event: 0 },
+      { week: 1, performance: 80, event: 1 },
+      { week: 2, performance: 75, event: 0 },
+    ];
+    const row = (week: number, level: number): CareerInputWeek => ({ week, career: 0, path: 0, level, shifts: 5, attended: 5, fit: 0,
+      traitFit: 0, socialCapacity: 0.5, socialDemand: 0.3, mastery: 0.5, mood: 0, missedMinutes: 0, pay: 160 });
+    source.inputWeeks = [row(0, 0), row(1, 0), row(2, 1)];
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().job?.weeks[1]).toMatchObject({ event: 1, after: 'Senior clerk' });
+    expect(last().job?.weeks[0].after).toBeUndefined();
+    source.history = [{ week: 0, performance: 70, event: 2 }];
+    controller.update(200);
+    expect(last().job?.weeks[0].after, 'a raise names no title').toBeUndefined();
   });
 
   it('reads the Go to work status with the clock and the held shift', () => {
@@ -604,8 +593,9 @@ describe('career panel surface', () => {
     expect(at('career-attendance')).toBeGreaterThan(at('career-facts'));
     expect(at('career-inputs-heading')).toBeGreaterThan(at('career-attendance'));
     expect(at('career-graph-heading')).toBeGreaterThan(at('career-inputs'));
-    expect(at('career-streaks')).toBeGreaterThan(at('career-graph'));
-    expect(at('career-warning')).toBeGreaterThan(at('career-graph'));
+    expect(at('career-graph-wrap')).toBeGreaterThan(at('career-graph-heading'));
+    expect(at('career-streaks')).toBeGreaterThan(at('career-graph-wrap'));
+    expect(at('career-warning')).toBeGreaterThan(at('career-graph-wrap'));
     expect(at('career-controls'), 'Assign a career comes after the graph').toBeGreaterThan(at('career-warning'));
     expect(at('career-shift-change')).toBeGreaterThan(at('career-controls'));
     expect(at('career-search')).toBeGreaterThan(at('career-shift-change'));
@@ -622,8 +612,10 @@ describe('career panel surface', () => {
     expect(facts[1].classes()).not.toContain('career-fact-wide');
     expect(content.querySelector('.career-warning')?.hidden).toBe(true);
     expect(content.querySelector('.career-inputs-heading')?.textContent).toBe('Score inputs');
-    expect(content.querySelector('.career-graph')?.hidden).toBe(false);
+    expect(content.querySelector('.career-graph-wrap')?.hidden).toBe(false);
     expect(content.querySelectorAll('.career-graph .career-mark')).toHaveLength(4);
+    expect(content.querySelector('.career-graph')?.getAttribute('role'), 'a group the keyboard can enter').toBe('group');
+    expect(content.querySelector('.career-legend')?.hidden).toBe(false);
     const select = content.querySelector('select')!;
     expect(select.options.map(option => option.textContent)).toEqual(['Choose a path', 'Office', 'Cafe']);
     const [assign, quit] = content.querySelectorAll('.career-actions button');
@@ -764,7 +756,7 @@ describe('career panel surface', () => {
     expect(content.querySelector('.career-warning')?.textContent).toBe(CAREER_WARNING);
     expect(content.querySelector('.career-warning')?.hidden).toBe(false);
     expect(content.querySelector('.career-title')?.dataset.trend).toBe('down');
-    expect(content.querySelector('.career-graph')?.hidden).toBe(true);
+    expect(content.querySelector('.career-graph-wrap')?.hidden).toBe(true);
     expect(content.querySelector('.career-no-reviews')?.hidden).toBe(false);
     expect(content.querySelector('.career-info')?.hidden, 'no reviewed week, no i').toBe(true);
     expect(content.querySelector('.career-info-tip')?.hidden).toBe(true);

@@ -291,14 +291,66 @@
       .career-heading { display: flex; align-items: center; gap: 4px; font-weight: 600; }
       .career-graph { width: 100%; height: auto; display: block; }
       .career-graph-mini { max-width: 240px; }
+      .career-graph-wrap { position: relative; }
+      .career-graph-wrap[hidden] { display: none; }
+      .career-graph text { font: 10px system-ui, sans-serif; }
+      .career-graph:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       .career-line { stroke: var(--hud-text); stroke-width: 1.5; }
       .career-point { fill: var(--hud-text); }
-      .career-rule { stroke: var(--hud-muted); stroke-dasharray: 3 3; }
+      .career-point-good { fill: var(--career-up); }
+      .career-point-poor { fill: var(--hud-danger); }
+      .career-band-good { fill: var(--career-up); opacity: .07; }
+      .career-band-poor { fill: var(--hud-danger); opacity: .07; }
+      .career-rule { stroke-dasharray: 3 3; }
+      .career-rule-good { stroke: var(--career-up); }
+      .career-rule-poor { stroke: var(--hud-danger); }
       .career-axis-line { stroke: var(--hud-muted); }
-      .career-axis { fill: var(--hud-muted); font-size: 9px; }
-      .career-mark-up, .career-mark-raise { fill: var(--career-up); font-weight: 700; font-size: 11px; }
+      .career-axis { fill: var(--hud-muted); }
+      .career-axis-good { fill: var(--career-up); }
+      .career-axis-poor { fill: var(--hud-danger); }
+      .career-guide { stroke: #fff; opacity: .5; }
+      .career-ring { fill: none; stroke: #fff; stroke-width: 1.5; }
+      .career-guide[hidden], .career-ring[hidden] { display: none; }
+      .career-mark-up, .career-mark-raise { fill: var(--career-up); font-weight: 700; font-size: 12px; }
       .career-mark-down { fill: var(--hud-danger); }
       .career-mark-change { fill: var(--hud-muted); }
+      /* Shown above the plot, 70px left of the chosen week's x, kept inside the graph's width. */
+      .career-tip {
+        position: absolute;
+        top: 0;
+        left: max(0px, min(calc(var(--tip-x, 0%) - 70px), calc(100% - min(340px, 100%))));
+        width: min(340px, 100%);
+        box-sizing: border-box;
+        padding: 7px 9px;
+        border: 1px solid #4a4a58;
+        border-radius: 6px;
+        background: #20202a;
+        box-shadow: 0 6px 18px #000a;
+        font-size: 12px;
+        line-height: 1.4;
+        pointer-events: none;
+      }
+      .career-tip[hidden], .career-tip-event[hidden], .career-legend[hidden] { display: none; }
+      .career-tip-title { font-size: 13px; font-weight: 700; }
+      .career-tip-rest { margin-left: .3em; }
+      .career-tip-kind { font-weight: 600; }
+      .career-tip-kind[data-kind='good'] { color: var(--career-up); }
+      .career-tip-kind[data-kind='poor'] { color: var(--hud-danger); }
+      .career-tip-event { color: var(--career-up); }
+      .career-live { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      .career-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--hud-muted); font-size: 11px; margin-top: 2px; }
+      .career-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+      .career-legend-icon { display: inline-block; width: 22px; text-align: center; }
+      .career-legend-line .career-legend-icon { height: 0; border-top: 1.5px solid var(--hud-text); }
+      .career-legend-good .career-legend-icon { height: 0; border-top: 1.5px dashed var(--career-up); }
+      .career-legend-poor .career-legend-icon { height: 0; border-top: 1.5px dashed var(--hud-danger); }
+      .career-legend-promotion { color: var(--career-up); }
+      .career-legend-promotion .career-legend-icon::before { content: '▲'; }
+      .career-legend-demotion { color: var(--hud-danger); }
+      .career-legend-demotion .career-legend-icon::before { content: '▼'; }
+      .career-legend-raise { color: var(--career-up); }
+      .career-legend-raise .career-legend-icon::before { content: '$'; font-weight: 700; }
+      .career-legend-change .career-legend-icon::before { content: '◆'; }
       .career-warning { color: var(--hud-danger); }
       .career-heading { font-size: 16px; font-weight: 700; position: relative; }
       .career-sub { color: var(--hud-muted); margin: 2px 0 8px; }

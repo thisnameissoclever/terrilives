@@ -2766,6 +2766,12 @@ export class SimBridge {
     return { fit, traitFit, socialCapacity, mastery, mood, missedMinutes, attended: attended === 1 };
   }
 
+  /** The titles of career path `path`'s levels, in level order; empty for an unknown path. */
+  careerLevelTitles(path: number): string[] {
+    if (!isU32(path)) return [];
+    return Array.from(this.handle.career_level_titles(path));
+  }
+
   /** The labels of the career paths, in path order. */
   careerPathLabels(): string[] {
     return Array.from(this.handle.career_path_labels());
