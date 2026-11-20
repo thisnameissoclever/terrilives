@@ -4848,6 +4848,7 @@ impl Sim {
                     ChangeShift { agent, shift } => {
                         vec![39, u64::from(*agent), u64::from(*shift)]
                     }
+                    GoToWork { agent } => vec![40, u64::from(*agent)],
                     ConfirmedOrder {
                         fingerprint,
                         command,

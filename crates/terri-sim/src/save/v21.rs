@@ -35,6 +35,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV21 {
         .resource::<CommandQueue>()
         .as_slice()
         .iter()
+        .filter(|command| !super::v18::is_work_command(command))
         .enumerate()
         .filter_map(|(position, command)| saved_command(command).map(|row| (position as u32, row)))
         .collect();

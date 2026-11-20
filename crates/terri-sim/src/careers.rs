@@ -56,6 +56,11 @@ pub enum CareerRefusal {
     NotEmployed = 5,
     /// The person already holds that shift.
     SameShift = 6,
+    /// Issues 311 and 317, [CT-command] item 4: Go to work with no open
+    /// shift and no shift starting within the window.
+    NotDue = 7,
+    /// Go to work with no way out to the street.
+    NoRoute = 8,
 }
 
 /// What the drain did with the last career command: the person it named
@@ -1165,6 +1170,13 @@ pub(crate) fn change_shift(world: &mut World, agent: u32, shift: u32) {
     record_command(world, agent, reason);
 }
 
+/// [CT-command]: the player sends `agent` to work now. The behavior is
+/// [CT-work] and arrives with the next task; until then every request is
+/// counted and refused as not due, which changes nothing in the world.
+pub(crate) fn go_to_work(world: &mut World, agent: u32) {
+    record_command(world, agent, Some(CareerRefusal::NotDue));
+}
+
 /// Every career command, applied or refused, is counted and reported.
 fn record_command(world: &mut World, agent: u32, reason: Option<CareerRefusal>) {
     let mut careers = world.resource_mut::<Careers>();
@@ -1714,6 +1726,10 @@ pub fn history(world: &World, entity: Entity) -> Vec<f32> {
         })
         .unwrap_or_default()
 }
+
+#[cfg(test)]
+#[path = "go_to_work_tests.rs"]
+mod go_to_work_tests;
 
 #[cfg(test)]
 #[path = "job_search_tests.rs"]

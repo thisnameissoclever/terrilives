@@ -230,6 +230,10 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::careers::change_shift(world, agent, shift);
             }
+            SimCommand::GoToWork { agent } => {
+                flush_ordinary(world);
+                crate::careers::go_to_work(world, agent);
+            }
             SimCommand::SetCareerAutonomy { change, search } => {
                 flush_ordinary(world);
                 crate::careers::set_autonomy(world, change, search);

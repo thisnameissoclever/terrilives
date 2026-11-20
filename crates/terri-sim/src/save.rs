@@ -400,7 +400,8 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::SetJobSearch { .. }
         | SimCommand::SetCareerChange { .. }
         | SimCommand::AssignCareerShift { .. }
-        | SimCommand::ChangeShift { .. } => {
+        | SimCommand::ChangeShift { .. }
+        | SimCommand::GoToWork { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
