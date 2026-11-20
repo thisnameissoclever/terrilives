@@ -132,7 +132,7 @@ interface Layout {
   readonly dot: number;
 }
 
-const DESKTOP: Layout = { axis: 64, minColumn: 12, score: { height: 372, top: 118, bottom: 30 }, row: { height: 36, top: 3, bottom: 3 }, dot: 5 };
+const DESKTOP: Layout = { axis: 64, minColumn: 12, score: { height: 284, top: 30, bottom: 30 }, row: { height: 36, top: 3, bottom: 3 }, dot: 5 };
 const PHONE: Layout = { axis: 40, minColumn: 40, score: { height: 206, top: 34, bottom: 24 }, row: { height: 44, top: 4, bottom: 4 }, dot: 5.5 };
 
 /** One reviewed week with the inputs behind it, when they were recorded. */
@@ -212,6 +212,8 @@ export class CareerReviewWindow {
   private range: Range = 'all';
   private chosen: number | null = null;
   private handles: Chart[] = [];
+  /** True while the charts are replaced, so the old graph losing focus is not a person leaving it. */
+  private rebuilding = false;
   private layout: Layout = DESKTOP;
   private column = 0;
   private builtWidth = -1;
@@ -580,6 +582,19 @@ export class CareerReviewWindow {
 
   /** Builds the charts for the filters, weeks and width now, then paints them. */
   private rebuild(): void {
+    const scoreScroller = this.handles.find(handle => handle.id === 'score')?.scroller;
+    const keepFocus = scoreScroller !== undefined && this.doc.activeElement === scoreScroller;
+    this.rebuilding = true;
+    try {
+      this.draw();
+      // The keyboard stays on the graph that replaces the one it was on.
+      if (keepFocus) this.handles.find(handle => handle.id === 'score')?.scroller.focus();
+    } finally {
+      this.rebuilding = false;
+    }
+  }
+
+  private draw(): void {
     const doc = this.doc;
     const phone = this.isPhone();
     this.layout = phone ? PHONE : DESKTOP;
@@ -637,9 +652,10 @@ export class CareerReviewWindow {
       scroller.addEventListener('pointerdown', () => { this.pointerDown = true; });
       scroller.addEventListener('focus', () => {
         // Keyboard focus starts at the newest week; a pointer chooses its own.
-        if (!this.pointerDown && this.chosen === null) this.choose(this.rows.length - 1);
+        if (!this.rebuilding && !this.pointerDown && this.chosen === null) this.choose(this.rows.length - 1);
       });
       scroller.addEventListener('blur', event => {
+        if (this.rebuilding || !scroller.isConnected) return;
         this.pointerDown = false;
         const to = (event as FocusEvent).relatedTarget as Node | null;
         if (to && this.tip.contains(to)) return;
@@ -717,9 +733,12 @@ export class CareerReviewWindow {
     if (this.filters.bands) {
       for (const [kind, value, label, dy] of [['good', good, `Good, ${careerThresholdText(good)}`, -5], ['poor', poor, `Poor, ${careerThresholdText(poor)}`, 15]] as const) {
         const rule = svgNode(doc, 'line', { x1: 0, x2: c(width), y1: c(y(value)), y2: c(y(value)), class: `career-win-rule career-win-rule-${kind}`, 'data-kind': kind });
+        svg.append(rule);
+        // A phone names the lines in the key instead, so no label sits among the points.
+        if (this.layout !== DESKTOP) continue;
         const words = svgNode(doc, 'text', { x: 6, y: c(y(value) + dy), class: `career-win-rule-label career-win-rule-label-${kind}` });
         words.textContent = label;
-        svg.append(rule, words);
+        svg.append(words);
       }
     }
     if (this.filters.events) this.paintLevels(svg, shown, column, top - 12, height - bottom);
@@ -906,6 +925,9 @@ export class CareerReviewWindow {
         ['Skill mastery', percent(inputs.mastery)],
         ['Mood on shifts', signedTwoDecimals(inputs.mood)],
         ['Fit', signedTwoDecimals(inputs.fit)],
+        // Every input whose row is switched on, as its row would say it.
+        ...SCORE_INPUTS.filter(id => (id === 'trait' || id === 'social') && this.filters[id])
+          .map(id => { const series = SERIES.find(candidate => candidate.id === id)!; return [series.name, series.text(inputs)] as const; }),
         ['Pay per shift', `$${inputs.pay}`],
       ];
       for (const [name, value] of pairs) {
@@ -928,5 +950,16 @@ export class CareerReviewWindow {
     const scroller = this.handles[0]?.scroller;
     const left = this.layout.axis + this.column * sel + this.column / 2 - (scroller?.scrollLeft ?? 0);
     this.tip.style.setProperty('--tip-x', `${c(left)}px`);
+    // A week scored under half sits low on the plot, so the tooltip takes the top of it; a better week
+    // takes the bottom. Either way the tooltip stays off the line and clear of the axis labels.
+    const row = this.rows[this.shownStart() + sel];
+    if (row === undefined || this.layout !== DESKTOP) return;
+    const high = row.week.performance < 50;
+    const { top, bottom, height } = this.layout.score;
+    const svg = this.handles[0]?.svg;
+    const parent = this.tip.parentElement;
+    const offset = svg && parent ? svg.getBoundingClientRect().top - parent.getBoundingClientRect().top : 0;
+    this.tip.setAttribute('data-place', high ? 'high' : 'low');
+    this.tip.style.setProperty('--tip-top', `${c(offset + (high ? top + 8 : height - bottom - 8))}px`);
   }
 }

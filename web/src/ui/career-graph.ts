@@ -33,10 +33,10 @@ export type { CareerGraphThresholds, CareerGraphWeek } from './career-graph-word
 
 const SVG = 'http://www.w3.org/2000/svg';
 const WIDTH = 530;
-const HEIGHT = 200;
+const HEIGHT = 162;
 const LEFT = 30;
 const RIGHT = 10;
-const TOP = 58;
+const TOP = 20;
 const BOTTOM = 22;
 
 /** The key that decides whether the drawing and its tooltip text must change. */
@@ -138,7 +138,7 @@ export function renderCareerGraph(
       svg.append(last);
     }
   }
-  const guide = element(doc, 'line', { class: 'career-guide', x1: '0', x2: '0', y1: '50', y2: String(HEIGHT - BOTTOM) });
+  const guide = element(doc, 'line', { class: 'career-guide', x1: '0', x2: '0', y1: String(TOP - 8), y2: String(HEIGHT - BOTTOM) });
   const ring = element(doc, 'circle', { class: 'career-ring', cx: '0', cy: '0', r: '7' });
   guide.setAttribute('hidden', '');
   ring.setAttribute('hidden', '');
@@ -291,9 +291,15 @@ export class CareerGraph {
     this.ring?.setAttribute('cy', coordinate(y(week.performance)));
     this.guide?.setAttribute('x1', coordinate(cx));
     this.guide?.setAttribute('x2', coordinate(cx));
-    this.guide?.setAttribute('y1', '50');
+    this.guide?.setAttribute('y1', String(TOP - 8));
     this.guide?.setAttribute('y2', String(HEIGHT - BOTTOM));
     this.tip.style.setProperty('--tip-x', `${((cx / WIDTH) * 100).toFixed(2)}%`);
+    // A week under 50 sits low on the plot, so the tooltip takes the top of it; a better week takes the
+    // bottom. The tooltip stays off the line and, by its left edge, clear of the axis labels.
+    const high = week.performance < 50;
+    const scale = (this.svg.getBoundingClientRect?.().height ?? 0) / HEIGHT;
+    this.tip.setAttribute('data-place', high ? 'high' : 'low');
+    this.tip.style.setProperty('--tip-top', `${((high ? TOP + 6 : HEIGHT - BOTTOM - 6) * scale).toFixed(1)}px`);
     const kind = careerWeekKind(week.performance, this.thresholds);
     const sentence = careerKindSentence(kind, this.thresholds);
     this.tipTitle.textContent = careerTipHeading(week);

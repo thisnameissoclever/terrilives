@@ -271,17 +271,20 @@
       .career-info[hidden], .career-info-tip[hidden], .career-graph[hidden], .career-heading[hidden] { display: none; }
       /* The Career tab's i: the same round control with a visible focus ring, and a tooltip that
          appears beside it on hover and on keyboard focus (Mockup 1). */
-      .career-heading .career-info { margin-left: 0; width: 24px; height: 24px; font-size: 13px; }
+      /* The 4px left margin leaves the 2px ring and its 2px offset clear of the title. */
+      .career-heading .career-info { margin-left: 4px; width: 24px; height: 24px; font-size: 13px; }
       .career-info:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       .career-info-tip {
         display: none;
         margin-left: 4px;
-        padding: 4px 8px;
+        /* Under 24px tall in all, so showing it never makes the heading row taller. */
+        padding: 2px 8px;
         border: 1px solid #4a4a58;
         border-radius: 6px;
         background: #20202a;
         box-shadow: 0 6px 18px #000a;
         font-size: 12px;
+        line-height: 1.3;
         font-weight: 400;
         white-space: nowrap;
       }
@@ -315,9 +318,10 @@
       /* Shown above the plot, 70px left of the chosen week's x, kept inside the graph's width. */
       .career-tip {
         position: absolute;
-        top: 0;
-        left: max(0px, min(calc(var(--tip-x, 0%) - 70px), calc(100% - min(340px, 100%))));
-        width: min(340px, 100%);
+        top: var(--tip-top, 0px);
+        /* Starts right of the axis labels (the plot begins about 6% in). */
+        left: max(8%, min(calc(var(--tip-x, 0%) - 70px), calc(100% - min(340px, 92%))));
+        width: min(340px, 92%);
         box-sizing: border-box;
         padding: 7px 9px;
         border: 1px solid #4a4a58;
@@ -329,6 +333,7 @@
         pointer-events: none;
       }
       .career-tip[hidden], .career-tip-event[hidden], .career-legend[hidden] { display: none; }
+      .career-tip[data-place='low'] { transform: translateY(-100%); }
       .career-tip-title { font-size: 13px; font-weight: 700; }
       .career-tip-rest { margin-left: .3em; }
       .career-tip-kind { font-weight: 600; }
@@ -499,8 +504,9 @@
       .career-demand { stroke: var(--career-c-social); stroke-dasharray: 4 3; opacity: .7; }
       .career-win-tip {
         position: absolute;
-        top: 0;
-        left: clamp(0px, calc(var(--tip-x, 0px) - 165px), calc(100% - 330px));
+        top: var(--tip-top, 0px);
+        /* Starts right of the 64px axis column, so no axis label sits under it. */
+        left: clamp(64px, calc(var(--tip-x, 0px) - 165px), calc(100% - 330px));
         width: 330px;
         box-sizing: border-box;
         padding: 10px 12px;
@@ -514,6 +520,7 @@
         z-index: 2;
       }
       .career-win-tip[hidden], .career-win-tip [hidden] { display: none; }
+      .career-win-tip[data-place='low'] { transform: translateY(-100%); }
       .career-win-tip .career-tip-title { font-size: 14px; margin-bottom: 4px; }
       .career-tip-missing { margin-top: 6px; color: var(--hud-muted); }
       .career-win-tip dl { display: grid; grid-template-columns: auto auto auto auto; gap: 1px 10px; margin: 6px 0 0; padding-top: 6px; border-top: 1px solid #3a3a46; }
@@ -547,7 +554,7 @@
         }
         .career-win-paused-note { grid-area: note; font-size: 12px; }
         .career-win-close { min-height: 44px; align-self: start; }
-        .career-win-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; align-content: start; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px 16px; }
+        .career-win-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; align-content: start; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0 16px 16px; }
         .career-win-body:has(.career-win-tip:not([hidden])) { padding-bottom: 230px; }
         .career-win-aside { border-right: 0; padding: 0; overflow: visible; margin: 0 -16px; }
         .career-win-key-side { display: none; }
@@ -582,6 +589,8 @@
           right: 0;
           bottom: 0;
           width: auto;
+          top: auto;
+          transform: none !important;
           border-width: 1px 0 0;
           border-radius: 0;
           padding: 12px 16px max(12px, env(safe-area-inset-bottom));

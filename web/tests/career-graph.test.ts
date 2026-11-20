@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { CareerInputWeek } from '../src/bridge.js';
 import { CareerGraph, careerEventTitle, careerGraphKey, renderCareerGraph } from '../src/ui/career-graph.js';
@@ -134,7 +135,7 @@ describe('the drawn graph', () => {
     expect(svg.querySelectorAll('.career-axis').map(axis => axis.textContent)).toEqual(
       expect.arrayContaining(['100', '65', '40', '0', 'Week 1', 'Week 6']));
     expect(svg.querySelectorAll('polyline')).toHaveLength(1);
-    expect(svg.getAttribute('viewBox')).toBe('0 0 530 200');
+    expect(svg.getAttribute('viewBox')).toBe('0 0 530 162');
   });
 
   it('colors each point by its kind and marks each event once', () => {
@@ -314,5 +315,25 @@ describe('updating a drawn graph', () => {
     expect(legend()).toEqual(['Weekly review score', 'Good, 65', 'Poor, 40']);
     graph.update([], THRESHOLDS);
     expect(find('.career-legend').hidden).toBe(true);
+  });
+});
+
+describe('the tooltip on the Career tab graph', () => {
+  it('D4 and item 9: floats over the plot away from the line and clear of the axis labels', () => {
+    const { svg, graph, find, x } = build();
+    svg.dispatch('click', { clientX: x(3), pointerType: 'mouse' });
+    expect(graph.selected).toBe(3);
+    const tip = find('.career-tip');
+    expect(tip.getAttribute('data-place'), 'a week scored under 50 puts the tooltip in the top of the plot').toBe('high');
+    svg.dispatch('click', { clientX: x(2), pointerType: 'mouse' });
+    expect(tip.getAttribute('data-place'), 'a higher score puts it in the bottom').toBe('low');
+    const css = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    expect(/\.career-tip \{[^}]*\}/.exec(css)![0]).toContain('max(8%,');
+  });
+
+  it('draws the plot with only the room the marks need above it', () => {
+    const { svg } = build();
+    const tops = [Number(svg.querySelector('.career-axis-line')!.getAttribute('y1'))];
+    expect(Math.min(...tops)).toBeLessThanOrEqual(24);
   });
 });

@@ -679,3 +679,93 @@ describe('the window in the page', () => {
     expect(Number.parseFloat(h.q('.career-win-tip').style.getPropertyValue('--tip-x'))).toBeGreaterThan(first);
   });
 });
+
+describe('review defects found in the played pass', () => {
+  const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  it('D2: keeps the chosen week and the keyboard on the new graph when a range change rebuilds it', () => {
+    for (const phone of [true, false]) {
+      const h = build({ phone });
+      h.open();
+      const scroller = h.q('.career-win-score-scroll');
+      scroller.focus();
+      scroller.dispatch('keydown', { key: 'ArrowLeft' });
+      expect(h.q('.career-win-tip .career-tip-title').textContent).toBe('Week 13 review: 61 of 100');
+      h.all('.career-win-range button')[1].click();
+      const rebuilt = h.q('.career-win-score-scroll');
+      expect(rebuilt, 'the graph was rebuilt').not.toBe(scroller);
+      expect(h.fake.activeElement, 'the keyboard stays on the graph').toBe(rebuilt);
+      expect(h.q('.career-win-tip').hidden, 'the details stay open').toBe(false);
+      rebuilt.dispatch('keydown', { key: 'ArrowLeft' });
+      expect(h.q('.career-win-tip .career-tip-title').textContent).toBe('Week 12 review: 59 of 100');
+    }
+  });
+
+  it('D2: a late blur from the graph that was replaced does not close the details', () => {
+    const h = build({ phone: true });
+    h.open();
+    over(h, 5, 'touch', 'click');
+    const old = h.q('.career-win-score-scroll');
+    old.focus();
+    h.all('.career-win-range button')[1].click();
+    old.isConnected = false;
+    old.dispatch('blur');
+    expect(h.q('.career-win-tip').hidden).toBe(false);
+  });
+
+  it('D3: puts no Good or Poor label in the plot on a phone, and keeps them in the key', () => {
+    const phone = build({ phone: true });
+    phone.open();
+    expect(phone.all('.career-win-rule-label')).toHaveLength(0);
+    expect(phone.all('.career-win-rule')).toHaveLength(2);
+    expect(phone.q('.career-win-key-flow .career-key-poor').textContent).toBe('Poor, 40');
+    const desktop = build();
+    desktop.open();
+    expect(desktop.all('.career-win-rule-label')).toHaveLength(2);
+  });
+
+  it('O2: lists Trait fit and Social capacity in the tooltip when their rows are switched on', () => {
+    const h = build();
+    h.open();
+    over(h, 7);
+    const labels = () => h.q('.career-win-tip').querySelectorAll('dl dt').map(node => node.textContent);
+    expect(labels()).not.toContain('Trait fit');
+    for (const id of ['trait', 'social']) { const box = h.q(`input[data-filter="${id}"]`); box.checked = true; box.dispatch('change'); }
+    over(h, 6);
+    over(h, 7);
+    expect(labels()).toEqual(expect.arrayContaining(['Trait fit', 'Social capacity']));
+    const values = h.q('.career-win-tip').querySelectorAll('dl dd').map(node => node.textContent);
+    expect(values).toContain('+0.40');
+    expect(values).toContain('62% (job needs 30%)');
+  });
+
+  it('item 9: leaves no blank band above the score plot on either layout', () => {
+    for (const phone of [true, false]) {
+      const h = build({ phone });
+      h.open();
+      const rows = h.chart('score').querySelectorAll('.career-grid').map(line => Number(line.getAttribute('y1')));
+      expect(Math.min(...rows), phone ? 'phone' : 'desktop').toBeLessThanOrEqual(36);
+    }
+  });
+
+  it('item 9: keeps the desktop tooltip off the plot line and clear of the axis labels', () => {
+    const h = build();
+    h.open();
+    over(h, 7);
+    expect(h.q('.career-win-tip').getAttribute('data-place'), 'a low score sits in the top of the plot').toBe('high');
+    over(h, 13);
+    expect(h.q('.career-win-tip').getAttribute('data-place'), 'a high score sits in the bottom of the plot').toBe('low');
+    const tip = /\.career-win-tip \{[^}]*\}/.exec(INDEX_HTML)![0];
+    expect(tip).toContain('clamp(64px,');
+  });
+
+  it('D1: the info tooltip cannot grow the heading row, and the focus ring clears the title', () => {
+    const tip = /\.career-info-tip \{[^}]*\}/.exec(INDEX_HTML)![0];
+    expect(tip).toContain('padding: 2px 8px');
+    expect(tip).toMatch(/line-height: 1\.3/);
+    expect(INDEX_HTML).toMatch(/\.career-heading \.career-info \{[^}]*margin-left: 4px/);
+  });
+
+  it('keeps the phone window from changing width when the details dock appears', () => {
+    expect(INDEX_HTML).toMatch(/\.career-win-body \{[^}]*scrollbar-gutter: stable/);
+  });
+});
