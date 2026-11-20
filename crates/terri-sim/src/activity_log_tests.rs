@@ -569,7 +569,12 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7d8f_c646_2384_8e1f;
 /// assertion. With both work knobs at 0 the fade tree gives
 /// 0xd56e_4229_4318_c6fd, which
 /// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` pins.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5847_2934_fafd_02d4;
+/// Issues 311 and 317 then moved it from 0x5847_2934_fafd_02d4, which main at
+/// c7932801c gave, only through the new `career-inputs-v1` hash block (the
+/// weekly score inputs join the world hash once a shift settles): with that
+/// block's call in `Sim::hash` switched off, this branch gives the old value
+/// again. Measured in a release build from the failing assertion.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9bba_4ce9_923d_44e4;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
@@ -590,11 +595,13 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 /// check above it does not equal the shipped value, and no tree without
 /// issue 309 ever produced it, so it no longer shows that switching the knobs
 /// off reproduces an earlier tree; it only catches a later change to the
-/// knobs-off run. Manual, like the pin above.
+/// knobs-off run. Manual, like the pin above. Issues 311 and 317 moved it from
+/// 0xd56e_4229_4318_c6fd only through the `career-inputs-v1` hash block, as
+/// for the constant above.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0xd56e_4229_4318_c6fd);
+    assert_eq!(fold_without_the_work_knobs(20), 0x4010_87ef_b43d_dcac);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game
