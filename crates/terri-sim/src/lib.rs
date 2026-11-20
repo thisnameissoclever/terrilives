@@ -2120,7 +2120,12 @@ impl Sim {
                     social_company::refresh,
                     relationship_dynamics::refresh_profiles,
                     systems::interpersonal::prepare,
-                    systems::action::select_action,
+                    // Directly before selection: a housemate between
+                    // activities with no need critical walks to a book left
+                    // on the floor first, and selection then leaves the walk
+                    // alone as it leaves a stroll ([LB-floor]). No random
+                    // draw, and nothing happens with no book on the floor.
+                    (reading::floor::claim, systems::action::select_action).chain(),
                 )
                     .chain(),
                 // Directly after selection, so a chain chosen this
@@ -2166,6 +2171,10 @@ impl Sim {
                 // ([WB-paying] in docs/specs/2026-10-18-wages-and-bills.md).
                 bills::pay_due,
                 (
+                    // Before the journeys tick, so a housemate who reached
+                    // a floor book this tick picks it up and the return's
+                    // first step runs as any return's does ([LB-floor]).
+                    reading::floor::pick_up_arrivals,
                     reading::tick,
                     domestic::gather_diners,
                     social_company::tick_meals,

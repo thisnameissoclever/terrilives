@@ -42,6 +42,31 @@ pub(crate) fn late_ticks(shift: &SavedScheduledShift, now: u64, tuning: &Tuning)
     (late < u64::from(tuning.work_lateness_limit_ticks)).then_some(late)
 }
 
+/// Whether a reader's book return has run out of time for the open shift
+/// of `sim` ([LB-cap], `docs/specs/2026-11-19-late-book-returns.md`): the
+/// shift has started, is not settled and `now` is at or past its start plus
+/// `work_lateness_limit_ticks`. The same allowance bounds a critical need,
+/// so nobody leaves later than the limit for either reason. A limit of 0
+/// never caps, so a world built from a pack published before the knob
+/// returns its books as it always did.
+pub(crate) fn book_return_cap_reached(world: &World, sim: terri_core::SimId, now: u64) -> bool {
+    let limit = u64::from(
+        world
+            .resource::<Content>()
+            .0
+            .tuning
+            .work_lateness_limit_ticks,
+    );
+    limit > 0
+        && world
+            .resource::<crate::attendance::Attendance>()
+            .shifts
+            .get(&sim)
+            .is_some_and(|shift| {
+                !shift.settled && now < shift.end_tick && now >= shift.start_tick + limit
+            })
+}
+
 /// Whether any counted need is critical, at or under the critical level
 /// every other crisis rule uses (`mood_critical_need_level`).
 fn counted_critical(needs: &Needs, tuning: &Tuning) -> bool {

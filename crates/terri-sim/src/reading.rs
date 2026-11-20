@@ -11,6 +11,7 @@ use terri_core::{
 };
 
 mod accrual;
+pub(crate) mod floor;
 pub(crate) mod persistence;
 pub(crate) mod placement;
 mod planning;

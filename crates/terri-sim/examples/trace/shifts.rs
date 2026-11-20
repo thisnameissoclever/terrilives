@@ -203,6 +203,14 @@ pub struct Summary {
     fight_runs: BTreeMap<Entity, u64>,
     fight_ticks: u64,
     longest_fight: u64,
+    /// Books on the floor (`docs/specs/2026-11-19-late-book-returns.md`):
+    /// each copy left on the floor and not yet back on a shelf, with the
+    /// tick it was first seen there, how many were left there, how many went
+    /// back on a shelf, and the longest from the floor to the shelf.
+    floor: BTreeMap<u32, u64>,
+    floor_dropped: u64,
+    floor_shelved: u64,
+    longest_on_floor: u64,
 }
 
 impl Summary {
@@ -223,6 +231,10 @@ impl Summary {
             fight_runs: BTreeMap::new(),
             fight_ticks: 0,
             longest_fight: 0,
+            floor: BTreeMap::new(),
+            floor_dropped: 0,
+            floor_shelved: 0,
+            longest_on_floor: 0,
         }
     }
 
@@ -237,6 +249,24 @@ impl Summary {
         let pack = sim.world().resource::<Content>().0;
         let day = u64::from(pack.tuning.day_ticks);
         let now = sim.world().resource::<SimClock>().tick;
+        for copy in sim.book_copies() {
+            // A copy counts from the tick it is first seen on the floor
+            // until it is back on a shelf, carried there or recovered.
+            let on_floor = matches!(copy.location, terri_core::books::BookLocation::Lot { .. });
+            let shelved = matches!(copy.location, terri_core::books::BookLocation::Shelf(_));
+            match self.floor.get(&copy.id.0).copied() {
+                None if on_floor => {
+                    self.floor.insert(copy.id.0, now);
+                    self.floor_dropped += 1;
+                }
+                Some(since) if shelved => {
+                    self.floor.remove(&copy.id.0);
+                    self.floor_shelved += 1;
+                    self.longest_on_floor = self.longest_on_floor.max(now - since);
+                }
+                _ => {}
+            }
+        }
         let hour = ((now % day) * 24 / day) as usize;
         for (index, (entity, _)) in sims.iter().enumerate() {
             if sim.world().get_entity(*entity).is_err() {
@@ -280,14 +310,26 @@ impl Summary {
                 if record.left.is_none() && away {
                     record.left = Some(now);
                 }
+                // `TRACE_LATE_START=<tick>` keeps only the late ticks of the
+                // shifts that start at that tick, for tracing one case.
+                let wanted = std::env::var("TRACE_LATE_START")
+                    .ok()
+                    .and_then(|tick| tick.parse::<u64>().ok())
+                    .is_none_or(|tick| tick == record.start);
                 if record.left.is_none()
                     && now > record.start
                     && now < record.end
-                    && self.late_ticks.len() < 200
+                    && wanted
+                    && self.late_ticks.len() < 400
                 {
                     let needs = sim.world().get::<terri_core::Needs>(*entity);
+                    let reading = sim
+                        .reading_journeys()
+                        .into_iter()
+                        .find(|journey| journey.owner == entity.index_u32())
+                        .map_or("none".to_string(), |journey| format!("{:?}", journey.stage));
                     self.late_ticks.push(format!(
-                        "tick {now} ({} minutes late) {}: critical at start {}, hunger {:.1} energy {:.1} bladder {:.1}, eating {}, target {}, path {}, socialising {}, target {}, queued orders {}",
+                        "tick {now} ({} minutes late) {}: critical at start {}, hunger {:.1} energy {:.1} bladder {:.1}, eating {}, target {}, path {}, socialising {}, target {}, queued orders {}, reading {reading}, blocked {}, at {:?}",
                         now - record.start,
                         sims[index].1,
                         record.critical,
@@ -305,6 +347,10 @@ impl Summary {
                         sim.world()
                             .get::<terri_core::IntentQueue>(*entity)
                             .map_or(0, |queue| queue.entries().len()),
+                        sim.world().get::<terri_core::Blocked>(*entity).is_some(),
+                        sim.world()
+                            .get::<terri_core::Position>(*entity)
+                            .map(|p| (p.x, p.y)),
                     ));
                 }
             }
@@ -492,6 +538,18 @@ impl Summary {
                 other.len(),
                 other.iter().max().copied().unwrap_or(0),
             );
+            // Each late departure on its own line, so a case can be found
+            // and traced with `TRACE_LATE_TICKS=1 TRACE_LATE_START=<tick>`.
+            for row in rows {
+                if let Some(late) = lateness_of(row).filter(|late| *late > 0) {
+                    println!(
+                        "LATE DEPARTURE {name}: shift starting at tick {}, left {late} minutes after the start, Hunger or Energy critical at the start {}{}",
+                        row.start,
+                        row.critical,
+                        if late > limit { ", OVER THE LIMIT" } else { "" },
+                    );
+                }
+            }
             let (lowest, critical_ticks) = self.work_bladder[index];
             if lowest.is_finite() {
                 println!(
@@ -504,6 +562,15 @@ impl Summary {
                 println!("LATE {line}");
             }
         }
+        let now = sim.world().resource::<SimClock>().tick;
+        println!(
+            "FLOOR BOOKS: {} left on the floor, {} put back on a shelf (longest {} minutes from the floor to the shelf), {} not back on a shelf at the end (longest {} minutes so far)",
+            self.floor_dropped,
+            self.floor_shelved,
+            self.longest_on_floor,
+            self.floor.len(),
+            self.floor.values().map(|since| now - since).max().unwrap_or(0),
+        );
         println!(
             "careers draws {}, shift draws {}",
             careers.draws, careers.shift_draws
