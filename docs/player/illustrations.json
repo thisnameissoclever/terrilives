@@ -472,8 +472,8 @@
         "height": 90
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
-      "outputSha256": "90f90dafc4be0d86248dcc688681dc513145bda11b2c67ce03b2908f4987447f"
+      "sourceSha256": "f562193f89c380e3b9f78a8b8ee22b385046c367b053055639c0f46046e70c20",
+      "outputSha256": "2e2b072e08161dfc16ca25a776667d5fe78ebeec39ccaccc2f6521e23f006e67"
     },
     {
       "output": "images/guide/household-mobile.png",
@@ -485,21 +485,21 @@
         "height": 153
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3",
-      "outputSha256": "a184d6bb2414d075071a45fed378f9c35d79673ddf2113816d40bc69e4c410b5"
+      "sourceSha256": "d2fd158d1b9873a37ebd49795241eb112793b32be3fd15068490ce941c222d3d",
+      "outputSha256": "b045d3b95585708f437e6d99071f5df7a54bb2197e41653446c13929d3f8ea11"
     },
     {
       "output": "images/guide/sim-needs-desktop.png",
       "source": "images/ui-sim-needs-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 512,
-        "width": 360,
-        "height": 346
+        "x": 699,
+        "y": 391,
+        "width": 560,
+        "height": 458
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "00843cf1212005acefe4efd822c574f433c6e84c856ab4d43c3f91588ee3f09e",
-      "outputSha256": "aa167aae9911572a7b8c0660462d88875ed71333b9001f6c23be581d82ea004f"
+      "sourceSha256": "a5fc75ef04e0eed1184029bc8818118a64e2f8d0bc9d8bb1ad01dfbef2f1b799",
+      "outputSha256": "db22129a8c916c0e3372902c3e8871a5783acdcaa433619a3214ca3f076e716f"
     },
     {
       "output": "images/guide/sim-needs-mobile.png",
@@ -511,21 +511,21 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "5a53dd94a25d430cfb232a2906367abe2d4b338c8c0e219374b53d22789f5981",
-      "outputSha256": "b960d252e6145a5ebb69fda636d3430ef47af06dccd94af53243c2fae2f70cac"
+      "sourceSha256": "f2a653605d560c76edee50f5483f3de23559114b593a53801ed6bbe734ad822c",
+      "outputSha256": "4c611fb9c6f6cc63dce2688804fa0cb8f808466ace96fa9a6359cc8168d01c3d"
     },
     {
       "output": "images/guide/sim-personality-desktop.png",
       "source": "images/ui-sim-personality-desktop.png",
       "rect": {
-        "x": 719,
-        "y": 438,
-        "width": 540,
-        "height": 420
+        "x": 699,
+        "y": 159,
+        "width": 560,
+        "height": 690
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "3c42b42d477f17341cda0adfda30724d001e9ff73461be9106751bc04c4bbf58",
-      "outputSha256": "062ea00e481c6d5a3c7faae47c840afe40af48ca59826a5a66496b5d2d614075"
+      "sourceSha256": "a651865c533987d91889ef11fd67555c0abe29f8cffd3859d73774e76608fe9b",
+      "outputSha256": "5fbe675a37261eef2513cf61013c6e0fbbd7679446691ed9b4f4f596866d0782"
     },
     {
       "output": "images/guide/sim-personality-mobile.png",
@@ -537,21 +537,21 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "6527c44648778ac1a474ac28ee622c062e6a0e86355e78dd7fce2745e2dc97c5",
-      "outputSha256": "5a3deb5b9bb17fb825c8e2455f2ab031a7fcce87eff23a9c53f0b3abc5b702b7"
+      "sourceSha256": "f72f67148348e9b4242cf188743d094eb6c76f3fe025172980229dca5ceb1396",
+      "outputSha256": "a9e66f59388e0d3a3010526344ea40b4ea8c12380a08f27cbdee6bb5b252fee3"
     },
     {
       "output": "images/guide/sim-queue-desktop.png",
       "source": "images/ui-sim-queue-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 438,
-        "width": 360,
-        "height": 420
+        "x": 699,
+        "y": 479,
+        "width": 560,
+        "height": 370
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "43cac1419612640cfd591d10fad83a7b747dbd48a29318c108dac5c01b842f95",
-      "outputSha256": "13f6724fde41103b68c7fa8257ed1caf0fc661f7526bdefad3de88368eb691c7"
+      "sourceSha256": "55a819d53e461773d67b6b0494e5187e0f6c0e7b52bd0da87d33f7217f8869a3",
+      "outputSha256": "612b725dbba77074c7ac793ab88f03b6f95fe87e727e07caf8d72a1c11dc1a24"
     },
     {
       "output": "images/guide/sim-queue-mobile.png",
@@ -563,47 +563,47 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "b86d00266f3b5d1f44ce6e4d0ac5d10fbbdd145b1944ccb04b6553704964bbd3",
-      "outputSha256": "e738daedf73d833d89a4174c921eb730f3bb4657e2c804ab4cecd1bf2ef76afa"
+      "sourceSha256": "52c6fe7a56cb646df1217562edd7e6aa06ba3558af206c929d0303aee11f8ace",
+      "outputSha256": "bfe804209f60c1be6f77f724af1c8bb599c846ea130907e98f8d10182c859cf7"
     },
     {
       "output": "images/guide/sim-people-desktop.png",
       "source": "images/ui-sim-people-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 643,
-        "width": 360,
-        "height": 215
+        "x": 699,
+        "y": 674,
+        "width": 560,
+        "height": 175
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "975460f068b5939471efed4bcbba34c5894c56ea51c5db93f745c2d52dbcbf3b",
-      "outputSha256": "c0dd6443523f0526d4cb0344bd9cc97ad5e355cbfa1538e2aa51494cb090ade3"
+      "sourceSha256": "3b725abc798cf21586c9d3a2c4f43f9868872ed531c8367f0400b1748cee3818",
+      "outputSha256": "e190fdc5353d0445031b536b3e9fcba45f2c08c9849a3ff98b15c0e9b385215a"
     },
     {
       "output": "images/guide/sim-people-mobile.png",
       "source": "images/ui-sim-people-mobile.png",
       "rect": {
         "x": 8,
-        "y": 413,
+        "y": 414,
         "width": 374,
-        "height": 257
+        "height": 256
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "749f8fd4ec010ba131fab889383013aa7285ee21f83ba54bbfd6c63ce306f45c",
-      "outputSha256": "7c8060cee0d41cac23ba04dc3b345c8b7b1500a9c52fcfc09e3a420726e2ea14"
+      "sourceSha256": "2ed8d577f9cd410e1e158d4ae5bef379d7adaa24a1f923dca6026c461618cb42",
+      "outputSha256": "979ee57830eee0fd03e351a4d4cc42369a5d74de2e95ee6558e1625d41c201c9"
     },
     {
       "output": "images/guide/sim-conditions-desktop.png",
       "source": "images/ui-sim-conditions-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 438,
-        "width": 360,
-        "height": 420
+        "x": 699,
+        "y": 166,
+        "width": 560,
+        "height": 683
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "f95d2aa2b8eb15f26a29f424b918069b289ad80b48df0d5cd647896fbaa60eb8",
-      "outputSha256": "4cc8eb27feeff5258e7cc1487641a1db49190af0a134e39d72e292b6694bbaa5"
+      "sourceSha256": "9ce0ef42c84a82ea1f8e04338ac91ef1248b5dd6da2c48d9c8dead9b9fde3622",
+      "outputSha256": "cc28aa79b40bc21d60e74d1c590795d08932a6986b0f392734c51c5acbaa3363"
     },
     {
       "output": "images/guide/sim-conditions-mobile.png",
@@ -615,21 +615,21 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "fe90fb4fd8f273bb351a48ebfcf8c2df7ab0cde0702358683625d8bcd19bcb23",
-      "outputSha256": "e5a473a66460dceef5cfc0329e005edc167885faa47a936534d764cfeb9ca6e5"
+      "sourceSha256": "0e7966dea3884782de399784c7ba2ec1343748993742ea0832cb476fad2c190f",
+      "outputSha256": "55142d3d4e56e8b2f41fcde5cec326ed010c57ea7f639c298a8dc884889f7721"
     },
     {
       "output": "images/guide/sim-skills-desktop.png",
       "source": "images/ui-sim-skills-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 438,
-        "width": 360,
-        "height": 420
+        "x": 699,
+        "y": 276,
+        "width": 560,
+        "height": 573
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "7cd6b03fba31f16e2d8ab1df38033817f85258177e7ce385302e4a6ad4d8f034",
-      "outputSha256": "8be6bb491a9f237bf305f745ceb7f7a228e86f327b443cc94e7f726694aa1c4e"
+      "sourceSha256": "549107018c13f7a9af1b0df6b3933cf82e92e4606500eb3b0726a62a2c1a7a76",
+      "outputSha256": "702ff99614f0f432229d7bf1db9d60c4de0b9990e6bdfd1114fb7057e9e1afd8"
     },
     {
       "output": "images/guide/sim-skills-mobile.png",
@@ -641,21 +641,21 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "4d2528f53d270a3a950b3e82f0064dafa69a5d9ba17ff7fd6f8d95421ac0c3a1",
-      "outputSha256": "012d2857c0dfb7fc482557b08a09ffca3a49b38e96338e37df53870a1d5e13c9"
+      "sourceSha256": "d4657e7931075532379722b5cb6f7fbe4f04dbc2e8acf64ac68e4de6150632d9",
+      "outputSha256": "7feab88daf4397bd5834d79b792adca7a2baf9b1a221bb14df3c5acc3510b568"
     },
     {
       "output": "images/guide/sim-likes-desktop.png",
       "source": "images/ui-sim-likes-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 438,
-        "width": 360,
-        "height": 420
+        "x": 699,
+        "y": 304,
+        "width": 560,
+        "height": 545
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "37e807357fde0d23028f2a39ba84e3bd9cf3139d035f607f910a9ce23c520f7e",
-      "outputSha256": "73e174bf9034d0ad568a9f58b046e9512ac67ca70751e841e87309e9b5419f07"
+      "sourceSha256": "de99a936d63c7e6ca47bb03ba6a596b8e1e3fbb3ca5faae0c54f2a9d837cf765",
+      "outputSha256": "accdea1d6941b5641a427fe475922c3daa8d0a75636421920d57f4106523f62e"
     },
     {
       "output": "images/guide/sim-likes-mobile.png",
@@ -667,86 +667,86 @@
         "height": 420
       },
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "67558f13980a06469eb85fe65a9f75b7679ae21ed727437d7457d0ca585fd057",
-      "outputSha256": "dab498188cf918495503a8e555aa343dd1abefd51c54813c5c1a6e9bc3298474"
+      "sourceSha256": "368aca1d02a1ff9ca4da5af6c29fca0fe3ea9d448d2264f09ba39f50550712d3",
+      "outputSha256": "a9a1b8e494d4c08a8048d0690b1aad17973f49ec5469a212fcf4543685aeaec8"
     },
     {
       "output": "images/guide/sim-career-desktop.png",
       "source": "images/ui-sim-career-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 429,
-        "width": 360,
-        "height": 420
+        "x": 699,
+        "y": 175,
+        "width": 560,
+        "height": 690
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
-      "outputSha256": "9bc2a4dca63097e2e307d97de64942e75c67166d34bda4461a9a53cc62577477"
+      "sourceSha256": "e52246060c578dbe77dc3dde4c5357dc63c5f0ded0c7e351260bb89fe7c119bd",
+      "outputSha256": "e522c1ec299e4e95a493f70e6307eb3d47e0154eaee78d4af29df1570eb98c49"
     },
     {
       "output": "images/guide/sim-career-mobile.png",
       "source": "images/ui-sim-career-mobile.png",
       "rect": {
         "x": 8,
-        "y": 250,
+        "y": 252,
         "width": 374,
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
-      "outputSha256": "76e63574fbeb8bd7b5859c3090f228133756a42696050b2824957addd1343f12"
+      "sourceSha256": "2cb1c2a9a5e132c4030b0bbee10b6d137860dc0f5ab869b34a3e8a9cc416f24c",
+      "outputSha256": "1379b727f0be787945a638986e0d49d2fc13c61e53abe3976dca624a43ca0d95"
     },
     {
       "output": "images/guide/career-shift-desktop.png",
       "source": "images/ui-career-shift-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 545,
-        "width": 360,
-        "height": 301
+        "x": 699,
+        "y": 508,
+        "width": 560,
+        "height": 357
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
-      "outputSha256": "e58a8cb2a49da9b25287c077829164aea54582f39ad5cd82c3bdd86244ae383e"
+      "sourceSha256": "27d70134694b1c00d2bab5b284f75adaacd96c106c7ba2708f7aab91fd1c1b5a",
+      "outputSha256": "be7fc425c3aa8361147220bdf731eea9e5d1d18e74dd5b99031006ac482a9781"
     },
     {
       "output": "images/guide/career-shift-mobile.png",
       "source": "images/ui-career-shift-mobile.png",
       "rect": {
         "x": 8,
-        "y": 366,
+        "y": 299,
         "width": 374,
-        "height": 301
+        "height": 373
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752",
-      "outputSha256": "91ecbb250c17ae0703834035577f040aeafa6be636aca2c7c19539eb510587ac"
+      "sourceSha256": "818b2381a631ffc66bd02a44b5c47e116d7354bd374e65308a316f6059ea3273",
+      "outputSha256": "ec350d93ca2e79fd62c6ee60064809f33f5ddfc233d731bad859bc02e1d69a5b"
     },
     {
       "output": "images/guide/career-review-desktop.png",
       "source": "images/ui-career-review-desktop.png",
       "rect": {
-        "x": 899,
-        "y": 429,
-        "width": 360,
-        "height": 420
+        "x": 699,
+        "y": 175,
+        "width": 560,
+        "height": 690
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
-      "outputSha256": "f17fdfcf94cc156211de612b99fb9859e321d6ffb0e0ca665a6742ff855e6fb0"
+      "sourceSha256": "65e8203e104b55054b57dda942c2da2f283a1dab98e7233abfd40c8a48947477",
+      "outputSha256": "5ddae0b1d55d976ac8206383972d6fc2a51d38797fcfdf447e3a78b6d5156f79"
     },
     {
       "output": "images/guide/career-review-mobile.png",
       "source": "images/ui-career-review-mobile.png",
       "rect": {
         "x": 8,
-        "y": 250,
+        "y": 252,
         "width": 374,
-        "height": 409
+        "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e",
-      "outputSha256": "af64c472ac5acdbae212e61463096738d52a0ec7079632ab971bf542db426953"
+      "sourceSha256": "61a7dc2c319dc093df5c982e8ff0db0956612e0c242659c3555a4c5fd16cbcfd",
+      "outputSha256": "1e2de8374e62ba8f8dfc4866700f5b07733dab3c278b424c49e035b3d7821557"
     },
     {
       "output": "images/guide/chores-board-desktop.png",
