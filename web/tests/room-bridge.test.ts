@@ -94,7 +94,7 @@ it('routes real native Build capture through the persistence controller without 
     const handle = SimHandle.from_lot(), reload = SimHandle.from_lot();
     const sim = new SimBridge(handle, memory);
     let stored: Uint8Array | null = null;
-    const store = { save: async (bytes: Uint8Array) => { stored = bytes.slice(); }, load: async () => stored, clear: async () => { stored = null; }, close: () => { } };
+    const store = { save: async (bytes: Uint8Array) => { stored = bytes.slice(); }, load: async () => stored, lastGoodCopy: async () => null, restoreLastGood: async () => false, clear: async () => { stored = null; }, close: () => { } };
     const status = { textContent: '', setAttribute: () => { }, removeAttribute: () => { } };
     const persistence = new PersistenceController(store, sim, status);
     try {
@@ -200,7 +200,7 @@ it('autosaves native committed bytes at an already reached day boundary while re
         for (let n = 0; n < sim.dayTicks(); n++)
             sim.tick();
         const baseline = sim.saveBytes();
-        const controller = new PersistenceController({ save: async (bytes) => { stored = bytes.slice(); }, load: async () => stored, clear: async () => { }, close: () => { } }, sim, { textContent: '', setAttribute: () => { }, removeAttribute: () => { } });
+        const controller = new PersistenceController({ save: async (bytes) => { stored = bytes.slice(); }, load: async () => stored, lastGoodCopy: async () => null, restoreLastGood: async () => false, clear: async () => { }, close: () => { } }, sim, { textContent: '', setAttribute: () => { }, removeAttribute: () => { } });
         value(sim.beginBuild());
         value(sim.stageRoomName(0, 'Daily draft'));
         const review = value(sim.prepareBuildCommit());

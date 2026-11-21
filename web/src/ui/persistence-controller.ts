@@ -105,9 +105,15 @@ function unloadableReason(bytes: Uint8Array, fallback: string): string {
     : fallback;
 }
 
-/** Whether the storage worker will write a current save over this slot. */
+type SlotLoad =
+  | { readonly kind: 'none' | 'loaded' | 'recovered' }
+  | { readonly kind: 'unloadable'; readonly bytes: Uint8Array };
+
+const RECOVERED_MESSAGE = 'The latest save could not be read, so the last good copy was loaded';
+
+/** Whether the storage worker will write a current save over this slot. An empty slot holds nothing, so it is replaceable. */
 function slotAcceptsCurrentWrite(bytes: Uint8Array): boolean {
-  return isSupportedSavePrefix(bytes);
+  return bytes.byteLength === 0 || isSupportedSavePrefix(bytes);
 }
 
 /**
@@ -131,22 +137,22 @@ export class PersistenceController {
 
   async restoreAtStartup(): Promise<StartupRestore> {
     try {
-      const bytes = await this.store.load();
-      if (bytes === null) {
+      const slot = await this.loadFromSlot();
+      if (slot.kind === 'none') {
         this.savedGameAvailable = false;
         this.armAutosave();
         this.show('No save yet');
         return 'new';
       }
-      if (!await this.loadSupportedSave(bytes)) {
+      if (slot.kind === 'unloadable') {
         this.savedGameAvailable = false;
-        this.protectSavedGame(bytes);
+        this.protectSavedGame(slot.bytes);
         return 'invalid';
       }
       this.resumeSaving();
       this.armAutosave();
       this.savedGameAvailable = true;
-      this.show('Saved game loaded');
+      this.show(slot.kind === 'recovered' ? RECOVERED_MESSAGE : 'Saved game loaded');
       return 'loaded';
     } catch (error: unknown) {
       this.reportError(error);
@@ -182,22 +188,22 @@ export class PersistenceController {
     if (!this.beginOperation('load')) return false;
     this.show('Loading');
     try {
-      const bytes = await this.store.load();
-      if (bytes === null) {
+      const slot = await this.loadFromSlot();
+      if (slot.kind === 'none') {
         this.savedGameAvailable = false;
         if (this.savingPaused) this.protectSavedGame();
         else this.show('No saved game found', true);
         return false;
       }
-      if (!await this.loadSupportedSave(bytes)) {
+      if (slot.kind === 'unloadable') {
         this.savedGameAvailable = false;
-        this.protectSavedGame(bytes);
+        this.protectSavedGame(slot.bytes);
         return false;
       }
       this.resumeSaving();
       this.armAutosave();
       this.savedGameAvailable = true;
-      this.show('Saved game loaded');
+      this.show(slot.kind === 'recovered' ? RECOVERED_MESSAGE : 'Saved game loaded');
       return true;
     } catch (error: unknown) {
       this.reportError(error);
@@ -245,7 +251,7 @@ export class PersistenceController {
       const bytes = protectedSave
         ? this.protectedBytes ?? await this.store.load()
         : this.sim.saveBytes();
-      if (bytes === null) {
+      if (bytes === null || bytes.byteLength === 0) {
         this.showKeepingPausedNote('No saved game found', true);
         return false;
       }
@@ -392,6 +398,37 @@ export class PersistenceController {
     this.autosaveDay = this.currentDay();
   }
 
+  /**
+   * Loads the stored slot into the running game. A slot that is empty, cut off
+   * or otherwise unreadable falls back to the last good copy, which the store
+   * restores while keeping the unreadable bytes aside. A slot from a version
+   * this build does not support is never replaced, and an empty slot with no
+   * copy holds nothing, so it counts as no save.
+   */
+  private async loadFromSlot(): Promise<SlotLoad> {
+    const bytes = await this.store.load();
+    if (bytes === null) return { kind: 'none' };
+    if (bytes.byteLength > 0) {
+      if (await this.loadSupportedSave(bytes)) return { kind: 'loaded' };
+      const version = saveSchemaVersion(bytes);
+      if (version !== null && !isSupportedSavePrefix(bytes)) {
+        return { kind: 'unloadable', bytes };
+      }
+    }
+    // Load the copy into the game first and replace the slot only once it
+    // loads. Replacing first would swap in a copy this build might also reject.
+    const lastGood = await this.store.lastGoodCopy();
+    let copyLoaded = false;
+    if (lastGood !== null && await this.loadSupportedSave(lastGood)) {
+      copyLoaded = true;
+      if (await this.store.restoreLastGood(bytes, lastGood)) return { kind: 'recovered' };
+    }
+    // The running game already holds a copy the slot could not take, such as
+    // after another tab saved. Treating that slot as no save would let the next
+    // autosave write the old copy over it, so keep saving paused instead.
+    return bytes.byteLength === 0 && !copyLoaded ? { kind: 'none' } : { kind: 'unloadable', bytes };
+  }
+
   private async loadSupportedSave(bytes: Uint8Array): Promise<boolean> {
     const version = saveSchemaVersion(bytes);
     if (version !== null && !isSupportedSavePrefix(bytes)) return false;
@@ -426,8 +463,11 @@ export class PersistenceController {
 
   private protectSavedGame(bytes?: Uint8Array): void {
     this.savingPaused = true;
-    this.protectedBytes = bytes ?? null;
-    const reason = bytes ? unloadableReason(bytes, 'Load failed.') : 'Load failed.';
+    // An empty slot holds nothing to protect or export. Keeping it would also
+    // hide a save another tab has since written, so Export and Import re-read.
+    const kept = bytes !== undefined && bytes.byteLength > 0 ? bytes : undefined;
+    this.protectedBytes = kept ?? null;
+    const reason = kept ? unloadableReason(kept, 'Load failed.') : 'Load failed.';
     this.show(
       `${reason} Current game and saved data kept. Saving paused. Retry Load or confirm New game to resume saving.`,
       true,
