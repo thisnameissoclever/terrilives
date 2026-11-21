@@ -890,7 +890,10 @@ async function main(): Promise<void> {
   // open it: the tilde key and a long press on the lot's bottom tile ([AP-web-keys], [AP-web-touch]).
   const adminDialog = document.querySelector<HTMLDialogElement>('#admin-panel');
   if (!adminDialog) throw new Error('missing the admin panel markup');
+  // Every HUD panel, the clock, funds and bills row included, reads at once after an admin
+  // change, an Undo and a close, rather than on its next periodic read.
   const refreshHudAfterAdmin = (): void => {
+    gameHud.update(performance.now(), sim, true);
     refreshHudPanels();
     if (needsPanel.update(performance.now(), sim)) syncDockSummary();
   };
@@ -917,6 +920,7 @@ async function main(): Promise<void> {
       if (cause === 'undo') restoreBuildPresentation();
       refreshHudAfterAdmin();
     },
+    closed: refreshHudAfterAdmin,
     tabs: {
       housemate: createHousemateTab(housemateSource(sim)),
       relationships: createRelationshipsTab(relationshipsSource(sim)),

@@ -73,6 +73,20 @@ describe('game HUD formatting', () => {
     expect(formatActivity(0, null, null)).toBe('Idle');
   });
 
+  it('reads at once when forced, inside the refresh interval, so an admin change shows on the next frame', () => {
+    const r = roots();
+    const hud = new GameHud(r, 1000);
+    hud.update(0, source({ funds: () => 790300 }));
+    const before = r.funds.textContent;
+    expect(hud.update(10, source({ funds: () => 317747 })), 'unforced, it waits for the interval').toBe(false);
+    expect(r.funds.textContent).toBe(before);
+    expect(hud.update(20, source({ funds: () => 317747 }), true)).toBe(true);
+    const fresh = roots();
+    new GameHud(fresh, 1000).update(0, source({ funds: () => 317747 }));
+    expect(r.funds.textContent).not.toBe(before);
+    expect(r.funds.textContent).toBe(fresh.funds.textContent);
+  });
+
   it('identifies the person a committed initiator is waiting to talk to', () => {
     const r = roots();
     const s = source({ activityOf: () => 2,

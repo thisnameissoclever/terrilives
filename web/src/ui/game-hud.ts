@@ -283,8 +283,9 @@ export class GameHud {
     if (this.roots.bills !== undefined) this.roots.bills.disabled = active;
   }
 
-  update(nowMs: number, source: GameHudSource): boolean {
-    if (this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
+  /** Reads the source when the refresh interval has passed, or at once when `force` is set. */
+  update(nowMs: number, source: GameHudSource, force = false): boolean {
+    if (!force && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
       return false;
     }
     this.lastReadMs = nowMs;

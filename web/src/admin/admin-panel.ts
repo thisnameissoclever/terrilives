@@ -166,6 +166,8 @@ export interface AdminPanelHost {
    * changed) and refreshes the HUD panels.
    */
   worldChanged?(cause: 'apply' | 'undo'): void;
+  /** After the panel closed, so the host reads the world as the panel left it. */
+  closed?(): void;
   /** Tab modules that have been built; a missing one shows a plain placeholder. */
   tabs?: Partial<Record<AdminTabId, AdminTabFactory>>;
   /** Runs Skip ahead through the frame loop; without it the Household tab hides Skip. */
@@ -435,6 +437,7 @@ export class AdminPanel {
     const previous = this.opener;
     this.opener = null;
     this.returnFocus(previous);
+    this.host.closed?.();
   }
 
   private returnFocus(previous: HTMLElement | null): void {

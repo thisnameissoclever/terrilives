@@ -245,7 +245,7 @@ The shell keeps one label per journal entry ("Add $1,000", "Change Hunger") and 
 
 The alternative, an inverse command per edit, needs a hand-written exact inverse for every edit, including the ones with side effects: adding a capability raises a skill, a job change settles a late shift and pays it, paying an older bill drops it from the record. Each is a chance to leave a world that differs from the one before. Restore and replay has one mechanism, is already trusted by Build mode, and checks itself with a hash on every step. Its cost is one restore per Undo plus replaying a few small changes, which is negligible while paused.
 
-Restoring rebuilds the world, so entity indices may change. Admin edits name `SimId`s for that reason. After Undo the shell runs the same refresh Build's Cancel runs: the roster, the selected person, the HUD panels and every entity-keyed shell cache. [T3] lists each cache it checked.
+Restoring rebuilds the world, so entity indices may change. Admin edits name `SimId`s for that reason. After Undo the shell runs the same refresh Build's Cancel runs: the roster, the selected person, the HUD panels and every entity-keyed shell cache. After every applied change, every Undo and every close, every HUD panel, the clock, funds and bills row included, reads the world at once rather than on its next periodic read. [T3] lists each cache it checked.
 
 ## [AP-skip] Skip ahead
 

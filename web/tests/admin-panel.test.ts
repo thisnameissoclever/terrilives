@@ -115,6 +115,7 @@ function build(options: Options = {}) {
     selectedSimId: () => gameSelected.current,
     fallbackFocus: () => canvas as unknown as HTMLElement,
     worldChanged: cause => changes.push(cause),
+    closed: () => changes.push('closed'),
     tabs,
     skip: options.skip,
   });
@@ -463,6 +464,10 @@ describe('Undo', () => {
     h.spy('housemate').context.apply(HUNGER, { label: 'Change Hunger' });
     h.undo().click();
     expect(h.changes).toEqual(['apply', 'undo']);
+    h.panel.close();
+    expect(h.changes, 'closing tells the host too, so the HUD reads the world as the panel left it').toEqual(['apply', 'undo', 'closed']);
+    h.panel.close();
+    expect(h.changes, 'once per close').toEqual(['apply', 'undo', 'closed']);
   });
 
   it('reads "Undo last change" when its labels no longer match the bridge depth', () => {
