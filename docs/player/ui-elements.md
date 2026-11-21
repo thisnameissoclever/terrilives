@@ -257,6 +257,8 @@ The panel has three tabs. Housemate and Relationships act on the housemate named
 
 :::illustration admin-household
 
+On a phone, the Housemate tab starts with Mood and moodlets, Repetition, Likes and dislikes, Skills, Traits and Career folded, each with a short summary beside its heading where there is one. Tap a heading to open or close it. On a larger screen they are always open.
+
 Sliders apply when you let go. The number box beside each slider applies when you leave it or press Enter. A change the game refuses leaves everything as it was and says why on the line below the controls, such as Four traits at most. Remove one first.
 
 Undo steps back one change at a time through everything you changed since you opened the panel. Its label names the change it will undo. Closing the panel clears Undo.

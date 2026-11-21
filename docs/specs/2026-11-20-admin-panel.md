@@ -368,8 +368,8 @@ Every string below is functional text proposed for the owner's review under the 
 | S-tabs | Housemate; Relationships; Household; Housemate (picker group name) | tabs |
 | S-needs | Needs; 0 to 100; Fill {name}'s needs; At 0, Hunger and Energy count toward death. | Housemate |
 | S-sat | Life satisfaction; Satisfaction | Housemate |
-| S-rep | Repetition; 0 to {max}; Clear {name}'s repetition; Overdoing; Feeling sick; No repetition. | Housemate |
-| S-mood | Mood and moodlets; Mood {word}; Ends in {duration}; End now; End {name}'s timed moodlets; From {need} below {n}; From job satisfaction; From {name}'s feeling about {other}; While a bill is overdue | Housemate ([AP-c-sources]) |
+| S-rep | Repetition; 0 to {max}; Clear {name}'s repetition; Overdoing; Feeling sick; No repetition.; {n} overdoing (the folded phone summary) | Housemate |
+| S-mood | Mood and moodlets; Mood {word}; {word}, {score} (the folded phone summary); Ends in {duration}; End now; End {name}'s timed moodlets; From {need} below {n}; From job satisfaction; From {name}'s feeling about {other}; While a bill is overdue | Housemate ([AP-c-sources]) |
 | S-likes | Likes and dislikes; -1 to 1 | Housemate |
 | S-skills | Skills; Level 0 to {max} | Housemate |
 | S-traits | Traits; how far learned; how severe; No value to set; Remove; Choose a trait to add; Add; Four traits at most. | Housemate |

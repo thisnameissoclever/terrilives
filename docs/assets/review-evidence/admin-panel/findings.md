@@ -36,12 +36,14 @@ Played at 1440x900 (desktop) and 390x844 (phone), day and night, in a muted head
 | D15 | Skip ahead | "Now" did not move during a skip | Now follows the skip |
 | D16 | Bill table | Overdue looked like a bill still in grace | Overdue alone uses the warning colour |
 | D17 | Skip ahead | Disabled number boxes looked live | Disabled number boxes are dimmed |
+| N1 | Header | Opening the panel drew a focus ring around the title and Cheat badge | The title keeps its programmatic focus for screen readers and no longer has a focus-visible outline; keyboard rings on real controls are unchanged |
+| N2 | Housemate, phone | The tab was about 3,500 px tall | Mood and moodlets, Repetition, Likes and dislikes, Skills, Traits and Career are native details elements, closed on a phone with a one-line summary where there is one (Okay, -8.6; 1 overdoing; the job title), always open on a larger screen; the phone stacks Mood before Repetition as the mockup does; each section keeps its open or closed state across re-reads, edits and Undo |
+| N3 | Bill table | Only Overdue was coloured | Overdue is the danger colour and bold, the grace status is amber (a new panel token, as no existing token is a warning amber), Paid is the career-up green and plain weight |
 
-No player-visible wording changed.
+Two phone-only summary strings were added for N2: "{mood word}, {score}" and "{n} overdoing". Both are built from words and values the panel already shows.
+
+Fixes for N1 to N3 were played at 390x844 and 1440x900 after the first pass; `layout-check.js` returned no findings on the new stills apart from the known ellipsized HUD activity text. The stills that showed the old ring, `desktop-night-open-from-paused.png`, `-1x.png`, `-3x.png`, `desktop-night-housemate-tilde.png` and `desktop-night-tilde-opens-panel-not-overlay.png`, were captured again, as were the Household bills and the phone Housemate top. `phone-night-housemate-folded.png`, `phone-night-housemate-career.png` and the day pair show the folded layout; `phone-day-housemate-end.png` was removed with the old tall layout.
 
 ## Open after this pass
 
-- **N1.** Opening the panel draws a focus ring around the title, as if it were a button.
-- **N2.** On a phone the Housemate tab is about 3,500 px tall. The approved phone mockup folds its sections.
-- **N3.** The approved mockup colours "No fee until" as a warning and "Paid" as a success. The build colours only Overdue.
 - **N4.** Outside the panel, a dev-server reload during the save written on page hide left a 0-byte save slot, and the next load failed. This is a persistence question, tracked separately.

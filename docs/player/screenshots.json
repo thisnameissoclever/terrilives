@@ -2427,7 +2427,7 @@
       "sourceSnapshot": "admin-panel-2026-11-21",
       "imageSha256": {
         "desktop": "91d11afee040c3aaf55e6fec48945fdb6ff19e95314f632e91f4c619c3df187e",
-        "mobile": "4bbe5671fbf5a755ef345d11318354900ae34ad1140dfd5e6cdd2b332fd924f0"
+        "mobile": "83d8be747e392f70b2ec352777f7f745e808106f0db6bf080e6df93cb1372c67"
       },
       "captureMetadata": {
         "desktop": {
@@ -2450,7 +2450,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "4bbe5671fbf5a755ef345d11318354900ae34ad1140dfd5e6cdd2b332fd924f0"
+          "sourceImageSha256": "83d8be747e392f70b2ec352777f7f745e808106f0db6bf080e6df93cb1372c67"
         }
       }
     },
