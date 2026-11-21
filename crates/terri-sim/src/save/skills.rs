@@ -86,7 +86,7 @@ pub(crate) fn restore(
             .iter()
             .position(|known| known.id == id)
             .ok_or(SaveError::InvalidContentReference)?;
-        if !(practice.is_finite() && practice > 0.0) {
+        if !valid_row_practice(practice) {
             return Err(SaveError::InvalidValue);
         }
         let top = ladder.max_practice(pack.skills[skill].levels);
@@ -107,6 +107,13 @@ pub(crate) fn restore(
             .insert(Skills::from_entries(entries));
     }
     Ok(())
+}
+
+/// The practice a saved row can carry: finite and above zero, since capture
+/// never writes a zero row. Shared with the admin panel's post-condition
+/// ([AP-cmd-post]).
+pub(crate) fn valid_row_practice(practice: f32) -> bool {
+    practice.is_finite() && practice > 0.0
 }
 
 /// The one-time seed for a save that holds no practice: every person's

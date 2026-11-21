@@ -206,41 +206,10 @@ pub fn last_result(world: &World) -> Option<AdminResult> {
         .and_then(|state| state.last)
 }
 
-/// Every edit's checks against the world, its write and the post-condition.
-/// Each edit lands here as its task implements it ([T4] to [T7]); until
-/// then it is refused as `UnknownContent`, and the unit tests use a stub.
-mod edits {
-    use super::*;
-
-    pub(super) fn validate(world: &World, edit: &AdminEdit) -> Result<(), AdminRefusal> {
-        #[cfg(test)]
-        if let Some(result) = super::tests_stub::validate(world, edit) {
-            return result;
-        }
-        let _ = (world, edit);
-        Err(AdminRefusal::UnknownContent)
-    }
-
-    pub(super) fn apply(world: &mut World, edit: &AdminEdit) {
-        #[cfg(test)]
-        if super::tests_stub::apply(world, edit) {
-            return;
-        }
-        let _ = (world, edit);
-        unreachable!("only a validated edit is applied, and none validates yet")
-    }
-
-    #[cfg(not(test))]
-    pub(super) fn post_condition(world: &World, edits: &[AdminEdit]) -> Result<(), ()> {
-        let _ = (world, edits);
-        Ok(())
-    }
-
-    #[cfg(test)]
-    pub(super) fn post_condition(world: &World, edits: &[AdminEdit]) -> Result<(), ()> {
-        super::tests_stub::post_condition(world, edits)
-    }
-}
+mod edits;
+mod household;
+mod housemate;
+mod relationships;
 
 impl Sim {
     /// Whether the admin panel's session is open.
@@ -399,12 +368,11 @@ impl Sim {
     }
 }
 
-/// [T3]'s stub edits: until the real edits land, the session and Undo are
-/// proven with two edits whose effect is plain. `AdjustFunds` adds to the
-/// household's funds (refusing a result past `MAX_ADMIN_FUNDS_CENTS`), and
-/// `SetSatisfaction` sets a living person's life satisfaction. An adjustment
-/// of exactly 13 cents applies and then fails the post-condition, to prove
-/// the `WouldNotLoad` path.
+/// [T3]'s stub edit, kept for the one hook the real edits cannot offer:
+/// `AdjustFunds` is still the stub until [T7] lands, and an adjustment of
+/// exactly 13 cents applies and then fails the post-condition, to prove the
+/// `WouldNotLoad` path. The stub adds to the household's funds (refusing a
+/// result past `MAX_ADMIN_FUNDS_CENTS`).
 #[cfg(test)]
 pub(crate) mod tests_stub {
     use super::*;
@@ -429,11 +397,6 @@ pub(crate) mod tests_stub {
                     .map(|_| ())
                     .ok_or(AdminRefusal::OutOfRange),
             ),
-            AdminEdit::SetSatisfaction { sim, .. } => Some(
-                crate::edit::living_entity(world, sim)
-                    .map(|_| ())
-                    .ok_or(AdminRefusal::NotAPerson),
-            ),
             _ => None,
         }
     }
@@ -442,14 +405,6 @@ pub(crate) mod tests_stub {
         match *edit {
             AdminEdit::AdjustFunds { cents } => {
                 world.resource_mut::<terri_core::Funds>().0 += cents;
-                true
-            }
-            AdminEdit::SetSatisfaction { sim, value } => {
-                let entity = crate::edit::living_entity(world, sim).expect("validated");
-                *world
-                    .get_mut::<terri_core::Satisfaction>(entity)
-                    .expect("a person has satisfaction") =
-                    terri_core::Satisfaction::from_value(value);
                 true
             }
             _ => false,
