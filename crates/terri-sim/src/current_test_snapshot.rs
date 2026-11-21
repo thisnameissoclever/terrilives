@@ -60,12 +60,30 @@ pub(crate) struct CurrentV17View(pub SaveSnapshotV27);
 impl std::ops::Deref for CurrentV17View {
     type Target = SaveSnapshotV17;
     fn deref(&self) -> &Self::Target {
-        &self.0.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy
+        &self
+            .0
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
     }
 }
 impl std::ops::DerefMut for CurrentV17View {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy
+        &mut self
+            .0
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
     }
 }
 impl Sim {

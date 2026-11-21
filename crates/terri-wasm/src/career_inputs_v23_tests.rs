@@ -31,7 +31,11 @@ fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
         let mut migrated = SimHandle::from_lot();
         assert!(migrated.load_bytes(bytes), "{name}");
         let current = migrated.save_bytes();
-        assert_eq!(&current[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes(), "{name}");
+        assert_eq!(
+            &current[8..10],
+            &SAVE_SCHEMA_VERSION.to_le_bytes(),
+            "{name}"
+        );
         let saved = decode_current(&current);
         assert!(saved.need_mood.is_empty(), "{name}");
         let saved = saved.legacy;

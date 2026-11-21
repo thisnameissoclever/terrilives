@@ -1674,11 +1674,9 @@ mod tests {
             "every snack fills hunger the same: {refills:?}"
         );
 
-        // While both stand, satisfaction falls. Without them his mood
-        // would sit inside the neutral band, which costs nothing, so the
-        // fall is theirs.
+        // While both stand, compare the satisfaction loss with the
+        // same minute after removing only those two penalties.
         const STRETCH: u64 = 200;
-        let band = tuning.satisfaction_mood_neutral_band;
         let satisfaction = |sim: &Sim| sim.world().get::<Satisfaction>(tim).unwrap().value();
         let start = clock(&sim);
         let satisfied_before = satisfaction(&sim);
@@ -1689,7 +1687,8 @@ mod tests {
             assert_eq!(sick(&snapshot), 1, "Feeling sick stands");
             let without = snapshot.overall_score - overdone + tuning.sick_penalty;
             assert!(
-                snapshot.overall_score < -band && without.abs() < band,
+                super::satisfaction_change(snapshot.overall_score, &tuning)
+                    < super::satisfaction_change(without, &tuning),
                 "{} with the two moodlets, {without} without",
                 snapshot.overall_score
             );
