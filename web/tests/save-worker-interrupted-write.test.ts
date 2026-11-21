@@ -14,7 +14,8 @@ const PREVIOUS = 'terri-save-1.previous.bin';
 const DAMAGED = 'terri-save-1.damaged.bin';
 
 function save(marker: number): Uint8Array {
-  return new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 29, 128, 0, 0, 0, marker, marker, marker]);
+  // Long enough that half of it still carries a readable header.
+  return new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 29, 128, 0, 0, 0, ...new Array(30).fill(marker)]);
 }
 
 type Response = { id: number; ok: boolean; bytes?: ArrayBuffer | null; restored?: boolean; error?: string };
@@ -86,8 +87,11 @@ async function slot(initial: Uint8Array | null) {
   };
   vi.stubGlobal('self', port);
   vi.stubGlobal('navigator', { storage: { getDirectory: async () => root }, locks });
-  vi.resetModules();
-  await import('../src/storage/save-worker.js');
+  async function startWorker(): Promise<void> {
+    vi.resetModules();
+    await import('../src/storage/save-worker.js');
+  }
+  await startWorker();
   let id = 0;
   function request(
     kind: 'load' | 'save' | 'clear' | 'previous' | 'restore',
@@ -108,9 +112,10 @@ async function slot(initial: Uint8Array | null) {
     });
   }
   /** The page is reloaded: a fresh worker sees whatever the dead one left. */
-  function reload(): void {
+  async function reload(): Promise<void> {
     crash.file = '';
     crash.dead = false;
+    await startWorker();
   }
   /** What the controller does: read the copy, then restore it over the slot it saw. */
   async function recover(): Promise<boolean | null> {
@@ -134,7 +139,7 @@ describe('an interrupted save never costs the player their game', () => {
     s.crash.file = PRIMARY;
     await s.request('save', save(3));
     const half = s.files.get(PRIMARY)!.slice();
-    s.reload();
+    await s.reload();
     return { s, half };
   }
 
@@ -207,7 +212,7 @@ describe('an interrupted save never costs the player their game', () => {
     const s = await slot(null);
     s.crash.file = PRIMARY;
     expect(await s.request('save', save(1))).toMatchObject({ ok: false });
-    s.reload();
+    await s.reload();
     // Closed before any byte landed: the file exists but holds nothing.
     s.files.set(PRIMARY, new Uint8Array());
 

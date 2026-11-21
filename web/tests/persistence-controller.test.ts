@@ -644,6 +644,15 @@ describe('PersistenceController after an interrupted save', () => {
     expect(view.textContent).toContain('Saving paused');
   });
 
+  it('keeps saving paused when another tab saved while an empty slot was being restored', async () => {
+    const backend = store(empty, lastGood);
+    backend.restoreLastGood = async () => false;
+    const controller = new PersistenceController(backend, pickySim(lastGood), status());
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(controller.isSavingPaused()).toBe(true);
+    expect(controller.hasSavedGame()).toBe(false);
+  });
+
   it('lets Import replace an empty slot while saving is paused, and has nothing to Export', async () => {
     const backend = store(empty);
     backend.load = async () => { throw new Error('storage unavailable'); };

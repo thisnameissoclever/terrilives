@@ -418,11 +418,15 @@ export class PersistenceController {
     // Load the copy into the game first and replace the slot only once it
     // loads. Replacing first would swap in a copy this build might also reject.
     const lastGood = await this.store.lastGoodCopy();
-    if (lastGood !== null && await this.loadSupportedSave(lastGood)
-      && await this.store.restoreLastGood(bytes, lastGood)) {
-      return { kind: 'recovered' };
+    let copyLoaded = false;
+    if (lastGood !== null && await this.loadSupportedSave(lastGood)) {
+      copyLoaded = true;
+      if (await this.store.restoreLastGood(bytes, lastGood)) return { kind: 'recovered' };
     }
-    return bytes.byteLength === 0 ? { kind: 'none' } : { kind: 'unloadable', bytes };
+    // The running game already holds a copy the slot could not take, such as
+    // after another tab saved. Treating that slot as no save would let the next
+    // autosave write the old copy over it, so keep saving paused instead.
+    return bytes.byteLength === 0 && !copyLoaded ? { kind: 'none' } : { kind: 'unloadable', bytes };
   }
 
   private async loadSupportedSave(bytes: Uint8Array): Promise<boolean> {
