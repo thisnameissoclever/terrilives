@@ -137,6 +137,8 @@
 .admin-row-label { flex: 0 0 8.5em; min-width: 0; }
 .admin-slider { flex: 1 1 6em; min-width: 4em; accent-color: var(--need-fill, #6fb2d2); }
 .admin-number { width: 5.5em; min-height: 32px; box-sizing: border-box; text-align: right; font: inherit; color: inherit; background: var(--hud-bg, #16161c); border: 1px solid var(--hud-edge, #2c2c36); border-radius: 4px; padding: 0 6px; }
+/* A locked number box reads as locked, as the buttons and selects beside it do. */
+.admin-number:disabled { opacity: 0.6; }
 .admin-select { flex: 1 1 10em; min-width: 0; min-height: 32px; font: inherit; color: inherit; background: var(--hud-bg, #16161c); border: 1px solid var(--hud-edge, #2c2c36); border-radius: 4px; padding: 0 6px; }
 .admin-word, .admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
 /* A word after a slider's number box takes at least one width, so the boxes of a section line up. */
