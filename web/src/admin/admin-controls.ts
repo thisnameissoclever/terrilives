@@ -54,9 +54,21 @@ export function createSection(doc: Document, title: string, range?: string): Sec
   root.append(head, body, status);
   return {
     root, heading, actions, body, status,
-    report(message) { status.textContent = message ?? ''; },
+    report(message) {
+      status.textContent = message ?? '';
+      if (message) revealStatus(status);
+    },
     setRange(text) { rangeNode.textContent = text; },
   };
+}
+
+/**
+ * Scrolls a status line that has just received a message into view. A tall
+ * section, such as Career, ends below the fold, and a refusal there would
+ * otherwise be written where nobody sees it.
+ */
+export function revealStatus(status: HTMLElement): void {
+  status.scrollIntoView?.({ block: 'nearest' });
 }
 
 /** Visible and enabled: able to take focus. */

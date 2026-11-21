@@ -3,7 +3,7 @@ import { describeRelationship } from '../ui/people-panel.js';
 import type { AdminEdit, AdminTimer } from './codec.js';
 import type { AdminMember, AdminTab, AdminTabContext, AdminTabFactory } from './admin-panel.js';
 import { HOUSEMATE_WORDS, RELATIONSHIP_WORDS as W, undoLabels } from './admin-words.js';
-import { actionButton, make, rebuild, sliderRow, textNode } from './admin-controls.js';
+import { actionButton, make, rebuild, revealStatus, sliderRow, textNode } from './admin-controls.js';
 
 // The admin panel's Relationships tab (issue 312, [AP-e-rel] in
 // docs/specs/2026-11-20-admin-panel.md), with the owner's change from the
@@ -89,6 +89,7 @@ class RelationshipsTab implements AdminTab {
     if (node !== undefined) {
       node.textContent = message ?? '';
       markNote(node, this.notes.has(key));
+      if (message) revealStatus(node);
     }
   }
 
