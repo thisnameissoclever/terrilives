@@ -266,6 +266,13 @@
   .admin-trait-row.admin-slider-row > .admin-action { grid-column: 2; grid-row: 1; justify-self: end; }
   .admin-trait-row.admin-slider-row > .admin-number { grid-column: 2; grid-row: 2; }
   .admin-trait-row.admin-slider-row > .admin-word { align-self: center; }
+  /* One column in the mockup's order: Needs, Life satisfaction, Mood, Repetition, Likes, then Skills, Traits, Career. */
+  .admin-housemate { display: flex; flex-direction: column; gap: 14px; }
+  .admin-housemate > .admin-column { display: contents; }
+  .admin-housemate > .admin-column:nth-child(2) > :first-child { order: 1; }
+  .admin-housemate > .admin-column:nth-child(1) > .admin-section-fold { order: 2; }
+  .admin-housemate > .admin-column:nth-child(2) > :nth-child(2) { order: 3; }
+  .admin-housemate > .admin-column:nth-child(3) > * { order: 4; }
   /* Folding sections: a tap on the heading row opens or closes one; the one-line summary shows only while closed. */
   .admin-section-fold > .admin-section-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin: 0; min-height: 44px; cursor: pointer; }
   .admin-section-fold[open] > .admin-section-head { margin-bottom: 8px; min-height: 0; }

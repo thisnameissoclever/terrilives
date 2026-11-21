@@ -210,6 +210,16 @@ describe('focus and status colours', () => {
     expect(paid['font-weight']).toBe('400');
   });
 
+  it('stacks the Housemate tab in the mockup order on a phone: Mood before Repetition', () => {
+    expect(style('.admin-housemate > .admin-column', COMPACT)).toMatchObject({ display: 'contents' });
+    const order = (selector: string) => Number(style(selector, COMPACT).order);
+    const mood = order('.admin-housemate > .admin-column:nth-child(2) > :first-child');
+    const repetition = order('.admin-housemate > .admin-column:nth-child(1) > .admin-section-fold');
+    const likes = order('.admin-housemate > .admin-column:nth-child(2) > :nth-child(2)');
+    const rest = order('.admin-housemate > .admin-column:nth-child(3) > *');
+    expect([mood, repetition, likes, rest]).toEqual([1, 2, 3, 4]);
+  });
+
   it('folds the six housemate sections only under the compact query', () => {
     expect(style('.admin-section-summary')).toMatchObject({ display: 'none' });
     expect(style('.admin-section-fold > .admin-section-head', COMPACT)).toMatchObject({ cursor: 'pointer' });
