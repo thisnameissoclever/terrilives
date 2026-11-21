@@ -49,15 +49,21 @@ function sim(load = true): PersistableSim & { tick: number } {
   };
 }
 
-function store(saved: Uint8Array | null): SaveStore & {
+function store(saved: Uint8Array | null, lastGood: Uint8Array | null = null): SaveStore & {
   saves: Uint8Array[];
   cleared: number;
+  recoveries: number;
 } {
   return {
     saves: [],
     cleared: 0,
+    recoveries: 0,
     async load() {
       return saved;
+    },
+    async recover() {
+      this.recoveries++;
+      return lastGood;
     },
     async save(bytes) {
       this.saves.push(bytes);
@@ -363,6 +369,7 @@ describe('PersistenceController', () => {
         calls.push('load finished');
         return bytes;
       },
+      async recover() { return null; },
       async save() {
         calls.push('save');
       },
@@ -413,6 +420,7 @@ describe('PersistenceController', () => {
         calls.push('load');
         return new Uint8Array([9]);
       },
+      async recover() { return null; },
       async save() {
         calls.push('save');
       },
@@ -513,5 +521,101 @@ describe('PersistenceController', () => {
       confirmNewGame: { disabled: false },
       confirmImport: { disabled: true },
     });
+  });
+});
+
+describe('PersistenceController after an interrupted save', () => {
+  const empty = new Uint8Array();
+  const lastGood = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 5, 5]);
+  const damaged = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 5]);
+
+  /** A sim that rejects the damaged bytes and accepts the last good copy. */
+  function pickySim(accepts: Uint8Array): PersistableSim & { tick: number; loads: Uint8Array[] } {
+    const game = sim(true) as PersistableSim & { tick: number; loads: Uint8Array[] };
+    game.loads = [];
+    game.loadBytes = (bytes) => {
+      game.loads.push(bytes);
+      return bytes.length === accepts.length && bytes.every((value, index) => value === accepts[index]);
+    };
+    return game;
+  }
+
+  it('loads the last good copy when the slot is cut off, and keeps saving', async () => {
+    const backend = store(damaged, lastGood);
+    const view = status();
+    const controller = new PersistenceController(backend, pickySim(lastGood), view);
+
+    expect(await controller.restoreAtStartup()).toBe('loaded');
+    expect(backend.recoveries).toBe(1);
+    expect(view.textContent).toContain('last good copy');
+    expect(view.attributes.get('data-kind')).toBeUndefined();
+    expect(controller.isSavingPaused()).toBe(false);
+    expect(controller.hasSavedGame()).toBe(true);
+    expect(await controller.save()).toBe(true);
+  });
+
+  it('loads the last good copy when an empty slot has one', async () => {
+    const backend = store(empty, lastGood);
+    const controller = new PersistenceController(backend, pickySim(lastGood), status());
+    expect(await controller.restoreAtStartup()).toBe('loaded');
+    expect(controller.isSavingPaused()).toBe(false);
+  });
+
+  it('treats an empty slot with no last good copy as no save instead of a failed load', async () => {
+    const view = status();
+    const backend = store(empty);
+    const controller = new PersistenceController(backend, sim(false), view);
+
+    expect(await controller.restoreAtStartup()).toBe('new');
+    expect(view.textContent).toBe('No save yet');
+    expect(view.attributes.get('data-kind')).toBeUndefined();
+    expect(controller.isSavingPaused()).toBe(false);
+    expect(controller.hasSavedGame()).toBe(false);
+  });
+
+  it('still protects a cut-off slot when there is no usable last good copy', async () => {
+    const view = status();
+    const backend = store(damaged);
+    const controller = new PersistenceController(backend, sim(false), view);
+
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(view.textContent).toContain('Load failed.');
+    expect(controller.isSavingPaused()).toBe(true);
+  });
+
+  it('still protects the slot when the last good copy cannot be loaded either', async () => {
+    const backend = store(damaged, lastGood);
+    const controller = new PersistenceController(backend, sim(false), status());
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(controller.isSavingPaused()).toBe(true);
+  });
+
+  it('never replaces a slot from a version this build does not support', async () => {
+    const newer = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION + 1, 0, 17]);
+    const backend = store(newer, lastGood);
+    const controller = new PersistenceController(backend, pickySim(lastGood), status());
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(backend.recoveries).toBe(0);
+  });
+
+  it('does the same on an explicit Load', async () => {
+    const backend = store(damaged, lastGood);
+    const view = status();
+    const controller = new PersistenceController(backend, pickySim(lastGood), view);
+    expect(await controller.load()).toBe(true);
+    expect(view.textContent).toContain('last good copy');
+    expect(controller.isSavingPaused()).toBe(false);
+
+    const none = new PersistenceController(store(empty), sim(false), status());
+    expect(await none.load()).toBe(false);
+    expect(none.isSavingPaused()).toBe(false);
+  });
+
+  it('reports storage failure while recovering as unavailable and keeps saving paused', async () => {
+    const backend = store(damaged, lastGood);
+    backend.recover = async () => { throw new Error('denied'); };
+    const controller = new PersistenceController(backend, sim(false), status(), () => {});
+    expect(await controller.restoreAtStartup()).toBe('unavailable');
+    expect(controller.isSavingPaused()).toBe(true);
   });
 });

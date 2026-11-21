@@ -728,7 +728,20 @@ Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
 24. The worker backs up a published V24 primary before the first V27 overwrite. The known private V24 fingerprint and reserved V25 and V26 headers protect development saves. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
-New game clears only `terri-save-1.bin`. Recovery copies are retained for
+Every current write first copies a non-empty, supported primary to
+`terri-save-1.previous.bin`, the last good copy, and a failed write restores the
+primary from those bytes. A worker killed mid-write (the tab closing during the
+save on `visibilitychange`) cannot restore anything, and not every browser
+stages `createWritable()` until close, so the next load handles it. A primary
+that is empty, or that the simulation rejects while its header is a supported
+version, makes `PersistenceController` ask the worker to `recover`: the worker
+keeps the unreadable bytes in `terri-save-1.damaged.bin`, replaces the primary
+with the last good copy and returns it. A primary from an unsupported version is
+never recovered over. An empty primary with no usable copy counts as no save,
+and writes treat it as absent. A first save cut off at file creation leaves
+exactly such a slot.
+New game clears `terri-save-1.bin` and the last good copy, never the historical
+recovery files. Those historical copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
 storage clearing can still erase all copies; this is not an external backup.
 

@@ -11,6 +11,12 @@
 
 export interface SaveStore {
   load(): Promise<Uint8Array | null>;
+  /**
+   * Replaces a slot that could not be loaded with the last good copy and
+   * returns its bytes, or null when there is none. The unreadable bytes are
+   * kept aside, not discarded.
+   */
+  recover(): Promise<Uint8Array | null>;
   save(bytes: Uint8Array): Promise<void>;
   clear(): Promise<void>;
   close(): void;
@@ -28,6 +34,10 @@ export class SerializedSaveStore implements SaveStore {
 
   load(): Promise<Uint8Array | null> {
     return this.enqueue(() => this.backend.load());
+  }
+
+  recover(): Promise<Uint8Array | null> {
+    return this.enqueue(() => this.backend.recover());
   }
 
   save(bytes: Uint8Array): Promise<void> {
@@ -54,11 +64,13 @@ export class SerializedSaveStore implements SaveStore {
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
+  | { readonly id: number; readonly kind: 'recover' }
   | { readonly id: number; readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly id: number; readonly kind: 'clear' };
 
 type SaveRequestInput =
   | { readonly kind: 'load' }
+  | { readonly kind: 'recover' }
   | { readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly kind: 'clear' };
 
@@ -104,6 +116,11 @@ class WorkerSaveBackend implements SaveBackend {
 
   async load(): Promise<Uint8Array | null> {
     const value = await this.request({ kind: 'load' });
+    return value instanceof ArrayBuffer ? new Uint8Array(value) : null;
+  }
+
+  async recover(): Promise<Uint8Array | null> {
+    const value = await this.request({ kind: 'recover' });
     return value instanceof ArrayBuffer ? new Uint8Array(value) : null;
   }
 
