@@ -34,6 +34,8 @@ class RelationshipsTab implements AdminTab {
   private readonly cards: HTMLElement;
   /** What each status line says, by key; read when a card is drawn and written when a change is reported. */
   private readonly messages = new Map<string, string>();
+  /** Status keys whose message reports a success, such as a queued fight, rather than a refusal. */
+  private readonly notes = new Set<string>();
   /** The status nodes now on screen, by key. */
   private readonly nodes = new Map<string, HTMLElement>();
 
@@ -51,6 +53,7 @@ class RelationshipsTab implements AdminTab {
     // A status is about the change just sent, which the shell reports after this returns; any later
     // re-read (another change, Undo, a new choice) ends it.
     this.messages.clear();
+    this.notes.clear();
     const doc = this.context.doc;
     const a = this.context.selected();
     if (a === null) {
@@ -78,22 +81,30 @@ class RelationshipsTab implements AdminTab {
     rebuild(doc, this.cards, this.body, () => others.map(other => this.card(a, other, feelings.get(other.simId) ?? 0, back.get(other.simId) ?? 0)));
   }
 
-  /** Shows `message` under the status line `key`, or clears it. */
-  private say(key: string, message: string | null): void {
+  /** Shows `message` under the status line `key`, or clears it. A note reads as information, not a refusal. */
+  private say(key: string, message: string | null, note = false): void {
     if (message === null) this.messages.delete(key); else this.messages.set(key, message);
+    if (note && message !== null) this.notes.add(key); else this.notes.delete(key);
     const node = this.nodes.get(key);
-    if (node !== undefined) node.textContent = message ?? '';
+    if (node !== undefined) {
+      node.textContent = message ?? '';
+      node.classList.toggle('admin-status-note', this.notes.has(key));
+    }
   }
 
   private status(key: string): HTMLElement {
     const node = textNode(this.context.doc, 'p', 'admin-status', this.messages.get(key) ?? '');
     node.setAttribute('role', 'status');
+    node.classList.toggle('admin-status-note', this.notes.has(key));
     this.nodes.set(key, node);
     return node;
   }
 
   private send(key: string, edits: AdminEdit[], label: string, done?: string): void {
-    this.context.apply({ edits }, { label, report: message => this.say(key, message ?? done ?? null) });
+    this.context.apply({ edits }, {
+      label,
+      report: message => this.say(key, message ?? done ?? null, message === null),
+    });
   }
 
   // ---- the bar: the chosen housemate's fight, and Set all ------------------

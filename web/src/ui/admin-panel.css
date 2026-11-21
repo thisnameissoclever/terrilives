@@ -68,7 +68,9 @@
 .admin-spacer { flex: 1 1 0; }
 .admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
 .admin-undo, .admin-close, .admin-person, .admin-tab { min-height: 36px; padding: 0 14px; }
-.admin-undo { max-width: min(22em, 100%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-undo { max-width: min(22em, 100%); gap: 0; overflow: hidden; white-space: nowrap; }
+/* "Undo" and ": {change}" are two spans of one label: no flex gap between them, and a long change ends in an ellipsis. */
+.admin-undo-detail { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .admin-undo-status { margin: 0; padding: 6px 18px; color: var(--hud-danger, #e58c85); border-bottom: 1px solid var(--hud-edge, #2c2c36); }
 .admin-undo-status:empty { display: none; }
 
@@ -127,14 +129,26 @@
 .admin-section-body { display: flex; flex-direction: column; gap: 6px; }
 .admin-status { margin: 8px 0 0; color: var(--hud-danger, #e58c85); }
 .admin-status:empty { display: none; }
+/* A success that needs saying, such as a fight waiting for the game to resume, is information, not a refusal. */
+.admin-status.admin-status-note { color: var(--hud-muted, #9aa3ad); }
 .admin-note { margin: 4px 0 0; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
 
 .admin-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
 .admin-row-label { flex: 0 0 8.5em; min-width: 0; }
-.admin-slider { flex: 1 1 6em; min-width: 5em; accent-color: var(--need-fill, #6fb2d2); }
+.admin-slider { flex: 1 1 6em; min-width: 4em; accent-color: var(--need-fill, #6fb2d2); }
 .admin-number { width: 5.5em; min-height: 32px; box-sizing: border-box; text-align: right; font: inherit; color: inherit; background: var(--hud-bg, #16161c); border: 1px solid var(--hud-edge, #2c2c36); border-radius: 4px; padding: 0 6px; }
 .admin-select { flex: 1 1 10em; min-width: 0; min-height: 32px; font: inherit; color: inherit; background: var(--hud-bg, #16161c); border: 1px solid var(--hud-edge, #2c2c36); border-radius: 4px; padding: 0 6px; }
 .admin-word, .admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+/* A word after a slider's number box takes at least one width, so the boxes of a section line up. */
+.admin-slider-row > .admin-word { flex: 0 0 auto; min-width: 5em; }
+/*
+ * A trait row: the name and Remove on the first line, the slider, number and
+ * hint on the second, so Remove sits in the same place on every trait.
+ */
+.admin-trait-row > * { order: 2; }
+.admin-trait-row > .admin-row-label { order: 0; }
+.admin-trait-row > .admin-action { order: 1; margin-left: auto; }
+.admin-trait-row.admin-slider-row > .admin-row-label { flex: 1 1 calc(100% - 7em); }
 .admin-action { min-height: 32px; padding: 0 12px; }
 .admin-check { width: 18px; height: 18px; }
 
@@ -151,6 +165,7 @@
 .admin-rel-bar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 16px; }
 .admin-rel-all { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-left: auto; }
 .admin-fight { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
+.admin-rel-card .admin-row-label { flex-basis: 12em; }
 .admin-rel-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; align-items: start; }
 .admin-rel-all .admin-status, .admin-fight .admin-status { margin: 0; }
 .admin-tone-negative { color: var(--hud-danger, #e58c85); }
@@ -158,7 +173,7 @@
 .admin-tone-neutral { color: var(--hud-muted, #9aa3ad); }
 
 /* The Household tab ([T12]): funds and time at the left, the bill table at the right. */
-.admin-household { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 14px; align-items: start; }
+.admin-household { display: grid; grid-template-columns: minmax(0, 16rem) minmax(0, 1fr); gap: 14px; align-items: start; }
 @media (width <= 900px) { .admin-household { grid-template-columns: minmax(0, 1fr); } }
 .admin-bills-column { min-width: 0; }
 .admin-funds-row .admin-money { flex: 0 1 11em; }
@@ -173,10 +188,11 @@
 .admin-bill-head { padding: 4px 6px; text-align: left; font-size: 12px; font-weight: 600; color: var(--hud-muted, #9aa3ad); }
 .admin-bill-row > td, .admin-bill-new > td { padding: 5px 6px; border-top: 1px solid var(--hud-edge, #2c2c36); vertical-align: middle; }
 .admin-bill-money { white-space: nowrap; }
-.admin-bill-money .admin-number { width: 6.5em; }
+.admin-bill-money .admin-number { width: 5em; }
 .admin-bill-due .admin-select, .admin-bill-name .admin-select { width: 100%; }
-.admin-bill-status { font-size: 12px; }
-.admin-bill-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; border-top: 0; }
+.admin-bill-due .admin-select { min-width: 9.5em; }
+.admin-bill-status { min-width: 7em; font-size: 12px; }
+.admin-bill-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px 6px; border-top: 0; }
 .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { border-top: 1px solid var(--hud-edge, #2c2c36); }
 .admin-bill-notes { margin-top: 10px; }
 .admin-bill-notes .admin-note { margin: 2px 0; }
@@ -214,6 +230,8 @@
   .admin-slider-row > .admin-number { grid-column: 2; grid-row: 1; }
   .admin-slider-row > .admin-slider { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; }
   .admin-slider-row > :not(.admin-row-label, .admin-slider, .admin-number) { grid-column: 1 / -1; }
+  .admin-trait-row > *, .admin-trait-row > .admin-action, .admin-trait-row > .admin-row-label { order: 0; }
+  .admin-trait-row.admin-slider-row > .admin-action { margin-left: 0; justify-self: start; }
 
   .admin-bill-table, .admin-bill-table tbody { display: block; }
   .admin-bill-table thead { display: none; }
