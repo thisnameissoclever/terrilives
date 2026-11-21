@@ -1433,8 +1433,8 @@
         "height": 820
       },
       "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "91d11afee040c3aaf55e6fec48945fdb6ff19e95314f632e91f4c619c3df187e",
-      "outputSha256": "035cef593b11686978b244bc75ebd585753e99f7ed9ca08bd35861d196ff895c"
+      "sourceSha256": "c235bc169d4a50bb8e4d40afc16acd718812e88edc11ba319a0edb14bad93b62",
+      "outputSha256": "26991c8e6092204773d977e458950255cefa34cf88cf9be7cef92e5c81c426b2"
     },
     {
       "output": "images/guide/admin-relationships-desktop.png",
@@ -1459,8 +1459,8 @@
         "height": 820
       },
       "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "846c68085e0b038c46d7c822d5a4a654bfaa6adc5f5c0f1a29dc88e306a228cb",
-      "outputSha256": "7ce430e12306d87b62c23fc0f89626ae003c46ce9fdea3ea68bad8f2adc257f3"
+      "sourceSha256": "9ff26b87e95dae3172abc882a733253805836693639099ca5815fbf9b212b8d8",
+      "outputSha256": "a2e1f557595e0976dc85b675b65045fabcaa7fbdaf98095d2e35baa8e5a8b815"
     }
   ]
 }

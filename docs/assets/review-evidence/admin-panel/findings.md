@@ -47,3 +47,21 @@ Fixes for N1 to N3 were played at 390x844 and 1440x900 after the first pass; `la
 ## Open after this pass
 
 - **N4.** Outside the panel, a dev-server reload during the save written on page hide left a 0-byte save slot, and the next load failed. This is a persistence question, tracked separately.
+
+## Review round, 2026-11-21
+
+Played at 1440x900 and 390x844 in a muted browser on the dev server, from commit b616048fc. `layout-check.js` returned no findings for every state below. The check was run as an equivalent condensed copy of the file's logic (comments and fix text removed), loaded once per page. Every still named here was opened at full size.
+
+| Fix | What changed | Where seen |
+|---|---|---|
+| Career refusal | The Career card's status line sits directly under the Job and Shift controls and still scrolls into view. | `desktop-night-refusal-job-change.png`, `phone-night-housemate-career.png` |
+| Repetition rows | Rows that share an action label also name their object, and are numbered when the object names match too. | Unit tests only: a second bookshelf could not be set up in Build mode without playing until both shelves have been used. |
+| New bill row | The row starts on the first free kind and due day, Add bill is disabled for a pair that exists, and the whole row is shut when none is free. | `desktop-night-household-bills.png` (rent on Day 1 offered, as Day 8 holds all four kinds) |
+| Funds note | One bill short keeps its note under its row; two or more share "Funds don't cover these bills." once under the table. | `desktop-night-household-bills.png` |
+| Job search on a phone | The description sits beside its check box. | `phone-night-housemate-career.png` |
+| Close after a skip | A skip that ends with the session refused closes the panel with the same refresh as every other close (test). | Unit test |
+| Build while broken | `begin_build` refuses a broken world as Build failure 17 (Rust test, web decoders and tests). | Rust and vitest |
+| Dead-key tilde | The Dead keydown does nothing and the next key's tilde opens the panel (test only). Italian removed from the layouts named. | Unit test |
+| Capability hint | "how far learned" is now "improvement" (owner wording). | `ui-admin-housemate-desktop.png` in the guide folder |
+
+The guide pictures `ui-admin-household-desktop.png`, `ui-admin-household-mobile.png`, `ui-admin-housemate-desktop.png` and `ui-admin-housemate-mobile.png` were recaptured with their desktop crops, hashes and a new source snapshot.

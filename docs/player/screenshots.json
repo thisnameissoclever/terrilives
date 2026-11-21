@@ -424,25 +424,25 @@
         "evidence": "docs/assets/review-evidence/admin-panel/"
       },
       {
-        "id": "admin-household-2026-11-21",
+        "id": "admin-review-round-2026-11-21",
         "url": "http://127.0.0.1:5174/",
         "gameSourceFileSha256": {
           "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
           "web/src/main.ts": "dd1c9fe354dddd9744032ffc67ca75bcb78f320c79c41d053d95d64d8f98fa31",
-          "web/src/admin/admin-panel.ts": "1040833afde1dc660bc122c737b9ccac6aeb66257c057426cddf38a3420fba79",
-          "web/src/admin/admin-housemate.ts": "b444fba5345f16dce2d1fb93592675400c8e012fae311fee3800a80b3cfd2a9d",
+          "web/src/admin/admin-panel.ts": "6004f6bd284cf7a3a48931f9dbed5f912668588f01975417404268262f310100",
+          "web/src/admin/admin-housemate.ts": "15b29e57218754d27743359e4c2867c1e9f41b71af9b735135d4fd84791b7447",
           "web/src/admin/admin-relationships.ts": "96e2ebcdead137c1d8c3bc190e8405c3612afe555776c71945736bee492ca5fe",
-          "web/src/admin/admin-household.ts": "5c2652bf765334a5746b9d8d5dc0956cd1749da5376b911d05a3ca36124ebd7a",
+          "web/src/admin/admin-household.ts": "643d0d39fe5eb83f315ece9d7c1ed0c83372e1b9a63e249cd17091c674a8e18d",
           "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
-          "web/src/admin/admin-open.ts": "3a5d4e49a8553723b5d617282fdfbf22db696a6c8d5c0ee2e625ddbd72c028bc",
+          "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
           "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
-          "web/src/ui/admin-panel.css": "af42dfc670109dcde40d9585a827e46ac7612ed6c40cd1b63b234657884f72bd",
+          "web/src/ui/admin-panel.css": "2990244e7673b3702a13adf833aff247b454d15286daf486bc41e50996072d02",
           "content/tuning.toml": "2b3deb3523bfc1dcd999786ca079800a201d17e623b52f4c15fb616af90cd1ee"
         },
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-11-21",
-        "method": "Playwright driving Chromium, muted through the game's Sound: off preference, against the branch served by the vite dev server (commit db64a3bbc). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. A fresh New game was started (Start over accepted), so the HUD shows no Load failed text, and paused at Day 1, 00:05. With the admin panel, Skip ahead ran to Day 7, 23:05, funds were set to $0 so the first month's bills stayed unpaid, and Skip ahead ran to Day 8, Monday 05:05, before any shift was paid. The starting bills were then: Rent moved to Day 1 with the 15% late fee three days past its grace would have added, so it is overdue; Water paid from funds; Electricity and Transportation left in their grace days. Funds were set to $4.65, below every unpaid bill. Focus was moved off the controls with a click on the panel before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, without touch emulation; the phone layout is chosen by width.",
-        "evidence": "docs/player/images/ui-admin-household-desktop.png and docs/player/images/ui-admin-household-mobile.png"
+        "method": "Playwright driving Chromium, muted through the game's Sound: off preference, against the branch served by the vite dev server (commit b616048fc). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. The game was the saved game from the Household capture (a fresh New game played with the admin panel), now at Day 9, Tuesday 09:39. With the admin panel, Rent was moved to Day 1 with a 15 percent late fee, so it is overdue; Water was marked paid; Electricity and Transportation stayed in their grace days; and funds were set to $4.65, below every unpaid bill, so the funds note shows once under the table. The game was paused, the HUD shows no Load failed text, and Undo shows its label on the desktop. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, without touch emulation; the phone layout is chosen by width.",
+        "evidence": "docs/player/images/ui-admin-household-desktop.png, ui-admin-household-mobile.png, ui-admin-housemate-desktop.png and ui-admin-housemate-mobile.png"
       }
     ],
     "weatherSetup": {
@@ -2445,10 +2445,10 @@
       "access": "Press ~, or hold the lot's bottom corner tile on a touch screen.",
       "desktop": "images/ui-admin-housemate-desktop.png",
       "mobile": "images/ui-admin-housemate-mobile.png",
-      "sourceSnapshot": "admin-panel-2026-11-21",
+      "sourceSnapshot": "admin-review-round-2026-11-21",
       "imageSha256": {
-        "desktop": "91d11afee040c3aaf55e6fec48945fdb6ff19e95314f632e91f4c619c3df187e",
-        "mobile": "83d8be747e392f70b2ec352777f7f745e808106f0db6bf080e6df93cb1372c67"
+        "desktop": "c235bc169d4a50bb8e4d40afc16acd718812e88edc11ba319a0edb14bad93b62",
+        "mobile": "9c01e35e94c4d43be4edc389bd54e763e9f1542854d2dc621780f3ba5ef7747f"
       },
       "captureMetadata": {
         "desktop": {
@@ -2460,7 +2460,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "91d11afee040c3aaf55e6fec48945fdb6ff19e95314f632e91f4c619c3df187e"
+          "sourceImageSha256": "c235bc169d4a50bb8e4d40afc16acd718812e88edc11ba319a0edb14bad93b62"
         },
         "mobile": {
           "width": 390,
@@ -2471,7 +2471,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "83d8be747e392f70b2ec352777f7f745e808106f0db6bf080e6df93cb1372c67"
+          "sourceImageSha256": "9c01e35e94c4d43be4edc389bd54e763e9f1542854d2dc621780f3ba5ef7747f"
         }
       }
     },
@@ -2519,10 +2519,10 @@
       "access": "Open the admin panel, then choose Household.",
       "desktop": "images/ui-admin-household-desktop.png",
       "mobile": "images/ui-admin-household-mobile.png",
-      "sourceSnapshot": "admin-household-2026-11-21",
+      "sourceSnapshot": "admin-review-round-2026-11-21",
       "imageSha256": {
-        "desktop": "846c68085e0b038c46d7c822d5a4a654bfaa6adc5f5c0f1a29dc88e306a228cb",
-        "mobile": "878938f971779ecbb63266bb6e5f0acd58cc1b9d798939020a24db8cd8af1dd4"
+        "desktop": "9ff26b87e95dae3172abc882a733253805836693639099ca5815fbf9b212b8d8",
+        "mobile": "448c92734243cf5ce61b9dacd8acc968c6efdf7ae2526613289ad9519396396c"
       },
       "captureMetadata": {
         "desktop": {
@@ -2534,7 +2534,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "846c68085e0b038c46d7c822d5a4a654bfaa6adc5f5c0f1a29dc88e306a228cb"
+          "sourceImageSha256": "9ff26b87e95dae3172abc882a733253805836693639099ca5815fbf9b212b8d8"
         },
         "mobile": {
           "width": 390,
@@ -2545,7 +2545,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "878938f971779ecbb63266bb6e5f0acd58cc1b9d798939020a24db8cd8af1dd4"
+          "sourceImageSha256": "448c92734243cf5ce61b9dacd8acc968c6efdf7ae2526613289ad9519396396c"
         }
       }
     }
