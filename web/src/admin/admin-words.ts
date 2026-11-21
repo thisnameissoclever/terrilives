@@ -166,7 +166,7 @@ export const HOUSEMATE_WORDS = {
   skills: 'Skills',
   skillsRange: (max: number): string => `Level 0 to ${max}`,
   traits: 'Traits',
-  learned: 'how far learned',
+  learned: 'improvement',
   severe: 'how severe',
   noValue: 'No value to set',
   remove: 'Remove',

@@ -420,7 +420,7 @@ describe('Traits', () => {
     expect(b.f.box('Low spirits').value).toBe('60');
     expect(b.f.has('Bookworm value')).toBe(false);
     const text = b.f.section('Traits').textContent;
-    expect(text).toContain('how far learned');
+    expect(text).toContain('improvement');
     expect(text).toContain('how severe');
     expect(text).toContain('No value to set');
   });

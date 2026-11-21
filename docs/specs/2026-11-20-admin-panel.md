@@ -172,7 +172,7 @@ These checks are cheap and cover exactly what changed. The full save round trip 
 | [AP-e-aff] | Plants, Aquarium, Television, Radio | `SetAffinity` | -1 to 1, two decimals | one row per `[[affinity]]` kind in pack order; band words from `affinity_band_likes` and `affinity_band_loves` |
 | [AP-e-skill] | One row per skill | `SetSkillPractice` | level 0 to the skill's `levels`, shown as level plus fraction ("2.40" is level 2, 40% of the way to 3); the shell converts with `skill_practice_for` ([AP-wasm]); the drain refuses practice above `Ladder::max_practice(levels)` with 3 | labels from `skills.toml` (Cooking, Fitness, Reading) |
 | [AP-e-tval] | A worn condition's value ("how severe") | `SetTraitState` | 0 to 100 percent, sent as 0 to 1; refusal 9 when not worn, 10 for a disposition | |
-| [AP-e-tcap] | A worn capability's value ("how far learned") | `SetSkillPractice` on the capability's skill, from `practice_for_mastery` | 0 to 100 percent | the value shown for a capability is its skill's mastery, not the trait state ([AP-c-capability]); a capability whose tag names no skill falls back to `SetTraitState` |
+| [AP-e-tcap] | A worn capability's value ("improvement") | `SetSkillPractice` on the capability's skill, from `practice_for_mastery` | 0 to 100 percent | the value shown for a capability is its skill's mastery, not the trait state ([AP-c-capability]); a capability whose tag names no skill falls back to `SetTraitState` |
 | [AP-e-tdisp] | A disposition | none | "No value to set" | |
 | [AP-e-tremove] | Remove | `RemoveTrait` | refusal 9 | practice stays where it is, as Edit Sims leaves it |
 | [AP-e-tadd] | Choose a trait to add, Add | `AddTrait` | refusal 7 at 4 traits, 8 when worn, 4 when unknown; Add is disabled at 4 with the note "Four traits at most." | applied through the trait half of `edit.rs` `apply`, factored into `edit::apply_traits`: the new trait starts at `authored_trait_state`, kept traits keep their states, a capability raises its skill (`seed_from_capabilities`), and `LotEditState.revision` moves so trait caches refresh |
@@ -372,7 +372,7 @@ Every string below is functional text proposed for the owner's review under the 
 | S-mood | Mood and moodlets; Mood {word}; {word}, {score} (the folded phone summary); Ends in {duration}; End now; End {name}'s timed moodlets; From {need} below {n}; From job satisfaction; From {name}'s feeling about {other}; While a bill is overdue | Housemate ([AP-c-sources]) |
 | S-likes | Likes and dislikes; -1 to 1 | Housemate |
 | S-skills | Skills; Level 0 to {max} | Housemate |
-| S-traits | Traits; how far learned; how severe; No value to set; Remove; Choose a trait to add; Add; Four traits at most. | Housemate |
+| S-traits | Traits; improvement; how severe; No value to set; Remove; Choose a trait to add; Add; Four traits at most. | Housemate |
 | S-career | Career; Job; No job; {path}: {title} (level {n} of {m}); Shift; {shift name}, {hh:mm} to {hh:mm}; Takes effect tomorrow.; Pay per shift; ${min} to ${max}; Job satisfaction; of 100; Good weeks in a row; {n} earns a promotion; Poor weeks in a row; 2 brings a warning. 3 or more risk being fired.; Job search; Looks for work on their own | Housemate |
 | S-rel | {A} and {B}; {A}'s feeling about {B}; {A} starts a fight; Set both to 0; Set all of {A}'s feelings to 0; {A} had a fight. Ends in {duration}.; The fight starts when the game resumes. | Relationships |
 | S-funds | Funds; Add $1,000; Subtract $1,000; Add $10,000; Set to $0; Use at most two decimal places. | Household |
