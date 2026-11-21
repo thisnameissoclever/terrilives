@@ -9,6 +9,8 @@ import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
 import { AdminPanel } from './admin/admin-panel.js';
+import { createHousemateTab } from './admin/admin-housemate.js';
+import { housemateSource } from './admin/admin-sources.js';
 import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
@@ -902,6 +904,7 @@ async function main(): Promise<void> {
       if (cause === 'undo') restoreBuildPresentation();
       refreshHudAfterAdmin();
     },
+    tabs: { housemate: createHousemateTab(housemateSource(sim)) },
   });
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at

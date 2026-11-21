@@ -301,12 +301,22 @@ function rowsOf(row: ArrayLike<number>, width: number, what: string): void {
   finite(row);
 }
 
-export interface AdminRepetition { readonly object: number; readonly row: number; readonly value: number }
+export interface AdminRepetition {
+  readonly object: number;
+  readonly row: number;
+  readonly value: number;
+  /** A row that advertises Hunger: the rows that make a person Feeling sick. */
+  readonly food: boolean;
+}
 
-/** `admin_repetition`: `[object, row, value]` per entry. */
+/** `admin_repetition`: `[object, row, value, food]` per entry. */
 export function decodeAdminRepetition(row: ArrayLike<number>): AdminRepetition[] {
-  rowsOf(row, 3, 'repetition');
-  return Array.from({ length: row.length / 3 }, (_, i) => ({ object: row[i * 3], row: row[i * 3 + 1], value: row[i * 3 + 2] }));
+  rowsOf(row, 4, 'repetition');
+  return Array.from({ length: row.length / 4 }, (_, i) => {
+    const flag = row[i * 4 + 3];
+    check(flag === 0 || flag === 1, 'repetition food flag');
+    return { object: row[i * 4], row: row[i * 4 + 1], value: row[i * 4 + 2], food: flag === 1 };
+  });
 }
 
 export interface AdminTimer {
@@ -398,4 +408,57 @@ export function decodeAdminBills(row: ArrayLike<number>): AdminBills {
     };
   });
   return { bills, dueDays: Array.from({ length: row.length - 1 - count * BILL_ROW_LEN }, (_, i) => row[1 + count * BILL_ROW_LEN + i]) };
+}
+
+/** `admin_affinities`: one value per affinity kind in pack order, -1 to 1; empty for a non-housemate. */
+export function decodeAdminAffinities(row: ArrayLike<number>): number[] {
+  finite(row);
+  const values = Array.from(row);
+  check(values.every(value => value >= -1 && value <= 1), 'an affinity outside -1 to 1');
+  return values;
+}
+
+/** `admin_trait_skills`: per pack trait, the skill a capability trains, or null. */
+export function decodeAdminTraitSkills(row: ArrayLike<number>): (number | null)[] {
+  finite(row);
+  return Array.from(row, value => {
+    check(value === -1 || Number.isInteger(value) && value >= 0, 'a trait skill index');
+    return value === -1 ? null : value;
+  });
+}
+
+/** One level of one career path: the row `SetJob` takes. */
+export interface AdminJobOption { readonly path: number; readonly level: number; readonly row: number }
+
+/** `admin_job_options`: `[path, level, row]` per career level, in path then level order. */
+export function decodeAdminJobOptions(row: ArrayLike<number>): AdminJobOption[] {
+  rowsOf(row, 3, 'job options');
+  return Array.from({ length: row.length / 3 }, (_, i) => {
+    const [path, level, held] = [row[i * 3], row[i * 3 + 1], row[i * 3 + 2]];
+    check([path, level, held].every(n => Number.isInteger(n) && n >= 0), 'a job option');
+    return { path, level, row: held };
+  });
+}
+
+/** The tuning the panel's ranges and words come from. */
+export interface AdminLimits {
+  /** The most repetition an entry holds. */
+  readonly habituationMax: number;
+  /** Above this, repetition is Overdoing. */
+  readonly overdoingThreshold: number;
+  /** At or above this, a food row reads Feeling sick. */
+  readonly sickThreshold: number;
+  /** The most traits a person wears. */
+  readonly maxTraits: number;
+  /** The most poor weeks in a row the panel sets. */
+  readonly maxPoorWeeks: number;
+}
+
+/** `admin_limits`: `[habituation_max, overdoing_threshold, sick_threshold, housemate_max_traits, most poor weeks]`. */
+export function decodeAdminLimits(row: ArrayLike<number>): AdminLimits {
+  check(row.length === 5, 'limits length');
+  finite(row);
+  check(row[0] > 0 && row[1] > 0 && row[2] > 0, 'limits are positive');
+  check(Number.isInteger(row[3]) && row[3] >= 1 && Number.isInteger(row[4]) && row[4] >= 0, 'limit counts');
+  return { habituationMax: row[0], overdoingThreshold: row[1], sickThreshold: row[2], maxTraits: row[3], maxPoorWeeks: row[4] };
 }

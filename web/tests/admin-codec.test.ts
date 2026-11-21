@@ -9,7 +9,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   ADMIN_COMMAND_CODE, ADMIN_EDIT_CODES, ADMIN_REFUSAL_CODES, AdminWireError, MAX_ADMIN_EDITS, MAX_ADMIN_FUNDS_CENTS,
-  decodeAdminApply, decodeAdminBegin, decodeAdminBills, decodeAdminMoodlets, decodeAdminPerson,
+  decodeAdminAffinities, decodeAdminApply, decodeAdminBegin, decodeAdminBills, decodeAdminJobOptions, decodeAdminLimits,
+  decodeAdminMoodlets, decodeAdminPerson, decodeAdminTraitSkills,
   decodeAdminRepetition, decodeAdminTimers, decodeAdminUndo, encodeAdminChange, parseDollars,
   type AdminChange, type AdminEdit,
 } from '../src/admin/codec.js';
@@ -188,9 +189,10 @@ describe('reads', () => {
   });
 
   it('reads repetition and timers as rows', () => {
-    expect(decodeAdminRepetition([9, 2, 1.5, 4, 0, 3])).toEqual([{ object: 9, row: 2, value: 1.5 }, { object: 4, row: 0, value: 3 }]);
+    expect(decodeAdminRepetition([9, 2, 1.5, 0, 4, 0, 3, 1])).toEqual([{ object: 9, row: 2, value: 1.5, food: false }, { object: 4, row: 0, value: 3, food: true }]);
     expect(decodeAdminRepetition([])).toEqual([]);
-    expect(() => decodeAdminRepetition([9, 2])).toThrow(AdminWireError);
+    expect(() => decodeAdminRepetition([9, 2, 1])).toThrow(AdminWireError);
+    expect(() => decodeAdminRepetition([9, 2, 1, 2])).toThrow(AdminWireError);
     expect(decodeAdminTimers([1, 5000, 5, 99])).toEqual([{ timer: 1, endsTick: 5000 }, { timer: 5, endsTick: 99 }]);
     expect(() => decodeAdminTimers([6, 1])).toThrow(AdminWireError);
     expect(() => decodeAdminTimers([1])).toThrow(AdminWireError);
@@ -235,5 +237,37 @@ describe('reads', () => {
     expect(() => decodeAdminBills([1, 28, 1, 6100])).toThrow(AdminWireError);
     expect(() => decodeAdminBills([-1])).toThrow(AdminWireError);
     expect(() => decodeAdminBills([0.5])).toThrow(AdminWireError);
+  });
+});
+
+describe('the content reads the Housemate tab uses', () => {
+  it('reads affinities as values from -1 to 1', () => {
+    expect(decodeAdminAffinities([0.35, -1, 1, 0])).toEqual([0.35, -1, 1, 0]);
+    expect(decodeAdminAffinities([])).toEqual([]);
+    expect(() => decodeAdminAffinities([1.5])).toThrow(AdminWireError);
+    expect(() => decodeAdminAffinities([NaN])).toThrow(AdminWireError);
+  });
+
+  it('reads the skill each capability trains, or null', () => {
+    expect(decodeAdminTraitSkills([-1, 0, 2, -1])).toEqual([null, 0, 2, null]);
+    expect(() => decodeAdminTraitSkills([-2])).toThrow(AdminWireError);
+    expect(() => decodeAdminTraitSkills([0.5])).toThrow(AdminWireError);
+  });
+
+  it('reads every level of every path with the row SetJob takes', () => {
+    expect(decodeAdminJobOptions([0, 0, 4, 0, 1, 5, 1, 0, 9])).toEqual([
+      { path: 0, level: 0, row: 4 }, { path: 0, level: 1, row: 5 }, { path: 1, level: 0, row: 9 },
+    ]);
+    expect(() => decodeAdminJobOptions([0, 0])).toThrow(AdminWireError);
+    expect(() => decodeAdminJobOptions([0, -1, 4])).toThrow(AdminWireError);
+  });
+
+  it('reads the tuning limits', () => {
+    expect(decodeAdminLimits([3, 1, 2.5, 4, 15])).toEqual({
+      habituationMax: 3, overdoingThreshold: 1, sickThreshold: 2.5, maxTraits: 4, maxPoorWeeks: 15,
+    });
+    expect(() => decodeAdminLimits([3, 1, 2.5, 4])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([0, 1, 2.5, 4, 15])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([3, 1, 2.5, 0, 15])).toThrow(AdminWireError);
   });
 });

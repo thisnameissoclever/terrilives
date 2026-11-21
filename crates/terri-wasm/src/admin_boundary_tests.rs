@@ -319,10 +319,11 @@ fn reads_are_empty_for_anyone_who_is_not_a_living_housemate() {
         assert!(handle.admin_repetition(nobody).is_empty());
         assert!(handle.admin_moodlets(nobody).is_empty());
         assert!(handle.admin_timers(nobody).is_empty());
+        assert!(handle.admin_affinities(nobody).is_empty());
     }
 }
 
-/// `admin_repetition`: `[object, row, value]` per entry, and a set value
+/// `admin_repetition`: `[object, row, value, food]` per entry, and a set value
 /// reads back.
 #[test]
 fn admin_repetition_lists_each_entry() {
@@ -349,10 +350,11 @@ fn admin_repetition_lists_each_entry() {
         .get_mut::<Habituation>(entity)
         .expect("inserted above")
         .bump(ObjectDefId(object), row, 1.5, pack.tuning.habituation_max);
-    assert_eq!(
-        handle.admin_repetition(first),
-        vec![f64::from(object), f64::from(row), 1.5]
-    );
+    let held = handle.admin_repetition(first);
+    assert_eq!(held[..3], [f64::from(object), f64::from(row), 1.5]);
+    let food = held[3];
+    assert!(food == 0.0 || food == 1.0, "a flag: {food}");
+    assert_eq!(held.len(), 4);
     let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetRepetition {
         sim: first,
         object,
@@ -362,8 +364,61 @@ fn admin_repetition_lists_each_entry() {
     assert_eq!(applied[0], 1, "{applied:?}");
     assert_eq!(
         handle.admin_repetition(first),
-        vec![f64::from(object), f64::from(row), 2.25]
+        vec![f64::from(object), f64::from(row), 2.25, food]
     );
+}
+
+/// `admin_repetition`'s food flag marks exactly the rows that make a person
+/// Feeling sick at `sick_threshold`: the moodlet appears for a food row at
+/// the threshold and for no other.
+#[test]
+fn admin_repetition_flags_the_food_rows_that_make_a_person_sick() {
+    let mut handle = opened();
+    let first = people(&mut handle)[0];
+    let entity = terri_sim::edit::living_entity(handle.sim.world(), first).unwrap();
+    let index = entity.index_u32();
+    let pack = handle.sim.world().resource::<terri_sim::Content>().0;
+    let sick_at = pack.tuning.sick_threshold;
+    let max = pack.tuning.habituation_max;
+    let mut food_rows = 0;
+    let mut other_rows = 0;
+    for object in 0..pack.objects.len() as u32 {
+        for action in terri_sim::action_rows::rows(pack, ObjectDefId(object)) {
+            // A fresh component each time, so this row is the only entry.
+            handle
+                .sim
+                .world_mut()
+                .entity_mut(entity)
+                .insert(Habituation::default());
+            handle
+                .sim
+                .world_mut()
+                .get_mut::<Habituation>(entity)
+                .unwrap()
+                .bump(ObjectDefId(object), action.row, sick_at.min(max), max);
+            let held = handle.admin_repetition(first);
+            if held.is_empty() {
+                continue;
+            }
+            let sick = handle
+                .mood_summary_of(index)
+                .iter()
+                .any(|label| label == "Feeling sick");
+            assert_eq!(
+                held[3] == 1.0,
+                sick,
+                "object {object} row {}: the flag and the moodlet agree",
+                action.row
+            );
+            if sick {
+                food_rows += 1;
+            } else {
+                other_rows += 1;
+            }
+        }
+    }
+    assert!(food_rows > 0, "the shipped pack has a food row");
+    assert!(other_rows > 0, "and rows that are not food");
 }
 
 /// `admin_timers` and `admin_moodlets`: a fight timer is code 1 with the tick
@@ -603,5 +658,104 @@ fn a_save_taken_with_the_panel_open_loads_with_the_edits_and_no_session() {
         loaded.admin_begin(),
         0,
         "the loaded game opens a fresh session"
+    );
+}
+
+/// `admin_affinities`: one value per kind in pack order, and a set value
+/// reads back.
+#[test]
+fn admin_affinities_lists_each_kind_and_reads_a_set_value_back() {
+    let mut handle = opened();
+    let first = people(&mut handle)[0];
+    let kinds = handle.affinity_labels().len();
+    assert!(kinds >= 2, "the shipped pack has several affinity kinds");
+    let before = handle.admin_affinities(first);
+    assert_eq!(before.len(), kinds);
+    assert!(before.iter().all(|value| (-1.0..=1.0).contains(value)));
+    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetAffinity {
+        sim: first,
+        kind: 1,
+        value: -0.75,
+    }]));
+    assert_eq!(applied[0], 1, "{applied:?}");
+    let after = handle.admin_affinities(first);
+    assert_eq!(after[1], -0.75);
+    assert_eq!(after[0], before[0], "the other kinds are untouched");
+}
+
+/// `admin_trait_skills`: one entry per pack trait, a skill index only for a
+/// capability whose tag names a skill.
+#[test]
+fn admin_trait_skills_names_the_skill_each_capability_trains() {
+    let handle = SimHandle::from_lot();
+    let skills = handle.admin_trait_skills();
+    let kinds = handle.trait_kinds();
+    assert_eq!(skills.len(), kinds.len());
+    let skill_count = handle.skill_levels().len() as f64;
+    let mut capabilities = 0;
+    for (trait_kind, skill) in kinds.iter().zip(&skills) {
+        if trait_kind == "capability" {
+            capabilities += 1;
+            assert!(
+                *skill == -1.0 || (0.0..skill_count).contains(skill),
+                "a skill index or none: {skill}"
+            );
+        } else {
+            assert_eq!(*skill, -1.0, "only a capability trains a skill");
+        }
+    }
+    assert!(capabilities > 0, "the shipped pack has capabilities");
+    assert!(
+        skills.iter().any(|skill| *skill >= 0.0),
+        "at least one capability trains a skill"
+    );
+}
+
+/// `admin_job_options`: a `[path, level, row]` triple per career level, and
+/// every row is one `SetJob` accepts.
+#[test]
+fn admin_job_options_lists_every_level_and_each_row_is_a_job() {
+    let mut handle = opened();
+    let first = people(&mut handle)[0];
+    let options = handle.admin_job_options();
+    assert!(!options.is_empty() && options.len() % 3 == 0);
+    let paths = handle.career_path_labels().len() as f64;
+    let mut previous: Option<(f64, f64)> = None;
+    for triple in options.chunks(3) {
+        let (path, level, row) = (triple[0], triple[1], triple[2]);
+        assert!((0.0..paths).contains(&path));
+        match previous {
+            Some((p, l)) if p == path => assert_eq!(level, l + 1.0, "levels count up"),
+            _ => assert_eq!(level, 0.0, "each path starts at level 0"),
+        }
+        previous = Some((path, level));
+        let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetJob {
+            sim: first,
+            job: Some(row as u32),
+            shift: 0,
+        }]));
+        assert_eq!(applied[0], 1, "row {row}: {applied:?}");
+        assert_eq!(handle.admin_person(first)[8], row, "the person holds it");
+    }
+}
+
+/// `admin_limits`: the tuning the panel's ranges come from.
+#[test]
+fn admin_limits_reads_the_tuning_the_panel_ranges_come_from() {
+    let handle = SimHandle::from_lot();
+    let limits = handle.admin_limits();
+    assert_eq!(limits.len(), terri_sim::admin::reads::LIMITS_LEN);
+    let tuning = &handle.sim.world().resource::<terri_sim::Content>().0.tuning;
+    assert_eq!(limits[0], f64::from(tuning.habituation_max));
+    assert_eq!(limits[1], f64::from(tuning.overdoing_threshold));
+    assert_eq!(limits[2], f64::from(tuning.sick_threshold));
+    assert_eq!(limits[3], f64::from(tuning.housemate_max_traits));
+    assert_eq!(
+        limits[4],
+        f64::from(
+            terri_sim::careers::certain_fire_weeks(tuning)
+                .unwrap_or(terri_sim::careers::POOR_WARNING_WEEKS)
+        ),
+        "the most poor weeks the panel sets"
     );
 }

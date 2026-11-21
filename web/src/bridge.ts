@@ -9,9 +9,9 @@ import { decodeRoomUnit, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecess
   type BuildToken, type RoomChoices, type Point } from './rooms/codec.js';
 import { parseBuildFailureReport, type BuildFailureReport } from './rooms/failure.js';
 import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
-import { decodeAdminApply, decodeAdminBegin, decodeAdminBills, decodeAdminMoodlets, decodeAdminPerson,
+import { decodeAdminAffinities, decodeAdminApply, decodeAdminBegin, decodeAdminJobOptions, decodeAdminLimits, decodeAdminTraitSkills, decodeAdminBills, decodeAdminMoodlets, decodeAdminPerson,
   decodeAdminRepetition, decodeAdminTimers, decodeAdminUndo, encodeAdminChange, type AdminApplyResult,
-  type AdminBeginResult, type AdminBills, type AdminChange, type AdminMoodlet, type AdminPerson,
+  type AdminBeginResult, type AdminBills, type AdminChange, type AdminJobOption, type AdminLimits, type AdminMoodlet, type AdminPerson,
   type AdminRepetition, type AdminTimer, type AdminUndoResult } from './admin/codec.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
@@ -1217,6 +1217,16 @@ export class SimBridge {
     return isU32(sim) ? decodeAdminTimers(this.handle.admin_timers(sim)) : [];
   }
   adminBills(): AdminBills { return decodeAdminBills(this.handle.admin_bills()); }
+  /** One value per affinity kind in pack order, -1 to 1; empty for anyone but a living housemate. */
+  adminAffinities(sim: number): number[] {
+    return isU32(sim) ? decodeAdminAffinities(this.handle.admin_affinities(sim)) : [];
+  }
+  /** Per pack trait, the skill a capability trains, or null. Read once. */
+  adminTraitSkills(): (number | null)[] { return decodeAdminTraitSkills(this.handle.admin_trait_skills()); }
+  /** Every level of every career path with the row `SetJob` takes. Read once. */
+  adminJobOptions(): AdminJobOption[] { return decodeAdminJobOptions(this.handle.admin_job_options()); }
+  /** The tuning the panel's ranges and words come from. Read once. */
+  adminLimits(): AdminLimits { return decodeAdminLimits(this.handle.admin_limits()); }
   /**
    * The practice that reads back as `level` whole levels and `fraction` of the
    * next in `skill`, or null for an unknown skill, a level past its top or a

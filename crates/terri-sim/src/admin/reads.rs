@@ -14,13 +14,17 @@ use crate::mood::{self, MoodSource};
 use crate::{edit, Content};
 use bevy_ecs::prelude::*;
 use terri_core::admin::ADMIN_TIMER_COUNT;
-use terri_core::{Career, Habituation, NeedId, Needs, Satisfaction, SimClock, SimId};
+use terri_core::{Affinities, Career, Habituation, NeedId, Needs, Satisfaction, SimClock, SimId};
+use terri_data::CompiledTraitKind;
 
 /// How many numbers [`person`] returns.
 pub const PERSON_LEN: usize = NeedId::ALL.len() + 1 + 10;
 
 /// How many numbers each bill takes in [`bills`].
 pub const BILL_ROW_LEN: usize = 7;
+
+/// How many numbers [`limits`] returns.
+pub const LIMITS_LEN: usize = 5;
 
 fn living(world: &World, sim: u32) -> Option<Entity> {
     edit::living_entity(world, sim)
@@ -95,17 +99,27 @@ pub fn person(world: &World, sim: u32) -> Vec<f64> {
     row
 }
 
-/// `[object, row, value]` for every repetition entry the person holds, in
-/// the entries' (object, row) order.
+/// `[object, row, value, food]` for every repetition entry the person holds,
+/// in the entries' (object, row) order. `food` is 1 for a row that advertises
+/// Hunger, the rows that make a person Feeling sick at `sick_threshold`, and
+/// 0 for any other.
 pub fn repetition(world: &World, sim: u32) -> Vec<f64> {
     let Some(entity) = living(world, sim) else {
         return Vec::new();
     };
+    let pack = world.resource::<Content>().0;
     world
         .get::<Habituation>(entity)
         .into_iter()
         .flat_map(Habituation::entries)
-        .flat_map(|&(object, row, value)| [f64::from(object.0), f64::from(row), f64::from(value)])
+        .flat_map(|&(object, row, value)| {
+            [
+                f64::from(object.0),
+                f64::from(row),
+                f64::from(value),
+                f64::from(u8::from(mood::is_food(pack, object, row))),
+            ]
+        })
         .collect()
 }
 
@@ -222,4 +236,69 @@ pub fn skill_practice_for(world: &World, skill: u32, level: u32, fraction: f32) 
         u8::try_from(level).ok()?,
         fraction,
     )
+}
+
+/// One affinity value per `[[affinity]]` kind in pack order, -1 to 1; empty
+/// for anyone but a living housemate. A person who holds no affinities reads
+/// 0 for every kind, as the simulation treats them.
+pub fn affinities(world: &World, sim: u32) -> Vec<f64> {
+    let Some(entity) = living(world, sim) else {
+        return Vec::new();
+    };
+    let pack = world.resource::<Content>().0;
+    let held = world.get::<Affinities>(entity);
+    (0..pack.affinities.len() as u32)
+        .map(|kind| held.map_or(0.0, |held| f64::from(held.value(kind))))
+        .collect()
+}
+
+/// For each pack trait in pack order, the index of the skill a capability
+/// trains (the skill whose tag the trait carries), or -1 for a disposition, a
+/// condition, or a capability whose tag names no skill. The Traits panel
+/// shows a capability as that skill's mastery ([AP-c-capability]), so the
+/// shell edits the skill.
+pub fn trait_skills(world: &World) -> Vec<f64> {
+    let pack = world.resource::<Content>().0;
+    pack.traits
+        .iter()
+        .map(|definition| match definition.kind {
+            CompiledTraitKind::Capability { .. } => {
+                crate::skills::skill_for_tag(pack, &definition.tag)
+                    .map_or(-1.0, |(index, _)| f64::from(index))
+            }
+            _ => -1.0,
+        })
+        .collect()
+}
+
+/// `[path, level, career row]` for every level of every career path, in path
+/// then level order. The row is what `SetJob` takes: a path's levels name
+/// rows of the pack's career list, which need not be consecutive.
+pub fn job_options(world: &World) -> Vec<f64> {
+    let pack = world.resource::<Content>().0;
+    pack.career_paths
+        .iter()
+        .enumerate()
+        .flat_map(|(path, definition)| {
+            definition
+                .levels
+                .iter()
+                .enumerate()
+                .flat_map(move |(level, &row)| [path as f64, level as f64, f64::from(row)])
+        })
+        .collect()
+}
+
+/// `[habituation_max, overdoing_threshold, sick_threshold,
+/// housemate_max_traits, most poor weeks the panel sets]`: the tuning the
+/// panel's ranges and words come from, so the shell keeps no copy.
+pub fn limits(world: &World) -> Vec<f64> {
+    let tuning = &world.resource::<Content>().0.tuning;
+    vec![
+        f64::from(tuning.habituation_max),
+        f64::from(tuning.overdoing_threshold),
+        f64::from(tuning.sick_threshold),
+        f64::from(tuning.housemate_max_traits),
+        f64::from(careers::certain_fire_weeks(tuning).unwrap_or(careers::POOR_WARNING_WEEKS)),
+    ]
 }

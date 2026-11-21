@@ -83,7 +83,7 @@ impl SimHandle {
         reads::person(self.sim.world(), sim)
     }
 
-    /// `[object, row, value]` per repetition entry; empty for none.
+    /// `[object, row, value, food]` per repetition entry; empty for none.
     pub fn admin_repetition(&self, sim: u32) -> Vec<f64> {
         reads::repetition(self.sim.world(), sim)
     }
@@ -105,6 +105,28 @@ impl SimHandle {
     /// days a bill can take, newest first]`.
     pub fn admin_bills(&self) -> Vec<f64> {
         reads::bills(self.sim.world())
+    }
+
+    /// One affinity value per kind in pack order, -1 to 1; empty for anyone
+    /// but a living housemate.
+    pub fn admin_affinities(&self, sim: u32) -> Vec<f64> {
+        reads::affinities(self.sim.world(), sim)
+    }
+
+    /// Per pack trait, the skill index a capability trains or -1.
+    pub fn admin_trait_skills(&self) -> Vec<f64> {
+        reads::trait_skills(self.sim.world())
+    }
+
+    /// `[path, level, career row]` per career level, in path then level order.
+    pub fn admin_job_options(&self) -> Vec<f64> {
+        reads::job_options(self.sim.world())
+    }
+
+    /// `[habituation_max, overdoing_threshold, sick_threshold,
+    /// housemate_max_traits, most poor weeks]`; see `reads::limits`.
+    pub fn admin_limits(&self) -> Vec<f64> {
+        reads::limits(self.sim.world())
     }
 
     /// The practice that reads back as `level` whole levels and `fraction`
