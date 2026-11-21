@@ -61,6 +61,7 @@ fn error(error: BuildCommitError) -> Failure {
                     InvalidSimIdAllocator => 9,
                     TooManyCommands => 10,
                     AdminCommandQueued => 11,
+                    AdminSessionBroken => 12,
                 }),
             )
         }

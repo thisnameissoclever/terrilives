@@ -138,6 +138,11 @@ export interface AdminPanelSource {
   adminApply(change: AdminChange): AdminApplyResult;
   adminUndo(): AdminUndoResult;
   adminUndoDepth(): number;
+  /**
+   * Whether a refused change left the session broken: the last good world could not be rebuilt,
+   * so its edits stay and every later edit, Undo and save is refused.
+   */
+  adminBroken(): boolean;
 }
 
 /** The part of the overlay pause the shell uses. */
@@ -450,10 +455,19 @@ export class AdminPanel {
     } else {
       this.reconcile(result.depth);
     }
+    // A broken session kept edits it could not take back: the Undo failure path says so.
+    const broken = !result.applied && this.source.adminBroken();
+    if (broken) {
+      this.undoFailed = true;
+      this.undoStatus.textContent = UNDO_WORDS.failed;
+      // The rejected edits stayed in the world, so the host and the tabs read it again.
+      this.host.worldChanged?.('apply');
+    }
     this.refreshAll();
     this.updateUndo();
     if (options.report) {
       if (result.applied) options.report(null);
+      else if (broken) options.report(UNDO_WORDS.failed);
       else options.report(refusalText(result.refusal, { name: this.selectedMember()?.name, ...options.words }));
     }
     return result;

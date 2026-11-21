@@ -1570,12 +1570,16 @@ impl Sim {
     }
 
     /// [`Sim::save_snapshot_v24`], refusing a queue that holds an admin
-    /// command ([AP-save-queue] in `docs/specs/2026-11-20-admin-panel.md`):
+    /// command, and a world a broken admin session left with edits that
+    /// would not load ([AP-save-queue] in `docs/specs/2026-11-20-admin-panel.md`):
     /// no save can record one, so a save that met one would otherwise leave
     /// it out. The command paths never leave one queued; this is the check
     /// that proves it at the save boundary.
     pub fn try_save_snapshot_v24(&self) -> Result<terri_core::SaveSnapshotV24, SaveError> {
         save::refuse_queued_admin(&self.world)?;
+        if admin::world_broken(&self.world) {
+            return Err(SaveError::AdminSessionBroken);
+        }
         Ok(self.save_snapshot_v24())
     }
 

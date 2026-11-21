@@ -125,6 +125,26 @@ pub(crate) struct AdminSession {
     baseline_hash: u64,
     request_runtime: Runtime,
     pub(crate) journal: Vec<AdminEntry>,
+    /// A change failed its post-condition and the last good world could not
+    /// be rebuilt: the live world holds edits that would not load, so every
+    /// later edit, Undo and save is refused.
+    broken: bool,
+}
+
+/// Left behind when a broken session closes: the world still holds edits
+/// that would not load, so no save is written and the panel does not open
+/// again until a load replaces the world. Not saved and not hashed.
+#[derive(Resource)]
+struct AdminBroken;
+
+/// Whether admin edits have left a world that would not load: a broken
+/// session, open or closed. [`Sim::try_save_snapshot_v24`] refuses every
+/// save then.
+pub(crate) fn world_broken(world: &World) -> bool {
+    world.contains_resource::<AdminBroken>()
+        || world
+            .get_resource::<AdminSession>()
+            .is_some_and(|session| session.broken)
 }
 
 /// Why the panel could not open.
@@ -159,6 +179,9 @@ pub enum AdminUndoError {
     /// replay (`entry` of `None`), or after replaying journal entry
     /// `Some(index)`, which may also have been refused.
     Mismatch { entry: Option<usize> },
+    /// The session is broken: a change failed its post-condition and the
+    /// last good world could not be rebuilt.
+    Broken,
 }
 
 fn report(world: &mut World, refusal: Option<(u32, AdminRefusal)>) {
@@ -214,6 +237,14 @@ pub mod reads;
 mod relationships;
 
 impl Sim {
+    /// Whether admin edits have left a world that would not load: a change
+    /// failed its post-condition and the last good world could not be
+    /// rebuilt. Edits, Undo and saves are refused from then on, and the panel
+    /// does not open again until a load replaces the world.
+    pub fn admin_broken(&self) -> bool {
+        world_broken(&self.world)
+    }
+
     /// Whether the admin panel's session is open.
     pub fn admin_active(&self) -> bool {
         self.world.contains_resource::<AdminSession>()
@@ -231,6 +262,11 @@ impl Sim {
         if self.admin_active() {
             return Err(AdminOpenError::AlreadyOpen);
         }
+        if self.admin_broken() {
+            return Err(AdminOpenError::WouldNotReload(
+                SaveError::AdminSessionBroken,
+            ));
+        }
         if !self.world.resource::<CommandQueue>().is_empty() {
             self.flush_commands();
         }
@@ -244,13 +280,18 @@ impl Sim {
             baseline_hash,
             request_runtime,
             journal: Vec::new(),
+            broken: false,
         });
         Ok(())
     }
 
     /// [AP-undo-model] item 2: close the session. Every applied change stays.
+    /// A broken session leaves [`AdminBroken`] behind, so saves stay refused.
     pub fn end_admin(&mut self) {
-        self.world.remove_resource::<AdminSession>();
+        let session = self.world.remove_resource::<AdminSession>();
+        if session.is_some_and(|session| session.broken) {
+            self.world.insert_resource(AdminBroken);
+        }
     }
 
     /// How many changes Undo can step back through.
@@ -271,6 +312,9 @@ impl Sim {
         let refuse = |(edit, reason): (u32, AdminRefusal)| AdminApplyRefusal { edit, reason };
         if !self.admin_active() {
             return Err(refuse((0, AdminRefusal::NoSession)));
+        }
+        if self.admin_broken() {
+            return Err(refuse((0, AdminRefusal::WouldNotLoad)));
         }
         change
             .validate_structure()
@@ -300,9 +344,13 @@ impl Sim {
             Some((edit, AdminRefusal::WouldNotLoad)) => {
                 // The edits were written before the post-condition refused
                 // them. Put back the world the journal describes; if even
-                // that fails, the next Undo's hash check reports it.
+                // that fails the live world holds edits that would not load,
+                // so the session is marked broken and refuses every later
+                // edit, Undo and save.
                 let depth = self.admin_undo_depth();
-                let _ = self.rebuild_admin_world(depth);
+                if self.rebuild_admin_world(depth).is_err() {
+                    self.world.resource_mut::<AdminSession>().broken = true;
+                }
                 Err(refuse((edit, AdminRefusal::WouldNotLoad)))
             }
             Some(refusal) => Err(refuse(refusal)),
@@ -313,12 +361,14 @@ impl Sim {
     /// applied since the panel opened. On any failure the live world and the
     /// journal are untouched.
     pub fn admin_undo(&mut self) -> Result<(), AdminUndoError> {
-        let depth = self
+        let session = self
             .world
             .get_resource::<AdminSession>()
-            .ok_or(AdminUndoError::NotOpen)?
-            .journal
-            .len();
+            .ok_or(AdminUndoError::NotOpen)?;
+        if session.broken {
+            return Err(AdminUndoError::Broken);
+        }
+        let depth = session.journal.len();
         if depth == 0 {
             return Err(AdminUndoError::NothingToUndo);
         }

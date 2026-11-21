@@ -472,3 +472,53 @@ fn undo_is_exact_across_paused_frames_between_changes() {
         assert_eq!(sim.world_hash(), twin.world_hash(), "tick {tick}");
     }
 }
+
+/// A change that fails its post-condition when even the rebuild of the last
+/// good world fails (the baseline's recorded hash is made wrong, the test
+/// hook a restore that was not exact stands for) breaks the session loudly:
+/// the edits the post-condition rejected stay in the live world, so every
+/// later edit, Undo and save is refused while the panel stays open, and a
+/// save stays refused after it closes, since the world would not load. The
+/// panel cannot open on that world again.
+#[test]
+fn a_failed_rebuild_breaks_the_session_and_refuses_edits_undo_and_saves() {
+    let mut sim = opened();
+    sim.admin_apply(funds(100)).unwrap();
+    assert!(!sim.admin_broken());
+    crate::admin::tests_stub::corrupt_baseline_hash(sim.world_mut());
+    let would_not_load = Err(AdminApplyRefusal {
+        edit: 0,
+        reason: AdminRefusal::WouldNotLoad,
+    });
+    assert_eq!(sim.admin_apply(funds(FAILS_POST_CONDITION)), would_not_load);
+    assert!(sim.admin_broken(), "a failed rebuild breaks the session");
+    let hash = sim.world_hash();
+    let money = cents(&sim);
+    assert_eq!(
+        sim.admin_apply(funds(5)),
+        would_not_load,
+        "edits are refused"
+    );
+    assert_eq!(
+        sim.admin_undo(),
+        Err(AdminUndoError::Broken),
+        "Undo is refused"
+    );
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(cents(&sim), money);
+    assert_eq!(
+        sim.try_save_snapshot_v24().err(),
+        Some(crate::SaveError::AdminSessionBroken),
+        "no save is written while the panel is open"
+    );
+    sim.end_admin();
+    assert_eq!(
+        sim.try_save_snapshot_v24().err(),
+        Some(crate::SaveError::AdminSessionBroken),
+        "nor once it closes, since the world would not load"
+    );
+    assert!(
+        sim.begin_admin().is_err(),
+        "the panel cannot open again on it"
+    );
+}

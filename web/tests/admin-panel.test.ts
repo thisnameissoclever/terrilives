@@ -44,6 +44,9 @@ class Source implements AdminPanelSource {
     return this.undoResult;
   }
   adminUndoDepth(): number { return this.reportedDepth ?? this.depth; }
+  /** Whether a refused change left the session broken. */
+  broken = false;
+  adminBroken(): boolean { return this.broken; }
 }
 
 class Driver {
@@ -501,6 +504,23 @@ describe('Undo', () => {
     h.panel.close();
     h.open();
     expect(h.q('.admin-undo-status').textContent).toBe('');
+  });
+
+  it('takes the Undo failure path when a refused change leaves the session broken', () => {
+    const h = build();
+    h.open();
+    const ctx = h.spy('housemate').context;
+    ctx.apply(HUNGER, { label: 'Change Hunger' });
+    const reports: (string | null)[] = [];
+    h.source.refuse = 99;
+    ctx.apply(HUNGER, { label: 'Fill needs', report: text => reports.push(text) });
+    expect(reports, 'an ordinary refusal changed nothing').toEqual(['That change could not be kept. Nothing was changed.']);
+    expect(h.undo().disabled).toBe(false);
+    h.source.broken = true;
+    ctx.apply(HUNGER, { label: 'Fill needs', report: text => reports.push(text) });
+    expect(reports[1], 'a broken session kept the edits, so it does not say nothing changed').toBe('Undo failed. Your changes are kept.');
+    expect(h.q('.admin-undo-status').textContent).toBe('Undo failed. Your changes are kept.');
+    expect(h.undo().disabled).toBe(true);
   });
 
   it('is reset by a new session', () => {

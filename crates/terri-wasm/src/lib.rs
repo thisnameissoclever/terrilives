@@ -2692,7 +2692,8 @@ impl SimHandle {
     ///
     /// **Empty means refused**, never a save: a queue that holds an admin
     /// command cannot be saved ([AP-save-queue] in
-    /// `docs/specs/2026-11-20-admin-panel.md`), and a refusal is an empty
+    /// `docs/specs/2026-11-20-admin-panel.md`), nor can a world a broken
+    /// admin session left with edits that would not load, and a refusal is an empty
     /// array rather than a panic inside the export. No valid save is empty
     /// (it always carries a header), `load_bytes` refuses an empty array,
     /// and the shell's `saveBytes` turns it into a thrown error so no caller

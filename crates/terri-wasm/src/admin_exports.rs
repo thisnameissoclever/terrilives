@@ -67,13 +67,25 @@ impl SimHandle {
         match self.sim.admin_undo() {
             Ok(()) => 0,
             Err(AdminUndoError::NotOpen | AdminUndoError::NothingToUndo) => 1,
-            Err(AdminUndoError::Restore(_) | AdminUndoError::Mismatch { .. }) => 2,
+            Err(
+                AdminUndoError::Restore(_)
+                | AdminUndoError::Mismatch { .. }
+                | AdminUndoError::Broken,
+            ) => 2,
         }
     }
 
     /// How many changes Undo can step back through; 0 while closed.
     pub fn admin_undo_depth(&self) -> u32 {
         self.sim.admin_undo_depth() as u32
+    }
+
+    /// Whether admin edits left a world that would not load: a change failed
+    /// its post-condition and the last good world could not be rebuilt.
+    /// Every later edit, Undo and save is refused then, and the panel does
+    /// not open again until a load replaces the world.
+    pub fn admin_broken(&self) -> bool {
+        self.sim.admin_broken()
     }
 
     /// `[needs x7, satisfaction, career row or -1, shift, pay, job

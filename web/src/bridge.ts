@@ -1202,6 +1202,8 @@ export class SimBridge {
   adminUndo(): AdminUndoResult { return decodeAdminUndo(this.handle.admin_undo()); }
   /** How many changes Undo can step back through. */
   adminUndoDepth(): number { return this.handle.admin_undo_depth(); }
+  /** Whether admin edits left a world that would not load; edits, Undo and saves are refused then. */
+  adminBroken(): boolean { return this.handle.admin_broken(); }
   /** Needs, satisfaction and job fields; null for anyone but a living housemate. */
   adminPerson(sim: number): AdminPerson | null {
     return isU32(sim) ? decodeAdminPerson(this.handle.admin_person(sim)) : null;

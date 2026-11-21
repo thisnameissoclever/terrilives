@@ -173,6 +173,10 @@ pub enum SaveError {
     /// The queue holds an admin command, which no save can record
     /// ([AP-save-queue] in `docs/specs/2026-11-20-admin-panel.md`).
     AdminCommandQueued,
+    /// An admin change failed its post-condition and the last good world
+    /// could not be rebuilt, so the live world holds edits that would not
+    /// load ([AP-cmd-drain]).
+    AdminSessionBroken,
 }
 
 /// [AP-save-queue] item 3: refuse a save whose queue holds an admin command.
