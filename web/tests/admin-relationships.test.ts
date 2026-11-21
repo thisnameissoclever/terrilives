@@ -204,6 +204,8 @@ describe('starting a fight', () => {
     expect(sent(b).change.edits).toEqual([{ edit: 'StartFight', from: 3, to: 9 }]);
     expect(sent(b).label).toBe('Start a fight');
     expect(card(b, 'Tim and Casey').querySelector('.admin-status')!.textContent).toBe('The fight starts when the game resumes.');
+    // A queued fight is news, not a refusal: it reads in the muted note colour.
+    expect(card(b, 'Tim and Casey').querySelector('.admin-status')!.getAttribute('class')).toBe('admin-status admin-status-note');
     expect(card(b, 'Tim and Bill').querySelector('.admin-status')!.textContent).toBe('');
   });
 
@@ -212,6 +214,7 @@ describe('starting a fight', () => {
     b.h.state.refuse = 18;
     card(b, 'Tim and Bill').querySelectorAll('button').find(node => node.textContent === 'Tim starts a fight')!.click();
     expect(card(b, 'Tim and Bill').querySelector('.admin-status')!.textContent).toBe('One of them is at work or on the way.');
+    expect(card(b, 'Tim and Bill').querySelector('.admin-status')!.getAttribute('class')).toBe('admin-status');
     b.h.state.refuse = null;
     card(b, 'Tim and Bill').querySelectorAll('button').find(node => node.textContent === 'Tim starts a fight')!.click();
     expect(card(b, 'Tim and Bill').querySelector('.admin-status')!.textContent).toBe('The fight starts when the game resumes.');

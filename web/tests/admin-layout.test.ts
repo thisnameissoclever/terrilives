@@ -75,7 +75,11 @@ describe('the dialog on a desktop', () => {
     expect(style('.admin-title')['min-width']).toBe('0');
     const undo = style('.admin-undo');
     expect(undo['max-width']).toBe('min(22em, 100%)');
-    expect(undo['text-overflow']).toBe('ellipsis');
+    // "Undo" and ": {change}" are two spans: no flex gap may open between them, and the change ends in an ellipsis.
+    expect(undo.gap).toBe('0');
+    const detail = style('.admin-undo-detail');
+    expect(detail.overflow).toBe('hidden');
+    expect(detail['text-overflow']).toBe('ellipsis');
   });
 
   it('keeps the header and tab row fixed while the body scrolls', () => {
@@ -111,7 +115,9 @@ describe('the dialog on a phone', () => {
 
   it('shows only the word Undo, and drops the key hint a phone cannot use', () => {
     expect(style('.admin-undo-detail', COMPACT).display).toBe('none');
-    expect(style('.admin-hint', COMPACT).display).toBe('none');
+    expect(style('.admin-header .admin-hint', COMPACT).display).toBe('none');
+    // Row hints such as a pay range or "2 earns a promotion" stay on a phone; only the header's key hint goes.
+    expect(style('.admin-hint', COMPACT).display).toBeUndefined();
     expect(style('.admin-spacer', COMPACT).display).toBe('none');
     // The full label stays the button's name and title; that is markup, tested with the shell.
   });

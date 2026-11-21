@@ -88,14 +88,14 @@ class RelationshipsTab implements AdminTab {
     const node = this.nodes.get(key);
     if (node !== undefined) {
       node.textContent = message ?? '';
-      node.classList.toggle('admin-status-note', this.notes.has(key));
+      markNote(node, this.notes.has(key));
     }
   }
 
   private status(key: string): HTMLElement {
     const node = textNode(this.context.doc, 'p', 'admin-status', this.messages.get(key) ?? '');
     node.setAttribute('role', 'status');
-    node.classList.toggle('admin-status-note', this.notes.has(key));
+    markNote(node, this.notes.has(key));
     this.nodes.set(key, node);
     return node;
   }
@@ -187,4 +187,9 @@ class RelationshipsTab implements AdminTab {
 /** The Relationships tab, for the shell's `tabs` map. */
 export function createRelationshipsTab(source: RelationshipsSource): AdminTabFactory {
   return context => new RelationshipsTab(context, source);
+}
+
+/** A status line that reports a success reads as a note, in the muted colour, rather than as a refusal. */
+function markNote(node: HTMLElement, note: boolean): void {
+  node.setAttribute('class', note ? 'admin-status admin-status-note' : 'admin-status');
 }
