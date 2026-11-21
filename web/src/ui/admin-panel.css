@@ -1,0 +1,107 @@
+/*
+ * The admin panel's shell (issue 312, [AP-web-modal] of
+ * docs/specs/2026-11-20-admin-panel.md). Colours come from the page's custom
+ * properties (--hud-*, --need-fill, --action-*), so the panel follows whatever
+ * theme the page sets; the fallbacks are the dark values. Tab contents style
+ * themselves in later tasks. The phone layout is a later task; this file only
+ * fills the screen on a compact one.
+ */
+#admin-panel {
+  --admin-card: color-mix(in srgb, var(--hud-text, #d8d8e0) 5%, var(--hud-bg, #16161c));
+  --admin-cheat-bg: #3a3220;
+  --admin-cheat-edge: #b89a52;
+  --admin-cheat-text: #f3e2b5;
+  width: min(1240px, calc(100vw - 48px));
+  height: min(820px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--hud-text, #d8d8e0);
+  background: var(--hud-bg, #16161c);
+  border: 1px solid var(--hud-edge, #2c2c36);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px #000c;
+}
+#admin-panel[open] { display: flex; }
+#admin-panel::backdrop { background: rgba(0, 0, 0, .62); }
+
+.admin-frame { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
+
+.admin-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--hud-edge, #2c2c36);
+}
+.admin-title { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+.admin-title:focus { outline: none; }
+.admin-title:focus-visible { outline: 2px solid var(--need-fill, #6fb2d2); outline-offset: 4px; border-radius: 4px; }
+.admin-cheat {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: var(--admin-cheat-bg);
+  border: 1px solid var(--admin-cheat-edge);
+  color: var(--admin-cheat-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.admin-pill {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--admin-card);
+  border: 1px solid var(--hud-edge, #2c2c36);
+  font-weight: 600;
+}
+.admin-pill-note { font-weight: 400; color: var(--hud-muted, #9aa3ad); }
+.admin-spacer { flex: 1 1 0; }
+.admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+.admin-undo, .admin-close, .admin-person, .admin-tab { min-height: 36px; padding: 0 14px; }
+.admin-undo { max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-undo-status { margin: 0; padding: 6px 18px; color: var(--hud-danger, #e58c85); border-bottom: 1px solid var(--hud-edge, #2c2c36); }
+.admin-undo-status:empty { display: none; }
+
+.admin-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--hud-edge, #2c2c36);
+}
+.admin-bar [hidden] { display: none; }
+.admin-tabs, .admin-picker { display: flex; flex-wrap: wrap; gap: 4px; }
+.admin-tab[aria-selected='true'] { border-color: var(--need-fill, #6fb2d2); background: var(--action-hover-background, #29313a); font-weight: 600; }
+.admin-person { font-weight: 600; }
+
+/* The body scrolls; the header and the tab row stay fixed. */
+.admin-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px; }
+.admin-tabpanel[hidden] { display: none; }
+.admin-placeholder { margin: 0; color: var(--hud-muted, #9aa3ad); }
+
+.admin-alert {
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 16px 18px;
+  color: var(--hud-text, #d8d8e0);
+  background: var(--hud-bg, #16161c);
+  border: 1px solid var(--hud-edge, #2c2c36);
+  border-radius: 8px;
+}
+.admin-alert::backdrop { background: rgba(0, 0, 0, .62); }
+.admin-alert-message { margin: 0 0 14px; }
+
+/* The same query as COMPACT_HUD_MEDIA_QUERY, in range syntax. */
+@media (width <= 600px), (height <= 480px) {
+  #admin-panel { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border: 0; border-radius: 0; }
+}

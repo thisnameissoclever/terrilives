@@ -8,6 +8,7 @@ import { BillsPanel } from './ui/bills-panel.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
+import { AdminPanel } from './admin/admin-panel.js';
 import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
@@ -877,6 +878,31 @@ async function main(): Promise<void> {
     const agent = sim.selectedIndex();
     if (agent !== null) careerReviewWindow.open(agent, opener);
   };
+  // The admin panel ([AP-web] of docs/specs/2026-11-20-admin-panel.md): created
+  // once, and closed when a load or import replaces the world. It pauses the game
+  // through the shared overlay pause and restores the speed from before. The tab
+  // modules plug in through `tabs` as they are built; no route opens it yet, so
+  // nothing here is player-visible until the opening routes land ([T13]).
+  const adminDialog = document.querySelector<HTMLDialogElement>('#admin-panel');
+  if (!adminDialog) throw new Error('missing the admin panel markup');
+  const refreshHudAfterAdmin = (): void => {
+    refreshHudPanels();
+    if (needsPanel.update(performance.now(), sim)) syncDockSummary();
+  };
+  const adminPanel = new AdminPanel(document, adminDialog, sim, overlayPause, {
+    members: () => householdMembers(sim).map(({ simId, name }) => ({ simId, name })),
+    selectedSimId: () => {
+      const selected = sim.selectedIndex();
+      return selected === null ? null : sim.simIdOf(selected);
+    },
+    fallbackFocus: () => canvas,
+    worldChanged: cause => {
+      // Undo rebuilt the world, as Build's Cancel does: entity indices may differ,
+      // so every entity-keyed shell cache is reset before the HUD reads again.
+      if (cause === 'undo') restoreBuildPresentation();
+      refreshHudAfterAdmin();
+    },
+  });
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at
   // start, after Load and after an edit read whether or not it is open.
@@ -1332,6 +1358,20 @@ async function main(): Promise<void> {
     restorePersistenceFocus(document, loadGameDialog, optionsToggle, persistenceFocusFallbacks);
     overlayPause.resume('load-game');
   });
+  // Forces every HUD panel to re-read now, for a world that was replaced (Load, Import)
+  // or edited (the admin panel), instead of waiting for its next refresh interval.
+  const refreshHudPanels = (): void => {
+    const nowMs = performance.now();
+    householdRoster.update(nowMs, true);
+    peoplePanel.update(nowMs, true);
+    moodPanel.update(nowMs, true);
+    traitsPanel.update(nowMs, true);
+    personalDetailsPanel.update(nowMs, true);
+    skillsPanel.update(nowMs, true);
+    affinitiesPanel.update(nowMs, true);
+    bedAssignmentPanel.update(nowMs, true);
+    careerPanel.update(nowMs, true);
+  };
   // Load and Import both replace the world, so both refresh every view of it.
   const adoptLoadedWorld = (): void => {
       wallFade.reset();
@@ -1372,6 +1412,7 @@ async function main(): Promise<void> {
       bedAssignmentPanel.resetAfterLoad();
       // The window shows a person of the replaced world: close it, which also resumes the game.
       careerReviewWindow.close();
+      adminPanel.close();
       careerPanel.resetAfterLoad();
       syncNewHousemateButton();
       syncEditHousemateButton();
@@ -1382,16 +1423,7 @@ async function main(): Promise<void> {
       floorTool.resetAfterLoad(lotWidth, lotHeight);
       landTool.resetAfterLoad(lotWidth, lotHeight);
       audio.reset('load');
-      const nowMs = performance.now();
-      householdRoster.update(nowMs, true);
-      peoplePanel.update(nowMs, true);
-      moodPanel.update(nowMs, true);
-      traitsPanel.update(nowMs, true);
-      personalDetailsPanel.update(nowMs, true);
-      skillsPanel.update(nowMs, true);
-      affinitiesPanel.update(nowMs, true);
-      bedAssignmentPanel.update(nowMs, true);
-      careerPanel.update(nowMs, true);
+      refreshHudPanels();
   };
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
