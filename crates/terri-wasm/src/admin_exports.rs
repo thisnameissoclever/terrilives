@@ -124,7 +124,8 @@ impl SimHandle {
     }
 
     /// `[habituation_max, overdoing_threshold, sick_threshold,
-    /// housemate_max_traits, most poor weeks]`; see `reads::limits`.
+    /// housemate_max_traits, most poor weeks, skip maximum hours, skip default
+    /// hours, skip ticks per frame]`; see `reads::limits`.
     pub fn admin_limits(&self) -> Vec<f64> {
         reads::limits(self.sim.world())
     }

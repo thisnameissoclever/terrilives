@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import type { AdminTab, AdminTabContext, AdminMember, AdminApplyOptions } from '../../src/admin/admin-panel.js';
+import type { AdminTab, AdminTabContext, AdminMember, AdminApplyOptions, AdminSkipState } from '../../src/admin/admin-panel.js';
 import { encodeAdminChange, type AdminApplyResult, type AdminChange, type AdminRefusalCode } from '../../src/admin/codec.js';
 import { refusalText } from '../../src/admin/admin-words.js';
 import { FakeNode, fakeDocument } from './fake-dom.js';
@@ -13,6 +13,13 @@ import { FakeNode, fakeDocument } from './fake-dom.js';
 export function tabHarness(members: AdminMember[]) {
   const { fake, doc } = fakeDocument();
   const sent: { change: AdminChange; label: string }[] = [];
+  /** The shell's Skip ahead as a tab sees it: what it was asked and what it says. */
+  const skip = {
+    log: [] as string[],
+    available: true,
+    state: { running: false, last: null } as AdminSkipState,
+    limits: { maxHours: 168, defaultHours: 8 },
+  };
   const state = {
     members,
     selected: members[0] as AdminMember | null,
@@ -46,8 +53,15 @@ export function tabHarness(members: AdminMember[]) {
       }
       return result;
     },
+    skip: {
+      available: () => skip.available,
+      limits: () => skip.limits,
+      start: hours => { skip.log.push(`start ${hours}`); },
+      stop: () => { skip.log.push('stop'); },
+      state: () => skip.state,
+    },
   };
-  return { fake, doc, sent, state, context, attach(tab: AdminTab) { state.tab = tab; tab.refresh(); return tab; } };
+  return { fake, doc, sent, state, skip, context, attach(tab: AdminTab) { state.tab = tab; tab.refresh(); return tab; } };
 }
 
 /** Finds helpers over a tab's body. */

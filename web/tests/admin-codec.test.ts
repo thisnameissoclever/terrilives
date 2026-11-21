@@ -263,11 +263,15 @@ describe('the content reads the Housemate tab uses', () => {
   });
 
   it('reads the tuning limits', () => {
-    expect(decodeAdminLimits([3, 1, 2.5, 4, 15])).toEqual({
+    expect(decodeAdminLimits([3, 1, 2.5, 4, 15, 168, 8, 300])).toEqual({
       habituationMax: 3, overdoingThreshold: 1, sickThreshold: 2.5, maxTraits: 4, maxPoorWeeks: 15,
+      skipMaxHours: 168, skipDefaultHours: 8, skipTicksPerFrame: 300,
     });
-    expect(() => decodeAdminLimits([3, 1, 2.5, 4])).toThrow(AdminWireError);
-    expect(() => decodeAdminLimits([0, 1, 2.5, 4, 15])).toThrow(AdminWireError);
-    expect(() => decodeAdminLimits([3, 1, 2.5, 0, 15])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([3, 1, 2.5, 4, 15])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([0, 1, 2.5, 4, 15, 168, 8, 300])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([3, 1, 2.5, 0, 15, 168, 8, 300])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([3, 1, 2.5, 4, 15, 168, 0, 300])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([3, 1, 2.5, 4, 15, 4, 8, 300])).toThrow(AdminWireError);
+    expect(() => decodeAdminLimits([3, 1, 2.5, 4, 15, 168, 8, 0])).toThrow(AdminWireError);
   });
 });

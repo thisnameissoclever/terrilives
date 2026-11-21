@@ -11,7 +11,9 @@ import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
 import { AdminPanel } from './admin/admin-panel.js';
 import { createHousemateTab } from './admin/admin-housemate.js';
 import { createRelationshipsTab } from './admin/admin-relationships.js';
-import { housemateSource, relationshipsSource } from './admin/admin-sources.js';
+import { createHouseholdTab } from './admin/admin-household.js';
+import { SkipRunner } from './admin/admin-skip.js';
+import { householdSource, housemateSource, relationshipsSource } from './admin/admin-sources.js';
 import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
@@ -892,6 +894,16 @@ async function main(): Promise<void> {
     refreshHudPanels();
     if (needsPanel.update(performance.now(), sim)) syncDockSummary();
   };
+  // Skip ahead ([AP-skip]): ordinary ticks, a budget of them each rendered frame, run from the frame
+  // loop below with the per-tick footstep sampling off so the sound events drain silently.
+  let adminLimitsRead: ReturnType<typeof sim.adminLimits> | null = null;
+  const adminLimits = () => (adminLimitsRead ??= sim.adminLimits());
+  const adminSkip = new SkipRunner({
+    tick: () => { sim.tick(); drainCompletionAudioAfterTick(sim, audio, false); },
+    ticksPerHour: () => sim.dayTicks() / 24,
+    ticksPerFrame: () => adminLimits().skipTicksPerFrame,
+    living: () => new Map(householdMembers(sim).map(member => [member.simId, member.name] as const)),
+  }, () => ({ maxHours: adminLimits().skipMaxHours, defaultHours: adminLimits().skipDefaultHours }));
   const adminPanel = new AdminPanel(document, adminDialog, sim, overlayPause, {
     members: () => householdMembers(sim).map(({ simId, name }) => ({ simId, name })),
     selectedSimId: () => {
@@ -908,7 +920,9 @@ async function main(): Promise<void> {
     tabs: {
       housemate: createHousemateTab(housemateSource(sim)),
       relationships: createRelationshipsTab(relationshipsSource(sim)),
+      household: createHouseholdTab(householdSource(sim)),
     },
+    skip: adminSkip,
   });
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at
@@ -2696,6 +2710,9 @@ async function main(): Promise<void> {
     const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
     previousFrameMs = nowMs;
     const tickBudget = presenting ? MAX_TICKS_PER_FRAME : BACKGROUND_MAX_TICKS;
+
+    // [AP-skip]: a skip ahead runs its budget of ticks first, so the frame that follows draws the result.
+    adminSkip.step();
 
     // Chromium's media-query event is not reliable under every embedding and
     // emulation path. The value is already read each frame for animation, so

@@ -4,11 +4,13 @@ import {
   AdminPanel,
   type AdminMember,
   type AdminPanelSource,
+  type AdminSkipHost,
   type AdminTab,
   type AdminTabContext,
   type AdminTabId,
 } from '../src/admin/admin-panel.js';
 import { ADMIN_REFUSAL_TEXT, beginRefusalText, refusalText } from '../src/admin/admin-words.js';
+import type { SkipResult } from '../src/admin/admin-panel.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { FakeNode, fakeDocument } from './helpers/fake-dom.js';
 
@@ -23,7 +25,12 @@ class Source implements AdminPanelSource {
   depth = 0;
   /** A depth the bridge reports instead of the real one, to model a label mismatch. */
   reportedDepth: number | null = null;
-  adminBegin(): AdminBeginResult { this.log.push('begin'); return this.begin; }
+  adminBegin(): AdminBeginResult {
+    this.log.push('begin');
+    // A new session starts with an empty journal, as the simulation's does.
+    if (this.begin === 'ok') this.depth = 0;
+    return this.begin;
+  }
   adminEnd(): void { this.log.push('end'); }
   adminApply(_change: AdminChange): AdminApplyResult {
     this.log.push('apply');
@@ -45,9 +52,24 @@ class Driver {
   get last(): number | undefined { return this.speeds[this.speeds.length - 1]; }
 }
 
+/** The host side of Skip ahead: the shell hands it a run and it answers through the handlers. */
+class SkipHost implements AdminSkipHost {
+  readonly log: string[] = [];
+  handlers: { progress(done: number): void; finish(result: SkipResult): void } | null = null;
+  limits() { return { maxHours: 168, defaultHours: 8 }; }
+  start(hours: number, handlers: { progress(done: number): void; finish(result: SkipResult): void }): void {
+    this.log.push(`start ${hours}`);
+    this.handlers = handlers;
+  }
+  stop(): void { this.log.push('stop'); }
+  cancel(): void { this.log.push('cancel'); this.handlers = null; }
+}
+
 class SpyTab implements AdminTab {
   readonly body: HTMLElement;
   refreshes = 0;
+  skipChanges = 0;
+  skipChanged(): void { this.skipChanges += 1; }
   constructor(readonly id: AdminTabId, readonly context: AdminTabContext, doc: Document) {
     this.body = doc.createElement('div');
     this.body.setAttribute('data-spy', id);
@@ -62,6 +84,7 @@ interface Options {
   members?: AdminMember[];
   gameSelected?: number | null;
   spyTabs?: boolean;
+  skip?: SkipHost;
 }
 
 function build(options: Options = {}) {
@@ -90,6 +113,7 @@ function build(options: Options = {}) {
     fallbackFocus: () => canvas as unknown as HTMLElement,
     worldChanged: cause => changes.push(cause),
     tabs,
+    skip: options.skip,
   });
   const q = (selector: string): FakeNode => {
     const node = dialog.querySelector(selector);
@@ -682,5 +706,173 @@ describe('the words', () => {
     expect(refusalText(19, {})).toBe('That change was not valid. Nothing was changed.');
     expect(Object.keys(ADMIN_REFUSAL_TEXT).map(Number).sort((a, b) => a - b))
       .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 99]);
+  });
+});
+
+describe('skip ahead, the shell side ([AP-skip])', () => {
+  function skipping(options: Options = {}) {
+    const skip = new SkipHost();
+    const h = build({ ...options, skip });
+    h.open();
+    const context = h.spy('household').context;
+    return { ...h, skip, context };
+  }
+  const start = (h: ReturnType<typeof skipping>, hours = 8) => h.context.skip.start(hours);
+  const disabled = (node: FakeNode) => (node as unknown as { disabled: boolean }).disabled;
+
+  it('offers skipping only when the host can run it', () => {
+    const without = build();
+    without.open();
+    expect(without.spy('household').context.skip.available()).toBe(false);
+    without.spy('household').context.skip.start(8);
+    expect(without.source.log, 'nothing ends or begins').toEqual(['begin']);
+    const withHost = skipping();
+    expect(withHost.context.skip.available()).toBe(true);
+    expect(withHost.context.skip.limits()).toEqual({ maxHours: 168, defaultHours: 8 });
+  });
+
+  it('ends the session, clears Undo and hands the run to the host', () => {
+    const h = skipping();
+    h.context.apply(HUNGER, { label: 'Change Hunger' });
+    h.context.apply(HUNGER, { label: 'Change Energy' });
+    expect(h.undo().textContent).toBe('Undo: Change Energy');
+    start(h, 6);
+    expect(h.source.log.slice(-1), 'the session ends before the run starts').toEqual(['end']);
+    expect(h.skip.log).toEqual(['start 6']);
+    expect(h.context.skip.state()).toEqual({ running: true, asked: 6, done: 0 });
+    expect(h.undo().textContent, 'the history is gone').toBe('Undo');
+    expect(disabled(h.undo())).toBe(true);
+  });
+
+  it('locks the other controls and says it is skipping, then undoes the lock when it ends', () => {
+    const h = skipping();
+    start(h);
+    expect(disabled(h.q('.admin-close')), 'Close waits').toBe(true);
+    for (const tab of h.all('[role="tab"]')) expect(disabled(tab), tab.textContent).toBe(true);
+    for (const person of h.pickerButtons()) expect(disabled(person), person.textContent).toBe(true);
+    expect(h.q('.admin-pill-label').textContent).toBe('Skipping ahead');
+    expect(h.q('.admin-pill-note').textContent).toBe('');
+    h.skip.handlers!.finish({ kind: 'done', hours: 8 });
+    expect(disabled(h.q('.admin-close'))).toBe(false);
+    for (const tab of h.all('[role="tab"]')) expect(disabled(tab)).toBe(false);
+    for (const person of h.pickerButtons()) expect(disabled(person)).toBe(false);
+    expect(h.q('.admin-pill-label').textContent).toBe('Game paused');
+    expect(h.q('.admin-pill-note').textContent).toBe('Closing the panel resumes the game at 1x.');
+  });
+
+  it('tells the tabs about progress and keeps the hours run', () => {
+    const h = skipping();
+    start(h, 8);
+    const before = h.spy('household').skipChanges;
+    h.skip.handlers!.progress(3);
+    expect(h.context.skip.state()).toEqual({ running: true, asked: 8, done: 3 });
+    expect(h.spy('household').skipChanges).toBeGreaterThan(before);
+  });
+
+  it('begins a new session when it ends, so Undo starts again from here', () => {
+    const h = skipping();
+    h.context.apply(HUNGER, { label: 'Change Hunger' });
+    start(h);
+    h.skip.handlers!.finish({ kind: 'done', hours: 8 });
+    expect(h.source.log.slice(-3)).toEqual(['apply', 'end', 'begin']);
+    expect(h.context.skip.state()).toEqual({ running: false, last: { kind: 'done', hours: 8 } });
+    expect(h.undo().textContent).toBe('Undo');
+    expect(disabled(h.undo())).toBe(true);
+    expect(h.changes.at(-1), 'the HUD is told the world moved').toBe('apply');
+  });
+
+  it('re-reads every tab and the roster when it ends, and again for a death', () => {
+    const h = skipping();
+    start(h);
+    const before = h.spy('household').refreshes;
+    h.members.current = h.members.current.filter(member => member.name !== 'Bill');
+    h.skip.handlers!.finish({ kind: 'died', hours: 3, name: 'Bill' });
+    expect(h.spy('household').refreshes).toBeGreaterThan(before);
+    expect(h.context.members().map(member => member.name)).toEqual(['Tim', 'Casey']);
+    expect(h.context.skip.state()).toEqual({ running: false, last: { kind: 'died', hours: 3, name: 'Bill' } });
+  });
+
+  it('forgets the last result when a new skip starts or the panel reopens', () => {
+    const h = skipping();
+    start(h);
+    h.skip.handlers!.finish({ kind: 'stopped', hours: 2 });
+    start(h);
+    expect(h.context.skip.state()).toMatchObject({ running: true });
+    h.skip.handlers!.finish({ kind: 'done', hours: 8 });
+    h.panel.close();
+    h.open();
+    expect(h.context.skip.state()).toEqual({ running: false, last: null });
+  });
+
+  it('stops at the frame boundary on Stop and on Escape, and keeps the panel open', () => {
+    const h = skipping();
+    start(h);
+    h.context.skip.stop();
+    expect(h.skip.log).toEqual(['start 8', 'stop']);
+    const event = h.dialog.dispatch('cancel');
+    expect(event.defaultPrevented, 'Escape does not close the dialog').toBe(true);
+    expect(h.dialog.open).toBe(true);
+    expect(h.skip.log).toEqual(['start 8', 'stop', 'stop']);
+    h.skip.handlers!.finish({ kind: 'stopped', hours: 2 });
+    h.dialog.dispatch('cancel');
+    expect(h.dialog.open, 'after the run, Escape closes as before').toBe(false);
+  });
+
+  it('abandons the run when the panel is closed under it, without ending the session twice', () => {
+    const h = skipping({ speed: 2 });
+    const handlers = () => h.skip.handlers;
+    start(h);
+    const run = handlers()!;
+    h.panel.close();
+    expect(h.skip.log).toEqual(['start 8', 'cancel']);
+    expect(h.source.log).toEqual(['begin', 'end']);
+    expect(h.driver.speeds, 'the game resumes once, at the speed from before').toEqual([0, 2]);
+    // A finish that arrives anyway does nothing.
+    run.finish({ kind: 'done', hours: 8 });
+    expect(h.source.log).toEqual(['begin', 'end']);
+  });
+
+  it('closes the panel with the reason when the session cannot begin again', () => {
+    const h = skipping({ speed: 3 });
+    start(h);
+    h.source.begin = 'would-not-reload';
+    h.skip.handlers!.finish({ kind: 'done', hours: 8 });
+    expect(h.dialog.open).toBe(false);
+    expect(h.driver.speeds, 'resumed once').toEqual([0, 3]);
+    expect(h.alert()!.querySelector('.admin-alert-message')!.textContent).toBe("This game's state would not reload, so the admin panel can't open.");
+  });
+
+  it('sends no change and no Undo while it runs', () => {
+    const h = skipping();
+    start(h);
+    const result = h.context.apply(HUNGER, { label: 'Change Hunger' });
+    expect(result.applied).toBe(false);
+    expect(h.source.log.filter(entry => entry === 'apply')).toEqual([]);
+    h.key(h.dialog, 'z', { ctrlKey: true });
+    expect(h.source.log).not.toContain('undo');
+  });
+
+  it('ignores a finish or progress from a run that already ended', () => {
+    const h = skipping();
+    start(h, 8);
+    const first = h.skip.handlers!;
+    first.finish({ kind: 'done', hours: 8 });
+    start(h, 4);
+    const begins = h.source.log.filter(entry => entry === 'begin').length;
+    first.progress(7);
+    first.finish({ kind: 'stopped', hours: 7 });
+    expect(h.context.skip.state(), 'the second run is untouched').toEqual({ running: true, asked: 4, done: 0 });
+    expect(h.source.log.filter(entry => entry === 'begin')).toHaveLength(begins);
+  });
+
+  it('starts one run at a time and only while the session is open', () => {
+    const h = skipping();
+    start(h);
+    start(h, 4);
+    expect(h.skip.log).toEqual(['start 8']);
+    h.skip.handlers!.finish({ kind: 'done', hours: 8 });
+    h.panel.close();
+    h.context.skip.start(2);
+    expect(h.skip.log).toEqual(['start 8']);
   });
 });

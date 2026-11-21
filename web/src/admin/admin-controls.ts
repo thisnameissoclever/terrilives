@@ -1,4 +1,5 @@
 import { setActionIntent, type ActionIntent } from '../ui/action-intent.js';
+import { MAX_ADMIN_FUNDS_CENTS, parseDollars } from './codec.js';
 
 // The building blocks the admin panel's tabs share (issue 312, [AP-web-modal]
 // item 5 and [AP-web-focus] in docs/specs/2026-11-20-admin-panel.md): a titled
@@ -254,4 +255,62 @@ export function actionButton(doc: Document, options: {
   button.disabled = options.disabled === true;
   button.addEventListener('click', () => { if (!button.disabled) options.onClick(); });
   return button;
+}
+
+/** Cents as dollars with commas and two decimals, no dollar sign: `2,318.40`, `-0.05`. */
+export function formatMoney(cents: number): string {
+  const sign = cents < 0 ? '-' : '';
+  const whole = Math.abs(cents);
+  return `${sign}${Math.trunc(whole / 100).toLocaleString('en-US')}.${String(whole % 100).padStart(2, '0')}`;
+}
+
+export interface MoneyBoxOptions {
+  readonly doc: Document;
+  readonly label: string;
+  readonly key: string;
+  readonly cents: number;
+  /** The least and most the box takes, in cents; a typed sum outside them is clamped. */
+  readonly min: number;
+  readonly max: number;
+  readonly disabled?: boolean;
+  /** Called with the settled cents, only when they differ from the ones shown. */
+  readonly onCommit: (cents: number) => void;
+  /** Called when the text has more than two decimal places; the box shows the old value again. */
+  readonly onPlaces?: () => void;
+}
+
+/**
+ * A box for a sum of money. The text becomes cents through `parseDollars`,
+ * never through a float multiply, so "2318.40" is exactly 231840. Text that is
+ * not dollars puts the old value back and sends nothing; a sum past the bound
+ * is held to the box's range.
+ */
+export function moneyBox(options: MoneyBoxOptions): HTMLInputElement {
+  const { doc, min, max } = options;
+  const box = make(doc, 'input', 'admin-number admin-money');
+  box.type = 'text';
+  box.setAttribute('inputmode', 'decimal');
+  box.setAttribute('autocomplete', 'off');
+  box.setAttribute('aria-label', options.label);
+  box.setAttribute('data-key', options.key);
+  box.disabled = options.disabled === true;
+  let shown = Math.min(max, Math.max(min, options.cents));
+  box.value = formatMoney(shown);
+  const commit = (cents: number): void => {
+    const settled = Math.min(max, Math.max(min, cents));
+    const changed = settled !== shown;
+    shown = settled;
+    box.value = formatMoney(settled);
+    if (changed) options.onCommit(settled);
+  };
+  box.addEventListener('change', () => {
+    const typed = box.value;
+    const parsed = parseDollars(typed);
+    if (parsed.ok) { commit(parsed.cents); return; }
+    // Past the bound reads as the bound, in the direction typed; anything else is put back.
+    if (parsed.reason === 'range') { commit(typed.trim().startsWith('-') ? -MAX_ADMIN_FUNDS_CENTS : MAX_ADMIN_FUNDS_CENTS); return; }
+    box.value = formatMoney(shown);
+    if (parsed.reason === 'places') options.onPlaces?.();
+  });
+  return box;
 }

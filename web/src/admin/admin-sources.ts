@@ -1,6 +1,7 @@
 import type { SimBridge } from '../bridge.js';
 import { householdMembers } from '../ui/household-roster.js';
 import type { HousemateSource } from './admin-housemate.js';
+import type { HouseholdSource } from './admin-household.js';
 import type { RelationshipsSource } from './admin-relationships.js';
 
 // Adapters from the bridge to the admin tabs' sources (issue 312, [AP-web-files]
@@ -19,6 +20,29 @@ export function entityOfSim(sim: SimBridge, simId: number): number | null {
 function readEntity<T>(sim: SimBridge, simId: number, empty: T, read: (entity: number) => T): T {
   const entity = entityOfSim(sim, simId);
   return entity === null ? empty : read(entity);
+}
+
+/** The Household tab's reads over the live bridge. */
+export function householdSource(sim: SimBridge): HouseholdSource {
+  return {
+    fundsCents: () => sim.fundsCents(),
+    bills: () => sim.adminBills(),
+    terms: () => {
+      const overview = sim.billsOverview();
+      return overview === null ? null : {
+        graceDays: overview.graceDays, lateFeePercent: overview.lateFeePercent,
+        lateFeeCapPercent: overview.lateFeeCapPercent, nextDueDay: overview.nextDueDay,
+      };
+    },
+    // What each kind's bill has come to this month so far, which is the amount a new bill starts with.
+    monthAmounts: () => {
+      const next = sim.billsNext();
+      return [0, 1, 2, 3].map(kind => next.find(bill => bill.kind === kind)?.soFarCents ?? 0);
+    },
+    clockTick: () => sim.clockTick(),
+    dayTicks: () => sim.dayTicks(),
+    weekdayIndex: () => sim.weekdayIndex(),
+  };
 }
 
 /** The Relationships tab's reads over the live bridge. */

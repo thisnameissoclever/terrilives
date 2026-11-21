@@ -29,7 +29,10 @@ const LIBRARY: HousemateLibrary = {
     { path: 0, level: 0, row: 0 }, { path: 0, level: 1, row: 1 }, { path: 0, level: 2, row: 2 },
     { path: 1, level: 0, row: 7 }, { path: 1, level: 1, row: 8 },
   ] satisfies AdminJobOption[],
-  limits: { habituationMax: 3, overdoingThreshold: 1, sickThreshold: 2.5, maxTraits: 4, maxPoorWeeks: 15 },
+  limits: {
+    habituationMax: 3, overdoingThreshold: 1, sickThreshold: 2.5, maxTraits: 4, maxPoorWeeks: 15,
+    skipMaxHours: 168, skipDefaultHours: 8, skipTicksPerFrame: 300,
+  },
 };
 
 const SHIFTS: CareerShift[] = [

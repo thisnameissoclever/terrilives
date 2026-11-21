@@ -24,7 +24,7 @@ pub const PERSON_LEN: usize = NeedId::ALL.len() + 1 + 10;
 pub const BILL_ROW_LEN: usize = 7;
 
 /// How many numbers [`limits`] returns.
-pub const LIMITS_LEN: usize = 5;
+pub const LIMITS_LEN: usize = 8;
 
 fn living(world: &World, sim: u32) -> Option<Entity> {
     edit::living_entity(world, sim)
@@ -290,8 +290,9 @@ pub fn job_options(world: &World) -> Vec<f64> {
 }
 
 /// `[habituation_max, overdoing_threshold, sick_threshold,
-/// housemate_max_traits, most poor weeks the panel sets]`: the tuning the
-/// panel's ranges and words come from, so the shell keeps no copy.
+/// housemate_max_traits, most poor weeks the panel sets, admin_skip_max_hours,
+/// admin_skip_default_hours, admin_skip_ticks_per_frame]`: the tuning the
+/// panel's ranges, words and Skip ahead come from, so the shell keeps no copy.
 pub fn limits(world: &World) -> Vec<f64> {
     let tuning = &world.resource::<Content>().0.tuning;
     vec![
@@ -300,5 +301,8 @@ pub fn limits(world: &World) -> Vec<f64> {
         f64::from(tuning.sick_threshold),
         f64::from(tuning.housemate_max_traits),
         f64::from(careers::certain_fire_weeks(tuning).unwrap_or(careers::POOR_WARNING_WEEKS)),
+        f64::from(tuning.admin_skip_max_hours),
+        f64::from(tuning.admin_skip_default_hours),
+        f64::from(tuning.admin_skip_ticks_per_frame),
     ]
 }

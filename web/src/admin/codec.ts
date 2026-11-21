@@ -452,13 +452,27 @@ export interface AdminLimits {
   readonly maxTraits: number;
   /** The most poor weeks in a row the panel sets. */
   readonly maxPoorWeeks: number;
+  /** The most hours one Skip ahead runs. */
+  readonly skipMaxHours: number;
+  /** The hours the Skip box starts with. */
+  readonly skipDefaultHours: number;
+  /** The ticks Skip ahead runs in one rendered frame. */
+  readonly skipTicksPerFrame: number;
 }
 
-/** `admin_limits`: `[habituation_max, overdoing_threshold, sick_threshold, housemate_max_traits, most poor weeks]`. */
+/**
+ * `admin_limits`: `[habituation_max, overdoing_threshold, sick_threshold,
+ * housemate_max_traits, most poor weeks, skip maximum hours, skip default
+ * hours, skip ticks per frame]`.
+ */
 export function decodeAdminLimits(row: ArrayLike<number>): AdminLimits {
-  check(row.length === 5, 'limits length');
+  check(row.length === 8, 'limits length');
   finite(row);
   check(row[0] > 0 && row[1] > 0 && row[2] > 0, 'limits are positive');
   check(Number.isInteger(row[3]) && row[3] >= 1 && Number.isInteger(row[4]) && row[4] >= 0, 'limit counts');
-  return { habituationMax: row[0], overdoingThreshold: row[1], sickThreshold: row[2], maxTraits: row[3], maxPoorWeeks: row[4] };
+  check([row[5], row[6], row[7]].every(n => Number.isInteger(n) && n >= 1) && row[6] <= row[5], 'skip limits');
+  return {
+    habituationMax: row[0], overdoingThreshold: row[1], sickThreshold: row[2], maxTraits: row[3], maxPoorWeeks: row[4],
+    skipMaxHours: row[5], skipDefaultHours: row[6], skipTicksPerFrame: row[7],
+  };
 }

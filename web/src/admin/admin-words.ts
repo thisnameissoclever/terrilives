@@ -16,6 +16,7 @@ export const ADMIN_WORDS = {
   pickerGroup: 'Housemate',
   paused: 'Game paused',
   stays: 'The game stays paused after you close the panel.',
+  skipping: 'Skipping ahead',
 } as const;
 
 /** S-pill: what closing does, at the speed that was chosen before opening. */
@@ -197,4 +198,56 @@ export const RELATIONSHIP_WORDS = {
   fought: (a: string, duration: string): string => `${a} had a fight. Ends in ${duration}.`,
   fightQueued: 'The fight starts when the game resumes.',
   fightMoodlet: 'Had a fight',
+} as const;
+
+/** "1 hour", "8 hours": the plan writes "{n} hours", and one hour reads as one hour. */
+export function hoursText(hours: number): string {
+  return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+}
+
+/**
+ * S-funds, S-bills and S-time: the Household tab's words, exactly as the
+ * plan's table has them, with the singular where a count is 1.
+ */
+export const HOUSEHOLD_WORDS = {
+  funds: 'Funds',
+  addThousand: 'Add $1,000',
+  subtractThousand: 'Subtract $1,000',
+  addTenThousand: 'Add $10,000',
+  zeroFunds: 'Set to $0',
+  places: 'Use at most two decimal places.',
+  bills: 'Bills',
+  bill: 'Bill',
+  due: 'Due',
+  amount: 'Amount',
+  lateFee: 'Late fee',
+  status: 'Status',
+  day: (day: number, weekday: string): string => `Day ${day}, ${weekday}`,
+  overdue: 'Overdue',
+  noFeeUntil: (day: number): string => `No fee until Day ${day}`,
+  paidDay: (day: number): string => `Paid Day ${day}`,
+  pay: 'Pay from funds',
+  markPaid: 'Mark paid, free',
+  remove: 'Delete',
+  addBill: 'Add bill',
+  removeFees: 'Remove all late fees',
+  markAllPaid: 'Mark all paid, free',
+  noBills: 'No bills.',
+  nextDue: (day: number, weekday: string): string => `Next bills due: Day ${day}, ${weekday}`,
+  feeRule: (percent: number, grace: number, cap: number): string =>
+    `Late fee: ${percent}% a day after ${grace} days, up to ${cap}% of the bill`,
+  autoPay: 'Unpaid bills are paid from funds automatically when the game resumes, oldest first, while funds cover them.',
+  cannotCover: "Funds don't cover this bill.",
+  time: 'Time',
+  now: 'Now',
+  clock: (day: number, weekday: string, time: string): string => `Day ${day}, ${weekday}, ${time}`,
+  skipBy: 'Skip ahead by',
+  hours: 'hours',
+  skip: 'Skip',
+  stop: 'Stop',
+  skipNote: "Skipping can't be undone, and it clears Undo.",
+  skipping: (done: number, asked: number): string => `Skipping: ${done} of ${hoursText(asked)}.`,
+  skipped: (hours: number): string => `Skipped ${hoursText(hours)}.`,
+  stopped: (hours: number): string => `Stopped after ${hoursText(hours)}.`,
+  died: (hours: number, name: string): string => `Stopped after ${hoursText(hours)}: ${name} died.`,
 } as const;

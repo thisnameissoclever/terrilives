@@ -51,6 +51,49 @@ export interface AdminApplyOptions {
   readonly words?: RefusalParams;
 }
 
+/** How a skip ahead ended: ran its hours, was stopped by the player, or stopped because a housemate died. */
+export type SkipResult =
+  | { readonly kind: 'done'; readonly hours: number }
+  | { readonly kind: 'stopped'; readonly hours: number }
+  | { readonly kind: 'died'; readonly hours: number; readonly name: string };
+
+/** Where a skip ahead stands: running with its progress, or not with how the last one ended. */
+export type AdminSkipState =
+  | { readonly running: true; readonly asked: number; readonly done: number }
+  | { readonly running: false; readonly last: SkipResult | null };
+
+/** What the Household tab uses to skip ahead; the shell runs it through the host ([AP-skip]). */
+export interface AdminSkipControl {
+  /** False when the host cannot run a skip; the tab then hides it. */
+  available(): boolean;
+  /** The most hours one skip runs and the hours the box starts with. */
+  limits(): { readonly maxHours: number; readonly defaultHours: number };
+  /**
+   * Ends the session (the Undo history goes with it), locks the rest of the
+   * panel and has the host run `hours`. Ignored while one runs or the panel
+   * is closed.
+   */
+  start(hours: number): void;
+  /** Asks the run to end at the end of the current frame, keeping the hours already run. */
+  stop(): void;
+  state(): AdminSkipState;
+}
+
+/** What the host (the frame loop) does for Skip ahead. */
+export interface AdminSkipHost {
+  limits(): { readonly maxHours: number; readonly defaultHours: number };
+  /**
+   * Starts running `hours` in game time, a budget of ticks a frame.
+   * `progress` reports the whole hours run after a frame; `finish` is called
+   * exactly once, unless `cancel` was called first.
+   */
+  start(hours: number, handlers: { progress(hoursRun: number): void; finish(result: SkipResult): void }): void;
+  /** Ends the run at the end of the current frame, keeping the hours run. */
+  stop(): void;
+  /** Abandons the run at once with no `finish`: the world is being replaced. */
+  cancel(): void;
+}
+
 /** What the shell gives each tab when it creates it. */
 export interface AdminTabContext {
   readonly doc: Document;
@@ -64,6 +107,8 @@ export interface AdminTabContext {
    * calls `options.report`. A tab never refreshes itself after a change.
    */
   apply(change: AdminChange, options: AdminApplyOptions): AdminApplyResult;
+  /** Skip ahead, which only the Household tab shows. */
+  readonly skip: AdminSkipControl;
 }
 
 /** One tab's content. */
@@ -77,6 +122,11 @@ export interface AdminTab {
    * so it does not only rise.
    */
   refresh(): void;
+  /**
+   * A skip ahead started, made progress or ended; read `context.skip.state()`.
+   * Called on every frame of a skip, so redraw only what changed.
+   */
+  skipChanged?(): void;
 }
 
 export type AdminTabFactory = (context: AdminTabContext) => AdminTab;
@@ -113,6 +163,8 @@ export interface AdminPanelHost {
   worldChanged?(cause: 'apply' | 'undo'): void;
   /** Tab modules that have been built; a missing one shows a plain placeholder. */
   tabs?: Partial<Record<AdminTabId, AdminTabFactory>>;
+  /** Runs Skip ahead through the frame loop; without it the Household tab hides Skip. */
+  skip?: AdminSkipHost;
 }
 
 const FOCUSABLE = 'button, input, select, textarea, [tabindex]';
@@ -149,7 +201,9 @@ function editsText(target: EventTarget | null): boolean {
 export class AdminPanel {
   private readonly heading: HTMLElement;
   private readonly header: HTMLElement;
+  private readonly pillLabel: HTMLElement;
   private readonly pillNote: HTMLElement;
+  private readonly closeButton: HTMLButtonElement;
   private readonly undoButton: HTMLButtonElement;
   private readonly undoStatus: HTMLElement;
   private readonly tabList: HTMLElement;
@@ -159,6 +213,13 @@ export class AdminPanel {
   private readonly tabs = new Map<AdminTabId, AdminTab>();
 
   private sessionOpen = false;
+  /** Whether the simulation's own session is open: it is closed for the length of a skip. */
+  private bridgeSession = false;
+  private skipping = false;
+  private skipRun = 0;
+  private skipAsked = 0;
+  private skipDone = 0;
+  private lastSkip: SkipResult | null = null;
   private active: AdminTabId = 'housemate';
   private roster: readonly AdminMember[] = [];
   private chosen: number | null = null;
@@ -193,7 +254,8 @@ export class AdminPanel {
     const pill = this.node('div', 'admin-pill');
     pill.setAttribute('role', 'status');
     this.pillNote = span(doc, 'admin-pill-note', '');
-    pill.append(span(doc, 'admin-pill-label', ADMIN_WORDS.paused), this.pillNote);
+    this.pillLabel = span(doc, 'admin-pill-label', ADMIN_WORDS.paused);
+    pill.append(this.pillLabel, this.pillNote);
     this.undoButton = this.node('button', 'hud-button admin-undo');
     this.undoButton.type = 'button';
     this.undoButton.addEventListener('click', () => this.undo());
@@ -202,6 +264,7 @@ export class AdminPanel {
     close.textContent = ADMIN_WORDS.close;
     setActionIntent(close, 'negative');
     close.addEventListener('click', () => this.close());
+    this.closeButton = close;
     this.header.append(this.heading, pill, span(doc, 'admin-spacer', ''), span(doc, 'admin-hint', ADMIN_WORDS.hint), this.undoButton, close);
     this.undoStatus = this.node('p', 'admin-undo-status');
     this.undoStatus.setAttribute('role', 'status');
@@ -243,6 +306,13 @@ export class AdminPanel {
       members: () => this.roster,
       selected: () => this.selectedMember(),
       apply: (change, options) => this.apply(change, options),
+      skip: {
+        available: () => host.skip !== undefined,
+        limits: () => host.skip?.limits() ?? { maxHours: 1, defaultHours: 1 },
+        start: hours => this.startSkip(hours),
+        stop: () => this.stopSkip(),
+        state: () => this.skipState(),
+      },
     };
     for (const meta of ADMIN_TABS) {
       const factory = host.tabs?.[meta.id];
@@ -253,7 +323,11 @@ export class AdminPanel {
 
     // Escape is the dialog's native cancel; it ends here with Close, so the
     // session ends and the game resumes exactly once.
-    dialog.addEventListener('cancel', event => { event.preventDefault(); this.close(); });
+    // While a skip runs Escape stops it instead and the panel stays open.
+    dialog.addEventListener('cancel', event => {
+      event.preventDefault();
+      if (this.skipping) this.stopSkip(); else this.close();
+    });
     dialog.addEventListener('close', () => this.afterClose());
     dialog.addEventListener('keydown', event => this.onKey(event as KeyboardEvent));
   }
@@ -287,6 +361,9 @@ export class AdminPanel {
       return false;
     }
     this.sessionOpen = true;
+    this.bridgeSession = true;
+    this.skipping = false;
+    this.lastSkip = null;
     this.opener = previous;
     this.active = 'housemate';
     this.labels = [];
@@ -294,10 +371,10 @@ export class AdminPanel {
     this.undoFailed = false;
     this.undoStatus.textContent = '';
     this.chosen = null;
-    this.pillNote.textContent = pillNote(this.pause.selectedSpeed);
     try {
       this.syncMembers();
       this.select('housemate', false);
+      this.lockControls();
       this.updateUndo();
       this.element.showModal();
     } catch (error) {
@@ -311,6 +388,11 @@ export class AdminPanel {
 
   /** Closes the panel, ending the session and resuming the game; nothing happens when it is closed. */
   close(): void {
+    // A skip is abandoned at once: the host stops without a finish, the session is already ended.
+    if (this.skipping) {
+      this.skipping = false;
+      this.host.skip?.cancel();
+    }
     if (this.element.open) this.element.close();
     else this.afterClose();
   }
@@ -334,8 +416,9 @@ export class AdminPanel {
     if (!this.sessionOpen) return;
     this.sessionOpen = false;
     try {
-      this.source.adminEnd();
+      if (this.bridgeSession) this.source.adminEnd();
     } finally {
+      this.bridgeSession = false;
       this.pause.resume(PAUSE_OWNER);
     }
     const previous = this.opener;
@@ -349,7 +432,7 @@ export class AdminPanel {
   }
 
   private apply(change: AdminChange, options: AdminApplyOptions): AdminApplyResult {
-    if (!this.sessionOpen) {
+    if (!this.sessionOpen || this.skipping) {
       options.report?.(refusalText(1, {}));
       return { applied: false, edit: 0, refusal: 1, depth: this.depth };
     }
@@ -368,6 +451,83 @@ export class AdminPanel {
       else options.report(refusalText(result.refusal, { name: this.selectedMember()?.name, ...options.words }));
     }
     return result;
+  }
+
+  // ---- Skip ahead ----------------------------------------------------------
+
+  private skipState(): AdminSkipState {
+    return this.skipping
+      ? { running: true, asked: this.skipAsked, done: this.skipDone }
+      : { running: false, last: this.lastSkip };
+  }
+
+  private startSkip(hours: number): void {
+    const host = this.host.skip;
+    if (host === undefined || !this.sessionOpen || this.skipping || !Number.isInteger(hours) || hours < 1) return;
+    // The journal ends with the session: Skip is not undoable, and a baseline taken before it would
+    // name a world that time has moved on from.
+    this.source.adminEnd();
+    this.bridgeSession = false;
+    this.labels = [];
+    this.depth = 0;
+    this.undoFailed = false;
+    this.undoStatus.textContent = '';
+    this.skipping = true;
+    this.skipAsked = hours;
+    this.skipDone = 0;
+    this.lastSkip = null;
+    const run = ++this.skipRun;
+    this.lockControls();
+    this.updateUndo();
+    this.refreshAll();
+    host.start(hours, {
+      progress: done => { if (run === this.skipRun) this.skipProgress(done); },
+      finish: result => { if (run === this.skipRun) this.finishSkip(result); },
+    });
+  }
+
+  private stopSkip(): void {
+    if (this.skipping) this.host.skip?.stop();
+  }
+
+  private skipProgress(done: number): void {
+    if (!this.skipping) return;
+    this.skipDone = Math.max(0, Math.min(done, this.skipAsked));
+    for (const tab of this.tabs.values()) tab.skipChanged?.();
+  }
+
+  private finishSkip(result: SkipResult): void {
+    if (!this.skipping) return;
+    this.skipping = false;
+    this.lastSkip = result;
+    const begun = this.source.adminBegin();
+    if (begun !== 'ok') {
+      // Nothing to undo against: close, resume the game and say why.
+      this.sessionOpen = false;
+      this.lockControls();
+      this.pause.resume(PAUSE_OWNER);
+      const previous = this.opener;
+      this.opener = null;
+      if (this.element.open) this.element.close();
+      this.showAlert(beginRefusalText(begun), previous);
+      return;
+    }
+    this.bridgeSession = true;
+    this.lockControls();
+    this.syncMembers();
+    this.host.worldChanged?.('apply');
+    this.refreshAll();
+    this.updateUndo();
+  }
+
+  /** The controls a skip locks: Close, the tabs, the picker and the pill's words. */
+  private lockControls(): void {
+    const on = this.skipping;
+    this.closeButton.disabled = on;
+    for (const button of this.tabButtons.values()) button.disabled = on;
+    this.renderPicker();
+    this.pillLabel.textContent = on ? ADMIN_WORDS.skipping : ADMIN_WORDS.paused;
+    this.pillNote.textContent = on ? '' : pillNote(this.pause.selectedSpeed);
   }
 
   // ---- Undo ----------------------------------------------------------------
@@ -399,7 +559,7 @@ export class AdminPanel {
 
   private updateUndo(): void {
     const button = this.undoButton;
-    const enabled = !this.undoFailed && this.depth > 0;
+    const enabled = !this.undoFailed && this.depth > 0 && !this.skipping;
     let text: string = UNDO_WORDS.idle;
     if (enabled) text = this.labels.length === this.depth ? undoWithChange(this.labels[this.labels.length - 1]) : UNDO_WORDS.unknown;
     // A button that is about to be disabled must not hold focus.
@@ -467,6 +627,7 @@ export class AdminPanel {
       button.type = 'button';
       button.textContent = member.name;
       button.setAttribute('aria-pressed', member.simId === this.chosen ? 'true' : 'false');
+      button.disabled = this.skipping;
       button.addEventListener('click', () => this.choose(member.simId));
       return button;
     });

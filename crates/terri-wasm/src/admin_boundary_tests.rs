@@ -758,4 +758,12 @@ fn admin_limits_reads_the_tuning_the_panel_ranges_come_from() {
         ),
         "the most poor weeks the panel sets"
     );
+    assert_eq!(limits[5], f64::from(tuning.admin_skip_max_hours));
+    assert_eq!(limits[6], f64::from(tuning.admin_skip_default_hours));
+    assert_eq!(limits[7], f64::from(tuning.admin_skip_ticks_per_frame));
+    assert_eq!(
+        limits[5..],
+        [168.0, 8.0, 300.0],
+        "the shipped Skip ahead knobs"
+    );
 }
