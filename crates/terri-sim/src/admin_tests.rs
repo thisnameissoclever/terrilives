@@ -1,0 +1,374 @@
+//! The admin session and Undo (issue 312, [AP-undo] and [AP-tests-sim]
+//! items 2, 5, 6, 7 and 8 in `docs/specs/2026-11-20-admin-panel.md`).
+//!
+//! The real edits are later tasks, so these tests use the stub edits of
+//! `admin::tests_stub`: `AdjustFunds` adds to the funds and
+//! `SetSatisfaction` sets a person's life satisfaction, both hashed.
+use crate::admin::{
+    tests_stub::FAILS_POST_CONDITION, AdminApplyRefusal, AdminOpenError, AdminRefusal,
+    AdminSession, AdminUndoError,
+};
+use crate::build_transaction::BuildCommitError;
+use crate::Sim;
+use terri_core::admin::{AdminChange, AdminEdit};
+use terri_core::{Agent, CommandQueue, Funds, Satisfaction, SimClock, SimId};
+
+fn change(edits: Vec<AdminEdit>) -> AdminChange {
+    AdminChange { edits }
+}
+
+fn funds(cents: i64) -> AdminChange {
+    change(vec![AdminEdit::AdjustFunds { cents }])
+}
+
+fn satisfaction(sim: u32, value: f32) -> AdminChange {
+    change(vec![AdminEdit::SetSatisfaction { sim, value }])
+}
+
+/// Every living person's SimId, ascending.
+fn people(sim: &mut Sim) -> Vec<u32> {
+    let mut ids: Vec<u32> = sim
+        .world_mut()
+        .query::<(&Agent, &SimId)>()
+        .iter(sim.world())
+        .map(|(_, id)| id.0)
+        .collect();
+    ids.sort_unstable();
+    ids
+}
+
+fn satisfaction_of(sim: &mut Sim, id: u32) -> f32 {
+    sim.world_mut()
+        .query::<(&SimId, &Satisfaction)>()
+        .iter(sim.world())
+        .find(|(sim_id, _)| sim_id.0 == id)
+        .map(|(_, satisfaction)| satisfaction.value())
+        .expect("a living person")
+}
+
+fn cents(sim: &Sim) -> i64 {
+    sim.world().resource::<Funds>().0
+}
+
+fn opened() -> Sim {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_admin().expect("the shipped lot opens the panel");
+    sim
+}
+
+/// [AP-tests-sim] item 7: no game time passes while the session is open, and
+/// it passes again once the session ends.
+#[test]
+fn tick_advances_no_clock_while_a_session_is_open() {
+    let mut sim = opened();
+    let tick = sim.world().resource::<SimClock>().tick;
+    let hash = sim.world_hash();
+    for _ in 0..30 {
+        sim.tick();
+    }
+    assert_eq!(sim.world().resource::<SimClock>().tick, tick);
+    assert_eq!(sim.world_hash(), hash, "nothing ran under the baseline");
+    sim.end_admin();
+    sim.tick();
+    assert_eq!(sim.world().resource::<SimClock>().tick, tick + 1);
+}
+
+/// [AP-tests-sim] item 7: Build refuses to open during a session and the
+/// session refuses to open during Build; neither opens twice.
+#[test]
+fn build_mode_and_the_admin_session_refuse_each_other() {
+    let mut sim = opened();
+    assert_eq!(sim.begin_build(), Err(BuildCommitError::AdminActive));
+    assert!(!sim.build_active());
+    assert_eq!(sim.begin_admin(), Err(AdminOpenError::AlreadyOpen));
+    sim.end_admin();
+    assert!(!sim.admin_active());
+    sim.begin_build().unwrap();
+    assert_eq!(sim.begin_admin(), Err(AdminOpenError::BuildActive));
+    assert!(!sim.admin_active());
+    sim.end_build().unwrap();
+    assert_eq!(sim.begin_admin(), Ok(()));
+}
+
+/// [AP-tests-sim] item 7: with no session an edit is refused as
+/// `NoSession` and nothing changes.
+#[test]
+fn an_edit_with_no_session_is_refused() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let hash = sim.world_hash();
+    assert_eq!(
+        sim.admin_apply(funds(100)),
+        Err(AdminApplyRefusal {
+            edit: 0,
+            reason: AdminRefusal::NoSession
+        })
+    );
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(sim.admin_undo(), Err(AdminUndoError::NotOpen));
+    let mut sim = opened();
+    sim.end_admin();
+    assert_eq!(
+        sim.admin_apply(funds(100))
+            .map_err(|refusal| refusal.reason),
+        Err(AdminRefusal::NoSession)
+    );
+}
+
+/// A malformed change is refused at admission and never staged.
+#[test]
+fn a_malformed_change_is_refused_before_it_is_staged() {
+    let mut sim = opened();
+    let hash = sim.world_hash();
+    assert_eq!(
+        sim.admin_apply(change(Vec::new())),
+        Err(AdminApplyRefusal {
+            edit: 0,
+            reason: AdminRefusal::Malformed
+        })
+    );
+    assert_eq!(
+        sim.admin_apply(change(vec![
+            AdminEdit::AdjustFunds { cents: 1 },
+            AdminEdit::AdjustFunds { cents: 2 },
+        ])),
+        Err(AdminApplyRefusal {
+            edit: 1,
+            reason: AdminRefusal::Malformed
+        })
+    );
+    assert_eq!(
+        sim.admin_apply(satisfaction(0, f32::NAN)),
+        Err(AdminApplyRefusal {
+            edit: 0,
+            reason: AdminRefusal::OutOfRange
+        })
+    );
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(sim.admin_undo_depth(), 0);
+    assert!(sim.world().resource::<CommandQueue>().is_empty());
+}
+
+/// [AP-tests-sim] item 2: a change whose third edit is refused changes
+/// nothing, and the refusal names that edit.
+#[test]
+fn a_change_with_a_refused_edit_changes_nothing() {
+    let mut sim = opened();
+    let first = people(&mut sim)[0];
+    let before = satisfaction_of(&mut sim, first);
+    let money = cents(&sim);
+    let hash = sim.world_hash();
+    assert_eq!(
+        sim.admin_apply(change(vec![
+            AdminEdit::SetSatisfaction {
+                sim: first,
+                value: 3.0
+            },
+            AdminEdit::AdjustFunds { cents: 500 },
+            AdminEdit::SetSatisfaction {
+                sim: 99_999,
+                value: 4.0
+            },
+        ])),
+        Err(AdminApplyRefusal {
+            edit: 2,
+            reason: AdminRefusal::NotAPerson
+        })
+    );
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(satisfaction_of(&mut sim, first), before);
+    assert_eq!(cents(&sim), money);
+    assert_eq!(sim.admin_undo_depth(), 0);
+    // The same change without the bad edit applies, as one journal entry.
+    assert_eq!(
+        sim.admin_apply(change(vec![
+            AdminEdit::SetSatisfaction {
+                sim: first,
+                value: 3.0
+            },
+            AdminEdit::AdjustFunds { cents: 500 },
+        ])),
+        Ok(1)
+    );
+    assert_eq!(satisfaction_of(&mut sim, first), 3.0);
+    assert_eq!(cents(&sim), money + 500);
+}
+
+/// The twenty changes of the Undo sequence: funds adjustments and
+/// satisfaction settings across every person, some in one change together.
+fn sequence(people: &[u32]) -> Vec<AdminChange> {
+    (0..20u32)
+        .map(|step| {
+            let person = people[step as usize % people.len()];
+            match step % 3 {
+                0 => funds(i64::from(step) * 1_000 - 7_000),
+                1 => satisfaction(person, (step * 4) as f32 + 0.5),
+                _ => change(vec![
+                    AdminEdit::SetSatisfaction {
+                        sim: person,
+                        value: 100.0 - step as f32,
+                    },
+                    AdminEdit::AdjustFunds {
+                        cents: -i64::from(step),
+                    },
+                ]),
+            }
+        })
+        .collect()
+}
+
+/// [AP-tests-sim] item 5 with the stub edits: twenty changes, then twenty
+/// Undos. After each Undo the world hashes as it did before the undone
+/// change, the funds and every satisfaction read as they did, and the last
+/// Undo leaves the baseline. The rebuilt world then plays on exactly as one
+/// that never opened the panel.
+#[test]
+fn undo_steps_back_through_every_change_exactly() {
+    let mut sim = opened();
+    let mut twin = opened();
+    twin.end_admin();
+    let ids = people(&mut sim);
+    let read = |sim: &mut Sim| {
+        let satisfactions: Vec<u32> = ids
+            .iter()
+            .map(|id| satisfaction_of(sim, *id).to_bits())
+            .collect();
+        (sim.world_hash(), cents(sim), satisfactions)
+    };
+    let baseline = read(&mut sim);
+    let mut before = Vec::new();
+    for (step, change) in sequence(&ids).into_iter().enumerate() {
+        before.push(read(&mut sim));
+        assert_eq!(sim.admin_apply(change), Ok(step + 1));
+        assert!(sim.world().resource::<CommandQueue>().is_empty());
+        assert_ne!(
+            read(&mut sim).0,
+            before[step].0,
+            "step {step} moved the hash"
+        );
+    }
+    while let Some(expected) = before.pop() {
+        assert_eq!(sim.admin_undo(), Ok(()));
+        assert_eq!(sim.admin_undo_depth(), before.len());
+        assert_eq!(read(&mut sim), expected, "undo to depth {}", before.len());
+    }
+    assert_eq!(read(&mut sim), baseline);
+    assert_eq!(sim.admin_undo(), Err(AdminUndoError::NothingToUndo));
+    assert!(sim.admin_active(), "Undo keeps the session open");
+    sim.end_admin();
+    for tick in 0..240 {
+        sim.tick();
+        twin.tick();
+        assert_eq!(sim.world_hash(), twin.world_hash(), "tick {tick}");
+    }
+}
+
+/// Undo then a new change: the journal continues from the undone depth, and
+/// a later Undo takes back only the new change.
+#[test]
+fn a_change_after_undo_replaces_the_undone_one() {
+    let mut sim = opened();
+    let start = cents(&sim);
+    assert_eq!(sim.admin_apply(funds(100)), Ok(1));
+    assert_eq!(sim.admin_apply(funds(200)), Ok(2));
+    sim.admin_undo().unwrap();
+    assert_eq!(cents(&sim), start + 100);
+    assert_eq!(sim.admin_apply(funds(5)), Ok(2));
+    assert_eq!(cents(&sim), start + 105);
+    sim.admin_undo().unwrap();
+    assert_eq!(cents(&sim), start + 100);
+    sim.admin_undo().unwrap();
+    assert_eq!(cents(&sim), start);
+}
+
+/// [AP-tests-sim] item 6: with one journal entry's recorded hash corrupted,
+/// Undo reports the mismatch at that entry and the live world and journal
+/// are unchanged. A corrupted baseline hash is caught before any replay.
+#[test]
+fn undo_detects_a_bad_replay_and_keeps_the_live_world() {
+    let mut sim = opened();
+    let first = people(&mut sim)[0];
+    sim.admin_apply(funds(100)).unwrap();
+    sim.admin_apply(satisfaction(first, 7.0)).unwrap();
+    sim.admin_apply(funds(-30)).unwrap();
+    let hash = sim.world_hash();
+    let money = cents(&sim);
+    sim.world_mut().resource_mut::<AdminSession>().journal[1].hash_after ^= 1;
+    assert_eq!(
+        sim.admin_undo(),
+        Err(AdminUndoError::Mismatch { entry: Some(1) })
+    );
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(cents(&sim), money);
+    assert_eq!(satisfaction_of(&mut sim, first), 7.0);
+    assert_eq!(sim.admin_undo_depth(), 3);
+    // With the recorded hash put back, the same Undo works.
+    sim.world_mut().resource_mut::<AdminSession>().journal[1].hash_after ^= 1;
+    assert_eq!(sim.admin_undo(), Ok(()));
+    assert_eq!(cents(&sim), money + 30);
+}
+
+/// The baseline's own hash is checked before anything is replayed.
+#[test]
+fn undo_checks_the_restored_baseline_first() {
+    let mut sim = opened();
+    sim.admin_apply(funds(100)).unwrap();
+    let hash = sim.world_hash();
+    crate::admin::tests_stub::corrupt_baseline_hash(sim.world_mut());
+    assert_eq!(
+        sim.admin_undo(),
+        Err(AdminUndoError::Mismatch { entry: None })
+    );
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(sim.admin_undo_depth(), 1);
+}
+
+/// [AP-cmd-drain] item 4: a change that fails its post-condition is taken
+/// back by rebuilding the last good world, reported as `WouldNotLoad`, and
+/// not journaled.
+#[test]
+fn a_change_that_fails_its_post_condition_is_taken_back() {
+    let mut sim = opened();
+    sim.admin_apply(funds(100)).unwrap();
+    let hash = sim.world_hash();
+    let money = cents(&sim);
+    assert_eq!(
+        sim.admin_apply(funds(FAILS_POST_CONDITION)),
+        Err(AdminApplyRefusal {
+            edit: 0,
+            reason: AdminRefusal::WouldNotLoad
+        })
+    );
+    assert_eq!(cents(&sim), money);
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(sim.admin_undo_depth(), 1);
+    sim.admin_undo().unwrap();
+    assert_eq!(cents(&sim), money - 100);
+}
+
+/// [AP-tests-sim] item 8: a save taken mid-session holds the edits applied
+/// so far and no session. It reloads as an ordinary game with the panel
+/// closed and continues tick for tick with the live world once that world
+/// closes its panel, for one game day.
+#[test]
+fn a_save_taken_mid_session_holds_the_edits_and_no_session() {
+    let mut sim = opened();
+    let first = people(&mut sim)[0];
+    sim.admin_apply(funds(123_456)).unwrap();
+    sim.admin_apply(satisfaction(first, 91.25)).unwrap();
+    let snapshot = sim
+        .try_save_snapshot_v24()
+        .expect("nothing admin is queued");
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v24(snapshot).expect("the save loads");
+    assert!(!loaded.admin_active());
+    assert_eq!(loaded.admin_undo_depth(), 0);
+    assert_eq!(cents(&loaded), cents(&sim));
+    assert_eq!(satisfaction_of(&mut loaded, first), 91.25);
+    assert_eq!(loaded.world_hash(), sim.world_hash());
+    sim.end_admin();
+    for tick in 0..1440 {
+        sim.tick();
+        loaded.tick();
+        assert_eq!(sim.world_hash(), loaded.world_hash(), "tick {tick}");
+    }
+}

@@ -10,6 +10,8 @@ pub mod activity_status;
 mod activity_tests;
 pub mod admin;
 #[cfg(test)]
+mod admin_tests;
+#[cfg(test)]
 mod admin_wire_tests;
 pub mod affinity;
 pub mod beds;
@@ -2589,7 +2591,9 @@ impl Sim {
             self.world
                 .insert_resource(build_transaction::SkipCommandDrain);
         }
-        if self.build_active() {
+        // [AP-undo-model] item 3: no game time passes under an admin
+        // session's baseline, as none passes under Build's.
+        if self.build_active() || self.admin_active() {
             self.flush_commands();
             return;
         }

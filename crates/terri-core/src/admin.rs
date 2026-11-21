@@ -48,7 +48,7 @@ pub enum AdminEdit {
     SetNeed { sim: u32, need: u8, value: f32 },
     /// 1.
     SetSatisfaction { sim: u32, value: f32 },
-    /// 2. `object` is the pack's object definition index, `row` the
+    /// Code 2: `object` is the pack's object definition index, `row` the
     /// flyout action row.
     SetRepetition {
         sim: u32,
@@ -72,8 +72,8 @@ pub enum AdminEdit {
     AddTrait { sim: u32, trait_index: u32 },
     /// 8.
     RemoveTrait { sim: u32, trait_index: u32 },
-    /// 9. `job` is a career row, `None` no job; `shift` an index into that
-    /// row's shifts.
+    /// Code 9: `job` is a career row, `None` no job; `shift` an index into
+    /// that row's shifts.
     SetJob {
         sim: u32,
         job: Option<u32>,

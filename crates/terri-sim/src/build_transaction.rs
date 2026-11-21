@@ -59,6 +59,9 @@ pub enum BuildCommitError {
     BedOutside {
         object: u32,
     },
+    /// The admin panel's session is open ([AP-undo-model] item 1 in
+    /// `docs/specs/2026-11-20-admin-panel.md`), so Build cannot open.
+    AdminActive,
 }
 /// Which load rule refused the draft when Build could not open or confirm.
 /// `BuildCommitError::Validation` names only the kind of error; this names the
@@ -325,6 +328,11 @@ impl Sim {
         self.world.remove_resource::<BuildDiagnosis>();
         if self.build_active() {
             return Err(BuildCommitError::AlreadyActive);
+        }
+        // [AP-undo-model] item 1: Build and the admin panel never overlap,
+        // since each restores its own baseline.
+        if self.admin_active() {
+            return Err(BuildCommitError::AdminActive);
         }
         if !self.world.resource::<terri_core::CommandQueue>().is_empty() {
             self.flush_commands();
@@ -765,6 +773,38 @@ impl Sim {
         b.prepared = None;
         Ok(())
     }
+    /// A world rebuilt from a session baseline, as Build's Cancel and the
+    /// admin panel's Undo both build one ([AP-undo-restore] item 2 in
+    /// `docs/specs/2026-11-20-admin-panel.md`): the baseline restored as a
+    /// load restores it, this world's unsaved feedback copied across, the
+    /// social request runtime captured with the baseline put back, and the
+    /// derived caches rebuilt. Nothing is installed; the live world is
+    /// untouched.
+    pub(crate) fn restore_session_baseline(
+        &self,
+        baseline: SaveSnapshotV24,
+        request_runtime: &crate::social_episode::requests::runtime::Runtime,
+    ) -> Result<Sim, SaveError> {
+        let mut restored = save::v24::restore(
+            baseline,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        ordinary::runtime::copy_feedback(&self.world, &mut restored.world);
+        crate::social_episode::requests::runtime::restore(request_runtime, &mut restored.world);
+        ordinary::runtime::refresh_derived(&mut restored.world);
+        Ok(restored)
+    }
+    /// Install a world rebuilt by [`Sim::restore_session_baseline`] and
+    /// replayed since, as the admin panel's Undo does. A replay writes
+    /// activity records the live world already holds or has handed over, so
+    /// the live log is kept, as Build's Confirm keeps it.
+    pub(crate) fn install_session_world(&mut self, mut candidate: Sim) -> Result<(), SaveError> {
+        ordinary::runtime::carry_activity_log(&self.world, &mut candidate.world);
+        ordinary::runtime::install(self, candidate)?;
+        self.sync_render_buffer_after_commands();
+        Ok(())
+    }
     fn restore_build(&mut self, end: bool) -> Result<(), BuildCommitError> {
         self.world.remove_resource::<BuildDiagnosis>();
         let baseline = self
@@ -778,14 +818,7 @@ impl Sim {
             .resource::<BuildTransaction>()
             .request_runtime
             .clone();
-        let mut restored = save::v24::restore(
-            baseline,
-            self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
-        )?;
-        ordinary::runtime::copy_feedback(&self.world, &mut restored.world);
-        crate::social_episode::requests::runtime::restore(&request_runtime, &mut restored.world);
-        ordinary::runtime::refresh_derived(&mut restored.world);
+        let restored = self.restore_session_baseline(baseline, &request_runtime)?;
         ordinary::runtime::install(self, restored)?;
         if end {
             self.world.remove_resource::<BuildTransaction>();
