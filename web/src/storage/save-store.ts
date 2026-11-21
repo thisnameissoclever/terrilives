@@ -11,12 +11,14 @@
 
 export interface SaveStore {
   load(): Promise<Uint8Array | null>;
+  /** The copy of the save before the latest one, or null when there is none. */
+  lastGoodCopy(): Promise<Uint8Array | null>;
   /**
-   * Replaces a slot that could not be loaded with the last good copy and
-   * returns its bytes, or null when there is none. The unreadable bytes are
-   * kept aside, not discarded.
+   * Makes a last good copy the slot, after the caller loaded it successfully.
+   * The unreadable bytes are kept aside, not discarded. Returns false, changing
+   * nothing, when the slot no longer holds `unreadable` or the copy changed.
    */
-  recover(): Promise<Uint8Array | null>;
+  restoreLastGood(unreadable: Uint8Array, lastGood: Uint8Array): Promise<boolean>;
   save(bytes: Uint8Array): Promise<void>;
   clear(): Promise<void>;
   close(): void;
@@ -36,8 +38,12 @@ export class SerializedSaveStore implements SaveStore {
     return this.enqueue(() => this.backend.load());
   }
 
-  recover(): Promise<Uint8Array | null> {
-    return this.enqueue(() => this.backend.recover());
+  lastGoodCopy(): Promise<Uint8Array | null> {
+    return this.enqueue(() => this.backend.lastGoodCopy());
+  }
+
+  restoreLastGood(unreadable: Uint8Array, lastGood: Uint8Array): Promise<boolean> {
+    return this.enqueue(() => this.backend.restoreLastGood(unreadable, lastGood));
   }
 
   save(bytes: Uint8Array): Promise<void> {
@@ -64,13 +70,20 @@ export class SerializedSaveStore implements SaveStore {
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
-  | { readonly id: number; readonly kind: 'recover' }
+  | { readonly id: number; readonly kind: 'previous' }
+  | {
+      readonly id: number;
+      readonly kind: 'restore';
+      readonly bytes: ArrayBuffer;
+      readonly expected: ArrayBuffer;
+    }
   | { readonly id: number; readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly id: number; readonly kind: 'clear' };
 
 type SaveRequestInput =
   | { readonly kind: 'load' }
-  | { readonly kind: 'recover' }
+  | { readonly kind: 'previous' }
+  | { readonly kind: 'restore'; readonly bytes: ArrayBuffer; readonly expected: ArrayBuffer }
   | { readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly kind: 'clear' };
 
@@ -79,11 +92,18 @@ type SaveResponse =
       readonly id: number;
       readonly ok: true;
       readonly bytes?: ArrayBuffer | null;
+      readonly restored?: boolean;
     }
   | { readonly id: number; readonly ok: false; readonly error: string };
 
+/** What a successful worker response carries. */
+interface SaveResult {
+  readonly bytes?: ArrayBuffer | null;
+  readonly restored?: boolean;
+}
+
 interface PendingRequest {
-  resolve(value: ArrayBuffer | null | undefined): void;
+  resolve(value: SaveResult): void;
   reject(reason: Error): void;
 }
 
@@ -101,7 +121,7 @@ class WorkerSaveBackend implements SaveBackend {
       if (!pending) return;
       this.pending.delete(response.id);
       if (response.ok) {
-        pending.resolve(response.bytes);
+        pending.resolve(response);
       } else {
         pending.reject(new Error(response.error));
       }
@@ -115,13 +135,20 @@ class WorkerSaveBackend implements SaveBackend {
   }
 
   async load(): Promise<Uint8Array | null> {
-    const value = await this.request({ kind: 'load' });
-    return value instanceof ArrayBuffer ? new Uint8Array(value) : null;
+    const { bytes } = await this.request({ kind: 'load' });
+    return bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : null;
   }
 
-  async recover(): Promise<Uint8Array | null> {
-    const value = await this.request({ kind: 'recover' });
-    return value instanceof ArrayBuffer ? new Uint8Array(value) : null;
+  async lastGoodCopy(): Promise<Uint8Array | null> {
+    const { bytes } = await this.request({ kind: 'previous' });
+    return bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : null;
+  }
+
+  async restoreLastGood(unreadable: Uint8Array, lastGood: Uint8Array): Promise<boolean> {
+    const bytes = lastGood.slice().buffer;
+    const expected = unreadable.slice().buffer;
+    const { restored } = await this.request({ kind: 'restore', bytes, expected }, [bytes, expected]);
+    return restored === true;
   }
 
   async save(bytes: Uint8Array): Promise<void> {
@@ -143,7 +170,7 @@ class WorkerSaveBackend implements SaveBackend {
   private request(
     request: SaveRequestInput,
     transfer: Transferable[] = [],
-  ): Promise<ArrayBuffer | null | undefined> {
+  ): Promise<SaveResult> {
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });

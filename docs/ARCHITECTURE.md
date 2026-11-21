@@ -730,16 +730,26 @@ bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 thro
 with the wrong header or a backup write failure blocks the primary overwrite.
 Every current write first copies a non-empty, supported primary to
 `terri-save-1.previous.bin`, the last good copy, and a failed write restores the
-primary from those bytes. A worker killed mid-write (the tab closing during the
-save on `visibilitychange`) cannot restore anything, and not every browser
-stages `createWritable()` until close, so the next load handles it. A primary
-that is empty, or that the simulation rejects while its header is a supported
-version, makes `PersistenceController` ask the worker to `recover`: the worker
-keeps the unreadable bytes in `terri-save-1.damaged.bin`, replaces the primary
-with the last good copy and returns it. A primary from an unsupported version is
-never recovered over. An empty primary with no usable copy counts as no save,
-and writes treat it as absent. A first save cut off at file creation leaves
-exactly such a slot.
+primary from those bytes. If that restore also fails, the worker stops copying the
+primary over the last good copy until a write succeeds, because the primary may be
+half written yet still carry a supported header. A worker killed mid-write (the
+tab closing during the save on `visibilitychange`) cannot restore anything, and
+not every browser stages `createWritable()` until close, so the next load handles
+it. A primary that is empty, has no readable header, or has a supported header
+the simulation rejects makes `PersistenceController` ask the worker for the last
+good copy and load it into the game. Only when that copy loads does the
+controller send `restore`: the worker re-reads the slot and the copy, changes
+nothing if either is no longer what the controller saw (another tab may have
+saved), keeps the unreadable bytes in `terri-save-1.damaged.bin` (never over an
+earlier damaged copy), and replaces the primary. A primary from an unsupported
+version is never recovered over. An empty primary with no usable copy counts as
+no save, and writes treat it as absent; a first save cut off at file creation
+leaves exactly such a slot. A primary cut off after a few bytes, with no readable
+header and no last good copy, still pauses saving until New game. The simulation
+also rejects an intact save whose content another build wrote, so a rejected
+primary is replaced only after its older copy loads, and the rejected bytes are
+kept. The extra copy costs the slot's size in quota on every save, and a failed
+copy write fails the save.
 New game clears `terri-save-1.bin` and the last good copy, never the historical
 recovery files. Those historical copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser

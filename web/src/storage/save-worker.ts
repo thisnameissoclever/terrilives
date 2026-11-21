@@ -19,7 +19,15 @@ const DAMAGED_FILE = 'terri-save-1.damaged.bin';
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
-  | { readonly id: number; readonly kind: 'recover' }
+  | { readonly id: number; readonly kind: 'previous' }
+  | {
+      readonly id: number;
+      readonly kind: 'restore';
+      /** The last good copy the caller loaded successfully. */
+      readonly bytes: ArrayBuffer;
+      /** The unreadable slot the caller saw, so a slot changed since is left alone. */
+      readonly expected: ArrayBuffer;
+    }
   | { readonly id: number; readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly id: number; readonly kind: 'clear' };
 
@@ -28,6 +36,7 @@ type SaveResponse =
       readonly id: number;
       readonly ok: true;
       readonly bytes?: ArrayBuffer | null;
+      readonly restored?: boolean;
     }
   | { readonly id: number; readonly ok: false; readonly error: string };
 
@@ -38,6 +47,8 @@ interface WorkerPort {
 
 const port = self as unknown as WorkerPort;
 let tail: Promise<void> = Promise.resolve();
+/** Set when a failed write could not be undone, so the slot may be half written. */
+let slotSuspect = false;
 
 port.onmessage = (event): void => {
   const request = event.data;
@@ -69,13 +80,18 @@ async function handle(request: SaveRequest): Promise<void> {
           port.postMessage({ id: request.id, ok: true });
           break;
         }
-        case 'recover': {
-          const bytes = await recoverLastGood(root);
+        case 'previous': {
+          const bytes = await readLastGood(root);
           if (bytes === null) {
             port.postMessage({ id: request.id, ok: true, bytes: null });
           } else {
             port.postMessage({ id: request.id, ok: true, bytes }, [bytes]);
           }
+          break;
+        }
+        case 'restore': {
+          const restored = await restoreLastGood(root, request.bytes, request.expected);
+          port.postMessage({ id: request.id, ok: true, restored });
           break;
         }
         case 'clear':
@@ -124,16 +140,22 @@ async function read(
  */
 async function saveCurrent(root: FileSystemDirectoryHandle, next: ArrayBuffer): Promise<void> {
   const slot = await preserveHistoricalBackup(root, next);
-  if (slot !== null) await keepLastGoodCopy(root, slot);
+  // A slot this worker failed to put back may be half written yet still carry a
+  // supported header, so it must not replace the last good copy.
+  if (slot !== null && !slotSuspect) await keepLastGoodCopy(root, slot);
   try {
     await write(root, SAVE_FILE, next);
+    slotSuspect = false;
   } catch (error: unknown) {
     if (slot !== null) {
       try {
         await write(root, SAVE_FILE, slot);
       } catch {
         // The last good copy still holds these bytes. Report the original error.
+        slotSuspect = true;
       }
+    } else {
+      slotSuspect = true;
     }
     throw error;
   }
@@ -153,20 +175,52 @@ async function keepLastGoodCopy(root: FileSystemDirectoryHandle, slot: ArrayBuff
   }
 }
 
-/**
- * Replaces a slot that could not be loaded with the last good copy, keeping
- * the unreadable bytes in a damaged copy first. Returns null, changing
- * nothing, when there is no usable last good copy.
- */
-async function recoverLastGood(root: FileSystemDirectoryHandle): Promise<ArrayBuffer | null> {
+/** The last good copy, or null when there is no usable one. Changes nothing. */
+async function readLastGood(root: FileSystemDirectoryHandle): Promise<ArrayBuffer | null> {
   const previous = await read(root, PREVIOUS_FILE);
   if (previous === null || previous.byteLength === 0 || !isSupportedSavePrefix(new Uint8Array(previous))) {
     return null;
   }
-  const damaged = await read(root);
-  if (damaged !== null && damaged.byteLength > 0) await write(root, DAMAGED_FILE, damaged);
-  await write(root, SAVE_FILE, previous);
   return previous;
+}
+
+/**
+ * Replaces an unreadable slot with the last good copy once the caller has
+ * loaded that copy successfully. The unreadable bytes are kept in a damaged copy
+ * first, never over an earlier one. Changes nothing, and returns false, when
+ * the last good copy or the slot is no longer what the caller saw: another tab
+ * may have saved in between.
+ */
+async function restoreLastGood(
+  root: FileSystemDirectoryHandle,
+  loaded: ArrayBuffer,
+  expected: ArrayBuffer,
+): Promise<boolean> {
+  const previous = await readLastGood(root);
+  if (previous === null || !sameBytes(previous, loaded)) return false;
+  const current = await read(root);
+  if (!sameBytes(current ?? new ArrayBuffer(0), expected)) return false;
+  if (current !== null && current.byteLength > 0) {
+    await write(root, await unusedDamagedName(root), current);
+  }
+  await write(root, SAVE_FILE, previous);
+  slotSuspect = false;
+  return true;
+}
+
+async function unusedDamagedName(root: FileSystemDirectoryHandle): Promise<string> {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const name = attempt === 0 ? DAMAGED_FILE : `terri-save-1.damaged-${Date.now()}-${attempt}.bin`;
+    if (await read(root, name) === null) return name;
+  }
+  throw new Error('Too many damaged save copies are kept. The saved game was not replaced.');
+}
+
+function sameBytes(a: ArrayBuffer, b: ArrayBuffer): boolean {
+  if (a.byteLength !== b.byteLength) return false;
+  const left = new Uint8Array(a);
+  const right = new Uint8Array(b);
+  return left.every((value, index) => value === right[index]);
 }
 
 /**

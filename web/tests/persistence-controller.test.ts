@@ -53,17 +53,23 @@ function store(saved: Uint8Array | null, lastGood: Uint8Array | null = null): Sa
   saves: Uint8Array[];
   cleared: number;
   recoveries: number;
+  restored: Array<{ unreadable: Uint8Array; lastGood: Uint8Array }>;
 } {
   return {
     saves: [],
     cleared: 0,
     recoveries: 0,
+    restored: [],
     async load() {
       return saved;
     },
-    async recover() {
+    async lastGoodCopy() {
       this.recoveries++;
       return lastGood;
+    },
+    async restoreLastGood(unreadable, copy) {
+      this.restored.push({ unreadable, lastGood: copy });
+      return true;
     },
     async save(bytes) {
       this.saves.push(bytes);
@@ -369,7 +375,8 @@ describe('PersistenceController', () => {
         calls.push('load finished');
         return bytes;
       },
-      async recover() { return null; },
+      async lastGoodCopy() { return null; },
+      async restoreLastGood() { return false; },
       async save() {
         calls.push('save');
       },
@@ -420,7 +427,8 @@ describe('PersistenceController', () => {
         calls.push('load');
         return new Uint8Array([9]);
       },
-      async recover() { return null; },
+      async lastGoodCopy() { return null; },
+      async restoreLastGood() { return false; },
       async save() {
         calls.push('save');
       },
@@ -547,6 +555,7 @@ describe('PersistenceController after an interrupted save', () => {
 
     expect(await controller.restoreAtStartup()).toBe('loaded');
     expect(backend.recoveries).toBe(1);
+    expect(backend.restored).toEqual([{ unreadable: damaged, lastGood }]);
     expect(view.textContent).toContain('last good copy');
     expect(view.attributes.get('data-kind')).toBeUndefined();
     expect(controller.isSavingPaused()).toBe(false);
@@ -613,9 +622,42 @@ describe('PersistenceController after an interrupted save', () => {
 
   it('reports storage failure while recovering as unavailable and keeps saving paused', async () => {
     const backend = store(damaged, lastGood);
-    backend.recover = async () => { throw new Error('denied'); };
+    backend.lastGoodCopy = async () => { throw new Error('denied'); };
     const controller = new PersistenceController(backend, sim(false), status(), () => {});
     expect(await controller.restoreAtStartup()).toBe('unavailable');
     expect(controller.isSavingPaused()).toBe(true);
+  });
+  it('does not replace the slot with a copy this build cannot load', async () => {
+    const backend = store(damaged, lastGood);
+    const controller = new PersistenceController(backend, sim(false), status());
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(backend.restored).toEqual([]);
+  });
+
+  it('keeps saving paused when the slot changed before it could be replaced', async () => {
+    const backend = store(damaged, lastGood);
+    backend.restoreLastGood = async () => false;
+    const view = status();
+    const controller = new PersistenceController(backend, pickySim(lastGood), view);
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(controller.isSavingPaused()).toBe(true);
+    expect(view.textContent).toContain('Saving paused');
+  });
+
+  it('lets Import replace an empty slot while saving is paused, and has nothing to Export', async () => {
+    const backend = store(empty);
+    backend.load = async () => { throw new Error('storage unavailable'); };
+    const controller = new PersistenceController(backend, sim(true), status(), () => {});
+    expect(await controller.restoreAtStartup()).toBe('unavailable');
+    backend.load = async () => empty;
+
+    const delivered = vi.fn();
+    expect(await controller.exportSave(delivered)).toBe(false);
+    expect(delivered).not.toHaveBeenCalled();
+
+    const imported = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 1]);
+    expect(controller.acceptImportFile(imported)).toBe(true);
+    expect(await controller.importSave(imported)).toBe(true);
+    expect(controller.isSavingPaused()).toBe(false);
   });
 });

@@ -111,9 +111,9 @@ type SlotLoad =
 
 const RECOVERED_MESSAGE = 'The latest save could not be read, so the last good copy was loaded';
 
-/** Whether the storage worker will write a current save over this slot. */
+/** Whether the storage worker will write a current save over this slot. An empty slot holds nothing, so it is replaceable. */
 function slotAcceptsCurrentWrite(bytes: Uint8Array): boolean {
-  return isSupportedSavePrefix(bytes);
+  return bytes.byteLength === 0 || isSupportedSavePrefix(bytes);
 }
 
 /**
@@ -251,7 +251,7 @@ export class PersistenceController {
       const bytes = protectedSave
         ? this.protectedBytes ?? await this.store.load()
         : this.sim.saveBytes();
-      if (bytes === null) {
+      if (bytes === null || bytes.byteLength === 0) {
         this.showKeepingPausedNote('No saved game found', true);
         return false;
       }
@@ -415,8 +415,13 @@ export class PersistenceController {
         return { kind: 'unloadable', bytes };
       }
     }
-    const lastGood = await this.store.recover();
-    if (lastGood !== null && await this.loadSupportedSave(lastGood)) return { kind: 'recovered' };
+    // Load the copy into the game first and replace the slot only once it
+    // loads. Replacing first would swap in a copy this build might also reject.
+    const lastGood = await this.store.lastGoodCopy();
+    if (lastGood !== null && await this.loadSupportedSave(lastGood)
+      && await this.store.restoreLastGood(bytes, lastGood)) {
+      return { kind: 'recovered' };
+    }
     return bytes.byteLength === 0 ? { kind: 'none' } : { kind: 'unloadable', bytes };
   }
 
