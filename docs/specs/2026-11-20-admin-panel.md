@@ -329,7 +329,7 @@ Affinities, skills, traits, relationships and funds use the existing reads. Ever
 
 ### [AP-web-keys] The tilde key and the developer overlay
 
-1. A document `keydown` listener in `admin-open.ts` toggles the panel on `event.key === '~'` and on no other key: only the tilde character opens the panel. It ignores repeats and Ctrl, Alt or Meta chords. Ctrl and Alt held together, or the `AltGraph` modifier state, count as AltGr rather than a chord, since German, Spanish, French and Italian Windows layouts type the tilde with AltGr and the browser reports it as Ctrl and Alt.
+1. A document `keydown` listener in `admin-open.ts` toggles the panel on `event.key === '~'` and on no other key: only the tilde character opens the panel. It ignores repeats and Ctrl, Alt or Meta chords. Ctrl and Alt held together, or the `AltGraph` modifier state, count as AltGr rather than a chord, since German, Spanish and French Windows layouts type the tilde with AltGr and the browser reports it as Ctrl and Alt.
 2. It does nothing to open the panel while Build mode is active (the command status line shows "Leave Build mode to open the admin panel."), while any other dialog is open (`dialog[open]`, `dialog:popover-open`), or while focus is in a text or number field outside the panel.
 3. Inside the panel, tilde closes it from anywhere, including a number field, and calls `preventDefault` so no character is typed.
 4. The developer overlay's listener (`main.ts` line 1173) adds `!event.shiftKey`, so Shift+Backquote no longer toggles it. The comment above it that says the key "collides with nothing" is corrected.

@@ -91,7 +91,7 @@ describe('the tilde key', () => {
     expect(open.log).toEqual([]);
   });
 
-  // German, Spanish, French and Italian Windows layouts type ~ with AltGr,
+  // German, Spanish and French Windows layouts type ~ with AltGr,
   // which the browser reports as Ctrl and Alt held together.
   it.each([
     ['German', 'BracketRight'],
@@ -103,6 +103,18 @@ describe('the tilde key', () => {
     expect(press(altGr).defaultPrevented).toBe(true);
     press(altGr);
     expect(log).toEqual(['open', 'close']);
+  });
+
+  // On Spanish and French Windows layouts the tilde is a dead key: the first
+  // keydown reports key 'Dead', and the tilde arrives with the next key (here
+  // Space) as key '~' with no modifiers.
+  it('opens on the keydown that carries the tilde after a dead key, and not on the Dead keydown alone', () => {
+    const { log, press } = setup();
+    press({ key: 'Dead', code: 'Digit4', shiftKey: false, ctrlKey: true, altKey: true, altGraph: true });
+    expect(log).toEqual([]);
+    const second = press({ key: '~', code: 'Space', shiftKey: false });
+    expect(log).toEqual(['open']);
+    expect(second.defaultPrevented).toBe(true);
   });
 
   it('opens with Ctrl and Alt held together even when the AltGraph state does not read as held', () => {

@@ -28,7 +28,7 @@ export interface AdminOpeningDeps {
 type KeyFacts = Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'altKey' | 'metaKey' | 'getModifierState'>;
 
 /**
- * Whether the press was typed with AltGr. German, Spanish, French and Italian
+ * Whether the press was typed with AltGr. German, Spanish and French
  * Windows layouts type a tilde that way, and the browser reports it as Ctrl
  * and Alt held together, so both together count even when the AltGraph state
  * does not read as held.
