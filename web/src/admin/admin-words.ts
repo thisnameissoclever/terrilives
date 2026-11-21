@@ -246,6 +246,8 @@ export const HOUSEHOLD_WORDS = {
     `Late fee: ${percent}% a day after ${grace} days, up to ${cap}% of the bill`,
   autoPay: 'Unpaid bills are paid from funds automatically when the game resumes, oldest first, while funds cover them.',
   cannotCover: "Funds don't cover this bill.",
+  /** Once under the bills table, when the funds fall short of two or more unpaid bills. */
+  cannotCoverMany: "Funds don't cover these bills.",
   time: 'Time',
   now: 'Now',
   clock: (day: number, weekday: string, time: string): string => `Day ${day}, ${weekday}, ${time}`,

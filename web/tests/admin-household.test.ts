@@ -400,6 +400,33 @@ describe('Bills', () => {
     expect(row(b, 98, 2).textContent).not.toContain("Funds don't cover");
   });
 
+  it('says once, under the table, that funds do not cover several bills, and not under each row', () => {
+    const state = world();
+    state.funds = 3000; // Rent $88.32 and electricity $41.04 are short; water $24.10 is covered
+    const b = build(state);
+    for (const [due, kindIndex] of [[91, 0], [91, 1]] as const) {
+      expect(isDisabled(buttonIn(row(b, due, kindIndex), 'Pay from funds')!)).toBe(true);
+      expect(row(b, due, kindIndex).textContent).not.toContain("Funds don't");
+    }
+    expect(isDisabled(buttonIn(row(b, 98, 2), 'Pay from funds')!)).toBe(false);
+    const text = b.f.section('Bills').textContent;
+    expect(text.split("Funds don't cover these bills.")).toHaveLength(2);
+    expect(text).not.toContain("Funds don't cover this bill.");
+    const table = b.f.section('Bills').querySelector('.admin-bill-table')!;
+    const siblings = table.parent!.nodes;
+    expect(siblings[siblings.indexOf(table) + 1].textContent, 'directly under the table').toBe("Funds don't cover these bills.");
+  });
+
+  it('keeps the note under its row when exactly one bill is affected, and shows none when funds cover every bill', () => {
+    const state = world();
+    state.funds = 8000;
+    const one = build(state);
+    expect(row(one, 91, 0).textContent).toContain("Funds don't cover this bill.");
+    expect(one.f.section('Bills').textContent).not.toContain('these bills');
+    const rich = build();
+    expect(rich.f.section('Bills').textContent).not.toContain("Funds don't cover");
+  });
+
   it('shows a refusal in the bills status line with the words of the code', () => {
     const cases: [number, string][] = [
       [14, 'Bills fall due on the first day of a billing month, today or earlier.'],
@@ -501,6 +528,48 @@ describe('a new bill', () => {
     expect(amount(b).value).toBe('73.60');
   });
 
+  it('starts on the first kind and due day that has no bill yet, so Add bill is not refused', () => {
+    const state = world();
+    state.bills.push(bill({ dueDay: 98, kind: 0 }), bill({ dueDay: 98, kind: 1 }));
+    const b = build(state);
+    expect(due(b).value, 'every kind exists on day 98').toBe('91');
+    expect(kind(b).value, 'rent and electricity exist on day 91').toBe('2');
+    expect(isDisabled(b.f.button('Add bill'))).toBe(false);
+    b.f.button('Add bill').click();
+    expect(sent(b).change.edits).toEqual([{ edit: 'AddBill', due_day: 91, kind: 2, amount_cents: 2410, late_fee_cents: 0 }]);
+  });
+
+  it('moves the due day to one without that kind when only the kind is chosen', () => {
+    const b = build();
+    enter(kind(b), '1');
+    expect(due(b).value, 'electricity exists on 91 only, so 98 is free').toBe('98');
+    enter(kind(b), '2');
+    expect(due(b).value, 'water exists on 98, so the next day on offer').toBe('91');
+  });
+
+  it('disables Add bill, with no added text, while the chosen kind and due day already exist', () => {
+    const b = build();
+    const fresh = b.f.root.querySelector('.admin-bill-new')!;
+    const before = fresh.textContent;
+    enter(kind(b), '1');
+    enter(kind(b), '0');
+    enter(due(b), '91');
+    expect(isDisabled(b.f.button('Add bill'))).toBe(true);
+    expect(fresh.textContent, 'no note or status appears').toBe(before);
+    b.f.button('Add bill').click();
+    expect(b.h.sent).toEqual([]);
+    enter(due(b), '84');
+    expect(isDisabled(b.f.button('Add bill'))).toBe(false);
+  });
+
+  it('disables every control of the row when every kind exists on every due day', () => {
+    const state = world();
+    state.bills = state.dueDays.flatMap(dueDay => [0, 1, 2, 3].map(kindIndex => bill({ dueDay, kind: kindIndex })));
+    const b = build(state);
+    for (const control of [kind(b), due(b), b.f.control('Amount'), b.f.control('Late fee')]) expect(isDisabled(control)).toBe(true);
+    expect(isDisabled(b.f.button('Add bill'))).toBe(true);
+  });
+
   it('disables the fee until the chosen due day\'s grace has passed', () => {
     const b = build();
     expect(fee(b).disabled, 'day 98 plus 5 days is still ahead').toBe(true);
@@ -564,7 +633,9 @@ describe('a new bill', () => {
     b.h.state.refuse = 16;
     enter(fee(b) as unknown as FakeNode, '1');
     b.f.button('Add bill').click();
-    expect(b.f.status('Bills')).toBe('The late fee can be at most $36.80.');
+    // Day 91 has rent and electricity, so the row moved to water, $24.10 with a fee cap of half.
+    expect(kind(b).value).toBe('2');
+    expect(b.f.status('Bills')).toBe('The late fee can be at most $12.05.');
   });
 });
 

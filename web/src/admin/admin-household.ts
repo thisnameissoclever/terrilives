@@ -39,8 +39,9 @@ export interface HouseholdSource {
 
 /** A new bill as it is being filled in; it survives every redraw until it is added. */
 interface Draft {
-  kind: number;
-  /** The chosen due day, or null for the newest on offer. */
+  /** The chosen kind, or null for the first kind that suits the due day. */
+  kind: number | null;
+  /** The chosen due day, or null for the first one on offer that suits the kind. */
   due: number | null;
   /** The typed amount in cents, or null while the kind's own amount stands. */
   amountCents: number | null;
@@ -61,7 +62,7 @@ class HouseholdTab implements AdminTab {
   private readonly funds: Section;
   private readonly time: Section;
   private readonly bills: Section;
-  private draft: Draft = { kind: 0, due: null, amountCents: null, feeCents: 0 };
+  private draft: Draft = { kind: null, due: null, amountCents: null, feeCents: 0 };
   private skipHours: number | null = null;
   private skipLine: HTMLElement | null = null;
   private nowNode: HTMLElement | null = null;
@@ -204,6 +205,9 @@ class HouseholdTab implements AdminTab {
     const unpaid = bills.filter(bill => bill.paidDay === null);
     const withFees = unpaid.filter(bill => bill.lateFeeCents > 0);
     const funds = this.source.fundsCents();
+    const uncovered = unpaid.filter(bill => funds < bill.amountCents + bill.lateFeeCents);
+    // One bill short keeps its note under its row; two or more share one note under the table.
+    const noteUnderRow = uncovered.length === 1;
 
     rebuild(doc, section.actions, section.heading, () => {
       const buttons: HTMLElement[] = [];
@@ -231,10 +235,11 @@ class HouseholdTab implements AdminTab {
       for (const title of [W.bill, W.due, W.amount, W.lateFee, W.status, '']) headRow.append(textNode(doc, 'th', 'admin-bill-head', title));
       head.append(headRow);
       const body = make(doc, 'tbody');
-      for (const bill of bills) body.append(this.billRow(bill, dueDays, funds, locked));
-      body.append(this.newRow(dueDays, terms, locked));
+      for (const bill of bills) body.append(this.billRow(bill, dueDays, funds, locked, noteUnderRow));
+      body.append(this.newRow(bills, dueDays, terms, locked));
       table.append(head, body);
       const nodes: HTMLElement[] = [table];
+      if (uncovered.length >= 2) nodes.push(textNode(doc, 'p', 'admin-note', W.cannotCoverMany));
       if (bills.length === 0) nodes.unshift(textNode(doc, 'p', 'admin-note', W.noBills));
       const notes = make(doc, 'div', 'admin-bill-notes');
       if (terms !== null) {
@@ -272,7 +277,7 @@ class HouseholdTab implements AdminTab {
     return days.map(day => ({ value: String(day), label: this.dayLabel(day) }));
   }
 
-  private billRow(bill: AdminBill, dueDays: readonly number[], funds: number, locked: boolean): HTMLElement {
+  private billRow(bill: AdminBill, dueDays: readonly number[], funds: number, locked: boolean, noteUnderRow: boolean): HTMLElement {
     const doc = this.context.doc;
     const section = this.bills;
     const name = BILL_NAMES[bill.kind as 0 | 1 | 2 | 3];
@@ -327,7 +332,7 @@ class HouseholdTab implements AdminTab {
           onClick: () => send([{ edit: 'MarkBillPaid', due_day: bill.dueDay, kind: bill.kind }], undoLabels.markBillPaid(name)),
         }),
       );
-      if (short) actions.append(textNode(doc, 'span', 'admin-note', W.cannotCover));
+      if (short && noteUnderRow) actions.append(textNode(doc, 'span', 'admin-note', W.cannotCover));
     }
     actions.append(actionButton(doc, {
       text: W.remove, key: `${key}-delete`, name: `${rowName}: ${W.remove}`, intent: 'destructive', disabled: locked,
@@ -337,16 +342,43 @@ class HouseholdTab implements AdminTab {
     return row;
   }
 
+  /**
+   * The kind and due day the new bill row shows. Untouched, it is the first
+   * pair, newest due day first and kinds in order, that has no bill yet. A kind
+   * chosen alone takes the first due day free of it, and a due day chosen alone
+   * the first kind free on it. `taken` is true when the shown pair already
+   * exists, and `none` when every pair does, which shuts the row.
+   */
+  private draftPair(bills: readonly AdminBill[], dueDays: readonly number[]): { kind: number; due: number | undefined; taken: boolean; none: boolean } {
+    const has = new Set(bills.map(bill => `${bill.dueDay}:${bill.kind}`));
+    const kinds = BILL_NAMES.map((_, kind) => kind);
+    const chosenDue = this.draft.due !== null && dueDays.includes(this.draft.due) ? this.draft.due : null;
+    const chosenKind = this.draft.kind;
+    const free = (due: number, kind: number): boolean => !has.has(`${due}:${kind}`);
+    const none = !dueDays.some(due => kinds.some(kind => free(due, kind)));
+    let kind = chosenKind ?? 0;
+    let due: number | undefined = chosenDue ?? dueDays[0];
+    if (chosenDue === null || chosenKind === null) {
+      const fits = dueDays.flatMap(day => kinds.map(k => [day, k] as const))
+        .find(([day, k]) => (chosenDue === null || day === chosenDue) && (chosenKind === null || k === chosenKind) && free(day, k));
+      if (fits !== undefined) [due, kind] = fits;
+    }
+    return { kind, due, taken: due !== undefined && !free(due, kind), none };
+  }
+
   /** The row that adds a bill: kind, due day, amount, late fee and Add bill. */
-  private newRow(dueDays: readonly number[], terms: ReturnType<HouseholdSource['terms']>, locked: boolean): HTMLElement {
+  private newRow(bills: readonly AdminBill[], dueDays: readonly number[], terms: ReturnType<HouseholdSource['terms']>, locked: boolean): HTMLElement {
     const doc = this.context.doc;
     const section = this.bills;
     const draft = this.draft;
     const grace = terms?.graceDays ?? 0;
     const today = this.today();
-    const due = draft.due !== null && dueDays.includes(draft.due) ? draft.due : dueDays[0];
-    const kindName = BILL_NAMES[draft.kind as 0 | 1 | 2 | 3];
-    const monthly = this.source.monthAmounts()[draft.kind] ?? 0;
+    const pair = this.draftPair(bills, dueDays);
+    const { due, kind } = pair;
+    // Every pair taken, or no due day at all: there is nothing to add, so the row is shut.
+    const shut = locked || pair.none || due === undefined;
+    const kindName = BILL_NAMES[kind as 0 | 1 | 2 | 3];
+    const monthly = this.source.monthAmounts()[kind] ?? 0;
     const amount = draft.amountCents ?? Math.max(1, monthly);
     const feeShut = due === undefined || today < due + grace;
     const cap = this.feeCap(amount);
@@ -364,25 +396,25 @@ class HouseholdTab implements AdminTab {
     ), word);
     row.append(
       withDataLabel(cell('admin-bill-name', selectControl({
-        doc, label: W.bill, key: 'bill-new-kind', disabled: locked, value: String(draft.kind),
+        doc, label: W.bill, key: 'bill-new-kind', disabled: shut, value: String(kind),
         options: BILL_NAMES.map((label, kind) => ({ value: String(kind), label })),
         onCommit: value => { draft.kind = Number(value); redraw(); },
       })), W.bill),
       withDataLabel(cell('admin-bill-due', selectControl({
         doc, label: W.due, key: 'bill-new-due', options: this.dueOptions(dueDays), value: due === undefined ? '' : String(due),
-        disabled: locked || due === undefined,
+        disabled: shut,
         onCommit: value => { draft.due = Number(value); redraw(); },
       })), W.due),
-      money(W.amount, 'amount', amount, 1, MAX_ADMIN_FUNDS_CENTS, locked, value => { draft.amountCents = value; redraw(); }),
-      money(W.lateFee, 'fee', fee, 0, cap, locked || feeShut, value => { draft.feeCents = value; }),
+      money(W.amount, 'amount', amount, 1, MAX_ADMIN_FUNDS_CENTS, shut, value => { draft.amountCents = value; redraw(); }),
+      money(W.lateFee, 'fee', fee, 0, cap, shut || feeShut, value => { draft.feeCents = value; }),
       cell('admin-bill-status'),
       cell('admin-bill-actions', actionButton(doc, {
-        text: W.addBill, key: 'bill-new-add', intent: 'affirmative', disabled: locked || due === undefined,
+        text: W.addBill, key: 'bill-new-add', intent: 'affirmative', disabled: shut || pair.taken,
         onClick: () => {
-          if (due === undefined) return;
+          if (due === undefined || pair.taken) return;
           // The fee box does not redraw the row, so the fee is the draft's as it stands now.
           const typedFee = feeShut ? 0 : Math.min(draft.feeCents, cap);
-          this.sendBills(section, [{ edit: 'AddBill', due_day: due, kind: draft.kind, amount_cents: amount, late_fee_cents: typedFee }],
+          this.sendBills(section, [{ edit: 'AddBill', due_day: due, kind, amount_cents: amount, late_fee_cents: typedFee }],
             undoLabels.addBill(kindName), { kind: kindName.toLowerCase(), day: due + grace, cap: formatMoney(cap) },
             // The kind's own amount comes back for the next one.
             () => { draft.amountCents = null; draft.feeCents = 0; redraw(); });
