@@ -546,6 +546,33 @@ describe('Career', () => {
     expect(b.f.status('Career')).toBe('They are at work or on the way. Change the job when they are home.');
     expect(b.f.status('Traits')).toBe('');
   });
+
+  it('puts the status line directly under the Job and Shift controls, not at the end of the card', () => {
+    const b = build();
+    b.h.state.refuse = 6;
+    enter(b.f.control('Job'), '0');
+    expect(b.f.status('Career')).toBe('They are at work or on the way. Change the job when they are home.');
+    const body = b.f.section('Career').querySelector('.admin-section-body')!;
+    const holds = (label: string) => body.nodes.findIndex(node => node.all().some(inner => inner.getAttribute('aria-label') === label));
+    const status = body.nodes.findIndex(node => node.className.includes('admin-status'));
+    expect(status, 'the status line is inside the career body').toBeGreaterThan(-1);
+    expect(status).toBeGreaterThan(holds('Job'));
+    expect(status).toBeGreaterThan(holds('Shift'));
+    expect(status, 'before the pay row').toBeLessThan(holds('Pay per shift'));
+    expect(status, 'before the job search row').toBeLessThan(holds('Job search'));
+    expect(b.f.section('Career').nodes.at(-1)!.className, 'not left at the foot of the card').not.toContain('admin-status');
+  });
+
+  it('keeps the status line under the Job control for a person without a job', () => {
+    const b = build(new Map([[3, { ...timLike(), person: { ...timLike().person, careerRow: null } }]]));
+    b.h.state.refuse = 6;
+    enter(b.f.control('Job'), '0');
+    const body = b.f.section('Career').querySelector('.admin-section-body')!;
+    const holds = (label: string) => body.nodes.findIndex(node => node.all().some(inner => inner.getAttribute('aria-label') === label));
+    const status = body.nodes.findIndex(node => node.className.includes('admin-status'));
+    expect(status).toBe(holds('Job') + 1);
+    expect(status).toBeLessThan(holds('Job search'));
+  });
 });
 
 describe('Reading the world again', () => {

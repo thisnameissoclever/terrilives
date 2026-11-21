@@ -438,6 +438,9 @@ class HousemateTab implements AdminTab {
           this.send(section, [{ edit: 'SetJob', sim, job: Number(value), shift }], undoLabels.job);
         },
       })));
+      // The card's status line sits under the Job and Shift controls, next to the change that
+      // a refusal is about, and not at the foot of a card that ends below the fold.
+      if (person.careerRow === null) nodes.push(section.status);
       if (person.careerRow !== null) {
         const shifts = this.source.careerShifts(sim);
         const options: SelectOption[] = shifts.map(shift => ({
@@ -450,6 +453,7 @@ class HousemateTab implements AdminTab {
           onCommit: value => this.send(section, [{ edit: 'SetShift', sim, shift: Number(value) }], undoLabels.shift),
         })));
         nodes.push(textNode(doc, 'p', 'admin-note', W.shiftNote));
+        nodes.push(section.status);
         nodes.push(sliderRow({
           doc, label: W.pay, key: 'pay', min: person.payMin, max: person.payMax, step: 1, decimals: 0, value: person.pay,
           onCommit: dollars => this.send(section, [{ edit: 'SetPay', sim, dollars }], undoLabels.pay),
