@@ -463,8 +463,11 @@ export class PersistenceController {
 
   private protectSavedGame(bytes?: Uint8Array): void {
     this.savingPaused = true;
-    this.protectedBytes = bytes ?? null;
-    const reason = bytes ? unloadableReason(bytes, 'Load failed.') : 'Load failed.';
+    // An empty slot holds nothing to protect or export. Keeping it would also
+    // hide a save another tab has since written, so Export and Import re-read.
+    const kept = bytes !== undefined && bytes.byteLength > 0 ? bytes : undefined;
+    this.protectedBytes = kept ?? null;
+    const reason = kept ? unloadableReason(kept, 'Load failed.') : 'Load failed.';
     this.show(
       `${reason} Current game and saved data kept. Saving paused. Retry Load or confirm New game to resume saving.`,
       true,

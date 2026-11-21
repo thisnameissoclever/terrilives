@@ -4,7 +4,8 @@
  * `createWritable()` is meant to stage its writes and publish them on close,
  * but this code does not rely on every browser doing so: each save first keeps
  * the slot's good bytes in a last good copy, and the `previous` and `restore`
- * requests let the controller fall back to it when the slot cannot be loaded. The worker processes one request at a time as a second
+ * requests let the controller fall back to it when the slot cannot be loaded.
+ * The worker processes one request at a time as a second
  * line of defense behind the client queue. A named Web Lock also serializes
  * tabs sharing this origin. Secure-context browsers must support Web Locks;
  * without them operations fail closed, because OPFS has no exclusive-create
@@ -135,8 +136,8 @@ async function read(
  * stream's bytes until close. So before the slot is touched, its good bytes are
  * copied to a last good copy, and a failed write puts them back. If the worker
  * is killed outright, the next load finds the damage and the controller
- * recovers through `readLastGood` and `restoreLastGood`. A slot that holds nothing is not a save: it is replaced
- * without complaint, which is what a first save cut off at creation leaves.
+ * recovers through `readLastGood` and `restoreLastGood`. A slot that holds
+ * nothing is not a save: it is replaced without complaint, which is what a first save cut off at creation leaves.
  */
 async function saveCurrent(root: FileSystemDirectoryHandle, next: ArrayBuffer): Promise<void> {
   const slot = await preserveHistoricalBackup(root, next);
