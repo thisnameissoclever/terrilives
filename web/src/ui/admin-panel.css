@@ -181,6 +181,9 @@
 .admin-funds-buttons { gap: 6px; }
 .admin-prefix { color: var(--hud-muted, #9aa3ad); }
 .admin-now { font-variant-numeric: tabular-nums; }
+/* "Now" is short: its date takes the rest of the row, so "Day 10, Wednesday, 00:36" stays on one line. */
+.admin-row:has(> .admin-now) > .admin-row-label { flex: 0 0 auto; }
+.admin-row:has(> .admin-now) > .admin-now { margin-left: auto; }
 .admin-skip-row .admin-number { width: 4.5em; }
 .admin-skip-line { margin: 4px 0 0; min-height: 1.2em; }
 .admin-skip-line:empty { display: none; }
