@@ -60,6 +60,7 @@ fn error(error: BuildCommitError) -> Failure {
                     DuplicateSelection => 8,
                     InvalidSimIdAllocator => 9,
                     TooManyCommands => 10,
+                    AdminCommandQueued => 11,
                 }),
             )
         }

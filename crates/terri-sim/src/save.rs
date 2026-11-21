@@ -170,6 +170,27 @@ pub enum SaveError {
     DuplicateSelection,
     InvalidSimIdAllocator,
     TooManyCommands,
+    /// The queue holds an admin command, which no save can record
+    /// ([AP-save-queue] in `docs/specs/2026-11-20-admin-panel.md`).
+    AdminCommandQueued,
+}
+
+/// [AP-save-queue] item 3: refuse a save whose queue holds an admin command.
+/// The command paths make this unreachable, since the only one that stages
+/// an admin change drains it in the same call; this is the check that says
+/// so loudly if one is ever found, rather than writing a save that leaves it
+/// out or panicking inside a capture.
+pub(crate) fn refuse_queued_admin(world: &bevy_ecs::world::World) -> Result<(), SaveError> {
+    if world
+        .resource::<CommandQueue>()
+        .as_slice()
+        .iter()
+        .any(|command| matches!(command, SimCommand::Admin(_)))
+    {
+        Err(SaveError::AdminCommandQueued)
+    } else {
+        Ok(())
+    }
 }
 
 pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
@@ -237,6 +258,9 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
                     SimCommand::Book(_)
                         | SimCommand::Character(_)
                         | SimCommand::ConfirmedOrder { .. }
+                        // [AP-save-queue]: never saved; `refuse_queued_admin`
+                        // is the check that one is never queued at a save.
+                        | SimCommand::Admin(_)
                 ) && !v18::left_out_of_records(command)
             })
             .map(|command| capture_command(command, pack))
@@ -405,6 +429,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::GoToWork { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
+        SimCommand::Admin(_) => unreachable!("admin commands are filtered out of every capture"),
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuyObjectInColourway {
             definition,

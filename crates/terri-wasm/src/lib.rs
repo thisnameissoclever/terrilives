@@ -2371,6 +2371,12 @@ impl SimHandle {
         if !rest.is_empty() {
             return false;
         }
+        // [AP-cmd-admit]: an admin change is admitted only by the admin
+        // panel's own export, which drains it in the same call, so none can
+        // wait in this queue for a save ([AP-save-queue]).
+        if matches!(command, SimCommand::Admin(_)) {
+            return false;
+        }
 
         if let SimCommand::ConfirmedOrder { command, .. } = &command {
             if command.validate_structure().is_err() {
@@ -11186,6 +11192,8 @@ fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
 #[cfg(test)]
 mod shift_save_tests;
 
+#[cfg(test)]
+mod admin_queue_tests;
 #[cfg(test)]
 mod bills_boundary_tests;
 #[cfg(test)]

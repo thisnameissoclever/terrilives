@@ -132,6 +132,7 @@ impl Placement {
             | SimCommand::AssignCareerShift { .. }
             | SimCommand::ChangeShift { .. }
             | SimCommand::GoToWork { .. }
+            | SimCommand::Admin(_)
             | SimCommand::SetCareerAutonomy { .. }
             | SimCommand::SetJobSearch { .. }
             | SimCommand::SetCareerChange { .. }
@@ -597,6 +598,9 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::SetJobSearch { .. }
             | SimCommand::SetCareerChange { .. } => {
                 unreachable!("a career command is applied by the drain itself")
+            }
+            SimCommand::Admin(_) => {
+                unreachable!("an admin change is applied by the drain itself")
             }
             SimCommand::CleanDishes {
                 agent,
