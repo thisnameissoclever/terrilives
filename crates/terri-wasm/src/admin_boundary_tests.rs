@@ -752,10 +752,7 @@ fn admin_limits_reads_the_tuning_the_panel_ranges_come_from() {
     assert_eq!(limits[3], f64::from(tuning.housemate_max_traits));
     assert_eq!(
         limits[4],
-        f64::from(
-            terri_sim::careers::certain_fire_weeks(tuning)
-                .unwrap_or(terri_sim::careers::POOR_WARNING_WEEKS)
-        ),
+        f64::from(terri_sim::careers::most_poor_weeks(tuning)),
         "the most poor weeks the panel sets"
     );
     assert_eq!(limits[5], f64::from(tuning.admin_skip_max_hours));

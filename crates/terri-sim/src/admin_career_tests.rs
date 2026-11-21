@@ -869,6 +869,48 @@ fn poor_weeks_with_no_chance_of_firing_stop_at_the_warning_count() {
     );
 }
 
+/// A fire chance so small, though legal, that no count the review can hold
+/// makes firing certain, or that the count would not load: the search stays
+/// bounded, and the panel's range runs to the loader's own cap on poor weeks,
+/// since firing is still possible from 3 weeks and 0 to 2 would say it is
+/// not. The limits read and `SetPoorWeeks` validation agree.
+#[test]
+fn poor_weeks_with_a_tiny_fire_chance_stop_at_the_loaders_cap() {
+    let cap = crate::careers::MAX_SAVED_STREAK_WEEKS;
+    for (base, certain) in [
+        (2.0e-10f32, false),
+        (1.0e-12, false),
+        (f32::MIN_POSITIVE, false),
+        (1.0e-6, true),
+    ] {
+        let (mut sim, _, id) = job_world(|pack| pack.tuning.career_fire_base = base);
+        let found = crate::careers::certain_fire_weeks(&pack_of(&sim).tuning);
+        assert_eq!(found.is_some(), certain, "base {base}: {found:?}");
+        assert!(found.is_none_or(|weeks| weeks > cap), "base {base}");
+        assert_eq!(
+            crate::admin::reads::limits(sim.world())[4],
+            f64::from(cap),
+            "base {base}: the most poor weeks the panel sets"
+        );
+        applied(
+            &mut sim,
+            AdminEdit::SetPoorWeeks {
+                sim: id,
+                weeks: cap,
+            },
+        );
+        assert_eq!(record_of(&sim, id).unwrap().consecutive_poor, cap);
+        refused(
+            &mut sim,
+            AdminEdit::SetPoorWeeks {
+                sim: id,
+                weeks: cap + 1,
+            },
+            OutOfRange,
+        );
+    }
+}
+
 /// The certain count is the first poor-week count at which the review's own
 /// fire chance reaches 1, so the bound agrees with `outcome` in `f32`.
 #[test]

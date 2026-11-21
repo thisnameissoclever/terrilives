@@ -300,7 +300,7 @@ pub fn limits(world: &World) -> Vec<f64> {
         f64::from(tuning.overdoing_threshold),
         f64::from(tuning.sick_threshold),
         f64::from(tuning.housemate_max_traits),
-        f64::from(careers::certain_fire_weeks(tuning).unwrap_or(careers::POOR_WARNING_WEEKS)),
+        f64::from(careers::most_poor_weeks(tuning)),
         f64::from(tuning.admin_skip_max_hours),
         f64::from(tuning.admin_skip_default_hours),
         f64::from(tuning.admin_skip_ticks_per_frame),

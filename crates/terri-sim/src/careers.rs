@@ -902,26 +902,54 @@ fn outcome(
 /// starts one week later.
 pub const POOR_WARNING_WEEKS: u32 = 2;
 
-/// The poor-week count at which a review's fire chance reaches 1, the
-/// highest the admin panel sets ([AP-e-poor]): `2 + ceil(1 / career_fire_base)`,
-/// found against the review's own `f32` chance so the two always agree.
-/// `None` when firing is impossible, since no count makes it certain; the
-/// panel then stops at [`POOR_WARNING_WEEKS`].
+/// The most good or poor weeks in a row a saved record may hold; a save
+/// with more does not load.
+pub const MAX_SAVED_STREAK_WEEKS: u32 = 100_000;
+
+/// The poor-week count at which a review's fire chance reaches 1:
+/// `2 + ceil(1 / career_fire_base)`, found against the review's own `f32`
+/// chance so the two always agree. `None` when firing is impossible, and
+/// when the base is so small, though legal, that no count a `u32` holds
+/// makes firing certain.
 pub fn certain_fire_weeks(tuning: &terri_data::Tuning) -> Option<u32> {
     let base = tuning.career_fire_base;
     if base.is_nan() || base <= 0.0 {
         return None;
     }
+    // The review's chance at `POOR_WARNING_WEEKS + weeks` poor weeks.
+    // Rounding to `f32` is monotone, so the chance never falls as the
+    // count grows and a bounded binary search finds the first certain
+    // count, however far the rounding moves it from `1 / base`.
     let certain = |weeks: u32| base * weeks as f32 >= 1.0;
-    // The tuning keeps the base at most 1, so this starts at 1 or more.
-    let mut weeks = ((1.0 / base).ceil() as u32).max(1);
-    while weeks > 1 && certain(weeks - 1) {
-        weeks -= 1;
+    let mut high = u32::MAX - POOR_WARNING_WEEKS;
+    if !certain(high) {
+        return None;
     }
-    while !certain(weeks) {
-        weeks += 1;
+    let mut low = 0;
+    while high - low > 1 {
+        let middle = low + (high - low) / 2;
+        if certain(middle) {
+            high = middle;
+        } else {
+            low = middle;
+        }
     }
-    Some(POOR_WARNING_WEEKS + weeks)
+    POOR_WARNING_WEEKS.checked_add(high)
+}
+
+/// The most poor weeks in a row the admin panel sets ([AP-e-poor]): the
+/// count at which firing becomes certain, held to what a save may hold.
+/// With no chance of firing it stops at [`POOR_WARNING_WEEKS`]; with a
+/// chance too small to become certain within that cap, it is the cap, since
+/// firing is still possible from the week after the warning.
+pub fn most_poor_weeks(tuning: &terri_data::Tuning) -> u32 {
+    let base = tuning.career_fire_base;
+    if base.is_nan() || base <= 0.0 {
+        return POOR_WARNING_WEEKS;
+    }
+    certain_fire_weeks(tuning).map_or(MAX_SAVED_STREAK_WEEKS, |weeks| {
+        weeks.min(MAX_SAVED_STREAK_WEEKS)
+    })
 }
 
 /// A raise within the level (rule 8): a quarter of the range, at least a
@@ -2023,8 +2051,8 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
                 .history
                 .windows(2)
                 .any(|pair| pair[0].week >= pair[1].week)
-            || record.consecutive_poor > 100_000
-            || record.consecutive_good > 100_000
+            || record.consecutive_poor > MAX_SAVED_STREAK_WEEKS
+            || record.consecutive_good > MAX_SAVED_STREAK_WEEKS
             // A review waits only for a person away from home, with the
             // week's scores to review, for a week after the last one
             // reviewed and before the one running.

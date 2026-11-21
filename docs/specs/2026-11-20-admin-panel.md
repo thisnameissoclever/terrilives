@@ -181,7 +181,7 @@ These checks are cheap and cover exactly what changed. The full save round trip 
 | [AP-e-pay] | Pay per shift | `SetPay` | the level's `pay` to `pay_max`, whole dollars; refusal 3 | |
 | [AP-e-jsat] | Job satisfaction | `SetJobSatisfaction` | 0 to 100 | |
 | [AP-e-good] | Good weeks in a row | `SetGoodWeeks` | 0 to the level's `advance_weeks`; refusal 3 | hint "{n} earns a promotion" ([AP-c-promote]) |
-| [AP-e-poor] | Poor weeks in a row | `SetPoorWeeks` | 0 to `2 + ceil(1 / career_fire_base)` (15 at 0.08), the count at which firing becomes certain; 0 to 2 (the warning count) when `career_fire_base` is 0 | hint "2 brings a warning. 3 or more risk being fired." |
+| [AP-e-poor] | Poor weeks in a row | `SetPoorWeeks` | 0 to `2 + ceil(1 / career_fire_base)` (15 at 0.08), the count at which firing becomes certain, held to the 100,000 weeks a save may hold; 0 to 2 (the warning count) when `career_fire_base` is 0; 0 to 100,000 when the base is so small that no count within that cap makes firing certain, since firing is still possible from 3 weeks | hint "2 brings a warning. 3 or more risk being fired." |
 | [AP-e-search] | Job search | `SetJobSearch` | | the same `search_off` change as the Career tab, without counting a career command |
 
 Career fields other than the job show only while the person has a job.
