@@ -157,6 +157,20 @@ fn reference() -> Value {
         ("tuning", value(&pack.tuning)),
         ("bills", value(&pack.bills)),
         (
+            "need_mood",
+            table([
+                ("high_level", value(&pack.need_mood.high_level)),
+                (
+                    "gain_per_hour",
+                    value(&(f64::from(pack.need_mood.high_gain_units) / 100.0)),
+                ),
+                (
+                    "loss_per_hour",
+                    value(&(f64::from(pack.need_mood.empty_loss_units) / 100.0)),
+                ),
+            ]),
+        ),
+        (
             "objects",
             Value::Array(
                 pack.objects

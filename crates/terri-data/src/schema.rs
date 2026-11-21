@@ -493,6 +493,7 @@ pub struct TuningFile {
     pub work_bladder_relief_threshold: f32,
     /// The household's monthly bills - [WB-tuning].
     pub bills: BillsTuningDef,
+    pub need_mood: crate::pack::NeedMoodTuning,
     /// Issue 315 (`docs/specs/2026-11-15-full-bathroom-use.md`): the longest
     /// a toilet, shower or bath use may run while filling its need, from
     /// `min_interaction_ticks` to 1440. A person whose rate would need longer
@@ -1785,7 +1786,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 163] = [
+    const TUNING_LINES: [(&str, &str); 164] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1890,6 +1891,10 @@ mod tests {
         ("bills", BILLS),
         ("need_fill_max_ticks", "245"),
         ("affinity_presence_fade_points_per_hour", "6.625"),
+        (
+            "need_mood",
+            "{ high_level = 81.5, gain_hundredths_per_hour = 2, loss_hundredths_per_hour = 37 }",
+        ),
         ("go_to_work_window_ticks", "97"),
         ("career_input_history_weeks", "321"),
         ("days_per_season", "9"),
@@ -2100,6 +2105,9 @@ mod tests {
         assert_eq!(bills.daily["glow"].electricity_cents, 6);
         assert_eq!(parsed.need_fill_max_ticks, 245);
         assert_eq!(parsed.affinity_presence_fade_points_per_hour, 6.625);
+        assert_eq!(parsed.need_mood.high_level, 81.5);
+        assert_eq!(parsed.need_mood.high_gain_units, 2);
+        assert_eq!(parsed.need_mood.empty_loss_units, 37);
         assert_eq!(parsed.go_to_work_window_ticks, 97);
         assert_eq!(parsed.career_input_history_weeks, 321);
         assert_eq!(parsed.days_per_season, 9);

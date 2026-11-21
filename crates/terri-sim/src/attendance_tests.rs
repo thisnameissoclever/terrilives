@@ -430,7 +430,7 @@ fn public_score_shift(indoor: bool) -> (Sim, Entity, Entity) {
     (sim, actor, object)
 }
 
-fn assert_post_energy_shift_base(half: bool) {
+fn assert_shift_base_uses_accumulated_need_mood(half: bool) {
     let (mut sim, actor, object) = public_score_shift(false);
     if half {
         until(&mut sim, "half of the scheduled office time", 100, |s| {
@@ -457,19 +457,17 @@ fn assert_post_energy_shift_base(half: bool) {
         .unwrap()
         .set(NeedId::Energy, energy_before);
     let before_mood = sim.mood_of(actor.index_u32()).unwrap().overall_score;
-    let expected_mood = before_mood - pack.tuning.mood_low_need_penalty;
     assert!(
-        before_mood > -50.0 && expected_mood > -50.0,
-        "the comparison must not saturate the career mood term"
+        before_mood.abs() < 50.0,
+        "the fixture must stay inside the career mood term's bounds"
     );
+    let before_need_mood = *sim
+        .world()
+        .get::<crate::need_mood::NeedMood>(actor)
+        .unwrap();
     let fit = crate::careers::fit(sim.world(), pack, job, actor);
     let mastery = crate::careers::mastery(sim.world(), pack, job, actor);
-    let before_base = crate::careers::shift_score(fit, mastery, before_mood / 50.0);
-    let expected_base = crate::careers::shift_score(fit, mastery, expected_mood / 50.0);
-    assert!(
-        (before_base - expected_base - 2.4).abs() < 0.0001,
-        "the energy boundary must change the established base score"
-    );
+    let expected_base = crate::careers::shift_score(fit, mastery, before_mood / 50.0);
     sim.tick();
     let outcome = &sim.world().resource::<Attendance>().outcomes[0];
     assert_eq!(outcome.worked_minutes, if half { 90.0 } else { 180.0 });
@@ -479,25 +477,40 @@ fn assert_post_energy_shift_base(half: bool) {
     );
     assert!(
         (outcome.base_score - expected_base).abs() < 0.0001,
-        "shift base reads mood after its prorated energy bill"
+        "settlement uses the mood accumulated through the previous minute"
     );
     assert!((outcome.score - expected_base).abs() < 0.0001);
-    assert!(
-        (sim.world().get::<Needs>(actor).unwrap().get(NeedId::Energy)
-            - (energy_before - job.energy_cost * ratio))
-            .abs()
-            < 0.0001
+    let sim_id = *sim.world().get::<SimId>(actor).unwrap();
+    let recorded = sim
+        .world()
+        .resource::<crate::careers::Careers>()
+        .record(sim_id)
+        .unwrap()
+        .last_shift
+        .unwrap();
+    assert_eq!(recorded.mood, before_mood / 50.0);
+    assert_eq!(
+        sim.world().get::<Needs>(actor).unwrap().get(NeedId::Energy),
+        energy_before - job.energy_cost * ratio
+    );
+    assert_eq!(
+        sim.world()
+            .get::<crate::need_mood::NeedMood>(actor)
+            .unwrap()
+            .0,
+        before_need_mood.0 + 12,
+        "the end of the minute credits the six high needs"
     );
 }
 
 #[test]
-fn attendance_full_shift_base_uses_post_energy_mood() {
-    assert_post_energy_shift_base(false);
+fn attendance_full_shift_base_uses_accumulated_need_mood() {
+    assert_shift_base_uses_accumulated_need_mood(false);
 }
 
 #[test]
-fn attendance_half_shift_base_uses_post_prorated_energy_mood() {
-    assert_post_energy_shift_base(true);
+fn attendance_half_shift_base_uses_accumulated_need_mood() {
+    assert_shift_base_uses_accumulated_need_mood(true);
 }
 
 #[test]
@@ -531,10 +544,6 @@ fn attendance_shift_base_includes_returned_indoor_affinity_mood() {
     assert!(
         crate::affinity::presence_moodlets(sim.world(), pack, actor).is_empty(),
         "the worker is outside the room while AtWork remains set"
-    );
-    assert!(
-        100.0 - pack.careers[0].energy_cost >= pack.tuning.mood_needs_met_level,
-        "energy must not cross a mood threshold in the affinity case"
     );
     let before_mood = sim.mood_of(actor.index_u32()).unwrap().overall_score;
     let expected_mood = before_mood + pack.tuning.affinity_presence_points;

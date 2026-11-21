@@ -1,4 +1,4 @@
-//! The lingering lift of liked furniture and schema twenty-three across the
+//! The lingering lift of liked furniture across the
 //! browser boundary: issue 344, [OA-presence] in
 //! `docs/specs/2026-10-06-object-affinities.md`.
 use super::*;
@@ -10,10 +10,9 @@ const EVENING: &[u8] =
     include_bytes!("../tests/fixtures/presence-v22/new-game-two-days-evening.sav");
 
 /// Main's schema-22 saves, which have no place for a fading lift, load
-/// with none, save as schema 23 with an empty list after the same schema-22
-/// payload, load again without change and go on identically.
+/// with none and retain the original schema-22 payload inside the current save.
 #[test]
-fn main_schema_twenty_two_saves_load_with_no_fade_and_save_as_twenty_three() {
+fn main_schema_twenty_two_saves_load_with_no_fade() {
     for (name, bytes) in [("noon", NOON), ("evening", EVENING)] {
         assert_eq!(&bytes[8..10], &22u16.to_le_bytes(), "{name}");
         let (original, tail) =
@@ -31,14 +30,16 @@ fn main_schema_twenty_two_saves_load_with_no_fade_and_save_as_twenty_three() {
             "{name}: an older save has nothing fading"
         );
         let current = migrated.save_bytes();
-        assert_eq!(&current[8..10], &24u16.to_le_bytes(), "{name}");
-        let saved = decode_current(&current);
-        assert!(saved.career_inputs.is_empty(), "{name}");
-        assert!(saved.legacy.presence_fade.is_empty(), "{name}");
         assert_eq!(
-            saved.legacy.legacy, original,
-            "{name}: the schema-22 part is kept"
+            &current[8..10],
+            &SAVE_SCHEMA_VERSION.to_le_bytes(),
+            "{name}"
         );
+        let saved = decode_current(&current).legacy;
+        assert!(saved.career_inputs.is_empty(), "{name}");
+        let saved = saved.legacy;
+        assert!(saved.presence_fade.is_empty(), "{name}");
+        assert_eq!(saved.legacy, original, "{name}: the schema-22 part is kept");
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");
@@ -60,7 +61,7 @@ fn main_schema_twenty_two_saves_load_with_no_fade_and_save_as_twenty_three() {
 /// digest, and every kind of bad row refuses the load and leaves the running
 /// handle exactly as it was.
 #[test]
-fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
+fn current_schema_carries_the_fades_and_refuses_bad_rows() {
     let mut source = SimHandle::from_lot();
     let now = source.sim.world().resource::<SimClock>().tick;
     {
@@ -70,9 +71,10 @@ fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
         fade.refresh(SimId(2), 0, now, 30);
     }
     let bytes = source.save_bytes();
-    assert_eq!(&bytes[8..10], &24u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes());
     let saved = decode_current(&bytes);
     let rows: Vec<(u32, &str, u64)> = saved
+        .legacy
         .legacy
         .presence_fade
         .iter()
@@ -109,9 +111,9 @@ fn schema_twenty_three_carries_the_fades_and_refuses_bad_rows() {
         |rows| rows.push(rows[0].clone()),
     ] {
         let mut bad = saved.clone();
-        edit(&mut bad.legacy.presence_fade);
+        edit(&mut bad.legacy.legacy.presence_fade);
         let mut payload = SAVE_MAGIC.to_vec();
-        payload.extend(24u16.to_le_bytes());
+        payload.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
         payload.extend(postcard::to_allocvec(&bad).unwrap());
         bad_rows.push(payload);
     }
@@ -168,6 +170,7 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
     assert!(end > saved_at + 1, "the row is aging, with time left");
     let bytes = original.save_bytes();
     assert!(decode_current(&bytes)
+        .legacy
         .legacy
         .presence_fade
         .iter()

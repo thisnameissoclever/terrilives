@@ -35,7 +35,7 @@ pub use pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, DomesticTuning, FightRules, Footprint, ObjectDefId, Tuning,
 };
-pub use pack::{BillKind, BillsTuning, LONGEST_PRESENCE_FADE_TICKS};
+pub use pack::{BillKind, BillsTuning, NeedMoodTuning, LONGEST_PRESENCE_FADE_TICKS};
 pub use pack::{CompiledShift, ShiftView, SHIFT_DAY, SHIFT_EARLY, SHIFT_LATE, SHIFT_NIGHT};
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};

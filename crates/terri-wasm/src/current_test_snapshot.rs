@@ -17,14 +17,14 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
 }
 
 /// Decode the complete current envelope without projecting away saved state.
-pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV24 {
+pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV27 {
     assert_eq!(&bytes[..SAVE_MAGIC.len()], SAVE_MAGIC);
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &24u16.to_le_bytes()
+        &27u16.to_le_bytes()
     );
     let (snapshot, remaining) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV27>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(remaining.is_empty());
     snapshot
@@ -32,7 +32,7 @@ pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV24 {
 /// The current envelope around a schema-twenty one, as a schema-twenty
 /// load leaves it: every shift standard, the shift stream undrawn (issue
 /// 296, [WS-save]) and the bills pristine (issue 298, [WB-save]).
-pub(crate) fn current_from_v20(legacy: terri_core::SaveSnapshotV20) -> terri_core::SaveSnapshotV24 {
+pub(crate) fn current_from_v20(legacy: terri_core::SaveSnapshotV20) -> terri_core::SaveSnapshotV27 {
     current_from_v21(terri_core::SaveSnapshotV21 {
         legacy,
         shifts: terri_core::save_v21::SavedShifts {
@@ -46,7 +46,7 @@ pub(crate) fn current_from_v20(legacy: terri_core::SaveSnapshotV20) -> terri_cor
 }
 /// The current envelope around a schema-twenty-one one, as a schema-twenty-
 /// one load leaves it: the bills pristine (issue 298, [WB-save]).
-pub(crate) fn current_from_v21(legacy: terri_core::SaveSnapshotV21) -> terri_core::SaveSnapshotV24 {
+pub(crate) fn current_from_v21(legacy: terri_core::SaveSnapshotV21) -> terri_core::SaveSnapshotV27 {
     current_from_v22(terri_core::SaveSnapshotV22 {
         legacy,
         bills: Default::default(),
@@ -55,33 +55,35 @@ pub(crate) fn current_from_v21(legacy: terri_core::SaveSnapshotV21) -> terri_cor
 /// The current envelope around a schema-twenty-two one, as a schema-twenty-
 /// two load leaves it: no lift from liked furniture fading (issue 344,
 /// [OA-presence]).
-pub(crate) fn current_from_v22(legacy: terri_core::SaveSnapshotV22) -> terri_core::SaveSnapshotV24 {
+pub(crate) fn current_from_v22(legacy: terri_core::SaveSnapshotV22) -> terri_core::SaveSnapshotV27 {
     current_from_v23(terri_core::SaveSnapshotV23 {
         legacy,
         presence_fade: Vec::new(),
     })
 }
-/// The current envelope around a schema-twenty-three one, as a schema-
-/// twenty-three load leaves it: no score inputs and no queued Go to work
-/// (issues 311 and 317, [CT-save-migrate]).
-pub(crate) fn current_from_v23(legacy: terri_core::SaveSnapshotV23) -> terri_core::SaveSnapshotV24 {
-    terri_core::SaveSnapshotV24 {
-        legacy,
-        career_inputs: Vec::new(),
-        queued_work_commands: Vec::new(),
-        replaced_shifts: Vec::new(),
+
+/// The current envelope around a schema-twenty-three save.
+pub(crate) fn current_from_v23(legacy: terri_core::SaveSnapshotV23) -> terri_core::SaveSnapshotV27 {
+    terri_core::SaveSnapshotV27 {
+        legacy: terri_core::SaveSnapshotV24 {
+            legacy,
+            career_inputs: Vec::new(),
+            queued_work_commands: Vec::new(),
+            replaced_shifts: Vec::new(),
+        },
+        need_mood: Vec::new(),
     }
 }
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {
         #[derive(Clone, Debug, PartialEq)]
-        pub(crate) struct $view(pub terri_core::SaveSnapshotV24);
+        pub(crate) struct $view(pub terri_core::SaveSnapshotV27);
         impl std::ops::Deref for $view {
             type Target = $payload;
-            fn deref(&self) -> &Self::Target { &self.0.legacy.legacy.legacy.legacy.legacy.$($field).+ }
+            fn deref(&self) -> &Self::Target { &self.0.legacy.legacy.legacy.legacy.legacy.legacy.$($field).+ }
         }
         impl std::ops::DerefMut for $view {
-            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.legacy.legacy.legacy.legacy.$($field).+ }
+            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.legacy.legacy.legacy.legacy.legacy.$($field).+ }
         }
     };
 }
@@ -138,24 +140,24 @@ pub(crate) trait CurrentSnapshotViews {
 }
 impl CurrentSnapshotViews for Sim {
     fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v24())
+        CurrentV17View(self.save_snapshot_v27())
     }
     fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v24(snapshot.0)
+        self.load_snapshot_v27(snapshot.0)
     }
     fn current_v5_view(&self) -> CurrentV5View {
-        CurrentV5View(self.save_snapshot_v24())
+        CurrentV5View(self.save_snapshot_v27())
     }
     fn current_v6_view(&self) -> CurrentV6View {
-        CurrentV6View(self.save_snapshot_v24())
+        CurrentV6View(self.save_snapshot_v27())
     }
     fn load_current_v6_view(
         &mut self,
         snapshot: CurrentV6View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v24(snapshot.0)
+        self.load_snapshot_v27(snapshot.0)
     }
 }

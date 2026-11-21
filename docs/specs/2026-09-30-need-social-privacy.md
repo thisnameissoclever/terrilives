@@ -63,7 +63,7 @@ Room construction, furniture relocation, loading a save and spawning a housemate
 
 | Cause | Direct effect | Existing downstream behavior |
 | --- | --- | --- |
-| Low or critical needs | Existing negative need moodlets; new recipient-to-initiator conversation penalty | Lower mood and changed social preference |
+| Low or critical needs | Starting a conversation can cost the recipient opinion of the initiator | Changed social preference. Time spent with an empty need also lowers mood under [the need rules](2026-08-01-moods-and-moodlets-design.md#m2-need-rules). |
 | Occupied-item waiting | Existing mood penalty scaled by the relevant need | Sustained mood changes satisfaction |
 | Bathroom intrusion or starting use beside someone | New directional affinity penalty | The offended Sim can become uneasy near that person |
 | Changed affinity | Existing social scoring and benefit scaling; existing proximity mood | Mood contributes to satisfaction once per tick |

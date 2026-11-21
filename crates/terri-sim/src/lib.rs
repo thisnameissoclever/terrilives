@@ -59,6 +59,7 @@ mod media;
 mod mood;
 pub mod mortality;
 mod need_interactions;
+pub mod need_mood;
 pub(crate) mod neglect;
 pub mod placement;
 pub mod portals;
@@ -1474,7 +1475,7 @@ impl Sim {
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
             .map(|snapshot| {
-                save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy.legacy)
+                save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy.legacy.legacy)
             })
             .unwrap_or_else(|| save::v17::capture(self))
     }
@@ -1482,14 +1483,24 @@ impl Sim {
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| {
+                snapshot
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .clone()
+            })
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
@@ -1497,7 +1508,7 @@ impl Sim {
     /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1520,7 +1531,7 @@ impl Sim {
     /// not used to write saves for current content.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
@@ -1530,7 +1541,7 @@ impl Sim {
     /// fades, so it is not used to write saves.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v22::capture(self))
     }
 
@@ -1541,16 +1552,16 @@ impl Sim {
     /// leaves out of the queue, so it is not used to write saves.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v23::capture(self))
     }
 
-    /// The current save: schema twenty-four, which adds each person's score
+    /// Historical schema twenty-four adds each person's score
     /// inputs and every queued Go to work (issues 311 and 317, [CT-save] in
     /// `docs/specs/2026-11-19-career-tab.md`).
     pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v24::capture(self))
     }
 
@@ -1571,6 +1582,25 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV23,
     ) -> Result<(), SaveError> {
         let candidate = save::v23::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    /// Schema twenty-seven also carries each actor's accumulated needs mood balance.
+    pub fn save_snapshot_v27(&self) -> terri_core::SaveSnapshotV27 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v27::capture(self))
+    }
+
+    pub fn load_snapshot_v27(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV27,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v27::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -2233,7 +2263,14 @@ impl Sim {
                 // furniture now has the lift recorded, and a fade that has
                 // ended is dropped (issue 344).
                 (mortality::tick, chores::prune, presence_fade::refresh_all).chain(),
-                (mood::accrue_satisfaction, privacy::maintain).chain(),
+                // Sample the minute's settled needs before recording their
+                // mood contribution to satisfaction.
+                (
+                    need_mood::accrue,
+                    mood::accrue_satisfaction,
+                    privacy::maintain,
+                )
+                    .chain(),
             )
                 .chain(),
         );
@@ -5412,6 +5449,7 @@ impl Sim {
         presence_fade::hash(&self.world, &mut hasher);
         // The score inputs the review window reads, only once some are held.
         careers::hash_inputs(&self.world, &mut hasher);
+        need_mood::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -6666,6 +6704,7 @@ mod determinism_tests {
         // The historical control receives them before public person creation.
         let mut pack = terri_data::pack().clone();
         pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+        pack.need_mood = terri_data::NeedMoodTuning::HISTORICAL;
         pack.tuning.relationship_gain_per_talk = 0.17;
         pack.tuning.fight_rules = FightRules::Published;
         pack.tuning.fight_chance_per_tick = 0.01;
@@ -7559,7 +7598,10 @@ mod determinism_tests {
         // did not move it: the native assertion still passes with this value
         // on the merged tree, and the full local check rebuilds the release
         // module and runs the twin against it.
-        const GOLDEN: u64 = 15287039064284998688;
+        // The need mood ledger adds eight rows, each with +1200 units.
+        // Appending those rows to 15287039064284998688 gives the new
+        // native result below without any other change in this scenario.
+        const GOLDEN: u64 = 10536286167581425162;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

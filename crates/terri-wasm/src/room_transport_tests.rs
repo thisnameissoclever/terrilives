@@ -14,6 +14,7 @@ fn assert_current_retains_exact_published_v16(current: &[u8], published: &[u8]) 
         .legacy
         .legacy
         .legacy
+        .legacy
         .legacy;
     assert_eq!(snapshot.legacy, historical);
     let mut projected = SAVE_MAGIC.to_vec();

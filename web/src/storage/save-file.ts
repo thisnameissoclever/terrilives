@@ -8,8 +8,8 @@
 
 export const SAVE_FILE_EXTENSION = '.ncsave';
 
-/** The identifying prefix (an 8-byte signature and a 2-byte version) checked before a whole file is read. */
-export const SAVE_FILE_PREFIX_BYTES = 10;
+/** Read the signature, version, and the nine fingerprint bytes needed to distinguish V24 saves. */
+export const SAVE_FILE_PREFIX_BYTES = 19;
 
 /** A dated name, so several exports sort by day instead of overwriting. */
 export function saveFileName(date: Date): string {

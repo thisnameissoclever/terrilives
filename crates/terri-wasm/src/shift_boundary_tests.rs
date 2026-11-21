@@ -178,9 +178,10 @@ fn schema_twenty_one_round_trips_through_the_save_bytes() {
     let bytes = source.save_bytes();
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &24u16.to_le_bytes()
+        &SAVE_SCHEMA_VERSION.to_le_bytes()
     );
     let snapshot = super::current_test_snapshot::decode_current(&bytes)
+        .legacy
         .legacy
         .legacy
         .legacy;

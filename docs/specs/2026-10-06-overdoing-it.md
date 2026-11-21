@@ -14,7 +14,7 @@ A person eating three spaced meals a day never crosses 1 (the decay between meal
 
 Mood is derived, never stored, so the new effects are moodlets computed from habituation when mood is read:
 
-1. For every habituation entry above `overdoing_threshold` (1.0): `Overdoing {activity}` with score `-overdoing_penalty * (value - threshold) / (habituation_max - threshold)`, where `overdoing_penalty` is 20, so the penalty grows with each further use and cancels "Needs met" at the top. `{activity}` is the same label the Sim details repetition row uses (the interaction's label, or the chain's label for a chain row).
+1. For every habituation entry above `overdoing_threshold` (1.0): `Overdoing {activity}` with score `-overdoing_penalty * (value - threshold) / (habituation_max - threshold)`, where `overdoing_penalty` is 20, so the penalty grows with each further use and reaches 20 mood points at maximum habituation. `{activity}` is the same label the Sim details repetition row uses (the interaction's label, or the chain's label for a chain row).
 2. For every entry whose action advertises a positive Hunger delta (food) and whose value is at or above `sick_threshold` (2.5): `Feeling sick` with score `-sick_penalty` (25), once per person however many food entries qualify. It appears after the overdoing moodlets and lasts until decay brings every food entry below the threshold, about 455 ticks (seven and a half game hours) from the top.
 
 From the top, with no further use, appeal stays at the floor for about 1818 ticks (30 game hours), and both moodlets have cleared after about 1820 ticks.

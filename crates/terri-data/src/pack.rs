@@ -1787,6 +1787,26 @@ pub struct ContentPack {
     /// The monthly bills (issue 298, [WB-tuning]). Appended after the career
     /// paths, the pack's last field until then.
     pub bills: BillsTuning,
+    pub need_mood: NeedMoodTuning,
+}
+
+/// Rates in hundredths of a mood point per game hour. With sixty ticks
+/// per hour, each hundredth contributes one ledger unit per tick.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct NeedMoodTuning {
+    pub high_level: f32,
+    #[serde(rename = "gain_hundredths_per_hour")]
+    pub high_gain_units: i32,
+    #[serde(rename = "loss_hundredths_per_hour")]
+    pub empty_loss_units: i32,
+}
+
+impl NeedMoodTuning {
+    pub const HISTORICAL: Self = Self {
+        high_level: 80.0,
+        high_gain_units: 0,
+        empty_loss_units: 0,
+    };
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -2479,6 +2499,7 @@ mod tests {
             reading: None,
             career_paths: Vec::new(),
             bills: BillsTuning::shipped_without_usage(),
+            need_mood: NeedMoodTuning::HISTORICAL,
             circadian: None,
             sleep_tag: String::new(),
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],

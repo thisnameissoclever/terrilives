@@ -332,7 +332,7 @@ fn schema_twenty_four_saves_reload_with_the_rows() {
     assert_eq!(rows.len(), 14);
     assert_eq!(last.len(), 7);
     let saved = handle.save_bytes();
-    assert_eq!(&saved[8..10], &24u16.to_le_bytes());
+    assert_eq!(&saved[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes());
     let mut reloaded = SimHandle::from_lot();
     assert!(reloaded.load_bytes(&saved));
     assert_eq!(reloaded.career_input_history(tim), rows);
