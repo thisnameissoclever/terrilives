@@ -205,6 +205,9 @@ export class AdminPanel {
   private readonly pillNote: HTMLElement;
   private readonly closeButton: HTMLButtonElement;
   private readonly undoButton: HTMLButtonElement;
+  /** The words after Undo on the button; a phone hides them and the button keeps its full name. */
+  private readonly undoVerb: HTMLElement;
+  private readonly undoDetail: HTMLElement;
   private readonly undoStatus: HTMLElement;
   private readonly tabList: HTMLElement;
   private readonly picker: HTMLElement;
@@ -258,6 +261,9 @@ export class AdminPanel {
     pill.append(this.pillLabel, this.pillNote);
     this.undoButton = this.node('button', 'hud-button admin-undo');
     this.undoButton.type = 'button';
+    this.undoVerb = span(doc, 'admin-undo-verb', UNDO_WORDS.idle);
+    this.undoDetail = span(doc, 'admin-undo-detail', '');
+    this.undoButton.append(this.undoVerb, this.undoDetail);
     this.undoButton.addEventListener('click', () => this.undo());
     const close = this.node('button', 'hud-button admin-close');
     close.type = 'button';
@@ -564,7 +570,10 @@ export class AdminPanel {
     if (enabled) text = this.labels.length === this.depth ? undoWithChange(this.labels[this.labels.length - 1]) : UNDO_WORDS.unknown;
     // A button that is about to be disabled must not hold focus.
     if (!enabled && this.doc.activeElement === button) this.tabButtons.get(this.active)!.focus();
-    button.textContent = text;
+    // Every wording starts with Undo; a phone shows that word alone, so the full words are the button's name.
+    this.undoVerb.textContent = UNDO_WORDS.idle;
+    this.undoDetail.textContent = text.slice(UNDO_WORDS.idle.length);
+    button.setAttribute('aria-label', text);
     button.disabled = !enabled;
     button.setAttribute('title', this.undoFailed ? UNDO_WORDS.failed : enabled ? text : UNDO_WORDS.nothing);
   }

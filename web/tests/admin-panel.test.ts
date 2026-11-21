@@ -415,6 +415,19 @@ describe('Undo', () => {
     expect(h.undo().textContent).toBe('Undo: Add $1,000');
   });
 
+  it('splits the word Undo from the change, so a phone shows the word alone, and names the button in full', () => {
+    const h = build();
+    h.open();
+    const word = (): string => h.undo().querySelector('.admin-undo-verb')!.textContent;
+    const detail = (): string => h.undo().querySelector('.admin-undo-detail')!.textContent;
+    expect([word(), detail()]).toEqual(['Undo', '']);
+    expect(h.undo().getAttribute('aria-label')).toBe('Undo');
+    h.spy('housemate').context.apply(HUNGER, { label: 'Change Hunger' });
+    expect([word(), detail()]).toEqual(['Undo', ': Change Hunger']);
+    expect(h.undo().textContent).toBe('Undo: Change Hunger');
+    expect(h.undo().getAttribute('aria-label')).toBe('Undo: Change Hunger');
+    expect(h.undo().getAttribute('title')).toBe('Undo: Change Hunger');
+  });
   it('calls the bridge, drops the label, shows the new depth and re-reads every tab', () => {
     const h = build();
     h.open();

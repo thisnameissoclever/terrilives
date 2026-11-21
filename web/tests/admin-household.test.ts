@@ -446,6 +446,22 @@ describe('Bills', () => {
   });
 });
 
+describe('the bill cells on a phone', () => {
+  // A phone shows each bill as a card, so each field names itself from its cell's data-label (reviewed words).
+  const labels = (node: FakeNode): string[][] => node.nodes
+    .filter(cell => cell.hasAttribute('data-label')).map(cell => [cell.className, cell.getAttribute('data-label')!]);
+
+  it('labels the due day, amount and late fee of a bill, and its name and status carry their own words', () => {
+    const b = build();
+    expect(labels(row(b, 91, 0))).toEqual([['admin-bill-due', 'Due'], ['admin-bill-money', 'Amount'], ['admin-bill-money', 'Late fee']]);
+  });
+  it('labels all four fields of the new bill', () => {
+    const b = build();
+    const fresh = b.f.root.querySelector('.admin-bill-new')!;
+    expect(fresh.nodes.filter(cell => cell.hasAttribute('data-label')).map(cell => cell.getAttribute('data-label')))
+      .toEqual(['Bill', 'Due', 'Amount', 'Late fee']);
+  });
+});
 describe('a new bill', () => {
   const kind = (b: Built) => b.f.control('Bill');
   const due = (b: Built) => b.f.control('Due');

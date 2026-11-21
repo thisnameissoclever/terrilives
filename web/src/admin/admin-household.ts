@@ -47,6 +47,15 @@ interface Draft {
   feeCents: number;
 }
 
+/**
+ * Names a bill cell for the phone's card layout, which drops the table header
+ * and writes each field's name above its box from this attribute ([AP-web-phone]).
+ */
+function withDataLabel(cell: HTMLElement, label: string): HTMLElement {
+  cell.setAttribute('data-label', label);
+  return cell;
+}
+
 class HouseholdTab implements AdminTab {
   readonly body: HTMLElement;
   private readonly funds: Section;
@@ -270,18 +279,18 @@ class HouseholdTab implements AdminTab {
       td.append(...children);
       return td;
     };
-    const money = (word: string, suffix: string, cents: number, min: number, max: number, disabled: boolean, commit: (value: number) => void): HTMLElement => cell(
+    const money = (word: string, suffix: string, cents: number, min: number, max: number, disabled: boolean, commit: (value: number) => void): HTMLElement => withDataLabel(cell(
       'admin-bill-money', textNode(doc, 'span', 'admin-prefix', '$'),
       moneyBox({ doc, label: `${rowName} ${word}`, key: `${key}-${suffix}`, cents, min, max, disabled, onCommit: commit }),
-    );
+    ), suffix === 'amount' ? W.amount : W.lateFee);
     const status = paid ? W.paidDay(bill.paidDay! + 1) : today >= bill.overdueFrom ? W.overdue : W.noFeeUntil(bill.overdueFrom + 1);
     row.append(
       cell('admin-bill-name', name),
-      cell('admin-bill-due', selectControl({
+      withDataLabel(cell('admin-bill-due', selectControl({
         doc, label: `${rowName} ${W.due.toLowerCase()}`, key: `${key}-due`, options: this.dueOptions(dueDays, bill.dueDay),
         value: String(bill.dueDay), disabled: paid || locked,
         onCommit: to => send([{ edit: 'MoveBill', due_day: bill.dueDay, kind: bill.kind, to_due_day: Number(to) }], undoLabels.moveBill(name)),
-      })),
+      })), W.due),
       money(W.amount.toLowerCase(), 'amount', bill.amountCents, 1, MAX_ADMIN_FUNDS_CENTS, paid || locked, amount => {
         // A smaller amount lowers the most a fee can be, so a fee over it comes down with it.
         const fee = Math.min(bill.lateFeeCents, this.feeCap(amount));
@@ -335,21 +344,21 @@ class HouseholdTab implements AdminTab {
       td.append(...children);
       return td;
     };
-    const money = (word: string, suffix: string, cents: number, min: number, max: number, disabled: boolean, commit: (value: number) => void): HTMLElement => cell(
+    const money = (word: string, suffix: string, cents: number, min: number, max: number, disabled: boolean, commit: (value: number) => void): HTMLElement => withDataLabel(cell(
       'admin-bill-money', textNode(doc, 'span', 'admin-prefix', '$'),
       moneyBox({ doc, label: word, key: `bill-new-${suffix}`, cents, min, max, disabled, onCommit: commit }),
-    );
+    ), word);
     row.append(
-      cell('admin-bill-name', selectControl({
+      withDataLabel(cell('admin-bill-name', selectControl({
         doc, label: W.bill, key: 'bill-new-kind', disabled: locked, value: String(draft.kind),
         options: BILL_NAMES.map((label, kind) => ({ value: String(kind), label })),
         onCommit: value => { draft.kind = Number(value); redraw(); },
-      })),
-      cell('admin-bill-due', selectControl({
+      })), W.bill),
+      withDataLabel(cell('admin-bill-due', selectControl({
         doc, label: W.due, key: 'bill-new-due', options: this.dueOptions(dueDays), value: due === undefined ? '' : String(due),
         disabled: locked || due === undefined,
         onCommit: value => { draft.due = Number(value); redraw(); },
-      })),
+      })), W.due),
       money(W.amount, 'amount', amount, 1, MAX_ADMIN_FUNDS_CENTS, locked, value => { draft.amountCents = value; redraw(); }),
       money(W.lateFee, 'fee', fee, 0, cap, locked || feeShut, value => { draft.feeCents = value; }),
       cell('admin-bill-status'),

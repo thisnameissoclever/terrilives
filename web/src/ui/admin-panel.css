@@ -3,8 +3,8 @@
  * docs/specs/2026-11-20-admin-panel.md). Colours come from the page's custom
  * properties (--hud-*, --need-fill, --action-*), so the panel follows whatever
  * theme the page sets; the fallbacks are the dark values. Tab contents style
- * themselves in later tasks. The phone layout is a later task; this file only
- * fills the screen on a compact one.
+ * themselves further down. The phone layout is the last block of this file
+ * ([AP-web-phone]), because it must come after the rules it changes.
  */
 #admin-panel {
   --admin-card: color-mix(in srgb, var(--hud-text, #d8d8e0) 5%, var(--hud-bg, #16161c));
@@ -38,7 +38,7 @@
   padding: 12px 18px;
   border-bottom: 1px solid var(--hud-edge, #2c2c36);
 }
-.admin-title { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+.admin-title { margin: 0; font-size: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
 .admin-title:focus { outline: none; }
 .admin-title:focus-visible { outline: 2px solid var(--need-fill, #6fb2d2); outline-offset: 4px; border-radius: 4px; }
 .admin-cheat {
@@ -68,7 +68,7 @@
 .admin-spacer { flex: 1 1 0; }
 .admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
 .admin-undo, .admin-close, .admin-person, .admin-tab { min-height: 36px; padding: 0 14px; }
-.admin-undo { max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-undo { max-width: min(22em, 100%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-undo-status { margin: 0; padding: 6px 18px; color: var(--hud-danger, #e58c85); border-bottom: 1px solid var(--hud-edge, #2c2c36); }
 .admin-undo-status:empty { display: none; }
 
@@ -115,7 +115,7 @@
 .admin-column { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 @media (width <= 900px) { .admin-columns { grid-template-columns: minmax(0, 1fr); } }
 
-.admin-section { padding: 12px 14px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
+.admin-section { min-width: 0; padding: 12px 14px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
 .admin-section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 8px; }
 .admin-section-title { margin: 0; font-size: 15px; }
 .admin-section-title:focus { outline: none; }
@@ -180,3 +180,78 @@
 .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { border-top: 1px solid var(--hud-edge, #2c2c36); }
 .admin-bill-notes { margin-top: 10px; }
 .admin-bill-notes .admin-note { margin: 2px 0; }
+
+/*
+ * The phone layout ([AP-web-phone], [T14]), under the compact HUD's query: the
+ * dialog fills the screen, the header wraps the pill under the title, tabs and
+ * picker span the width, sections stack, each slider sits under its label with
+ * its number box at the right, and the bill table becomes one card per bill.
+ * The page never scrolls sideways: every child may shrink (min-width: 0) and the
+ * dialog clips nothing it should show.
+ */
+@media (width <= 600px), (height <= 480px) {
+  .admin-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+  }
+  .admin-title { grid-column: 1; grid-row: 1; font-size: 18px; }
+  .admin-undo { grid-column: 2; grid-row: 1; max-width: none; }
+  .admin-close { grid-column: 3; grid-row: 1; }
+  .admin-pill { grid-column: 1 / -1; grid-row: 2; justify-self: start; max-width: 100%; }
+  .admin-spacer, .admin-hint, .admin-undo-detail { display: none; }
+  .admin-undo-status { padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
+
+  .admin-bar { align-items: stretch; padding: 10px max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left)); }
+  .admin-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .admin-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 6px; }
+  .admin-tab, .admin-person { padding-inline: 4px; overflow-wrap: anywhere; }
+  .admin-body { padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+
+  .admin-slider-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+  .admin-slider-row > .admin-row-label { grid-column: 1; grid-row: 1; }
+  .admin-slider-row > .admin-number { grid-column: 2; grid-row: 1; }
+  .admin-slider-row > .admin-slider { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; }
+  .admin-slider-row > :not(.admin-row-label, .admin-slider, .admin-number) { grid-column: 1 / -1; }
+
+  .admin-bill-table, .admin-bill-table tbody { display: block; }
+  .admin-bill-table thead { display: none; }
+  .admin-bill-row, .admin-bill-new {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+    padding: 12px 0;
+    border-top: 1px solid var(--hud-edge, #2c2c36);
+  }
+  .admin-bill-row > td, .admin-bill-new > td { padding: 0; border: 0; min-width: 0; }
+  .admin-bill-name { grid-column: 1; grid-row: 1; font-weight: 700; }
+  .admin-bill-new .admin-bill-name { grid-column: 1 / -1; }
+  .admin-bill-status { grid-column: 2; grid-row: 1; text-align: right; }
+  .admin-bill-status:empty { display: none; }
+  .admin-bill-due { grid-column: 1 / -1; grid-row: 2; }
+  .admin-bill-due + .admin-bill-money { grid-column: 1; grid-row: 3; }
+  .admin-bill-money + .admin-bill-money { grid-column: 2; grid-row: 3; }
+  .admin-bill-money { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+  .admin-bill-money .admin-number { flex: 1 1 0; width: auto; min-width: 0; }
+  .admin-bill-row > td[data-label]::before, .admin-bill-new > td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 100%;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--hud-muted, #9aa3ad);
+    font-size: 12px;
+  }
+  .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { grid-column: 1 / -1; grid-row: 4; border-top: 0; gap: 6px; }
+  .admin-bill-actions > .admin-action { flex: 1 1 0; }
+  .admin-bill-actions > .admin-note { flex: 1 1 100%; }
+}
+
+/* Touch targets: 44 px on a phone and on any touch screen, as the HUD's own controls are. */
+@media (width <= 600px), (height <= 480px), (any-pointer: coarse) {
+  .admin-undo, .admin-close, .admin-tab, .admin-person, .admin-action, .admin-number, .admin-select { min-height: 44px; }
+  .admin-number { min-width: 44px; }
+  .admin-slider { height: 44px; }
+  .admin-check-row { min-height: 44px; }
+  .admin-check { width: 28px; height: 28px; }
+}

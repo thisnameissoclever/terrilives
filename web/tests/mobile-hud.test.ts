@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
+import { COMPACT_HUD_MEDIA_QUERY } from '../src/ui/compact-hud.js';
+
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const DOCK_CSS = readFileSync(new URL('../src/ui/compact-hud.css', import.meta.url), 'utf8');
 const ALL_STYLES = INDEX_HTML + DOCK_CSS;
@@ -118,5 +120,35 @@ describe('the Sim Details panel on a phone or a short screen (issue 317)', () =>
   it('applies the 560 pixel width only at 601 by 481 pixels or larger', () => {
     const desktop = mediaBlock(/@media \(min-width: 601px\) and \(min-height: 481px\) \{\s*#sim-sheet \{/, DOCK_CSS);
     expect(desktop).toContain('--sim-sheet-width: 560px');
+  });
+});
+
+// [AP-web-phone]: the admin panel is a full-screen dialog under the same query as
+// the rest of the compact HUD, and its controls are as tall as the HUD's.
+describe('the admin panel on a phone (issue 312)', () => {
+  const ADMIN_CSS = readFileSync(new URL('../src/ui/admin-panel.css', import.meta.url), 'utf8');
+  const range = (query: string): string => query
+    .replace(/\(max-width: (\d+px)\)/, '(width <= $1)').replace(/\(max-height: (\d+px)\)/, '(height <= $1)');
+
+  it('uses the compact HUD query, in the stylesheet that the HUD tests read', () => {
+    expect(DOCK_CSS).toContain(`@media ${COMPACT_HUD_MEDIA_QUERY}`);
+    expect(ADMIN_CSS).toContain(`@media ${range(COMPACT_HUD_MEDIA_QUERY)} {`);
+  });
+
+  it('covers the screen where the HUD turns compact', () => {
+    const block = mediaBlock(new RegExp(`@media ${range(COMPACT_HUD_MEDIA_QUERY).replace(/[()]/g, '\\$&')} \\{\\n  #admin-panel`), ADMIN_CSS);
+    expect(block).toContain('width: 100vw');
+    expect(block).toContain('height: 100dvh');
+  });
+
+  it('is as tall as the HUD buttons under the same touch rule', () => {
+    expect(DOCK_CSS).toContain('#hud .hud-button, #hud #time-controls label, #sim-sheet-header .hud-button { min-height: 44px; }');
+    expect(ADMIN_CSS).toContain(`@media ${range(COMPACT_HUD_MEDIA_QUERY)}, (any-pointer: coarse) {`);
+    expect(ADMIN_CSS).toMatch(/\.admin-undo, \.admin-close, \.admin-tab, \.admin-person, \.admin-action, \.admin-number, \.admin-select \{ min-height: 44px; \}/);
+  });
+
+  it('adds no horizontal scroll: the body never scrolls sideways and its children may shrink', () => {
+    expect(ADMIN_CSS).not.toMatch(/overflow-x:\s*(auto|scroll)/);
+    expect(ADMIN_CSS).toMatch(/\.admin-section\s*\{[^}]*min-width: 0/);
   });
 });
