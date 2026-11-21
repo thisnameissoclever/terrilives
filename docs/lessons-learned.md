@@ -13284,3 +13284,10 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: capture handlers recognized ordinary dialogs by the open attribute or target ancestry. Native popovers use a separate visibility state and allow focus to leave them. A target listener runs after document capture handlers.
 3. Prevention: check visible popover state at every existing handler that can consume the same shortcut, including canvas and Build exit handlers. Leave Escape uncanceled so native dismissal can run.
 4. Verification: test the actual extracted predicates and play the Tab-out sequence in the game. Repeat with a selected Build tool, staged edits and canvas focus. Require one Escape to close the popover without altering the draft or opening Build exit confirmation.
+
+## [L-private-save-version-reservations] Check active writers before assigning a save version
+
+1. What happened: the needs mood change initially chose V24 because the published writer used V23. The Career tab worktree already wrote a different V24, and the editable-world worktree had written private V24 and V25 files. The mood writer moved to V26 before publication.
+2. Root cause: the default branch records published formats. Active worktrees can already have produced files using higher version numbers.
+3. Prevention: inspect the current writers and frozen formats in active save-related branches before choosing a new number. When a version is reserved, list the supported versions explicitly in the loader, import controller and storage worker.
+4. Verification: try each reserved header against a running household and against an existing browser slot. Check the world hash and the stored bytes after refusal. Migrate a genuine published save and compare its recovery copy byte for byte.

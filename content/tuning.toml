@@ -18,19 +18,19 @@ shyness_annoyance_strength = 0.25
 boundary_wander_reconsider_chance = 0.10
 shyness_wander_reconsider_strength = 0.15
 
-# Preserves the critical need band used by the mood panel.
+# Critical need level used for relief, privacy and other decisions.
 mood_critical_need_level = 20.0
 # Preserves the low need band, above the critical band.
 mood_low_need_level = 40.0
 # All needs above this level describe a comfortable household.
 mood_needs_met_level = 70.0
-# Four critical needs can reach the bottom of the mood scale.
+# Historical instantaneous mood amounts retained for the published pack format.
 mood_critical_need_penalty = 25.0
-# A low need hurts less than half as much as a critical one.
+# Former low-need penalty.
 mood_low_need_penalty = 12.0
-# Comfortable days slowly build satisfaction beyond the neutral band.
+# Former all-needs-met bonus. Current mood accrual uses [need_mood] below.
 mood_needs_met_bonus = 20.0
-# A full condition remains comparable to one critical need.
+# Mood cost of a condition at full severity.
 mood_condition_penalty = 30.0
 # Nearby relationships can shift mood without replacing basic needs.
 mood_relationship_strength = 15.0
@@ -1157,3 +1157,10 @@ fridge = { label = "Fridges", water_cents = 0, electricity_cents = 20 }
 lamp = { label = "Lamps", water_cents = 0, electricity_cents = 5 }
 aquarium = { label = "Aquariums", water_cents = 0, electricity_cents = 10 }
 pool = { label = "Pools", water_cents = 50, electricity_cents = 60 }
+
+# Each settled game minute earns one sixtieth of these hourly rates.
+# Values in hundredths keep fractional progress exact across saves.
+[need_mood]
+high_level = 80.0
+gain_hundredths_per_hour = 2
+loss_hundredths_per_hour = 500

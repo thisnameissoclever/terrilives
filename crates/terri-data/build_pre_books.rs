@@ -258,6 +258,10 @@ pub fn compile(root: &Path) -> pack::ContentPack {
             )),
         ),
         ("bills", shipped_bills_without_usage()),
+        (
+            "need_mood",
+            toml::Value::try_from(pack::NeedMoodTuning::HISTORICAL).unwrap(),
+        ),
         // Issue 315: the fill limit a pack published before it rebuilds with.
         ("need_fill_max_ticks", toml::Value::Integer(240)),
         // The presence fade (issue 344): the shipped rate, reconstructed by

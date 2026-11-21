@@ -171,6 +171,13 @@ pub fn compile(
     // its usage kinds by id and compiles them to indices into these lists
     // ([WB-usage]).
     let bills = compile_bills(&tuning.bills)?;
+    let need_mood = tuning.need_mood;
+    if !(0.0..100.0).contains(&need_mood.high_level)
+        || !(0..=10000).contains(&need_mood.high_gain_units)
+        || !(0..=10000).contains(&need_mood.empty_loss_units)
+    {
+        return Err(ContentError::InvalidNeedMoodTuning);
+    }
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     // Colourways ride in objects.toml but apply to every object; they are
     // validated last, on their own.
@@ -758,6 +765,7 @@ pub fn compile(
         skills,
         affinities,
         bills,
+        need_mood,
     })
 }
 
@@ -6026,6 +6034,7 @@ mod tests {
             affinity_presence_fade_points_per_hour:
                 crate::Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
             bills: shipped_bills_def(),
+            need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
@@ -6193,6 +6202,40 @@ mod tests {
             test_atlas(),
             tuning,
         )
+    }
+
+    #[test]
+    fn need_mood_rates_and_threshold_are_checked_and_copied() {
+        let tuned = crate::pack::NeedMoodTuning {
+            high_level: 89.5,
+            high_gain_units: 3,
+            empty_loss_units: 47,
+        };
+        let with = |rules| compile_tuned(tuning_where(|t| t.need_mood = rules));
+        assert_eq!(with(tuned).unwrap().need_mood, tuned);
+        for invalid in [
+            crate::pack::NeedMoodTuning {
+                high_level: 100.0,
+                ..tuned
+            },
+            crate::pack::NeedMoodTuning {
+                high_level: f32::NAN,
+                ..tuned
+            },
+            crate::pack::NeedMoodTuning {
+                high_gain_units: -1,
+                ..tuned
+            },
+            crate::pack::NeedMoodTuning {
+                empty_loss_units: 10001,
+                ..tuned
+            },
+        ] {
+            assert!(matches!(
+                with(invalid),
+                Err(ContentError::InvalidNeedMoodTuning)
+            ));
+        }
     }
 
     #[test]

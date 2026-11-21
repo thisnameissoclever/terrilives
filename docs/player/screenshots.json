@@ -369,6 +369,15 @@
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-11-15",
         "method": "Playwright Chrome, headless and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. A new game was run at 3x to Day 1, about 09:00 for daylight, paused, and Tim selected; the phone captures were taken only when no housemate bubble sat behind the speed buttons, which a pixel check of that strip confirmed. Game saved follows Options > Save, and the Build captures follow Build. The phone guide-link closeup has keyboard focus moved to the link with Tab from Options."
+      },
+      {
+        "id": "need-mood",
+        "url": "http://127.0.0.1:48167/",
+        "htmlSha256": "22dba3b779041d4dc39ac4a44c7e48ca7ec742653182a4cf68c3405ac5f524cc",
+        "bundle": "index-CuRLNXAV.js",
+        "bundleSha256": "bc519d6ef554f6e90012bb05de07e4d6969b8248cbcef9931d201d1d13abebb7",
+        "wasm": "terri_wasm_bg-C77x3v9h.wasm",
+        "wasmSha256": "13297bc5fb4c7bd46ce14c8bfb9af2604c77a01064d061f3457d9357b7779913"
       }
     ],
     "weatherSetup": {
@@ -581,13 +590,13 @@
       "description": "Overview. Phone needs appear here; desktop needs remain in the dock.",
       "access": "Select a name at the bottom of the screen, then Sim details > Overview.",
       "desktopDetail": "images/ui-sim-needs-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "need-mood",
+      "htmlSha256": "22dba3b779041d4dc39ac4a44c7e48ca7ec742653182a4cf68c3405ac5f524cc",
+      "bundleSha256": "bc519d6ef554f6e90012bb05de07e4d6969b8248cbcef9931d201d1d13abebb7",
       "imageSha256": {
-        "desktop": "00843cf1212005acefe4efd822c574f433c6e84c856ab4d43c3f91588ee3f09e",
-        "mobile": "5a53dd94a25d430cfb232a2906367abe2d4b338c8c0e219374b53d22789f5981",
-        "desktopDetail": "5a7da6e3d417165ade05fce5fb904e886c01bc090ff4ef52ea99c0247e2ac360"
+        "desktop": "e5ac7a5a08bc60869d5a508fe8f292270179a445dd7708ba63762cea4b8d4b98",
+        "mobile": "33b93c25b383fe47847c22a4fa1cb2bd1cdb2036002022ec77edd3f231f60b2d",
+        "desktopDetail": "d5943d0bac3006c357a6d5ca1eb24583d056fb3e4a913593007166a4dc7f3644"
       }
     },
     {

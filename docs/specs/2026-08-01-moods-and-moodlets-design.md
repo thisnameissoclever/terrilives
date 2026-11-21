@@ -11,36 +11,16 @@ numbers below describe the initial tuning, not constants in the simulation.
 
 ## [M1] One derived answer
 
-Mood is a read of the current world, not a second simulation clock and not a
-stored component. `Sim::mood_of` derives one bounded score, one overall label,
-and an ordered list of active moodlets from state the save already owns:
-needs, worn condition traits, positions, names, stable sim ids, and directional
-relationships.
-
-This keeps Save V1 unchanged. A loaded world therefore cannot carry a stale
-mood snapshot from before the save or from a different content pack. The HUD
-must force one mood refresh immediately after a successful load, before the
-next simulation tick.
+The HUD reads one overall score, one label and an ordered list of contributing
+reasons from `Sim::mood_of`. The simulation combines the saved needs
+contribution with current conditions, positions, relationships and other
+active effects. Loading a V26 household restores its accumulated contribution
+before the next tick. Published saves through V23 begin with zero accumulated
+need points. The HUD refreshes immediately after a successful load.
 
 ## [M2] Need rules
 
-Need moodlets follow `NeedId` order. A level at or below 20 is critical and
-contributes -25; a level at or below 40 is low and contributes -12. The labels
-are plain descriptions of the need state:
-
-| Need | Low | Critical |
-| --- | --- | --- |
-| Hunger | Hungry | Starving |
-| Energy | Tired | Exhausted |
-| Hygiene | Needs a wash | Very dirty |
-| Bladder | Needs the toilet | Desperate for the toilet |
-| Social | Lonely | Very lonely |
-| Fun | Bored | Very bored |
-| Comfort | Uncomfortable | Very uncomfortable |
-
-When every need is at least 70, one `Needs met` moodlet contributes +20. The
-single summary avoids seven celebratory rows elbowing the useful information
-off a phone screen.
+Each game minute after needs settle, each empty need subtracts 5 points per game hour and each need above 80 adds 0.02 per game hour. Sum the contributions before clamping the accumulated total to the mood range. The Overview mood breakdown shows a nonzero balance as Mood from needs. The need warnings and the rules for urgent actions continue to use their own thresholds. Save version 26 retains the balance.
 
 ## [M3] Trait rules
 
@@ -107,7 +87,7 @@ not a blank box.
 2. WASM tests pin the numeric and text projections and their alignment.
 3. Browser tests pin invalid-boundary clearing, keyed row reconciliation,
    throttling, selection changes, and forced refresh after load.
-4. A loaded saved household shows the same mood before the next tick.
+4. A V26 household shows the same mood before the next tick when loaded with the same content.
 5. Desktop and 390 by 844 browser checks prove the panel is readable, the
    meter has an accessible value, and the existing primary play path still
    works.

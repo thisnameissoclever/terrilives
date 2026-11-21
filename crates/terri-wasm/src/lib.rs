@@ -2683,8 +2683,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v23())
-            .expect("SaveSnapshotV23 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v26())
+            .expect("SaveSnapshotV26 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2713,6 +2713,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 26 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV26>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v26(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 23 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v23(snapshot).is_ok(),
@@ -4922,7 +4928,7 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v23()
+            uninterrupted.sim.save_snapshot_v26()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
@@ -4934,8 +4940,8 @@ mod boundary_tests {
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v23(),
-            uninterrupted.sim.save_snapshot_v23()
+            resumed.sim.save_snapshot_v26(),
+            uninterrupted.sim.save_snapshot_v26()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4947,8 +4953,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v23(),
-            uninterrupted.sim.save_snapshot_v23()
+            resumed.sim.save_snapshot_v26(),
+            uninterrupted.sim.save_snapshot_v26()
         );
     }
 
@@ -9355,9 +9361,6 @@ mod boundary_tests {
             .iter()
             .position(|kind| *kind == "condition")
             .expect("the shipped pack carries a condition") as u32;
-        let mut needs = Needs::all_at(50.0);
-        needs.set(NeedId::Hunger, 20.0);
-        needs.set(NeedId::Energy, 40.0);
         let subject = handle
             .sim
             .world_mut()
@@ -9366,7 +9369,8 @@ mod boundary_tests {
                 SimId(50),
                 SimName("Subject".to_string()),
                 Position { x: 1.0, y: 1.0 },
-                needs,
+                Needs::all_at(50.0),
+                terri_sim::need_mood::NeedMood(-222_000),
                 Traits::from_entries(vec![(condition_index, 0.6)]),
                 Relationships::default(),
             ))
@@ -9403,8 +9407,7 @@ mod boundary_tests {
             labels,
             vec![
                 "Miserable",
-                "Starving",
-                "Tired",
+                "Mood from needs",
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
@@ -9412,7 +9415,7 @@ mod boundary_tests {
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");
-        let expected = [-73.5, -25.0, -12.0, -18.0, -6.0, 7.5, -20.0];
+        let expected = [-73.5, -37.0, -18.0, -6.0, 7.5, -20.0];
         for (index, (actual, expected)) in scores.iter().zip(expected).enumerate() {
             assert!(
                 (*actual - expected).abs() < 1e-5,
@@ -9422,12 +9425,14 @@ mod boundary_tests {
     }
 
     #[test]
-    fn mood_boundary_preserves_exact_need_thresholds_and_empty_absence() {
+    fn mood_boundary_preserves_fractional_need_mood_and_empty_absence() {
         let mut handle = SimHandle::new(8, 8);
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, 0.0);
         let subject = handle
             .sim
             .world_mut()
-            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Needs::all_at(50.0)))
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, needs))
             .id();
         let non_sim = handle
             .sim
@@ -9442,29 +9447,17 @@ mod boundary_tests {
         let stale_index = stale.index_u32();
         assert!(handle.sim.world_mut().despawn(stale));
 
-        for (level, label, score) in [
-            (20.0, "Starving", -25.0),
-            (20.001, "Hungry", -12.0),
-            (40.0, "Hungry", -12.0),
-        ] {
-            let mut needs = Needs::all_at(50.0);
-            needs.set(NeedId::Hunger, level);
-            handle.sim.world_mut().entity_mut(subject).insert(needs);
-            assert_eq!(
-                handle.mood_summary_of(subject.index_u32()),
-                vec![if score <= -15.0 { "Low" } else { "Okay" }, label,]
-            );
-            assert_eq!(
-                handle.mood_snapshot_of(subject.index_u32()),
-                vec![score, score]
-            );
-        }
-
-        let mut above = Needs::all_at(50.0);
-        above.set(NeedId::Hunger, 40.001);
-        handle.sim.world_mut().entity_mut(subject).insert(above);
         assert_eq!(handle.mood_summary_of(subject.index_u32()), vec!["Okay"]);
         assert_eq!(handle.mood_snapshot_of(subject.index_u32()), vec![0.0]);
+        handle.tick();
+        assert_eq!(
+            handle.mood_summary_of(subject.index_u32()),
+            vec!["Okay", "Mood from needs"]
+        );
+        assert_eq!(
+            handle.mood_snapshot_of(subject.index_u32()),
+            vec![-1.0 / 12.0, -1.0 / 12.0]
+        );
         assert!(handle.mood_summary_of(non_sim.index_u32()).is_empty());
         assert!(handle.mood_snapshot_of(non_sim.index_u32()).is_empty());
         assert!(handle.mood_summary_of(stale_index).is_empty());
@@ -11103,6 +11096,8 @@ mod shift_save_tests;
 
 #[cfg(test)]
 mod bills_boundary_tests;
+#[cfg(test)]
+mod need_mood_boundary_tests;
 #[cfg(test)]
 mod presence_fade_boundary_tests;
 

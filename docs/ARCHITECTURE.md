@@ -295,7 +295,7 @@ full ticks can miss removals after multiple paused drains.
 15. `decay_relationships` - apply directional relationship decay.
 16. `bleed_neglect` - reduce satisfaction when needs remain neglected.
 17. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
-18. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
+18. Update each survivor's accumulated need contribution from the settled needs, then `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
 
 After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index. `waiting::clear` removes the previous item-wait decision before selection and chain scheduling publish the next one.
 
@@ -304,7 +304,7 @@ Death state is a sparse `SavedMortality` resource: a setting, positive counts or
 Death records include the issued-identity boundary, excluding later newcomers from grief. Survivors keep their affinity toward dead SimIds without decay. Grief strength and duration derive from that affinity and elapsed ticks; moodlets are never stored.
 
 Mood is derived for the HUD and for the once-per-tick satisfaction contribution.
-Moodlets remain unstored; the satisfaction ledger integrates their effects.
+Save V26 stores the accumulated contribution from needs. The simulation adds it to current moodlets and integrates overall mood into life satisfaction.
 Occupied-item waiting contributes more strongly as the relevant need falls.
 All balance inputs live in the validated tuning pack. Parallel advertisement scans,
 a fixed per-tick path budget with an overflow queue, ghost injection, an event
@@ -677,6 +677,8 @@ Current readers still reject orphaned social targets.
 
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
+V26 wraps V23 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V23 begin at zero. Private V24 and V25 files belong to other development builds. Loading or importing one is refused, and the browser protects the original slot and allows its bytes to be exported.
+
 V22 wraps the complete V21 payload with the household bills: the last counted day, the open month's start and the month length it is counted under, the month's day, tile, use, daily-object and trip counts, the last month's usage, and every unpaid bill and the bills of the last issued month with their late fees and the terms each was issued under (its month length, days of grace, and daily late fee and cap), so a later change to the tuning never makes a save unloadable. Use and daily kinds are saved by id, so an unknown kind is dropped on load. Loading V21 or earlier starts the bills record empty and raises saved career pay and open shifts' pay to the new wages; settled shifts keep the pay they were settled at ([wages and bills](specs/2026-10-18-wages-and-bills.md)).
 
 V21 wraps the complete V20 payload with each person's held shift other than their level's standard one, by shift id, the shift stream and its draw count, and each queued Assign or Change shift command with its position in the whole queue; the frozen command records stay unchanged and every older writer leaves those commands out. An older save loads with every job on its standard shift ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)).
@@ -722,8 +724,7 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-22. A V22 primary therefore receives `terri-save-1.v22-backup.bin` before the first
-V23 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+23. A V23 primary receives `terri-save-1.v23-backup.bin` before the first V26 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -737,7 +738,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The storage writer and load-status controller share the current
+Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The frozen V23 worker refuses V26. The current worker also refuses to overwrite private V24 and V25 slots. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;

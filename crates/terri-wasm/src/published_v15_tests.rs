@@ -46,6 +46,8 @@ pub(super) fn pre_balance_content() -> terri_sim::Content {
     let catalogue = Sim::new();
     let mut pack = catalogue.world().resource::<Content>().0.clone();
     pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+    pack.need_mood.high_gain_units = 0;
+    pack.need_mood.empty_loss_units = 0;
     pack.tuning.relationship_gain_per_talk = 0.17;
     pack.tuning.fight_rules = terri_sim::FightRules::Published;
     pack.tuning.fight_chance_per_tick = 0.01;
@@ -199,6 +201,7 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
         let migrated = decode_current(&source.save_bytes())
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -365,7 +368,9 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
             .legacy
             .legacy
             .legacy
+            .legacy
             .rooms = baseline
+            .legacy
             .legacy
             .legacy
             .legacy

@@ -1005,15 +1005,9 @@ fn issue314_mood_changes_fight_likelihood_without_urgent_needs() {
     let count = |bad_mood: bool| {
         let (mut sim, offended, responsible) = issue314_privacy_household(0.2);
         if bad_mood {
-            let mut needs = sim.world_mut().get_mut::<Needs>(offended).unwrap();
-            for need in [
-                NeedId::Social,
-                NeedId::Fun,
-                NeedId::Comfort,
-                NeedId::Hygiene,
-            ] {
-                needs.set(need, 1.0);
-            }
+            sim.world_mut()
+                .entity_mut(offended)
+                .insert(crate::need_mood::NeedMood(-600_000));
         }
         assert!(!crate::social_episode::urgent(sim.world(), offended));
         let mood = sim.mood_of(offended.index_u32()).unwrap().overall_score;
@@ -1542,9 +1536,9 @@ fn interpersonal_affinity_flows_through_mood_to_satisfaction_only_once() {
     let b = person(&mut sim, 3.0, 2.0);
     let a = person(&mut sim, 4.0, 2.0);
     let toilet = object(&mut sim, "toilet");
-    for need in [NeedId::Hunger, NeedId::Energy, NeedId::Fun] {
-        sim.world_mut().get_mut::<Needs>(a).unwrap().set(need, 30.0);
-    }
+    sim.world_mut()
+        .entity_mut(a)
+        .insert(crate::need_mood::NeedMood(-216_000));
     *sim.world_mut().get_mut::<Satisfaction>(a).unwrap() = Satisfaction::from_value(10.0);
     let before = sim.mood_of(a.index_u32()).unwrap().overall_score;
     start(&mut sim, b, toilet);

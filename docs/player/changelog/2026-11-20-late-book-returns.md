@@ -1,6 +1,6 @@
-# Late book returns
+# Late book returns and gradual mood changes
 
-A housemate putting a book back no longer makes them more than an hour late for work, and books left on the floor get put away.
+A housemate putting a book back no longer makes them more than an hour late for work, and books left on the floor get put away. Empty needs now wear on mood gradually, and well-filled needs lift it over time.
 
 ## Fixed
 
@@ -9,3 +9,4 @@ A housemate putting a book back no longer makes them more than an hour late for 
 ## Improved
 
 - A book left on the floor, by someone who had to leave for work or by someone who died, no longer waits for you to recover it. A housemate with nothing else to do picks it up and puts it back on its bookcase. Only one housemate goes for each book, and nobody does it while asleep, at work or busy.
+- Each need at zero slowly lowers mood. Each need above 80% slowly raises it. An older household starts counting these effects when you resume playing.

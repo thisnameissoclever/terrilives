@@ -381,6 +381,7 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // shipped pack keeps usage marks that name real kinds. Bills act
         // only in a world with a lot, which `sim_with` does not build.
         bills: terri_data::pack().bills.clone(),
+        need_mood: terri_data::pack().need_mood,
         // Empty rather than the shipped people, deliberately, and the
         // opposite call from the lot above. `sim_with` spawns its own
         // agents explicitly, so a fixture pack that also carried Tim,
@@ -599,7 +600,7 @@ pub(crate) fn enclose(sim: &mut Sim) {
 /// Assert complete current admission without changing the live fixture.
 pub(crate) fn assert_current_admission(sim: &Sim) {
     let before = sim.current_v19_view();
-    let restored = crate::save::v23::restore(
+    let restored = crate::save::v26::restore(
         before.0.clone(),
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
