@@ -149,6 +149,13 @@ describe('the dialog on a phone', () => {
     expect(style('.admin-slider-row > .admin-slider', COMPACT)).toMatchObject({ 'grid-column': '1 / -1', 'grid-row': '2' });
   });
 
+  it('keeps a check box row on one line, with its words beside the box as on a desktop', () => {
+    expect(style('.admin-check-row', COMPACT)['flex-wrap']).toBe('nowrap');
+    // The label shrinks to its words, so the box and the description fit on the same line.
+    expect(style('.admin-check-row > .admin-row-label', COMPACT)['flex']).toBe('0 0 auto');
+    expect(style('.admin-check-row > .admin-check-words', COMPACT)).toMatchObject({ flex: '1 1 0', 'min-width': '0' });
+  });
+
   it('turns the bill table into one card per bill, actions in a row under the fields', () => {
     for (const selector of ['.admin-bill-table', '.admin-bill-table tbody']) expect(style(selector, COMPACT).display).toBe('block');
     expect(style('.admin-bill-table thead', COMPACT).display).toBe('none');

@@ -282,6 +282,10 @@
   .admin-section-fold:not([open]) > .admin-section-head .admin-section-summary { display: block; margin-left: auto; min-width: 0; color: var(--hud-muted, #9aa3ad); font-size: 12px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .admin-section-fold > .admin-section-actions { position: static; display: flex; margin-top: 10px; }
   .admin-section-fold > .admin-section-actions > .admin-action { flex: 1 1 auto; }
+  /* A check box row stays on one line: the label shrinks to its words and the description sits beside the box. */
+  .admin-check-row { flex-wrap: nowrap; }
+  .admin-check-row > .admin-row-label { flex: 0 0 auto; }
+  .admin-check-row > .admin-check-words { flex: 1 1 0; min-width: 0; }
   /* A select takes its own line under its label, so a long job title is not cut off. */
   .admin-row:not(.admin-trait-add) > .admin-select { flex-basis: 100%; }
 
