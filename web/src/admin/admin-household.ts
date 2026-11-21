@@ -294,7 +294,10 @@ class HouseholdTab implements AdminTab {
       'admin-bill-money', textNode(doc, 'span', 'admin-prefix', '$'),
       moneyBox({ doc, label: `${rowName} ${word}`, key: `${key}-${suffix}`, cents, min, max, disabled, onCommit: commit }),
     ), suffix === 'amount' ? W.amount : W.lateFee);
-    const status = paid ? W.paidDay(bill.paidDay! + 1) : today >= bill.overdueFrom ? W.overdue : W.noFeeUntil(bill.overdueFrom + 1);
+    const overdue = !paid && today >= bill.overdueFrom;
+    const status = paid ? W.paidDay(bill.paidDay! + 1) : overdue ? W.overdue : W.noFeeUntil(bill.overdueFrom + 1);
+    // Overdue is the one status that needs action, so it alone takes the warning colour.
+    const statusClass = overdue ? 'admin-bill-status admin-tone-negative' : 'admin-bill-status';
     row.append(
       cell('admin-bill-name', name),
       withDataLabel(cell('admin-bill-due', selectControl({
@@ -309,7 +312,7 @@ class HouseholdTab implements AdminTab {
       }),
       money(W.lateFee.toLowerCase(), 'fee', bill.lateFeeCents, 0, Math.max(0, bill.feeCapCents), feeShut || locked, fee =>
         send([{ edit: 'SetBill', due_day: bill.dueDay, kind: bill.kind, amount_cents: bill.amountCents, late_fee_cents: fee }], undoLabels.bill(name))),
-      cell('admin-bill-status', status),
+      cell(statusClass, status),
     );
     const actions = make(doc, 'td', 'admin-bill-actions');
     if (!paid) {

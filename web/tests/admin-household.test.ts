@@ -293,6 +293,11 @@ describe('Bills', () => {
     expect(status(91, 1)).toBe('Overdue');
     expect(status(98, 2)).toBe('No fee until Day 104');
     expect(status(98, 3)).toBe('Paid Day 99');
+    // Only Overdue, the status that needs action, takes the warning colour.
+    const tone = (due: number, kind: number) => row(b, due, kind).querySelector('.admin-bill-status')!.getAttribute('class');
+    expect(tone(91, 0)).toBe('admin-bill-status admin-tone-negative');
+    expect(tone(98, 2)).toBe('admin-bill-status');
+    expect(tone(98, 3)).toBe('admin-bill-status');
     expect(row(b, 91, 0).querySelector('.admin-bill-name')!.textContent).toBe('Rent');
     expect(row(b, 98, 3).querySelector('.admin-bill-name')!.textContent).toBe('Transportation');
   });
