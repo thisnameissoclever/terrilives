@@ -37,21 +37,46 @@ export interface Section {
   report(message: string | null): void;
   /** Sets the range beside the heading, for a range that comes from tuning. */
   setRange(text: string): void;
+  /** Sets the one-line summary a folded section shows beside its heading; empty hides it. Foldable sections only. */
+  setSummary(text: string): void;
+  /**
+   * Turns folding on or off. On, the section starts closed and the player opens
+   * and closes it by its summary; off, it is open and its summary does nothing.
+   * Calling it with the mode it already has changes nothing, so a section the
+   * player opened stays open across a re-read. Foldable sections only.
+   */
+  setFolding(on: boolean): void;
 }
 
-export function createSection(doc: Document, title: string, range?: string): Section {
-  const root = make(doc, 'section', 'admin-section');
-  const head = make(doc, 'div', 'admin-section-head');
+export interface SectionOptions {
+  /** A native details element the phone layout folds ([AP-web-phone]); on a desktop it stays open. */
+  readonly foldable?: boolean;
+}
+
+export function createSection(doc: Document, title: string, range?: string, options: SectionOptions = {}): Section {
+  const foldable = options.foldable === true;
+  const root = make(doc, foldable ? 'details' : 'section', foldable ? 'admin-section admin-section-fold' : 'admin-section');
+  const head = make(doc, foldable ? 'summary' : 'div', 'admin-section-head');
   const heading = textNode(doc, 'h3', 'admin-section-title', title);
   heading.setAttribute('tabindex', '-1');
   const rangeNode = textNode(doc, 'span', 'admin-range', range ?? '');
   head.append(heading, rangeNode);
+  const summaryNode = textNode(doc, 'span', 'admin-section-summary', '');
   const actions = make(doc, 'span', 'admin-section-actions');
-  head.append(actions);
   const body = make(doc, 'div', 'admin-section-body');
   const status = make(doc, 'p', 'admin-status');
   status.setAttribute('role', 'status');
-  root.append(head, body, status);
+  let folding: boolean | null = null;
+  if (foldable) {
+    // Buttons never sit inside a summary: they follow the body, and the desktop style lifts them to the heading row.
+    head.append(summaryNode);
+    root.append(head, body, actions, status);
+    // Where folding is off the summary only shows the heading, so a click must not close the section.
+    head.addEventListener('click', event => { if (folding !== true) event.preventDefault(); });
+  } else {
+    head.append(actions);
+    root.append(head, body, status);
+  }
   return {
     root, heading, actions, body, status,
     report(message) {
@@ -59,6 +84,14 @@ export function createSection(doc: Document, title: string, range?: string): Sec
       if (message) revealStatus(status);
     },
     setRange(text) { rangeNode.textContent = text; },
+    setSummary(text) { summaryNode.textContent = text; },
+    setFolding(on) {
+      if (!foldable || folding === on) return;
+      folding = on;
+      (root as HTMLDetailsElement).open = !on;
+      // Nothing to operate on a desktop: keep the summary out of the Tab order.
+      head.setAttribute('tabindex', on ? '0' : '-1');
+    },
   };
 }
 

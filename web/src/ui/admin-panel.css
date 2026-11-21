@@ -11,6 +11,8 @@
   --admin-cheat-bg: #3a3220;
   --admin-cheat-edge: #b89a52;
   --admin-cheat-text: #f3e2b5;
+  /* The grace status of a bill: no existing token is a warning amber. */
+  --admin-warn: #f0c36b;
   width: min(1240px, calc(100vw - 48px));
   height: min(820px, calc(100dvh - 48px));
   max-width: none;
@@ -40,7 +42,6 @@
 }
 .admin-title { margin: 0; font-size: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
 .admin-title:focus { outline: none; }
-.admin-title:focus-visible { outline: 2px solid var(--need-fill, #6fb2d2); outline-offset: 4px; border-radius: 4px; }
 .admin-cheat {
   display: inline-block;
   padding: 1px 8px;
@@ -126,6 +127,18 @@
 .admin-range:empty { display: none; }
 .admin-section-actions { margin-left: auto; display: inline-flex; gap: 6px; }
 .admin-section-actions:empty { display: none; }
+/*
+ * The six sections that fold on a phone are details elements. On a desktop they
+ * are always open and look like the other cards: no marker, no summary line,
+ * and their buttons (which follow the body, never sit in the summary) are lifted
+ * to the heading row.
+ */
+.admin-section-fold { position: relative; }
+.admin-section-fold > .admin-section-head { list-style: none; cursor: default; }
+.admin-section-fold > .admin-section-head::-webkit-details-marker { display: none; }
+.admin-section-fold:has(> .admin-section-actions:not(:empty)) > .admin-section-head { min-height: 32px; }
+.admin-section-fold > .admin-section-actions { position: absolute; top: 12px; right: 14px; }
+.admin-section-summary { display: none; }
 .admin-section-body { display: flex; flex-direction: column; gap: 6px; }
 .admin-status { margin: 8px 0 0; color: var(--hud-danger, #e58c85); }
 .admin-status:empty { display: none; }
@@ -202,6 +215,10 @@
 .admin-bill-actions > .admin-note { flex: 1 1 100%; order: 1; margin: 0; }
 .admin-household .admin-row-label { flex-basis: 7em; }
 .admin-bill-status { min-width: 7em; font-size: 12px; white-space: nowrap; }
+/* Overdue is the danger colour and bold, the grace status is amber and bold, Paid is green and plain; the words differ too. */
+.admin-bill-overdue { color: var(--hud-danger, #e58c85); font-weight: 700; }
+.admin-bill-grace { color: var(--admin-warn, #f0c36b); font-weight: 600; }
+.admin-bill-paid { color: var(--career-up, #7fc98a); font-weight: 400; }
 .admin-bill-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; border-top: 0; }
 .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { border-top: 1px solid var(--hud-edge, #2c2c36); }
 .admin-bill-notes { margin-top: 10px; }
@@ -249,6 +266,15 @@
   .admin-trait-row.admin-slider-row > .admin-action { grid-column: 2; grid-row: 1; justify-self: end; }
   .admin-trait-row.admin-slider-row > .admin-number { grid-column: 2; grid-row: 2; }
   .admin-trait-row.admin-slider-row > .admin-word { align-self: center; }
+  /* Folding sections: a tap on the heading row opens or closes one; the one-line summary shows only while closed. */
+  .admin-section-fold > .admin-section-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin: 0; min-height: 44px; cursor: pointer; }
+  .admin-section-fold[open] > .admin-section-head { margin-bottom: 8px; min-height: 0; }
+  .admin-section-fold > .admin-section-head::before { content: '\25B8'; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+  .admin-section-fold[open] > .admin-section-head::before { content: '\25BE'; }
+  .admin-section-fold:not([open]) .admin-range { display: none; }
+  .admin-section-fold:not([open]) > .admin-section-head .admin-section-summary { display: block; margin-left: auto; min-width: 0; color: var(--hud-muted, #9aa3ad); font-size: 12px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-section-fold > .admin-section-actions { position: static; display: flex; margin-top: 10px; }
+  .admin-section-fold > .admin-section-actions > .admin-action { flex: 1 1 auto; }
   /* A select takes its own line under its label, so a long job title is not cut off. */
   .admin-row:not(.admin-trait-add) > .admin-select { flex-basis: 100%; }
 

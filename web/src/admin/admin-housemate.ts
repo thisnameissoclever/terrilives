@@ -3,6 +3,7 @@ import { careerDurationWords } from '../ui/career-panel.js';
 import { formatTimeOfDay, shiftName } from '../ui/game-hud.js';
 import { describeSatisfaction } from '../ui/satisfaction-meter.js';
 import { affinityRowLabel } from '../ui/affinities-panel.js';
+import { COMPACT_HUD_MEDIA_QUERY } from '../ui/compact-hud.js';
 import type { AdminEdit, AdminJobOption, AdminLimits, AdminMoodlet, AdminPerson, AdminRepetition, AdminTimer } from './codec.js';
 import type { AdminTab, AdminTabContext, AdminTabFactory } from './admin-panel.js';
 import { HOUSEMATE_WORDS as W, undoLabels } from './admin-words.js';
@@ -106,12 +107,14 @@ class HousemateTab implements AdminTab {
     const doc = context.doc;
     this.needs = createSection(doc, W.needs, W.needsRange);
     this.satisfaction = createSection(doc, W.satisfaction, W.needsRange);
-    this.repetition = createSection(doc, W.repetition);
-    this.mood = createSection(doc, W.mood);
-    this.likes = createSection(doc, W.likes, W.likesRange);
-    this.skills = createSection(doc, W.skills);
-    this.traits = createSection(doc, W.traits);
-    this.career = createSection(doc, W.career);
+    // Mood to Career fold on a phone ([AP-web-phone]); Needs and Life satisfaction stay open.
+    const fold = { foldable: true };
+    this.repetition = createSection(doc, W.repetition, undefined, fold);
+    this.mood = createSection(doc, W.mood, undefined, fold);
+    this.likes = createSection(doc, W.likes, W.likesRange, fold);
+    this.skills = createSection(doc, W.skills, undefined, fold);
+    this.traits = createSection(doc, W.traits, undefined, fold);
+    this.career = createSection(doc, W.career, undefined, fold);
     this.body = make(doc, 'div', 'admin-housemate admin-columns');
     const column = (...sections: Section[]): HTMLElement => {
       const node = make(doc, 'div', 'admin-column');
@@ -123,6 +126,19 @@ class HousemateTab implements AdminTab {
       column(this.mood, this.likes),
       column(this.skills, this.traits, this.career),
     );
+    // The phone layout folds the six sections; crossing the breakpoint folds or unfolds them.
+    const compact = doc.defaultView?.matchMedia(COMPACT_HUD_MEDIA_QUERY);
+    if (compact === undefined) {
+      for (const section of this.folding) section.setFolding(false);
+    } else {
+      const fit = (): void => { for (const section of this.folding) section.setFolding(compact.matches); };
+      compact.addEventListener('change', fit);
+      fit();
+    }
+  }
+
+  private get folding(): Section[] {
+    return [this.repetition, this.mood, this.likes, this.skills, this.traits, this.career];
   }
 
   private get sections(): Section[] {
@@ -197,6 +213,8 @@ class HousemateTab implements AdminTab {
     const entries = this.source.adminRepetition(sim);
     const labels = new Map(this.source.repeatedLabels(sim).map(row => [row.key, row]));
     section.setRange(W.repetitionRange(String(limits.habituationMax)));
+    const over = entries.filter(entry => entry.value > limits.overdoingThreshold).length;
+    section.setSummary(over > 0 ? W.overdoingCount(over) : '');
     rebuild(doc, section.actions, section.heading, () => entries.length === 0 ? [] : [actionButton(doc, {
       text: W.clearRepetition(name), key: 'clear-repetition',
       onClick: () => this.send(section, entries.map(entry => ({ edit: 'SetRepetition', sim, object: entry.object, row: entry.row, value: 0 })), undoLabels.clearRepetition),
@@ -233,6 +251,7 @@ class HousemateTab implements AdminTab {
     const now = this.source.clockTick();
     const dayTicks = this.source.dayTicks();
     const members = this.context.members();
+    section.setSummary(aligned ? W.moodSummary(labels[0], signed(scores[0])) : '');
     rebuild(doc, section.actions, section.heading, () => timers.length === 0 ? [] : [actionButton(doc, {
       text: W.endTimed(name), key: 'end-timed',
       onClick: () => this.send(section, timers.map(timer => ({ edit: 'EndTimedMoodlet', sim, timer: timer.timer })), undoLabels.endTimedMoodlets),
@@ -392,6 +411,8 @@ class HousemateTab implements AdminTab {
     const doc = this.context.doc;
     const section = this.career;
     const dayTicks = this.source.dayTicks();
+    const current = library.jobOptions.find(option => option.row === person.careerRow);
+    section.setSummary(person.careerRow === null ? W.noJob : current === undefined ? '' : library.levelTitles[current.path]?.[current.level] ?? '');
     rebuild(doc, section.body, section.heading, () => {
       const nodes: HTMLElement[] = [];
       const jobs: SelectOption[] = [{ value: '', label: W.noJob }];

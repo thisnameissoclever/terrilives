@@ -5,6 +5,7 @@ import type {
 } from '../src/admin/codec.js';
 import { createHousemateTab, type HousemateLibrary, type HousemateSource } from '../src/admin/admin-housemate.js';
 import type { AdminMember } from '../src/admin/admin-panel.js';
+import { COMPACT_HUD_MEDIA_QUERY } from '../src/ui/compact-hud.js';
 import { enter, finders, release, tabHarness } from './helpers/admin-tab.js';
 
 // The Housemate tab ([AP-e-housemate], [T10] in docs/specs/2026-11-20-admin-panel.md):
@@ -105,8 +106,9 @@ interface Built {
   asked: [number, number, number][];
 }
 
-function build(worlds: Map<number, World> = new Map([[3, timLike()], [5, timLike()]])): Built {
+function build(worlds: Map<number, World> = new Map([[3, timLike()], [5, timLike()]]), compact = false): Built {
   const h = tabHarness(MEMBERS);
+  if (compact) h.fake.media.add(COMPACT_HUD_MEDIA_QUERY);
   const asked: [number, number, number][] = [];
   const get = (sim: number): World => worlds.get(sim)!;
   const source: HousemateSource = {
@@ -601,5 +603,77 @@ describe('Focus', () => {
     const heading = b.f.section('Traits').querySelector('.admin-section-title')!;
     expect(b.h.fake.activeElement).toBe(heading);
     expect(heading.getAttribute('tabindex')).toBe('-1');
+  });
+});
+
+describe('Folding sections on a phone', () => {
+  const FOLDED = ['Mood and moodlets', 'Repetition', 'Likes and dislikes', 'Skills', 'Traits', 'Career'];
+  const OPEN = ['Needs', 'Life satisfaction'];
+  const folded = (b: Built, title: string) => b.f.section(title);
+
+  it('starts the six sections closed on a phone, with Needs and Life satisfaction open', () => {
+    const b = build(undefined, true);
+    for (const title of FOLDED) {
+      expect(folded(b, title).tagName, title).toBe('details');
+      expect(folded(b, title).open, title).toBe(false);
+    }
+    for (const title of OPEN) expect(b.f.section(title).tagName, title).toBe('section');
+  });
+
+  it('keeps every section open, and unfoldable, on a desktop', () => {
+    const b = build();
+    for (const title of FOLDED) expect(folded(b, title).open, title).toBe(true);
+    // The summary does nothing there: a click is cancelled before it can close the section.
+    const summary = folded(b, 'Skills').querySelector('summary')!;
+    expect(summary.dispatch('click').defaultPrevented).toBe(true);
+  });
+
+  it('lets a phone player open a section by its summary', () => {
+    const b = build(undefined, true);
+    const summary = folded(b, 'Skills').querySelector('summary')!;
+    expect(summary.dispatch('click').defaultPrevented).toBe(false);
+  });
+
+  it('says what is inside Mood, Repetition and Career in one line each', () => {
+    const b = build(undefined, true);
+    const line = (title: string) => folded(b, title).querySelector('.admin-section-summary')!.textContent;
+    expect(line('Mood and moodlets')).toBe('Okay, -8.6');
+    expect(line('Repetition')).toBe('1 overdoing');
+    expect(line('Career')).toBe('Senior clerk');
+    for (const title of ['Likes and dislikes', 'Skills', 'Traits']) expect(line(title), title).toBe('');
+  });
+
+  it('words the summaries from what the world holds now', () => {
+    const worlds = new Map([[3, timLike()], [5, timLike()]]);
+    const b = build(worlds, true);
+    const line = (title: string) => folded(b, title).querySelector('.admin-section-summary')!.textContent;
+    const tim = worlds.get(3)!;
+    tim.repetition = [{ object: 4, row: 1, value: 0.2, food: false }, { object: 9, row: 0, value: 1.6, food: false }, { object: 9, row: 1, value: 1.7, food: false }];
+    tim.person = { ...tim.person, careerRow: null };
+    b.h.state.tab!.refresh();
+    expect(line('Repetition')).toBe('2 overdoing');
+    expect(line('Career')).toBe('No job');
+    tim.repetition = [];
+    b.h.state.tab!.refresh();
+    expect(line('Repetition')).toBe('');
+  });
+
+  it('keeps each section open or closed across a re-read, an edit and Undo', () => {
+    const b = build(undefined, true);
+    folded(b, 'Skills').open = true;
+    folded(b, 'Career').open = true;
+    release(b.f.control('Hunger'), '90');
+    expect(folded(b, 'Skills').open).toBe(true);
+    expect(folded(b, 'Career').open).toBe(true);
+    expect(folded(b, 'Traits').open).toBe(false);
+    expect(folded(b, 'Mood and moodlets').open).toBe(false);
+  });
+
+  it('folds and unfolds when the window crosses the compact breakpoint', () => {
+    const b = build();
+    b.h.fake.setMedia(COMPACT_HUD_MEDIA_QUERY, true);
+    for (const title of FOLDED) expect(folded(b, title).open, title).toBe(false);
+    b.h.fake.setMedia(COMPACT_HUD_MEDIA_QUERY, false);
+    for (const title of FOLDED) expect(folded(b, title).open, title).toBe(true);
   });
 });

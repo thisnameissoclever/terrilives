@@ -190,3 +190,29 @@ describe('touch targets', () => {
     expect(TOUCH).toBe('(width <= 600px), (height <= 480px), (any-pointer: coarse)');
   });
 });
+
+describe('focus and status colours', () => {
+  it('draws no ring around the title when the shell focuses it for screen readers', () => {
+    // The heading takes focus from script after showModal; a keyboard open makes that focus-visible.
+    expect(style('.admin-title:focus')).toMatchObject({ outline: 'none' });
+    expect(RULES.filter(rule => rule.selectors.includes('.admin-title:focus-visible'))).toEqual([]);
+  });
+
+  it('gives Overdue, the grace status and Paid each their own colour, Overdue the strongest', () => {
+    const overdue = style('.admin-bill-overdue');
+    const grace = style('.admin-bill-grace');
+    const paid = style('.admin-bill-paid');
+    expect(overdue.color).toContain('--hud-danger');
+    expect(paid.color).toContain('--career-up');
+    expect(grace.color).toContain('--admin-warn');
+    expect(new Set([overdue.color, grace.color, paid.color]).size).toBe(3);
+    expect(overdue['font-weight']).toBe('700');
+    expect(paid['font-weight']).toBe('400');
+  });
+
+  it('folds the six housemate sections only under the compact query', () => {
+    expect(style('.admin-section-summary')).toMatchObject({ display: 'none' });
+    expect(style('.admin-section-fold > .admin-section-head', COMPACT)).toMatchObject({ cursor: 'pointer' });
+    expect(style('.admin-section-fold:not([open]) .admin-range', COMPACT)).toMatchObject({ display: 'none' });
+  });
+});

@@ -142,10 +142,14 @@ export const HOUSEMATE_WORDS = {
   repetitionRange: (max: string): string => `0 to ${max}`,
   clearRepetition: (name: string): string => `Clear ${name}'s repetition`,
   overdoing: 'Overdoing',
+  /** The folded Repetition summary on a phone: how many rows are past the overdoing line. */
+  overdoingCount: (count: number): string => `${count} ${'Overdoing'.toLowerCase()}`,
   feelingSick: 'Feeling sick',
   noRepetition: 'No repetition.',
   mood: 'Mood and moodlets',
   moodOverall: (word: string): string => `Mood ${word}`,
+  /** The folded Mood summary on a phone: the overall word and score the section shows. */
+  moodSummary: (word: string, score: string): string => `${word}, ${score}`,
   endsIn: (duration: string): string => `Ends in ${duration}`,
   endNow: 'End now',
   endTimed: (name: string): string => `End ${name}'s timed moodlets`,

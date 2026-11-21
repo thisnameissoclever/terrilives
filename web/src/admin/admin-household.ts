@@ -296,8 +296,8 @@ class HouseholdTab implements AdminTab {
     ), suffix === 'amount' ? W.amount : W.lateFee);
     const overdue = !paid && today >= bill.overdueFrom;
     const status = paid ? W.paidDay(bill.paidDay! + 1) : overdue ? W.overdue : W.noFeeUntil(bill.overdueFrom + 1);
-    // Overdue is the one status that needs action, so it alone takes the warning colour.
-    const statusClass = overdue ? 'admin-bill-status admin-tone-negative' : 'admin-bill-status';
+    // Overdue needs action (danger colour, bold); the grace status is a warning; Paid is done.
+    const statusClass = paid ? 'admin-bill-status admin-bill-paid' : overdue ? 'admin-bill-status admin-bill-overdue' : 'admin-bill-status admin-bill-grace';
     row.append(
       cell('admin-bill-name', name),
       withDataLabel(cell('admin-bill-due', selectControl({
