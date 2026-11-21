@@ -1141,8 +1141,8 @@ fn a_saved_shift_registered_before_its_start_validates() {
         sim.tick();
     }
     let hash = sim.world_hash();
-    let snapshot = sim.save_snapshot_v24();
-    sim.load_snapshot_v24(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v27();
+    sim.load_snapshot_v27(snapshot).expect("loads");
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -1156,8 +1156,8 @@ fn a_saved_shift_registered_before_its_start_validates() {
 /// comparison below start from a loaded world.
 fn loaded_fixture() -> (Sim, Entity, Vec<Entity>) {
     let (mut sim, actor, objects) = fixture(|_| {});
-    let snapshot = sim.save_snapshot_v24();
-    sim.load_snapshot_v24(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v27();
+    sim.load_snapshot_v27(snapshot).expect("loads");
     (sim, actor, objects)
 }
 
@@ -1167,7 +1167,7 @@ fn loaded_fixture() -> (Sim, Entity, Vec<Entity>) {
 fn assert_reload_continues(mut sim: Sim) {
     let (mut loaded, _, _) = fixture(|_| {});
     loaded
-        .load_snapshot_v24(sim.save_snapshot_v24())
+        .load_snapshot_v27(sim.save_snapshot_v27())
         .expect("loads");
     assert_eq!(loaded.world_hash(), sim.world_hash(), "after the load");
     let last = START + u64::from(SHIFT) + window(&sim);

@@ -5044,8 +5044,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            24,
-            "the public writer must emit the schema-24 envelope"
+            27,
+            "the public writer must emit the schema-27 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -11132,7 +11132,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v17();
+        let saved = source.sim.save_snapshot_v27();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -11142,8 +11142,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v17(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v17(), saved);
+        assert_eq!(restored.load_snapshot_v27(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v27(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();
