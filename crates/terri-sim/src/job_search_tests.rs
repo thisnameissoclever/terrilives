@@ -295,7 +295,17 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// shipped household settles scored shifts by Thursday; nothing else moved
 /// (checked by turning the block off, which gave the old value). Read from
 /// the failing assertion.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (4153549014150304213, 7, 2);
+/// Issue 355 (needs affect mood over time) then moved it from
+/// 4153549014150304213 on purpose: mood now comes from a balance that empty
+/// needs lower and needs above 80 raise each minute, instead of the old low,
+/// critical and all-needs-met moodlets, so the choices that read mood differ
+/// and the balance joins the hash. The draw counts and every job and shift
+/// are unchanged. With the old moodlets restored, the balance not accruing
+/// and its hash block skipped behind a temporary switch, later removed, the
+/// tree merged with main at c219def9e gave 4153549014150304213 again; with
+/// only the hash block skipped it gave 13151521201380312061, so the choices
+/// moved too. Read from the failing assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (15960018743705628025, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
@@ -325,7 +335,7 @@ fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
     assert_eq!(
         (sim.world_hash(), careers.draws, careers.shift_draws),
         SHIPPED_THURSDAY,
-        "the shipped value, with the presence fade of issue 344 and the career inputs block"
+        "the shipped value, with the presence fade of issue 344, the career inputs block and the needs mood balance of issue 355"
     );
 }
 
