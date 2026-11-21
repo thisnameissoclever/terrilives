@@ -764,6 +764,19 @@ go_to_work_window_ticks = 120
 # published before it reconstruct 52 (issue 317).
 career_input_history_weeks = 52
 
+# The admin panel (issue 312, [AP-tuning] in
+# docs/specs/2026-11-20-admin-panel.md). Packs published before these knobs
+# reconstruct the shipped values; they are read only by the panel.
+# The most hours one Skip ahead runs, from 1 to 672 (four game weeks).
+admin_skip_max_hours = 168
+# The hours the Skip ahead box starts with, from 1 to admin_skip_max_hours.
+admin_skip_default_hours = 8
+# How many ticks each rendered frame runs while skipping ahead, from 1 to
+# 1440. 300 is the budget the frame loop already handles for a hidden tab.
+admin_skip_ticks_per_frame = 300
+# How many billing months back a bill's Due select offers, from 1 to 120.
+admin_bill_due_months = 12
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

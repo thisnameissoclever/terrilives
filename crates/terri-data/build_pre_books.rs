@@ -278,6 +278,24 @@ pub fn compile(root: &Path) -> pack::ContentPack {
             "career_input_history_weeks",
             toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS)),
         ),
+        // The admin panel (issue 312): the shipped knobs, reconstructed by the
+        // published-pack conversions too.
+        (
+            "admin_skip_max_hours",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_SKIP_MAX_HOURS)),
+        ),
+        (
+            "admin_skip_default_hours",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_SKIP_DEFAULT_HOURS)),
+        ),
+        (
+            "admin_skip_ticks_per_frame",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME)),
+        ),
+        (
+            "admin_bill_due_months",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS)),
+        ),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

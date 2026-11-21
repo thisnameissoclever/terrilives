@@ -1272,6 +1272,17 @@ pub struct Tuning {
     /// How many reviewed weeks of score inputs each person keeps for the
     /// review window, from 1 to 520 ([CT-tuning], issue 317).
     pub career_input_history_weeks: u32,
+    /// The admin panel ([AP-tuning] in `docs/specs/2026-11-20-admin-panel.md`,
+    /// issue 312), appended after the Career tab knobs per the rule above:
+    /// the most hours one Skip ahead runs, from 1 to 672.
+    pub admin_skip_max_hours: u32,
+    /// The hours the Skip ahead box starts with, from 1 to
+    /// `admin_skip_max_hours`.
+    pub admin_skip_default_hours: u32,
+    /// Ticks run per rendered frame while skipping ahead, from 1 to 1440.
+    pub admin_skip_ticks_per_frame: u32,
+    /// How many billing months back the Due selects offer, from 1 to 120.
+    pub admin_bill_due_months: u32,
 }
 
 /// The most ticks any lift from liked furniture takes to fade (issue 344):
@@ -1374,6 +1385,13 @@ impl Tuning {
     /// The most weeks of inputs career_input_history_weeks may keep: ten
     /// game years. A save never holds more rows than this per person.
     pub const MAX_CAREER_INPUT_HISTORY_WEEKS: u32 = 520;
+    /// The shipped admin panel knobs (issue 312), reconstructed for packs
+    /// published before them. Only the panel reads them, and no simulation
+    /// rule does, so the reconstruction changes no older world.
+    pub const SHIPPED_ADMIN_SKIP_MAX_HOURS: u32 = 168;
+    pub const SHIPPED_ADMIN_SKIP_DEFAULT_HOURS: u32 = 8;
+    pub const SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME: u32 = 300;
+    pub const SHIPPED_ADMIN_BILL_DUE_MONTHS: u32 = 12;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
@@ -2462,6 +2480,10 @@ mod tests {
             affinity_presence_fade_points_per_hour: 6.625,
             go_to_work_window_ticks: 97,
             career_input_history_weeks: 321,
+            admin_skip_max_hours: 169,
+            admin_skip_default_hours: 9,
+            admin_skip_ticks_per_frame: 301,
+            admin_bill_due_months: 13,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3329,9 +3351,10 @@ mod tests {
     /// optional weather, the purposeful-fight knobs, the ten bytes of the
     /// shift knobs, the one-byte varint of the night premium ([WB-wages]),
     /// the fill limit's varint, the ten bytes of the work lateness knobs
-    /// ([WL-tuning]), the four bytes of the presence fade (issue 344) and
-    /// the three bytes of the Career tab knobs (issues 311 and 317,
-    /// [CT-tuning]); every established field stays put.
+    /// ([WL-tuning]), the four bytes of the presence fade (issue 344), the
+    /// three bytes of the Career tab knobs (issues 311 and 317,
+    /// [CT-tuning]) and the six bytes of the admin panel knobs (issue 312,
+    /// [AP-tuning]); every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3345,12 +3368,47 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // Issue 312 ([AP-tuning]): the four admin panel knobs are the last
+        // six bytes: the skip limit as a two-byte varint (169), the default
+        // hours as one byte (9), the frame budget as two bytes (301) and the
+        // Due months as one byte (13). Changing each moves only its own
+        // first byte.
+        let admin = before.len() - 6;
+        assert_eq!(before[admin..], [0xA9, 0x01, 9, 0xAD, 0x02, 13]);
+        assert_eq!(
+            changed(Tuning {
+                admin_skip_max_hours: 170,
+                ..a_tuning()
+            }),
+            vec![admin]
+        );
+        assert_eq!(
+            changed(Tuning {
+                admin_skip_default_hours: 10,
+                ..a_tuning()
+            }),
+            vec![admin + 2]
+        );
+        assert_eq!(
+            changed(Tuning {
+                admin_skip_ticks_per_frame: 302,
+                ..a_tuning()
+            }),
+            vec![admin + 3]
+        );
+        assert_eq!(
+            changed(Tuning {
+                admin_bill_due_months: 14,
+                ..a_tuning()
+            }),
+            vec![admin + 5]
+        );
         // Issues 311 and 317 ([CT-tuning]): the Go to work window and the
-        // input history are the last three bytes: a one-byte varint (97)
-        // and a two-byte varint (321). Changing either moves only its own
-        // bytes.
-        let career_tab = before.len() - 3;
-        assert_eq!(before[career_tab..], [97, 0xC1, 0x02]);
+        // input history are the three bytes before them: a one-byte varint
+        // (97) and a two-byte varint (321). Changing either moves only its
+        // own bytes.
+        let career_tab = admin - 3;
+        assert_eq!(before[career_tab..admin], [97, 0xC1, 0x02]);
         assert_eq!(
             changed(Tuning {
                 go_to_work_window_ticks: 98,

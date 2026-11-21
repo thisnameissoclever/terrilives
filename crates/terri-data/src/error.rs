@@ -981,6 +981,11 @@ pub enum ContentError {
     CareerTuningOutOfRange {
         key: &'static str,
     },
+    /// The admin panel (issue 312, [AP-tuning]): an admin knob outside its
+    /// range, named by `key`.
+    AdminTuningOutOfRange {
+        key: &'static str,
+    },
     /// Bills (issue 298, [WB-tuning]): a `[bills]` value outside its range,
     /// named by its dotted key, such as `bills.grace_days` or
     /// `bills.uses.shower.water_cents`.
@@ -2289,6 +2294,13 @@ impl fmt::Display for ContentError {
                  master chance at most the novice chance; \
                  burnt_meal_mood_penalty finite and not negative; \
                  burnt_meal_mood_ticks from 1 to 10080"
+            ),
+            ContentError::AdminTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: admin_skip_max_hours \
+                 from 1 to 672; admin_skip_default_hours from 1 to \
+                 admin_skip_max_hours; admin_skip_ticks_per_frame from 1 to 1440; \
+                 admin_bill_due_months from 1 to 120"
             ),
             ContentError::LandTuningOutOfRange { key } => write!(
                 f,
