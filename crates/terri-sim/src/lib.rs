@@ -10,6 +10,8 @@ pub mod activity_status;
 mod activity_tests;
 pub mod admin;
 #[cfg(test)]
+mod admin_career_tests;
+#[cfg(test)]
 mod admin_household_tests;
 #[cfg(test)]
 mod admin_housemate_tests;

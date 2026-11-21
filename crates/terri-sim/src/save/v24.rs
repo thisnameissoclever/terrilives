@@ -79,8 +79,8 @@ fn holds_inputs(record: &Record) -> bool {
 }
 
 /// Every record holding input data, ascending by person.
-fn rows(sim: &Sim) -> Vec<SavedCareerInputs> {
-    sim.world()
+fn rows(world: &bevy_ecs::world::World) -> Vec<SavedCareerInputs> {
+    world
         .get_resource::<Careers>()
         .map_or_else(Vec::new, |careers| {
             careers
@@ -122,7 +122,7 @@ fn live_command(command: SavedQueuedWorkCommand) -> SimCommand {
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV24 {
     SaveSnapshotV24 {
         legacy: super::v23::capture(sim),
-        career_inputs: rows(sim),
+        career_inputs: rows(sim.world()),
         queued_work_commands: queued_work_commands(sim),
         replaced_shifts: crate::attendance::replaced_to_saved(sim.world()),
     }
@@ -132,7 +132,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV24 {
 pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV24 {
     SaveSnapshotV24 {
         legacy: super::v23::capture_without_commands(sim),
-        career_inputs: rows(sim),
+        career_inputs: rows(sim.world()),
         queued_work_commands: Vec::new(),
         replaced_shifts: crate::attendance::replaced_to_saved(sim.world()),
     }
@@ -286,21 +286,21 @@ fn valid_week(pack: &ContentPack, week: &SavedWeekInputs) -> bool {
 /// and returns each person's inputs, the weeks trimmed to the newest
 /// `career_input_history_weeks` ([CT-save-load]).
 fn validated(
-    sim: &Sim,
+    world: &bevy_ecs::world::World,
     rows: &[SavedCareerInputs],
     pack: &ContentPack,
     tuning: &Tuning,
 ) -> Result<Vec<(SimId, Record)>, SaveError> {
     use SaveError::InvalidValue;
-    let careers = sim.world().resource::<Careers>();
+    let careers = world.resource::<Careers>();
     let any = ShiftBounds::any(pack);
     let mut installed = Vec::with_capacity(rows.len());
     for row in rows {
         let id = SimId(row.sim);
         // Item 1: a career record to hold the inputs.
         let record = careers.record(id).ok_or(InvalidValue)?;
-        let entity = crate::edit::living_entity(sim.world(), row.sim).ok_or(InvalidValue)?;
-        let job = crate::careers::job_of(sim.world(), pack, entity).ok_or(InvalidValue)?;
+        let entity = crate::edit::living_entity(world, row.sim).ok_or(InvalidValue)?;
+        let job = crate::careers::job_of(world, pack, entity).ok_or(InvalidValue)?;
         let current = ShiftBounds::of(job);
         // Item 2: no more current inputs than the week's scores.
         if row.current.len() > record.shifts.len()
@@ -342,6 +342,13 @@ fn validated(
     Ok(installed)
 }
 
+/// [AP-cmd-post]: the live career inputs pass the checks a load makes of
+/// the rows a save would write for them.
+pub(crate) fn validate_live_inputs(world: &bevy_ecs::world::World) -> Result<(), SaveError> {
+    let pack = world.resource::<Content>().0;
+    validated(world, &rows(world), pack, &pack.tuning).map(|_| ())
+}
+
 /// The schema-twenty-three part restores first, so each row can be checked
 /// against the restored careers; any bad row refuses the whole save before
 /// the live world is touched. The queued Go to work commands then return
@@ -362,7 +369,7 @@ pub(crate) fn restore(
     }
     let mut candidate = super::v23::restore(snapshot.legacy, content, carried)?;
     let pack = candidate.world().resource::<Content>().0;
-    let records = validated(&candidate, &rows, pack, &pack.tuning)?;
+    let records = validated(candidate.world(), &rows, pack, &pack.tuning)?;
     crate::attendance::validate_replaced(candidate.world(), &snapshot.replaced_shifts)?;
     crate::attendance::restore_replaced(candidate.world_mut(), snapshot.replaced_shifts);
     {

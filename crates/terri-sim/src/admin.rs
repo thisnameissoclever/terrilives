@@ -206,6 +206,7 @@ pub fn last_result(world: &World) -> Option<AdminResult> {
         .and_then(|state| state.last)
 }
 
+mod career;
 mod edits;
 mod household;
 mod housemate;

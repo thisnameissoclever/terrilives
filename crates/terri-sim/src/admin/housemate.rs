@@ -1,7 +1,7 @@
 //! The Housemate tab's edits ([AP-e-housemate]): needs, life satisfaction,
 //! repetition, timed moodlets, affinities, skills and traits. A person is
 //! named by `SimId` and must be a living member of the household
-//! ([`AdminRefusal::NotAPerson`]). Career edits are [T5]'s.
+//! ([`AdminRefusal::NotAPerson`]). The career edits are in `career.rs`.
 use super::edits::Touched;
 use super::AdminRefusal;
 use crate::burnt_meals::BurntMeals;

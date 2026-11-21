@@ -1,13 +1,13 @@
 //! Every edit's checks against the world, its write and the post-condition
 //! ([AP-cmd-drain] items 2 to 4). The edits are grouped by the tab that
-//! sends them: the housemate's own state, relationships, and the household's
-//! money. Each group owns its variants' refusals and writes; this module only
-//! routes and gathers what a change touched for the post-condition.
+//! sends them: the housemate's own state and career, relationships, and the
+//! household's money. Each group owns its variants' refusals and writes; this
+//! module only routes and gathers what a change touched for the
+//! post-condition.
 use super::*;
 use std::collections::BTreeSet;
 
-/// Which group of edits owns a variant. Career edits ([T5]) land with their
-/// own group; until then they are refused as `UnknownContent`.
+/// Which group of edits owns a variant.
 enum Group {
     Housemate,
     Relationships,
@@ -50,7 +50,7 @@ pub(super) fn validate(world: &World, edit: &AdminEdit) -> Result<(), AdminRefus
         Group::Housemate => super::housemate::validate(world, edit),
         Group::Relationships => super::relationships::validate(world, edit),
         Group::Household => super::household::validate(world, edit),
-        Group::Career => Err(AdminRefusal::UnknownContent),
+        Group::Career => super::career::validate(world, edit),
     }
 }
 
@@ -62,7 +62,7 @@ pub(super) fn apply(world: &mut World, edit: &AdminEdit) {
         Group::Housemate => super::housemate::apply(world, edit),
         Group::Relationships => super::relationships::apply(world, edit),
         Group::Household => super::household::apply(world, edit),
-        Group::Career => unreachable!("only a validated edit is applied, and no career edit does"),
+        Group::Career => super::career::apply(world, edit),
     }
 }
 
@@ -76,6 +76,8 @@ pub(super) struct Touched {
     pub(super) timers: bool,
     pub(super) funds: bool,
     pub(super) bills: bool,
+    /// People whose career changed, by `SimId`.
+    pub(super) careers: BTreeSet<u32>,
 }
 
 fn touched(edits: &[AdminEdit]) -> Touched {
@@ -106,17 +108,25 @@ fn touched(edits: &[AdminEdit]) -> Touched {
                 touched.bills = true;
                 touched.funds = true;
             }
+            // A job or shift change settles an open shift, which pays it,
+            // drains energy, rewards satisfaction and counts a trip for the
+            // bills.
+            AdminEdit::SetJob { sim, .. } | AdminEdit::SetShift { sim, .. } => {
+                touched.careers.insert(sim);
+                touched.people.insert(sim);
+                touched.funds = true;
+                touched.bills = true;
+            }
+            AdminEdit::SetPay { sim, .. }
+            | AdminEdit::SetJobSatisfaction { sim, .. }
+            | AdminEdit::SetGoodWeeks { sim, .. }
+            | AdminEdit::SetPoorWeeks { sim, .. }
+            | AdminEdit::SetJobSearch { sim, .. } => {
+                touched.careers.insert(sim);
+            }
             // A fight order waits in the queue; nothing it touches is saved
-            // state the loader checks beyond the queue's own rules. The
-            // career edits belong to [T5].
-            AdminEdit::StartFight { .. }
-            | AdminEdit::SetJob { .. }
-            | AdminEdit::SetShift { .. }
-            | AdminEdit::SetPay { .. }
-            | AdminEdit::SetJobSatisfaction { .. }
-            | AdminEdit::SetGoodWeeks { .. }
-            | AdminEdit::SetPoorWeeks { .. }
-            | AdminEdit::SetJobSearch { .. } => {}
+            // state the loader checks beyond the queue's own rules.
+            AdminEdit::StartFight { .. } => {}
         }
     }
     touched
@@ -127,6 +137,7 @@ fn touched(edits: &[AdminEdit]) -> Touched {
 pub(super) fn post_condition(world: &World, edits: &[AdminEdit]) -> Result<(), ()> {
     let touched = touched(edits);
     super::housemate::post_condition(world, &touched)?;
+    super::career::post_condition(world, &touched)?;
     super::household::post_condition(world, &touched)?;
     #[cfg(test)]
     super::tests_stub::post_condition(world, edits)?;
