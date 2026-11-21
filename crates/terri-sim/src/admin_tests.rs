@@ -372,3 +372,103 @@ fn a_save_taken_mid_session_holds_the_edits_and_no_session() {
         assert_eq!(sim.world_hash(), loaded.world_hash(), "tick {tick}");
     }
 }
+
+/// The shipped lot played on until maintenance has work to do on a paused
+/// frame: someone holds a seat and a social episode is in progress. Then the
+/// panel opens.
+fn busy_world() -> Sim {
+    let mut sim = Sim::new_from_shipped_lot();
+    let busy = |sim: &mut Sim| {
+        let seated = sim
+            .world_mut()
+            .query::<&crate::seating::PhysicalClaim>()
+            .iter(sim.world())
+            .next()
+            .is_some();
+        let episodes = sim
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>();
+        let social = !episodes.executions.is_empty() || !episodes.rendezvous.is_empty();
+        seated && social
+    };
+    let mut ticks = 0;
+    while !busy(&mut sim) {
+        assert!(ticks < 3 * 1_440, "the lot gets busy within three days");
+        sim.tick();
+        ticks += 1;
+    }
+    sim.begin_admin().expect("the busy lot opens the panel");
+    sim
+}
+
+/// Two living people neither at work nor commuting, for a fight.
+fn free_pair(sim: &mut Sim) -> (u32, u32) {
+    let free: Vec<u32> = people(sim)
+        .into_iter()
+        .filter(|id| {
+            let entity = crate::edit::living_entity(sim.world(), *id).expect("living");
+            sim.world().get::<terri_core::AtWork>(entity).is_none()
+                && sim.world().get::<terri_core::Commuting>(entity).is_none()
+        })
+        .collect();
+    assert!(free.len() >= 2, "two people are home: {free:?}");
+    (free[0], free[1])
+}
+
+/// Undo in real play: many paused frames, each one `flush_commands`, run
+/// between admin changes, on a world where the paused maintenance passes
+/// have work (people seated, a social episode in progress, a fight queued).
+/// After each Undo the world hashes as it did just before the undone change,
+/// so neither the frames between changes nor the replay part the rebuilt
+/// world from the live one, and the fully undone world plays on as one that
+/// changed nothing.
+#[test]
+fn undo_is_exact_across_paused_frames_between_changes() {
+    let mut sim = busy_world();
+    let (a, b) = free_pair(&mut sim);
+    let mut before = vec![sim.world_hash()];
+    let changes = [
+        change(vec![AdminEdit::StartFight { from: a, to: b }]),
+        funds(4_200),
+        satisfaction(b, 12.5),
+    ];
+    let last = changes.len() - 1;
+    for (step, change) in changes.into_iter().enumerate() {
+        assert_eq!(sim.admin_apply(change), Ok(step + 1), "change {step}");
+        let applied = sim.world_hash();
+        // Several frames between changes, and one after the last.
+        let frames = if step == last { 1 } else { 6 };
+        for frame in 0..frames {
+            sim.flush_commands();
+            assert_eq!(
+                sim.world_hash(),
+                applied,
+                "change {step}: paused frame {frame} leaves the world as the change did"
+            );
+        }
+        before.push(sim.world_hash());
+    }
+    before.pop();
+    while let Some(expected) = before.pop() {
+        assert_eq!(sim.admin_undo(), Ok(()), "undo to depth {}", before.len());
+        assert_eq!(sim.admin_undo_depth(), before.len());
+        assert_eq!(
+            sim.world_hash(),
+            expected,
+            "undo to depth {} hashes as the world before the undone change",
+            before.len()
+        );
+        sim.flush_commands();
+        assert_eq!(sim.world_hash(), expected, "a paused frame after Undo");
+    }
+    // Back at the baseline, the world plays on as one that opened the panel
+    // and changed nothing, so nothing unhashed parted them either.
+    let mut twin = busy_world();
+    twin.end_admin();
+    sim.end_admin();
+    for tick in 0..240 {
+        sim.tick();
+        twin.tick();
+        assert_eq!(sim.world_hash(), twin.world_hash(), "tick {tick}");
+    }
+}
