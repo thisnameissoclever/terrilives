@@ -202,7 +202,7 @@ describe('a bed left outside (issue 298, [WB-beds])', () => {
   it('reads the bed refusal with the bed it names and refuses it without one', () => {
     expect(decodeRoomUnit(Uint8Array.of(1, 1, 15, 1, 42))).toEqual({ ok: false, error: { code: 15, detail: 42n } });
     expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 15, 0))).toThrow(RoomWireError);
-    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 17, 0))).toThrow(RoomWireError);
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 18, 0))).toThrow(RoomWireError);
   });
 
   it('tells the player to move the bed into a room or cancel', () => {
@@ -248,8 +248,15 @@ describe('the admin panel is open (issue 312)', () => {
     expect(failureDetails(open)).toEqual({ code: 16, kind: 'Admin panel open', detail: null });
   });
 
+  it('names the failure of a broken admin world and says how to get past it', () => {
+    const broken: RoomFailure = { code: 17, detail: null };
+    expect(failureWhat(broken)).toBe('Admin changes left this game unable to reload. Load a saved game to use Build mode.');
+    expect(enterFailure(broken), 'shown alone, without "Build mode stays closed."').toBe(failureWhat(broken));
+    expect(failureDetails(broken)).toEqual({ code: 17, kind: 'Admin world would not reload', detail: null });
+  });
+
   it('gives every native failure code a console name and a sentence', () => {
-    for (let code = 1; code <= 16; code++) {
+    for (let code = 1; code <= 17; code++) {
       expect(FAILURE_NAMES[code], `console name for ${code}`).not.toBe(FAILURE_NAMES[0]);
       expect(failureWhat({ code, detail: code === 7 || code === 8 ? 1n : null }), `sentence for ${code}`)
         .not.toBe('Something went wrong with the build.');

@@ -108,9 +108,10 @@ function point(r: PostcardReader, c: RoomContext): Point { const p: Point = [r.n
 function list<T>(r: PostcardReader, max: number, min: number, read: () => T): T[] { const count = r.count(min); check(count <= max); return Array.from({ length: count }, read); }
 function failure(r: PostcardReader): RoomFailure {
     const code = r.byte(), detail = r.option(() => r.uint(64));
-    // 16 is Build refused because the admin panel's session is open (issue
-    // 312); it names nothing.
-    check(code >= 1 && code <= 16);
+    // 16 is Build refused because the admin panel's session is open, and 17
+    // because admin edits left a world that would not reload (issue 312);
+    // neither names anything.
+    check(code >= 1 && code <= 17);
     // 15 is a bed a Confirm would leave outside, named by its entity index
     // (issue 298, [WB-beds]).
     check((code === 7 || code === 8 || code === 10 || code === 15) === (detail !== null));

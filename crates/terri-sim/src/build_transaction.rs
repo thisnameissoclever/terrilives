@@ -62,6 +62,11 @@ pub enum BuildCommitError {
     /// The admin panel's session is open ([AP-undo-model] item 1 in
     /// `docs/specs/2026-11-20-admin-panel.md`), so Build cannot open.
     AdminActive,
+    /// Admin edits left a world that would not load ([`Sim::admin_broken`]),
+    /// and saving stays refused until a load replaces the world. Build cannot
+    /// open on it: ending or cancelling Build installs a restored world that
+    /// would drop that mark and let a save through.
+    AdminBroken,
 }
 /// Which load rule refused the draft when Build could not open or confirm.
 /// `BuildCommitError::Validation` names only the kind of error; this names the
@@ -333,6 +338,12 @@ impl Sim {
         // since each restores its own baseline.
         if self.admin_active() {
             return Err(BuildCommitError::AdminActive);
+        }
+        // A broken world must not be saved until a load replaces it. Build's
+        // end and cancel install a restored world, which would drop that
+        // mark, so Build does not open on it.
+        if self.admin_broken() {
+            return Err(BuildCommitError::AdminBroken);
         }
         if !self.world.resource::<terri_core::CommandQueue>().is_empty() {
             self.flush_commands();

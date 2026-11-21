@@ -523,6 +523,35 @@ fn a_failed_rebuild_breaks_the_session_and_refuses_edits_undo_and_saves() {
     );
 }
 
+/// A broken world blocks saving until a load replaces it, so Build refuses
+/// to open on it too: ending or cancelling Build installs a restored world
+/// that would drop the mark and let a save through.
+#[test]
+fn build_mode_refuses_to_open_on_a_broken_world() {
+    let mut sim = opened();
+    sim.admin_apply(funds(100)).unwrap();
+    crate::admin::tests_stub::corrupt_baseline_hash(sim.world_mut());
+    assert!(sim.admin_apply(funds(FAILS_POST_CONDITION)).is_err());
+    assert!(sim.admin_broken());
+    // Open session: the existing refusal stands.
+    assert_eq!(sim.begin_build(), Err(BuildCommitError::AdminActive));
+    sim.end_admin();
+    let hash = sim.world_hash();
+    assert_eq!(
+        sim.begin_build(),
+        Err(BuildCommitError::AdminBroken),
+        "the session is closed but the world is still broken"
+    );
+    assert!(!sim.build_active(), "Build did not open");
+    assert_eq!(sim.world_hash(), hash, "a refusal changes nothing");
+    assert!(sim.admin_broken(), "the mark is still there");
+    assert_eq!(
+        sim.try_save_snapshot_v24().err(),
+        Some(crate::SaveError::AdminSessionBroken),
+        "saving stays refused until a load replaces the world"
+    );
+}
+
 /// The drain reports every admin change it drains, and `admin_apply` reads
 /// that report only when its sequence moved. A drain that left no new
 /// result (the test hook applies the edit and reports nothing) is a refusal
