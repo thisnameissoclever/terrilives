@@ -59,16 +59,25 @@ pub(crate) fn maintain(world: &mut World) {
     }
 }
 
-/// Called at ordinary arrival, and once when adopting an older active bath.
+/// Ordinary arrivals draw from the live simulation stream.
 pub(crate) fn begin(world: &mut World) {
+    begin_with_draw(world, |world, bound| world.resource_mut::<SimRng>().range(bound));
+}
+
+/// Give older active baths deterministic toys while preserving the saved stream.
+pub(crate) fn adopt_legacy(world: &mut World) {
+    let mut rng = world.resource::<SimRng>().clone();
+    begin_with_draw(world, |_, bound| rng.range(bound));
+}
+
+fn begin_with_draw(world: &mut World, mut draw: impl FnMut(&mut World, usize) -> usize) {
     maintain(world);
     let mut actors: Vec<_> = world.query_filtered::<Entity, With<Agent>>().iter(world).collect();
     actors.sort_by_key(|actor| actor.index_u32());
     for actor in actors {
         if world.get::<BathEpisode>(actor).is_some() { continue; }
         let Some((tub, interaction, total)) = occupied(world, actor) else { continue; };
-        // One uniform selection from the simulation's saved random stream.
-        let toy = world.resource_mut::<SimRng>().range(3) as u8 + 1;
+        let toy = draw(world, 3) as u8 + 1;
         world.entity_mut(actor).insert(BathEpisode { tub, interaction, toy, total, elapsed: 0 });
     }
 }

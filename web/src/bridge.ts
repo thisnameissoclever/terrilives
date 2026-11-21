@@ -106,6 +106,82 @@ export interface CareerResult {
   readonly reason: string | null;
 }
 
+/**
+ * What the Go to work box shows for one person ([CT-web] item 2 of the
+ * Career tab spec). Due, late and early name the shift with its start and
+ * end and the tick from which the command applies; early with no shift in
+ * the coming week and every other state leave what they do not know null,
+ * and at work keeps only the end of the shift.
+ */
+export type GoToWorkState = 'none' | 'due' | 'late' | 'early' | 'atWork' | 'outbound' | 'inbound';
+
+export interface GoToWorkStatus {
+  readonly state: GoToWorkState;
+  readonly startTick: number | null;
+  readonly endTick: number | null;
+  readonly opensTick: number | null;
+}
+
+/** The runtime's state numbers, in order. */
+const GO_TO_WORK_STATES: readonly GoToWorkState[] = ['none', 'due', 'late', 'early', 'atWork', 'outbound', 'inbound'];
+
+export interface CareerShiftSource {
+  readonly path: number;
+  readonly level: number;
+  readonly basePay: number | null;
+}
+
+/** One reviewed week's score inputs ([CT-web] item 3): means over its scored shifts, missed minutes summed. */
+export interface CareerInputWeek {
+  readonly week: number;
+  /** The career row held during the week. */
+  readonly career: number;
+  readonly path: number;
+  readonly level: number;
+  readonly shifts: number;
+  readonly attended: number;
+  readonly fit: number;
+  readonly traitFit: number;
+  readonly socialCapacity: number;
+  /** The job's social demand, 0 to 1. */
+  readonly socialDemand: number;
+  readonly mastery: number;
+  readonly mood: number;
+  readonly missedMinutes: number;
+  /** Dollars per shift held during the week, before the review's outcome. */
+  readonly pay: number;
+  /** Sources in scored-shift order, present for exceptional weeks. */
+  readonly sources?: readonly CareerShiftSource[];
+}
+
+/** The inputs of the last scored shift ([CT-web] item 4). */
+export interface CareerShiftInputs {
+  readonly fit: number;
+  readonly traitFit: number;
+  readonly socialCapacity: number;
+  readonly mastery: number;
+  readonly mood: number;
+  readonly missedMinutes: number;
+  readonly attended: boolean;
+}
+
+/** The refusal for a shift beyond the Go to work window; its text names the window. */
+const NOT_DUE_REFUSAL = 7;
+
+/**
+ * The Go to work window in words ([CT-strings] S-r7): two hours at the
+ * shipped 120, otherwise whole hours or else minutes. A tick is a minute.
+ */
+function windowWords(ticks: number): string | null {
+  if (!Number.isSafeInteger(ticks) || ticks <= 0) return null;
+  if (ticks === 120) return 'two hours';
+  if (ticks % 60 === 0) return ticks === 60 ? '1 hour' : `${ticks / 60} hours`;
+  return `${ticks} minutes`;
+}
+
+/** A tick as the runtime sends it: a whole, non-negative number. */
+const isTick = (value: number) => Number.isSafeInteger(value) && value >= 0;
+
 const CAREER_REASONS: Readonly<Record<number, string>> = {
   1: 'That person is no longer here.',
   2: 'Not while they are at work or on the way.',
@@ -114,6 +190,8 @@ const CAREER_REASONS: Readonly<Record<number, string>> = {
   4: 'That shift is not offered at this level.',
   5: 'This person has no job.',
   6: 'They already work that shift.',
+  // Issues 311 and 317, [CT-strings] S-r8. Code 7 is worded from the window.
+  8: 'They cannot find a way out to work.',
 };
 
 /**
@@ -271,7 +349,7 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   9: 'A Sim is standing there.',
   10: 'That position blocks a Sim’s route.',
   11: 'Leave every object reachable.',
-  12: 'Keep the front door clear and reachable.',
+  12: 'That would make a doorway unreachable.',
   13: 'Keep the front-door landing clear and reachable.',
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
@@ -493,7 +571,7 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   9: 'Someone is standing on that line.',
   10: "A wall there would block someone's way.",
   11: 'A wall there would leave furniture out of reach.',
-  12: 'A wall there would cut off the front door.',
+  12: 'A wall there would block access to a doorway.',
   13: 'A wall there would cut off the front-door landing.',
   18: 'Fit the entire window into a solid wall.',
   19: 'A window cannot cross a wall junction.',
@@ -598,7 +676,7 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
   9: "Someone is standing on the room's outline.",
   10: "The room would block someone's way.",
   11: 'The room would leave furniture out of reach.',
-  12: 'The room would cut off the front door.',
+  12: 'The room would block access to a doorway.',
   13: 'The room would cut off the front-door landing.',
   20: 'Remove the window before changing this room.',
   // Issue 298, [WB-beds]: functional text proposed for the owner's review.
@@ -2681,6 +2759,88 @@ export class SimBridge {
     return { fit, traitFit, socialCapacity, socialDemand, mastery, mood };
   }
 
+  /** Stages sending the person to work now; the drain reports the outcome through `lastCareerResult`. */
+  goToWork(entityIndex: number): boolean {
+    if (!isU32(entityIndex)) return false;
+    return this.handle.go_to_work(entityIndex);
+  }
+
+  /** What the Go to work box shows, or null for anything but a living person or an unusable answer. */
+  goToWorkStatus(entityIndex: number): GoToWorkStatus | null {
+    if (!isU32(entityIndex)) return null;
+    const values = Array.from(this.handle.go_to_work_status(entityIndex));
+    if (values.length !== 4 || !values.every(isTick)) return null;
+    const [code, startTick, endTick, opensTick] = values;
+    if (code >= GO_TO_WORK_STATES.length) return null;
+    const state = GO_TO_WORK_STATES[code];
+    const nothing = { state, startTick: null, endTick: null, opensTick: null };
+    const unnamed = startTick === 0 && endTick === 0 && opensTick === 0;
+    if (state === 'none' || state === 'outbound' || state === 'inbound') return unnamed ? nothing : null;
+    if (state === 'atWork') {
+      return startTick === 0 && opensTick === 0 && endTick > 0 ? { ...nothing, endTick } : null;
+    }
+    if (state === 'early' && unnamed) return nothing;
+    return endTick > startTick && opensTick <= startTick ? { state, startTick, endTick, opensTick } : null;
+  }
+
+  /** The reviewed weeks' score inputs, oldest week first; empty when none or when any row is unusable. */
+  careerInputHistory(entityIndex: number): CareerInputWeek[] {
+    if (!isU32(entityIndex)) return [];
+    const values = this.handle.career_input_history(entityIndex);
+    if (values.length % 14 !== 0) return [];
+    const weeks: CareerInputWeek[] = [];
+    for (let at = 0; at < values.length; at += 14) {
+      const [week, career, path, level, shifts, attended, fit, traitFit, socialCapacity, socialDemand, mastery, mood,
+        missedMinutes, pay] = Array.from(values).slice(at, at + 14);
+      if (![week, career, path, level, shifts, attended, pay].every(isU32) || shifts < 1 || shifts > 14 || attended > shifts) return [];
+      if (![fit, traitFit, socialCapacity, socialDemand, mastery, mood, missedMinutes].every(Number.isFinite)) return [];
+      if (fit < -1 || fit > 1 || mood < -1 || mood > 1 || missedMinutes < 0) return [];
+      if ([socialCapacity, socialDemand, mastery].some(value => value < 0 || value > 1)) return [];
+      if (weeks.length > 0 && week <= weeks[weeks.length - 1].week) return [];
+      weeks.push({ week, career, path, level, shifts, attended, fit, traitFit, socialCapacity, socialDemand, mastery,
+        mood, missedMinutes, pay });
+    }
+    const sources = this.handle.career_input_sources(entityIndex);
+    if (sources.length % 4 !== 0) return [];
+    const grouped = new Map<number, CareerShiftSource[]>();
+    let previous = -1;
+    for (let at = 0; at < sources.length; at += 4) {
+      const [week, path, level, basePay] = Array.from(sources.slice(at, at + 4));
+      if (![week, path, level].every(isU32) || !(basePay === -1 || isU32(basePay)) || week < previous) return [];
+      const row = weeks.find(candidate => candidate.week === week);
+      if (row === undefined) return [];
+      const group = grouped.get(week) ?? [];
+      group.push(Object.freeze({ path, level, basePay: basePay === -1 ? null : basePay }));
+      if (group.length > row.shifts) return [];
+      grouped.set(week, group);
+      previous = week;
+    }
+    for (const [week, group] of grouped) {
+      const index = weeks.findIndex(row => row.week === week);
+      if (group.length !== weeks[index].shifts) return [];
+      weeks[index] = { ...weeks[index], sources: Object.freeze(group) };
+    }
+    return weeks;
+  }
+
+  /** The inputs of the last scored shift, or null before one. */
+  careerLastShift(entityIndex: number): CareerShiftInputs | null {
+    if (!isU32(entityIndex)) return null;
+    const values = Array.from(this.handle.career_last_shift(entityIndex));
+    if (values.length !== 7 || !values.every(Number.isFinite)) return null;
+    const [fit, traitFit, socialCapacity, mastery, mood, missedMinutes, attended] = values;
+    if (fit < -1 || fit > 1 || mood < -1 || mood > 1 || missedMinutes < 0) return null;
+    if (socialCapacity < 0 || socialCapacity > 1 || mastery < 0 || mastery > 1) return null;
+    if (attended !== 0 && attended !== 1) return null;
+    return { fit, traitFit, socialCapacity, mastery, mood, missedMinutes, attended: attended === 1 };
+  }
+
+  /** The titles of career path `path`'s levels, in level order; empty for an unknown path. */
+  careerLevelTitles(path: number): string[] {
+    if (!isU32(path)) return [];
+    return Array.from(this.handle.career_level_titles(path));
+  }
+
   /** The labels of the career paths, in path order. */
   careerPathLabels(): string[] {
     return Array.from(this.handle.career_path_labels());
@@ -2714,8 +2874,14 @@ export class SimBridge {
     const values = this.handle.last_career_result();
     if (typeof sequence !== 'bigint' || sequence <= 0n || values.length !== 2) return null;
     const [agent, refusal] = values;
-    if (!isU32(agent) || !isU32(refusal) || (refusal !== 0 && !Object.hasOwn(CAREER_REASONS, refusal))) return null;
-    return { sequence, agent, reason: refusal === 0 ? null : CAREER_REASONS[refusal] };
+    if (!isU32(agent) || !isU32(refusal)) return null;
+    if (refusal === 0) return { sequence, agent, reason: null };
+    if (refusal === NOT_DUE_REFUSAL) {
+      const words = windowWords(this.handle.go_to_work_window_ticks());
+      return words === null ? null : { sequence, agent, reason: `Their next shift is more than ${words} away.` };
+    }
+    if (!Object.hasOwn(CAREER_REASONS, refusal)) return null;
+    return { sequence, agent, reason: CAREER_REASONS[refusal] };
   }
 
   /** Whether people change path on their own: one household setting. */

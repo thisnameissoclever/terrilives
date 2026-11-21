@@ -94,7 +94,7 @@ it('keeps the placement refusal with Buy and exposes the real catalogue return a
   try { f.buy.enter(); f.buy.choose(f.buy.items[0].definition); f.buy.moveTo(-1, -1);
     const model = contextModel(f.tools)!;
     expect(model.feedback).toMatchObject({ state: 'failure', message: f.buy.preview!.reason });
-    expect(model.actions.find(action => action.id === 'choose')?.label).toBe('Back to catalogue');
+    expect(model.actions.find(action => action.id === 'choose')?.label).toBe('Back to catalog');
   } finally { f.handle.free(); }
 });
 

@@ -15,6 +15,9 @@ describe('career release bridge', () => {
       const worker = people.find(person => bridge.careerOf(person) !== null)!;
       expect(worker).toBeDefined();
       expect(bridge.careerPathLabels()).toEqual(['Office', 'Cafe', 'Night watch', 'Hospital', 'Warehouse', 'Library', 'Restaurant kitchen', 'Buses']);
+      expect(bridge.careerLevelTitles(0)).toEqual(['Office clerk', 'Senior clerk', 'Office manager', 'Director of paperwork']);
+      expect(bridge.careerLevelTitles(99), 'an unknown path has no titles').toEqual([]);
+      expect(bridge.careerLevelTitles(-1)).toEqual([]);
       const report = bridge.careerReport(worker)!;
       expect(report).toMatchObject({ path: 0, level: 0, levels: 4, shifts: 0, mean: null, last: null, poor: 0, good: 0,
         warned: false, trend: 0, jobSatisfaction: 50, poorThreshold: 40, goodThreshold: 65 });
@@ -64,6 +67,7 @@ function fake(overrides: Partial<Record<string, unknown>> = {}) {
     career_history: () => new Float64Array([0, 70, 0, 1, 82, 2]),
     career_factors: () => new Float64Array([0.4, 0.4, 0.7, 0.3, 0.25, -0.1]),
     career_path_labels: () => ['Office'],
+    career_input_sources: () => new Float64Array(),
     assign_career: (...args: unknown[]) => { calls.push(['assign', ...args]); return true; },
     quit_career: (...args: unknown[]) => { calls.push(['quit', ...args]); return true; },
     career_result_sequence: () => 4n,
@@ -219,6 +223,179 @@ describe('shift bridge (issue 296, [WS-shell] item 6)', () => {
     for (const [code, text] of reasons) {
       expect(fake({ last_career_result: () => new Float64Array([7, code]) }).bridge.lastCareerResult()?.reason).toBe(text);
     }
-    expect(fake({ last_career_result: () => new Float64Array([7, 7]) }).bridge.lastCareerResult()).toBeNull();
+    expect(fake({ last_career_result: () => new Float64Array([7, 9]) }).bridge.lastCareerResult()).toBeNull();
+  });
+});
+
+describe('career tab bridge (issues 311 and 317, [CT-web])', () => {
+  it('reads the Go to work status of each state', () => {
+    const status = (values: number[]) => fake({ go_to_work_status: () => new Float64Array(values) }).bridge.goToWorkStatus(3);
+    expect(status([0, 0, 0, 0])).toEqual({ state: 'none', startTick: null, endTick: null, opensTick: null });
+    expect(status([1, 360, 840, 240])).toEqual({ state: 'due', startTick: 360, endTick: 840, opensTick: 240 });
+    expect(status([2, 360, 840, 240])).toEqual({ state: 'late', startTick: 360, endTick: 840, opensTick: 240 });
+    expect(status([3, 1800, 2280, 1680])).toEqual({ state: 'early', startTick: 1800, endTick: 2280, opensTick: 1680 });
+    expect(status([3, 0, 0, 0])).toEqual({ state: 'early', startTick: null, endTick: null, opensTick: null });
+    expect(status([4, 0, 840, 0])).toEqual({ state: 'atWork', startTick: null, endTick: 840, opensTick: null });
+    expect(status([5, 0, 0, 0])).toEqual({ state: 'outbound', startTick: null, endTick: null, opensTick: null });
+    expect(status([6, 0, 0, 0])).toEqual({ state: 'inbound', startTick: null, endTick: null, opensTick: null });
+    // A shift whose window opened before tick 0 reads an opening of 0.
+    expect(status([1, 60, 540, 0])).toEqual({ state: 'due', startTick: 60, endTick: 540, opensTick: 0 });
+    // Large ticks keep exact whole numbers.
+    expect(status([1, 4294967300, 4294967780, 4294967180]))
+      .toEqual({ state: 'due', startTick: 4294967300, endTick: 4294967780, opensTick: 4294967180 });
+  });
+
+  it('refuses an unusable status and an invalid person', () => {
+    const bad = [[], [1, 360, 840], [7, 0, 0, 0], [1.5, 360, 840, 240], [1, 360, 360, 240], [1, 360, 840, 400],
+      [1, NaN, 840, 240], [1, -1, 840, 240], [1, 360, Infinity, 240], [0, 1, 0, 0], [3, 0, 0, 1], [4, 5, 840, 0],
+      [5, 0, 1, 0], [4, 0, 0, 0], [3, 360, 0, 240], [2, 360, 840, 0.5]];
+    for (const values of bad) {
+      expect(fake({ go_to_work_status: () => new Float64Array(values) }).bridge.goToWorkStatus(3), String(values)).toBeNull();
+    }
+    const calls: string[] = [];
+    const { bridge } = fake({
+      go_to_work_status: () => { calls.push('status'); return new Float64Array([1, 360, 840, 240]); },
+      go_to_work: () => { calls.push('work'); return true; },
+    });
+    for (const entity of [-1, 0.5, NaN, Infinity, 4294967296]) {
+      expect(bridge.goToWorkStatus(entity)).toBeNull();
+      expect(bridge.goToWork(entity)).toBe(false);
+    }
+    expect(calls).toEqual([]);
+  });
+
+  it('stages Go to work for a valid person', () => {
+    const staged: unknown[][] = [];
+    const recorded = fake({ go_to_work: (...args: unknown[]) => { staged.push(args); return true; } });
+    expect(recorded.bridge.goToWork(4000000002)).toBe(true);
+    expect(staged).toEqual([[4000000002]]);
+    expect(fake({ go_to_work: () => false }).bridge.goToWork(3)).toBe(false);
+  });
+
+  const row = [3, 0, 0, 0, 5, 4, 0.5, 0.25, 0.75, 0.3, 0.125, -0.5, 30, 160];
+
+  it('shapes the weekly input history, oldest week first', () => {
+    const history = fake({ career_input_history: () => new Float64Array([...row, 4, 1, 0, 1, 5, 5, 0, 0, 1, 0.3, 0.5, 0.5, 0, 170]) });
+    expect(history.bridge.careerInputHistory(3)).toEqual([
+      { week: 3, career: 0, path: 0, level: 0, shifts: 5, attended: 4, fit: 0.5, traitFit: 0.25, socialCapacity: 0.75,
+        socialDemand: 0.3, mastery: 0.125, mood: -0.5, missedMinutes: 30, pay: 160 },
+      { week: 4, career: 1, path: 0, level: 1, shifts: 5, attended: 5, fit: 0, traitFit: 0, socialCapacity: 1,
+        socialDemand: 0.3, mastery: 0.5, mood: 0.5, missedMinutes: 0, pay: 170 },
+    ]);
+    expect(fake({ career_input_history: () => new Float64Array() }).bridge.careerInputHistory(3)).toEqual([]);
+  });
+
+  it('attaches complete source groups in scored-shift order and rejects malformed companions', () => {
+    const history = [...row.slice(0, 4), 3, 3, ...row.slice(6)];
+    const read = (sources: number[]) => fake({ career_input_history: () => new Float64Array(history),
+      career_input_sources: () => new Float64Array(sources) }).bridge.careerInputHistory(3);
+    const sources = [3, 2, 0, 140, 3, 0, 1, 175, 3, 0, 1, 175];
+    const result = read(sources);
+    expect(result[0].sources).toEqual([{ path: 2, level: 0, basePay: 140 },
+      { path: 0, level: 1, basePay: 175 }, { path: 0, level: 1, basePay: 175 }]);
+    expect(read([3, 2, 0, -1, ...sources.slice(4)])[0].sources?.[0].basePay).toBeNull();
+    expect(Object.isFrozen(result[0].sources)).toBe(true);
+    expect(Object.isFrozen(result[0].sources![0])).toBe(true);
+    for (const bad of [sources.slice(0, -1), sources.slice(0, 8), [...sources, 3, 0, 1, 175],
+      [4, ...sources.slice(1)], [3, -1, ...sources.slice(2)], [3, 2, 0.5, ...sources.slice(3)],
+      [3, 2, 0, -2, ...sources.slice(4)], [3, 2, 0, -0.5, ...sources.slice(4)], [3, 2, 0, NaN, ...sources.slice(4)]]) {
+      expect(read(bad), String(bad)).toEqual([]);
+    }
+    const two = [...history, ...history.map((value, index) => index === 0 ? 4 : value)];
+    expect(fake({ career_input_history: () => new Float64Array(two),
+      career_input_sources: () => new Float64Array([4, 0, 0, 140, 3, 0, 0, 140]) }).bridge.careerInputHistory(3)).toEqual([]);
+  });
+
+  it('refuses a malformed input history whole', () => {
+    const edit = (at: number, value: number) => row.map((number, index) => (index === at ? value : number));
+    const bad = [row.slice(0, 13), [...row, 1], edit(0, -1), edit(0, 1.5), edit(1, -1), edit(2, 0.5), edit(4, 0), edit(4, 15),
+      edit(5, 6), edit(6, 1.5), edit(6, NaN), edit(7, Infinity), edit(8, -0.1), edit(8, 1.1), edit(9, NaN), edit(10, 2),
+      edit(11, -1.5), edit(12, -1), edit(12, Infinity), edit(13, 1.5), edit(13, -1)];
+    for (const values of bad) {
+      expect(fake({ career_input_history: () => new Float64Array(values) }).bridge.careerInputHistory(3), String(values)).toEqual([]);
+    }
+    const repeated = [...row, ...row];
+    expect(fake({ career_input_history: () => new Float64Array(repeated) }).bridge.careerInputHistory(3)).toEqual([]);
+    const descending = [...edit(0, 4), ...row];
+    expect(fake({ career_input_history: () => new Float64Array(descending) }).bridge.careerInputHistory(3)).toEqual([]);
+    for (const entity of [-1, 0.5, NaN, Infinity, 4294967296]) {
+      expect(fake().bridge.careerInputHistory(entity)).toEqual([]);
+      expect(fake().bridge.careerLastShift(entity)).toBeNull();
+    }
+  });
+
+  it('shapes the last shift and refuses an unusable one', () => {
+    const last = (values: number[]) => fake({ career_last_shift: () => new Float64Array(values) }).bridge.careerLastShift(3);
+    expect(last([-0.25, 0.5, 0.75, 0.125, 0.5, 45, 1]))
+      .toEqual({ fit: -0.25, traitFit: 0.5, socialCapacity: 0.75, mastery: 0.125, mood: 0.5, missedMinutes: 45, attended: true });
+    expect(last([0, 0, 0, 0, 0, 0, 0])).toMatchObject({ attended: false });
+    expect(last([])).toBeNull();
+    for (const values of [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2], [1.5, 0, 0, 0, 0, 0, 1], [0, 0, 1.5, 0, 0, 0, 1],
+      [0, 0, 0, -0.5, 0, 0, 1], [0, 0, 0, 0, 1.5, 0, 1], [0, 0, 0, 0, 0, -1, 1], [NaN, 0, 0, 0, 0, 0, 1], [0, Infinity, 0, 0, 0, 0, 1]]) {
+      expect(last(values), String(values)).toBeNull();
+    }
+  });
+
+  it('words the two new refusals, with the window from the knob', () => {
+    const refusal = (code: number, window = 120) => fake({
+      last_career_result: () => new Float64Array([7, code]),
+      go_to_work_window_ticks: () => window,
+    }).bridge.lastCareerResult()?.reason;
+    expect(refusal(7)).toBe('Their next shift is more than two hours away.');
+    expect(refusal(7, 60)).toBe('Their next shift is more than 1 hour away.');
+    expect(refusal(7, 180)).toBe('Their next shift is more than 3 hours away.');
+    expect(refusal(7, 45)).toBe('Their next shift is more than 45 minutes away.');
+    expect(refusal(7, 90)).toBe('Their next shift is more than 90 minutes away.');
+    expect(refusal(8)).toBe('They cannot find a way out to work.');
+    expect(refusal(9)).toBeUndefined();
+    for (const window of [0, -1, 1.5, NaN, Infinity]) {
+      expect(fake({ last_career_result: () => new Float64Array([7, 7]), go_to_work_window_ticks: () => window })
+        .bridge.lastCareerResult()).toBeNull();
+    }
+  });
+
+  it('runs Go to work through the release wasm for the shipped worker', () => {
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, memory);
+      const people = Array.from(bridge.ids()).filter((_, index) => bridge.kinds()[index] === 0);
+      const worker = people.find(person => bridge.careerOf(person) !== null)!;
+      const idle = people.find(person => bridge.careerOf(person) === null)!;
+      expect(bridge.goToWorkStatus(idle)).toEqual({ state: 'none', startTick: null, endTick: null, opensTick: null });
+      expect(bridge.careerInputHistory(worker)).toEqual([]);
+      expect(bridge.careerLastShift(worker)).toBeNull();
+      const furniture = Array.from(bridge.ids()).find((_, index) => bridge.kinds()[index] !== 0)!;
+      expect(bridge.goToWorkStatus(furniture)).toBeNull();
+      // Early, or due if the game opens inside the window: follow events, not guessed ticks.
+      let status = bridge.goToWorkStatus(worker)!;
+      expect(['early', 'due']).toContain(status.state);
+      expect(status.startTick! - status.opensTick!).toBe(120);
+      if (status.state === 'early') {
+        expect(bridge.goToWork(worker)).toBe(true);
+        handle.flush_commands();
+        expect(bridge.lastCareerResult()).toEqual({ sequence: 1n, agent: worker, reason: 'Their next shift is more than two hours away.' });
+        for (let tick = 0; status.state === 'early'; tick += 1) {
+          expect(tick).toBeLessThan(4000);
+          handle.tick();
+          status = bridge.goToWorkStatus(worker)!;
+        }
+      }
+      expect(status.state).toBe('due');
+      const funds = handle.funds();
+      expect(bridge.goToWork(worker)).toBe(true);
+      handle.flush_commands();
+      expect(bridge.lastCareerResult()?.reason).toBeNull();
+      expect(bridge.goToWorkStatus(worker)!.state).toBe('outbound');
+      for (let tick = 0; bridge.goToWorkStatus(worker)!.state !== 'atWork'; tick += 1) {
+        expect(tick).toBeLessThan(400);
+        handle.tick();
+      }
+      expect(bridge.goToWorkStatus(worker)).toMatchObject({ state: 'atWork', endTick: status.endTick });
+      for (let tick = 0; !['inbound', 'early'].includes(bridge.goToWorkStatus(worker)!.state); tick += 1) {
+        expect(tick).toBeLessThan(1500);
+        handle.tick();
+      }
+      expect(handle.funds()).toBeGreaterThan(funds);
+    } finally { handle.free(); }
   });
 });

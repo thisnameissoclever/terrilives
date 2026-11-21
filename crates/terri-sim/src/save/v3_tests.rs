@@ -83,10 +83,10 @@ pub(crate) fn assert_materialized_rear_shell(
 }
 
 pub(super) fn assert_current_roundtrip(sim: &mut Sim) {
-    let saved = sim.save_snapshot_v25();
+    let saved = sim.save_snapshot_v26();
     let hash = sim.world_hash();
-    sim.load_snapshot_v25(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v25(), saved);
+    sim.load_snapshot_v26(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v26(), saved);
     assert_eq!(sim.world_hash(), hash);
 }
 

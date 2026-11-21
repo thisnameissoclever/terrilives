@@ -44,6 +44,20 @@ export function hasClearablePlayerOrders(source: {
   return entity !== null && (source.queuedOrdersOf(entity) > 0 || source.actionQueueRowsOf(entity, 1)
     .some(row => row.role === 'initiator' && row.orderId !== null));
 }
+export class ClearOrdersAvailability {
+  private selected: number | null = null;
+  private lastRead = -Infinity;
+
+  constructor(private readonly button: {disabled: boolean}, private readonly refreshMs: number) {}
+
+  update(now: number, source: Parameters<typeof hasClearablePlayerOrders>[0]): void {
+    const selected = source.selectedIndex();
+    if (selected === this.selected && now - this.lastRead < this.refreshMs) return;
+    this.selected = selected;
+    this.lastRead = now;
+    this.button.disabled = !hasClearablePlayerOrders(source);
+  }
+}
 export function formatOrderHistory(events: readonly OrderEvent[], entity: number | null, expired: boolean): string {
   const lines = expired ? ['Earlier events have expired from this session.'] : [];
   for (const event of events) {

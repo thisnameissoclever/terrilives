@@ -6,11 +6,16 @@ enum FixtureGeometry {
     SparseBlank10x8,
 }
 
-fn expected_v14_geometry(
+fn expected_v14_projection(
     mut source: terri_core::SaveSnapshotV14,
     geometry: FixtureGeometry,
     adopted: bool,
 ) -> terri_core::SaveSnapshotV14 {
+    // The content fingerprint test in need_interactions/fill_tests.rs pins
+    // the catalogue on both sides of the pool's Hop in action.
+    let world = &mut source.legacy.legacy.legacy.legacy.legacy.legacy.world;
+    assert_eq!(world.content_fingerprint, 0x5111_16ef_ac94_ae24);
+    world.content_fingerprint = 0x7229_9218_57a2_e3ae;
     match geometry {
         FixtureGeometry::FramedHouse => current_test_snapshot::materialized_v14(source),
         FixtureGeometry::SparseBlank10x8 => {
@@ -47,32 +52,31 @@ fn assert_current_retains_exact_v16_fixture(
         postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
     assert!(tail.is_empty());
     assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
-    let mut snapshot = decode_current(current).previous.legacy.legacy.legacy.legacy.legacy.legacy;
+    let mut snapshot = decode_current(current).room_world_v16().clone();
     let old = &historical.legacy.legacy;
     assert_eq!(
-        snapshot.legacy.legacy.legacy,
-        expected_v14_geometry(old.clone(), geometry, false)
+        snapshot.legacy.legacy,
+        expected_v14_projection(old.clone(), geometry, false)
     );
-    snapshot.legacy.legacy.legacy = old.clone();
-    assert_eq!(snapshot.legacy, historical);
+    snapshot.legacy.legacy = old.clone();
+    assert_eq!(snapshot, historical);
     let mut projected = SAVE_MAGIC.to_vec();
     projected.extend(16u16.to_le_bytes());
-    projected.extend(postcard::to_allocvec(&snapshot.legacy).unwrap());
-    assert_eq!(projected, published, "after checking the explicitly selected geometry expectation, every frozen payload field is unchanged");
+    projected.extend(postcard::to_allocvec(&snapshot).unwrap());
+    assert_eq!(
+        projected, published,
+        "the geometry and catalogue projection reproduces the frozen payload"
+    );
     let mut migrated = SimHandle::from_lot();
     assert!(migrated.load_bytes(published));
     let migrated_bytes = migrated.save_bytes();
-    let adopted = decode_current(&migrated_bytes)
-        .gameplay_v20()
-        .legacy
-        .legacy
-        .legacy
-        .clone();
+    let adopted = decode_current(&migrated_bytes);
     let mut expected_adopted = historical.clone();
-    expected_adopted.legacy.legacy = expected_v14_geometry(old.clone(), geometry, true);
+    expected_adopted.legacy.legacy = expected_v14_projection(old.clone(), geometry, true);
     assert_eq!(
-        adopted.legacy, expected_adopted,
-        "public legacy adoption changes only the reviewed geometry delta"
+        adopted.room_world_v16(),
+        &expected_adopted,
+        "public legacy adoption preserves the payload with the reviewed geometry and catalogue changes"
     );
     let mut resumed = SimHandle::from_lot();
     assert!(resumed.load_bytes(&migrated_bytes));

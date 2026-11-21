@@ -1,3 +1,4 @@
+import {PoolTrialRefusal} from './pool-trial-work.js';
 import {poolAdd as add,poolSubtract as sub,poolMultiply as mul,poolDivide as div,poolNumber as number,type PoolNumber as N} from './pool-arithmetic.js';
 import {vector,identity,plus,minus,scale,dot,cross,point,length,multiply,inverse,transform,properRotation,squareRoot,type M,type V} from './pool-matrix-arithmetic.js';
 
@@ -25,12 +26,17 @@ export function orientedPoolLegMath(input:OrientedLegInput){
   const p=plus(a,direction(localLower,parallel)),q=direction(localLower,cosinePart),r=direction(localLower,sinePart),delta=minus(target,point(world[upper]));
   const A=dot(p,q),B=dot(p,r),D=div(sub(sub(dot(delta,delta),dot(p,p)),dot(cosinePart,cosinePart)),number(2)),radius=add(mul(A,A),mul(B,B)),disc=sub(radius,mul(D,D));
   if(radius.value<=radius.error)throw new Error('Pool leg has an unresolved hinge reach equation.');
-  if(disc.value<=disc.error)throw new Error(disc.value+disc.error<0?'Pool target is outside this oriented hinge reach.':'Pool leg is at an unresolved hinge singularity.');
-  const root=squareRoot(disc),solutions=[1,-1].map(sign=>({
+  if(disc.value+disc.error<0)throw new PoolTrialRefusal('Pool target is outside this oriented hinge reach.');
+  if(disc.value<=disc.error)throw new Error('Pool leg is at an unresolved hinge singularity.');
+  const root=squareRoot(disc),branches=[1,-1].map(sign=>({
     cosine:div(add(mul(A,D),mul(number(sign),mul(B,root))),radius),
     sine:div(sub(mul(B,D),mul(number(sign),mul(A,root))),radius),branch:sign as 1|-1,
-  })).filter(solution=>solution.sine.value>solution.sine.error);
-  if(!solutions.length)throw new Error('Pool target has no source-oriented positive hinge branch.');
+  }));
+  const solutions=branches.filter(solution=>solution.sine.value>solution.sine.error);
+  if(!solutions.length){
+    if(branches.every(s=>s.sine.value+s.sine.error<=0))throw new PoolTrialRefusal('Pool target has no source-oriented positive hinge branch.');
+    throw new Error('Pool target has no source-oriented positive hinge branch.');
+  }
   const sourceCosine=div(sub(add(add(cleanLower[0],cleanLower[5]),cleanLower[10]),number(1)),number(2));
   solutions.sort((left,right)=>Math.abs(left.cosine.value-sourceCosine.value)-Math.abs(right.cosine.value-sourceCosine.value)||right.branch-left.branch);
   const {cosine:c,sine:s,branch}=solutions[0],oneMinus=sub(number(1),c),joint=identity();

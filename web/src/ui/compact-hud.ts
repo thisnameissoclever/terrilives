@@ -84,6 +84,7 @@ export function createCompactHud(document: Document, refreshQueue: () => void, b
   const dock = element('sim-dock');
   const sheet = element('sim-sheet');
   const body = element('sim-dock-body');
+  const content = element('sim-sheet-content');
   const needs = element('needs-panel');
   const needsHost = element('dock-needs');
   const overviewNeeds = element('overview-needs');
@@ -113,6 +114,8 @@ export function createCompactHud(document: Document, refreshQueue: () => void, b
     if (state.panel !== 'traits') element<HTMLDetailsElement>('traits-block').open = false;
     // Opening a formerly hidden queue changes its measured row capacity.
     if (state.panel === 'queue' && previous !== 'queue') refreshQueue();
+    // A tab opens at its top, not where the last tab was scrolled to.
+    if (state.panel !== null && state.panel !== previous) content.scrollTop = 0;
     previous = state.panel;
   });
   for (const button of buttons) {

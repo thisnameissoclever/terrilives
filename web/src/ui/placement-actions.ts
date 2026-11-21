@@ -190,7 +190,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
         buying ? buy.canBuy : furniture.canConfirm, () => { if (buying) buy.buy(); else furniture.confirm(); }, 'confirm', buying ? buy.chosen?.price : undefined),
       action('neutral', 'left', 'Rotate counterclockwise', 'left', canRotate, () => rotate(-1), 'left'),
       action('neutral', 'right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
-      action(buying ? 'negative' : 'destructive', buying ? 'choose' : 'sell', buying ? 'Back to catalogue' : 'Sell',
+      action(buying ? 'negative' : 'destructive', buying ? 'choose' : 'sell', buying ? 'Back to catalog' : 'Sell',
         'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }, undefined, buying ? undefined : furniture.saleValue ?? undefined),
       action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };

@@ -175,7 +175,7 @@ describe('WallTool', () => {
     source.refusals = [0, 12, 0, 12];
     walls.enter();
     walls.choosePoint(1.6, 1.0);
-    expect(walls.status).toBe('No wall on this line. A wall there would cut off the front door.');
+    expect(walls.status).toBe('No wall on this line. A wall there would block access to a doorway.');
     expect(([OPEN, WALL, DOORWAY] as const).map((state) => walls.canApply(state))).toEqual([false, false, true]);
     // [WB-mark]: the line itself is marked, in the refused tint.
     expect(walls.highlight()).toEqual({ tiles: [], valid: false,
@@ -738,7 +738,7 @@ describe('WallToolControls', () => {
     walls.choosePoint(1.6, 1.0);
     view.render();
     expect(element('wall-status').textContent).toBe(walls.status);
-    expect(walls.status).toMatch(/cut off the front door/);
+    expect(walls.status).toMatch(/block access to a doorway/);
   });
 
   it('keeps the optional shortcuts available on desktop and phone', () => {

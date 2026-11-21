@@ -17,7 +17,10 @@ import { LandTool } from '../src/ui/land-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { OrderDiagnostics } from '../src/ui/player-orders.js';
 import { frameElapsedMs } from '../src/frame.js';
+import { CharacterContactRoster } from '../src/render/character/contact-admission.js';
+import { PreparedBuildCommit, type BuildCommitAttempt } from '../src/ui/prepared-build-commit.js';
 import type { BuildReview } from '../src/rooms/codec.js';
+import { AdmissionTestService } from './fixtures/contact-admission-service.js';
 
 const main = readFileSync(process.env.BUILD_MAIN_SOURCE ?? new URL('../src/main.ts', import.meta.url), 'utf8');
 let memory: WebAssembly.Memory;
@@ -43,11 +46,12 @@ function wiring(source: string): string {
     && node.expression.expression.getText(file) === 'landTool.setBlocked');
   if (end < 0) throw Error('Missing complete frame blocking prefix');
   return ts.transpile(`${declaration('replaceBuildLocalState')}\n${declaration('resetSceneBuildFeedback')}\n${declaration('hasRetainedReviewChoices')}\n${declaration('requestRoomReview')}
+    ${declaration('buildPoolPending')}\n${declaration('reflectBuildPoolPending')}\n${declaration('preparedBuildCommit')}\n${declaration('runPreparedBuildCommit')}
     ${declaration('roomsTool')}\n${declaration('finishReview')}\n${declaration('roomReview')}
     ${assignment('hasRetainedReviewChoices')}\n${assignment('requestRoomReview')}
     ${declaration('buildTools')}\n${functionBody('confirmBuildBatch')}\n${declaration('buildExit')}\n${assignment('replaceBuildLocalState')}\n${assignment('toolSwitch')}\n${listener.getText(file)}
     function blockedFrame(nowMs: number, presenting = true) { ${frame.statements.slice(0, end + 1).map(node => node.getText(file)).join('\n')} }
-    return { roomsTool, roomReview, buildTools, buildExit, toolSwitch, confirmBuildBatch, blockedFrame, hasRetainedReviewChoices, requestRoomReview, replaceBuildLocalState };`, { target: ts.ScriptTarget.ES2022 });
+    return { roomsTool, roomReview, buildTools, buildExit, toolSwitch, confirmBuildBatch, blockedFrame, hasRetainedReviewChoices, requestRoomReview, replaceBuildLocalState, runPreparedBuildCommit };`, { target: ts.ScriptTarget.ES2022 });
 }
 
 class Element {
@@ -80,11 +84,15 @@ function fixture(source = main) {
   const buyTool = new BuyTool(sim, 10, 8, { changed }), floorTool = new FloorTool(sim, 10, 8, { changed });
   const landTool = new LandTool(sim, 10, 8, { changed });
   const roomSelection = new RoomSelection(sim);
+  const contactRoster = new CharacterContactRoster(new AdmissionTestService());
+  contactRoster.afterCommands([], 'base');
+  let runPreparedBuildCommit: BuildCommitAttempt;
   let exit: BuildExit;
   let lifecycle = { needsReview: () => false, review: async (_review: BuildReview) => false,
     replaced: (_reason: 'load' | 'cancel' | 'end') => {} };
   const buildSession = new BuildSession(sim, { prepare: () => roomSelection.validate(), settled: () => true, restored() {},
-    needsReview: () => lifecycle.needsReview(), review: review => lifecycle.review(review), replaced: reason => lifecycle.replaced(reason) });
+    needsReview: () => lifecycle.needsReview(), review: review => lifecycle.review(review), replaced: reason => lifecycle.replaced(reason),
+    commit: (token, adopt) => runPreparedBuildCommit(token, adopt) });
   const left = vi.fn();
   const builder = new FurnitureBuilder(sim, overlayPause, { beforeEnter: () => buildSession.begin(), beforeExit: () => exit.gate(), changed, enter() {}, exit: left });
   const buildDraft = { session: buildSession, furniture: builder, tools: [wallTool, roomTool, buyTool, floorTool, landTool], pendingBookCommands: () => 0 };
@@ -102,14 +110,16 @@ function fixture(source = main) {
     previousFrameMs: 0, frameElapsedMs, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
     MAX_TICKS_PER_FRAME: 5, BACKGROUND_MAX_TICKS: 300,
     persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
-    orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false,
+    orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false, PreparedBuildCommit, contactRoster,
     advanceSimulationFrame: () => { sim.flushCommands(); return 0; },
     advanceFrameWithCommandFeedback: (advance: () => number, after: () => void) => { const result = advance(); after(); return result; } };
   const bound = new Function('ctx', `with(ctx) { ${wiring(source)} }`)(context) as {
     roomsTool: RoomsTool; roomReview: RoomReviewController;
     buildTools: (WallTool | RoomsTool | BuyTool | FloorTool | LandTool)[]; buildExit: BuildExit; toolSwitch: BuildToolSwitch; blockedFrame(now: number): void;
-    confirmBuildBatch(): Promise<boolean>; hasRetainedReviewChoices(): boolean; requestRoomReview(review: BuildReview): Promise<boolean>; replaceBuildLocalState(reason: 'load' | 'cancel' | 'end'): void };
+    confirmBuildBatch(): Promise<boolean>; hasRetainedReviewChoices(): boolean; requestRoomReview(review: BuildReview): Promise<boolean>;
+    replaceBuildLocalState(reason: 'load' | 'cancel' | 'end'): void; runPreparedBuildCommit: BuildCommitAttempt };
   exit = bound.buildExit;
+  runPreparedBuildCommit = bound.runPreparedBuildCommit;
   lifecycle = { needsReview: bound.hasRetainedReviewChoices, review: bound.requestRoomReview, replaced: bound.replaceBuildLocalState };
   return { handle, sim, document, canvas, overlayPause, wallTool, roomTool, buyTool, floorTool, landTool, roomSelection, buildSession, buildBatchStatus, builder, left, ...bound,
     key: (key: string, repeat = false) => document.key(canvas, key, repeat), dialog: document.nodes.get('#build-exit-dialog')! };
@@ -388,7 +398,9 @@ it('a genuinely invalid room name keeps a useful refusal in the actual page stat
 
 const faults = [
   ['M1 preventDefault', 'buildExit.pressEscape(event.repeat); event.preventDefault(); return;', 'buildExit.pressEscape(event.repeat); return;', escapeScenario],
-  ['M2 review Back', "if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder);", "routeBuildKey('Escape', buildTools, builder);", reviewEscapeScenario],
+  ['M2 review Back',
+    /if \(roomReview\.active\) roomReview\.back\(\);\r?\n\s*else if \(!preparedBuildCommit\.cancel\(\)\) routeBuildKey\('Escape', buildTools, builder\);/,
+    "if (!preparedBuildCommit.cancel()) routeBuildKey('Escape', buildTools, builder);", reviewEscapeScenario],
   ['M3 Rooms wrapper', '[wallTool, roomsTool, buyTool, floorTool, landTool] as const', '[wallTool, roomTool, buyTool, floorTool, landTool] as const', roomsScenario],
   ['M4 review blocker', "wallTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);", "wallTool.setBlocked(overlayPause.suspendedExcept('builder'));", (source: string) => blockingScenario(source, false, true)],
   ['M5 overlay blocker', "wallTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);", 'wallTool.setBlocked(roomReview.active);', (source: string) => blockingScenario(source, true, false)],

@@ -75,6 +75,18 @@ pub fn drain_commands(world: &mut World) {
                 );
                 continue;
             }
+            if let SimCommand::TalkTo { agent, target, .. }
+                | SimCommand::TalkToFirst { agent, target, .. } = &command
+            {
+                world.insert_resource(crate::player_actions::ConfirmedRecipientOrder {
+                    agent: *agent,
+                    target: *target,
+                });
+                world.resource_mut::<CommandQueue>().push(command);
+                flush_ordinary(world);
+                world.remove_resource::<crate::player_actions::ConfirmedRecipientOrder>();
+                continue;
+            }
             command
         } else {
             command
@@ -230,6 +242,10 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::careers::change_shift(world, agent, shift);
             }
+            SimCommand::GoToWork { agent } => {
+                flush_ordinary(world);
+                crate::careers::go_to_work(world, agent);
+            }
             SimCommand::SetCareerAutonomy { change, search } => {
                 flush_ordinary(world);
                 crate::careers::set_autonomy(world, change, search);
@@ -357,7 +373,7 @@ pub fn drain_commands(world: &mut World) {
     }
 }
 
-fn flush_ordinary(world: &mut World) {
+pub(crate) fn flush_ordinary(world: &mut World) {
     if !world.resource::<CommandQueue>().is_empty() {
         // System::run applies its deferred Commands before returning. A cached
         // registered system would allocate an entity and alter saved identities.

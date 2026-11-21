@@ -22,7 +22,7 @@
 
 3. Long-press or right-click for more actions, including talking to another person.
 
-4. Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.
+4. Queue new orders starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.
 
 5. Use Clear orders to stop the action you gave the selected person and remove their waiting actions.
 
@@ -46,7 +46,7 @@
 
 ## Options & saves
 
-1. Open Options for Light, Sound, Death, Save, Load, Export save, Import save, New game, New housemate, Help and Changelog. Export save downloads your household as a file; Import save loads one, for example on another device. Played at the old web address? See [saves from the old address](home-and-controls/#old-address). Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.
+1. Open Options for Light, Sound, Death, Save, Load, Export save, Import save, New game, New housemate, Help and Changelog. Export save downloads your household as a file; Import save loads one, for example on another device. Played at the old web address? See [saves from the old address](home-and-controls/#old-address). Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue new orders and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.
 
 ## Full player guide
 

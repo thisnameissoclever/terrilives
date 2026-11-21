@@ -1506,7 +1506,7 @@ impl Sim {
     /// Published schema twenty-one retains shift and queued-command ownership.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
+            .map(|snapshot| snapshot.previous.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
@@ -1542,21 +1542,46 @@ impl Sim {
     /// The published household bills projection.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.clone())
+            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
             .unwrap_or_else(|| save::v22::capture(self))
     }
 
     /// The published bills and lingering preference projection.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.clone())
+            .map(|snapshot| snapshot.previous.legacy.clone())
             .unwrap_or_else(|| save::v23::capture(self))
     }
 
-    /// The current save with explicit surfaces, commutes, swimming and baths.
-    pub fn save_snapshot_v25(&self) -> terri_core::SaveSnapshotV25 {
+    /// The current save with Career history, surfaces, commutes, swimming and baths.
+    pub fn save_snapshot_v26(&self) -> terri_core::SaveSnapshotV26 {
         build_transaction::committed(&self.world)
             .cloned()
+            .unwrap_or_else(|| save::v26::capture(self))
+    }
+
+    pub fn load_snapshot_v26(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV26,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v26::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    /// Historical private projection with world state and without Career inputs.
+    pub fn save_snapshot_v25(&self) -> terri_core::SaveSnapshotV25 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| terri_core::SaveSnapshotV25 {
+                previous: snapshot.previous.legacy.clone(),
+                surfaces: snapshot.surfaces.clone(),
+                commutes: snapshot.commutes.clone(),
+                pools: snapshot.pools.clone(),
+                baths: snapshot.baths.clone(),
+            })
             .unwrap_or_else(|| save::v25::capture(self))
     }
 
@@ -1572,6 +1597,26 @@ impl Sim {
         self.adopt_complete_activity_state(candidate)
     }
 
+    pub fn load_snapshot_editable_world_v24(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV24,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v24::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    /// Historical typed projection for inspection and fixtures whose state fits V24.
+    /// Use V26 for current continuation, including world state and exceptional Career sources.
+    pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.clone())
+            .unwrap_or_else(|| save::v24::capture(self))
+    }
+
     pub fn load_snapshot_v24(
         &mut self,
         snapshot: terri_core::SaveSnapshotV24,
@@ -1579,9 +1624,9 @@ impl Sim {
         let candidate = save::v24::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_older_load(&self.world),
+            save::Carried::for_load(&self.world),
         )?;
-        self.adopt_complete_activity_state(candidate)
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v23(
@@ -1918,11 +1963,11 @@ impl Sim {
             world_geometry::admit_legacy_people(&mut restored.world)?;
             world_geometry::revalidate_routes(&mut restored.world);
         }
+        attendance::pin_historical_open_base_pay(&mut restored.world);
         character_draft::ensure_appearance_components(&mut restored.world);
-        // Historical baths select once from the restored simulation stream.
         // The current format already requires a complete current bath continuation.
         if infer_legacy_bath {
-            bath::begin(&mut restored.world);
+            bath::adopt_legacy(&mut restored.world);
         }
         // Restoration attaches activity state in stages; seed interpolation from the final snapshot.
         restored.render_rows.clear();
@@ -4361,6 +4406,46 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// What the Go to work box shows for the person carrying `index` at the
+    /// current tick (`careers::go_to_work_status`), or `None` for anything
+    /// but a living person.
+    pub fn go_to_work_status(&self, index: u32) -> Option<careers::WorkStatus> {
+        let entity = self.person_at(index)?;
+        let now = self.world.get_resource::<terri_core::SimClock>()?.tick;
+        Some(careers::go_to_work_status(&self.world, entity, now))
+    }
+
+    /// The ticks before a shift's start from which Go to work applies: the
+    /// pack's knob, `go_to_work_window_ticks`.
+    pub fn go_to_work_window_ticks(&self) -> u32 {
+        self.world
+            .get_resource::<Content>()
+            .map_or(0, |content| content.0.tuning.go_to_work_window_ticks)
+    }
+
+    /// The weekly score inputs of the person carrying `index`
+    /// (`careers::input_history`); empty without any.
+    pub fn career_input_history(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::input_history(&self.world, entity))
+            .unwrap_or_default()
+    }
+
+    /// The contributing jobs and base pay of exceptional reviewed weeks.
+    pub fn career_input_sources(&self, index: u32) -> Vec<f64> {
+        self.person_at(index)
+            .map(|entity| careers::input_sources(&self.world, entity))
+            .unwrap_or_default()
+    }
+
+    /// The inputs of the last shift scored for the person carrying `index`
+    /// (`careers::last_shift_inputs`); empty before one.
+    pub fn career_last_shift(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::last_shift_inputs(&self.world, entity))
+            .unwrap_or_default()
+    }
+
     /// The factors behind the shift score of the person carrying `index`
     /// (`careers::factors`), or `None` without a job.
     pub fn career_factors(&self, index: u32) -> Option<[f32; 6]> {
@@ -5112,6 +5197,7 @@ impl Sim {
                     ChangeShift { agent, shift } => {
                         vec![39, u64::from(*agent), u64::from(*shift)]
                     }
+                    GoToWork { agent } => vec![40, u64::from(*agent)],
                     ConfirmedOrder {
                         fingerprint,
                         command,
@@ -5606,6 +5692,9 @@ impl Sim {
         // bills, and only while some lift is fading, so every older world
         // hashes as it did.
         presence_fade::hash(&self.world, &mut hasher);
+        // The score inputs the review window reads, only once some are held.
+        careers::hash_inputs(&self.world, &mut hasher);
+        careers::hash_input_sources(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -7773,7 +7862,10 @@ mod determinism_tests {
         // V21 adds explicit base surfaces and commute direction to the digest.
         // Native and release WASM independently measured this encoding change;
         // the published historical control above remains unchanged.
-        const GOLDEN: u64 = 3198367722301137972;
+        // Main's three-quarter need drain changes this scenario's need levels.
+        // On 2026-11-20, native and rebuilt release WebAssembly independently
+        // measured 195701637562556713 after integrating that balance with surfaces.
+        const GOLDEN: u64 = 195701637562556713;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

@@ -123,7 +123,7 @@ export function requirePoolFootContactFrameInstance(frame:PoolFootContactFrame,a
 }
 
 /** A literal free goal may use this plane reference without claiming tangent contact. */
-export function requirePoolFootClearanceReference(frame:PoolFootContactFrame,target:readonly number[],orientation:readonly number[],actualInverse?:readonly number[],actualRig?:Bundle) {
+export function requirePoolFootClearanceReference(frame:PoolFootContactFrame,target:readonly number[],orientation:readonly number[],actualInverse?:readonly number[],actualRig?:Bundle,onNegative?:(reason:Error)=>Error) {
   requirePoolFootContactFrameInstance(frame,actualInverse,actualRig);
   const certificate=certificates.get(frame)!,solid=certificate.fixture.solids.find(solid=>solid.id===frame.surface);
   if(!certificate.rigKey||actualRig&&certificate.rigKey!==rigKey(actualRig))throw new Error('Pool free foot uses a different actual selected rig.');
@@ -132,7 +132,11 @@ export function requirePoolFootClearanceReference(frame:PoolFootContactFrame,tar
   if(orientation.length!==16||orientation.some((value,at)=>value!==frame.orientation[at]))throw new Error('Pool free foot differs from its intended reference rotation.');
   const numerator=sub(mul(number(target[2]),certificate.target.denominator),certificate.target.numerator);
   const comparison=compare(numerator,number(0));
-  if(comparison<0)throw new Error('Pool free foot is below its exact nominal reference plane.');
+  if(comparison<0){
+    const reason=new Error('Pool free foot is below its exact nominal reference plane.');
+    const replacement=onNegative?.(reason);
+    throw replacement instanceof Error?replacement:reason;
+  }
   return Object.freeze({comparison,exactTargetMargin:Object.freeze({numerator:numerator.numerator.toString(),denominator:certificate.target.denominator.numerator.toString(),exponent:numerator.exponent-certificate.target.denominator.exponent}),orientationError:frame.orientationError});
 }
 

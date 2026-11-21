@@ -4,9 +4,9 @@
 
 Choose a name under Household to select that person. Click or tap an object for its default action. Right-click, long-press or use the keyboard action menu to pick a particular action. For a conversation, select the speaker and open the other person's menu.
 
-Queue mode starts on. New instructions join the end of that person's waiting orders. Open Queue from the dock or Sim details to inspect them. On desktop, Ctrl or Cmd while clicking also appends an instruction.
+Queue new orders starts on. New instructions join the end of that person's waiting orders. Open Queue from the dock or Sim details to inspect them. On desktop, Ctrl or Cmd while clicking also appends an instruction.
 
-With Queue mode off, a new instruction goes first. It interrupts the current activity for that instruction while keeping earlier waiting orders after it. It does not empty the queue. Use **Clear orders** in Queue or the object menu to cancel the current player-directed commitment and every waiting order. The object menu shows Clear orders only when that person has player orders to cancel. Closing a menu with Close, Escape or an outside press only dismisses it.
+With Queue new orders off, a new instruction goes first. It interrupts the current activity for that instruction while keeping earlier waiting orders after it. It does not empty the queue. Use **Clear orders** in Queue or the object menu to cancel the current player-directed commitment and every waiting order. The object menu shows Clear orders only when that person has player orders to cancel. Closing a menu with Close, Escape or an outside press only dismisses it.
 
 Your explicit instructions have priority over autonomous choices and critical needs. Ordinary need loss and death remain active. You can interrupt work or delay attendance with a player order; that can reduce pay and performance because shifts retain their scheduled ending time. Do not leave a long queue unattended when basic care is becoming urgent.
 
@@ -50,7 +50,7 @@ In Furniture, select a placed object, choose its destination and turn it with th
 
 Buy lists items with prices and filters. Select an item, point at a destination, rotate as needed and choose Buy. The cost comes from household Funds. Unaffordable items are disabled. Room associations organize the store; they do not restrict where an object can be placed. Beds must stand inside a closed room: Buy and Place refuse a bed on the yard. In Build you may remove a wall or change a room around a bed while you work, but Confirm is refused while the change would leave a bed outside; move the bed into a room or choose Cancel. A bed already outdoors in an older saved game stays there and works.
 
-Choose **Back to catalogue** beside the preview to return to the item cards. The filters, scroll position, highlighted card and other draft edits remain. Choose the card again to resume placement. A blocked Buy shows its current reason beside the button, separately from a completed purchase receipt.
+Choose **Back to catalog** beside the preview to return to the item cards. The filters, scroll position, highlighted card and other draft edits remain. Choose the card again to resume placement. A blocked Buy shows its current reason beside the button, separately from a completed purchase receipt.
 
 An object's type identifies what it is, while the model identifies the particular product. Activate its name to read its optional description. A store listing alone does not promise an activity. Some objects are decorative or have no use action; inspect available actions and the [activity reference](activities/#all-actions).
 
@@ -90,7 +90,7 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 ## Save, Load and New game {#saves}
 
-Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work and queued orders so the household can resume.
+Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work, accepted work trips, queued orders and career reviews, including pending reviews and recorded inputs, so the household can resume.
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 

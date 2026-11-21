@@ -11,7 +11,7 @@ import {POOL_SOLVER_REVISION,POOL_OBSERVER_REVISION,POOL_INTERPOLATION_REVISION,
 function object(value:unknown):Record<string,unknown>{if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid pool preparation record.');return value as Record<string,unknown>;}
 function text(value:unknown):asserts value is string {if(typeof value!=='string'||!value.length||value.length>262144)throw new Error('Invalid pool preparation identity.');}
 function numbers(value:unknown,size:number):asserts value is number[]{if(!Array.isArray(value)||value.length!==size||value.some(n=>typeof n!=='number'||!Number.isFinite(n)))throw new Error('Pool geometry values must be finite.');}
-function rigidBasis(matrix:number[],index:number):void {
+export function rigidBasis(matrix:readonly number[],index:number):void {
   if(matrix[3]!==0||matrix[7]!==0||matrix[11]!==0||matrix[15]!==1)throw new Error('Pool basis must be affine.');
   const axes=[0,1,2].map(column=>matrix.slice(column*4,column*4+3) as unknown as Vec3);
   // This bounds floating-point serialization error, not physical clearance.

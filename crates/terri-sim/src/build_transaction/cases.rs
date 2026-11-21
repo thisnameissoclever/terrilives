@@ -303,9 +303,9 @@ fn approved_inaccessible_house_can_reenter_build_and_be_saved() {
     assert!(!review.access.regions.is_empty());
     sim.commit_build_with_access_ack(review.token).unwrap();
     sim.end_build().unwrap();
-    let saved = sim.save_snapshot_v25();
-    sim.load_snapshot_v25(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v25(), saved);
+    let saved = sim.save_snapshot_v26();
+    sim.load_snapshot_v26(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v26(), saved);
 }
 
 /// Every wall, doorway, opening, window and room the tools accept must

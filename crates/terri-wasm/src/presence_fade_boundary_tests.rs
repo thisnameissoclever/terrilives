@@ -11,10 +11,10 @@ const EVENING: &[u8] =
 const PUBLISHED_V23: &[u8] = include_bytes!("../tests/fixtures/published-v23/day-two.sav");
 
 /// Main's schema-22 saves, which have no place for a fading lift, load
-/// with none, save as schema 25 with an empty list after the same schema-22
-/// payload, load again without change and go on identically.
+/// with none, preserve bills and shifts in the current envelope, load again
+/// without change and go on identically.
 #[test]
-fn main_schema_twenty_two_saves_load_with_no_fade_and_save_as_twenty_five() {
+fn main_schema_twenty_two_saves_load_with_no_fade_and_save_current() {
     for (name, bytes) in [("noon", NOON), ("evening", EVENING)] {
         assert_eq!(&bytes[8..10], &22u16.to_le_bytes(), "{name}");
         let (original, tail) =
@@ -34,11 +34,12 @@ fn main_schema_twenty_two_saves_load_with_no_fade_and_save_as_twenty_five() {
         let current = migrated.save_bytes();
         assert_eq!(&current[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes(), "{name}");
         let saved = decode_current(&current);
-        assert!(saved.previous.presence_fade.is_empty(), "{name}");
-        assert_eq!(saved.previous.legacy.bills, original.bills, "{name}");
-        assert_eq!(saved.previous.legacy.legacy.shifts, original.legacy.shifts, "{name}");
+        assert!(saved.previous.career_inputs.is_empty(), "{name}");
+        assert!(saved.previous.legacy.presence_fade.is_empty(), "{name}");
+        assert_eq!(saved.previous.legacy.legacy.bills, original.bills, "{name}");
+        assert_eq!(saved.previous.legacy.legacy.legacy.shifts, original.legacy.shifts, "{name}");
         assert_eq!(
-            saved.previous.legacy.legacy.queued_shift_commands,
+            saved.previous.legacy.legacy.legacy.queued_shift_commands,
             original.legacy.queued_shift_commands,
             "{name}"
         );
@@ -101,10 +102,10 @@ fn authentic_published_twenty_three_keeps_bills_wages_and_fade() {
     assert_eq!(handle.sim_tick(), 1441);
     let current = handle.save_bytes();
     let snapshot = decode_current(&current);
-    assert_eq!(snapshot.previous.legacy.bills, original.legacy.bills);
-    assert_eq!(snapshot.previous.presence_fade, original.presence_fade);
+    assert_eq!(snapshot.previous.legacy.legacy.bills, original.legacy.bills);
+    assert_eq!(snapshot.previous.legacy.presence_fade, original.presence_fade);
     let before = &original.legacy.legacy;
-    let after = &snapshot.previous.legacy.legacy;
+    let after = &snapshot.previous.legacy.legacy.legacy;
     assert_eq!(after.shifts, before.shifts);
     assert_eq!(after.queued_shift_commands, before.queued_shift_commands);
     let before = &before.legacy.legacy.legacy.legacy;
@@ -140,7 +141,7 @@ fn current_schema_carries_the_fades_and_refuses_bad_rows() {
     assert_eq!(&bytes[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes());
     let saved = decode_current(&bytes);
     let rows: Vec<(u32, &str, u64)> = saved
-        .previous
+        .previous.legacy
         .presence_fade
         .iter()
         .map(|row| (row.sim, row.kind.as_str(), row.end_tick))
@@ -176,7 +177,7 @@ fn current_schema_carries_the_fades_and_refuses_bad_rows() {
         |rows| rows.push(rows[0].clone()),
     ] {
         let mut bad = saved.clone();
-        edit(&mut bad.previous.presence_fade);
+        edit(&mut bad.previous.legacy.presence_fade);
         let mut payload = SAVE_MAGIC.to_vec();
         payload.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
         payload.extend(postcard::to_allocvec(&bad).unwrap());
@@ -235,7 +236,7 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
     assert!(end > saved_at + 1, "the row is aging, with time left");
     let bytes = original.save_bytes();
     assert!(decode_current(&bytes)
-        .previous
+        .previous.legacy
         .presence_fade
         .iter()
         .any(|row| row.sim == person.0 && row.end_tick == end));

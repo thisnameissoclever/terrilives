@@ -1,4 +1,13 @@
+import type {PlantedStep} from './pool-planted-step.js';
+import {openingAt,openingSegments,requireSelectedPoolRecipe,openingPolicy,requireOpeningDefinition,type PoolOpeningRequest,type OpeningFlight,type ExteriorToe,type ParsedOpening} from './pool-opening-flight.js';
+import {requirePoolRailContactFrame} from './pool-rail-contact-frame.js';
+import {parseNumericStages,type ParsedNumericStages} from './pool-numeric-stages.js';
+import {prepareOwnedPoolMeshPlan,type PoolOwnedPartPlan} from './pool-mesh-planning.js';
+export type {PoolOwnedPartPlan} from './pool-mesh-planning.js';
 import type {Bundle,Geometry} from './bundle.js';
+import {selectNumericPoolAnchors,expandSelectedPoolRecipes,validateNumericKnot,type NumericRecipe,type NumericStageRequest} from './pool-numeric-recipe.js';
+import {poolReplaySchedule,type PoolReplayJob} from './pool-replay-schedule.js';
+import {PoolTrialReceipts,PoolTrialRefusal,PoolTrialStopped,PoolTrialWork,type PoolTrialLimits} from './pool-trial-work.js';
 import type {ShapeParameters} from './shape.js';
 import type {PoolFixtureV1,PoolContactInputV1,PoolContactArtifactV1,PoolPreparedTrack,PoolPreparedInterval,PoolIntervalObservation,PoolArithmeticContactRecord,PoolLimb} from './pool-contact-types.js';
 import {POOL_SOLVER_REVISION,POOL_OBSERVER_REVISION,POOL_INTERPOLATION_REVISION} from './pool-contact-types.js';
@@ -6,7 +15,7 @@ import {PoolCycleSource,validatePoolCycleDefinition,type PoolCycleDefinition,typ
 import {poolIntervalProgramControls,type PoolPoseProgram} from './pool-pose-program.js';
 import {poolIntervalPreference,interpolatePoolPoseProgram,poolSkinMatrices} from './pool-contact-sample.js';
 import {resolvePoolLimbState,evaluatePoolLimb} from './pool-contact-evaluator.js';
-import {requirePoolFootClearanceReference,type PoolFootContactFrame} from './pool-foot-contact-frame.js';
+import {requirePoolFootClearanceReference,requirePoolFootContactFrame,type PoolFootContactFrame} from './pool-foot-contact-frame.js';
 import {solvePoolOrientedFoot,observeConstructedPoolLeg} from './pool-oriented-leg.js';
 import {solvePoolFreeLeg,observeConstructedPoolFreeLeg} from './pool-free-leg.js';
 import {solveCertifiedPoolRail} from './pool-rail-construction-arithmetic.js';
@@ -22,7 +31,7 @@ import {canonicalPoolValue,poolPartKey,poolShapeIdentity} from './pool-contact-i
 import {validatePoolContactArtifact,validatePoolContactInput,validatePoolFixture} from './pool-contact-protocol.js';
 import type {PoolRailContactFrame} from './pool-rail-contact-frame.js';
 import type {PreparedPoolPatch} from './pool-contact-patch.js';
-import type {Vec3} from './math.js';
+import {sub,length,type Vec3} from './math.js';
 
 import {poolCycleCoverage,type PoolCycleDiagnostic} from './pool-cycle-compiler.js';
 import {restoreErrorDetails,serializeErrorDetails} from '../../diagnostics/error-details.js';
@@ -93,41 +102,19 @@ function copyInputs<T>(root:T,counters:PoolOwnedCompilationCounters):T {
  return copy(root) as T;
 }
 
-function validateMesh(geometry:Geometry,bundle:Bundle):void {
- const {vertexCount,indexCount,cageCount,coefficientCount}=geometry.description;
- if(![vertexCount,indexCount,cageCount,coefficientCount].every(count=>Number.isSafeInteger(count)&&count>0)
-   ||!(geometry.vertices instanceof Float32Array)||!(geometry.cage instanceof Float32Array)||!(geometry.stencilWeights instanceof ArrayBuffer)
-   ||![geometry.indices,geometry.stencilRanges,geometry.normalRanges,geometry.normalTriangles].every(view=>view instanceof Uint32Array)
-   ||geometry.vertices.length!==vertexCount*16||geometry.indices.length!==indexCount||geometry.cage.length!==cageCount*16
-   ||geometry.stencilRanges.length!==vertexCount*4||geometry.stencilWeights.byteLength!==coefficientCount*8
-   ||geometry.normalRanges.length!==vertexCount*2||geometry.normalTriangles.length!==indexCount
-   ||geometry.vertices.some(value=>!Number.isFinite(value))||geometry.cage.some(value=>!Number.isFinite(value))
-   ||geometry.indices.some(vertex=>vertex>=vertexCount))throw new Error('Pool capture has invalid selected mesh buffers.');
- for(let at=0;at<geometry.cage.length;at+=16){
-  if(geometry.cage[at+15]===10)continue;
-  for(let slot=0;slot<4;slot++){
-   const bone=geometry.cage[at+6+slot];
-   if(!Number.isInteger(bone)||bone<0||bone>=bundle.bones.length)throw new Error('Pool capture cage references a missing skin matrix.');
-  }
- }
- const ids=new Uint32Array(geometry.stencilWeights),weights=new Float32Array(geometry.stencilWeights);
- for(let at=0;at<ids.length;at+=2)if(ids[at]>=cageCount||!Number.isFinite(weights[at+1]))throw new Error('Pool capture has invalid stencil coefficients.');
- for(let vertex=0;vertex<vertexCount;vertex++){
-  const at=vertex*4,start=geometry.stencilRanges[at],count=geometry.stencilRanges[at+1];
-  if(!count||count>256||start+count>coefficientCount||geometry.stencilRanges[at+2]>=cageCount)throw new Error('Pool capture has an invalid stencil row.');
- }
-}
-
-export interface PoolOwnedPartPlan {
- readonly name:string;readonly start:number;readonly count:number;
- readonly indices:readonly number[];readonly vertices:readonly number[];
- readonly legacy:Readonly<Record<PoolLimb,readonly number[]>>;
-}
 interface ObservationOwner {readonly identity:object;readonly rows:readonly PoolSurfaceInput[];readonly replay:PoolHierarchy;observation?:PoolObservation}
 const staticOwners=new WeakMap<object,PoolOwnedCompilation>();
 
 class PoolOwnedCompilation {
  readonly identity=Object.freeze({});
+ readonly parsedStages?:ParsedNumericStages;
+ readonly numericJobs?:readonly PoolReplayJob[];
+ private numericReceipts?:PoolTrialReceipts;
+ private disposed=false;
+ issueNumericReceipts():PoolTrialReceipts {
+  if(this.disposed)throw new Error('Pool receipt owner has been disposed.');
+  return this.numericReceipts??=new PoolTrialReceipts(this.identity);
+ }
  readonly counters:PoolOwnedCompilationCounters={copiedBytes:0,exactCoefficientBuilds:0,roundedCoefficientBuilds:0,topologyTriangles:0,dependencyPlans:0,arithmeticRuns:0,fullBufferChecks:0,
   tailForwardPolicies:0,tailForwardEvaluations:0,tailReversePolicies:0,tailReverseEvaluations:0,tailComparisons:0};
  readonly captured;
@@ -141,42 +128,46 @@ class PoolOwnedCompilation {
  inverse?:readonly (readonly number[])[];
  active?:ObservationOwner;
 
- constructor(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition){
-  this.captured=copyInputs({input,sources,definition},this.counters);
+ constructor(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition,extras?:{numericRequest?:PoolNumericSliceRequest;numericRecipe?:NumericRecipe;numericSelection?:NumericRecipe;numericPlants?:readonly PlantedStep[];numericOpening?:ParsedOpening},work?:PoolTrialWork,onScheduled?:(jobs:readonly PoolReplayJob[])=>void){
+  this.captured=copyInputs({input,sources,definition,...extras},this.counters);
   const captured=this.captured.sources,{bundle,shape,top,geometry,fixture}=captured;
-  validatePoolContactInput(this.captured.input);validatePoolCycleDefinition(this.captured.definition);validatePoolFixture(fixture);
+  validatePoolContactInput(this.captured.input);validatePoolCycleDefinition(this.captured.definition);
+  validatePoolContactInput(this.captured.input);validatePoolCycleDefinition(this.captured.definition);
+  validatePoolFixture(fixture);
+  const def=this.captured.definition;
+  if(this.captured.numericRecipe)for(const knot of this.captured.numericRecipe.knots){
+   validateNumericKnot(knot,def.clockUnits,def.hand.outsideBranch);
+   for(const limb of ['footL','footR'] as const){
+    const foot=knot.feet[limb];if(!('flight' in foot))continue;
+    const bound=openingAt(this.captured.numericOpening,knot.unit);
+    if(!bound||canonicalPoolValue(bound.flight)!==canonicalPoolValue(foot.flight)||!bound.units.includes(knot.unit)||knot.unit<=bound.flight.startUnit||knot.unit>=bound.flight.endUnit||limb!==bound.flight.limb)
+     throw new Error('Numerical flight is not bound to the selected source transfer.');
+   }
+  }
+  if(this.captured.numericRecipe){
+   if(!this.captured.numericSelection)throw new Error('No independent numeric selection.');
+   requireSelectedPoolRecipe(this.captured.numericRecipe,this.captured.numericSelection,this.captured.numericOpening,this.captured.numericPlants,work);
+  }
+  if(this.captured.numericRequest){
+   if(!work)throw new Error('Numeric pool stages require a preparation budget.');
+   this.parsedStages=parseNumericStages(this.captured.numericRequest.stages,def,fixture,work,this.captured.numericRequest.opening);
+   this.numericJobs=selectNumericJobs(fixture,def,this.captured.numericRequest,this.parsedStages.opening);
+   onScheduled?.(this.numericJobs);
+  }
   const appearance=this.captured.input.appearance;
   if(!Number.isFinite(top)||top<=0||poolShapeIdentity(shape,top)!==poolShapeIdentity({presentation:appearance.presentation,...appearance.body,face:appearance.face},top))throw new Error('Pool capture shape differs from the requested appearance.');
   if(geometry.length!==2)throw new Error('Pool capture requires the complete selected body and swimwear.');
-  for(const mesh of geometry){validateMesh(mesh,bundle);this.parts.set(mesh,this.planParts(mesh));}
+  for(const mesh of geometry){
+   work?.reserve('plan selected pool mesh',{expansions:1});
+   this.parts.set(mesh,prepareOwnedPoolMeshPlan(mesh,bundle,this.counters));
+  }
   this.physicalKey=canonicalPoolValue({ground:fixture.ground,solids:fixture.solids,revisions:fixture.revisions});
   for(const rig of new Set([bundle,...geometry.map(mesh=>mesh.manifest)]))this.rigKeys.set(rig,canonicalPoolValue({sourceSha256:rig.sourceSha256,bones:rig.bones}));
   for(const value of [bundle,shape,fixture,...geometry,...geometry.map(mesh=>mesh.manifest)])this.own(value);
  }
 
- private planParts(geometry:Geometry):readonly PoolOwnedPartPlan[] {
-  const bones=POOL_LIMBS.map(limb=>geometry.manifest.bones.findIndex(bone=>bone.name===limb.slice(0,-1)+'.'+limb.at(-1)));
-  const vertexOwnership=new Uint8Array(geometry.description.vertexCount);
-  for(let vertex=0;vertex<vertexOwnership.length;vertex++)bones.forEach((bone,limb)=>{
-   let weight=0;
-   for(let slot=0;slot<4;slot++)if(geometry.vertices[vertex*16+6+slot]===bone)weight+=geometry.vertices[vertex*16+10+slot];
-   if(weight>=.99)vertexOwnership[vertex]|=1<<limb;
-  });
-  return Object.freeze(geometry.description.parts.map(({name,start,count})=>{
-   if(!Number.isInteger(start)||!Number.isInteger(count)||start<0||count<0||count%3||start+count>geometry.indices.length)throw new Error('Pool observation has an invalid selected triangle range.');
-   const indices=Object.freeze(Array.from(geometry.indices.subarray(start,start+count))),vertices=Object.freeze([...new Set(indices)]);
-   const offsets=POOL_LIMBS.map(()=>[] as number[]);
-   for(let at=0;at<count;at+=3){
-    const mask=vertexOwnership[indices[at]]&vertexOwnership[indices[at+1]]&vertexOwnership[indices[at+2]];
-    offsets.forEach((selected,limb)=>{if(mask&(1<<limb))selected.push(at);});
-   }
-   this.counters.topologyTriangles+=count/3;
-   const legacy=Object.freeze(Object.fromEntries(POOL_LIMBS.map((limb,index)=>[limb,Object.freeze(offsets[index])])) as Record<PoolLimb,readonly number[]>);
-   return Object.freeze({name,start,count,indices,vertices,legacy});
-  }));
- }
-
  configure(source:PoolCycleSource):void {
+  if(this.rest||this.inverse)throw new Error('Pool compilation already has an active source.');
   source.geometry.forEach((geometry,index)=>{const cage=source.cages[index];this.cages.set(geometry,cage);this.own(cage);});
   sealMatrices(source.neutral.rest);sealMatrices(source.neutral.inverse);
   this.rest=source.neutral.rest;this.inverse=source.neutral.inverse;
@@ -187,6 +178,7 @@ class PoolOwnedCompilation {
 
  private own(member:object):void {staticOwners.set(member,this);this.members.add(member);}
  dispose():void {
+  this.disposed=true;this.numericReceipts?.revoke();
   this.active=undefined;
   for(const member of this.members)staticOwners.delete(member);
   this.members.clear();
@@ -263,6 +255,240 @@ export function compileOwnedPoolCycle(input:PoolContactInputV1,sources:PoolCycle
 
 export function compileRawPoolCycle(input:PoolContactInputV1,bundle:Bundle,shape:ShapeParameters,top:number,geometry:readonly Geometry[],fixture:PoolFixtureV1,definition:PoolCycleDefinition,diagnostic?:Diagnostic):PoolContactArtifactV1 {
  return compileCycle(input,bundle,shape,top,geometry,fixture,definition,diagnostic);
+}
+
+export interface PoolNumericSliceRequest {
+  readonly stages:readonly NumericStageRequest[];readonly opening?:PoolOpeningRequest;readonly operationIds?:readonly string[];readonly entryRange?:readonly [number,number];
+}
+export interface PoolNumericTrialEvent {kind:'prepared-endpoints'|'released-endpoints'|'captured'|'disposed'|'proposed'|'unavailable'|'observed'|'refused';attempt:number;id?:string}
+function selectNumericJobs(fixture:PoolFixtureV1,definition:PoolCycleDefinition,wanted:PoolNumericSliceRequest,opening?:ParsedOpening):readonly PoolReplayJob[] {
+ if('sourceUnits' in wanted)throw new Error('Additional pool cuts must be bound to actual numerical recipe knots.');
+ const toe=opening?.next?.outgoingToe;
+ const cuts=[...(toe?[{unit:toe.firstUnit},{unit:toe.secondUnit}]:[]),...wanted.stages,...openingSegments(opening).flatMap(s=>s.units.map(unit=>({unit})))];
+ const schedule=poolReplaySchedule(fixture,definition,cuts);
+ if((wanted.entryRange===undefined)===(wanted.operationIds===undefined))throw new Error('Choose a numeric entry range or individual operations.');
+ let jobs:readonly PoolReplayJob[];
+ if(wanted.entryRange!==undefined){
+  const [lo,hi]=wanted.entryRange;
+  if(wanted.entryRange.length!==2||!schedule.entryUnits.includes(lo)||!schedule.entryUnits.includes(hi)||lo>hi)throw new Error('Unknown numeric entry window.');
+  jobs=schedule.jobs.filter(j=>j.action==='pool_enter'&&Number(j.left.slice(6))>=lo&&Number(j.right.slice(6))<=hi);
+ }else{
+  const requested=new Set(wanted.operationIds);
+  jobs=schedule.jobs.filter(j=>requested.has(j.id));
+  if(jobs.length!==requested.size||requested.size!==wanted.operationIds!.length)throw new Error('Numeric slice contains an unknown or duplicate operation.');
+ }
+ const sharedPaddleRef='entry/'+definition.clockUnits;
+ const stationaryBridge=(j:PoolReplayJob)=>j.action==='pool_exit_0'&&j.left===sharedPaddleRef&&j.right===sharedPaddleRef&&j.kind!=='reverse';
+ if(!jobs.length||jobs.some(j=>(j.action!=='pool_enter'&&!stationaryBridge(j))||j.kind==='reverse'))throw new Error('Unsupported numeric slice operation.');
+ const declared=new Set(cuts.map(s=>'entry/'+s.unit));
+ if(jobs.some(j=>!stationaryBridge(j)&&(!declared.has(j.left)||!declared.has(j.right))))throw new Error('Numeric slice lacks a declared incident knot.');
+ return jobs;
+}
+
+type SliceRejection={attempt:number;reason:string;cause?:unknown};
+export type PoolNumericSliceResult=
+  |{kind:'admitted-slice';recipe:NumericRecipe;completed:string[];openingSamples?:{job:string;phase:number;hips:Vec3;leftAnkle:Vec3;rightAnkle:Vec3;leftWrist:Vec3;rightWrist:Vec3}[];maintained:{job:string;limb:PoolFoot;branch:number}[];rejected:SliceRejection[];published:false}
+  |{kind:'no-candidate';rejected:SliceRejection[];published:false}
+  |{kind:'cancelled'|'exhausted';reason:string;details:unknown;published:false};
+
+/** Derive the maintained branch from this owner's actual selected endpoint foot frames, independently of authored path caches. */
+function numericEndpointBranches(source:PoolCycleSource,node:PoolPoseProgram,phase:number,work:PoolTrialWork):Map<PoolFoot,number>{
+ work.reserve('prepare selected endpoint hierarchy',{expansions:1});
+ const record=poolSourceRecord(source.fixture,{action:'pool_enter',phase}),branches=new Map<PoolFoot,number>();
+ const posed=poolIntervalPreference(source.bundle,source.neutral.rest,source.neutral.inverse,node.preferenceBasis,node.preferenceBasis,0,true);
+ for(const limb of ['footL','footR'] as const)if(node.policy[limb].required){
+  work.reserve('derive selected endpoint hinge '+limb,{expansions:1});
+  const a=source.anatomy[limb],control=node.controls.find(c=>c.end===a.end);
+  if(!control||control.legFrame!=='source-entry-0')throw new Error('Pool numerical endpoint has no maintained leg control.');
+  const frame=source.frame(limb,record.limbs[limb],[control.state.target[0],control.state.target[1]]);
+  const hinge=solvePoolOrientedFoot(posed,a.upper,a.lower,a.end,frame);
+  branches.set(limb,observeConstructedPoolLeg(posed,frame,hinge).branch);
+ }
+ return branches;
+}
+
+function authenticateOpeningSample(source:PoolCycleSource,left:PoolPoseProgram,right:PoolPoseProgram,t:number,location:PoolSourceLocation,
+ flight:OpeningFlight,work:PoolTrialWork,toe?:ExteriorToe):void {
+ requireOpeningDefinition(flight,source.definition);
+ const support=openingPolicy(flight,source.fixture,source.definition,location.phase,toe),policy=poolSourcePolicy(source.fixture,location.action,location.phase);
+ work.reserve('authenticate opening control frames',{expansions:1});
+ const {bundle,neutral,fixture,geometry,cages}=source;
+ const pose=poolIntervalPreference(bundle,neutral.rest,neutral.inverse,left.preferenceBasis,right.preferenceBasis,t,true);
+ const reaches:{limb:PoolLimb;distance:number;minimum:number;maximum:number}[]=[];
+ let approach:{frame:PoolFootContactFrame;target:Vec3;orientation:readonly number[];end:number}|undefined;
+ const controls=poolIntervalProgramControls(left,right),seen=new Set<PoolLimb>();
+ if(controls.length!==4)throw new Error('Opening replay requires four distinct limb controls.');
+ for(const c of controls){
+  const limb=bundle.bones[c.end].name.replace('.','') as PoolLimb,a=source.anatomy[limb],s=support[limb];
+  if(!a||seen.has(limb)||a.upper!==c.upper||a.lower!==c.lower||a.end!==c.end||!same(c.anchor,[0,0,0,1]))throw new Error('Opening replay has invalid control ownership.');
+  seen.add(limb);
+  const patch=source.patch(limb,s),resolved=resolvePoolLimbState(c,t,location),state=resolved.state;
+  if(limb==='footL'||limb==='footR'){
+   if(c.legFrame!=='source-entry-0')throw new Error('Opening foot lost its configured hinge.');
+   if(policy[limb].required||s.mode==='approach'){
+    const f=source.frame(limb,s,[state.target[0],state.target[1]]);
+    requirePoolFootContactFrame(f,fixture,geometry[0],cages[0],patch,neutral.inverse[a.end],s,bundle);
+    if(!same(f.orientation,state.orientation))throw new Error('Opening foot changed its contact rotation.');
+    if(policy[limb].required){if(!same(f.translation,state.target))throw new Error('Opening support target differs from its actual frame.');}
+    else {
+     if(!same(c.from.orientation,c.to.orientation))throw new Error('Opening approach changes its configured reference rotation.');
+     approach={frame:f,target:state.target,orientation:state.orientation,end:a.end};
+    }
+   }
+  }else{
+   if(!resolved.railFrame)throw new Error('Opening wrist lacks its required actual attachment.');
+   requirePoolRailContactFrame(resolved.railFrame,fixture,geometry[0],cages[0],patch,neutral.inverse[a.end],s);
+  }
+  const reach=configuredPoolChainReach(neutral.rest,a.upper,a.lower,a.end);
+  const distance=length(sub(state.target,point(pose.world[a.upper])));
+  if(!Number.isFinite(distance))throw new Error('Invalid opening reach calculation.');
+  reaches.push({limb,distance,minimum:reach.minimum,maximum:reach.maximum});
+ }
+ // Only classify geometric refusals after every control has authenticated the current fixture/owner/phase.
+ if(approach)requirePoolFootClearanceReference(approach.frame,approach.target,approach.orientation,neutral.inverse[approach.end],bundle,
+  reason=>new PoolTrialRefusal(reason.message,{cause:reason}));
+ for(const r of reaches)if(r.distance<=r.minimum||r.distance>=r.maximum)
+  throw new PoolTrialRefusal('Opening limb is outside configured reach: '+r.limb,{cause:{...r,...location}});
+}
+
+/** Exercise the real captured dataset and observer for specified entry schedule operations. This entry point never publishes a graph. */
+export function verifyOwnedPoolNumericSlice(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition,request:PoolNumericSliceRequest,
+ limits:PoolTrialLimits,options:{signal?:AbortSignal;event?:(event:PoolNumericTrialEvent)=>void;now?:()=>number}={}):PoolNumericSliceResult {
+ let inCallback=false;
+ const callExternal=<T>(callback:()=>T):T=>{
+  try{return callback();}
+  catch(error){inCallback=true;throw error;}
+ };
+ const clock=options.now;
+ const work=new PoolTrialWork(limits,options.signal,clock?()=>callExternal(clock):undefined);
+ const emit=(event:PoolNumericTrialEvent)=>{
+  if(options.event)callExternal(()=>options.event!(event));
+ };
+ const typed=(error:unknown):error is PoolTrialRefusal=>!inCallback&&error instanceof PoolTrialRefusal;
+ const rejected:SliceRejection[]=[];
+ let pending:Set<string>|undefined,required:readonly string[]|undefined;
+ try{
+  work.reserve('capture numeric proposal inputs',{captures:1});
+  const factory=new PoolOwnedCompilation(input,sources,definition,{numericRequest:request},work,jobs=>{
+   required=jobs.map(j=>j.id);pending=new Set(required);
+  }),stable=factory.captured;
+  const prepared=(()=>{
+   try{
+    if(stable.definition.version!==16)throw new Error('The numerical pool slice requires v16.');
+    const fixture=stable.sources.fixture,jobs=factory.numericJobs!;
+    work.reserve('configure proposal rig',{expansions:1});
+    const {bundle,shape,top,geometry}=stable.sources,source=new PoolCycleSource(bundle,shape,top,geometry,fixture,stable.definition,work);
+    factory.configure(source);emit({kind:'captured',attempt:0});
+    return {jobs,geometry:source.captureParsedNumericExterior(factory.parsedStages!,work),opening:factory.parsedStages!.opening};
+   }catch(error){if(!typed(error))throw error;rejected.push({attempt:0,reason:error.message,cause:error.cause});return undefined;}
+   finally{factory.dispose();}
+  })();
+  emit({kind:'disposed',attempt:0});
+  if(prepared){
+   let attempt=0;
+   for(const selected of selectNumericPoolAnchors(prepared.geometry,work)){
+    if(selected.kind==='unavailable'){rejected.push({attempt:0,reason:selected.reason,cause:{unit:selected.unit}});emit({kind:'unavailable',attempt:0});continue;}
+    const plants:PlantedStep[]=[];
+    if(prepared.opening?.next){
+     work.reserve('capture selected planted endpoint owner',{captures:1});
+     const preparation=new PoolOwnedCompilation(stable.input,stable.sources,stable.definition,undefined,work);
+     try{
+      const {sources,definition}=preparation.captured,{bundle,shape,top,geometry,fixture}=sources;
+      work.reserve('configure selected endpoint source',{expansions:1});
+      const src=new PoolCycleSource(bundle,shape,top,geometry,fixture,definition,work);
+      preparation.configure(src);
+      for(const segment of openingSegments(prepared.opening))plants.push(src.preparePlantedStep(segment,selected.recipe.knots,work));
+      emit({kind:'prepared-endpoints',attempt:attempt+1});
+     }catch(error){
+      if(!typed(error))throw error;
+      rejected.push({attempt:0,reason:error.message,cause:error.cause});emit({kind:'unavailable',attempt:0});continue;
+     }finally{preparation.dispose();emit({kind:'released-endpoints',attempt:attempt+1});}
+    }
+    if(plants.length)work.reserve('isolate the planted input to expansion',{expansions:1});
+    const expansionPlants=plants.length?structuredClone(plants):plants;
+    for(const proposal of expandSelectedPoolRecipes(prepared.geometry,work,selected.recipe,expansionPlants)){
+    attempt++;pending=new Set(prepared.jobs.map(j=>j.id));emit({kind:'proposed',attempt});
+    work.reserve('capture complete candidate '+attempt,{captures:1});
+    const owner=new PoolOwnedCompilation(stable.input,stable.sources,stable.definition,{numericRecipe:proposal.recipe,numericSelection:selected.recipe,numericPlants:plants,...(prepared.opening?{numericOpening:prepared.opening}:{})},work);
+    const result=(()=>{
+     try{
+      const captured=owner.captured,{bundle,shape,top,geometry,fixture}=captured.sources;
+      work.reserve('configure trial source',{expansions:1});
+      const source=new PoolCycleSource(bundle,shape,top,geometry,fixture,captured.definition,work);
+      owner.configure(source);emit({kind:'captured',attempt});
+      const receipts=owner.issueNumericReceipts();
+      const nodes=new Map<string,{program:PoolPoseProgram;phase:number;branches?:Map<PoolFoot,number>}>();
+      for(const knot of captured.numericRecipe!.knots){
+       work.reserve('materialize '+knot.ref,{expansions:1});
+       nodes.set(knot.ref,{program:source.materializeNumericKnot(knot,knot.unit===prepared.opening?.next?.flight.endUnit),phase:knot.unit/captured.definition.clockUnits});
+      }
+      const toe=prepared.opening?.next?.outgoingToe;
+      if(toe){
+       const start=nodes.get('entry/'+toe.startUnit)!.program;
+       for(const unit of [toe.firstUnit,toe.secondUnit])nodes.set('entry/'+unit,{program:source.materializeExteriorToe(start,toe,unit,work),phase:unit/captured.definition.clockUnits});
+      }
+      if(prepared.jobs.some(j=>j.action==='pool_exit_0')){
+       work.reserve('materialize existing common paddle/bridge endpoint',{expansions:1});
+       const program=source.paddle(0);
+       if(program!==source.entry(1)||program!==source.paddle(1))throw new Error('Pool stationary bridge no longer shares its actual paddle join.');
+       nodes.set('entry/'+captured.definition.clockUnits,{program,phase:1});
+      }
+      const maintained:{job:string;limb:PoolFoot;branch:number}[]=[];
+      const openingSamples:{job:string;phase:number;hips:Vec3;leftAnkle:Vec3;rightAnkle:Vec3;leftWrist:Vec3;rightWrist:Vec3}[]=[];
+      const observed:{job:PoolReplayJob;left:PoolPoseProgram;right:PoolPoseProgram;measurement:CompactObservation}[]=[];
+      for(const job of prepared.jobs){
+       const a=nodes.get(job.left)!,b=nodes.get(job.right)!;
+       a.branches??=numericEndpointBranches(source,a.program,a.phase,work);
+       b.branches??=numericEndpointBranches(source,b.program,b.phase,work);
+       work.reserve('physical operation '+job.id,{observations:1});
+       try{
+        const location={action:job.action,phase:job.phase},opening=openingSegments(prepared.opening).find(s=>job.phase>=s.flight.startUnit/source.definition.clockUnits&&job.phase<=s.flight.endUnit/source.definition.clockUnits)?.flight;
+        const flight=opening&&location.action==='pool_enter'&&job.phase>=opening.startUnit/source.definition.clockUnits&&job.phase<=opening.endUnit/source.definition.clockUnits?opening:undefined;
+        if(flight)authenticateOpeningSample(source,a.program,b.program,job.fraction,location,flight,work,toe);
+        const value=observe(source,a.program,b.program,job.fraction,location,owner);
+        if(!value.passed)throw new PoolTrialRefusal('Physical refusal at '+job.id,{cause:structuredClone({
+         witnesses:value.unresolved,supports:value.supports,knees:value.knees,phase:job.phase,
+        })});
+        for(const [limb,branch] of a.branches){
+         const end=b.branches.get(limb);
+         if(end===undefined||a.program.policy[limb].surface!==b.program.policy[limb].surface)continue;
+         const actual=value.knees.find(k=>k.side===limb.at(-1));
+         if(end!==branch||!actual?.admitted||actual.branch!==branch)throw new PoolTrialRefusal('Maintained '+limb+' hinge changed at '+job.id);
+         maintained.push({job:job.id,limb,branch});
+        }
+        if(flight){
+         const at=(i:number)=>point(value.pose.world[i]),anatomy=source.anatomy;
+         openingSamples.push({job:job.id,phase:job.phase,hips:at(bundle.bones.findIndex(b=>b.name==='hips')),leftAnkle:at(anatomy.footL.end),
+          rightAnkle:at(anatomy.footR.end),leftWrist:at(anatomy.handL.end),rightWrist:at(anatomy.handR.end)});
+        }
+        const measurement=compactObservation(value);
+        receipt(measurement,job.fraction);
+        observed.push({job,left:a.program,right:b.program,measurement:receipts.issue(measurement,job,a.program,b.program)});
+       }finally{owner.active=undefined;}
+       pending!.delete(job.id);emit({kind:'observed',attempt,id:job.id});
+      }
+      for(const o of observed)receipts.require(o.measurement,o.job,o.left,o.right);
+      return {completed:observed.map(o=>o.job.id),maintained,...(prepared.opening?{openingSamples}:{})};
+     }catch(error){if(!typed(error))throw error;rejected.push({attempt,reason:error.message,cause:error.cause});return undefined;}
+     finally{owner.dispose();}
+    })();
+    emit({kind:'disposed',attempt});
+    if(result){
+     work.reserve('prepare completed diagnostic');
+     const report:PoolNumericSliceResult={kind:'admitted-slice',recipe:structuredClone(proposal.recipe),...result,rejected,published:false};
+     work.reserve('return completed diagnostic');return report;
+    }
+    pending=new Set(required);emit({kind:'refused',attempt});
+    }
+   }
+  }
+  work.reserve('return exhausted candidate set');
+  return {kind:'no-candidate',rejected,published:false};
+ }catch(error){
+  if(inCallback||!(error instanceof PoolTrialStopped))throw error;
+  return {kind:error.outcome,reason:error.message,details:{reservation:error.cause,unfinished:pending?[...pending]:null,
+   scheduleCaptured:pending!==undefined,requiredForNewOwner:required??null,completionPublished:false},published:false};
+ }
 }
 
 const point=(m:readonly number[]):Vec3=>[m[12],m[13],m[14]];

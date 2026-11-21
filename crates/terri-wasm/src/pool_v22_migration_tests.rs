@@ -59,9 +59,13 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
             handle.load_bytes(bytes),
             "unchanged historical control must load: {name}"
         );
-        let actual = CurrentV5View(handle.sim.save_snapshot_v25());
-        let mut expected = CurrentV5View(terri_core::SaveSnapshotV25 {
-            previous: terri_core::SaveSnapshotV23 {
+        let actual = CurrentV5View(handle.sim.save_snapshot_v26());
+        let mut expected = CurrentV5View(terri_core::SaveSnapshotV26 {
+            previous: terri_core::SaveSnapshotV24 {
+              career_inputs: vec![],
+              queued_work_commands: vec![],
+              replaced_shifts: vec![],
+              legacy: terri_core::SaveSnapshotV23 {
               legacy: terri_core::SaveSnapshotV22 {
                 legacy: terri_core::SaveSnapshotV21 {
                 legacy: source.previous.previous.clone(),
@@ -77,10 +81,14 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
               },
               presence_fade: vec![],
             },
+            },
             surfaces: source.previous.surfaces.clone(),
             commutes: source.previous.commutes.clone(),
             pools: source.pools.clone(),
             baths: vec![],
+            manual_work_trips: vec![],
+            open_shift_base_pay: vec![],
+            career_input_sources: vec![],
         });
         for row in &mut expected.0.pools {
             let migrated = actual
@@ -189,7 +197,7 @@ fn private_bath_saves_keep_their_exact_toy_and_progress() {
     )
     .unwrap();
     assert!(tail.is_empty());
-    let (old24, tail) = postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(
+    let (old24, tail) = postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV24>(
         &v24[SAVE_HEADER_BYTES..],
     )
     .unwrap();

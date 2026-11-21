@@ -8,7 +8,7 @@ use terri_sim::{Content, Sim};
 use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
-    let snapshot = sim.save_snapshot_v25();
+    let snapshot = sim.save_snapshot_v26();
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -182,7 +182,7 @@ fn main() {
             for _ in 0..100 {
                 sim.tick();
                 if sim
-                    .save_snapshot_v25()
+                    .save_snapshot_v26()
                     .pools
                     .iter()
                     .any(|p| p.actor == actor.index_u32() && p.phase == 1)
@@ -190,7 +190,7 @@ fn main() {
                     break;
                 }
             }
-            let baseline = sim.save_snapshot_v25();
+            let baseline = sim.save_snapshot_v26();
             let prefix = format!("pool-f{}-{presentation}-{preset}", facing.code());
             for (label, ticks, cancel) in [
                 ("entry", 0, false),
@@ -207,7 +207,7 @@ fn main() {
                 {
                     continue;
                 }
-                sim.load_snapshot_v25(baseline.clone()).unwrap();
+                sim.load_snapshot_v26(baseline.clone()).unwrap();
                 for _ in 0..ticks {
                     sim.tick();
                 }
@@ -284,7 +284,7 @@ fn main() {
             .get::<terri_core::Eating>(actor)
             .expect("ordinary bath begins")
             .remaining_ticks;
-        let snapshot = sim.save_snapshot_v25();
+        let snapshot = sim.save_snapshot_v26();
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());

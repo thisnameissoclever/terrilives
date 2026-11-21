@@ -1,4 +1,4 @@
-//! Current continuation adds editable world and activity state to published saves.
+//! Frozen private continuation adds world and activity state to published V23.
 use crate::save_editable_v22::SavedPoolEpisode;
 use crate::save_editable_v23::SavedBathEpisode;
 use crate::{SaveSnapshotV23, WorldSurfaces};

@@ -1,4 +1,4 @@
-//! Current saves compose published shifts and explicit world/activity continuation.
+//! Frozen private saves combine published V23 with explicit world and activity state.
 use crate::{SaveError, Sim};
 use super::ordinary_world::{self, CommuteEndpoints};
 use terri_core::{SaveSnapshotV25, WorldSurfaces};
@@ -6,16 +6,6 @@ use terri_core::{SaveSnapshotV25, WorldSurfaces};
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV25 {
     SaveSnapshotV25 {
         previous: super::v23::capture(sim),
-        surfaces: sim.world().resource::<WorldSurfaces>().clone(),
-        commutes: super::ordinary_world::commutes(sim.world()),
-        pools: crate::pool::capture(sim.world()),
-        baths: crate::bath::capture(sim.world()),
-    }
-}
-
-pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV25 {
-    SaveSnapshotV25 {
-        previous: super::v23::capture_without_commands(sim),
         surfaces: sim.world().resource::<WorldSurfaces>().clone(),
         commutes: super::ordinary_world::commutes(sim.world()),
         pools: crate::pool::capture(sim.world()),

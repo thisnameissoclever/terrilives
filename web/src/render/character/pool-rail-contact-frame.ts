@@ -1,3 +1,4 @@
+import {PoolTrialRefusal} from './pool-trial-work.js';
 import type {Geometry} from './bundle.js';
 import type {PreparedPoolPatch} from './pool-contact-patch.js';
 import type {PoolFixtureV1,PoolSupport} from './pool-contact-types.js';
@@ -163,7 +164,9 @@ export function resolvePoolRailContactFrame(data:PoolPreparedRailGeometry,orient
   const rotated=(c:PoolDyadic[],axis:number)=>add(add(mul(rotation.numerators[axis],c[0]),mul(rotation.numerators[4+axis],c[1])),mul(rotation.numerators[8+axis],c[2]));
   const ratios=coefficients.map(c=>({numerator:sub(mul(number(planeX),rotation.denominator),rotated(c,0)),denominator:mul(c[3],rotation.denominator)}));
   let active=0;for(let index=1;index<vertices.length;index++)if(side*poolRatioCompare(ratios[index],ratios[active])>0)active=index;
-  const activeVertex=vertices[active];if(requiredActiveVertex!==undefined&&activeVertex!==requiredActiveVertex)throw new Error('Pool attached path has an unresolved active-extremum transition.');if(!patchVertices.has(activeVertex))throw new Error('Complete palm extremum is outside the unchanged required patch.');
+  const activeVertex=vertices[active];
+  if(requiredActiveVertex!==undefined&&!patchVertices.has(requiredActiveVertex))throw new Error('Pool attached path has an unresolved active-extremum transition.');
+  if(requiredActiveVertex!==undefined&&activeVertex!==requiredActiveVertex)throw new PoolTrialRefusal('Pool attached path has an unresolved active-extremum transition.');if(!patchVertices.has(activeVertex))throw new PoolTrialRefusal('Complete palm extremum is outside the unchanged required patch.');
   const activeCoefficient=coefficients[active],targets=edgePoint.map((point,axis)=>({numerator:sub(mul(point,rotation.denominator),rotated(activeCoefficient,axis)),denominator:mul(activeCoefficient[3],rotation.denominator)}));
   for(const c of coefficients){const t=targets[0],denominator=mul(rotation.denominator,t.denominator),gap=sub(add(mul(rotated(c,0),t.denominator),mul(mul(c[3],t.numerator),rotation.denominator)),mul(number(planeX),denominator));
     if(side*compare(gap,number(0))<0)throw new Error('Complete palm leaves its exact rail supporting half-space.');

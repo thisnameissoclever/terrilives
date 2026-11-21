@@ -53,7 +53,7 @@ fn toilet_projects_all_facings_without_changing_positions_or_saves() {
         let (user, fixture) = active_toilet(&mut sim, turn);
         let before_position = *sim.world().get::<Position>(user).unwrap();
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot_v25();
+        let before_save = sim.save_snapshot_v26();
         sim.sync_render_buffer();
         assert_eq!(
             projection_of(sim.render_buffer(), user),
@@ -75,10 +75,10 @@ fn toilet_projects_all_facings_without_changing_positions_or_saves() {
         );
         assert_eq!(*sim.world().get::<Position>(user).unwrap(), before_position);
         assert_eq!(sim.world_hash(), before_hash);
-        assert_eq!(sim.save_snapshot_v25(), before_save);
+        assert_eq!(sim.save_snapshot_v26(), before_save);
         let mut loaded = Sim::new_with_lot(1, 1);
-        loaded.load_snapshot_v25(before_save.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v25(), before_save);
+        loaded.load_snapshot_v26(before_save.clone()).unwrap();
+        assert_eq!(loaded.save_snapshot_v26(), before_save);
         assert_eq!(loaded.world_hash(), before_hash);
         assert_eq!(
             projection_of(loaded.render_buffer(), user),

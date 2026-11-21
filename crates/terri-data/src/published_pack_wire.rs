@@ -622,6 +622,8 @@ impl From<PublishedTuning> for Tuning {
             work_bladder_relief_threshold: Tuning::PRE_LATENESS_WORK_BLADDER_RELIEF_THRESHOLD,
             affinity_presence_fade_points_per_hour:
                 Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
+            go_to_work_window_ticks: Tuning::SHIPPED_GO_TO_WORK_WINDOW_TICKS,
+            career_input_history_weeks: Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -1184,6 +1186,29 @@ fn a_published_pack_reconstructs_the_shipped_presence_fade() {
     assert_eq!(
         old.tuning.affinity_presence_fade_points_per_hour,
         crate::pack().tuning.affinity_presence_fade_points_per_hour
+    );
+}
+
+/// Issues 311 and 317: an authentic published pack rebuilds the shipped Go
+/// to work window and input history, so a world loaded from one behaves as
+/// the content ships.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_career_tab_knobs() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(old.tuning.go_to_work_window_ticks, 120);
+    assert_eq!(old.tuning.career_input_history_weeks, 52);
+    let shipped = crate::pack();
+    assert_eq!(
+        old.tuning.go_to_work_window_ticks,
+        shipped.tuning.go_to_work_window_ticks
+    );
+    assert_eq!(
+        old.tuning.career_input_history_weeks,
+        shipped.tuning.career_input_history_weeks
     );
 }
 

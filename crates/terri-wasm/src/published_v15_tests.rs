@@ -202,9 +202,9 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let original = decode(bytes);
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
-        let migrated = decode_current(&source.save_bytes())
-            .room_world_v16()
-            .clone();
+        let current = source.save_bytes();
+        let snapshot = decode_current(&current);
+        let migrated = snapshot.room_world_v16();
         let mut expected_requests = original.conversation_requests.clone();
         if name == "chat-talking-later-identical" {
             use terri_core::save_v15::{
@@ -248,17 +248,37 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
             "{name} pending input"
         );
         assert_eq!(
+            six(&migrated.legacy).legacy.world.tick,
+            six(&original).legacy.world.tick,
+            "{name} saved clock"
+        );
+        assert_eq!(
             six(&migrated.legacy).legacy.world.rng,
             six(&original).legacy.world.rng,
             "{name} primary RNG"
         );
+        if name == "chat-waiting-private" {
+            use terri_core::save_editable_v23::SavedBathEpisode;
+
+            assert_eq!(
+                snapshot.baths,
+                [SavedBathEpisode {
+                    actor: 35,
+                    tub: 31,
+                    interaction: 0,
+                    toy: 2,
+                    total: 54,
+                    elapsed: 0,
+                }],
+                "the fixture's active bath receives a toy and retains its remaining time"
+            );
+        }
         if let (Some(old), Some(current)) = (
             &six(&original).legacy.chores,
             &six(&migrated.legacy).legacy.chores,
         ) {
             assert_eq!(current.rng, old.rng, "{name} chore RNG");
         }
-        let current = source.save_bytes();
         let mut resumed = SimHandle::from_lot();
         assert!(
             resumed.load_bytes(&current),

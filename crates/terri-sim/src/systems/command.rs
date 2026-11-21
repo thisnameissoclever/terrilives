@@ -131,6 +131,7 @@ impl Placement {
             | SimCommand::QuitCareer { .. }
             | SimCommand::AssignCareerShift { .. }
             | SimCommand::ChangeShift { .. }
+            | SimCommand::GoToWork { .. }
             | SimCommand::SetCareerAutonomy { .. }
             | SimCommand::SetJobSearch { .. }
             | SimCommand::SetCareerChange { .. }
@@ -594,6 +595,7 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::QuitCareer { .. }
             | SimCommand::AssignCareerShift { .. }
             | SimCommand::ChangeShift { .. }
+            | SimCommand::GoToWork { .. }
             | SimCommand::SetCareerAutonomy { .. }
             | SimCommand::SetJobSearch { .. }
             | SimCommand::SetCareerChange { .. } => {

@@ -1456,7 +1456,9 @@ describe('SimBridge', () => {
     // V21 hashes saved base surfaces and commute direction. The independent
     // native and release WASM measurements agree on this encoding change.
     // Main's three-quarter need drain changes the scenario's need levels.
-    expect(bridge.worldHash()).toBe(3198367722301137972n);
+    // Independently measured on native and rebuilt release WebAssembly on
+    // 2026-11-20 after integrating that balance with saved world surfaces.
+    expect(bridge.worldHash()).toBe(195701637562556713n);
   });
 
   // ---- Player commands -------------------------------------------------

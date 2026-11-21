@@ -459,9 +459,9 @@ fn floor_book_claims_require_a_position_and_a_housemate_identity() {
         let incomplete = idle_housemate(&mut sim, (book_tile.x, book_tile.y));
         if remove_identity {
             sim.world_mut().entity_mut(incomplete).remove::<SimId>();
-            let saved = sim.save_snapshot_v25();
-            sim.load_snapshot_v25(saved.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v25(), saved);
+            let saved = sim.save_snapshot_v26();
+            sim.load_snapshot_v26(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v26(), saved);
         } else {
             sim.world_mut().entity_mut(incomplete).remove::<Position>();
         }

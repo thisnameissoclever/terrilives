@@ -981,12 +981,12 @@ fn issue314_actual_privacy_incident_permits_a_neutral_person_to_fight() {
 fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order() {
     let (mut sim, offended, _) = issue314_privacy_household(1.);
     crate::fights::provoke(sim.world_mut());
-    let saved = sim.save_snapshot_v25();
+    let saved = sim.save_snapshot_v26();
     let context = saved.conflicts.fights[0].clone();
     assert!(context.autonomous && context.grievance.is_some() && context.order_id.is_some());
     let hash = sim.world_hash();
-    sim.load_snapshot_v25(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v25().conflicts.fights[0], context);
+    sim.load_snapshot_v26(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v26().conflicts.fights[0], context);
     assert_eq!(sim.world_hash(), hash);
     let order = sim
         .world()
@@ -997,7 +997,7 @@ fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order
     assert_eq!(context.order_id, Some(order));
     let mut missing = saved;
     missing.conflicts.fights.clear();
-    assert!(sim.load_snapshot_v25(missing).is_err());
+    assert!(sim.load_snapshot_v26(missing).is_err());
 }
 
 #[test]
@@ -1473,15 +1473,15 @@ fn interpersonal_saved_starts_and_entries_replay_without_recharging_on_load() {
         } else {
             start(&mut sim, b, furniture);
         }
-        let before = sim.save_snapshot_v25();
+        let before = sim.save_snapshot_v26();
         movement(&mut sim);
         let after_hash = sim.world_hash();
-        let after = sim.save_snapshot_v25();
-        sim.load_snapshot_v25(before)
+        let after = sim.save_snapshot_v26();
+        sim.load_snapshot_v26(before)
             .expect("pre-event save must load");
         movement(&mut sim);
         assert_eq!(sim.world_hash(), after_hash, "event must replay exactly");
-        sim.load_snapshot_v25(after)
+        sim.load_snapshot_v26(after)
             .expect("post-event save must load");
         assert_eq!(
             sim.world_hash(),

@@ -1,5 +1,33 @@
 # Lessons Learned
 
+## [L-close-preview-tabs-before-deadline] Finish browser cleanup before the preview server stops
+
+1. What happened: a timed local preview ended during a later navigation. The browser displayed an internal error page whose URL prevented its automation adapter from navigating, closing the tab or resetting the viewport.
+2. Root cause: unrelated analysis extended the session past the preview deadline, and cleanup depended on a working page.
+3. Prevention: wait for the server's new readiness record and a successful local HTTP response before opening its page. A running source-capture wrapper can still be preparing inputs. Complete each bounded browser flow before resuming other work. Close task-owned tabs and reset viewport overrides while the server is available, then stop the server. Keep the server deadline as a backstop and leave time for cleanup.
+4. Verification: confirm an empty task-tab inventory, successful viewport reset and the owned server's completed stop receipt. If the adapter blocks cleanup, preserve completed evidence and use a dedicated question for the minimum manual action; do not send input to another active chat's desktop window.
+
+## [L-parse-generated-drivers-before-heavy-capture] Validate a generated driver before preparing expensive inputs
+
+1. What happened: two local geometry drivers failed before measuring anything, first on a Windows backslash literal and later on a duplicate top-level variable.
+2. Root cause: source fragments were assembled without parsing the final script. The expensive input-capture step ran before the syntax error became visible.
+3. Prevention: prefer complete files over nested string assembly, use path APIs, and give imported setup variables distinct names. Parse the complete driver without executing it, then run a small bounded native syntax check before the geometry job. Check imported helper names against their actual exports.
+4. Verification: deliberately malformed quoting and duplicate declarations must fail the small check before any geometry work starts. A syntax pass establishes syntax only; retain separate receipts for actual measurements.
+
+## [L-motion-routes-require-connected-controls] Select motion paths through the runtime interpolator
+
+1. What happened: several pool-climb revisions produced individually clear poses whose connecting motion crossed a rail or exceeded a limb's reach.
+2. Root cause: the authoring probe kept the first clear pose at each time and checked connections afterward. It also positioned a free wrist relative to the shoulder while playback interpolated that target in world coordinates. Simultaneous hand and foot progress removed otherwise permitted alternatives.
+3. Prevention: keep a bounded set of candidate poses and admit their connecting edges through the actual evaluator before advancing. Use one support schedule, retain literal seam controls and reconstruct their physical ownership. Count unsuccessful candidates and edges against the total search budget.
+4. Verification: reject the known colliding interval even though both endpoints pass. Check the complete source, reverse exits and interrupted playback through normal preparation and binding. Sampled clearance does not establish clearance between samples; watch the final motion in the game at its actual pace.
+
+## [L-loading-progress-belongs-to-current-phase] Clear download progress when preparation starts
+
+1. What happened: the startup cover showed two spinners and retained a completed download count while preparing character graphics.
+2. Root cause: a second spinner was added beside an existing one, and phase changes cleared file progress without hiding byte progress.
+3. Prevention: inspect the complete loading cover before adding an indicator. Scope visible progress to the current operation; preserve cumulative transfer totals for subsequent downloads.
+4. Verification: advance from a download to preparation and require the byte counter to disappear, then supply another download chunk and require the cumulative count to return. Inspect the rendered cover for a single spinner.
+
 ## [L-frame-code-allocation-has-four-sources] Profile frame code for repeated setup, rebuilt surfaces, shared helpers and retained per-actor maps
 
 1. What happened: the 3D character renderer allocated 0.75 to 1.2 MB a frame for a three-person household and 8 to 11 MB a frame at stress 50, and a stress 50 page held 937 MB of JavaScript heap. Profiles named small vector helpers, and the [V11] rule against per-entity objects had no check on the character code.
@@ -13927,3 +13955,41 @@ A shell exit or process identifier does not establish exporter completion. Do no
 2. Root cause: reference checks and numeric measurements shared one function. Invalid limb names and sparse facet lists failed during measurement instead of explicit validation.
 3. Prevention: trace both report consumers and failures before removing expensive work. Retain the input checks at the observation boundary and leave the public report available to its actual callers.
 4. Verification: make malformed active contacts and facet lists fail at the existing observation stage. Require the same physical and support decisions for valid inputs, and compare the complete prepared result before claiming a speed improvement.
+
+## [L-activity-origin] An absent order does not identify who chose an activity
+
+1. What happened: a queue caption called every activity without a player-order ID the Sim's choice. Manual Career commands and mandatory cleanup after cancellation can also lack that ID.
+2. Root cause: the interface inferred a cause from an absent tracking field.
+3. Prevention: label only what the data establishes. Use a neutral activity label unless the simulation supplies an explicit origin.
+4. Verification: check autonomous activity, manual work, and cancellation cleanup against the caption and clearing controls.
+
+## [L-phase-authoring-contract] Validate all authored controls before geometric search
+
+1. What happened: successive numeric guards still allowed a contradictory free-hand command or wrong foot placement to become an unavailable pose, hiding the invalid instruction behind a later valid candidate.
+2. Root cause: scalar parsing, phase policy and geometry were checked at different stages. An earlier reach failure prevented the semantic check from running.
+3. Prevention: parse the complete detached request against captured motion and fixture policy before geometry preparation. Return explicit normalized commands. Keep geometric unreachability distinct from malformed authoring data.
+4. Verification: place an invalid choice after an admissible one and require zero geometry or trial starts. Contrast the same unreachable free goal in a phase that requires contact and a phase that permits release. Preserve real boundary, ownership and cancellation controls.
+
+## [L-historical-pay-provenance] Preserve unknown source data instead of guessing it
+
+1. What happened: historical night-shift cents could represent either a premium-bearing lower base or a migrated unpremiummed higher base. Recalculating a sparse current default after a raise could also lose its original meaning.
+2. Root cause: the saved payout did not always encode its original base, and the decoder treated a load-time default as a future lookup.
+3. Prevention: capture known source data at registration and pin implicit current-schema defaults at load. Use actual migration and schedule evidence for old formats; retain explicit unknown data where multiple histories remain possible. Preserve authoritative payout cents.
+4. Verification: exercise migration, future registration, resaved ambiguity, a same-job raise after reload, and schedules with identical hours but different pay kinds. Compare payout, inputs, serialization and hashes.
+
+## [L-sidebar-navigation-needs-remaining-height] Keep navigation outside a scrolling drawer visible
+
+**What happened.** At a 720-pixel desktop height, the Build drawer pushed the bottom of Player guide below the viewport.
+
+**Root cause.** The drawer subtracted a fixed allowance from viewport height. The actual household summary, Options and guide rows needed more room.
+
+**Prevention.** Bound the entire sidebar to the viewport and let the drawer shrink after the other rows take their actual height. Keep the drawer's sticky footer and internal scrolling intact.
+
+**Verification.** Inspect the smallest supported desktop height with Build open. Measure every navigation control against the viewport, then check the phone layout separately. At 1280 by 720, the repaired guide button ends at 712 pixels.
+
+## [L-legacy-derived-activity-rng] Preserve the saved random stream when adding activity state
+
+1. What happened: importing an active bath from an original V15 save moved the household's primary random stream forward before the first tick.
+2. Root cause: migration initialized the missing toy through the same live random draw used when a new bath begins during play.
+3. Prevention: derive missing activity state in stable actor order using a temporary copy of the restored stream. Save the result with the original activity owner and remaining time. Keep ordinary starts on the live stream.
+4. Verification: use an authentic fixture already in the activity. Require exact clock, random stream, request and order identity, and an exact migrated activity record. Reload the current save and compare its state across subsequent ticks. Exercise ordinary starts and malformed current activity records separately.

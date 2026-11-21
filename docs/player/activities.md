@@ -94,7 +94,7 @@ Select a person, open a pool's [object menu](ui-elements/#object-menu), and choo
 
 Only paddling supplies Fun and Comfort and costs Energy. Walking to the ladder, climbing in and climbing out supply none of those action effects. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
 
-To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue mode off](home-and-controls/#orders) before giving the new instruction. The person gets out safely before the next activity starts.
+To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue new orders off](home-and-controls/#orders) before giving the new instruction. The person gets out safely before the next activity starts.
 
 Benefits and costs already delivered remain. Save and Load preserve the current phase and progress.
 

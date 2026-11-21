@@ -129,9 +129,9 @@ fn facing_roundtrip_keeps_explicit_turn_and_rotated_socket() {
         expected.0[0].facing,
         terri_data::CompiledSocketFacing::PositiveY
     );
-    let snapshot = sim.save_snapshot_v25();
+    let snapshot = sim.save_snapshot_v26();
     let mut restored = test_content::sim_with(16, 16, pack);
-    restored.load_snapshot_v25(snapshot).unwrap();
+    restored.load_snapshot_v26(snapshot).unwrap();
     assert_eq!(
         restored.world().get::<ObjectFacing>(entity),
         Some(&ObjectFacing(Facing::SouthWest))
@@ -144,7 +144,7 @@ fn facing_roundtrip_keeps_explicit_turn_and_rotated_socket() {
         sim.tick();
         restored.tick();
     }
-    assert_eq!(sim.save_snapshot_v25(), restored.save_snapshot_v25());
+    assert_eq!(sim.save_snapshot_v26(), restored.save_snapshot_v26());
 }
 
 #[test]

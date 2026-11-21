@@ -332,9 +332,9 @@ mod tests {
         );
         assert_eq!(sim.funds(), 130 * 100, "the completed shift pays once");
 
-        let snapshot = sim.save_snapshot_v25();
+        let snapshot = sim.save_snapshot_v26();
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot_v25(snapshot), Ok(()));
+        assert_eq!(restored.load_snapshot_v26(snapshot), Ok(()));
         assert_eq!(restored.funds(), 130 * 100);
 
         for _ in 0..20 {
@@ -1612,7 +1612,7 @@ mod tests {
         );
         assert!(shift.settled && !shift.legacy);
         assert_eq!(
-            crate::attendance::validate_saved(source.world(), &snapshot.attendance),
+            crate::attendance::validate_saved(source.world(), &snapshot.attendance, true),
             Ok(())
         );
         let mut restored = test_content::sim_with_portals(16, 12, pack);

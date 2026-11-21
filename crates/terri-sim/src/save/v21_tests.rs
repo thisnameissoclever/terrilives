@@ -532,7 +532,7 @@ fn a_build_transaction_keeps_the_held_shift() {
     assert!(before.iter().any(|shift| *shift != 0));
     sim.begin_build().expect("build starts");
     assert_eq!(
-        sim.save_snapshot_v25().previous.legacy.legacy.shifts.held.len(),
+        sim.save_snapshot_v26().previous.legacy.legacy.legacy.shifts.held.len(),
         before.iter().filter(|s| **s != 0).count()
     );
     sim.cancel_build().expect("cancel restores the baseline");
@@ -585,19 +585,19 @@ fn late_worker_with_a_deferred_departure() -> Sim {
 #[test]
 fn a_deferred_departure_on_a_held_shift_survives_a_save() {
     let sim = late_worker_with_a_deferred_departure();
-    let saved = sim.save_snapshot_v25();
+    let saved = sim.save_snapshot_v26();
     let mut loaded = Sim::new_from_shipped_lot();
-    assert_eq!(loaded.load_snapshot_v25(saved.clone()), Ok(()));
-    assert_eq!(loaded.save_snapshot_v25(), saved);
+    assert_eq!(loaded.load_snapshot_v26(saved.clone()), Ok(()));
+    assert_eq!(loaded.save_snapshot_v26(), saved);
 }
 
 #[test]
 fn a_deferred_departure_on_a_held_shift_survives_build_mode() {
     let mut sim = late_worker_with_a_deferred_departure();
-    let before = sim.save_snapshot_v25();
+    let before = sim.save_snapshot_v26();
     sim.begin_build().expect("build starts");
     sim.cancel_build().expect("cancel restores the baseline");
-    assert_eq!(sim.save_snapshot_v25(), before);
+    assert_eq!(sim.save_snapshot_v26(), before);
 }
 
 /// The owner's ruling of 2026-10-23: the day of a shift change is part of
@@ -634,9 +634,9 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         Some(None),
         "the change applies at home"
     );
-    let saved = sim.save_snapshot_v25();
+    let saved = sim.save_snapshot_v26();
     assert_eq!(
-        saved.previous.legacy.legacy.shifts.changed_today,
+        saved.previous.legacy.legacy.legacy.shifts.changed_today,
         vec![terri_core::save_v21::SavedShiftChange {
             sim: id.0,
             day: 0,
@@ -645,24 +645,24 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         "the schedule held when the day began runs for the rest of it"
     );
     let mut loaded = Sim::new_from_shipped_lot();
-    assert_eq!(loaded.load_snapshot_v25(saved.clone()), Ok(()));
+    assert_eq!(loaded.load_snapshot_v26(saved.clone()), Ok(()));
     assert_eq!(loaded.world_hash(), sim.world_hash());
-    assert_eq!(loaded.save_snapshot_v25(), saved);
+    assert_eq!(loaded.save_snapshot_v26(), saved);
 
     let mut unknown = saved.clone();
-    unknown.previous.legacy.legacy.shifts.changed_today[0].from = "no_such_shift".to_string();
+    unknown.previous.legacy.legacy.legacy.shifts.changed_today[0].from = "no_such_shift".to_string();
     assert_eq!(
-        Sim::new_from_shipped_lot().load_snapshot_v25(unknown),
+        Sim::new_from_shipped_lot().load_snapshot_v26(unknown),
         Err(crate::SaveError::InvalidValue),
         "a shift the level does not list refuses to load"
     );
 
     let mut other_day = saved.clone();
-    other_day.previous.legacy.legacy.shifts.changed_today[0].day = 1;
+    other_day.previous.legacy.legacy.legacy.shifts.changed_today[0].day = 1;
     let mut refused = Sim::new_from_shipped_lot();
     let untouched = refused.world_hash();
     assert_eq!(
-        refused.load_snapshot_v25(other_day),
+        refused.load_snapshot_v26(other_day),
         Err(crate::SaveError::InvalidValue)
     );
     assert_eq!(
@@ -674,7 +674,7 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     // The change is what made the hash move: the same world with the day
     // forgotten hashes as a world without a change today would.
     let mut forgotten = Sim::new_from_shipped_lot();
-    forgotten.load_snapshot_v25(saved).expect("loads");
+    forgotten.load_snapshot_v26(saved).expect("loads");
     forgotten
         .world_mut()
         .resource_mut::<Careers>()
@@ -687,5 +687,5 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     for _ in 0..1440 {
         sim.tick();
     }
-    assert!(sim.save_snapshot_v25().previous.legacy.legacy.shifts.changed_today.is_empty());
+    assert!(sim.save_snapshot_v26().previous.legacy.legacy.legacy.shifts.changed_today.is_empty());
 }

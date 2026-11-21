@@ -86,7 +86,7 @@ Relationships create their own nearby mood effects. Compatibility is based on in
 
 The Career tab separates job performance from job satisfaction. Traits, social capacity, relevant skill and mood contribute to a shift's performance. A person can perform well at a job they dislike. Weekly reviews can bring raises, promotions, demotions, warnings or eventual dismissal.
 
-Recent career events and an enjoyable or miserable job can add moodlets. The career graph shows reviewed weeks; a pending week is not a completed review. [Career controls](ui-elements/#career) show how to assign a path, quit or change that person's automatic job-search setting.
+Recent career events and an enjoyable or miserable job can add moodlets. The career graph shows reviewed weeks; a pending week is not a completed review. The [review window](ui-elements/#career-review-window) shows the same weeks larger, with the score inputs behind each one. [Career controls](ui-elements/#career) show how to assign a path, quit or change that person's automatic job-search setting.
 
 ## Coming soon: creative pastimes {#coming-soon}
 

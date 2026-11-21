@@ -469,10 +469,63 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. Both measured on its branch with
 /// the log off and on giving the same worlds.
-/// Editable world state adds explicit surfaces and travel to the hash.
-/// Critical-only need penalties and workplace care also change this run.
-/// Native and current Wasm measured this fold independently on 2026-10-25;
-/// native log-on/off world and random-stream comparisons still agree.
+/// Issue 298 (wages and bills) then moved it from 0xa0fb_785a_e3a4_7b1d on
+/// purpose: pay is 1.5 times what it was, a night shift pays 15 percent
+/// more, a new household starts with $400, and the household bills record
+/// joins the hash once a day is counted. Measured on its branch after
+/// merging 053ee52d3; with the old wages, no premium, no starting funds and
+/// the bills system and its hash switched off, the branch gave
+/// 0xa0fb_785a_e3a4_7b1d again.
+/// Issue 344 (presence never lowers mood) then moved it from
+/// 0xb953_34a8_9aca_0e2c, on top of issue 298's change, on purpose: a person
+/// no longer reads `Bothered by the plants here`. Of the three shipped
+/// housemates only Bill holds a plant value at or below -0.2 (-0.35;
+/// nobody's aquarium value is negative), so he is the only person who loses
+/// a penalty. His mood first differs from the old rule's at tick index 410
+/// (about 06:50 on Monday), when he first stands in a room with a plant, and
+/// the world hash first differs at tick index 718 (about 12:00 on Monday),
+/// when a choice scored from that mood first goes the other way. Measured
+/// on the tree that combines both changes, with the log off and on giving the
+/// same worlds, and with the old presence rule restored behind a temporary
+/// switch and then removed.
+/// Issue 315 then moved it from 0x06a6_5d89_3df7_7287, which main at 54cf96b46
+/// gave with the wages, the bills and the presence rule above, on purpose:
+/// every base need drain rate is three quarters of what it was, so needs
+/// cross their thresholds at different ticks and the household's choices
+/// differ from the first morning. The log emitters are unchanged. Measured on
+/// the tree that merges main at 54cf96b46 into the drain change, read from
+/// the failing assertion, which compares the world with the log on against
+/// this pin.
+/// Issue 315's fill change then moved it from 0xcb8f_9954_11cb_4102, which
+/// the drain change gave on the tree merged with main at 54cf96b46, on
+/// purpose: a toilet, shower or bath now lasts until its need is full and its
+/// authored rates were raised, so every use of them in the household's days
+/// is shorter or longer than before and the choices and draws that follow
+/// differ. The log emitters are unchanged. Measured on the tree that merges
+/// the drain change at f9b33b2ea into the fill change, read from the failing
+/// assertion.
+/// Issue 309 (work lateness) does not move it. Main at f58ddcf57 gave
+/// 0x6ed5_8e35_ffc8_2f8d with the drain and fill changes above, and the merged
+/// tree gives the same value with the lateness limit and the work Bladder
+/// relief at their shipped settings: at the slower drain nobody in the shipped
+/// household is critical for Hunger or Energy at a shift start, or below the
+/// relief threshold for Bladder, in these two days. The change shows in the
+/// twenty-day fold below, and
+/// `the_two_day_fold_without_the_work_knobs_is_unchanged` pins that the value
+/// also holds with both knobs at 0.
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved it from 0x6ed5_8e35_ffc8_2f8d, which main at
+/// a56f9beb0 gave with the drain, fill and lateness changes above, on purpose:
+/// someone who likes plants or the aquarium and walks out of the room keeps
+/// part of the lift for up to a few game hours, so the mood that choices read
+/// after leaving is higher and a choice scored from it first goes the other
+/// way. Measured on the tree that merges main at a56f9beb0 into the fade
+/// change, read from the failing assertion.
+/// The career score inputs block ([CT-save-hash]) then moved the two-day fold
+/// from 0xfa65_449b_54d0_bb84 to 0x7d8f_c646_2384_8e1f, because the shipped
+/// household settles scored shifts in two days; nothing else moved (checked by
+/// turning the block off). Read from the failing assertion.
+/// Editable world and water branch before the Career merge measured `0xfe8f_2322_891c_e5d0`.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfe8f_2322_891c_e5d0;
 
 /// The same fold over twenty game days, measured the same way. Main at
@@ -485,13 +538,49 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xfe8f_2322_891c_e5d0;
 /// 0x2e8d_746e_12f8_fad2, and its fight trigger change then from
 /// 0x4080_914e_b342_85e0, for the reasons given for the two-day fold, both
 /// measured on its branch in a release build.
-/// The complete current Wasm twenty-day run measured this fold on 2026-10-25.
-/// The separate native release check compares both log modes over all twenty days.
+/// Issue 298 then moved it from 0x78e8_cb74_b70c_d742 for the reason given
+/// for the two-day fold, and over twenty days the bills are also paid from
+/// Funds on days 7 and 14; with the old wages, no premium, no starting
+/// funds and the bills off it gave 0x78e8_cb74_b70c_d742. Issue 344 then
+/// moved it from 0x9b22_0f1c_a448_e32c for the reason given for the two-day
+/// fold, measured on the tree that combines both changes, in a release
+/// build, with the log off and on giving the same worlds.
+/// Issue 315 then moved it from 0x4947_38f3_cd9d_3898, which main at 54cf96b46
+/// gave with the wages, the bills and the presence rule above, for the reason
+/// given for the two-day fold, measured on the tree that merges main at
+/// 54cf96b46 into the drain change, in a release build, from the failing
+/// assertion.
+/// Issue 315's fill change then moved it from 0xfe91_9131_6786_b7dc for the
+/// reason given for the two-day fold, measured on the same tree in a release
+/// build, from the failing assertion.
+/// Issue 309 (work lateness) then moved it from 0xb6e3_d213_e72a_6360, which
+/// main at f58ddcf57 gave with the drain and fill changes above: over twenty
+/// days a housemate at work is relieved of Bladder below half, or a worker
+/// critical for Hunger or Energy at a shift start leaves late, and the
+/// household's needs and choices differ from then on. Measured on the tree
+/// that merges main at f58ddcf57 into the work lateness change, in a release
+/// build, from the failing assertion. With both work knobs at 0 it is the
+/// value above again, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` checks.
+/// Issue 344's fade (the lift from liked furniture now fades slowly after a
+/// person leaves it) then moved it from 0x9224_ed05_3053_97fc, which main at
+/// a56f9beb0 gave with the drain, fill and lateness changes above, for the
+/// reason given for the two-day fold, measured on the tree that merges main at
+/// a56f9beb0 into the fade change, in a release build, from the failing
+/// assertion. With both work knobs at 0 the fade tree gives
+/// 0xd56e_4229_4318_c6fd, which
+/// `the_twenty_day_fold_without_the_work_knobs_is_unchanged` pins.
+/// Issues 311 and 317 then moved it from 0x5847_2934_fafd_02d4, which main at
+/// c7932801c gave, only through the new `career-inputs-v1` hash block (the
+/// weekly score inputs join the world hash once a shift settles): with that
+/// block's call in `Sim::hash` switched off, this branch gives the old value
+/// again. Measured in a release build from the failing assertion.
+/// Editable world and water branch before the Career merge measured `0xc65b_1bd5_e41a_f993`.
 const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xc65b_1bd5_e41a_f993;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
-/// (0xfa65_449b_54d0_bb84; main's value before issue 344's fade was
+/// (0x7d8f_c646_2384_8e1f, from 0xfa65_449b_54d0_bb84 before the career inputs block; main's value before issue 344's fade was
 /// 0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
 /// changes nothing here. It does not show that the knobs move the shipped
 /// household: in its first two days nobody is critical at a shift start or
@@ -499,7 +588,7 @@ const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xc65b_1bd5_e41a_f993;
 /// behavior is covered by `lateness_tests.rs`.
 #[test]
 fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(2), 0xfa65_449b_54d0_bb84);
+    assert_eq!(fold_without_the_work_knobs(2), TWO_DAY_FOLD_WITHOUT_THE_LOG);
 }
 
 /// A regression pin with both work knobs at 0 over twenty days, measured with
@@ -508,11 +597,13 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 /// check above it does not equal the shipped value, and no tree without
 /// issue 309 ever produced it, so it no longer shows that switching the knobs
 /// off reproduces an earlier tree; it only catches a later change to the
-/// knobs-off run. Manual, like the pin above.
+/// knobs-off run. Manual, like the pin above. Issues 311 and 317 moved it from
+/// 0xd56e_4229_4318_c6fd only through the `career-inputs-v1` hash block, as
+/// for the constant above.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0xd56e_4229_4318_c6fd);
+    assert_eq!(fold_without_the_work_knobs(20), 0x4010_87ef_b43d_dcac);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

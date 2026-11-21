@@ -44,7 +44,7 @@
 | Overdoing | Repetition beyond the usual appeal range, producing a mood penalty. Repeated excessive eating can also cause Feeling sick. |
 | Performer | The person who actually completes a chore. Appreciation follows the performer, not automatically its owner. |
 | Physical seat | A particular chair or sofa sitting place. Sitting, reading, meals and media share its availability. |
-| Queue mode | New instructions join the end of waiting orders. With it off, new instructions go first while earlier waiting orders remain. |
+| Queue new orders | New instructions join the end of waiting orders. With it off, new instructions go first while earlier waiting orders remain. |
 | Reading pass | One journey from the beginning to the end of a title. It can span several sessions. |
 | Reading session | One active period of reading. Completed sessions can provide skill practice; interrupted sessions keep progress without a completion attempt. |
 | Reservation | A temporary claim on an object, person or destination. Someone travelling can already hold it. |

@@ -263,11 +263,35 @@ fn record_acceptance(world: &mut World, actor: Entity, entry: QueuedOrder) -> bo
     true
 }
 
+#[derive(Resource)]
+pub(crate) struct ConfirmedRecipientOrder {
+    pub agent: u32,
+    pub target: u32,
+}
+
 /// Called at command acceptance, including paused command batches.
 pub(crate) fn accept(world: &mut World, actor: Entity, entry: QueuedOrder) {
-    if record_acceptance(world, actor, entry) {
-        crate::attendance::interrupt_for_order(world, actor);
+    let intent = entry.intent;
+    if accept_for_actor(world, actor, entry)
+        && intent.object != actor
+        && intent.cleanup.is_none()
+        && intent.chore.is_none()
+        && world.get::<Agent>(intent.object).is_some()
+        && crate::attendance::manual_work_trip(world, intent.object)
+        && world.get_resource::<ConfirmedRecipientOrder>().is_some_and(|proof| {
+            proof.agent == actor.index_u32() && proof.target == intent.object.index_u32()
+        })
+    {
+        crate::attendance::interrupt_for_order(world, intent.object);
     }
+}
+
+fn accept_for_actor(world: &mut World, actor: Entity, entry: QueuedOrder) -> bool {
+    if !record_acceptance(world, actor, entry) {
+        return false;
+    }
+    crate::attendance::interrupt_for_order(world, actor);
+    true
 }
 
 /// An invalid action consumes its identity without becoming work or recalling its owner.
@@ -605,21 +629,27 @@ pub(crate) fn cancel_all(world: &mut World, actor: Entity, reason: &str) {
         terminal(world, actor, id, "canceled", Some(reason));
     }
 }
-pub(crate) fn has_player_work(world: &World, actor: Entity) -> bool {
+pub(crate) fn has_own_player_work(world: &World, actor: Entity) -> bool {
     world
         .get::<IntentQueue>(actor)
         .is_some_and(|q| !q.is_empty())
+        || world
+            .get_resource::<PlayerActions>()
+            .is_some_and(|actions| actions.orders.range((actor, 0)..=(actor, u64::MAX)).next().is_some())
+}
+
+pub(crate) fn has_player_work(world: &World, actor: Entity) -> bool {
+    has_own_player_work(world, actor)
         || world.get_resource::<PlayerActions>().is_some_and(|s| {
             s.orders.iter().any(|((owner, id), state)| {
-                *owner == actor
-                    || (state.entry.intent.object == actor
-                        && state.entry.intent.chore.is_none()
-                        && state.entry.intent.cleanup.is_none()
-                        && world.get::<Agent>(*owner).is_some()
-                        && (state.active
-                            || world.get::<IntentQueue>(*owner).is_some_and(|q| {
-                                q.entries().first().is_some_and(|entry| entry.id == *id)
-                            })))
+                state.entry.intent.object == actor
+                    && state.entry.intent.chore.is_none()
+                    && state.entry.intent.cleanup.is_none()
+                    && world.get::<Agent>(*owner).is_some()
+                    && (state.active
+                        || world.get::<IntentQueue>(*owner).is_some_and(|q| {
+                            q.entries().first().is_some_and(|entry| entry.id == *id)
+                        }))
             })
         })
 }
@@ -1341,7 +1371,7 @@ pub(crate) fn observe(world: &mut World) {
             .get_resource::<crate::fights::Fights>()
             .is_some_and(|f| f.owns_order(actor, entry.id))
         {
-            accept(world, actor, entry);
+            accept_for_actor(world, actor, entry);
         }
     }
     world.get_resource_or_insert_with(PlayerActions::default);
@@ -1379,6 +1409,7 @@ pub(crate) fn observe(world: &mut World) {
                 || world
                     .get::<IntentQueue>(actor)
                     .is_some_and(|q| q.entries().first().is_some_and(|entry| entry.id == id)))
+            && !crate::attendance::manual_work_trip(world, intent.object)
             && (world.get::<terri_core::AtWork>(intent.object).is_some()
                 || world.get::<terri_core::Commuting>(intent.object)
                     == Some(&terri_core::Commuting::Outbound))

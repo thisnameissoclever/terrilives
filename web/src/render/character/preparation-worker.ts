@@ -1,5 +1,5 @@
-import {preparePoolContact} from './pool-contact-preparation.js';
 /// <reference lib="webworker" />
+import {preparePoolContact} from './pool-contact-preparation.js';
 import {compileBikeContact} from './bike-contact-compile.js';
 import {verifyBikeContactInput} from './bike-contact-protocol.js';
 import {prepareSleepContact} from './sleep-contact-preparation.js';

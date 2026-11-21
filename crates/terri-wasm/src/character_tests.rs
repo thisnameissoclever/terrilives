@@ -41,10 +41,7 @@ fn creator_boundary_round_trips_exact_values_and_correlated_results() {
     expected.appearance = appearance;
     assert_eq!(changed, Some(expected));
     let saved = handle.save_bytes();
-    assert_eq!(
-        u16::from_le_bytes([saved[SAVE_MAGIC.len()], saved[SAVE_MAGIC.len() + 1]]),
-        23
-    );
+    decode_current(&saved);
     assert!(handle.load_bytes(&saved));
     assert_eq!(handle.save_bytes(), saved);
 }

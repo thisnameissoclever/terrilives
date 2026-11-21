@@ -773,8 +773,8 @@ fn assert_room_reconciles_pending_route() {
     assert!(super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok());
     assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_ok());
     built(&mut sim, request);
-    let saved = sim.save_snapshot_v25();
-    sim.load_snapshot_v25(saved).unwrap();
+    let saved = sim.save_snapshot_v26();
+    sim.load_snapshot_v26(saved).unwrap();
 }
 
 /// One tick of the sweep above: count accepted rooms and reload a sample.

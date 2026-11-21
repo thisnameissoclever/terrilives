@@ -108,6 +108,31 @@ pub(crate) fn starts_at(
         && last.end_tick - last.start_tick == u64::from(shift.shift_ticks)
 }
 
+/// The next start of `entity`'s shift after tick `now` ([CT-work-state]):
+/// the first tick after `now`, on the day of `now` or on one of the `days`
+/// days after it, at which the shift worked that day starts by exactly
+/// the rule of [`starts_at`] and [`shift_today`], with that shift. `None`
+/// for the unemployed, or when no shift starts in that span.
+pub(crate) fn next_start<'a>(
+    world: &World,
+    pack: &'a ContentPack,
+    entity: Entity,
+    now: u64,
+    days: u64,
+) -> Option<(u64, ShiftView<'a>)> {
+    let career = world.get::<Career>(entity)?.0;
+    let sim = crate::attendance::identity(world, entity);
+    let day_ticks = u64::from(pack.tuning.day_ticks);
+    let today = now / day_ticks;
+    (today..=today + days).find_map(|day| {
+        let midnight = day * day_ticks;
+        let shift = shift_today(world, pack, entity, midnight)?;
+        let start = midnight + u64::from(shift.shift_start);
+        (start > now && starts_at(world, pack, sim, career, &shift, start))
+            .then_some((start, shift))
+    })
+}
+
 /// The shift whose schedule `entity` works on the day of tick `now`: on the
 /// day they changed shift, the one they held when the day began (the
 /// owner's ruling of 2026-10-24), and otherwise their held shift. `None`

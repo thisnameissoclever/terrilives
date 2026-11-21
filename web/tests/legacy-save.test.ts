@@ -126,9 +126,27 @@ it.each(['new-game-day-one-noon', 'new-game-two-days-evening'])(
       expect(migrated.load_bytes(original)).toBe(true);
       const current = migrated.save_bytes();
       expect([...current.slice(8, 10)]).toEqual([CURRENT_SAVE_VERSION, 0]);
-      // Schema 23 adds one trailing list, and an older save has nothing in it.
-      expect(current.length).toBe(original.length + 1);
-      expect(current[current.length - 1]).toBe(0);
+      expect(resumed.load_bytes(current)).toBe(true);
+      expect(resumed.save_bytes()).toEqual(current);
+      for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }
+      expect(resumed.world_hash()).toBe(migrated.world_hash());
+      expect(resumed.save_bytes()).toEqual(migrated.save_bytes());
+    } finally { migrated.free(); resumed.free(); }
+  },
+);
+
+it.each(['new-game-thursday-noon', 'two-reviewed-weeks-tuesday-noon'])(
+  'continues the V23 %s through the current release reader with no score inputs', async (name) => {
+    await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
+    const original = new Uint8Array(readFileSync(new URL(
+      `../../crates/terri-wasm/tests/fixtures/career-inputs-v23/${name}.sav`, import.meta.url)));
+    expect([...original.slice(8, 10)]).toEqual([23, 0]);
+    const migrated = SimHandle.from_lot();
+    const resumed = SimHandle.from_lot();
+    try {
+      expect(migrated.load_bytes(original)).toBe(true);
+      const current = migrated.save_bytes();
+      expect([...current.slice(8, 10)]).toEqual([CURRENT_SAVE_VERSION, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }

@@ -157,7 +157,7 @@ function seasonName(season: number): string | null {
  * Maps a tick of the authored day onto a 24-hour `hh:mm`, so a content day
  * of any length reads as a familiar clock. `dayTicks` must be positive.
  */
-function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
+export function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
   const minute = Math.floor((tickInDay * 1440) / dayTicks);
   const hours = Math.floor(minute / 60)
     .toString()

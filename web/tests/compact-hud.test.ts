@@ -309,3 +309,56 @@ it('stacks the activity log between the dock and Options in the top-right corner
   expect(css).toMatch(/#activity-log-toggle \{\s*position: fixed;\s*top: max\(8px, env\(safe-area-inset-top\)\);\s*right: max\(8px, env\(safe-area-inset-right\)\);/);
   expect(css).toContain('bottom: var(--activity-log-bottom, 140px);');
 });
+
+/** The first `@media` block in the Sim Details stylesheet whose query is exactly `query` and which styles `#sim-sheet`. */
+function sheetMediaBlock(query: string): string {
+  for (let start = css.indexOf(`@media ${query} {`); start >= 0; start = css.indexOf(`@media ${query} {`, start + 1)) {
+    let depth = 0;
+    for (let at = css.indexOf('{', start); at < css.length; at += 1) {
+      if (css[at] === '{') depth += 1;
+      if (css[at] === '}') depth -= 1;
+      if (depth === 0) {
+        const block = css.slice(start, at + 1);
+        if (block.includes('#sim-sheet {')) return block;
+        break;
+      }
+    }
+  }
+  throw new Error(`no Sim Details sheet rule under ${query}`);
+}
+
+describe('the Sim Details panel width (issue 317, [CT-web])', () => {
+  it('gives the panel 560 pixels on a desktop-sized screen, touch or not, and raises the height cap to 690', () => {
+    const desktop = sheetMediaBlock('(min-width: 601px) and (min-height: 481px)');
+    expect(desktop).toMatch(/#sim-sheet \{[^}]*--sim-sheet-width: 560px/);
+    expect(desktop).toMatch(/#sim-sheet \{[^}]*max-height: min\(690px, calc\(100dvh - 100% /);
+    expect(desktop).not.toContain('any-pointer');
+  });
+
+  it('keeps the width at the viewport less 18 pixels when the screen is narrower than the panel', () => {
+    expect(css).toMatch(/#sim-sheet \{[^}]*width: min\(var\(--sim-sheet-width\), calc\(100vw - 18px\)\)/);
+  });
+
+  it('lets nothing change the width: not the tab and not the personal details disclosure', () => {
+    expect(css).not.toMatch(/#sim-sheet:has\([^{]*\{[^}]*--sim-sheet-width/);
+    expect(css.match(/--sim-sheet-width\s*:/g)).toHaveLength(2);
+  });
+
+  it('keeps the long and doubled text inside the panel', () => {
+    expect(css).toMatch(/#sim-sheet-content \{[^}]*overflow-y: auto/);
+    expect(css).toMatch(/#sim-sheet \{[^}]*box-sizing: border-box/);
+    expect(css).toMatch(/#personal-details th, #personal-details td \{[^}]*overflow-wrap: anywhere/);
+  });
+});
+
+it('O3: starts each Sim details tab at the top of the panel, not where the last tab was scrolled', () => {
+  const { hud, node } = page();
+  const content = node('sim-sheet-content') as unknown as { scrollTop: number };
+  hud.show('overview');
+  content.scrollTop = 189;
+  hud.show('career');
+  expect(content.scrollTop).toBe(0);
+  content.scrollTop = 50;
+  hud.show('career');
+  expect(content.scrollTop, 'choosing the open tab again leaves it where it is').toBe(50);
+});

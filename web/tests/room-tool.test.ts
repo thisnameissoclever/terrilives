@@ -147,7 +147,7 @@ describe('RoomTool', () => {
     // any doorway, so it gets no hint.
     source.code = 12;
     room.cycleDoorway();
-    expect(room.status).toBe('The room would cut off the front door.');
+    expect(room.status).toBe('The room would block access to a doorway.');
   });
 
   it('stages exactly the room on screen, once, and reports what the drain did', () => {

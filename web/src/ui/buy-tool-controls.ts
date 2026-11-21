@@ -114,7 +114,7 @@ export class BuyToolControls {
   private disposeIdentity: (() => void) | undefined;
   private shownDefinition: number | null = null;
   private catalogueScroll: { element: HTMLElement; left: number; top: number }[] = [];
-  /** The card that last had focus, by key, click, Tab or Choose item. */
+  /** The card that last had focus through a key, click, Tab or Back to catalog. */
   private lastFocused: CatalogueCard | null = null;
   /** Draws the pictures the first time the tool is shown, then is dropped. */
   private drawPictures: (() => void) | null = null;
@@ -248,7 +248,7 @@ export class BuyToolControls {
     this.touchHelp.hidden = false;
   }
 
-  /** The cards a key or Choose item can reach: every shown card, grayed or not. */
+  /** The cards keyboard navigation can reach: every shown card, including grayed cards. */
   private reachable(): CatalogueCard[] {
     return this.cards.filter(card => !card.button.hidden && !card.button.disabled);
   }
@@ -270,7 +270,7 @@ export class BuyToolControls {
     for (const other of this.cards) other.button.tabIndex = other === card ? 0 : -1;
   }
 
-  /** Choose item: the chosen card, grayed or not, else the first card the grid shows. */
+  /** Return to the chosen catalog card, or the first visible card. */
   focusCatalogue(): void {
     this.tool.openCatalogue(); this.render();
     const cards = this.reachable();

@@ -320,8 +320,9 @@ export class FloorTool {
           : result.reason === 0 ? this.describe() : this.refusal(result.reason);
         const updated = this.source.floorTiles(), incomplete = this.isArea && sent.some(([x,y]) => coveringOf(updated, x, y) !== done);
         const failed = result.reason !== 0 || incomplete;
-        this.outcome = operationFeedback('floor', failed ? 'failure' : 'success', this.coverings()[done - 1] ?? 'Floor',
-          failed ? this.status : 'Floor updated.', failed ? 'edit' : undefined);
+        this.outcome = failed
+          ? operationFeedback('floor', 'failure', this.coverings()[done - 1] ?? 'Floor', this.status, 'edit')
+          : null;
         if (result.reason !== 0) logWarning('Floors', 'Floor change refused.', { ...result, code: result.reason });
         this.hooks.changed();
         return;

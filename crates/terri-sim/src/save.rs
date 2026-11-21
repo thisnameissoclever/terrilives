@@ -58,6 +58,9 @@ pub(crate) struct Carried {
     pub actor_references: ActorReferences,
     /// Selected only by the outer schema-twenty reader.
     pub current_fight_topics: bool,
+    /// Only the Career envelope can represent a shift registered before its start.
+    pub pre_registered_shifts: bool,
+    pub manual_work_trips: Option<Vec<(u32, u64)>>,
     pub surfaces: Option<terri_core::WorldSurfaces>,
     pub commutes: Option<Vec<(u32, u8)>>,
     pub pools: Option<Vec<terri_core::save_editable_v22::SavedPoolEpisode>>,
@@ -77,6 +80,8 @@ impl Carried {
             room_mode: crate::rooms::RoomReferenceMode::Legacy,
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
+            pre_registered_shifts: false,
+            manual_work_trips: None,
             surfaces: None,
             commutes: None,
             pools: None,
@@ -111,6 +116,8 @@ impl Carried {
                 .unwrap_or_default(),
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
+            pre_registered_shifts: false,
+            manual_work_trips: None,
             surfaces: world.get_resource::<terri_core::WorldSurfaces>().cloned(),
             commutes: crate::world_geometry::current(world)
                 .then(|| ordinary_world::commutes(world)),
@@ -139,6 +146,7 @@ pub(super) mod chronotype;
 pub(crate) mod editable_v21;
 pub(crate) mod editable_v22;
 pub(crate) mod editable_v23;
+pub(crate) mod editable_v24;
 mod meal_migration;
 pub(crate) mod ordinary_world;
 pub(super) mod self_preservation;
@@ -162,6 +170,7 @@ pub(crate) mod v22;
 pub(crate) mod v23;
 pub(crate) mod v24;
 pub(crate) mod v25;
+pub(crate) mod v26;
 #[cfg(test)]
 mod v3_tests;
 #[cfg(test)]
@@ -418,7 +427,8 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::SetJobSearch { .. }
         | SimCommand::SetCareerChange { .. }
         | SimCommand::AssignCareerShift { .. }
-        | SimCommand::ChangeShift { .. } => {
+        | SimCommand::ChangeShift { .. }
+        | SimCommand::GoToWork { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
@@ -3294,11 +3304,11 @@ mod tests {
         assert_eq!(historical.save_snapshot(), before.clone());
         let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         restored
-            .load_snapshot_v25(source.save_snapshot_v25())
+            .load_snapshot_v26(source.save_snapshot_v26())
             .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
-        for (format, world) in [("V1", &mut historical), ("V3", &mut restored)] {
+        for (format, world) in [("V1", &mut historical), ("V26", &mut restored)] {
             world.sync_render_buffer();
             for original in &fridge_entities {
                 let buffer = world.render_buffer();

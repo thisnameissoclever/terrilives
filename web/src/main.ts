@@ -8,6 +8,7 @@ import { BillsPanel } from './ui/bills-panel.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
+import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
 import { countAlongside } from './load-progress.js';
@@ -125,7 +126,7 @@ import { KIND_AGENT } from './render/instances.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
-import { OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
+import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
 import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
 import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
@@ -865,13 +866,13 @@ async function main(): Promise<void> {
   const careerContent = document.querySelector<HTMLElement>('#career-content');
   const careerRowTitle = document.querySelector<HTMLElement>('#career-value');
   const careerRowInfo = document.querySelector<HTMLButtonElement>('#career-info');
-  const careerRowGraph = document.querySelector<HTMLElement>('#career-row-graph');
-  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo || !careerRowGraph) {
+  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo) {
     throw new Error('missing career markup');
   }
+  const careerReview: { open: ((opener: HTMLButtonElement) => void) | null } = { open: null };
   const careerSurface = createCareerPanelSurface(document, {
     section: careerSection, empty: careerEmpty, content: careerContent,
-    rowTitle: careerRowTitle, rowInfo: careerRowInfo, rowGraph: careerRowGraph,
+    rowTitle: careerRowTitle, rowInfo: careerRowInfo,
   }, {
     choose: path => careerPanel.choose(path),
     assign: () => careerPanel.assign(),
@@ -880,9 +881,22 @@ async function main(): Promise<void> {
     chooseShift: shift => careerPanel.chooseShift(shift),
     chooseChange: shift => careerPanel.chooseChange(shift),
     changeShift: () => careerPanel.changeShift(),
+    goToWork: () => careerPanel.goToWork(),
+    openReviewGraph: opener => careerReview.open?.(opener),
   });
   const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
     () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);
+  // The review window: opened by the i beside the job title, it pauses the
+  // game until it closes and then returns focus to the i, or when that is
+  // hidden to the Career tab's heading, or else to Sim details.
+  const careerReviewWindow = new CareerReviewWindow(document, sim, overlayPause, () => [
+    careerContent.querySelector<HTMLElement>('.career-heading'), simSheet,
+  ]);
+  document.body.append(careerReviewWindow.element);
+  careerReview.open = opener => {
+    const agent = sim.selectedIndex();
+    if (agent !== null) careerReviewWindow.open(agent, opener);
+  };
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at
   // start, after Load and after an edit read whether or not it is open.
@@ -1241,6 +1255,7 @@ async function main(): Promise<void> {
   }
 
   const queueMode = new QueueMode(queueButton);
+  const clearOrdersAvailability = new ClearOrdersAvailability(stopOrdersButton, sim.needBarRefreshMs());
   const audioControls = new AudioControls(
     audio,
     audioMuteButton,
@@ -1359,6 +1374,8 @@ async function main(): Promise<void> {
       housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
       characterWorld.reset();characterWorld.prepareFixtures(sim);
       bedAssignmentPanel.resetAfterLoad();
+      // The window shows a person of the replaced world: close it, which also resumes the game.
+      careerReviewWindow.close();
       careerPanel.resetAfterLoad();
       syncNewHousemateButton();
       syncEditHousemateButton();
@@ -1590,6 +1607,10 @@ async function main(): Promise<void> {
     });
   });
   stopOrdersButton.addEventListener('click', () => {
+    if (!hasClearablePlayerOrders(sim)) {
+      stopOrdersButton.disabled = true;
+      return;
+    }
     const selected = sim.selectedIndex();
     if (selected === null) {
       commandStatus.textContent = 'Select a person first';
@@ -1598,8 +1619,7 @@ async function main(): Promise<void> {
       return;
     }
     if (sim.cancelIntents(selected)) {
-      commandStatus.textContent = 'Orders cleared';
-      commandStatus.removeAttribute('data-kind');
+      clearCommandFeedback(commandStatus);
       audio.emit({ type: 'command.staged' });
     } else {
       commandStatus.textContent = 'Could not clear orders';
@@ -1878,8 +1898,6 @@ async function main(): Promise<void> {
     if (builder.active) return;
     const accepted = dispatchMenuAction(sim, action, queueMode.isActive() || additive ? 'back' : 'front',
       () => clearCommandFeedback(commandStatus));
-    if (accepted && action.kind === 'cancel') sceneFeedback.present('command',
-      operationFeedback('clear-orders', 'success', 'Player orders', 'Orders cleared'), menuSceneAnchor);
     if (!accepted) { commandStatus.textContent = 'That order could not be added'; commandStatus.setAttribute('data-kind', 'error'); }
     audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
   }, action => {
@@ -2868,6 +2886,7 @@ async function main(): Promise<void> {
     const needsUpdated = needsPanel.update(nowMs, sim);
     if (gameHud.update(nowMs, sim)) menu.refresh();
     actionQueue.update(nowMs, sim);
+    clearOrdersAvailability.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
     careerAutonomy.update();

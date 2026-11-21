@@ -50,7 +50,9 @@ const V20_BACKUP = 'terri-save-1.v20-backup.bin';
 const V21_BACKUP = 'terri-save-1.v21-backup.bin';
 const v23 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 23, 0, 29]);
 const v24 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 24, 0, 29]);
+const v25 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 25, 0, 29]);
 const V22_BACKUP = 'terri-save-1.v22-backup.bin';
+const V23_BACKUP = 'terri-save-1.v23-backup.bin';
 
 const V19_BACKUP = 'terri-save-1.v19-backup.bin';
 const v19 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 19, 0, 29, 128, 0, 0, 0, 1]);
@@ -200,6 +202,65 @@ describe('save worker recovery backup', () => {
   ])('retains the exact published V19 %s source', (name, digest) => {
     const bytes = readFileSync(new URL(`./fixtures/v19-worker/${name}`, import.meta.url));
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
+  });
+
+  it.each([
+    ['save-header.ts', '069188a9e0d375da16f7e788bd2f592686aa4c1fbbbf333ed5bf92b05dbc1089'],
+    ['save-worker.ts', '4bcaee5121444aa09371033aaf9d24ae14b01eff87aa22f0e43bd2969dd1f0e1'],
+  ])('retains the exact V23 %s source from the branch', (name, digest) => {
+    const bytes = readFileSync(new URL(`./fixtures/v23-worker/${name}`, import.meta.url));
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
+  });
+
+  it.each([
+    ['new-game-thursday-noon', 7769, 'c0fcae1fd194cd15fca274afcc7216a79e6b6c5077135fd3fb029f32a9a59126'],
+    ['two-reviewed-weeks-tuesday-noon', 9786, '00a7e0528e30865f1123f500540ba96edf0574d68aeaeb9f0b67b741ec6c8cd2'],
+  ])("keeps the V23 %s bytes before writing the current schema", async (name, length, digest) => {
+    const original = new Uint8Array(readFileSync(new URL(
+      `../../crates/terri-wasm/tests/fixtures/career-inputs-v23/${name}.sav`, import.meta.url)));
+    expect(original).toHaveLength(Number(length));
+    expect(createHash('sha256').update(original).digest('hex')).toBe(digest);
+    const slot = await workerSlot(original);
+    expect(await slot.request('save', current)).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(original);
+    expect(await slot.request('save', current)).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(original);
+  });
+
+  it('backs up V23 before a current write and refuses the frozen V23 writer', async () => {
+    const original = new Uint8Array([...v23, 91, 17]);
+    const slot = await workerSlot(original);
+    const cached = await slot.connect('v23');
+    expect(await slot.request('save', current)).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(original);
+    expect(slot.files.get(PRIMARY)).toEqual(current);
+    expect(await cached('save', v23)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(current);
+    expect(await slot.request('clear')).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(original);
+  });
+
+  it.each(['open', 'write', 'close'])('preserves V23 after backup %s failure and permits retry', async (phase) => {
+    const slot = await workerSlot(v23);
+    slot.fail.file = V23_BACKUP;
+    slot.fail.phase = phase;
+    expect(await slot.request('save', current)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v23);
+    expect(slot.files.has(V23_BACKUP)).toBe(false);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+    slot.fail.file = '';
+    expect(await slot.request('save', current)).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(v23);
+    expect(slot.files.get(PRIMARY)).toEqual(current);
+  });
+
+  it.each([new Uint8Array(), v22, current])('refuses a mismatched V23 recovery copy', async (backup) => {
+    const slot = await workerSlot(v23);
+    slot.files.set(V23_BACKUP, backup);
+    expect(await slot.request('save', current)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v23);
+    expect(slot.files.get(V23_BACKUP)).toEqual(backup);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
   it.each([
@@ -1008,7 +1069,7 @@ describe('save worker recovery backup', () => {
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
-  it.each([[v1, BACKUP], [v2, V2_BACKUP], [v3, V3_BACKUP], [v4, V4_BACKUP], [v5, V5_BACKUP], [v6, V6_BACKUP], [v7, V7_BACKUP], [v8, V8_BACKUP], [v9, V9_BACKUP], [v10, V10_BACKUP], [v11, V11_BACKUP], [v12, V12_BACKUP], [v13, V13_BACKUP], [v14, V14_BACKUP], [v15, V15_BACKUP], [v16, V16_BACKUP], [v17, V17_BACKUP], [v18, V18_BACKUP], [v19, V19_BACKUP], [v20, V20_BACKUP], [v21, V21_BACKUP], [v22, V22_BACKUP], [v23, "terri-save-1.v23-backup.bin"], [v24, "terri-save-1.v24-backup.bin"]] as const)(
+  it.each([[v1, BACKUP], [v2, V2_BACKUP], [v3, V3_BACKUP], [v4, V4_BACKUP], [v5, V5_BACKUP], [v6, V6_BACKUP], [v7, V7_BACKUP], [v8, V8_BACKUP], [v9, V9_BACKUP], [v10, V10_BACKUP], [v11, V11_BACKUP], [v12, V12_BACKUP], [v13, V13_BACKUP], [v14, V14_BACKUP], [v15, V15_BACKUP], [v16, V16_BACKUP], [v17, V17_BACKUP], [v18, V18_BACKUP], [v19, V19_BACKUP], [v20, V20_BACKUP], [v21, V21_BACKUP], [v22, V22_BACKUP], [v23, "terri-save-1.v23-backup.bin"], [v24, "terri-save-1.v24-backup.bin"], [v25, "terri-save-1.v25-backup.bin"]] as const)(
     'preserves original historical bytes before a current overwrite', async (previous, backup) => {
       const slot = await workerSlot(previous);
       expect(await slot.request('save', current)).toMatchObject({ ok: true });
