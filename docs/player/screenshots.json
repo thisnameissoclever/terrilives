@@ -401,6 +401,27 @@
         "capturedAt": "2026-11-20",
         "method": "Playwright driving installed Chrome, headless and muted, against the branch served by the vite dev server (commit 03bd42ae0, which includes the review window, graph, Score inputs and tab scroll fixes). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above matched the served modules after line ending normalisation. Audio was muted through the saved preference and --mute-audio. The same five reviewed weeks save as career-tab-2026-11-20 was imported with Options > Import save; Sim details captures show Tim on Day 36, Monday 15:00 and Career captures show Bill on Day 38, Wednesday 12:30. Desktop 1440 by 960 and phone 390 by 844 at device pixel ratio 1.",
         "evidence": "docs/assets/review-evidence/career-tab/README.md"
+      },
+      {
+        "id": "admin-panel-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "4a23e907606623977bebb0c9ac48a24da03f3ba142a073357f2ca4c336694cf1",
+          "web/src/admin/admin-panel.ts": "a055c00fc36cea3e0669694abb66bda82d10e5c2a5115ec4cf4a36b236b5113a",
+          "web/src/admin/admin-housemate.ts": "9f241f9e75e537f569b18da5b9b057f8ab07c8e47f184f5bf59881997c4375af",
+          "web/src/admin/admin-relationships.ts": "f31d0609d42ae0e74e6ba14dac440979646eb426d1d969f406be9a24b54ba1be",
+          "web/src/admin/admin-household.ts": "69d818a1b634ad8f7782c1c680c309e0287fed8298b698c2ef97ae35b65bbfe6",
+          "web/src/admin/admin-controls.ts": "c54aef55d63325d4f54d964ab802df2dacb4b393317125ea0e348646fc2f2da8",
+          "web/src/admin/admin-open.ts": "796d66b84a8073d9360ce241113fce720eb8f8e5b0723389c6f6e57ee282b552",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "9e570bab3f39577af02794e771cc6c20cf1a359682b06f2b5f1db1f6d5174a64",
+          "content/tuning.toml": "2b3deb3523bfc1dcd999786ca079800a201d17e623b52f4c15fb616af90cd1ee"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "Playwright driving Chromium, muted through the game's Sound: off preference and suspended AudioContexts, against the branch served by the vite dev server (commit ad4124741, which includes the played-pass layout fixes). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. A new game was played to Day 15, Monday 15:36 with the admin panel itself: Tim's job changed to Barista, a $5,000 Water bill added on Day 1 so it stays overdue, bills issued on Days 8 and 15, Tim's fight with Casey played out, and Skip ahead used. The game was paused before opening the panel with ~, so the pill reads that the game stays paused, and Fill Tim's needs was pressed so Undo shows its label. Focus was moved off the controls with a click on the panel before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 with Chrome touch emulation, not a physical phone.",
+        "evidence": "docs/assets/review-evidence/admin-panel/"
       }
     ],
     "weatherSetup": {
@@ -2399,26 +2420,113 @@
     {
       "id": "admin-housemate",
       "section": "admin-panel",
-      "status": "pending-capture",
       "description": "The admin panel open on its Housemate tab, with a housemate chosen in the picker, Undo and Close in the header and the game paused.",
       "access": "Press ~, or hold the lot's bottom corner tile on a touch screen.",
-      "pendingReason": "The coordinator captures desktop (1440 by 960) and phone (390 by 844) images in the played pass of docs/specs/2026-11-20-admin-panel.md. Image paths, hashes and a new source snapshot are added then."
+      "desktop": "images/ui-admin-housemate-desktop.png",
+      "mobile": "images/ui-admin-housemate-mobile.png",
+      "sourceSnapshot": "admin-panel-2026-11-21",
+      "imageSha256": {
+        "desktop": "91d11afee040c3aaf55e6fec48945fdb6ff19e95314f632e91f4c619c3df187e",
+        "mobile": "4bbe5671fbf5a755ef345d11318354900ae34ad1140dfd5e6cdd2b332fd924f0"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "91d11afee040c3aaf55e6fec48945fdb6ff19e95314f632e91f4c619c3df187e"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "4bbe5671fbf5a755ef345d11318354900ae34ad1140dfd5e6cdd2b332fd924f0"
+        }
+      }
     },
     {
       "id": "admin-relationships",
       "section": "admin-panel",
-      "status": "pending-capture",
       "description": "The admin panel open on its Relationships tab, with one housemate's feelings about each other housemate and the fight row.",
       "access": "Open the admin panel, then choose Relationships.",
-      "pendingReason": "The coordinator captures desktop (1440 by 960) and phone (390 by 844) images in the played pass of docs/specs/2026-11-20-admin-panel.md. Image paths, hashes and a new source snapshot are added then."
+      "desktop": "images/ui-admin-relationships-desktop.png",
+      "mobile": "images/ui-admin-relationships-mobile.png",
+      "sourceSnapshot": "admin-panel-2026-11-21",
+      "imageSha256": {
+        "desktop": "9eff8fc14c73cd23950737e46f0eda789ebd582fa50c82a08eb366477b4223a0",
+        "mobile": "03249b463061c3866e65a5288c6c89c1520a8771477905e3dd1e82503d3d8101"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "9eff8fc14c73cd23950737e46f0eda789ebd582fa50c82a08eb366477b4223a0"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "03249b463061c3866e65a5288c6c89c1520a8771477905e3dd1e82503d3d8101"
+        }
+      }
     },
     {
       "id": "admin-household",
       "section": "admin-panel",
-      "status": "pending-capture",
       "description": "The admin panel open on its Household tab, with Funds, the bills table and Skip ahead.",
       "access": "Open the admin panel, then choose Household.",
-      "pendingReason": "The coordinator captures desktop (1440 by 960) and phone (390 by 844) images in the played pass of docs/specs/2026-11-20-admin-panel.md. Image paths, hashes and a new source snapshot are added then."
+      "desktop": "images/ui-admin-household-desktop.png",
+      "mobile": "images/ui-admin-household-mobile.png",
+      "sourceSnapshot": "admin-panel-2026-11-21",
+      "imageSha256": {
+        "desktop": "78846e43fe988ca7adf98897da479bf259a48670b021ac885b13eb7dbc32187e",
+        "mobile": "40b6158c7ecd2289ba1c4de465a685567361b559a1357646dd6e28ea5614cf64"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "78846e43fe988ca7adf98897da479bf259a48670b021ac885b13eb7dbc32187e"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "40b6158c7ecd2289ba1c4de465a685567361b559a1357646dd6e28ea5614cf64"
+        }
+      }
     }
   ],
   "uiSections": {
