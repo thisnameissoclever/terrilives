@@ -718,7 +718,7 @@ fn admin_job_options_lists_every_level_and_each_row_is_a_job() {
     let mut handle = opened();
     let first = people(&mut handle)[0];
     let options = handle.admin_job_options();
-    assert!(!options.is_empty() && options.len() % 3 == 0);
+    assert!(!options.is_empty() && options.len().is_multiple_of(3));
     let paths = handle.career_path_labels().len() as f64;
     let mut previous: Option<(f64, f64)> = None;
     for triple in options.chunks(3) {

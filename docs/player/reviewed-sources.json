@@ -395,7 +395,7 @@
     "crates/terri-wasm/examples/support/mod.rs": "8e177bec0202128a0b697b480161408c1feeeb7a7c12cb821a2c249415d46a59",
     "crates/terri-wasm/examples/targeted_cleanup_review.rs": "50ab24b8c493cb75e52fa93174fd0444063854b8c07b24ca630f9bb24e6cfc9f",
     "crates/terri-wasm/src/activity_log_tests.rs": "9d515027d776ef401c47c8f2050c3b3223d1a12148b42ca701093a2df4801b74",
-    "crates/terri-wasm/src/admin_boundary_tests.rs": "c1d3b30f6a841effabd797bff0c3f539c3d99a0e1ccb32cf4037fdfbf4a3ffc5",
+    "crates/terri-wasm/src/admin_boundary_tests.rs": "b59ba17f4d5b4fe19238b3df8e24731df8b371cc8d65cd4a73c9c43f92868e44",
     "crates/terri-wasm/src/admin_exports.rs": "b0d20f6119069aa10b58847bc235e948de9fccc07ba94f8d4b20584123fc041b",
     "crates/terri-wasm/src/admin_queue_tests.rs": "3680827c10cc49a51f1d1de44b3a87c57f80688f5c6aefae35b0c269885b69df",
     "crates/terri-wasm/src/affinity_boundary_tests.rs": "c66d934a12325464da736d2f83564118134ef7832bb8dea5f31a67ccc4ce7986",
