@@ -53,7 +53,7 @@ const WHAT: Readonly<Record<number, string>> = {
   // Issue 312: functional text proposed for the owner's review.
   16: 'Close admin panel to use Build mode.',
   // Issue 312: admin edits left a world that would not reload, so saving stays refused until a load.
-  17: 'Admin changes left this game unable to reload. Load a saved game to use Build mode.',
+  17: 'Load a saved game to use Build mode.',
 };
 
 /**

@@ -646,7 +646,7 @@
     "web/src/render/weather-scene.ts": "fd1cae8b30a57de7e3e0915368e7b31545d9a4d8ad2907b8703fa678e5f3291a",
     "web/src/render/weather.ts": "09f817a834160d96b96ae3e3b33f763d93e369779bbc4e774900cb54b42242b9",
     "web/src/rooms/codec.ts": "8a8077e9ddb0f64ea17ad9de600ff76a2b1cc49799596b5d622361a39afb1caa",
-    "web/src/rooms/failure.ts": "98ab22bd52c3544e192c0d57cf9adf616bad724cf93d2d1c15d0a3b877c2f50a",
+    "web/src/rooms/failure.ts": "0b3351f8ca1b249c3c7c34035c0ac0021f894ce28c2d7d69847772a25816480f",
     "web/src/storage/save-file.ts": "208998ca29d5791c47441b87da78392e2456242a1ef7ab22cd0bc74c250a32a4",
     "web/src/storage/save-header.ts": "0929a23c5f2a62cb1b498f351e421d36c400029ed9d56abb337f31e7ea576b63",
     "web/src/storage/save-store.ts": "eaa3394c0c840a6ac33c708a411b702c69e8183e17abd70bc9c5160e338b1e42",

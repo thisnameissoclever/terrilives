@@ -250,7 +250,7 @@ describe('the admin panel is open (issue 312)', () => {
 
   it('names the failure of a broken admin world and says how to get past it', () => {
     const broken: RoomFailure = { code: 17, detail: null };
-    expect(failureWhat(broken)).toBe('Admin changes left this game unable to reload. Load a saved game to use Build mode.');
+    expect(failureWhat(broken)).toBe('Load a saved game to use Build mode.');
     expect(enterFailure(broken), 'shown alone, without "Build mode stays closed."').toBe(failureWhat(broken));
     expect(failureDetails(broken)).toEqual({ code: 17, kind: 'Admin world would not reload', detail: null });
   });
