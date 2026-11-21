@@ -144,12 +144,12 @@ pub fn timers(world: &World, sim: u32) -> Vec<f64> {
 /// a label and its row share an index.
 ///
 /// `kind` says where the moodlet comes from, when that has a short
-/// explanation ([AP-c-sources]): 0 none; 10 to 16 a need at or below the low
-/// level, 20 to 26 at or below the critical level (the kind minus 10 or 20 is
-/// the `NeedId` order, `arg` the level); 30 job satisfaction; 31 a feeling
-/// about someone close by (`arg` their `SimId`); 32 an overdue bill; 40 to 45
-/// a timed moodlet (the kind minus 40 is its timer code, `ends` the tick it
-/// ends). `arg` is 0 otherwise.
+/// explanation ([AP-c-sources]): 0 none, which includes "Mood from needs";
+/// 30 job satisfaction; 31 a feeling about someone close by (`arg` their
+/// `SimId`); 32 an overdue bill; 40 to 45 a timed moodlet (the kind minus 40
+/// is its timer code, `ends` the tick it ends). `arg` is 0 otherwise. Kinds
+/// 10 to 26 named a need below a mood band until needs affected mood over
+/// time (issue 355) and are no longer sent.
 pub fn moodlets(world: &World, sim: u32) -> Vec<f64> {
     let Some(entity) = living(world, sim) else {
         return Vec::new();
@@ -164,15 +164,6 @@ pub fn moodlets(world: &World, sim: u32) -> Vec<f64> {
         .flat_map(|(moodlet, source)| {
             let (kind, arg, ends) = match *source {
                 MoodSource::Other => (0.0, 0.0, -1.0),
-                MoodSource::Need {
-                    need,
-                    critical,
-                    level,
-                } => (
-                    f64::from(need) + if critical { 20.0 } else { 10.0 },
-                    f64::from(level),
-                    -1.0,
-                ),
                 MoodSource::JobSatisfaction => (30.0, 0.0, -1.0),
                 MoodSource::Feeling { sim } => (31.0, f64::from(sim), -1.0),
                 MoodSource::BillsOverdue => (32.0, 0.0, -1.0),

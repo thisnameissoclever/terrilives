@@ -904,6 +904,7 @@ impl From<PublishedContentPack> for ContentPack {
             // Bills (issue 298): the shipped charges, and no usage, because
             // a published pack's content declares none.
             bills: crate::pack::BillsTuning::shipped_without_usage(),
+            need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
         }
     }
 }
@@ -1085,6 +1086,7 @@ impl From<Published2fContentPack> for ContentPack {
             // Bills (issue 298): the shipped charges, and no usage, because
             // a published pack's content declares none.
             bills: crate::pack::BillsTuning::shipped_without_usage(),
+            need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
         }
     }
 }

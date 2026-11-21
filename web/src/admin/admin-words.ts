@@ -157,7 +157,6 @@ export const HOUSEMATE_WORDS = {
   endsIn: (duration: string): string => `Ends in ${duration}`,
   endNow: 'End now',
   endTimed: (name: string): string => `End ${name}'s timed moodlets`,
-  fromNeed: (need: string, level: number): string => `From ${need} below ${level}`,
   fromJob: 'From job satisfaction',
   fromFeeling: (name: string, other: string): string => `From ${name}'s feeling about ${other}`,
   fromBills: 'While a bill is overdue',

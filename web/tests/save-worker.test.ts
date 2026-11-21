@@ -46,7 +46,7 @@ const v20 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 20, 0, 29, 128, 0, 0
 const v21 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 21, 0, 29, 128, 0, 0, 0, 1]);
 const v22 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 22, 0, 29, 128, 0, 0, 0, 1]);
 const v23 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 23, 0, 29, 128, 0, 0, 0, 1]);
-const v24 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 24, 0, 29, 128, 0, 0, 0, 1]);
+const v27 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 27, 0, 29, 128, 0, 0, 0, 1]);
 const V20_BACKUP = 'terri-save-1.v20-backup.bin';
 const V21_BACKUP = 'terri-save-1.v21-backup.bin';
 const V22_BACKUP = 'terri-save-1.v22-backup.bin';
@@ -141,7 +141,7 @@ async function workerSlot(initial: Uint8Array | null = v1) {
     else if (legacy === 'v23') await import('./fixtures/v23-worker/save-worker.js');
     else await import('../src/storage/save-worker.js');
     let id = 0;
-    function request(kind: 'load' | 'save' | 'clear', bytes: Uint8Array = v24): Promise<Response> {
+    function request(kind: 'load' | 'save' | 'clear', bytes: Uint8Array = v27): Promise<Response> {
       const requestId = ++id;
       return new Promise((resolve) => {
         waiting.set(requestId, resolve);
@@ -157,6 +157,80 @@ async function workerSlot(initial: Uint8Array | null = v1) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('save worker recovery backup', () => {
+  it.each([
+    ['save-header.ts', '069188a9e0d375da16f7e788bd2f592686aa4c1fbbbf333ed5bf92b05dbc1089'],
+    ['save-worker.ts', '4bcaee5121444aa09371033aaf9d24ae14b01eff87aa22f0e43bd2969dd1f0e1'],
+  ])('retains the exact V23 %s source from main', (name, digest) => {
+    const bytes = readFileSync(new URL(`./fixtures/v23-worker/${name}`, import.meta.url));
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
+  });
+
+  it('backs up exact V23 bytes before replacing them with V27', async () => {
+    const original = new Uint8Array([...v23, 91, 17]);
+    const next = new Uint8Array([...v23.slice(0, 8), 27, 0, 73]);
+    const slot = await workerSlot(original);
+    const cached = await slot.connect('v23');
+    expect(await slot.request('save', next)).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(original);
+    expect(slot.files.get(PRIMARY)).toEqual(next);
+    expect(await cached('save', v23)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(next);
+    expect(await slot.request('clear')).toMatchObject({ ok: true });
+    expect(slot.files.get(V23_BACKUP)).toEqual(original);
+  });
+
+  it('keeps V23 when its recovery backup could not be written', async () => {
+    const slot = await workerSlot(v23);
+    slot.fail.file = V23_BACKUP;
+    slot.fail.phase = 'write';
+    expect(await slot.request('save')).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v23);
+    expect(slot.files.has(V23_BACKUP)).toBe(false);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+  });
+
+  it('backs up the published Career V24 slot before writing V27', async () => {
+    const published = new Uint8Array([...v23.slice(0, 8), 24, 0, 164, 220, 210, 228, 250, 221, 197, 136, 81, 38]);
+    const slot = await workerSlot(published);
+    expect(await slot.request('save')).toMatchObject({ ok: true });
+    expect(slot.files.get('terri-save-1.v24-backup.bin')).toEqual(published);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
+  });
+
+  it('protects a private V24 backup from use as a published Career recovery copy', async () => {
+    const published = new Uint8Array([...v23.slice(0, 8), 24, 0, 164, 220, 210, 228, 250, 221, 197, 136, 81]);
+    const unpublished = new Uint8Array([...v23.slice(0, 8), 24, 0, 174, 199, 139, 189, 133, 195, 228, 148, 114]);
+    const slot = await workerSlot(published);
+    slot.files.set('terri-save-1.v24-backup.bin', unpublished);
+    expect(await slot.request('save')).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(published);
+    expect(slot.files.get('terri-save-1.v24-backup.bin')).toEqual(unpublished);
+  });
+
+  it.each([24, 25, 26])('keeps unpublished V%s in storage until an explicit clear', async (version) => {
+    const unpublished = new Uint8Array([...v23.slice(0, 8), version, 0, ...[174, 199, 139, 189, 133, 195, 228, 148, 114], 38]);
+    const slot = await workerSlot(unpublished);
+    const cached = await slot.connect('v23');
+    expect(await slot.request('load')).toMatchObject({ ok: true, bytes: unpublished.buffer });
+    expect(await slot.request('save')).toMatchObject({ ok: false });
+    expect(await cached('save', v23)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(unpublished);
+    expect([...slot.files.keys()]).toEqual([PRIMARY]);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+
+    expect(await slot.request('clear')).toMatchObject({ ok: true });
+    expect(await slot.request('save')).toMatchObject({ ok: true });
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
+  });
+
+  it.each([24, 25, 26])('refuses to write an unpublished V%s payload', async (version) => {
+    const slot = await workerSlot(v23);
+    const unpublished = new Uint8Array([...v23.slice(0, 8), version, 0, ...[174, 199, 139, 189, 133, 195, 228, 148, 114], 38]);
+    expect(await slot.request('save', unpublished)).toMatchObject({ ok: false });
+    expect([...slot.files.keys()]).toEqual([PRIMARY]);
+    expect(slot.files.get(PRIMARY)).toEqual(v23);
+    expect(slot.events).toEqual([]);
+  });
   it.each([
     ['save-header.ts', '57c09cc3eca1692b851b937da825dc44a99a04fee94c60b3c83b64bf68b9ee94'],
     ['save-worker.ts', 'ad8bd0b1c3e08978391014825a0f217bc08127a4fdbacf3467509b0ef0ae707c'],
@@ -174,65 +248,6 @@ describe('save worker recovery backup', () => {
   });
 
   it.each([
-    ['save-header.ts', '069188a9e0d375da16f7e788bd2f592686aa4c1fbbbf333ed5bf92b05dbc1089'],
-    ['save-worker.ts', '4bcaee5121444aa09371033aaf9d24ae14b01eff87aa22f0e43bd2969dd1f0e1'],
-  ])('retains the exact V23 %s source from the branch', (name, digest) => {
-    const bytes = readFileSync(new URL(`./fixtures/v23-worker/${name}`, import.meta.url));
-    expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
-  });
-
-  it.each([
-    ['new-game-thursday-noon', 7769, 'c0fcae1fd194cd15fca274afcc7216a79e6b6c5077135fd3fb029f32a9a59126'],
-    ['two-reviewed-weeks-tuesday-noon', 9786, '00a7e0528e30865f1123f500540ba96edf0574d68aeaeb9f0b67b741ec6c8cd2'],
-  ])("keeps the V23 %s bytes before writing V24", async (name, length, digest) => {
-    const original = new Uint8Array(readFileSync(new URL(
-      `../../crates/terri-wasm/tests/fixtures/career-inputs-v23/${name}.sav`, import.meta.url)));
-    expect(original).toHaveLength(Number(length));
-    expect(createHash('sha256').update(original).digest('hex')).toBe(digest);
-    const slot = await workerSlot(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
-    expect(slot.files.get(V23_BACKUP)).toEqual(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
-    expect(slot.files.get(V23_BACKUP)).toEqual(original);
-  });
-
-  it('backs up V23 before V24 and refuses the frozen V23 writer', async () => {
-    const original = new Uint8Array([...v23, 91, 17]);
-    const slot = await workerSlot(original);
-    const cached = await slot.connect('v23');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
-    expect(slot.files.get(V23_BACKUP)).toEqual(original);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
-    expect(await cached('save', v23)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
-    expect(await slot.request('clear')).toMatchObject({ ok: true });
-    expect(slot.files.get(V23_BACKUP)).toEqual(original);
-  });
-
-  it.each(['open', 'write', 'close'])('preserves V23 after backup %s failure and permits retry', async (phase) => {
-    const slot = await workerSlot(v23);
-    slot.fail.file = V23_BACKUP;
-    slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v23);
-    expect(slot.files.has(V23_BACKUP)).toBe(false);
-    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
-    slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
-    expect(slot.files.get(V23_BACKUP)).toEqual(v23);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
-  });
-
-  it.each([new Uint8Array(), v22, v24])('refuses a mismatched V23 recovery copy', async (backup) => {
-    const slot = await workerSlot(v23);
-    slot.files.set(V23_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v23);
-    expect(slot.files.get(V23_BACKUP)).toEqual(backup);
-    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
-  });
-
-  it.each([
     ['save-header.ts', '39c52f7b2a48a7fc661fb4b359b401913180f3fa66ede28039a6151480a4ccfc'],
     ['save-worker.ts', '70476d0ea9a7d344290f57d90c710317466ea42f39caa2b48eae3fab0fa4e4e1'],
   ])('retains the exact V22 %s source from main', (name, digest) => {
@@ -243,27 +258,27 @@ describe('save worker recovery backup', () => {
   it.each([
     ['new-game-day-one-noon', 6168, 'e9821911a02fcf3d199c8e5c08e9f92192452f15b2f3c6ed8b7d623562355095'],
     ['new-game-two-days-evening', 7213, '56453a6147b51bd2daeecab7304dfdd568a501d31007c7cd1aa5efde300ba04b'],
-  ])("keeps main's V22 %s bytes before writing V24", async (name, length, digest) => {
+  ])("keeps main's V22 %s bytes before writing V27", async (name, length, digest) => {
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/presence-v22/${name}.sav`, import.meta.url)));
     expect(original).toHaveLength(Number(length));
     expect(createHash('sha256').update(original).digest('hex')).toBe(digest);
     const slot = await workerSlot(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V22_BACKUP)).toEqual(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V22_BACKUP)).toEqual(original);
   });
 
-  it('backs up V22 before V24 and refuses the frozen V22 writer', async () => {
+  it('backs up V22 before V27 and refuses the frozen V22 writer', async () => {
     const original = new Uint8Array([...v22, 91, 17]);
     const slot = await workerSlot(original);
     const cached = await slot.connect('v22');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V22_BACKUP)).toEqual(original);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await cached('save', v22)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.get(V22_BACKUP)).toEqual(original);
   });
@@ -272,20 +287,20 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v22);
     slot.fail.file = V22_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v22);
     expect(slot.files.has(V22_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V22_BACKUP)).toEqual(v22);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
 
-  it.each([new Uint8Array(), v21, v24])('refuses a mismatched V22 recovery copy', async (backup) => {
+  it.each([new Uint8Array(), v21, v27])('refuses a mismatched V22 recovery copy', async (backup) => {
     const slot = await workerSlot(v22);
     slot.files.set(V22_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v22);
     expect(slot.files.get(V22_BACKUP)).toEqual(backup);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
@@ -303,27 +318,27 @@ describe('save worker recovery backup', () => {
     ['two-days-tim-at-work', 7064, 'd0580d3dad893a66153c8b9137ee3ac8d2d8eca896ef00376f1bd6ab5ad2854d'],
     ['night-shift-open', 6448, 'dbf48c6764c64adf458065def6641c06eda421b9614f576afbdeb75c53df8ac8'],
     ['double-bed-in-yard', 6145, 'd6d29f37f417cff803dd5bb70afc6095787ee3da0b4bbd678b74f5adb6c2fa50'],
-  ])("keeps main's V21 %s bytes before writing V24", async (name, length, digest) => {
+  ])("keeps main's V21 %s bytes before writing V27", async (name, length, digest) => {
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/bills-v21/${name}.sav`, import.meta.url)));
     expect(original).toHaveLength(Number(length));
     expect(createHash('sha256').update(original).digest('hex')).toBe(digest);
     const slot = await workerSlot(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V21_BACKUP)).toEqual(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V21_BACKUP)).toEqual(original);
   });
 
-  it('backs up V21 before V24 and refuses the frozen V21 writer', async () => {
+  it('backs up V21 before V27 and refuses the frozen V21 writer', async () => {
     const original = new Uint8Array([...v21, 91, 17]);
     const slot = await workerSlot(original);
     const cached = await slot.connect('v21');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V21_BACKUP)).toEqual(original);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await cached('save', v21)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.get(V21_BACKUP)).toEqual(original);
   });
@@ -332,20 +347,20 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v21);
     slot.fail.file = V21_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v21);
     expect(slot.files.has(V21_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V21_BACKUP)).toEqual(v21);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
 
-  it.each([new Uint8Array(), v20, v24])('refuses a mismatched V21 recovery copy', async (backup) => {
+  it.each([new Uint8Array(), v20, v27])('refuses a mismatched V21 recovery copy', async (backup) => {
     const slot = await workerSlot(v21);
     slot.files.set(V21_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v21);
     expect(slot.files.get(V21_BACKUP)).toEqual(backup);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
@@ -362,27 +377,27 @@ describe('save worker recovery backup', () => {
   it.each([
     ['shipped-household', 7523, '3715a80e8d67e12853c128bfbaedda42bcce3f9642b45dfe1f158edda4e4174c'],
     ['queued-setting', 7202, '7bc82c6506050b2f7dd1e0536c9c5205dbc87027bc715f508d4ef22ebf7f9aec'],
-  ])('keeps main\'s V20 %s bytes before writing V24', async (name, length, digest) => {
+  ])('keeps main\'s V20 %s bytes before writing V27', async (name, length, digest) => {
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/shifts-v20/${name}.sav`, import.meta.url)));
     expect(original).toHaveLength(Number(length));
     expect(createHash('sha256').update(original).digest('hex')).toBe(digest);
     const slot = await workerSlot(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V20_BACKUP)).toEqual(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V20_BACKUP)).toEqual(original);
   });
 
-  it('backs up V20 before V24 and refuses the frozen V20 writer', async () => {
+  it('backs up V20 before V27 and refuses the frozen V20 writer', async () => {
     const original = new Uint8Array([...v20, 91, 17]);
     const slot = await workerSlot(original);
     const cached = await slot.connect('v20');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V20_BACKUP)).toEqual(original);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await cached('save', v20)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.get(V20_BACKUP)).toEqual(original);
   });
@@ -391,20 +406,20 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v20);
     slot.fail.file = V20_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v20);
     expect(slot.files.has(V20_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V20_BACKUP)).toEqual(v20);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
 
-  it.each([new Uint8Array(), v19, v24])('refuses a mismatched V20 recovery copy', async (backup) => {
+  it.each([new Uint8Array(), v19, v27])('refuses a mismatched V20 recovery copy', async (backup) => {
     const slot = await workerSlot(v20);
     slot.files.set(V20_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v20);
     expect(slot.files.get(V20_BACKUP)).toEqual(backup);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
@@ -413,48 +428,48 @@ describe('save worker recovery backup', () => {
   it.each([
     ['initial', 5380, '71b40659bdad1946f7f5d79d55362a555133481e1161940cc2ccb92d1f4b6ed2'],
     ['running-fight', 6020, '0193fbfcfe7c0934f47dfa2db8e0e82fd7d0d11369a5820bee12748bf04a4c45'],
-  ])('preserves authentic published V19 %s bytes before writing V24', async (name, length, digest) => {
+  ])('preserves authentic published V19 %s bytes before writing V27', async (name, length, digest) => {
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/published-v19/${name}.sav`, import.meta.url)));
     expect(original).toHaveLength(Number(length));
     expect(createHash('sha256').update(original).digest('hex')).toBe(digest);
     const slot = await workerSlot(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V19_BACKUP)).toEqual(original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V19_BACKUP)).toEqual(original);
   });
 
-  it('backs up V19 before V24 and refuses the frozen V19 writer', async () => {
+  it('backs up V19 before V27 and refuses the frozen V19 writer', async () => {
     const original = new Uint8Array([...v19, 91, 17]);
     const slot = await workerSlot(original);
     const cached = await slot.connect('v19');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V19_BACKUP)).toEqual(original);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await cached('save', v19)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.get(V19_BACKUP)).toEqual(original);
   });
 
-  it.each([new Uint8Array(), v18, v24])('refuses a mismatched V19 recovery copy', async (backup) => {
+  it.each([new Uint8Array(), v18, v27])('refuses a mismatched V19 recovery copy', async (backup) => {
     const slot = await workerSlot(v19);
     slot.files.set(V19_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v19);
     expect(slot.files.get(V19_BACKUP)).toEqual(backup);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
-  it('backs up V18 before V24 and refuses a cached V18 writer', async () => {
+  it('backs up V18 before V27 and refuses a cached V18 writer', async () => {
     const slot = await workerSlot(v18);
     const cached = await slot.connect('v18');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V18_BACKUP)).toEqual(v18);
     expect(slot.events.indexOf(`close ${V18_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
     expect(await cached('save', v18)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.get(V18_BACKUP)).toEqual(v18);
   });
@@ -463,11 +478,11 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v18);
     slot.fail.file = V18_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v18);
     expect(slot.files.has(V18_BACKUP)).toBe(false);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V18_BACKUP)).toEqual(v18);
   });
 
@@ -479,16 +494,16 @@ describe('save worker recovery backup', () => {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
   });
 
-  it('backs up V17 before V24 and refuses a cached V17 writer', async () => {
+  it('backs up V17 before V27 and refuses a cached V17 writer', async () => {
     const slot = await workerSlot(v17);
     slot.files.set(V16_BACKUP, v16);
     const cached = await slot.connect('v17');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V17_BACKUP)).toEqual(v17);
     expect(slot.events.indexOf(`close ${V17_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
     slot.events.length = 0;
     expect(await cached('save', v17)).toMatchObject({ ok: false });
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.events).not.toContain(`writable ${V17_BACKUP}`);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.has(PRIMARY)).toBe(false);
@@ -500,14 +515,14 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v17);
     slot.fail.file = V17_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v17);
     expect(slot.files.has(V17_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V17_BACKUP)).toEqual(v17);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
 
   it('keeps a V17 save written by main before a real current write', async () => {
@@ -533,10 +548,10 @@ describe('save worker recovery backup', () => {
     } finally { sim.free(); }
   });
 
-  it.each([new Uint8Array(), v16, v24])('refuses an invalid V17 recovery header', async (backup) => {
+  it.each([new Uint8Array(), v16, v27])('refuses an invalid V17 recovery header', async (backup) => {
     const slot = await workerSlot(v17);
     slot.files.set(V17_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v17);
     expect(slot.files.get(V17_BACKUP)).toEqual(backup);
   });
@@ -549,16 +564,16 @@ describe('save worker recovery backup', () => {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
   });
 
-  it('backs up V16 before V24 and refuses a cached V16 writer', async () => {
+  it('backs up V16 before V27 and refuses a cached V16 writer', async () => {
     const slot = await workerSlot(v16);
     slot.files.set(V15_BACKUP, v15);
     const cached = await slot.connect('v16');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V16_BACKUP)).toEqual(v16);
     expect(slot.events.indexOf(`close ${V16_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
     slot.events.length = 0;
     expect(await cached('save', v16)).toMatchObject({ ok: false });
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.events).not.toContain(`writable ${V16_BACKUP}`);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.has(PRIMARY)).toBe(false);
@@ -573,11 +588,11 @@ describe('save worker recovery backup', () => {
       expect([...previous.slice(8, 10)]).toEqual([16, 0]);
       const slot = await workerSlot(previous);
       const cached = await slot.connect('v16');
-      expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+      expect(await slot.request('save', v27)).toMatchObject({ ok: true });
       expect(slot.files.get(V16_BACKUP)).toEqual(previous);
       expect(slot.events.indexOf(`close ${V16_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
       expect(await cached('save', previous)).toMatchObject({ ok: false });
-      expect(slot.files.get(PRIMARY)).toEqual(v24);
+      expect(slot.files.get(PRIMARY)).toEqual(v27);
       expect(await slot.request('clear')).toMatchObject({ ok: true });
       expect(slot.files.get(V16_BACKUP)).toEqual(previous);
     },
@@ -587,29 +602,29 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v16);
     slot.fail.file = V16_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v16);
     expect(slot.files.has(V16_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V16_BACKUP)).toEqual(v16);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
 
   it.each(['open', 'write', 'close'])('retains V16 recovery after primary %s failure', async (phase) => {
     const slot = await workerSlot(v16);
     slot.fail.file = PRIMARY;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(V16_BACKUP)).toEqual(v16);
     expect(slot.files.get(PRIMARY)).toEqual(v16);
   });
 
-  it.each([new Uint8Array(), v15, v24])('refuses an invalid V16 recovery header', async (backup) => {
+  it.each([new Uint8Array(), v15, v27])('refuses an invalid V16 recovery header', async (backup) => {
     const slot = await workerSlot(v16);
     slot.files.set(V16_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v16);
     expect(slot.files.get(V16_BACKUP)).toEqual(backup);
   });
@@ -622,16 +637,16 @@ describe('save worker recovery backup', () => {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
   });
 
-  it('backs up V15 before V24 and preserves both recovery versions through New game', async () => {
+  it('backs up V15 before V27 and preserves both recovery versions through New game', async () => {
     const slot = await workerSlot(v15);
     slot.files.set(V14_BACKUP, v14);
     const cached = await slot.connect('v15');
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V15_BACKUP)).toEqual(v15);
     expect(slot.events.indexOf(`close ${V15_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
     slot.events.length = 0;
     expect(await cached('save', v15)).toMatchObject({ ok: false });
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.events).not.toContain(`writable ${V15_BACKUP}`);
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.has(PRIMARY)).toBe(false);
@@ -642,16 +657,16 @@ describe('save worker recovery backup', () => {
   it.each(['fresh', 'chat-queued', 'chat-approaching', 'chat-waiting-owned',
     'chat-waiting-arrived', 'chat-waiting-private', 'chat-talking',
     'chat-talking-later-identical', 'chat-suspended'])(
-    'backs up authentic published V15 %s before a synthetic V24 write', async (name) => {
+    'backs up authentic published V15 %s before a synthetic V27 write', async (name) => {
       const previous = new Uint8Array(readFileSync(new URL(
         `../../crates/terri-wasm/tests/fixtures/room-identities-v15/${name}.sav`, import.meta.url)));
       const slot = await workerSlot(previous);
       const cached = await slot.connect('v15');
-      expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+      expect(await slot.request('save', v27)).toMatchObject({ ok: true });
       expect(slot.files.get(V15_BACKUP)).toEqual(previous);
       expect(slot.events.indexOf(`close ${V15_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
       expect(await cached('save', previous)).toMatchObject({ ok: false });
-      expect(slot.files.get(PRIMARY)).toEqual(v24);
+      expect(slot.files.get(PRIMARY)).toEqual(v27);
       expect(await slot.request('clear')).toMatchObject({ ok: true });
       expect(slot.files.get(V15_BACKUP)).toEqual(previous);
     },
@@ -661,7 +676,7 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v15);
     slot.fail.file = V15_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v15);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
@@ -670,15 +685,15 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v15);
     slot.fail.file = PRIMARY;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(V15_BACKUP)).toEqual(v15);
     expect(slot.files.get(PRIMARY)).toEqual(v15);
   });
 
-  it.each([new Uint8Array(), v14, v24])('refuses an invalid V15 recovery header', async (backup) => {
+  it.each([new Uint8Array(), v14, v27])('refuses an invalid V15 recovery header', async (backup) => {
     const slot = await workerSlot(v15);
     slot.files.set(V15_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v15);
     expect(slot.files.get(V15_BACKUP)).toEqual(backup);
   });
@@ -691,20 +706,20 @@ describe('save worker recovery backup', () => {
   });
 
   it.each(['fresh', 'lived', 'cleaning-ordered', 'outdoor-boards'])(
-    'preserves the complete historical V14 %s save before writing a synthetic V24 header', async (name) => {
+    'preserves the complete historical V14 %s save before writing a synthetic V27 header', async (name) => {
       const previous = new Uint8Array(readFileSync(new URL(
         `../../crates/terri-wasm/tests/fixtures/room-identities-v14/${name}.sav`, import.meta.url)));
       const slot = await workerSlot(previous);
-      expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+      expect(await slot.request('save', v27)).toMatchObject({ ok: true });
       expect(slot.files.get(V14_BACKUP)).toEqual(previous);
-      expect(slot.files.get(PRIMARY)).toEqual(v24);
+      expect(slot.files.get(PRIMARY)).toEqual(v27);
       expect(slot.events.indexOf(`close ${V14_BACKUP}`)).toBeLessThan(
         slot.events.indexOf(`writable ${PRIMARY}`),
       );
       const cached = await slot.connect('v14');
       slot.events.length = 0;
       expect(await cached('save', previous)).toMatchObject({ ok: false });
-      expect(slot.files.get(PRIMARY)).toEqual(v24);
+      expect(slot.files.get(PRIMARY)).toEqual(v27);
       expect(slot.files.get(V14_BACKUP)).toEqual(previous);
       expect(slot.events).not.toContain(`writable ${PRIMARY}`);
       expect(await slot.request('clear')).toMatchObject({ ok: true });
@@ -713,10 +728,10 @@ describe('save worker recovery backup', () => {
     },
   );
 
-  it('the frozen V14 worker rejects outgoing V24 before reading or writing storage', async () => {
+  it('the frozen V14 worker rejects outgoing V27 before reading or writing storage', async () => {
     const slot = await workerSlot(v14);
     const cached = await slot.connect('v14');
-    expect(await cached('save', v24)).toMatchObject({ ok: false });
+    expect(await cached('save', v27)).toMatchObject({ ok: false });
     expect(slot.events).toEqual([]);
     expect(slot.files.get(PRIMARY)).toEqual(v14);
   });
@@ -725,34 +740,34 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v14);
     slot.fail.file = V14_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v14);
     expect(slot.files.has(V14_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V14_BACKUP)).toEqual(v14);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
 
   it.each(['open', 'write', 'close'])('retains V14 and its completed recovery after primary %s failure', async (phase) => {
     const slot = await workerSlot(v14);
     slot.fail.file = PRIMARY;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v14);
     expect(slot.files.get(V14_BACKUP)).toEqual(v14);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(slot.files.get(V14_BACKUP)).toEqual(v14);
     expect(slot.events.filter((event) => event === `writable ${V14_BACKUP}`)).toHaveLength(1);
   });
 
-  it.each([new Uint8Array(), v13, v24])('refuses a damaged or mismatched V14 recovery copy', async (backup) => {
+  it.each([new Uint8Array(), v13, v27])('refuses a damaged or mismatched V14 recovery copy', async (backup) => {
     const slot = await workerSlot(v14);
     slot.files.set(V14_BACKUP, backup);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v14);
     expect(slot.files.get(V14_BACKUP)).toEqual(backup);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
@@ -763,7 +778,7 @@ describe('save worker recovery backup', () => {
     slot.files.set(V14_BACKUP, v14);
     slot.fail.file = V14_BACKUP;
     slot.fail.phase = 'read';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v14);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
@@ -772,8 +787,8 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v14);
     const original = new Uint8Array([...v14, 77]);
     slot.files.set(V14_BACKUP, original);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(await slot.request('clear')).toMatchObject({ ok: true });
     expect(slot.files.has(PRIMARY)).toBe(false);
     expect(slot.files.get(V14_BACKUP)).toEqual(original);
@@ -783,60 +798,60 @@ describe('save worker recovery backup', () => {
 
   it('preserves exact V8 bytes before a current write and refuses a cached V8 overwrite', async () => {
     const slot = await workerSlot(v8);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V8_BACKUP)).toEqual(v8);
     const cached = await slot.connect('v8');
     expect(await cached('save', v8)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(slot.events.indexOf(`close ${V8_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
   });
   it('preserves V7 before a current write and refuses a cached V7 overwrite', async () => {
     const slot = await workerSlot(v7);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V7_BACKUP)).toEqual(v7);
     const cached = await slot.connect('v7');
     expect(await cached('save', v7)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
   it('preserves V9 before a current write and refuses a cached V9 writer', async () => {
     const slot = await workerSlot(v9);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V9_BACKUP)).toEqual(v9);
     const cached = await slot.connect('v9');
     expect(await cached('save', v9)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
   it('preserves V10 before a current write and refuses a cached V10 writer', async () => {
     const slot = await workerSlot(v10);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V10_BACKUP)).toEqual(v10);
     const cached = await slot.connect('v10');
     expect(await cached('save', v10)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
   it('preserves V11 before a current write and refuses a cached V11 writer', async () => {
     const slot = await workerSlot(v11);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V11_BACKUP)).toEqual(v11);
     const cached = await slot.connect('v11');
     expect(await cached('save', v11)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
   it('preserves V12 before the current write and refuses a cached V12 writer', async () => {
     const slot = await workerSlot(v12);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V12_BACKUP)).toEqual(v12);
     const cached = await slot.connect('v12');
     expect(await cached('save', v12)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
   it('preserves V13 before the current write and refuses a cached V13 writer', async () => {
     const slot = await workerSlot(v13);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V13_BACKUP)).toEqual(v13);
     const cached = await slot.connect('v13');
     expect(await cached('save', v13)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
   });
   it.each(['local-character-0', 'main-social-active'])(
     'preserves exact %s V9 recovery bytes before writing a real current save', async (name) => {
@@ -902,9 +917,9 @@ describe('save worker recovery backup', () => {
 
   it('backs up exact V5 bytes before the first current write', async () => {
     const slot = await workerSlot(v5);
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V5_BACKUP)).toEqual(v5);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(slot.events.indexOf(`close ${V5_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
   });
 
@@ -912,12 +927,12 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v5);
     slot.fail.file = V5_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v5);
     expect(slot.files.has(V5_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v27)).toMatchObject({ ok: true });
     expect(slot.files.get(V5_BACKUP)).toEqual(v5);
   });
 
@@ -929,10 +944,10 @@ describe('save worker recovery backup', () => {
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
   it('the previous V6 worker refuses a current slot', async () => {
-    const slot = await workerSlot(v24);
+    const slot = await workerSlot(v27);
     const oldWorker = await slot.connect('v6');
     expect(await oldWorker('save', v6)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
@@ -1041,9 +1056,9 @@ describe('save worker recovery backup', () => {
   it.each([[v1, BACKUP], [v2, V2_BACKUP], [v3, V3_BACKUP], [v4, V4_BACKUP], [v5, V5_BACKUP], [v6, V6_BACKUP], [v7, V7_BACKUP], [v8, V8_BACKUP], [v9, V9_BACKUP], [v10, V10_BACKUP], [v11, V11_BACKUP], [v12, V12_BACKUP], [v13, V13_BACKUP], [v14, V14_BACKUP], [v15, V15_BACKUP], [v16, V16_BACKUP]] as const)(
     'preserves original historical bytes before a current overwrite', async (previous, backup) => {
       const slot = await workerSlot(previous);
-      expect(await slot.request('save', v24)).toMatchObject({ ok: true });
+      expect(await slot.request('save', v27)).toMatchObject({ ok: true });
       expect(slot.files.get(backup)).toEqual(previous);
-      expect(slot.files.get(PRIMARY)).toEqual(v24);
+      expect(slot.files.get(PRIMARY)).toEqual(v27);
       expect(slot.events.indexOf(`close ${backup}`)).toBeLessThan(
         slot.events.indexOf(`writable ${PRIMARY}`),
       );
@@ -1054,7 +1069,7 @@ describe('save worker recovery backup', () => {
     new Uint8Array([...v1.slice(0, 8), 0, 0, 77])])(
     'refuses unknown primary headers before a current write', async (previous) => {
       const slot = await workerSlot(previous);
-      expect(await slot.request('save', v24)).toMatchObject({ ok: false });
+      expect(await slot.request('save', v27)).toMatchObject({ ok: false });
       expect(slot.files.get(PRIMARY)).toEqual(previous);
       expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     },
@@ -1074,7 +1089,7 @@ describe('save worker recovery backup', () => {
       slot.fail.file = '';
       expect(await slot.request('save')).toMatchObject({ ok: true });
       expect(slot.files.get(BACKUP)).toEqual(v1);
-      expect(slot.files.get(PRIMARY)).toEqual(v24);
+      expect(slot.files.get(PRIMARY)).toEqual(v27);
     },
   );
 
@@ -1082,7 +1097,7 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot();
     expect(await slot.request('save')).toMatchObject({ ok: true });
     expect(slot.files.get(BACKUP)).toEqual(v1);
-    expect(slot.files.get(PRIMARY)).toEqual(v24);
+    expect(slot.files.get(PRIMARY)).toEqual(v27);
     expect(slot.events.indexOf(`close ${BACKUP}`)).toBeGreaterThan(-1);
     expect(slot.events.indexOf(`close ${BACKUP}`)).toBeLessThan(
       slot.events.indexOf(`writable ${PRIMARY}`),
@@ -1133,8 +1148,8 @@ describe('save worker recovery backup', () => {
   });
 
   it.each([
-    { previous: v24, next: v24 },
-    { previous: null, next: v24 },
+    { previous: v27, next: v27 },
+    { previous: null, next: v27 },
   ])('writes the current schema without a historical backup when none is needed: %j', async ({ previous, next }) => {
     const slot = await workerSlot(previous);
     expect(await slot.request('save', next)).toMatchObject({ ok: true });
@@ -1156,10 +1171,10 @@ describe('save worker recovery backup', () => {
   it('serializes simultaneous first saves from two worker instances under one origin lock', async () => {
     const slot = await workerSlot();
     const other = await slot.connect();
-    const newerV17 = new Uint8Array([...v24, 42]);
-    const responses = await Promise.all([slot.request('save'), other('save', newerV17)]);
+    const newer = new Uint8Array([...v27, 42]);
+    const responses = await Promise.all([slot.request('save'), other('save', newer)]);
     expect(responses.map((response) => response.ok)).toEqual([true, true]);
-    expect(slot.files.get(PRIMARY)).toEqual(newerV17);
+    expect(slot.files.get(PRIMARY)).toEqual(newer);
     expect(slot.files.get(BACKUP)).toEqual(v1);
     expect(slot.events.filter((event) => event === `writable ${BACKUP}`)).toHaveLength(1);
     expect(slot.locks.request).toHaveBeenCalledTimes(2);

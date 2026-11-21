@@ -1,5 +1,5 @@
 import type { SaveStore } from '../storage/save-store.js';
-import { CURRENT_SAVE_VERSION, saveSchemaVersion } from '../storage/save-header.js';
+import { isSupportedSavePrefix, saveSchemaVersion } from '../storage/save-header.js';
 
 export interface PersistableSim {
   saveBytes(): Uint8Array;
@@ -100,20 +100,14 @@ export function applyPersistenceControlState(
 /** Why a chosen file or stored slot could not become the running game. */
 function unloadableReason(bytes: Uint8Array, fallback: string): string {
   const version = saveSchemaVersion(bytes);
-  return version !== null && (version < 1 || version > CURRENT_SAVE_VERSION)
+  return version !== null && !isSupportedSavePrefix(bytes)
     ? `Saved game version ${version} is not supported.`
     : fallback;
 }
 
-/**
- * Whether the storage worker will write a current save over these slot
- * bytes. It refuses an unreadable or newer slot rather than lose it. This
- * mirrors `preserveHistoricalBackup` in save-worker.ts, which needs a backup
- * file for every older version; keep the two in step when the version rises.
- */
+/** Whether the storage worker will write a current save over this slot. */
 function slotAcceptsCurrentWrite(bytes: Uint8Array): boolean {
-  const version = saveSchemaVersion(bytes);
-  return version !== null && version >= 1 && version <= CURRENT_SAVE_VERSION;
+  return isSupportedSavePrefix(bytes);
 }
 
 /**
@@ -144,7 +138,7 @@ export class PersistenceController {
         this.show('No save yet');
         return 'new';
       }
-      if (!await this.loadPrepared(bytes)) {
+      if (!await this.loadSupportedSave(bytes)) {
         this.savedGameAvailable = false;
         this.protectSavedGame(bytes);
         return 'invalid';
@@ -195,7 +189,7 @@ export class PersistenceController {
         else this.show('No saved game found', true);
         return false;
       }
-      if (!await this.loadPrepared(bytes)) {
+      if (!await this.loadSupportedSave(bytes)) {
         this.savedGameAvailable = false;
         this.protectSavedGame(bytes);
         return false;
@@ -321,7 +315,7 @@ export class PersistenceController {
       }
       let loaded = false;
       try {
-        loaded = await this.loadPrepared(bytes);
+        loaded = await this.loadSupportedSave(bytes);
       } catch (error: unknown) {
         this.reportError(error);
       }
@@ -396,6 +390,12 @@ export class PersistenceController {
 
   private armAutosave(): void {
     this.autosaveDay = this.currentDay();
+  }
+
+  private async loadSupportedSave(bytes: Uint8Array): Promise<boolean> {
+    const version = saveSchemaVersion(bytes);
+    if (version !== null && !isSupportedSavePrefix(bytes)) return false;
+    return this.loadPrepared(bytes);
   }
 
   private resumeSaving(): void {

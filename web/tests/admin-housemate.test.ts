@@ -73,13 +73,13 @@ function timLike(): World {
       { source: { kind: 'timer', timer: 2, endsTick: 1000 + 840 }, score: 12 },
       { source: { kind: 'job' }, score: 6 },
       { source: { kind: 'feeling', sim: 5 }, score: 3.4 },
-      { source: { kind: 'need', need: 1, critical: false, level: 40 }, score: -12 },
+      { source: { kind: 'other' }, score: -12 },
       { source: { kind: 'bills' }, score: -8 },
       { source: { kind: 'other' }, score: 1 },
     ],
     timers: [{ timer: 2, endsTick: 1840 }],
     moodScores: [-8.6, 12, 6, 3.4, -12, -8, 1],
-    moodLabels: ['Okay', 'Promoted', 'Enjoys the job', 'Comforted by Bill', 'Tired', 'Behind on bills', 'Pleasant'],
+    moodLabels: ['Okay', 'Promoted', 'Enjoys the job', 'Comforted by Bill', 'Mood from needs', 'Behind on bills', 'Pleasant'],
     affinities: [0.35, -0.1, 0.72, -0.45],
     words: ['Likes', 'Indifferent', 'Loves', 'Dislikes'],
     skills: [
@@ -334,7 +334,8 @@ describe('Mood and timed moodlets', () => {
     expect(text).toContain('+12');
     expect(text).toContain('From job satisfaction');
     expect(text).toContain("From Tim's feeling about Bill");
-    expect(text).toContain('From Energy below 40');
+    expect(text).toContain('Mood from needs');
+    expect(text).not.toContain(' below ');
     expect(text).toContain('While a bill is overdue');
     expect(text).toContain('Pleasant');
   });

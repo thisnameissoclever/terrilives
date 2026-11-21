@@ -133,12 +133,16 @@ fn touched(edits: &[AdminEdit]) -> Touched {
 }
 
 /// [AP-cmd-post]: the result must load. Runs the load validator of each
-/// kind of state the change touched, on the live values.
+/// kind of state the change touched, on the live values, then schema
+/// twenty-seven's need mood checks on every person: no edit writes that
+/// balance, but a need edit changes what it accrues next, so the rows a save
+/// would write are held to the loader's rules after every change.
 pub(super) fn post_condition(world: &World, edits: &[AdminEdit]) -> Result<(), ()> {
     let touched = touched(edits);
     super::housemate::post_condition(world, &touched)?;
     super::career::post_condition(world, &touched)?;
     super::household::post_condition(world, &touched)?;
+    crate::save::v27::validate_live(world).map_err(|_| ())?;
     #[cfg(test)]
     super::tests_stub::post_condition(world, edits)?;
     Ok(())

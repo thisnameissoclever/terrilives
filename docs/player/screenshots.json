@@ -443,6 +443,15 @@
         "capturedAt": "2026-11-21",
         "method": "Playwright driving Chromium, muted through the game's Sound: off preference, against the branch served by the vite dev server (commit b616048fc). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. The game was the saved game from the Household capture (a fresh New game played with the admin panel), now at Day 9, Tuesday 09:39. With the admin panel, Rent was moved to Day 1 with a 15 percent late fee, so it is overdue; Water was marked paid; Electricity and Transportation stayed in their grace days; and funds were set to $4.65, below every unpaid bill, so the funds note shows once under the table. The game was paused, the HUD shows no Load failed text, and Undo shows its label on the desktop. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, without touch emulation; the phone layout is chosen by width.",
         "evidence": "docs/player/images/ui-admin-household-desktop.png, ui-admin-household-mobile.png, ui-admin-housemate-desktop.png and ui-admin-housemate-mobile.png"
+      },
+      {
+        "id": "need-mood",
+        "url": "http://127.0.0.1:48167/",
+        "htmlSha256": "8512a767fcf5957c552659797e7c44748c2800f7f02c49cf93111bb49d761a13",
+        "bundle": "index-BJZACyHg.js",
+        "bundleSha256": "d135267e9e890a50a7e2159d0c56a4d21bdafb1ac07cc95f11259c2074dd43dc",
+        "wasm": "terri_wasm_bg-BpwJCLLg.wasm",
+        "wasmSha256": "821bb1514a3beada72ea975e7ed48744d3ade581da7bcb977e625a4cff591f5f"
       }
     ],
     "weatherSetup": {
@@ -653,12 +662,14 @@
       "description": "Overview. Phone needs appear here; desktop needs remain in the dock.",
       "access": "Select a name at the bottom of the screen, then Sim details > Overview.",
       "desktopDetail": "images/ui-sim-needs-detail-desktop.png",
-      "sourceSnapshot": "career-tab-fixes-2026-11-20",
+      "sourceSnapshot": "need-mood",
       "imageSha256": {
-        "desktop": "3e9fd5449941118ffbd1e3363282ff86a7a2496d6d3359560b49b02143dd7fa5",
-        "mobile": "48880f2dd707d0d6fc3c8cba5476743f7552e1c54ef1383f5722f9290450bf1e",
-        "desktopDetail": "fad57a56e6325b9174d7eaaeaec7d8527f68d264009c94ea79431b3cf5e92273"
-      }
+        "desktop": "4e00c79c25c38a9937150fbb217040a99cd3f91457e04350fd4c4c87c8eb2958",
+        "mobile": "cdd1cf241f39a90c48dca67c589902cbaaed1600eda7ca23156a18b7235e3b9b",
+        "desktopDetail": "a7447c112bda373174bc58288c7df524642251deac1c1ac5cf278b0693e9570d"
+      },
+      "htmlSha256": "8512a767fcf5957c552659797e7c44748c2800f7f02c49cf93111bb49d761a13",
+      "bundleSha256": "d135267e9e890a50a7e2159d0c56a4d21bdafb1ac07cc95f11259c2074dd43dc"
     },
     {
       "id": "sim-people",

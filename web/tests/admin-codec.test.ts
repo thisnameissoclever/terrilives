@@ -201,8 +201,6 @@ describe('reads', () => {
   it('reads every moodlet source', () => {
     const rows = [
       0, 0, -3, -1,
-      10, 40, -5, -1, 16, 30, -4, -1,
-      20, 15, -10, -1, 26, 5, -8, -1,
       30, 0, 6, -1,
       31, 7, 2.5, -1,
       32, 0, -12, -1,
@@ -210,15 +208,14 @@ describe('reads', () => {
     ];
     expect(decodeAdminMoodlets(rows).map(m => m.source)).toEqual([
       { kind: 'other' },
-      { kind: 'need', need: 0, critical: false, level: 40 }, { kind: 'need', need: 6, critical: false, level: 30 },
-      { kind: 'need', need: 0, critical: true, level: 15 }, { kind: 'need', need: 6, critical: true, level: 5 },
       { kind: 'job' },
       { kind: 'feeling', sim: 7 },
       { kind: 'bills' },
       { kind: 'timer', timer: 0, endsTick: 900 }, { kind: 'timer', timer: 5, endsTick: 1200 },
     ]);
-    expect(decodeAdminMoodlets(rows)[4].score).toBe(-8);
-    for (const kind of [1, 9, 17, 19, 27, 33, 39, 46, 100, -1]) {
+    expect(decodeAdminMoodlets(rows)[3].score).toBe(-12);
+    // 10 to 26 named a need below a mood band before needs affected mood over time.
+    for (const kind of [1, 9, 10, 16, 17, 19, 20, 26, 27, 33, 39, 46, 100, -1]) {
       expect(() => decodeAdminMoodlets([kind, 0, 0, -1]), String(kind)).toThrow(AdminWireError);
     }
     expect(() => decodeAdminMoodlets([0, 0, 0])).toThrow(AdminWireError);

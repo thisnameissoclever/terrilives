@@ -247,7 +247,7 @@ The game pauses while the panel is open. The panel says so, and says which speed
 
 The panel has three tabs. Housemate and Relationships act on the housemate named in the picker under the tabs; the picker starts on your selected person. Household acts on the whole household.
 
-- **Housemate** sets needs, life satisfaction, likes and dislikes, skills and traits, and the job, shift, pay, job satisfaction and good or poor weeks in a row, and turns Job search on or off. It clears repetition and ends timed moodlets such as Promoted or Had a fight. Mood is shown but cannot be set, because it follows from everything else.
+- **Housemate** sets needs, life satisfaction, likes and dislikes, skills and traits, and the job, shift, pay, job satisfaction and good or poor weeks in a row, and turns Job search on or off. It clears repetition and ends timed moodlets such as Promoted or Had a fight. Mood is shown but cannot be set, because it follows from everything else. Changing a need leaves the mood it has already built up as it is; the new level adds to or takes from Mood from needs from then on.
 - **Relationships** sets how the chosen person feels about each other housemate, sets one or all of those feelings to 0, or has them start a fight. The fight begins when the game resumes.
 - **Household** sets Funds, edits, pays, adds or deletes bills, removes late fees and marks bills paid, and skips ahead.
 

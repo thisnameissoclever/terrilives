@@ -147,7 +147,7 @@ describe('Import save', () => {
     const view = status();
     const controller = new PersistenceController(backend, game, view);
     await controller.restoreAtStartup();
-    const file = saveBytes(CURRENT_SAVE_VERSION - 1);
+    const file = saveBytes(23);
 
     expect(await controller.importSave(file)).toBe(true);
     expect(game.loaded).toEqual([file]);
@@ -172,6 +172,44 @@ describe('Import save', () => {
     expect(await controller.importSave(saveBytes())).toBe(true);
     expect(controller.isSavingPaused()).toBe(false);
     expect(controller.controlState().saveDisabled).toBe(false);
+  });
+
+  it.each([24, 25, 26])('refuses unpublished V%s imports before calling the simulation', async (version) => {
+    const backend = store(null);
+    const game = sim();
+    const load = vi.spyOn(game, 'loadBytes');
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    const file = saveBytes(version);
+    expect(controller.acceptImportFile(file.slice(0, 10))).toBe(false);
+    expect(await controller.importSave(file)).toBe(false);
+    expect(view.textContent).toBe(`Saved game version ${version} is not supported. Current game kept.`);
+    expect(load).not.toHaveBeenCalled();
+    expect(backend.saves).toEqual([]);
+  });
+
+  it.each([24, 25, 26])('protects a V%s slot until the player confirms New game', async (version) => {
+    const privateSave = saveBytes(version, [174, 199, 139, 189, 133, 195, 228, 148, 114, 37, 22, 9]);
+    const backend = store(privateSave);
+    const game = sim();
+    const load = vi.spyOn(game, 'loadBytes');
+    const deliver = vi.fn();
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(await controller.load()).toBe(false);
+    expect(view.textContent).toContain(`Saved game version ${version} is not supported.`);
+    expect(await controller.exportSave(deliver)).toBe(true);
+    expect(deliver).toHaveBeenCalledWith(privateSave);
+    expect(controller.acceptImportFile(saveBytes(23))).toBe(false);
+    expect(await controller.importSave(saveBytes(23))).toBe(false);
+    expect(await controller.save()).toBe(false);
+    expect(load).not.toHaveBeenCalled();
+    expect(backend.saves).toEqual([]);
+
+    expect(await controller.clear()).toBe(true);
+    expect(await controller.importSave(saveBytes(23))).toBe(true);
+    expect(backend.saves).toEqual([saveBytes(CURRENT_SAVE_VERSION, [1, 2, 3])]);
   });
 
   it.each([
@@ -263,7 +301,7 @@ describe('Import save', () => {
   });
 
   it('keeps saving paused when a writable protected slot still fails to save', async () => {
-    const backend = store(saveBytes(CURRENT_SAVE_VERSION - 1));
+    const backend = store(saveBytes(23));
     const game = sim(false);
     const view = status();
     const controller = new PersistenceController(backend, game, view);

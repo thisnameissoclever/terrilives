@@ -124,18 +124,18 @@ fn the_drain_refuses_an_admin_change_without_a_session() {
 fn a_save_refuses_a_queued_admin_command() {
     let mut sim = Sim::new_from_shipped_lot();
     assert_eq!(
-        sim.try_save_snapshot_v24().as_ref().ok(),
-        Some(&sim.save_snapshot_v24())
+        sim.try_save_snapshot_v27().as_ref().ok(),
+        Some(&sim.save_snapshot_v27())
     );
     push(&mut sim, SimCommand::Select(None));
-    assert!(sim.try_save_snapshot_v24().is_ok());
+    assert!(sim.try_save_snapshot_v27().is_ok());
     push(&mut sim, satisfaction(12.0));
     assert_eq!(
-        sim.try_save_snapshot_v24(),
+        sim.try_save_snapshot_v27(),
         Err(save::SaveError::AdminCommandQueued)
     );
     sim.flush_commands();
-    assert!(sim.try_save_snapshot_v24().is_ok());
+    assert!(sim.try_save_snapshot_v27().is_ok());
 }
 
 /// [AP-cmd-wire] item 4: Build mode refuses an admin change as

@@ -2,7 +2,7 @@
 
 Implementation plan for issue 312. Nothing here is implemented yet. The owner approved the mockups in `D:/VIBES/.worktrees/mockups-admin/` on 2026-11-20: `admin-housemate`, `admin-relationships` and `admin-household` at 1440 by 900, and the three `-phone` views at 390 wide, each as `.html` and `.png`. `notes.md` in that folder maps every control to its model field and range, and records the owner's decisions at its end. Where a literal copy of a mockup would look poor, confuse or miss functionality, the owner asked for good interface design over a literal copy; [AP-conflicts] lists every place this plan departs from the mockups and why.
 
-Base: `origin/main` at `ebe7be646` (save schema 24, Go to work). Branch `twcl/admin-panel-312`.
+Base: `origin/main` at `ebe7be646` (save schema 24, Go to work), merged forward to `7a69b617e` (save schema 27, needs affect mood over time, issue 355). Branch `twcl/admin-panel-312`.
 
 ## Contents
 
@@ -126,8 +126,9 @@ After applying, the drain runs the load validator of each kind of state the chan
 | Career | `careers::validate_saved` on `careers::saved`, the schema 21 shift checks, the schema 24 input checks, `attendance::validate_saved` |
 | Funds | the schema 13 dollars and cents agreement |
 | Bills | `bills::validate_saved(world, &bills::saved(world))` |
+| Need mood (every change) | the schema 27 row checks in `save/v27.rs` (`validate_rows` and `resolve`, shared with the loader through `v27::validate_live`) on the rows a save would write |
 
-These checks are cheap and cover exactly what changed. The full save round trip after every edit kind is proven by tests ([AP-tests-sim] item 3), not run at play time.
+No edit writes the need mood balance: a need edit changes only what it accrues on later ticks, as refilling a need in play does. The need mood rows are checked after every change anyway, because they are keyed by person and cheap to check. These checks are cheap and cover exactly what changed. The full save round trip after every edit kind is proven by tests ([AP-tests-sim] item 3), not run at play time.
 
 ### [AP-cmd-refusals] Refusal codes
 
@@ -221,9 +222,9 @@ Below the bill table: "Next bills due: Day {n}, {Weekday}", "Late fee: {p}% a da
 
 ### [AP-undo-model] The session
 
-`crates/terri-sim/src/admin.rs` (new) holds `AdminSession { baseline: SaveSnapshotV24, baseline_hash: u64, request_runtime, journal: Vec<AdminEntry> }` with `AdminEntry { change: AdminChange, hash_after: u64 }`. It mirrors `BuildTransaction`:
+`crates/terri-sim/src/admin.rs` (new) holds `AdminSession { baseline: SaveSnapshotV27, baseline_hash: u64, request_runtime, journal: Vec<AdminEntry> }` with `AdminEntry { change: AdminChange, hash_after: u64 }`. It mirrors `BuildTransaction`:
 
-1. `Sim::begin_admin()` refuses while Build is active (and `begin_build` refuses while an admin session is active), flushes the queue, captures `save::v24::capture`, test-restores it exactly as `begin_build` does (a world that would not reload cannot open the panel), records `Sim::hash()` as `baseline_hash` and captures the social request runtime.
+1. `Sim::begin_admin()` refuses while Build is active (and `begin_build` refuses while an admin session is active), flushes the queue, captures `save::v27::capture`, test-restores it exactly as `begin_build` does (a world that would not reload cannot open the panel), records `Sim::hash()` as `baseline_hash` and captures the social request runtime.
 2. `Sim::end_admin()` drops the session. Every applied change stays in the world.
 3. While a session is active, `Sim::tick` only flushes commands, as it does in Build, so no game time can pass under a baseline. The panel pauses the game anyway; this is the guard that makes the baseline's meaning mechanical.
 
@@ -232,7 +233,7 @@ Below the bill table: "Next bills due: Day {n}, {Weekday}", "Late fee: {p}% a da
 `Sim::admin_undo()`:
 
 1. Refuses when the journal is empty.
-2. Builds a candidate from the baseline with the same steps `restore_build` uses (`save::v24::restore`, copy the native feedback, restore the request runtime, `refresh_derived`). That body is factored into one helper both call, so Build and the panel restore identically.
+2. Builds a candidate from the baseline with the same steps `restore_build` uses (`save::v27::restore`, copy the native feedback, restore the request runtime, `refresh_derived`). That body is factored into one helper both call, so Build and the panel restore identically.
 3. Replays every journal entry but the last through the candidate's own stage-and-flush path, so maintenance (`seating`, `privacy`, the activity log's finish) runs exactly as it ran live. After each, it compares the candidate's hash with the entry's `hash_after`.
 4. On any mismatch or refusal, discards the candidate, leaves the live world and journal untouched and returns an error; the panel shows "Undo failed. Your changes are kept." and disables Undo for the rest of the session. Tests prove this path is never reached by any shipped edit ([AP-tests-sim] item 5).
 5. Otherwise installs the candidate (`ordinary::runtime::install`), pops the last entry and syncs the render buffer.
@@ -260,7 +261,7 @@ Restoring rebuilds the world, so entity indices may change. Admin edits name `Si
 
 ### [AP-save-schema] No new schema
 
-The panel writes only fields every save already holds: needs, satisfaction, habituation, timers, affinities, skills, traits, careers and attendance, relationships, the queued fight order, funds and bills. The session, the journal and `AdminState` are not saved. No save records that the panel was used ([AP-owner] item 7). `SAVE_SCHEMA_VERSION` stays 24 and no fixture or projection changes.
+The panel writes only fields every save already holds: needs, satisfaction, habituation, timers, affinities, skills, traits, careers and attendance, relationships, the queued fight order, funds and bills. The session, the journal and `AdminState` are not saved. No save records that the panel was used ([AP-owner] item 7). `SAVE_SCHEMA_VERSION` stays at main's 27 (the schema the needs mood balance added, issue 355) and no fixture or projection changes. The session baseline is a schema 27 snapshot, so Undo restores each person's need mood balance with the rest of the world.
 
 ### [AP-save-queue] An admin command never sits in a saved queue
 
@@ -268,7 +269,7 @@ A queued command must survive a save ([L-queued-commands-must-survive-save]), an
 
 1. `admin_apply` stages the change and runs `flush_commands` in the same wasm call. JavaScript cannot run a save between the two.
 2. `enqueue_command` refuses `Admin` bytes, so no other path can queue one.
-3. `capture_command` returns `SaveError::AdminCommandQueued` rather than panicking if one is ever found, and a test proves the wasm path leaves the queue empty.
+3. `Sim::try_save_snapshot_v27`, the current save that the wasm `save_bytes` writes, returns `SaveError::AdminCommandQueued` rather than panicking if one is ever found, and a test proves the wasm path leaves the queue empty.
 
 A save taken while the panel is open (the hidden-tab autosave, [L-live-verification-autosave]) holds the edits applied so far and no session. It loads as an ordinary game with the panel closed.
 
@@ -369,7 +370,7 @@ Every string below is functional text proposed for the owner's review under the 
 | S-needs | Needs; 0 to 100; Fill {name}'s needs; At 0, Hunger and Energy count toward death. | Housemate |
 | S-sat | Life satisfaction; Satisfaction | Housemate |
 | S-rep | Repetition; 0 to {max}; Clear {name}'s repetition; Overdoing; Feeling sick; No repetition.; {n} overdoing (the folded phone summary) | Housemate |
-| S-mood | Mood and moodlets; Mood {word}; {word}, {score} (the folded phone summary); Ends in {duration}; End now; End {name}'s timed moodlets; From {need} below {n}; From job satisfaction; From {name}'s feeling about {other}; While a bill is overdue | Housemate ([AP-c-sources]) |
+| S-mood | Mood and moodlets; Mood {word}; {word}, {score} (the folded phone summary); Ends in {duration}; End now; End {name}'s timed moodlets; From job satisfaction; From {name}'s feeling about {other}; While a bill is overdue | Housemate ([AP-c-sources]) |
 | S-likes | Likes and dislikes; -1 to 1 | Housemate |
 | S-skills | Skills; Level 0 to {max} | Housemate |
 | S-traits | Traits; improvement; how severe; No value to set; Remove; Choose a trait to add; Add; Four traits at most. | Housemate |
@@ -399,7 +400,7 @@ Each test names its invariant, and each load-bearing one is broken on purpose an
 
 1. **Each edit** applies, and refuses each of its listed refusal codes from a built world, leaving the hash unchanged on refusal. Edge values at both ends of every range apply; one step past is refused.
 2. **Atomic change:** a change whose third edit is refused changes nothing.
-3. **Every edit kind survives a save:** after each kind, `save::v24::capture` then `restore` succeeds and the hash after load equals the hash before. Break one post-condition (let `AddBill` accept a future due day) and see this test fail at the load, which proves the post-condition is what prevents it.
+3. **Every edit kind survives a save:** after each kind, `try_save_snapshot_v27` then `load_snapshot_v27` succeeds and the hash after load equals the hash before. Break one post-condition (let `AddBill` accept a future due day) and see this test fail at the load, which proves the post-condition is what prevents it.
 4. **Every edit kind moves `Sim::hash`.**
 5. **Undo:** a fixed sequence of 20 changes touching every edit kind, then 20 Undos; after each Undo the hash equals the hash recorded before that change, and the last equals `baseline_hash`. Separate cases: Undo after adding a capability restores the skill's practice; after a job change restores the record, the attendance register and Funds (a late-at-home shift settled and paid); after Pay from funds on an older month's bill restores the bill and Funds; after `StartFight` removes the queued order.
 6. **Undo detects a bad replay:** corrupt one journal entry's `hash_after`; Undo returns the failure and the live world and journal are unchanged.
@@ -410,6 +411,7 @@ Each test names its invariant, and each load-bearing one is broken on purpose an
 11. **Bills cases:** due day must be a month start at or before today; duplicate key; fee before grace; fee over cap; paid bills refuse edits; paying an older month drops it; Mark all paid and Remove all late fees; Behind on bills ends when nothing is overdue; funds bound.
 12. **Relationship cases:** self refused; 0 removes the entry; a dead person refused; `StartFight` queues the fight order and the fight begins on the first tick after resume, drawing its topic then.
 13. **Pins:** GOLDEN and the shipped hashes are unchanged.
+14. **Need mood (issue 355, `admin_need_mood_tests.rs`):** with a balance on every person, a need set to 0, a need set low above 0 and Fill needs each keep every balance, save at schema 27 and reload with the same hash; Undo after them restores each hash and balance; after the panel closes an emptied need charges the balance on the next minute and a reloaded twin continues identically; a balance no load accepts fails the post-condition as 99 and the last good world comes back. A job change and a shift change that settle a late shift do the same in `admin_career_tests.rs`.
 
 ### [AP-tests-wasm] Wasm boundary (`crates/terri-wasm/src/admin_boundary_tests.rs`, new)
 
@@ -477,7 +479,7 @@ Change housemates, feelings, funds and bills directly while the game waits.
 6. **[AP-c-amount] Bill amount "0 up".** The loader refuses a bill of 0 cents, so the minimum is $0.01. To remove a bill, Delete it.
 7. **[AP-c-capability] "Can't cook 35, how far learned".** The Traits panel shows a capability's linked skill mastery, not its trait state, and nothing reads the state once worn. Editing the state would change nothing visible. The row edits the linked skill instead, so it and the Skills row always agree.
 8. **[AP-c-promote] "3 earns a promotion".** Reaching `advance_weeks` good weeks only makes a promotion possible at the next review, weighted by the score. Owner ruling 2026-11-19: the short hint "{n} earns a promotion" stays as written; it states the goal for the counter, and the panel does not need to explain the review weighting.
-9. **[AP-c-sources] Moodlet sources.** Mockup A explains derived moodlets ("From Energy below 40"). The existing moodlet read has labels and scores but no source. `admin_moodlets` adds a source code per moodlet from where `mood.rs` builds it; moodlets whose source has no short explanation show none.
+9. **[AP-c-sources] Moodlet sources.** Mockup A explains derived moodlets ("From Energy below 40"). The existing moodlet read has labels and scores but no source. `admin_moodlets` adds a source code per moodlet from where `mood.rs` builds it; moodlets whose source has no short explanation show none. Since needs affect mood over time (issue 355), no moodlet comes from a need below a band: the single "Mood from needs" moodlet replaces them, its label already names its source, so it shows none, and the need source codes 10 to 26 are no longer sent.
 10. **[AP-c-mood] Mood cannot be set**, as `notes.md` records: it is derived from needs, feelings, traits, the job, bills and timed events. It stays read only.
 11. **[AP-c-undo] Undo's mechanism.** `notes.md` proposes keeping a snapshot of each field before each change. The plan keeps one baseline and replays the journal ([AP-undo-why]), which gives the same behavior with one checked mechanism.
 12. **[AP-c-badge] The Cheat badge** is approved and stays, but nothing records cheating in the save ([AP-owner] item 7).

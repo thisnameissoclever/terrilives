@@ -439,16 +439,17 @@ fn admin_timers_and_moodlets_say_what_runs_and_where_it_comes_from() {
         .record(SimId(first), until);
     assert_eq!(handle.admin_timers(first), vec![1.0, until as f64]);
 
-    // Starving: Hunger at 0 is a critical-need moodlet from the need.
-    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetNeed {
-        sim: first,
-        need: 0,
-        value: 0.0,
-    }]));
-    assert_eq!(applied[0], 1);
+    // Mood from needs: the accumulated balance (issue 355), whose label says
+    // where it comes from, so it carries no source.
     let index = terri_sim::edit::living_entity(handle.sim.world(), first)
         .unwrap()
         .index_u32();
+    let entity = terri_sim::edit::living_entity(handle.sim.world(), first).unwrap();
+    handle
+        .sim
+        .world_mut()
+        .entity_mut(entity)
+        .insert(terri_sim::need_mood::NeedMood(-30_000));
     let rows = handle.admin_moodlets(first);
     let labels = handle.mood_summary_of(index);
     assert_eq!(rows.len() % 4, 0);
@@ -462,21 +463,19 @@ fn admin_timers_and_moodlets_say_what_runs_and_where_it_comes_from() {
         let at = labels.iter().position(|l| l == label).expect(label) - 1;
         &rows[at * 4..at * 4 + 4]
     };
-    let hunger = row_of("Starving");
-    let critical = handle
-        .sim
-        .world()
-        .resource::<terri_sim::Content>()
-        .0
-        .tuning
-        .mood_critical_need_level;
-    assert_eq!(hunger[0], 20.0, "critical, need 0");
-    assert_eq!(hunger[1], f64::from(critical));
+    let from_needs = row_of("Mood from needs");
+    assert_eq!(from_needs[0], 0.0, "no short explanation");
+    assert_eq!(from_needs[1], 0.0);
+    assert_eq!(from_needs[2], -5.0);
     assert_eq!(
-        hunger[2],
-        f64::from(scores[labels.iter().position(|l| l == "Starving").unwrap()])
+        from_needs[2],
+        f64::from(scores[labels.iter().position(|l| l == "Mood from needs").unwrap()])
     );
-    assert_eq!(hunger[3], -1.0, "a need has no end");
+    assert_eq!(from_needs[3], -1.0, "the balance has no end");
+    assert!(
+        rows.chunks(4).all(|row| !(10.0..=26.0).contains(&row[0])),
+        "no row names a need below a mood band"
+    );
     let fight = row_of("Had a fight");
     assert_eq!(
         (fight[0], fight[3]),

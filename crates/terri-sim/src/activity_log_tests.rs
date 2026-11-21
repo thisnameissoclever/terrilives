@@ -525,7 +525,11 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// from 0xfa65_449b_54d0_bb84 to 0x7d8f_c646_2384_8e1f, because the shipped
 /// household settles scored shifts in two days; nothing else moved (checked by
 /// turning the block off). Read from the failing assertion.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7d8f_c646_2384_8e1f;
+/// Accumulated mood from needs then moved the fold from 0x7d8f_c646_2384_8e1f.
+/// Each person's balance enters the hash and contributes to the mood read
+/// by settled shifts and other systems. Measured with the log off on the
+/// combined Career tab and need mood build.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x6bc5_5246_1d3d_2532;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -574,11 +578,15 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x7d8f_c646_2384_8e1f;
 /// weekly score inputs join the world hash once a shift settles): with that
 /// block's call in `Sim::hash` switched off, this branch gives the old value
 /// again. Measured in a release build from the failing assertion.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x9bba_4ce9_923d_44e4;
+/// Accumulated mood from needs moved this from 0x9bba_4ce9_923d_44e4.
+/// Measured from the same log-off run as the two-day fold.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xee9d_be3f_687c_dc5c;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
-/// (0x7d8f_c646_2384_8e1f, from 0xfa65_449b_54d0_bb84 before the career inputs block; main's value before issue 344's fade was
+/// (0x6bc5_5246_1d3d_2532, from 0x7d8f_c646_2384_8e1f before accumulated
+/// mood from needs and 0xfa65_449b_54d0_bb84 before the career inputs block;
+/// main's value before issue 344's fade was
 /// 0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
 /// changes nothing here. It does not show that the knobs move the shipped
 /// household: in its first two days nobody is critical at a shift start or
@@ -597,11 +605,12 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 /// off reproduces an earlier tree; it only catches a later change to the
 /// knobs-off run. Manual, like the pin above. Issues 311 and 317 moved it from
 /// 0xd56e_4229_4318_c6fd only through the `career-inputs-v1` hash block, as
-/// for the constant above.
+/// for the constant above. Accumulated mood from needs moved it again from
+/// 0x4010_87ef_b43d_dcac, measured with both work settings off.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0x4010_87ef_b43d_dcac);
+    assert_eq!(fold_without_the_work_knobs(20), 0xf3ba_92d7_8ed8_2f51);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game
@@ -636,7 +645,7 @@ fn activity_log_never_changes_the_world() {
     assert_eq!(
         fold(&hashes),
         TWO_DAY_FOLD_WITHOUT_THE_LOG,
-        "the world differs from main without the log"
+        "the shipped household replay drifted"
     );
     let pack = terri_data::pack();
     let labels = crate::activity_log::labels(pack);
@@ -688,7 +697,7 @@ fn activity_log_never_changes_the_world_over_twenty_days() {
     assert_eq!(
         fold(&hashes),
         TWENTY_DAY_FOLD_WITHOUT_THE_LOG,
-        "the world differs from main without the log"
+        "the shipped household replay drifted"
     );
     assert_every_line_can_show(&records);
     // The two-day check used to see a nuisance episode; twenty days must.

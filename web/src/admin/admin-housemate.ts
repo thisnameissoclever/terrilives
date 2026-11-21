@@ -289,7 +289,7 @@ class HousemateTab implements AdminTab {
         const label = labels[index + 1];
         const item = make(doc, 'div', 'admin-moodlet');
         item.append(textNode(doc, 'span', 'admin-moodlet-label', label));
-        const why = this.moodSource(row, name, library, members, now, dayTicks);
+        const why = this.moodSource(row, name, members, now, dayTicks);
         if (why !== '') item.append(textNode(doc, 'span', 'admin-moodlet-source', why));
         item.append(textNode(doc, 'span', 'admin-score', signed(scores[index + 1])));
         if (row.source.kind === 'timer') {
@@ -306,10 +306,9 @@ class HousemateTab implements AdminTab {
   }
 
   /** The short explanation beside a moodlet, or empty when its source has none. */
-  private moodSource(row: AdminMoodlet, name: string, library: HousemateLibrary, members: readonly { simId: number; name: string }[], now: number, dayTicks: number): string {
+  private moodSource(row: AdminMoodlet, name: string, members: readonly { simId: number; name: string }[], now: number, dayTicks: number): string {
     const source = row.source;
     switch (source.kind) {
-      case 'need': return W.fromNeed(library.needNames[source.need] ?? '', source.level);
       case 'job': return W.fromJob;
       case 'bills': return W.fromBills;
       case 'feeling': {

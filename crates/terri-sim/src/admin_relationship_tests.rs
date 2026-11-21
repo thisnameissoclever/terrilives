@@ -309,10 +309,10 @@ fn an_edited_world_saved_and_reloaded_continues_identically_for_two_days() {
     ] {
         live.admin_apply(change(vec![edit])).expect("applies");
     }
-    let snapshot = live.try_save_snapshot_v24().expect("saves");
+    let snapshot = live.try_save_snapshot_v27().expect("saves");
     live.end_admin();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v24(snapshot).expect("loads");
+    loaded.load_snapshot_v27(snapshot).expect("loads");
     assert_eq!(loaded.world_hash(), live.world_hash());
     for tick in 0..2 * 1440 {
         live.tick();

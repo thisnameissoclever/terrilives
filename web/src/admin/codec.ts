@@ -337,9 +337,8 @@ export function decodeAdminTimers(row: ArrayLike<number>): AdminTimer[] {
 
 /** Where a moodlet comes from, when that has a short explanation. */
 export type AdminMoodSource =
+  /** No short explanation, which includes Mood from needs: its label says where it comes from. */
   | { readonly kind: 'other' }
-  /** A need at or below `level`, the critical level when `critical`. `need` is the `NeedId` order. */
-  | { readonly kind: 'need'; readonly need: number; readonly critical: boolean; readonly level: number }
   | { readonly kind: 'job' }
   /** The feeling about the housemate with this `SimId`. */
   | { readonly kind: 'feeling'; readonly sim: number }
@@ -350,10 +349,10 @@ export interface AdminMoodlet { readonly source: AdminMoodSource; readonly score
 
 /**
  * `admin_moodlets`: `[kind, arg, score, ends tick or -1]` per moodlet, in the
- * order of `mood_summary_of` after its overall label. Kinds: 0 other; 10 to
- * 16 a need at the low level and 20 to 26 at the critical level (`arg` the
- * level); 30 job satisfaction; 31 a feeling (`arg` the other's `SimId`); 32 an
- * overdue bill; 40 to 45 a timed moodlet (`ends` its end tick).
+ * order of `mood_summary_of` after its overall label. Kinds: 0 other; 30 job
+ * satisfaction; 31 a feeling (`arg` the other's `SimId`); 32 an overdue bill;
+ * 40 to 45 a timed moodlet (`ends` its end tick). Kinds 10 to 26 named a need
+ * below a mood band before needs affected mood over time, and are refused.
  */
 export function decodeAdminMoodlets(row: ArrayLike<number>): AdminMoodlet[] {
   rowsOf(row, 4, 'moodlets');
@@ -361,8 +360,6 @@ export function decodeAdminMoodlets(row: ArrayLike<number>): AdminMoodlet[] {
     const [kind, arg, score, ends] = [row[i * 4], row[i * 4 + 1], row[i * 4 + 2], row[i * 4 + 3]];
     let source: AdminMoodSource;
     if (kind === 0) source = { kind: 'other' };
-    else if (kind >= 10 && kind <= 16) source = { kind: 'need', need: kind - 10, critical: false, level: arg };
-    else if (kind >= 20 && kind <= 26) source = { kind: 'need', need: kind - 20, critical: true, level: arg };
     else if (kind === 30) source = { kind: 'job' };
     else if (kind === 31) source = { kind: 'feeling', sim: arg };
     else if (kind === 32) source = { kind: 'bills' };

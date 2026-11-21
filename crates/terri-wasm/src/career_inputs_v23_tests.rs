@@ -1,7 +1,7 @@
 //! Schema-23 saves from before the Career tab's score inputs
 //! (`docs/specs/2026-11-19-career-tab.md`, [CT-save-migrate] and
 //! [CT-tests] `v24_tests.rs` item 4): they load with no inputs, save as
-//! schema 24 and continue, and the first full week after the load writes
+//! schema 27 and continue, and the first full week after the load writes
 //! a row.
 use super::current_test_snapshot::decode_current;
 use super::*;
@@ -20,7 +20,7 @@ fn fixtures() -> [(&'static str, &'static [u8]); 2] {
 }
 
 /// Every schema-23 fixture loads with no inputs and no queued Go to work,
-/// keeps its schema-23 part exactly, saves as schema 24 with three empty
+/// keeps its schema-23 part exactly, saves as schema 27 with four empty
 /// trailing lists, and continues tick for tick after a reload.
 #[test]
 fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
@@ -31,16 +31,21 @@ fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
         let mut migrated = SimHandle::from_lot();
         assert!(migrated.load_bytes(bytes), "{name}");
         let current = migrated.save_bytes();
-        assert_eq!(&current[8..10], &24u16.to_le_bytes(), "{name}");
+        assert_eq!(
+            &current[8..10],
+            &SAVE_SCHEMA_VERSION.to_le_bytes(),
+            "{name}"
+        );
         let saved = decode_current(&current);
+        assert!(saved.need_mood.is_empty(), "{name}");
+        let saved = saved.legacy;
         assert!(saved.career_inputs.is_empty(), "{name}");
         assert!(saved.queued_work_commands.is_empty(), "{name}");
         assert!(saved.replaced_shifts.is_empty(), "{name}");
         assert_eq!(saved.legacy, original, "{name}: the schema-23 part is kept");
-        // Schema 24 adds three trailing lists, and an older save has
-        // nothing in any: one zero length byte each.
-        assert_eq!(current.len(), bytes.len() + 3, "{name}");
-        assert_eq!(&current[current.len() - 3..], &[0, 0, 0], "{name}");
+        // Each of the four appended lists starts empty.
+        assert_eq!(current.len(), bytes.len() + 4, "{name}");
+        assert_eq!(&current[current.len() - 4..], &[0, 0, 0, 0], "{name}");
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");

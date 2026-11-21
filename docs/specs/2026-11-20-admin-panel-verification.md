@@ -28,4 +28,4 @@ Pending: `py -3 -B scripts/check-local-ci.py run` on the final head.
 
 ## Pins
 
-Pending confirmation on the final head: GOLDEN, `SHIPPED_THURSDAY`, `STANDARD_ONLY_HASH` and the published witnesses are expected unchanged ([AP-save-hash]), and `SAVE_SCHEMA_VERSION` stays 24.
+Pending confirmation on the final head: GOLDEN, `SHIPPED_THURSDAY`, `STANDARD_ONLY_HASH` and the published witnesses are expected unchanged ([AP-save-hash]), and `SAVE_SCHEMA_VERSION` stays at main's 27.

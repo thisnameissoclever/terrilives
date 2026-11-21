@@ -8,6 +8,12 @@ The dock shows the selected person's current mood: Miserable, Low, Okay, Good or
 
 Needs, conditions, nearby people, grief, dirt, dishes, waiting and recent events can all contribute. A pleasant activity does not guarantee a good overall mood when several other things are wrong. Read the named reasons before trying to fix the meter by repeating one favorite action.
 
+Each game minute, every empty need lowers mood a little and every need above {{number:need_mood.high_level}}% raises it a little. These changes add together. If someone finishes a shower with a little Energy left, that Energy level contributes zero points for the minute. Sim details shows the accumulated effect under Mood from needs. The game keeps it when you save and load. Households from older versions start counting from the time you resume playing.
+
+:::numbers How quickly needs change mood
+Each need at zero costs {{number:need_mood.loss_per_hour}} mood points per game hour. Each need above {{number:need_mood.high_level}}% adds {{number:need_mood.gain_per_hour}} points per game hour. The game applies a fraction each minute. Five healthy needs held above that level for ten hours earn one mood point.
+:::
+
 Waiting for an occupied item lowers mood more when the activity could help a pressing need. Walking, working and talking are not the same waiting state. Removing dirt or dishes can improve mood without adding personal Hygiene, and nearby liked company can improve mood without adding Social.
 
 Fresh mess has a grace period before ordinary mood penalties and complaints. Dishes blocking a seat are an immediate problem. See [mess and nuisance](relationships/#mess-and-nuisance) for the difference. A bad mood can make a person more likely to argue about an actual grievance; it does not invent someone to blame. See [arguments](relationships/#fights).
