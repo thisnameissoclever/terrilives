@@ -267,7 +267,7 @@
   .admin-trait-row.admin-slider-row > .admin-number { grid-column: 2; grid-row: 2; }
   .admin-trait-row.admin-slider-row > .admin-word { align-self: center; }
   /* One column in the mockup's order: Needs, Life satisfaction, Mood, Repetition, Likes, then Skills, Traits, Career. */
-  .admin-housemate { display: flex; flex-direction: column; gap: 14px; }
+  .admin-housemate { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
   .admin-housemate > .admin-column { display: contents; }
   .admin-housemate > .admin-column:nth-child(2) > :first-child { order: 1; }
   .admin-housemate > .admin-column:nth-child(1) > .admin-section-fold { order: 2; }
