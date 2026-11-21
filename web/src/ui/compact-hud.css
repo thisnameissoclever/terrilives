@@ -191,7 +191,13 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   box-shadow: 0 8px 24px #0006;
 }
 #sim-sheet-header { display: flex; align-items: flex-start; gap: 8px; padding: 6px; border-bottom: 1px solid var(--hud-edge); }
-#sim-sheet:has(#sim-overview:not([hidden]) #personal-details[open]) { --sim-sheet-width: 540px; }
+/* [CT-web]: on a desktop-sized screen, touch or not, the sheet is 560 pixels wide on every tab and keeps that width whatever is open inside it. */
+@media (min-width: 601px) and (min-height: 481px) {
+  #sim-sheet {
+    --sim-sheet-width: 560px;
+    max-height: min(690px, calc(100dvh - 100% - max(24px, env(safe-area-inset-top)) - env(safe-area-inset-bottom)));
+  }
+}
 #sim-sheet-header nav { display: flex; flex: 1; flex-wrap: wrap; gap: 4px; overflow-x: auto; padding: 2px; }
 #sim-sheet-header .hud-button { flex: none; padding-inline: 8px; min-height: 36px; }
 #sim-sheet-header [aria-expanded='true'] { background: #29313a; border-color: var(--need-fill); }

@@ -304,7 +304,7 @@ Death state is a sparse `SavedMortality` resource: a setting, positive counts or
 Death records include the issued-identity boundary, excluding later newcomers from grief. Survivors keep their affinity toward dead SimIds without decay. Grief strength and duration derive from that affinity and elapsed ticks; moodlets are never stored.
 
 Mood is derived for the HUD and for the once-per-tick satisfaction contribution.
-Save V26 stores the accumulated contribution from needs. The simulation adds it to current moodlets and integrates overall mood into life satisfaction.
+Save V27 stores the accumulated contribution from needs. The simulation adds it to current moodlets and integrates overall mood into life satisfaction.
 Occupied-item waiting contributes more strongly as the relevant need falls.
 All balance inputs live in the validated tuning pack. Parallel advertisement scans,
 a fixed per-tick path budget with an overflow queue, ghost injection, an event
@@ -617,7 +617,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 23. The envelope preserves exact player-order and social-execution
+use version 24. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -675,9 +675,11 @@ imports that intent as an explicitly unattributed waiting request; it does not
 invent admission or alter the physical target, path, clock or random streams.
 Current readers still reject orphaned social targets.
 
+V24 wraps the complete V23 payload with the Career tab's score inputs and every queued Go to work ([CT-save] in [the Career tab plan](specs/2026-11-19-career-tab.md), issues 311 and 317). Each person whose career record holds inputs has one row, strictly ascending by person: the current week's scored shifts' inputs, the last scored shift's and the reviewed weeks' rows, oldest first. A queued Go to work rides beside its position in the whole command queue, as V21 carries shift commands; every older writer leaves it out of its queue and its positions. Load refuses rows out of order, a row for someone with no career record, more current inputs than the week's scores, weeks out of order or never reviewed, more than 520 weeks, an unknown career row, an impossible shift count, attendance, pay or input value, and a misplaced queued command, and leaves the running game unchanged. A save holding more weeks than `career_input_history_weeks` keeps the newest. The rows join the world hash in the `career-inputs-v1` block, and Build mode's baseline carries them. Loading V23 or earlier starts with none.
+
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
-V26 wraps V23 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V23 begin at zero. Private V24 and V25 files belong to other development builds. Loading or importing one is refused, and the browser protects the original slot and allows its bytes to be exported.
+V27 wraps V24 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V24 begin at zero. Private editable-world V24, V25 and V26 files belong to other development builds. Loading or importing one is refused, and the browser protects the original slot and allows its bytes to be exported.
 
 V22 wraps the complete V21 payload with the household bills: the last counted day, the open month's start and the month length it is counted under, the month's day, tile, use, daily-object and trip counts, the last month's usage, and every unpaid bill and the bills of the last issued month with their late fees and the terms each was issued under (its month length, days of grace, and daily late fee and cap), so a later change to the tuning never makes a save unloadable. Use and daily kinds are saved by id, so an unknown kind is dropped on load. Loading V21 or earlier starts the bills record empty and raises saved career pay and open shifts' pay to the new wages; settled shifts keep the pay they were settled at ([wages and bills](specs/2026-10-18-wages-and-bills.md)).
 
@@ -724,7 +726,7 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-23. A V23 primary receives `terri-save-1.v23-backup.bin` before the first V26 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+24. The worker backs up a published V24 primary before the first V27 overwrite. The known private V24 fingerprint and reserved V25 and V26 headers protect development saves. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -738,7 +740,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The frozen V23 worker refuses V26. The current worker also refuses to overwrite private V24 and V25 slots. The storage writer and load-status controller share the current
+Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The frozen V23 worker refuses V27. The current worker also refuses to overwrite private V24, V25 and V26 slots. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;

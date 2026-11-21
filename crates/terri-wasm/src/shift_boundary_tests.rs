@@ -183,6 +183,7 @@ fn schema_twenty_one_round_trips_through_the_save_bytes() {
     let snapshot = super::current_test_snapshot::decode_current(&bytes)
         .legacy
         .legacy
+        .legacy
         .legacy;
     assert!(snapshot.shifts.held.iter().any(|row| row.shift == "late"));
     assert_eq!(snapshot.shifts.draws, 1);

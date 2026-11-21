@@ -371,13 +371,36 @@
         "method": "Playwright Chrome, headless and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. A new game was run at 3x to Day 1, about 09:00 for daylight, paused, and Tim selected; the phone captures were taken only when no housemate bubble sat behind the speed buttons, which a pixel check of that strip confirmed. Game saved follows Options > Save, and the Build captures follow Build. The phone guide-link closeup has keyboard focus moved to the link with Tab from Options."
       },
       {
-        "id": "need-mood",
-        "url": "http://127.0.0.1:48167/",
-        "htmlSha256": "22dba3b779041d4dc39ac4a44c7e48ca7ec742653182a4cf68c3405ac5f524cc",
-        "bundle": "index-CuRLNXAV.js",
-        "bundleSha256": "bc519d6ef554f6e90012bb05de07e4d6969b8248cbcef9931d201d1d13abebb7",
-        "wasm": "terri_wasm_bg-C77x3v9h.wasm",
-        "wasmSha256": "13297bc5fb4c7bd46ce14c8bfb9af2604c77a01064d061f3457d9357b7779913"
+        "id": "career-tab-2026-11-20",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "726ffba92ee04fbb9862045dbf36961b725c0837559b24297f86d9f815b58705",
+          "web/src/main.ts": "aa67706a735106a4a9e43914e853971408ebb9c1e7eadf9accb586a08a114153",
+          "web/src/ui/career-panel.ts": "658f1a9410103a282d8c5a844a7df995764434908c896248badf6ba7a153c269",
+          "web/src/ui/career-graph-modal.ts": "a3daf27a20f66a57819ae450370e45b6a1023bb598eb16605d4d2aeeeec0e868",
+          "web/src/ui/compact-hud.css": "e8ed47a184105cf0aa1563d62a95a71f9bb908bbe9a2fff0995b4b308236980b"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-20",
+        "method": "Playwright driving installed Chrome, headless and muted, against the branch served by the vite dev server (commit b46bfec53; the later 3c6856f2b changed only docs). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above matched the served modules after line ending normalisation. Audio was muted through the saved preference and --mute-audio. A new game was advanced to Day 36, Monday 03:30 with five reviewed weeks for Tim and Bill and four for Casey, saved with the game save writer and imported in each run with Options > Import save. Desktop 1440 by 960 and phone 390 by 844 at device pixel ratio 1.",
+        "evidence": "docs/assets/review-evidence/career-tab/README.md"
+      },
+      {
+        "id": "career-tab-fixes-2026-11-20",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "d2b49ce405e7fb5e74f20b403eaf17ac056fd40a3c657697fca815340644d1b1",
+          "web/src/main.ts": "aa67706a735106a4a9e43914e853971408ebb9c1e7eadf9accb586a08a114153",
+          "web/src/ui/career-panel.ts": "2df0a139f59b13c40b77be53ade940f7dbd5c5666f8334fb6c8718d65647a5b8",
+          "web/src/ui/career-graph.ts": "50873f465f2b488a8d7e64b459ca6565578837831cbc8e2e78a5f7647171cdab",
+          "web/src/ui/career-graph-modal.ts": "56b58c6776cc1ffc91f2ce57fce1e698567fe459abeddcd44ee7b9050479eb06",
+          "web/src/ui/compact-hud.ts": "15f51611d4887a86e40355b05dc0b2d6a65ebba027974391099d0e051fdba416",
+          "web/src/ui/compact-hud.css": "e8ed47a184105cf0aa1563d62a95a71f9bb908bbe9a2fff0995b4b308236980b"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-20",
+        "method": "Playwright driving installed Chrome, headless and muted, against the branch served by the vite dev server (commit 03bd42ae0, which includes the review window, graph, Score inputs and tab scroll fixes). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above matched the served modules after line ending normalisation. Audio was muted through the saved preference and --mute-audio. The same five reviewed weeks save as career-tab-2026-11-20 was imported with Options > Import save; Sim details captures show Tim on Day 36, Monday 15:00 and Career captures show Bill on Day 38, Wednesday 12:30. Desktop 1440 by 960 and phone 390 by 844 at device pixel ratio 1.",
+        "evidence": "docs/assets/review-evidence/career-tab/README.md"
       }
     ],
     "weatherSetup": {
@@ -475,21 +498,19 @@
       "description": "The game view with the clock, funds, bills, save status, speed controls, Build, Options, Player guide and selected-person dock.",
       "access": "Open the game. Select a name at the bottom of the screen.",
       "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
-      "sourceSnapshot": "wages-bills-2026-11-15",
-      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
-      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
+      "sourceSnapshot": "career-tab-2026-11-20",
       "imageSha256": {
-        "desktop": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
-        "mobile": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3",
-        "desktopDetail": "837c149ffe2d3b53b2e2d5a2046c8c717b1d145df0e1f60829af06a93818e010",
-        "mobileDetail": "05a147c805fad904d061cda4bb1d8463baa163441cf700d76d2e22a5ae99629d"
+        "desktop": "f562193f89c380e3b9f78a8b8ee22b385046c367b053055639c0f46046e70c20",
+        "mobile": "d2fd158d1b9873a37ebd49795241eb112793b32be3fd15068490ce941c222d3d",
+        "desktopDetail": "79551361a7214fb10977b9f8cd4a425ba95ddb51203ae6857e320eba2903ac78",
+        "mobileDetail": "f9e96edbef9134be8a772061284c0ac9fd3016f8a20939b0a6fd62e493126ff8"
       },
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "imageSourceSnapshots": {
-        "desktopDetail": "wages-bills-2026-11-15",
-        "mobileDetail": "wages-bills-2026-11-15",
-        "desktop": "wages-bills-2026-11-15",
-        "mobile": "wages-bills-2026-11-15"
+        "desktopDetail": "career-tab-2026-11-20",
+        "mobileDetail": "career-tab-2026-11-20",
+        "desktop": "career-tab-2026-11-20",
+        "mobile": "career-tab-2026-11-20"
       },
       "captureMetadata": {
         "desktop": {
@@ -502,7 +523,7 @@
           "devicePixelRatio": 1,
           "captureMethod": "Playwright Chrome viewport PNG at device pixel ratio 1, no image edits",
           "dialogs": [],
-          "sourceImageSha256": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4"
+          "sourceImageSha256": "f562193f89c380e3b9f78a8b8ee22b385046c367b053055639c0f46046e70c20"
         },
         "mobile": {
           "width": 390,
@@ -514,7 +535,7 @@
           "devicePixelRatio": 1,
           "captureMethod": "Playwright Chrome viewport PNG at device pixel ratio 1, no image edits",
           "dialogs": [],
-          "sourceImageSha256": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3"
+          "sourceImageSha256": "d2fd158d1b9873a37ebd49795241eb112793b32be3fd15068490ce941c222d3d"
         }
       }
     },
@@ -590,13 +611,11 @@
       "description": "Overview. Phone needs appear here; desktop needs remain in the dock.",
       "access": "Select a name at the bottom of the screen, then Sim details > Overview.",
       "desktopDetail": "images/ui-sim-needs-detail-desktop.png",
-      "sourceSnapshot": "need-mood",
-      "htmlSha256": "22dba3b779041d4dc39ac4a44c7e48ca7ec742653182a4cf68c3405ac5f524cc",
-      "bundleSha256": "bc519d6ef554f6e90012bb05de07e4d6969b8248cbcef9931d201d1d13abebb7",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "e5ac7a5a08bc60869d5a508fe8f292270179a445dd7708ba63762cea4b8d4b98",
-        "mobile": "33b93c25b383fe47847c22a4fa1cb2bd1cdb2036002022ec77edd3f231f60b2d",
-        "desktopDetail": "d5943d0bac3006c357a6d5ca1eb24583d056fb3e4a913593007166a4dc7f3644"
+        "desktop": "3e9fd5449941118ffbd1e3363282ff86a7a2496d6d3359560b49b02143dd7fa5",
+        "mobile": "48880f2dd707d0d6fc3c8cba5476743f7552e1c54ef1383f5722f9290450bf1e",
+        "desktopDetail": "fad57a56e6325b9174d7eaaeaec7d8527f68d264009c94ea79431b3cf5e92273"
       }
     },
     {
@@ -607,13 +626,11 @@
       "description": "The selected person's feelings about the household.",
       "access": "Select a name at the bottom of the screen, then Sim details > People.",
       "desktopDetail": "images/ui-sim-people-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "975460f068b5939471efed4bcbba34c5894c56ea51c5db93f745c2d52dbcbf3b",
-        "mobile": "749f8fd4ec010ba131fab889383013aa7285ee21f83ba54bbfd6c63ce306f45c",
-        "desktopDetail": "634eeea137514eb3b4f57a4d4cb82f8a33e1a270da73525fc9fe4f812b6e2950"
+        "desktop": "36da8787d70ceec1fe2a154cd75a02f454dcca7f281468d27f35378fefaf158c",
+        "mobile": "6c155227f30a11fc7490e919688f3ebc51686389ac588d0c2417fa4448f7577d",
+        "desktopDetail": "1f11b1ee54601972dd4031fce07e81d710e3bac2b2427abfc2f45a11049be1e6"
       }
     },
     {
@@ -624,13 +641,11 @@
       "description": "Trait and responsibility details for the selected person.",
       "access": "Select a name at the bottom of the screen, then Sim details > Traits. Scroll for the remaining traits.",
       "desktopDetail": "images/ui-sim-traits-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "023cad73a2fb2be5b20c124dd31a5c6253abbf8f4a2dd59618d93cdb5df500e6",
-        "mobile": "477174448ef529f4c0cb15c5c29bdb3d2f80427d38be117b5377b91b8a69696f",
-        "desktopDetail": "a4fb29a8b8e30ff8f0b9b1efeadcbd950735c2fc20f3e4f80a63a534d6a28c0d"
+        "desktop": "9ce0ef42c84a82ea1f8e04338ac91ef1248b5dd6da2c48d9c8dead9b9fde3622",
+        "mobile": "b2532383770d202d2e0633c621c15dde90f8ed84e5361c4afc39e033c84a145b",
+        "desktopDetail": "a3d2fda5d213290294a716f4bc0448d62cc6207737f43b87925912d1bbd4da7d"
       }
     },
     {
@@ -641,13 +656,11 @@
       "description": "Personality, habits and bed assignment.",
       "access": "Open Sim details > Overview, then Personality, habits and bed.",
       "desktopDetail": "images/ui-sim-personality-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "3c42b42d477f17341cda0adfda30724d001e9ff73461be9106751bc04c4bbf58",
-        "mobile": "6527c44648778ac1a474ac28ee622c062e6a0e86355e78dd7fce2745e2dc97c5",
-        "desktopDetail": "ec024fa508e240c7d704f34ded97a32185e0c7b8b52c410d3e85e935e899f433"
+        "desktop": "a651865c533987d91889ef11fd67555c0abe29f8cffd3859d73774e76608fe9b",
+        "mobile": "7b9272c2dbeb8da97a255aa05aef4dc0c3a55bde5a844da3385adcfafb1a6b6f",
+        "desktopDetail": "27d181ed493cfb396aff753b5628f9839897d562f5f5c91a039227a0313868c7"
       }
     },
     {
@@ -658,13 +671,11 @@
       "description": "Skill levels and progress to the next level.",
       "access": "Open Sim details > Overview, then Skills.",
       "desktopDetail": "images/ui-sim-skills-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "7cd6b03fba31f16e2d8ab1df38033817f85258177e7ce385302e4a6ad4d8f034",
-        "mobile": "4d2528f53d270a3a950b3e82f0064dafa69a5d9ba17ff7fd6f8d95421ac0c3a1",
-        "desktopDetail": "1879f24615ecb7ac2d68b175c46b77ce964592d04d25d8849d09bb4d349613c3"
+        "desktop": "549107018c13f7a9af1b0df6b3933cf82e92e4606500eb3b0726a62a2c1a7a76",
+        "mobile": "44ca0c26de62406211560d8c3d28af92b225636a5b22824c8a7b8687a16462fe",
+        "desktopDetail": "19e828d81e7aaaaa46d7322bba66e9a82471785a713e7166957fc5561686528a"
       }
     },
     {
@@ -675,13 +686,11 @@
       "description": "The selected person's likes and dislikes.",
       "access": "Open Sim details > Overview, then Likes and dislikes.",
       "desktopDetail": "images/ui-sim-likes-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "37e807357fde0d23028f2a39ba84e3bd9cf3139d035f607f910a9ce23c520f7e",
-        "mobile": "67558f13980a06469eb85fe65a9f75b7679ae21ed727437d7457d0ca585fd057",
-        "desktopDetail": "6f86d3c1dbbd0da257974f7cabbd7fe6b8d5d3f4f9789d2bd1a55d21ec69877b"
+        "desktop": "de99a936d63c7e6ca47bb03ba6a596b8e1e3fbb3ca5faae0c54f2a9d837cf765",
+        "mobile": "74fa8b2b429b730f7b49f9a1879244cb265bac223872936a53c092b998806fd8",
+        "desktopDetail": "22afb962813222a552877a9582e6be80a1c8a8a1bb15c2f2486cacf46e81210c"
       }
     },
     {
@@ -692,13 +701,11 @@
       "description": "The selected person's career, pay and work schedule.",
       "access": "Open Sim details > Career.",
       "desktopDetail": "images/ui-sim-career-detail-desktop.png",
-      "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
-      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
-        "mobile": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
-        "desktopDetail": "7160abbc3da5b471101817c227e3edd8826e3725388f72ce6976d8b2d5f86075"
+        "desktop": "d01d39cdfe939af61c4a5a136d3d52782d9609ee1cc4d46be351c3c131e68ab0",
+        "mobile": "82dfbf7aabba4a236b6891e6cfcd13fe67540f1a8a0e4f8f5df6e274431c8e67",
+        "desktopDetail": "12876c91819347eca51e7e7639dd3f31ec585996ab014f2324790fdd5549ebfd"
       }
     },
     {
@@ -709,13 +716,11 @@
       "description": "Queue mode and Clear orders beside the action queue.",
       "access": "Select a name at the bottom of the screen, then Sim details > Queue. Desktop also has Queue in the dock.",
       "desktopDetail": "images/ui-sim-queue-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "43cac1419612640cfd591d10fad83a7b747dbd48a29318c108dac5c01b842f95",
-        "mobile": "b86d00266f3b5d1f44ce6e4d0ac5d10fbbdd145b1944ccb04b6553704964bbd3",
-        "desktopDetail": "aef8e77a01718d01bbcb6c7b8596738d002bba8b64d258d059a56ab70cc26994"
+        "desktop": "69addac3f7958ba7cfa23821fd52e34c51e6fb25b8b4637d0755463ca91ccc94",
+        "mobile": "c9f9d0a10a2a820d889564b73377c6dd50518f51705092365f80b066ea364761",
+        "desktopDetail": "c53a53c9097d1da3381b29f582f1b39683c54639fa4d2e2ecbeb8d5e5cc0ccc3"
       }
     },
     {
@@ -1474,12 +1479,10 @@
       "mobile": "images/ui-career-assigned-mobile.png",
       "description": "Career details after assigning a path.",
       "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
-      "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
-      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "97172c578c224526c96df68934647e8fd0e75951f4336651acab5f97d51ea2fc",
-        "mobile": "47f4a5aafc192b5b266b891491a9ecbc6a33178dbca8f9a0857ce70d10be031d"
+        "desktop": "ba4e446bbd375b9e2cac5f3153fb69e4a18c1509f3fa43bbe7b41aec5c07ca06",
+        "mobile": "18be4d762f70c35344d7025a34ba1f2389c068c7e8b7d48d16db17e2e74cbf84"
       }
     },
     {
@@ -1489,12 +1492,10 @@
       "mobile": "images/ui-career-controls-mobile.png",
       "description": "The Assign a career controls: Career path, the assigning Shift selector, Assign and Quit.",
       "access": "Open Sim details > Career, then scroll to Assign a career.",
-      "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
-      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "31512630612c02553ef39a856a3a2b9f631c48c4805292f1197efdcc2917a4eb",
-        "mobile": "9fa96d81346266ed1856321436fa9e2a88a32d99ddd64fb7d5ab8fcc3f6529aa"
+        "desktop": "ea14d6271b2c858cee626dde1a9e49655c1e842a79d0df64f6f0415be9a066b7",
+        "mobile": "77ed243dec74768be52ac861302966b8a3ce8b1db45818df04440ef377153c34"
       }
     },
     {
@@ -1504,12 +1505,10 @@
       "mobile": "images/ui-career-shift-mobile.png",
       "description": "The end of the Career tab: the assigning Shift selector, Assign and Quit, Shift schedule with Change shift and its note, and the automatic job search box.",
       "access": "Open Sim details > Career, then scroll to the end of the tab.",
-      "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
-      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
-        "mobile": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752"
+        "desktop": "e74b7114e9c149d3df6e8e3ea8f00494eafc872bcda26486a782da73081d0520",
+        "mobile": "e76bfa8047597cae6f202a6a9a3f3b18b97646fd072feab648bcd4b40193c978"
       }
     },
     {
@@ -1879,12 +1878,10 @@
       "mobile": "images/ui-career-review-mobile.png",
       "description": "The selected person's completed work reviews.",
       "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
-      "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
-      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
-        "mobile": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e"
+        "desktop": "e74b7114e9c149d3df6e8e3ea8f00494eafc872bcda26486a782da73081d0520",
+        "mobile": "60cae3027130c057591c2c3634292b4cfed71585eae6a8daf8a997c52384e815"
       }
     },
     {
@@ -1894,12 +1891,10 @@
       "mobile": "images/ui-career-overview-graph-mobile.png",
       "description": "The review graph opened beside the career in Overview.",
       "access": "Open Sim details > Overview, then choose i beside the career name.",
-      "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
-      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "6be0220959c480ffa8eeab079ecc9b71b6fff2bd2d88187a44e1a386c439b9dd",
-        "mobile": "80bce91c35ca1a37005f19c156be67051fc97ed498d8f6bff25e8abaec1cb36c"
+        "desktop": "ebf7ae750d1e308d2f1e0d416b65af6ce0e4f8fb2ea9fa72a67b63e67e863d71",
+        "mobile": "00305d1f14cec621fa98e188fceef1df91d5c75d019f76940dd5040d83b92746"
       }
     },
     {
@@ -1943,12 +1938,10 @@
       "mobile": "images/ui-sim-conditions-mobile.png",
       "description": "A named condition and its severity, with a capability trait below it.",
       "access": "Select a name at the bottom of the screen, open Sim details > Traits, then scroll to the named conditions.",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "career-tab-fixes-2026-11-20",
       "imageSha256": {
-        "desktop": "f95d2aa2b8eb15f26a29f424b918069b289ad80b48df0d5cd647896fbaa60eb8",
-        "mobile": "fe90fb4fd8f273bb351a48ebfcf8c2df7ab0cde0702358683625d8bcd19bcb23"
+        "desktop": "9ce0ef42c84a82ea1f8e04338ac91ef1248b5dd6da2c48d9c8dead9b9fde3622",
+        "mobile": "3697835cb55aea800bcdf879c89369f30cf15daf0e73c34dbee5018677b6237a"
       }
     },
     {
@@ -1998,14 +1991,12 @@
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
       "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
-      "sourceSnapshot": "wages-bills-2026-11-15",
-      "htmlSha256": "ea681492b82904f6f1ee5ffe5b619cd57eb688da41d16d9dfc3ee88449d319c4",
-      "bundleSha256": "b35600bd087e4ed4d3fb486a0cd8916b9543db8f7901ae03a8e9589db1b2f03a",
+      "sourceSnapshot": "career-tab-2026-11-20",
       "imageSha256": {
-        "desktop": "82121d9fcc89b72352ed056f2f46bd0193d06aff4500cca925c231263d0358f4",
-        "mobile": "1cd486cc56e615cdda36a80ea96754c035bcbaf31d535d378f621f2b0715e6d3",
-        "desktopDetail": "837c149ffe2d3b53b2e2d5a2046c8c717b1d145df0e1f60829af06a93818e010",
-        "mobileDetail": "05a147c805fad904d061cda4bb1d8463baa163441cf700d76d2e22a5ae99629d"
+        "desktop": "f562193f89c380e3b9f78a8b8ee22b385046c367b053055639c0f46046e70c20",
+        "mobile": "d2fd158d1b9873a37ebd49795241eb112793b32be3fd15068490ce941c222d3d",
+        "desktopDetail": "79551361a7214fb10977b9f8cd4a425ba95ddb51203ae6857e320eba2903ac78",
+        "mobileDetail": "f9e96edbef9134be8a772061284c0ac9fd3016f8a20939b0a6fd62e493126ff8"
       }
     },
     {

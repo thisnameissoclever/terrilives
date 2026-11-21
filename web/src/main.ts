@@ -8,6 +8,7 @@ import { BillsPanel } from './ui/bills-panel.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
+import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
 import { countAlongside } from './load-progress.js';
@@ -845,13 +846,13 @@ async function main(): Promise<void> {
   const careerContent = document.querySelector<HTMLElement>('#career-content');
   const careerRowTitle = document.querySelector<HTMLElement>('#career-value');
   const careerRowInfo = document.querySelector<HTMLButtonElement>('#career-info');
-  const careerRowGraph = document.querySelector<HTMLElement>('#career-row-graph');
-  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo || !careerRowGraph) {
+  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo) {
     throw new Error('missing career markup');
   }
+  const careerReview: { open: ((opener: HTMLButtonElement) => void) | null } = { open: null };
   const careerSurface = createCareerPanelSurface(document, {
     section: careerSection, empty: careerEmpty, content: careerContent,
-    rowTitle: careerRowTitle, rowInfo: careerRowInfo, rowGraph: careerRowGraph,
+    rowTitle: careerRowTitle, rowInfo: careerRowInfo,
   }, {
     choose: path => careerPanel.choose(path),
     assign: () => careerPanel.assign(),
@@ -860,9 +861,22 @@ async function main(): Promise<void> {
     chooseShift: shift => careerPanel.chooseShift(shift),
     chooseChange: shift => careerPanel.chooseChange(shift),
     changeShift: () => careerPanel.changeShift(),
+    goToWork: () => careerPanel.goToWork(),
+    openReviewGraph: opener => careerReview.open?.(opener),
   });
   const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
     () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);
+  // The review window: opened by the i beside the job title, it pauses the
+  // game until it closes and then returns focus to the i, or when that is
+  // hidden to the Career tab's heading, or else to Sim details.
+  const careerReviewWindow = new CareerReviewWindow(document, sim, overlayPause, () => [
+    careerContent.querySelector<HTMLElement>('.career-heading'), simSheet,
+  ]);
+  document.body.append(careerReviewWindow.element);
+  careerReview.open = opener => {
+    const agent = sim.selectedIndex();
+    if (agent !== null) careerReviewWindow.open(agent, opener);
+  };
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at
   // start, after Load and after an edit read whether or not it is open.
@@ -1356,6 +1370,8 @@ async function main(): Promise<void> {
       housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
       characterWorld.reset();characterWorld.prepareFixtures(sim);
       bedAssignmentPanel.resetAfterLoad();
+      // The window shows a person of the replaced world: close it, which also resumes the game.
+      careerReviewWindow.close();
       careerPanel.resetAfterLoad();
       syncNewHousemateButton();
       syncEditHousemateButton();

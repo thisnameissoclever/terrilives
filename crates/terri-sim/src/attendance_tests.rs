@@ -480,6 +480,15 @@ fn assert_shift_base_uses_accumulated_need_mood(half: bool) {
         "settlement uses the mood accumulated through the previous minute"
     );
     assert!((outcome.score - expected_base).abs() < 0.0001);
+    let sim_id = *sim.world().get::<SimId>(actor).unwrap();
+    let recorded = sim
+        .world()
+        .resource::<crate::careers::Careers>()
+        .record(sim_id)
+        .unwrap()
+        .last_shift
+        .unwrap();
+    assert_eq!(recorded.mood, before_mood / 50.0);
     assert_eq!(
         sim.world().get::<Needs>(actor).unwrap().get(NeedId::Energy),
         energy_before - job.energy_cost * ratio
@@ -489,7 +498,7 @@ fn assert_shift_base_uses_accumulated_need_mood(half: bool) {
             .get::<crate::need_mood::NeedMood>(actor)
             .unwrap()
             .0,
-        before_need_mood.0 + 6,
+        before_need_mood.0 + 12,
         "the end of the minute credits the six high needs"
     );
 }

@@ -8,14 +8,14 @@
 //! `docs/specs/2026-10-18-job-search-per-person.md`); changing path is one
 //! household setting. The rabbit-hole shift itself stays in
 //! `systems::career`.
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use bevy_ecs::prelude::*;
 use terri_core::save_v21::{SavedHeldShift, SavedShiftChange, SavedShifts};
 use terri_core::{
     save_v14::{SavedCareerMoodlet, SavedCareerRecord, SavedCareerWeek, SavedCareers},
-    Agent, AtWork, Career, Commuting, FnvHasher, Funds, Satisfaction, SimClock, SimId, SimRng,
-    Skills, Traits,
+    Agent, AtWork, Career, CommandQueue, Commuting, FnvHasher, Funds, Satisfaction, SimClock,
+    SimCommand, SimId, SimRng, Skills, Traits,
 };
 use terri_data::{CompiledCareer, ContentPack};
 
@@ -56,6 +56,11 @@ pub enum CareerRefusal {
     NotEmployed = 5,
     /// The person already holds that shift.
     SameShift = 6,
+    /// Issues 311 and 317, [CT-command] item 4: Go to work with no open
+    /// shift and no shift starting within the window.
+    NotDue = 7,
+    /// Go to work with no way out to the street.
+    NoRoute = 8,
 }
 
 /// What the drain did with the last career command: the person it named
@@ -66,12 +71,85 @@ pub struct CareerResult {
     pub reason: Option<CareerRefusal>,
 }
 
+/// The scheduled start and end ticks of one shift.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ShiftTimes {
+    pub start_tick: u64,
+    pub end_tick: u64,
+}
+
+/// What the Career tab's Go to work box shows for one person, and whether
+/// the command applies ([CT-work-state] in
+/// `docs/specs/2026-11-19-career-tab.md`). One function decides it for the
+/// shell and the drain, so the two can never disagree.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WorkStatus {
+    /// [CT-ws-none]: no job.
+    NoJob,
+    /// [CT-ws-due]: at home, and the next shift starts within the window.
+    Due(ShiftTimes),
+    /// [CT-ws-late]: at home, and the open shift has started.
+    Late(ShiftTimes),
+    /// [CT-ws-early]: at home, and the next shift starts later than the
+    /// window: the next start found today, tomorrow or in the following
+    /// week, if any.
+    Early(Option<ShiftTimes>),
+    /// [CT-ws-work]: at work until `end_tick`.
+    AtWork { end_tick: u64 },
+    /// [CT-ws-out]: on the way to work.
+    Outbound,
+    /// [CT-ws-home]: on the way home.
+    Inbound,
+}
+
+impl WorkStatus {
+    /// Whether Go to work applies: the shift is due or has started.
+    pub fn can_go(&self) -> bool {
+        matches!(self, Self::Due(_) | Self::Late(_))
+    }
+}
+
 /// One reviewed week.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Week {
     pub week: u64,
     pub performance: f32,
     pub event: u8,
+}
+
+/// [CT-save-memory] item 1: what one scored shift read, the exact values
+/// `settle` passed to `shift_score` and the minutes it missed. Kept for the
+/// review window; no simulation decision reads it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ShiftInputs {
+    pub fit: f32,
+    pub trait_fit: f32,
+    pub social_capacity: f32,
+    pub mastery: f32,
+    pub mood: f32,
+    /// Scheduled minus worked minutes, before the grace period.
+    pub missed_minutes: f32,
+    /// Whether any minutes were worked.
+    pub attended: bool,
+}
+
+/// [CT-save-memory] item 3: one reviewed week's inputs. The means are
+/// taken in shift order; `missed_minutes` is the week's sum.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct WeekInputs {
+    pub week: u64,
+    /// The career row held during the week.
+    pub career: u32,
+    pub shifts: u32,
+    pub attended: u32,
+    pub fit: f32,
+    pub trait_fit: f32,
+    pub social_capacity: f32,
+    pub mastery: f32,
+    pub mood: f32,
+    pub missed_minutes: f32,
+    /// The pay held during the week, before the review's outcome.
+    pub pay: u32,
 }
 
 /// One person's standing in their job.
@@ -92,6 +170,15 @@ pub struct Record {
     /// 0 is the level's standard shift (issue 296, [WS-choose] in
     /// `docs/specs/2026-10-18-shifts-and-careers.md`).
     pub shift: u32,
+    /// [CT-save-memory] item 1: the current week's scored shifts' inputs,
+    /// one per entry of `shifts`, in the same order.
+    pub shift_inputs: Vec<ShiftInputs>,
+    /// [CT-save-memory] item 2: the most recent scored shift's inputs, kept
+    /// across reviews.
+    pub last_shift: Option<ShiftInputs>,
+    /// [CT-save-memory] item 3: the reviewed weeks' inputs, the oldest
+    /// first, at most `career_input_history_weeks` of them.
+    pub input_weeks: VecDeque<WeekInputs>,
 }
 
 impl Record {
@@ -107,6 +194,9 @@ impl Record {
             history: Vec::new(),
             review_due: None,
             shift: 0,
+            shift_inputs: Vec::new(),
+            last_shift: None,
+            input_weeks: VecDeque::new(),
         }
     }
 
@@ -352,6 +442,9 @@ impl Careers {
                         .collect(),
                     review_due: record.review_due,
                     shift: 0,
+                    shift_inputs: Vec::new(),
+                    last_shift: None,
+                    input_weeks: VecDeque::new(),
                 },
             );
         }
@@ -578,11 +671,18 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
         return;
     };
     let fit = fit(world, pack, job, worker);
-    let score = shift_score(
+    // [CT-save-memory] item 1: a shift of the pre-schema-15 path misses
+    // nothing and was attended.
+    let read = ShiftInputs {
         fit,
-        mastery(world, pack, job, worker),
-        mood_term(world, worker),
-    );
+        trait_fit: trait_fit(world, job, worker),
+        social_capacity: social_capacity(world, pack, worker),
+        mastery: mastery(world, pack, job, worker),
+        mood: mood_term(world, worker),
+        missed_minutes: 0.0,
+        attended: true,
+    };
+    let score = shift_score(read.fit, read.mastery, read.mood);
     let tuning = &pack.tuning;
     let (pay, due) = {
         let mut careers = world.resource_mut::<Careers>();
@@ -614,6 +714,8 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
             return;
         };
         record.shifts.push(score);
+        record.shift_inputs.push(read);
+        record.last_shift = Some(read);
         let target = 50.0 + 40.0 * fit;
         let step = tuning.career_satisfaction_rate;
         record.job_satisfaction = if record.job_satisfaction < target {
@@ -631,15 +733,15 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
 }
 
 /// Settle a scheduled shift once, with its captured pay and actual
-/// attendance. `score` joins the week's scores; `None` is a shift a shift
-/// change forfeited, which pays and rewards its minutes but is not scored.
+/// attendance. `scored` joins the week's scores and inputs; `None` is a shift a
+/// shift change forfeited, which pays and rewards its minutes but is not scored.
 pub(crate) fn complete_attended_shift(
     world: &mut World,
     worker: Entity,
     career: u32,
     pay_cents: i64,
     ratio: f32,
-    score: Option<f32>,
+    scored: Option<(f32, ShiftInputs)>,
     scheduled_week: u64,
 ) {
     let pack = world.resource::<Content>().0;
@@ -658,7 +760,11 @@ pub(crate) fn complete_attended_shift(
             .records
             .entry(sim)
             .or_insert_with(|| Record::new(job));
-        record.shifts.extend(score);
+        if let Some((score, read)) = scored {
+            record.shifts.push(score);
+            record.shift_inputs.push(read);
+            record.last_shift = Some(read);
+        }
         let target = 50.0 + 40.0 * fit;
         let step = pack.tuning.career_satisfaction_rate * ratio;
         record.job_satisfaction = if record.job_satisfaction < target {
@@ -838,6 +944,32 @@ pub(crate) fn review(world: &mut World, ended_week: u64, tick: u64) {
     world.insert_resource(careers);
 }
 
+/// [CT-save-row]: the row for `ended_week` from the record's current
+/// inputs and held pay, or `None` when the scores and the inputs do not
+/// match one for one, or are empty. Means add in shift order and divide by
+/// the count in `f32`; missed minutes are a sum.
+fn week_inputs(record: &Record, ended_week: u64, career: Option<u32>) -> Option<WeekInputs> {
+    let shifts = &record.shift_inputs;
+    if shifts.is_empty() || shifts.len() != record.shifts.len() {
+        return None;
+    }
+    let count = shifts.len() as f32;
+    let mean = |pick: fn(&ShiftInputs) -> f32| shifts.iter().map(pick).sum::<f32>() / count;
+    Some(WeekInputs {
+        week: ended_week,
+        career: career?,
+        shifts: shifts.len() as u32,
+        attended: shifts.iter().filter(|read| read.attended).count() as u32,
+        fit: mean(|read| read.fit),
+        trait_fit: mean(|read| read.trait_fit),
+        social_capacity: mean(|read| read.social_capacity),
+        mastery: mean(|read| read.mastery),
+        mood: mean(|read| read.mood),
+        missed_minutes: shifts.iter().map(|read| read.missed_minutes).sum(),
+        pay: record.pay,
+    })
+}
+
 /// One person's review of `ended_week`, applied at `tick`: the caller has
 /// taken the careers out of the world and checked that the person holds
 /// a job with at least one shift scored. `logged` holds the factors the
@@ -895,6 +1027,16 @@ fn review_person(
         performance,
         draw,
     );
+    // [CT-save-row]: the week's inputs, read before the outcome changes the
+    // job or the pay. A week whose scores do not all have inputs (a save
+    // migrated mid-week) gets no row.
+    if let Some(row) = week_inputs(record, ended_week, world.get::<Career>(entity).map(|c| c.0)) {
+        record.input_weeks.push_back(row);
+        while record.input_weeks.len() > tuning.career_input_history_weeks as usize {
+            record.input_weeks.pop_front();
+        }
+    }
+    record.shift_inputs.clear();
     record.shifts.clear();
     match event {
         EVENT_PROMOTION => {
@@ -1165,6 +1307,112 @@ pub(crate) fn change_shift(world: &mut World, agent: u32, shift: u32) {
     record_command(world, agent, reason);
 }
 
+/// [CT-command] and [CT-work-effect]: the player sends `agent` to work now,
+/// whatever they are doing and however low their needs, when their shift
+/// is due within the window or has started and is open. Refused, with
+/// nothing changed, for anyone else or without a way out to the street.
+pub(crate) fn go_to_work(world: &mut World, agent: u32) {
+    let reason = go_to_work_or_refuse(world, agent);
+    record_command(world, agent, reason);
+}
+
+fn go_to_work_or_refuse(world: &mut World, agent: u32) -> Option<CareerRefusal> {
+    let Some(entity) = crate::family::sim_id_at(world, agent)
+        .and_then(|sim| crate::edit::living_entity(world, sim))
+    else {
+        return Some(CareerRefusal::NotAPerson);
+    };
+    let now = world.resource::<SimClock>().tick;
+    let before_start = match go_to_work_status(world, entity, now) {
+        WorkStatus::NoJob => return Some(CareerRefusal::NotEmployed),
+        WorkStatus::AtWork { .. } | WorkStatus::Outbound | WorkStatus::Inbound => {
+            return Some(CareerRefusal::AtWork)
+        }
+        WorkStatus::Early(_) => return Some(CareerRefusal::NotDue),
+        WorkStatus::Due(shift) => Some(shift.start_tick),
+        WorkStatus::Late(_) => None,
+    };
+    // The route is checked before anything changes, so a refusal leaves the
+    // orders and the attendance register as they were.
+    if !crate::attendance::can_depart(world, entity) {
+        return Some(CareerRefusal::NoRoute);
+    }
+    // 1. Player orders end exactly as Cancel orders ends them, through the
+    // same ordinary command. The drain has already applied every ordinary
+    // command before this one, so the queue holds only this cancel.
+    world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents { agent });
+    crate::systems::lot_edit::flush_ordinary(world);
+    // 3. A shift that has not started is registered now, so the arrival
+    // before the start is tracked work rather than legacy work.
+    if let Some(start) = before_start {
+        crate::attendance::register_before_start(world, entity, start);
+    }
+    // A waiting game-made fight never delays a shift, as at a shift start.
+    crate::fights::withdraw_waiting_for_shift(world, entity);
+    // 2. A reader puts the book down where they stand and leaves at once
+    // ([CT-merge] item 3, owner ruling): the same helper the lateness cap
+    // uses, so a carried copy keeps its home and a housemate shelves it.
+    if world
+        .get::<crate::reading::ReadingJourney>(entity)
+        .is_some()
+    {
+        crate::reading::floor::put_down_and_end(world, entity);
+    }
+    // 4. Leave now, dropping sleep, a meal, a conversation and the rest.
+    crate::attendance::depart(world, entity);
+    None
+}
+
+/// The days after today [`go_to_work_status`] looks through for a next
+/// start: tomorrow, then the following week.
+const NEXT_START_DAYS: u64 = 1 + terri_core::clock::WEEKDAY_COUNT as u64;
+
+/// [CT-work-state]: what the Go to work box shows for `entity` at tick
+/// `now`, and so whether the command applies. Reads only the world and
+/// draws nothing.
+pub fn go_to_work_status(world: &World, entity: Entity, now: u64) -> WorkStatus {
+    let Some(pack) = world.get_resource::<Content>().map(|content| content.0) else {
+        return WorkStatus::NoJob;
+    };
+    if job_of(world, pack, entity).is_none() {
+        return WorkStatus::NoJob;
+    }
+    let open = crate::attendance::open_shift(world, entity)
+        .filter(|shift| shift.end_tick > now)
+        .map(|shift| ShiftTimes {
+            start_tick: shift.start_tick,
+            end_tick: shift.end_tick,
+        });
+    if let Some(work) = world.get::<AtWork>(entity) {
+        // A worker from before scheduled shifts has only a countdown.
+        let end_tick = open.map_or(now + u64::from(work.remaining_ticks), |s| s.end_tick);
+        return WorkStatus::AtWork { end_tick };
+    }
+    match world.get::<Commuting>(entity) {
+        Some(Commuting::Outbound) => return WorkStatus::Outbound,
+        Some(Commuting::Inbound) => return WorkStatus::Inbound,
+        None => {}
+    }
+    let next = match open {
+        Some(shift) if shift.start_tick <= now => return WorkStatus::Late(shift),
+        // Registered before its start, and since sent home by an order.
+        Some(shift) => Some(shift),
+        None => crate::shifts::next_start(world, pack, entity, now, NEXT_START_DAYS).map(
+            |(start_tick, shift)| ShiftTimes {
+                start_tick,
+                end_tick: start_tick + u64::from(shift.shift_ticks),
+            },
+        ),
+    };
+    let window = u64::from(pack.tuning.go_to_work_window_ticks);
+    match next {
+        Some(shift) if shift.start_tick - now <= window => WorkStatus::Due(shift),
+        next => WorkStatus::Early(next),
+    }
+}
+
 /// Every career command, applied or refused, is counted and reported.
 fn record_command(world: &mut World, agent: u32, reason: Option<CareerRefusal>) {
     let mut careers = world.resource_mut::<Careers>();
@@ -1388,6 +1636,72 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     for (sim, career) in jobs {
         hash.write_u64(u64::from(sim));
         hash.write_u64(u64::from(career));
+    }
+}
+
+fn hash_shift_inputs(inputs: &ShiftInputs, hash: &mut FnvHasher) {
+    for value in [
+        inputs.fit,
+        inputs.trait_fit,
+        inputs.social_capacity,
+        inputs.mastery,
+        inputs.mood,
+        inputs.missed_minutes,
+    ] {
+        hash.write_u64(u64::from(value.to_bits()));
+    }
+    hash.write_u64(u64::from(inputs.attended));
+}
+
+/// [CT-save-hash]: the score inputs the review window reads, in a tagged
+/// block written only when some record holds any, so a world with no
+/// scored shift since inputs were kept hashes as it did before. Records
+/// in sim order; every `f32` by `to_bits`.
+pub(crate) fn hash_inputs(world: &World, hash: &mut FnvHasher) {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return;
+    };
+    let holding = |record: &&Record| {
+        !record.shift_inputs.is_empty()
+            || record.last_shift.is_some()
+            || !record.input_weeks.is_empty()
+    };
+    if !careers.records.values().any(|record| holding(&record)) {
+        return;
+    }
+    hash.write_bytes(b"career-inputs-v1");
+    hash.write_u64(careers.records.len() as u64);
+    for (sim, record) in &careers.records {
+        hash.write_u64(u64::from(sim.0));
+        hash.write_u64(record.shift_inputs.len() as u64);
+        for inputs in &record.shift_inputs {
+            hash_shift_inputs(inputs, hash);
+        }
+        match &record.last_shift {
+            Some(inputs) => {
+                hash.write_u64(1);
+                hash_shift_inputs(inputs, hash);
+            }
+            None => hash.write_u64(0),
+        }
+        hash.write_u64(record.input_weeks.len() as u64);
+        for week in &record.input_weeks {
+            hash.write_u64(week.week);
+            hash.write_u64(u64::from(week.career));
+            hash.write_u64(u64::from(week.shifts));
+            hash.write_u64(u64::from(week.attended));
+            for value in [
+                week.fit,
+                week.trait_fit,
+                week.social_capacity,
+                week.mastery,
+                week.mood,
+                week.missed_minutes,
+            ] {
+                hash.write_u64(u64::from(value.to_bits()));
+            }
+            hash.write_u64(u64::from(week.pay));
+        }
     }
 }
 
@@ -1714,6 +2028,82 @@ pub fn history(world: &World, entity: Entity) -> Vec<f32> {
         })
         .unwrap_or_default()
 }
+
+/// [CT-web] item 3: the weekly score inputs of `entity`, oldest week first,
+/// fourteen numbers a row: `[week, career, path, level, shifts, attended,
+/// fit, trait_fit, social_capacity, social_demand, mastery, mood,
+/// missed_minutes, pay]`. The path, level and the job's social demand come
+/// from the career row the week was held at. A row naming no known career
+/// row is left out; saves never hold one. Empty without a record.
+pub fn input_history(world: &World, entity: Entity) -> Vec<f32> {
+    let Some(sim) = world.get::<SimId>(entity) else {
+        return Vec::new();
+    };
+    let Some(pack) = world.get_resource::<Content>().map(|content| content.0) else {
+        return Vec::new();
+    };
+    let Some(record) = world
+        .get_resource::<Careers>()
+        .and_then(|careers| careers.record(*sim))
+    else {
+        return Vec::new();
+    };
+    record
+        .input_weeks
+        .iter()
+        .filter_map(|week| {
+            let job = pack.careers.get(week.career as usize)?;
+            Some([
+                week.week as f32,
+                week.career as f32,
+                job.path as f32,
+                job.level as f32,
+                week.shifts as f32,
+                week.attended as f32,
+                week.fit,
+                week.trait_fit,
+                week.social_capacity,
+                job.social_demand,
+                week.mastery,
+                week.mood,
+                week.missed_minutes,
+                week.pay as f32,
+            ])
+        })
+        .flatten()
+        .collect()
+}
+
+/// [CT-web] item 4: the inputs of the last scored shift of `entity`, as
+/// `[fit, trait_fit, social_capacity, mastery, mood, missed_minutes,
+/// attended]` with attended 1 or 0. Empty before a shift has been scored.
+pub fn last_shift_inputs(world: &World, entity: Entity) -> Vec<f32> {
+    let Some(sim) = world.get::<SimId>(entity) else {
+        return Vec::new();
+    };
+    world
+        .get_resource::<Careers>()
+        .and_then(|careers| careers.record(*sim))
+        .and_then(|record| record.last_shift)
+        .map_or_else(Vec::new, |last| {
+            vec![
+                last.fit,
+                last.trait_fit,
+                last.social_capacity,
+                last.mastery,
+                last.mood,
+                last.missed_minutes,
+                f32::from(u8::from(last.attended)),
+            ]
+        })
+}
+
+#[cfg(test)]
+#[path = "career_inputs_tests.rs"]
+mod career_inputs_tests;
+#[cfg(test)]
+#[path = "go_to_work_tests.rs"]
+mod go_to_work_tests;
 
 #[cfg(test)]
 #[path = "job_search_tests.rs"]

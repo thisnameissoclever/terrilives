@@ -14,13 +14,13 @@ numbers below describe the initial tuning, not constants in the simulation.
 The HUD reads one overall score, one label and an ordered list of contributing
 reasons from `Sim::mood_of`. The simulation combines the saved needs
 contribution with current conditions, positions, relationships and other
-active effects. Loading a V26 household restores its accumulated contribution
-before the next tick. Published saves through V23 begin with zero accumulated
+active effects. Loading a V27 household restores its accumulated contribution
+before the next tick. Published saves through V24 begin with zero accumulated
 need points. The HUD refreshes immediately after a successful load.
 
 ## [M2] Need rules
 
-Each game minute after needs settle, each empty need subtracts 5 points per game hour and each need above 80 adds 0.02 per game hour. Sum the contributions before clamping the accumulated total to the mood range. The Overview mood breakdown shows a nonzero balance as Mood from needs. The need warnings and the rules for urgent actions continue to use their own thresholds. Save version 26 retains the balance.
+Each game minute after needs settle, each empty need subtracts 5 points per game hour and each need above 80 adds 0.02 per game hour. Sum the contributions before clamping the accumulated total to the mood range. The Overview mood breakdown shows a nonzero balance as Mood from needs. The need warnings and the rules for urgent actions continue to use their own thresholds. Save version 27 retains the balance.
 
 ## [M3] Trait rules
 
@@ -87,7 +87,7 @@ not a blank box.
 2. WASM tests pin the numeric and text projections and their alignment.
 3. Browser tests pin invalid-boundary clearing, keyed row reconciliation,
    throttling, selection changes, and forced refresh after load.
-4. A V26 household shows the same mood before the next tick when loaded with the same content.
+4. A V27 household shows the same mood before the next tick when loaded with the same content.
 5. Desktop and 390 by 844 browser checks prove the panel is readable, the
    meter has an accessible value, and the existing primary play path still
    works.

@@ -18,7 +18,7 @@ it('loads the captured historical save through release WASM and preserves contin
     expect(loaded.load_bytes(bytes.slice(0, -1))).toBe(false);
     expect(loaded.save_bytes()).toEqual(before);
     const current = loaded.save_bytes();
-    expect([...current.slice(8, 10)]).toEqual([26, 0]);
+    expect([...current.slice(8, 10)]).toEqual([27, 0]);
     expect(resumed.load_bytes(current)).toBe(true);
     for (let tick = 0; tick < 300; tick += 1) { loaded.tick(); resumed.tick(); }
     expect(loaded.sim_tick()).toBe(457n);
@@ -40,7 +40,7 @@ it.each(['local-character-0', 'local-character-400', 'local-character-1200',
       expect([...bytes.slice(8, 10)]).toEqual([9, 0]);
       expect(loaded.load_bytes(bytes)).toBe(true);
       const current = loaded.save_bytes();
-      expect([...current.slice(8, 10)]).toEqual([26, 0]);
+      expect([...current.slice(8, 10)]).toEqual([27, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { loaded.tick(); resumed.tick(); }
@@ -51,7 +51,7 @@ it.each(['local-character-0', 'local-character-400', 'local-character-1200',
 );
 
 it.each(['initial', 'running-fight'])(
-  'continues authentic published V19 %s through the release V26 reader', async (name) => {
+  'continues authentic published V19 %s through the release V27 reader', async (name) => {
     await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/published-v19/${name}.sav`, import.meta.url)));
@@ -61,7 +61,7 @@ it.each(['initial', 'running-fight'])(
     try {
       expect(migrated.load_bytes(original)).toBe(true);
       const current = migrated.save_bytes();
-      expect([...current.slice(8, 10)]).toEqual([26, 0]);
+      expect([...current.slice(8, 10)]).toEqual([27, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }
@@ -72,7 +72,7 @@ it.each(['initial', 'running-fight'])(
 );
 
 it.each(['shipped-household', 'queued-setting'])(
-  'continues main\'s V20 %s through the release V26 reader on standard shifts', async (name) => {
+  'continues main\'s V20 %s through the release V27 reader on standard shifts', async (name) => {
     await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/shifts-v20/${name}.sav`, import.meta.url)));
@@ -82,7 +82,7 @@ it.each(['shipped-household', 'queued-setting'])(
     try {
       expect(migrated.load_bytes(original)).toBe(true);
       const current = migrated.save_bytes();
-      expect([...current.slice(8, 10)]).toEqual([26, 0]);
+      expect([...current.slice(8, 10)]).toEqual([27, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }
@@ -93,7 +93,7 @@ it.each(['shipped-household', 'queued-setting'])(
 );
 
 it.each(['two-days-tim-at-work', 'night-shift-open', 'double-bed-in-yard'])(
-  "continues main's V21 %s through the release V26 reader with the raised wages", async (name) => {
+  "continues main's V21 %s through the release V27 reader with the raised wages", async (name) => {
     await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/bills-v21/${name}.sav`, import.meta.url)));
@@ -103,7 +103,7 @@ it.each(['two-days-tim-at-work', 'night-shift-open', 'double-bed-in-yard'])(
     try {
       expect(migrated.load_bytes(original)).toBe(true);
       const current = migrated.save_bytes();
-      expect([...current.slice(8, 10)]).toEqual([26, 0]);
+      expect([...current.slice(8, 10)]).toEqual([27, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }
@@ -114,7 +114,7 @@ it.each(['two-days-tim-at-work', 'night-shift-open', 'double-bed-in-yard'])(
 );
 
 it.each(['new-game-day-one-noon', 'new-game-two-days-evening'])(
-  "continues main's V22 %s through the release V26 reader with no lift fading", async (name) => {
+  "continues main's V22 %s through the release V27 reader with no lift fading", async (name) => {
     await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
     const original = new Uint8Array(readFileSync(new URL(
       `../../crates/terri-wasm/tests/fixtures/presence-v22/${name}.sav`, import.meta.url)));
@@ -124,10 +124,31 @@ it.each(['new-game-day-one-noon', 'new-game-two-days-evening'])(
     try {
       expect(migrated.load_bytes(original)).toBe(true);
       const current = migrated.save_bytes();
-      expect([...current.slice(8, 10)]).toEqual([26, 0]);
-      // Both appended lists start empty when loading V22.
-      expect(current.length).toBe(original.length + 2);
-      expect([...current.slice(-2)]).toEqual([0, 0]);
+      expect([...current.slice(8, 10)]).toEqual([27, 0]);
+      // Schemas 23, 24 and 26 add five empty lists, one byte each.
+      expect(current.length).toBe(original.length + 5);
+      expect([...current.slice(-5)]).toEqual([0, 0, 0, 0, 0]);
+      expect(resumed.load_bytes(current)).toBe(true);
+      expect(resumed.save_bytes()).toEqual(current);
+      for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }
+      expect(resumed.world_hash()).toBe(migrated.world_hash());
+      expect(resumed.save_bytes()).toEqual(migrated.save_bytes());
+    } finally { migrated.free(); resumed.free(); }
+  },
+);
+
+it.each(['new-game-thursday-noon', 'two-reviewed-weeks-tuesday-noon'])(
+  'continues the V23 %s through the release V27 reader with no score inputs', async (name) => {
+    await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
+    const original = new Uint8Array(readFileSync(new URL(
+      `../../crates/terri-wasm/tests/fixtures/career-inputs-v23/${name}.sav`, import.meta.url)));
+    expect([...original.slice(8, 10)]).toEqual([23, 0]);
+    const migrated = SimHandle.from_lot();
+    const resumed = SimHandle.from_lot();
+    try {
+      expect(migrated.load_bytes(original)).toBe(true);
+      const current = migrated.save_bytes();
+      expect([...current.slice(8, 10)]).toEqual([27, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }

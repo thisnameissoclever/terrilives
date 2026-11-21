@@ -13287,7 +13287,7 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 
 ## [L-private-save-version-reservations] Check active writers before assigning a save version
 
-1. What happened: the needs mood change initially chose V24 because the published writer used V23. The Career tab worktree already wrote a different V24, and the editable-world worktree had written private V24 and V25 files. The mood writer moved to V26 before publication.
+1. What happened: the needs mood change initially chose V24 because the published writer used V23. The Career tab worktree already wrote a different V24, and the editable-world worktree had written private V24 and V25 files. The Career build shipped V24 while the change was in progress. The editable-world writer advanced to V26. The mood release used V27, which each older writer rejects.
 2. Root cause: the default branch records published formats. Active worktrees can already have produced files using higher version numbers.
 3. Prevention: inspect the current writers and frozen formats in active save-related branches before choosing a new number. When a version is reserved, list the supported versions explicitly in the loader, import controller and storage worker.
 4. Verification: try each reserved header against a running household and against an existing browser slot. Check the world hash and the stored bytes after refusal. Migrate a genuine published save and compare its recovery copy byte for byte.

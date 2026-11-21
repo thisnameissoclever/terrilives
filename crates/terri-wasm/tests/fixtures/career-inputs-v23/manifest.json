@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "eeb0842165da51f7d30b51b8f674e82bcb554614",
+  "producer": "Sim::save_snapshot_v23 with the schema-23 header, from a native release build at the source revision, run by a scratch example that was not committed",
+  "records": [
+    {
+      "name": "new-game-thursday-noon.sav",
+      "schema": 23,
+      "length": 7769,
+      "sha256": "c0fcae1fd194cd15fca274afcc7216a79e6b6c5077135fd3fb029f32a9a59126",
+      "tick": "5040",
+      "contents": "the shipped household, a new game at noon on Thursday of its first week"
+    },
+    {
+      "name": "two-reviewed-weeks-tuesday-noon.sav",
+      "schema": 23,
+      "length": 9786,
+      "sha256": "00a7e0528e30865f1123f500540ba96edf0574d68aeaeb9f0b67b741ec6c8cd2",
+      "tick": "22320",
+      "contents": "the same household after weeks 0 and 1 were reviewed, Tuesday at noon"
+    }
+  ]
+}

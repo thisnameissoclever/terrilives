@@ -54,7 +54,7 @@ The Log shows the newest 200 lines. Scroll to the top and choose Show earlier en
 
 Desktop: select a person to see needs in the expanded dock, then choose Sim details for the fuller sheet. Phone: select a Household name, choose Sim details, then Overview to see all seven needs. Phone needs are not hidden inside Options.
 
-Overview also shows mood reasons, Career, Doing and Orders waiting. The Career information button opens the review graph. Close returns to the dock. Changing the selected housemate changes whose information the sheet describes.
+Overview also shows mood reasons, Career, Doing and Orders waiting. The Career information button opens the [review window](#career-review-window), which pauses the game. Close returns to the dock. Changing the selected housemate changes whose information the sheet describes.
 
 :::illustration sim-needs
 
@@ -108,7 +108,21 @@ An object being present and another person actively using it can have different 
 
 ## Career {#career}
 
-Open Sim details, then Career. The panel shows path, title, level, pay and range, the schedule with the shift's name, this week's score, review history and the factors used by performance.
+Open Sim details, then Career. Sim details is the same width on every tab on a computer screen, so switching tabs does not resize it. The panel shows the job title with its path and level, a Go to work box, a facts grid, Score inputs, and the Reviews graph with its key. Below those are the assign, shift and job-search controls.
+
+The facts grid lists Shift, Pay, Pay range at this level, This week, Last review and Promotion. This week reads as the shifts worked and their score so far, or No shifts yet. Last review reads as a score out of 100, or None yet. Promotion counts the good weeks in a row toward the next level, or says the person is at the top of the path.
+
+### Go to work {#go-to-work}
+
+The Go to work box tells you when the selected person's next shift starts or started, and its button sends them to work now. The button is available from {{number:tuning.go_to_work_window_ticks}} game minutes before the shift starts until the shift ends. The person stops what they are doing and leaves, even with low needs, and a sleeper gets up. A housemate who is reading puts their book down where they stand instead of carrying it back first. Anything queued for them is cancelled.
+
+Leaving early is on time. The time before the shift starts is not paid, and it counts as no missed work. Leaving after the shift has started counts the minutes between the start and their arrival as missed work, as lateness does anywhere else.
+
+The button is unavailable, with a note saying why, when the shift is further away than that, when the person is already at work, on the way to work or on the way home, and when they have no shift in the next seven days. If the person has no way out of the house to work, the command is refused with a message. See [work and pay](the-world/#careers).
+
+### Score inputs {#score-inputs}
+
+Score inputs lists what went into the last shift's score. Fit and Trait fit run from -1 to 1. Social capacity shows the person's capacity beside what the job needs. Skill mastery is neutral at 50%. Mood on the last shift reads No shift yet until they have worked. Each row says Helps, Hurts or No effect, so you can see which inputs are pulling a score up or down.
 
 Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. Shift lists By chance first and then each shift the path's first level offers, with its days, hours and chance of being drawn; leave By chance to let the hire draw one, or pick a shift to hold it. For an employed person with more than one shift to choose from, Shift schedule shows their shift; choose another and select Change shift. Their old shift is still worked that day if it has not started yet, and the new shift, like a newly assigned job, starts on a day after the day their last shift ended; after a night shift that ends in the morning, that can be two days after the change. Changing shift resets the good weeks counted toward the next promotion. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
 
@@ -116,9 +130,17 @@ Scroll to Assign a career, then choose a path and Assign to put the person at it
 
 :::illustration career-shift
 
-Scroll to Reviews for the graph of actual events. The information button beside a Career title in Overview opens a smaller graph.
+Scroll to Reviews for the graph of actual events. Hover over a week, or tap it on a phone, to see its score and what kind of week it was. With the graph focused, Left, Right, Home and End move between weeks.
 
 :::illustration career-review
+
+### Review window {#career-review-window}
+
+The information button beside the job title opens the review window. The same button is beside the Career row in Overview. Opening the window pauses the game, and the window says so. Closing it with Close, Escape or a click outside it resumes the game at the speed you had chosen before. If the game was already paused, it stays paused, and the window says that too.
+
+The window shows the weekly review score for each week on record, with the level the person held that week. Filters chooses which score inputs appear as their own lines. Skill mastery, Mood on shifts, Missed work and Fit are on at first, and Trait fit and Social capacity are off. On the score graph you can hide the Good and poor lines and the Promotions and other events. A Key explains the point colors and event markers. Pay per shift is listed separately, under Also show, because pay does not affect the score. Show chooses Last 4 weeks, Last 12 weeks or All weeks, and a summary beside it gives the average and the number of good and poor weeks.
+
+Hover over a week, or move through the weeks with Left, Right, Home and End, to see that week's score, its kind and the inputs behind it. On a phone, tap a week to open its details, and use Filters to open the filter list. A week with no recorded inputs reads not recorded. Each person keeps the last {{number:tuning.career_input_history_weeks}} reviewed weeks of score inputs.
 
 ## Chores {#chores}
 

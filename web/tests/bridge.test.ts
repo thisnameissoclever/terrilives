@@ -985,7 +985,7 @@ describe('SimBridge', () => {
     expect(new DataView(valid.buffer, valid.byteOffset, valid.byteLength).getUint16(8, true)).toBe(CURRENT_SAVE_VERSION);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
-    const unsupported = [24, 25, CURRENT_SAVE_VERSION + 1].map((version) => {
+    const unsupported = [24, 25, 26, CURRENT_SAVE_VERSION + 1].map((version) => {
       const bytes = valid.slice();
       new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).setUint16(8, version, true);
       return bytes;

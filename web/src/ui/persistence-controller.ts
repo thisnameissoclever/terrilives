@@ -1,5 +1,5 @@
 import type { SaveStore } from '../storage/save-store.js';
-import { isSupportedSaveVersion, saveSchemaVersion } from '../storage/save-header.js';
+import { isSupportedSavePrefix, saveSchemaVersion } from '../storage/save-header.js';
 
 export interface PersistableSim {
   saveBytes(): Uint8Array;
@@ -100,15 +100,14 @@ export function applyPersistenceControlState(
 /** Why a chosen file or stored slot could not become the running game. */
 function unloadableReason(bytes: Uint8Array, fallback: string): string {
   const version = saveSchemaVersion(bytes);
-  return version !== null && !isSupportedSaveVersion(version)
+  return version !== null && !isSupportedSavePrefix(bytes)
     ? `Saved game version ${version} is not supported.`
     : fallback;
 }
 
 /** Whether the storage worker will write a current save over this slot. */
 function slotAcceptsCurrentWrite(bytes: Uint8Array): boolean {
-  const version = saveSchemaVersion(bytes);
-  return version !== null && isSupportedSaveVersion(version);
+  return isSupportedSavePrefix(bytes);
 }
 
 /**
@@ -395,7 +394,7 @@ export class PersistenceController {
 
   private async loadSupportedSave(bytes: Uint8Array): Promise<boolean> {
     const version = saveSchemaVersion(bytes);
-    if (version !== null && !isSupportedSaveVersion(version)) return false;
+    if (version !== null && !isSupportedSavePrefix(bytes)) return false;
     return this.loadPrepared(bytes);
   }
 

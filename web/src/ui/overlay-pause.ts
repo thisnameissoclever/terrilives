@@ -14,20 +14,20 @@ export type SpeedRecorder = (multiplier: number) => void;
 
 export class OverlayPauseController {
   private readonly blockers = new Set<string>();
-  private selectedSpeed: number;
+  private chosenSpeed: number;
 
   constructor(
     private readonly driver: SpeedDriver,
     private readonly recordSpeed: SpeedRecorder,
     initialSpeed: number,
   ) {
-    this.selectedSpeed = initialSpeed;
+    this.chosenSpeed = initialSpeed;
   }
 
   /** Applies a player-selected speed without defeating an active modal pause. */
   selectSpeed(multiplier: number): void {
     this.recordSpeed(multiplier);
-    this.selectedSpeed = multiplier;
+    this.chosenSpeed = multiplier;
     if (this.blockers.size === 0) this.driver.setSpeed(multiplier);
   }
 
@@ -41,7 +41,12 @@ export class OverlayPauseController {
   /** Restores the chosen speed after the final blocking surface closes. */
   resume(owner: string): void {
     if (!this.blockers.delete(owner)) return;
-    if (this.blockers.size === 0) this.driver.setSpeed(this.selectedSpeed);
+    if (this.blockers.size === 0) this.driver.setSpeed(this.chosenSpeed);
+  }
+
+  /** The speed the player chose, 0 for paused, whatever the overlays are doing to the driver. */
+  get selectedSpeed(): number {
+    return this.chosenSpeed;
   }
 
   get suspended(): boolean {

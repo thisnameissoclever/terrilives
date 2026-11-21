@@ -135,18 +135,19 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 344 (the presence fade): one float appended to `Tuning`.
-            // The proof always runs against the fixture as it was on main
-            // before issue 344 (26146 bytes, SHA-256
-            // 32efc8ed836f8fc8fb73b27aff809fd2e432009b4a9b56aad856ea1462196c15,
-            // main at a56f9beb0): restore that file before regenerating.
+            // Issues 311 and 317 (the Career tab): two integers appended to
+            // `Tuning`, after the presence fade of issue 344. The proof
+            // always runs against the fixture as it was on main before them
+            // (26150 bytes, SHA-256
+            // 79a1b54c6319feb6da4f23bbf58f8c063f4b1ddac4b396e6e5eeebc2ffc0e98a,
+            // main at e31afe285): restore that file before regenerating.
             assert_eq!(
-                previous_without_presence_fade(&pack),
+                previous_without_career_tab_knobs(&pack),
                 old_bytes,
-                "only the field issue 344 appended may change the current fixture"
+                "only the fields issues 311 and 317 appended may change the current fixture"
             );
             eprintln!(
-                "Presence fade fixture proof: leaving out the field issue 344 appended recovers every byte of the previous fixture"
+                "Career tab fixture proof: leaving out the fields issues 311 and 317 appended recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -164,14 +165,13 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 344 (the presence fade),
-/// rebuilt from the current pack by writing it as postcard does while
-/// leaving out the field that issue appended: the fade rate at the end of
-/// `Tuning`. Postcard writes a struct as its fields in order with no names,
+/// The fixture's bytes as they were before issues 311 and 317 (the Career
+/// tab), rebuilt from the current pack by writing it as postcard does while
+/// leaving out the two fields those issues appended at the end of `Tuning`. Postcard writes a struct as its fields in order with no names,
 /// so leaving a field out removes exactly its bytes. The unfiltered writer
 /// must reproduce postcard byte for byte first, or the filtered bytes would
 /// prove nothing.
-fn previous_without_presence_fade(pack: &terri_data::ContentPack) -> Vec<u8> {
+fn previous_without_career_tab_knobs(pack: &terri_data::ContentPack) -> Vec<u8> {
     use filtered_postcard::Rule;
     assert_eq!(
         filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
@@ -179,7 +179,7 @@ fn previous_without_presence_fade(pack: &terri_data::ContentPack) -> Vec<u8> {
         "the filtered writer reproduces postcard when it filters nothing"
     );
     filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
-        ("Tuning", "affinity_presence_fade_points_per_hour") => Rule::Omit,
+        ("Tuning", "go_to_work_window_ticks" | "career_input_history_weeks") => Rule::Omit,
         _ => Rule::Keep,
     })
 }

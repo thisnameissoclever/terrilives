@@ -754,6 +754,16 @@ work_lateness_remedy_share = 0.99
 # reconstructs. Bladder is the only need relieved at work.
 work_bladder_relief_threshold = 50.0
 
+# How many game minutes before a shift starts the Career tab's Go to work
+# becomes available, from 0 to 720. 0 allows it only once the shift has
+# started. Packs published before it reconstruct 120; it is inert there, as
+# no older world can hold the command (issue 311).
+go_to_work_window_ticks = 120
+# How many reviewed weeks of score inputs each person keeps for the review
+# window, from 1 to 520. At 52, a person's last 13 game years show. Packs
+# published before it reconstruct 52 (issue 317).
+career_input_history_weeks = 52
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

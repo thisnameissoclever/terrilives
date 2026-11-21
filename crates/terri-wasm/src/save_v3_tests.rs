@@ -754,11 +754,13 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV26>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV27>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
     assert_eq!(&bytes[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes());
     assert!(decoded.need_mood.is_empty());
+    let decoded = decoded.legacy;
+    assert!(decoded.career_inputs.is_empty());
     let decoded = decoded.legacy;
     assert!(decoded.presence_fade.is_empty());
     let decoded = decoded.legacy.legacy;
@@ -2029,6 +2031,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .unwrap(),
     );
     let current = decode_current(&handle.save_bytes())
+        .legacy
         .legacy
         .legacy
         .legacy

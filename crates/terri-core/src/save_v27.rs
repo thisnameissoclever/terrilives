@@ -1,5 +1,5 @@
-//! The needs mood balance extends schema twenty-three.
-use crate::{save_v17::SavedOrderActor, SaveSnapshotV23};
+//! The needs mood balance extends schema twenty-four.
+use crate::{save_v17::SavedOrderActor, SaveSnapshotV24};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -9,8 +9,8 @@ pub struct SavedNeedMood {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SaveSnapshotV26 {
-    pub legacy: SaveSnapshotV23,
+pub struct SaveSnapshotV27 {
+    pub legacy: SaveSnapshotV24,
     /// Strictly ordered by actor. Missing actors have a zero balance.
     pub need_mood: Vec<SavedNeedMood>,
 }

@@ -174,7 +174,7 @@ describe('Import save', () => {
     expect(controller.controlState().saveDisabled).toBe(false);
   });
 
-  it.each([24, 25])('refuses unpublished V%s imports before calling the simulation', async (version) => {
+  it.each([24, 25, 26])('refuses unpublished V%s imports before calling the simulation', async (version) => {
     const backend = store(null);
     const game = sim();
     const load = vi.spyOn(game, 'loadBytes');
@@ -188,8 +188,8 @@ describe('Import save', () => {
     expect(backend.saves).toEqual([]);
   });
 
-  it.each([24, 25])('protects a V%s slot until the player confirms New game', async (version) => {
-    const privateSave = saveBytes(version, [37, 22, 9]);
+  it.each([24, 25, 26])('protects a V%s slot until the player confirms New game', async (version) => {
+    const privateSave = saveBytes(version, [174, 199, 139, 189, 133, 195, 228, 148, 114, 37, 22, 9]);
     const backend = store(privateSave);
     const game = sim();
     const load = vi.spyOn(game, 'loadBytes');

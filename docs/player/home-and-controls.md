@@ -82,7 +82,7 @@ Options contains Save, Load, Export save, Import save and New game. Save writes 
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
-Saves carry the effect that needs have accumulated on mood. An older published save starts with a neutral contribution. If this browser already holds a development save from version 24 or 25, saving pauses to protect it. Export save downloads the original file for use in the build that created it. Choosing one of those files for Import leaves your current household in place.
+Saves carry the effect that needs have accumulated on mood. An older published save starts with a neutral contribution. If this browser already holds an editable-world development save from version 24, 25 or 26, saving pauses to protect it. Export save downloads the original file for use in the build that created it. Choosing one of those files for Import leaves your current household in place.
 
 Choose **Load game** in the Load confirmation to restore the save. Choose **Start over** in the New game confirmation to delete the local save and begin again. **Keep playing** closes either confirmation without replacing the household.
 

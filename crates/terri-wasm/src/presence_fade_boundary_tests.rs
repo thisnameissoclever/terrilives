@@ -36,6 +36,8 @@ fn main_schema_twenty_two_saves_load_with_no_fade() {
             "{name}"
         );
         let saved = decode_current(&current).legacy;
+        assert!(saved.career_inputs.is_empty(), "{name}");
+        let saved = saved.legacy;
         assert!(saved.presence_fade.is_empty(), "{name}");
         assert_eq!(saved.legacy, original, "{name}: the schema-22 part is kept");
 
@@ -73,6 +75,7 @@ fn current_schema_carries_the_fades_and_refuses_bad_rows() {
     let saved = decode_current(&bytes);
     let rows: Vec<(u32, &str, u64)> = saved
         .legacy
+        .legacy
         .presence_fade
         .iter()
         .map(|row| (row.sim, row.kind.as_str(), row.end_tick))
@@ -108,7 +111,7 @@ fn current_schema_carries_the_fades_and_refuses_bad_rows() {
         |rows| rows.push(rows[0].clone()),
     ] {
         let mut bad = saved.clone();
-        edit(&mut bad.legacy.presence_fade);
+        edit(&mut bad.legacy.legacy.presence_fade);
         let mut payload = SAVE_MAGIC.to_vec();
         payload.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
         payload.extend(postcard::to_allocvec(&bad).unwrap());
@@ -167,6 +170,7 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
     assert!(end > saved_at + 1, "the row is aging, with time left");
     let bytes = original.save_bytes();
     assert!(decode_current(&bytes)
+        .legacy
         .legacy
         .presence_fade
         .iter()

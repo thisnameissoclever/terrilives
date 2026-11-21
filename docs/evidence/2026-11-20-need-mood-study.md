@@ -64,3 +64,13 @@ The checkout was based on `c7932801c95bf1f38437cc38bb34524b356d3263` with the in
 | Study example | `426519e9d45faa449005c78c4cd981e0f2e93e2bdf9ba345234f52f2de1e7889` |
 | Study executable | `dab4923b3240b6dd18b31584d3eeb953632d88e7912ac74ba5edab1e1fab28f3` |
 | Raw results | `ef3a7b12092f1ae761a3786936ca775909587ae8ae18af3726d4a3ba8407acb9` |
+
+## November 21 comparison at +0.02
+
+The replay used the same V23 input, starter seed 20260728 and four-week window. The reward was +0.02 per healthy need per hour and the empty-need loss was 5 per hour. At +0.02 both households spent zero person-minutes at +100 overall or accumulated need mood in each of the four weeks. The saved household had 161,280 living person-minutes and the starter household had 120,960. At +0.1, those same windows contained 78,986 and 35,443 person-minutes at +100 overall mood, respectively.
+
+The comparison was built from local commit `7190c1339` before integrating the Career update. The raw CSV and final world hashes are retained in the ignored study folder.
+
+The repeat on the code with the Career release integrated also found zero minutes at either mood ceiling in all four weeks for both households. The saved household finished with hash `2133861043347235743`, and the starter household finished with `7615356142288321443`. This run used the same save and seed. Its source based on `ebe7be646` had the same rate and simulation logic as the release and still used the interim V26 wire number. The replay loads V23 and never writes a save.
+
+Raw output SHA-256: `b5831844c29d2ed512c0cb49646672bcb959b733a3a05b1027ba08493ce1df1d`.

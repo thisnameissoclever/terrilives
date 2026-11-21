@@ -10,7 +10,7 @@
  * primitive for the one-time recovery backup.
  */
 
-import { CURRENT_SAVE_VERSION, isSupportedSaveVersion, saveSchemaVersion } from './save-header.js';
+import { CURRENT_SAVE_VERSION, isSupportedSavePrefix, saveSchemaVersion } from './save-header.js';
 
 const SAVE_FILE = 'terri-save-1.bin';
 
@@ -113,14 +113,15 @@ async function preserveHistoricalBackup(
   const previous = await read(root);
   if (previous === null) return;
   const previousVersion = saveSchemaVersion(new Uint8Array(previous));
-  if (previousVersion === null || !isSupportedSaveVersion(previousVersion)) {
+  if (previousVersion === null || !isSupportedSavePrefix(new Uint8Array(previous))) {
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');
   }
   if (previousVersion === CURRENT_SAVE_VERSION) return;
   const backupFile = `terri-save-1.v${previousVersion}-backup.bin`;
   const existingBackup = await read(root, backupFile);
   if (existingBackup !== null) {
-    if (saveSchemaVersion(new Uint8Array(existingBackup)) !== previousVersion) {
+    if (saveSchemaVersion(new Uint8Array(existingBackup)) !== previousVersion
+      || !isSupportedSavePrefix(new Uint8Array(existingBackup))) {
       throw new Error(`The existing V${previousVersion} recovery backup is unreadable. The saved game was not replaced.`);
     }
     return;

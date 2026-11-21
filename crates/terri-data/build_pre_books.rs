@@ -272,6 +272,16 @@ pub fn compile(root: &Path) -> pack::ContentPack {
                 pack::Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
             )),
         ),
+        // The Career tab (issues 311 and 317): the shipped window and
+        // history, reconstructed by the published-pack conversions too.
+        (
+            "go_to_work_window_ticks",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_GO_TO_WORK_WINDOW_TICKS)),
+        ),
+        (
+            "career_input_history_weeks",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS)),
+        ),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),
