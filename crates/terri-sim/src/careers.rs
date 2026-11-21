@@ -898,10 +898,15 @@ fn outcome(
     EVENT_NONE
 }
 
+/// The poor-week count at which a review warns: two in a row. Firing risk
+/// starts one week later.
+pub const POOR_WARNING_WEEKS: u32 = 2;
+
 /// The poor-week count at which a review's fire chance reaches 1, the
 /// highest the admin panel sets ([AP-e-poor]): `2 + ceil(1 / career_fire_base)`,
 /// found against the review's own `f32` chance so the two always agree.
-/// `None` when firing is impossible, since no count makes it certain.
+/// `None` when firing is impossible, since no count makes it certain; the
+/// panel then stops at [`POOR_WARNING_WEEKS`].
 pub fn certain_fire_weeks(tuning: &terri_data::Tuning) -> Option<u32> {
     let base = tuning.career_fire_base;
     if base.is_nan() || base <= 0.0 {
@@ -916,7 +921,7 @@ pub fn certain_fire_weeks(tuning: &terri_data::Tuning) -> Option<u32> {
     while !certain(weeks) {
         weeks += 1;
     }
-    Some(2 + weeks)
+    Some(POOR_WARNING_WEEKS + weeks)
 }
 
 /// A raise within the level (rule 8): a quarter of the range, at least a

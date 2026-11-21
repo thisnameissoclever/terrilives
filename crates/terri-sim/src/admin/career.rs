@@ -90,9 +90,10 @@ pub(super) fn validate(world: &World, change: &AdminEdit) -> Result<(), AdminRef
         }
         AdminEdit::SetPoorWeeks { sim, weeks } => {
             held_job(world, person(world, sim)?)?;
-            // With no chance of firing no count makes it certain, so there
-            // is no range to set within ([AP-e-poor]).
-            let top = careers::certain_fire_weeks(&pack.tuning).ok_or(AdminRefusal::OutOfRange)?;
+            // With no chance of firing no count makes it certain, so the
+            // range stops at the warning threshold ([AP-e-poor]).
+            let top = careers::certain_fire_weeks(&pack.tuning)
+                .unwrap_or(careers::POOR_WARNING_WEEKS);
             at_most(weeks, top)
         }
         AdminEdit::SetJobSearch { sim, .. } => person(world, sim).map(|_| ()),

@@ -820,7 +820,7 @@ fn good_weeks_reach_the_levels_advance_weeks_from_content() {
 /// [AP-e-poor]: poor weeks apply from 0 to the count at which firing becomes
 /// certain, `2 + ceil(1 / career_fire_base)`, and one more is refused with 3.
 /// The bound follows the tuning; with no chance of firing there is no such
-/// count, and every value is refused with 3.
+/// count, so the range is 0 to 2 (the warning threshold) and 3 is refused.
 #[test]
 fn poor_weeks_reach_the_count_where_firing_is_certain() {
     for (base, top) in [(0.08f32, 15u32), (0.5, 4), (1.0, 3), (0.3, 6)] {
@@ -847,14 +847,26 @@ fn poor_weeks_reach_the_count_where_firing_is_certain() {
             OutOfRange,
         );
     }
+}
+
+/// With `career_fire_base` at 0 nothing can lead to firing, so the control
+/// still works up to the warning threshold: 0 and 2 apply, 3 is refused.
+#[test]
+fn poor_weeks_with_no_chance_of_firing_stop_at_the_warning_count() {
     let (mut sim, _, id) = job_world(|pack| pack.tuning.career_fire_base = 0.0);
-    for weeks in [0, 1, 3] {
-        refused(
-            &mut sim,
-            AdminEdit::SetPoorWeeks { sim: id, weeks },
-            OutOfRange,
-        );
+    assert_eq!(
+        crate::careers::certain_fire_weeks(&pack_of(&sim).tuning),
+        None
+    );
+    for weeks in [2, 0] {
+        applied(&mut sim, AdminEdit::SetPoorWeeks { sim: id, weeks });
+        assert_eq!(record_of(&sim, id).unwrap().consecutive_poor, weeks);
     }
+    refused(
+        &mut sim,
+        AdminEdit::SetPoorWeeks { sim: id, weeks: 3 },
+        OutOfRange,
+    );
 }
 
 /// The certain count is the first poor-week count at which the review's own
