@@ -25,11 +25,26 @@ export interface AdminOpeningDeps {
   readonly skip?: { readonly running: boolean; stop(): void };
 }
 
-type KeyFacts = Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'altKey' | 'metaKey'>;
+type KeyFacts = Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'altKey' | 'metaKey' | 'getModifierState'>;
 
-/** A press that types a tilde, with no chord: the panel's key. Matching the character keeps other layouts working. */
+/**
+ * Whether the press was typed with AltGr. German, Spanish, French and Italian
+ * Windows layouts type a tilde that way, and the browser reports it as Ctrl
+ * and Alt held together, so both together count even when the AltGraph state
+ * does not read as held.
+ */
+function typedWithAltGr(event: KeyFacts): boolean {
+  return event.getModifierState('AltGraph') || (event.ctrlKey && event.altKey);
+}
+
+/**
+ * A press that types a tilde, with no chord: the panel's key. Matching the
+ * character keeps other layouts working, AltGr ones included; a plain Ctrl+~
+ * or Alt+~ is a chord and does not count.
+ */
 function isTilde(event: KeyFacts): boolean {
-  return event.key === '~' && !event.ctrlKey && !event.altKey && !event.metaKey;
+  if (event.key !== '~' || event.metaKey) return false;
+  return typedWithAltGr(event) || (!event.ctrlKey && !event.altKey);
 }
 
 /**

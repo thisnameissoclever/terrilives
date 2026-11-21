@@ -12,6 +12,8 @@ interface KeyInit {
   ctrlKey?: boolean;
   altKey?: boolean;
   metaKey?: boolean;
+  /** Whether the AltGraph modifier state reads as held. */
+  altGraph?: boolean;
   repeat?: boolean;
   target?: unknown;
 }
@@ -38,9 +40,11 @@ function setup(options: { open?: boolean; build?: boolean; otherDialog?: boolean
   };
   const dispose = installAdminOpening(deps);
   const press = (init: KeyInit = {}) => {
+    const { altGraph = false, ...fields } = init;
     const event = {
       key: '~', code: 'Backquote', shiftKey: true, ctrlKey: false, altKey: false, metaKey: false, repeat: false, target: null,
-      defaultPrevented: false, ...init,
+      defaultPrevented: false, ...fields,
+      getModifierState: (name: string) => name === 'AltGraph' && altGraph,
       preventDefault() { (this as { defaultPrevented: boolean }).defaultPrevented = true; },
     };
     listener!(event as unknown as KeyboardEvent);
@@ -85,6 +89,38 @@ describe('the tilde key', () => {
     const open = setup({ open: true });
     open.press({ [modifier]: true });
     expect(open.log).toEqual([]);
+  });
+
+  // German, Spanish, French and Italian Windows layouts type ~ with AltGr,
+  // which the browser reports as Ctrl and Alt held together.
+  it.each([
+    ['German', 'BracketRight'],
+    ['Spanish', 'Digit4'],
+    ['French', 'Digit2'],
+  ])('opens and closes with the %s AltGr tilde', (_layout, code) => {
+    const { log, press } = setup();
+    const altGr = { key: '~', code, shiftKey: false, ctrlKey: true, altKey: true, altGraph: true };
+    expect(press(altGr).defaultPrevented).toBe(true);
+    press(altGr);
+    expect(log).toEqual(['open', 'close']);
+  });
+
+  it('opens with Ctrl and Alt held together even when the AltGraph state does not read as held', () => {
+    const { log, press } = setup();
+    press({ key: '~', code: 'BracketRight', shiftKey: false, ctrlKey: true, altKey: true });
+    expect(log).toEqual(['open']);
+  });
+
+  it('opens when only the AltGraph state reads as held', () => {
+    const { log, press } = setup();
+    press({ key: '~', code: 'BracketRight', shiftKey: false, altGraph: true });
+    expect(log).toEqual(['open']);
+  });
+
+  it('ignores Meta with AltGr, which is still a chord', () => {
+    const { log, press } = setup();
+    press({ key: '~', code: 'BracketRight', ctrlKey: true, altKey: true, altGraph: true, metaKey: true });
+    expect(log).toEqual([]);
   });
 
   it('says to leave Build mode, and does not open, while Build mode is active', () => {
@@ -174,6 +210,11 @@ describe('the developer overlay key', () => {
   it('keeps toggling with Ctrl or Alt held, as before', () => {
     expect(key({ ctrlKey: true })).toBe(true);
     expect(key({ altKey: true })).toBe(true);
+  });
+
+  it('ignores an AltGr tilde, even one typed on the backquote key', () => {
+    expect(key({ key: '~', ctrlKey: true, altKey: true })).toBe(false);
+    expect(key({ key: '~', code: 'BracketRight', ctrlKey: true, altKey: true })).toBe(false);
   });
 
   it('never fires for the same press that opens the panel', () => {
