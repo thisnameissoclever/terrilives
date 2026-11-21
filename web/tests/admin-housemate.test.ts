@@ -27,8 +27,8 @@ const LIBRARY: HousemateLibrary = {
   pathLabels: ['Office', 'Kitchen'],
   levelTitles: [['Junior clerk', 'Senior clerk', 'Manager'], ['Dishwasher', 'Cook']],
   jobOptions: [
-    { path: 0, level: 0, row: 0 }, { path: 0, level: 1, row: 1 }, { path: 0, level: 2, row: 2 },
-    { path: 1, level: 0, row: 7 }, { path: 1, level: 1, row: 8 },
+    { path: 0, level: 0, row: 0, firstShift: 0 }, { path: 0, level: 1, row: 1, firstShift: 0 }, { path: 0, level: 2, row: 2, firstShift: null },
+    { path: 1, level: 0, row: 7, firstShift: 0 }, { path: 1, level: 1, row: 8, firstShift: 2 },
   ] satisfies AdminJobOption[],
   limits: {
     habituationMax: 3, overdoingThreshold: 1, sickThreshold: 2.5, maxTraits: 4, maxPoorWeeks: 15,
@@ -481,13 +481,21 @@ describe('Career', () => {
     expect(shifts.map(option => option.textContent)).toEqual(['Day shift, 06:00 to 14:00', 'Late shift, 12:00 to 20:00']);
   });
 
-  it('sets a job by its career row with the standard shift, and No job as null with shift 0', () => {
+  it('sets a job by its career row with the first shift the level offers, and No job as null with shift 0', () => {
     const b = build();
-    enter(b.f.control('Job'), '8');
-    expect(edits(b)).toEqual([{ edit: 'SetJob', sim: 3, job: 8, shift: 0 }]);
+    enter(b.f.control('Job'), '7');
+    expect(edits(b)).toEqual([{ edit: 'SetJob', sim: 3, job: 7, shift: 0 }]);
     expect(labelOf(b)).toBe('Change job');
+    enter(b.f.control('Job'), '8');
+    expect(edits(b)).toEqual([{ edit: 'SetJob', sim: 3, job: 8, shift: 2 }]);
     enter(b.f.control('Job'), '');
     expect(edits(b)).toEqual([{ edit: 'SetJob', sim: 3, job: null, shift: 0 }]);
+  });
+
+  it('cannot pick a level that offers no shift', () => {
+    const b = build();
+    const jobs = (b.f.control('Job') as unknown as { options: { value: string; disabled: boolean }[] }).options;
+    expect(jobs.filter(option => option.disabled).map(option => option.value)).toEqual(['2']);
   });
 
   it('shows only the job, and the search box, while the person has no job', () => {

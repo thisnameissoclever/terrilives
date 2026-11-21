@@ -418,12 +418,25 @@ class HousemateTab implements AdminTab {
       const jobs: SelectOption[] = [{ value: '', label: W.noJob }];
       for (const option of library.jobOptions) {
         const titles = library.levelTitles[option.path] ?? [];
-        jobs.push({ value: String(option.row), label: W.jobOption(library.pathLabels[option.path] ?? '', titles[option.level] ?? '', option.level + 1, titles.length) });
+        // A level that offers no shift cannot be held, so it cannot be chosen.
+        jobs.push({
+          value: String(option.row),
+          label: W.jobOption(library.pathLabels[option.path] ?? '', titles[option.level] ?? '', option.level + 1, titles.length),
+          disabled: option.firstShift === null,
+        });
       }
       nodes.push(labelled(doc, W.job, selectControl({
         doc, label: W.job, key: 'job', options: jobs, value: person.careerRow === null ? '' : String(person.careerRow),
-        // A new job starts at the level's standard shift.
-        onCommit: value => this.send(section, [{ edit: 'SetJob', sim, job: value === '' ? null : Number(value), shift: 0 }], undoLabels.job),
+        onCommit: value => {
+          if (value === '') {
+            this.send(section, [{ edit: 'SetJob', sim, job: null, shift: 0 }], undoLabels.job);
+            return;
+          }
+          // A new job starts at the first shift its level offers, with no draw.
+          const shift = library.jobOptions.find(option => String(option.row) === value)?.firstShift;
+          if (shift === undefined || shift === null) return;
+          this.send(section, [{ edit: 'SetJob', sim, job: Number(value), shift }], undoLabels.job);
+        },
       })));
       if (person.careerRow !== null) {
         const shifts = this.source.careerShifts(sim);

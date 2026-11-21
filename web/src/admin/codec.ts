@@ -427,16 +427,23 @@ export function decodeAdminTraitSkills(row: ArrayLike<number>): (number | null)[
   });
 }
 
-/** One level of one career path: the row `SetJob` takes. */
-export interface AdminJobOption { readonly path: number; readonly level: number; readonly row: number }
+/** One level of one career path: the row `SetJob` takes and the shift it is sent with. */
+export interface AdminJobOption {
+  readonly path: number;
+  readonly level: number;
+  readonly row: number;
+  /** The first shift the level offers, or null when it offers none and cannot be chosen. */
+  readonly firstShift: number | null;
+}
 
-/** `admin_job_options`: `[path, level, row]` per career level, in path then level order. */
+/** `admin_job_options`: `[path, level, row, first shift or -1]` per career level, in path then level order. */
 export function decodeAdminJobOptions(row: ArrayLike<number>): AdminJobOption[] {
-  rowsOf(row, 3, 'job options');
-  return Array.from({ length: row.length / 3 }, (_, i) => {
-    const [path, level, held] = [row[i * 3], row[i * 3 + 1], row[i * 3 + 2]];
+  rowsOf(row, 4, 'job options');
+  return Array.from({ length: row.length / 4 }, (_, i) => {
+    const [path, level, held, shift] = [row[i * 4], row[i * 4 + 1], row[i * 4 + 2], row[i * 4 + 3]];
     check([path, level, held].every(n => Number.isInteger(n) && n >= 0), 'a job option');
-    return { path, level, row: held };
+    check(shift === -1 || Number.isInteger(shift) && shift >= 0, 'a job option shift');
+    return { path, level, row: held, firstShift: shift === -1 ? null : shift };
   });
 }
 

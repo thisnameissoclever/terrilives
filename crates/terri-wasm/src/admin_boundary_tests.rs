@@ -711,18 +711,19 @@ fn admin_trait_skills_names_the_skill_each_capability_trains() {
     );
 }
 
-/// `admin_job_options`: a `[path, level, row]` triple per career level, and
-/// every row is one `SetJob` accepts.
+/// `admin_job_options`: a `[path, level, row, first shift]` quad per career
+/// level, and every row is one `SetJob` accepts with the shift it names.
 #[test]
 fn admin_job_options_lists_every_level_and_each_row_is_a_job() {
     let mut handle = opened();
     let first = people(&mut handle)[0];
     let options = handle.admin_job_options();
-    assert!(!options.is_empty() && options.len().is_multiple_of(3));
+    assert!(!options.is_empty() && options.len().is_multiple_of(4));
     let paths = handle.career_path_labels().len() as f64;
     let mut previous: Option<(f64, f64)> = None;
-    for triple in options.chunks(3) {
-        let (path, level, row) = (triple[0], triple[1], triple[2]);
+    for quad in options.chunks(4) {
+        let (path, level, row, shift) = (quad[0], quad[1], quad[2], quad[3]);
+        assert!(shift >= 0.0, "every shipped level offers a shift");
         assert!((0.0..paths).contains(&path));
         match previous {
             Some((p, l)) if p == path => assert_eq!(level, l + 1.0, "levels count up"),
@@ -732,7 +733,7 @@ fn admin_job_options_lists_every_level_and_each_row_is_a_job() {
         let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetJob {
             sim: first,
             job: Some(row as u32),
-            shift: 0,
+            shift: shift as u32,
         }]));
         assert_eq!(applied[0], 1, "row {row}: {applied:?}");
         assert_eq!(handle.admin_person(first)[8], row, "the person holds it");

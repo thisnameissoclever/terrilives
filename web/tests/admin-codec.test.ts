@@ -254,12 +254,14 @@ describe('the content reads the Housemate tab uses', () => {
     expect(() => decodeAdminTraitSkills([0.5])).toThrow(AdminWireError);
   });
 
-  it('reads every level of every path with the row SetJob takes', () => {
-    expect(decodeAdminJobOptions([0, 0, 4, 0, 1, 5, 1, 0, 9])).toEqual([
-      { path: 0, level: 0, row: 4 }, { path: 0, level: 1, row: 5 }, { path: 1, level: 0, row: 9 },
+  it('reads every level of every path with the row SetJob takes and its first offered shift', () => {
+    expect(decodeAdminJobOptions([0, 0, 4, 0, 0, 1, 5, 2, 1, 0, 9, -1])).toEqual([
+      { path: 0, level: 0, row: 4, firstShift: 0 }, { path: 0, level: 1, row: 5, firstShift: 2 }, { path: 1, level: 0, row: 9, firstShift: null },
     ]);
-    expect(() => decodeAdminJobOptions([0, 0])).toThrow(AdminWireError);
-    expect(() => decodeAdminJobOptions([0, -1, 4])).toThrow(AdminWireError);
+    expect(() => decodeAdminJobOptions([0, 0, 4])).toThrow(AdminWireError);
+    expect(() => decodeAdminJobOptions([0, -1, 4, 0])).toThrow(AdminWireError);
+    expect(() => decodeAdminJobOptions([0, 0, 4, -2])).toThrow(AdminWireError);
+    expect(() => decodeAdminJobOptions([0, 0, 4, 0.5])).toThrow(AdminWireError);
   });
 
   it('reads the tuning limits', () => {

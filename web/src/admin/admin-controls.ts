@@ -227,7 +227,12 @@ export function numberRow(options: NumberControlOptions, extras: readonly HTMLEl
   return { root, slider: null, box };
 }
 
-export interface SelectOption { readonly value: string; readonly label: string }
+export interface SelectOption {
+  readonly value: string;
+  readonly label: string;
+  /** Shown but not choosable. */
+  readonly disabled?: boolean;
+}
 
 export interface SelectRowOptions {
   readonly doc: Document;
@@ -251,6 +256,7 @@ export function selectControl(options: SelectRowOptions): HTMLSelectElement {
     const node = make(doc, 'option');
     node.value = option.value;
     node.textContent = option.label;
+    if (option.disabled === true) node.disabled = true;
     select.append(node);
   }
   select.value = options.value;

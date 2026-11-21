@@ -271,9 +271,12 @@ pub fn trait_skills(world: &World) -> Vec<f64> {
         .collect()
 }
 
-/// `[path, level, career row]` for every level of every career path, in path
-/// then level order. The row is what `SetJob` takes: a path's levels name
-/// rows of the pack's career list, which need not be consecutive.
+/// `[path, level, career row, first offered shift]` for every level of every
+/// career path, in path then level order. The row is what `SetJob` takes: a
+/// path's levels name rows of the pack's career list, which need not be
+/// consecutive. The shift is the first index the level offers, the one a job
+/// change sends with no draw, since the standard shift may have weight 0; -1
+/// when the level offers none, so the job cannot be chosen.
 pub fn job_options(world: &World) -> Vec<f64> {
     let pack = world.resource::<Content>().0;
     pack.career_paths
@@ -284,7 +287,14 @@ pub fn job_options(world: &World) -> Vec<f64> {
                 .levels
                 .iter()
                 .enumerate()
-                .flat_map(move |(level, &row)| [path as f64, level as f64, f64::from(row)])
+                .flat_map(move |(level, &row)| {
+                    let first_shift = pack
+                        .careers
+                        .get(row as usize)
+                        .and_then(|job| (0..job.shift_count()).find(|&index| job.offers(index)))
+                        .map_or(-1.0, |index| index as f64);
+                    [path as f64, level as f64, f64::from(row), first_shift]
+                })
         })
         .collect()
 }

@@ -817,6 +817,58 @@ fn good_weeks_reach_the_levels_advance_weeks_from_content() {
     }
 }
 
+/// [AP-e-job]: the job options read names each level's first offered shift,
+/// the one a job change sends, since a level's standard shift may have
+/// weight 0, and -1 for a level that offers no shift at all. Sending the
+/// shift it names applies.
+#[test]
+fn job_options_name_each_levels_first_offered_shift() {
+    let (mut sim, _, id) = job_world(|pack| {
+        // The late shift stays offered on the first level.
+        pack.careers[0].standard_weight = 0;
+        let second = &mut pack.careers[1];
+        second.standard_weight = 0;
+        for shift in &mut second.shifts {
+            shift.weight = 0;
+        }
+    });
+    let pack = pack_of(&sim);
+    let options = crate::admin::reads::job_options(sim.world());
+    assert!(!options.is_empty() && options.len().is_multiple_of(4));
+    let first_shift = |row: u32| {
+        options
+            .chunks(4)
+            .find(|quad| quad[2] == f64::from(row))
+            .map(|quad| quad[3])
+            .expect("every career row is listed")
+    };
+    for quad in options.chunks(4) {
+        let job = &pack.careers[quad[2] as usize];
+        let expected = (0..job.shift_count())
+            .find(|&index| job.offers(index))
+            .map_or(-1.0, |index| index as f64);
+        assert_eq!(quad[3], expected, "row {}", quad[2]);
+    }
+    assert_eq!(
+        first_shift(0),
+        1.0,
+        "the late shift, past a standard of weight 0"
+    );
+    assert_eq!(first_shift(1), -1.0, "a level that offers no shift");
+    applied(
+        &mut sim,
+        AdminEdit::SetJob {
+            sim: id,
+            job: Some(0),
+            shift: first_shift(0) as u32,
+        },
+    );
+    assert_eq!(
+        sim.world().resource::<Careers>().records[&SimId(id)].pay,
+        pack.careers[0].pay
+    );
+}
+
 /// [AP-e-poor]: poor weeks apply from 0 to the count at which firing becomes
 /// certain, `2 + ceil(1 / career_fire_base)`, and one more is refused with 3.
 /// The bound follows the tuning; with no chance of firing there is no such
