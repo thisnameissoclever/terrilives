@@ -80,6 +80,8 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work and queued orders so the household can resume.
 
+Before each save replaces the one in your browser, the game keeps a copy of it. If the latest save cannot be read, for example because the tab closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
+
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
 Saves carry the effect that needs have accumulated on mood. An older published save starts with a neutral contribution. If this browser already holds an editable-world development save from version 24, 25 or 26, saving pauses to protect it. Export save downloads the original file for use in the build that created it. Choosing one of those files for Import leaves your current household in place.

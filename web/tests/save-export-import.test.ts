@@ -46,6 +46,12 @@ function store(saved: Uint8Array | null): SaveStore & { saves: Uint8Array[] } {
     async load() {
       return saved;
     },
+    async lastGoodCopy() {
+      return null;
+    },
+    async restoreLastGood() {
+      return false;
+    },
     async save(bytes) {
       this.saves.push(bytes);
     },

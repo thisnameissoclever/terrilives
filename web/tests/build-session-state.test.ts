@@ -38,7 +38,7 @@ it('preserves local state on refused Load and replaces it only after accepted na
 });
 it('manual persistence writes the native confirmed bytes during editing and preparation', async () => {
   const f = fixture();
-  const store = { save: vi.fn(async (_bytes: Uint8Array) => {}), load: async () => null, clear: async () => {}, close() {} };
+  const store = { save: vi.fn(async (_bytes: Uint8Array) => {}), load: async () => null, lastGoodCopy: async () => null, restoreLastGood: async () => false, clear: async () => {}, close() {} };
   const status = { textContent: '', setAttribute() {}, removeAttribute() {} };
   const persistence = new PersistenceController(store, f.session, status, error => { throw error; });
   try {
