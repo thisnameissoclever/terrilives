@@ -46,10 +46,6 @@ fn group(edit: &AdminEdit) -> Group {
 }
 
 pub(super) fn validate(world: &World, edit: &AdminEdit) -> Result<(), AdminRefusal> {
-    #[cfg(test)]
-    if let Some(result) = super::tests_stub::validate(world, edit) {
-        return result;
-    }
     match group(edit) {
         Group::Housemate => super::housemate::validate(world, edit),
         Group::Relationships => super::relationships::validate(world, edit),
@@ -62,10 +58,6 @@ pub(super) fn validate(world: &World, edit: &AdminEdit) -> Result<(), AdminRefus
 /// the world as the change began is applied, and no two edits of a change
 /// share a unit, so the validation still holds when its turn comes.
 pub(super) fn apply(world: &mut World, edit: &AdminEdit) {
-    #[cfg(test)]
-    if super::tests_stub::apply(world, edit) {
-        return;
-    }
     match group(edit) {
         Group::Housemate => super::housemate::apply(world, edit),
         Group::Relationships => super::relationships::apply(world, edit),

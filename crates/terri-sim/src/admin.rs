@@ -368,15 +368,13 @@ impl Sim {
     }
 }
 
-/// [T3]'s stub edit, kept for the one hook the real edits cannot offer:
-/// `AdjustFunds` is still the stub until [T7] lands, and an adjustment of
-/// exactly 13 cents applies and then fails the post-condition, to prove the
-/// `WouldNotLoad` path. The stub adds to the household's funds (refusing a
-/// result past `MAX_ADMIN_FUNDS_CENTS`).
+/// [T3]'s test hooks, the two the real edits cannot offer: the baseline's
+/// recorded hash can be made wrong, as a restore that was not exact would,
+/// and an `AdjustFunds` of exactly 13 cents fails the post-condition after
+/// it applies, to prove the `WouldNotLoad` path.
 #[cfg(test)]
 pub(crate) mod tests_stub {
     use super::*;
-    use terri_core::admin::MAX_ADMIN_FUNDS_CENTS;
 
     pub(crate) const FAILS_POST_CONDITION: i64 = 13;
 
@@ -384,31 +382,6 @@ pub(crate) mod tests_stub {
     /// was not exact would.
     pub(crate) fn corrupt_baseline_hash(world: &mut World) {
         world.resource_mut::<AdminSession>().baseline_hash ^= 1;
-    }
-
-    pub(super) fn validate(world: &World, edit: &AdminEdit) -> Option<Result<(), AdminRefusal>> {
-        match *edit {
-            AdminEdit::AdjustFunds { cents } => Some(
-                world
-                    .resource::<terri_core::Funds>()
-                    .0
-                    .checked_add(cents)
-                    .filter(|funds| funds.abs() <= MAX_ADMIN_FUNDS_CENTS)
-                    .map(|_| ())
-                    .ok_or(AdminRefusal::OutOfRange),
-            ),
-            _ => None,
-        }
-    }
-
-    pub(super) fn apply(world: &mut World, edit: &AdminEdit) -> bool {
-        match *edit {
-            AdminEdit::AdjustFunds { cents } => {
-                world.resource_mut::<terri_core::Funds>().0 += cents;
-                true
-            }
-            _ => false,
-        }
     }
 
     pub(super) fn post_condition(_: &World, edits: &[AdminEdit]) -> Result<(), ()> {
