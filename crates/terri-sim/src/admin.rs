@@ -13,7 +13,10 @@
 //! is neither saved nor hashed, like `Careers.last_result`; it never touches
 //! the career or lot edit results, so the Career tab and Edit Sims pending
 //! loops cannot mistake an admin change for their own. Admin edits draw from
-//! no random stream. The session and the journal are not saved either: a
+//! no random stream, except that settling an open shift on a job or shift
+//! change can run a career review, which draws; Undo replays that draw
+//! exactly, because restoring the baseline restores the stream's state. The
+//! session and the journal are not saved either: a
 //! save taken while the panel is open holds the edits applied so far and no
 //! session.
 

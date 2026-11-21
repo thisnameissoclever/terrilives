@@ -1,8 +1,8 @@
 //! The Housemate tab's career edits ([T5], [AP-e-job] to [AP-e-search]):
 //! job, shift, pay, job satisfaction, good and poor weeks, and job search.
 //! Every edit applies, refuses each of its listed refusal codes with the hash
-//! unchanged, moves the hash, survives a save, draws no random number and
-//! Undo takes it back. A job change settles a late-at-home shift exactly as
+//! unchanged, moves the hash, survives a save, draws no random number when no
+//! open shift is settled, and Undo takes it back. A job change settles a late-at-home shift exactly as
 //! the Career tab's assignment does, and a shift change takes effect from the
 //! next day as the Career tab's does ([AP-tests-sim] items 1, 3, 4, 5 and 10).
 use crate::admin::AdminRefusal::{self, *};
@@ -1029,8 +1029,10 @@ fn career_edits_apply_to_the_shipped_worker() {
     }
 }
 
-/// [AP-tests-sim] item 9: no career edit draws from any random stream, and
-/// two worlds given the same changes hash equal.
+/// [AP-tests-sim] item 9: with no open shift to settle, no career edit draws
+/// from any random stream, and two worlds given the same changes hash equal.
+/// A job or shift change that settles an open shift can run a review, which
+/// draws; Undo replays it exactly because the baseline restores the stream.
 #[test]
 fn career_edits_draw_nothing_and_are_deterministic() {
     let (mut a, _, id) = job_world(|_| {});
