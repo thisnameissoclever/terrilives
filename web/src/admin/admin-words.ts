@@ -67,7 +67,7 @@ export const ADMIN_REFUSAL_TEXT: Readonly<Record<AdminRefusalCode, (params: Refu
   16: p => `The late fee can be at most $${p.cap ?? '0.00'}.`,
   17: () => "Funds don't cover this bill.",
   18: () => 'One of them is at work or on the way.',
-  19: () => 'That change was not valid. Nothing was changed.',
+  19: () => 'Invalid change',
   99: () => 'That change could not be kept. Nothing was changed.',
 };
 
@@ -80,7 +80,7 @@ export function beginRefusalText(result: Exclude<AdminBeginResult, 'ok'>): strin
   switch (result) {
     case 'build-active': return 'Leave Build mode to open the admin panel.';
     case 'would-not-reload': return "This game's state would not reload, so the admin panel can't open.";
-    case 'already-open': return "The admin panel can't open: it is already open."; // NEW reason in the S-errors template.
+    case 'already-open': return 'Admin panel already open';
   }
 }
 

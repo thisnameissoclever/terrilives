@@ -211,7 +211,7 @@ describe('a refused begin', () => {
   const cases: [Exclude<AdminBeginResult, 'ok'>, string][] = [
     ['build-active', 'Leave Build mode to open the admin panel.'],
     ['would-not-reload', "This game's state would not reload, so the admin panel can't open."],
-    ['already-open', "The admin panel can't open: it is already open."],
+    ['already-open', 'Admin panel already open'],
   ];
   for (const [result, message] of cases) {
     it(`shows "${message}" and leaves the game running as before`, () => {
@@ -716,7 +716,7 @@ describe('the words', () => {
     expect(refusalText(16, { cap: '12.50' })).toBe('The late fee can be at most $12.50.');
     expect(refusalText(17, {})).toBe("Funds don't cover this bill.");
     expect(refusalText(99, {})).toBe('That change could not be kept. Nothing was changed.');
-    expect(refusalText(19, {})).toBe('That change was not valid. Nothing was changed.');
+    expect(refusalText(19, {})).toBe('Invalid change');
     expect(Object.keys(ADMIN_REFUSAL_TEXT).map(Number).sort((a, b) => a - b))
       .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 99]);
   });

@@ -50,7 +50,7 @@ const WHAT: Readonly<Record<number, string>> = {
   // Issue 298, [WB-beds]: functional text proposed for the owner's review.
   15: 'A bed would be left outside.',
   // Issue 312: functional text proposed for the owner's review.
-  16: 'The admin panel is open. Close it to use Build mode.',
+  16: 'Close admin panel to use Build mode.',
 };
 
 /**
@@ -109,6 +109,7 @@ export function confirmFailure(error: RoomFailure, report: BuildFailureReport = 
 
 /** A refused entry into Build mode. */
 export function enterFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
+  if (error.code === 16) return failureWhat(error, report);
   if (error.code !== 10) return `${failureWhat(error, report)} Build mode stays closed.`;
   const cause = obstacle(report, true);
   return `Build mode can't open because the house would not load as it stands${cause ? `: ${cause}` : ''}. `

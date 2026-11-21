@@ -243,8 +243,8 @@ describe('a bed left outside (issue 298, [WB-beds])', () => {
 describe('the admin panel is open (issue 312)', () => {
   it('names the failure and tells the player what it means', () => {
     const open: RoomFailure = { code: 16, detail: null };
-    expect(failureWhat(open)).toBe('The admin panel is open. Close it to use Build mode.');
-    expect(enterFailure(open)).toBe('The admin panel is open. Close it to use Build mode. Build mode stays closed.');
+    expect(failureWhat(open)).toBe('Close admin panel to use Build mode.');
+    expect(enterFailure(open)).toBe('Close admin panel to use Build mode.');
     expect(failureDetails(open)).toEqual({ code: 16, kind: 'Admin panel open', detail: null });
   });
 
