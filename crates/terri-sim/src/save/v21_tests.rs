@@ -162,7 +162,17 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// test asserts, so the fade adds no block to the hash, and the hash being
 /// equal shows no choice before then went differently. Measured on the tree
 /// that merges main at a56f9beb0 into the fade change.
-const STANDARD_ONLY_HASH: u64 = 10091986056830211033;
+/// Issue 355 (needs affect mood over time) then moved it from
+/// 10091986056830211033 on purpose: mood now comes from a balance that
+/// empty needs lower and needs above 80 raise each minute, instead of the
+/// old low, critical and all-needs-met moodlets, so the mood that choices
+/// read differs and the balance joins the hash. With the old moodlets
+/// restored, the balance not accruing and its hash block skipped behind a
+/// temporary switch, later removed, the tree merged with main at c219def9e
+/// gave 10091986056830211033 again. With only the hash block skipped it
+/// gave 7377914247010464820, so the choices also moved, not only the hash.
+/// Read from the failing assertion.
+const STANDARD_ONLY_HASH: u64 = 12636516644133506029;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.
