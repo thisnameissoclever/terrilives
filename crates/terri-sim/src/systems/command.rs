@@ -183,6 +183,17 @@ fn placement_refusal(
     }
 }
 
+/// Whether an order appended to `agent`'s queue would be refused: the queue
+/// is full, or no more order IDs can be issued. The admin panel's fight order
+/// asks first, so it never reports an order applied that the drain dropped
+/// ([AP-e-fight]).
+pub(crate) fn back_order_refused(world: &World, agent: Entity) -> bool {
+    let cap = world.resource::<Content>().0.tuning.max_queued_intents as usize;
+    world
+        .get::<IntentQueue>(agent)
+        .is_some_and(|queue| placement_refusal(queue, Placement::Back, cap).is_some())
+}
+
 #[allow(clippy::type_complexity)]
 fn pending_placement_refusal(
     agents: &Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,

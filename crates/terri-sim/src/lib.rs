@@ -12,6 +12,8 @@ pub mod admin;
 #[cfg(test)]
 mod admin_housemate_tests;
 #[cfg(test)]
+mod admin_relationship_tests;
+#[cfg(test)]
 mod admin_test_support;
 #[cfg(test)]
 mod admin_tests;
