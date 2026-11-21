@@ -251,6 +251,48 @@ describe('Repetition', () => {
     expect(rows[1].textContent).toContain('Overdoing');
   });
 
+  it('names the object on rows that share an action label, and leaves unique rows alone', () => {
+    const world = timLike();
+    world.repetition = [
+      { object: 9, row: 0, value: 1.1, food: false },
+      { object: 12, row: 0, value: 0.7, food: false },
+      { object: 4, row: 1, value: 0.4, food: true },
+    ];
+    world.labels = [
+      { key: '9:0', object: 'Bookshelf', activity: 'Read a book' },
+      { key: '12:0', object: 'Tall bookcase', activity: 'Read a book' },
+      { key: '4:1', object: 'Fridge', activity: 'Grab a snack' },
+    ];
+    const b = build(new Map([[3, world], [5, timLike()]]));
+    expect(b.f.has('Read a book (Bookshelf)')).toBe(true);
+    expect(b.f.has('Read a book (Tall bookcase)')).toBe(true);
+    expect(b.f.has('Read a book')).toBe(false);
+    expect(b.f.has('Grab a snack')).toBe(true);
+    enter(b.f.box('Read a book (Tall bookcase)'), '0.5');
+    expect(edits(b)).toEqual([{ edit: 'SetRepetition', sim: 3, object: 12, row: 0, value: 0.5 }]);
+    expect(labelOf(b)).toBe('Change repetition: Read a book (Tall bookcase)');
+  });
+
+  it('numbers rows in the order they appear when the object names are also identical', () => {
+    const world = timLike();
+    world.repetition = [
+      { object: 9, row: 0, value: 1.1, food: false },
+      { object: 4, row: 1, value: 0.4, food: true },
+      { object: 12, row: 0, value: 0.7, food: false },
+    ];
+    world.labels = [
+      { key: '9:0', object: 'Bookshelf', activity: 'Read a book' },
+      { key: '4:1', object: 'Fridge', activity: 'Grab a snack' },
+      { key: '12:0', object: 'Bookshelf', activity: 'Read a book' },
+    ];
+    const b = build(new Map([[3, world], [5, timLike()]]));
+    expect(b.f.has('Read a book (Bookshelf 1)')).toBe(true);
+    expect(b.f.has('Read a book (Bookshelf 2)')).toBe(true);
+    expect(b.f.has('Grab a snack')).toBe(true);
+    enter(b.f.box('Read a book (Bookshelf 2)'), '0.5');
+    expect(edits(b)).toEqual([{ edit: 'SetRepetition', sim: 3, object: 12, row: 0, value: 0.5 }]);
+  });
+
   it('sends SetRepetition for the entry, and 0 to remove it', () => {
     const b = build();
     enter(b.f.box('Grab a snack'), '0.5');

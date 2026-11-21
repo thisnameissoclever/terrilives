@@ -146,6 +146,10 @@ export const HOUSEMATE_WORDS = {
   overdoingCount: (count: number): string => `${count} ${'Overdoing'.toLowerCase()}`,
   feelingSick: 'Feeling sick',
   noRepetition: 'No repetition.',
+  /** A Repetition row's label when other rows share its action label: the object's name follows in brackets. */
+  repetitionRow: (activity: string, object: string): string => `${activity} (${object})`,
+  /** The same, numbered in the order the rows appear when the object names are identical too. */
+  repetitionRowNumbered: (activity: string, object: string, number: number): string => `${activity} (${object} ${number})`,
   mood: 'Mood and moodlets',
   moodOverall: (word: string): string => `Mood ${word}`,
   /** The folded Mood summary on a phone: the overall word and score the section shows. */

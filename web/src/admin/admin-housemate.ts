@@ -90,6 +90,28 @@ function masteryPercent(mastery: number): number {
   return Math.min(99, Math.floor(Math.max(0, mastery) * 100 + 1e-4));
 }
 
+/**
+ * The label of each Repetition row. A row is named by its action; when two or
+ * more rows share an action (two bookshelves, both "Read a book") each of them
+ * also shows its object's name, and rows whose object names are identical too
+ * are numbered in the order they appear.
+ */
+function repetitionNames(labels: readonly (RepeatedLabel | undefined)[], entries: readonly AdminRepetition[]): string[] {
+  const actions = labels.map((label, index) => label?.activity ?? `${entries[index].object}:${entries[index].row}`);
+  const count = (matches: (index: number) => boolean): number => actions.filter((_, index) => matches(index)).length;
+  const seen = new Map<string, number>();
+  return actions.map((activity, index) => {
+    const object = labels[index]?.object;
+    if (object === undefined || object === '' || count(other => actions[other] === activity) < 2) return activity;
+    if (count(other => actions[other] === activity && labels[other]?.object === object) < 2) return W.repetitionRow(activity, object);
+    const key = `${activity}
+${object}`;
+    const number = (seen.get(key) ?? 0) + 1;
+    seen.set(key, number);
+    return W.repetitionRowNumbered(activity, object, number);
+  });
+}
+
 class HousemateTab implements AdminTab {
   readonly body: HTMLElement;
   private library: HousemateLibrary | null = null;
@@ -221,9 +243,10 @@ class HousemateTab implements AdminTab {
     })]);
     rebuild(doc, section.body, section.heading, () => {
       if (entries.length === 0) return [textNode(doc, 'p', 'admin-note', W.noRepetition)];
-      return entries.map(entry => {
+      const names = repetitionNames(entries.map(entry => labels.get(`${entry.object}:${entry.row}`)), entries);
+      return entries.map((entry, index) => {
         const label = labels.get(`${entry.object}:${entry.row}`);
-        const activity = label?.activity ?? `${entry.object}:${entry.row}`;
+        const activity = names[index];
         const words: string[] = [];
         if (entry.value > limits.overdoingThreshold) words.push(W.overdoing);
         if (entry.food && entry.value >= limits.sickThreshold) words.push(W.feelingSick);
