@@ -525,13 +525,12 @@ export class AdminPanel {
     this.lastSkip = result;
     const begun = this.source.adminBegin();
     if (begun !== 'ok') {
-      // Nothing to undo against: close, resume the game and say why.
-      this.sessionOpen = false;
+      // Nothing to undo against: close like any other close (the session is already ended, so
+      // afterClose resumes the game and tells the host once), then say why.
       this.lockControls();
-      this.pause.resume(PAUSE_OWNER);
       const previous = this.opener;
-      this.opener = null;
       if (this.element.open) this.element.close();
+      else this.afterClose();
       this.showAlert(beginRefusalText(begun), previous);
       return;
     }

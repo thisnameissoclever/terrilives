@@ -468,6 +468,19 @@ describe('Undo', () => {
     expect(h.changes, 'closing tells the host too, so the HUD reads the world as the panel left it').toEqual(['apply', 'undo', 'closed']);
     h.panel.close();
     expect(h.changes, 'once per close').toEqual(['apply', 'undo', 'closed']);
+
+    // A skip that ends with the session refused closes the panel the same way: the HUD is told once.
+    const skip = new SkipHost();
+    const after = build({ speed: 3, skip });
+    after.open();
+    after.spy('household').context.skip.start(8);
+    after.source.begin = 'would-not-reload';
+    skip.handlers!.finish({ kind: 'done', hours: 8 });
+    expect(after.dialog.open).toBe(false);
+    expect(after.changes, 'closed after a refused begin, like every other close').toEqual(['closed']);
+    expect(after.driver.speeds, 'the game resumes once').toEqual([0, 3]);
+    after.panel.close();
+    expect(after.changes, 'once per close').toEqual(['closed']);
   });
 
   it('reads "Undo last change" when its labels no longer match the bridge depth', () => {
