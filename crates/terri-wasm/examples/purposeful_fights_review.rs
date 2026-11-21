@@ -331,6 +331,7 @@ fn main() {
         .legacy
         .legacy
         .legacy
+        .legacy
         .conflicts
         .fights
         .iter()

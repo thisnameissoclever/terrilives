@@ -135,19 +135,19 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issues 311 and 317 (the Career tab): two integers appended to
-            // `Tuning`, after the presence fade of issue 344. The proof
-            // always runs against the fixture as it was on main before them
-            // (26150 bytes, SHA-256
-            // 79a1b54c6319feb6da4f23bbf58f8c063f4b1ddac4b396e6e5eeebc2ffc0e98a,
-            // main at e31afe285): restore that file before regenerating.
+            // Issue 355 (needs affect mood over time): one struct,
+            // `need_mood`, appended to `ContentPack` after the bills. The
+            // proof always runs against the fixture as it was on main before
+            // it (26152 bytes, SHA-256
+            // fcc3460bbcc92b525f9e0c6bf26c8dccf83e548874fa289396a21b74c883602e,
+            // main at ebe7be646): restore that file before regenerating.
             assert_eq!(
-                previous_without_career_tab_knobs(&pack),
+                previous_without_need_mood(&pack),
                 old_bytes,
-                "only the fields issues 311 and 317 appended may change the current fixture"
+                "only the field issue 355 appended may change the current fixture"
             );
             eprintln!(
-                "Career tab fixture proof: leaving out the fields issues 311 and 317 appended recovers every byte of the previous fixture"
+                "Need mood fixture proof: leaving out the field issue 355 appended recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -165,13 +165,14 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issues 311 and 317 (the Career
-/// tab), rebuilt from the current pack by writing it as postcard does while
-/// leaving out the two fields those issues appended at the end of `Tuning`. Postcard writes a struct as its fields in order with no names,
-/// so leaving a field out removes exactly its bytes. The unfiltered writer
-/// must reproduce postcard byte for byte first, or the filtered bytes would
-/// prove nothing.
-fn previous_without_career_tab_knobs(pack: &terri_data::ContentPack) -> Vec<u8> {
+/// The fixture's bytes as they were before issue 355 (needs affect mood
+/// over time), rebuilt from the current pack by writing it as postcard does
+/// while leaving out the field that issue appended at the end of
+/// `ContentPack`. Postcard writes a struct as its fields in order with no
+/// names, so leaving a field out removes exactly its bytes. The unfiltered
+/// writer must reproduce postcard byte for byte first, or the filtered bytes
+/// would prove nothing.
+fn previous_without_need_mood(pack: &terri_data::ContentPack) -> Vec<u8> {
     use filtered_postcard::Rule;
     assert_eq!(
         filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
@@ -179,7 +180,7 @@ fn previous_without_career_tab_knobs(pack: &terri_data::ContentPack) -> Vec<u8> 
         "the filtered writer reproduces postcard when it filters nothing"
     );
     filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
-        ("Tuning", "go_to_work_window_ticks" | "career_input_history_weeks") => Rule::Omit,
+        ("ContentPack", "need_mood") => Rule::Omit,
         _ => Rule::Keep,
     })
 }

@@ -1800,6 +1800,15 @@ mod order_tests {
             ],
             test_content::tuning(),
         );
+        // These tests round trip schema twenty, which has no needs mood
+        // balance: a load starts every balance at zero, as for any older
+        // save. The balance stays off so the round trips compare the whole
+        // world the schema can carry.
+        let need_mood = terri_data::NeedMoodTuning::HISTORICAL;
+        let pack = &*Box::leak(Box::new(terri_data::ContentPack {
+            need_mood,
+            ..pack.clone()
+        }));
         let fridge_def = pack.find("fridge").expect("the fixture declares it");
         let mut sim = test_content::sim_with(10, 8, pack);
         let person = |sim: &mut Sim, id, x| {
