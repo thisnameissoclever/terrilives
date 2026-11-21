@@ -522,3 +522,36 @@ fn a_failed_rebuild_breaks_the_session_and_refuses_edits_undo_and_saves() {
         "the panel cannot open again on it"
     );
 }
+
+/// The drain reports every admin change it drains, and `admin_apply` reads
+/// that report only when its sequence moved. A drain that left no new
+/// result (the test hook applies the edit and reports nothing) is a refusal
+/// that changed nothing: the last good world is put back and nothing is
+/// journaled, rather than the previous change's result being read as this
+/// one's.
+#[test]
+fn a_change_with_no_new_result_is_a_refusal_that_changes_nothing() {
+    let mut sim = opened();
+    // With no result at all yet, and then with an earlier one to mistake.
+    for depth in [0, 1] {
+        if depth == 1 {
+            sim.admin_apply(funds(100)).unwrap();
+        }
+        let hash = sim.world_hash();
+        let money = cents(&sim);
+        let last = crate::admin::last_result(sim.world());
+        assert_eq!(
+            sim.admin_apply(funds(crate::admin::tests_stub::REPORTS_NOTHING)),
+            Err(AdminApplyRefusal {
+                edit: 0,
+                reason: AdminRefusal::WouldNotLoad
+            }),
+            "depth {depth}"
+        );
+        assert_eq!(crate::admin::last_result(sim.world()), last);
+        assert_eq!(sim.world_hash(), hash, "depth {depth}");
+        assert_eq!(cents(&sim), money, "depth {depth}");
+        assert_eq!(sim.admin_undo_depth(), depth);
+        assert!(!sim.admin_broken());
+    }
+}

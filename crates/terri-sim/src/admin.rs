@@ -215,6 +215,10 @@ pub(crate) fn drain(world: &mut World, change: &AdminChange) {
     for edit in &change.edits {
         edits::apply(world, edit);
     }
+    #[cfg(test)]
+    if tests_stub::reports_nothing(change) {
+        return;
+    }
     if edits::post_condition(world, &change.edits).is_err() {
         report(world, Some((0, AdminRefusal::WouldNotLoad)));
         return;
@@ -320,6 +324,7 @@ impl Sim {
             .validate_structure()
             .map_err(|error| refuse(AdminRefusal::of_structure(error)))?;
         let journaled = change.clone();
+        let previous = last_result(&self.world).map(|result| result.sequence);
         self.world
             .resource_mut::<CommandQueue>()
             .push(SimCommand::Admin(Box::new(change)));
@@ -328,9 +333,13 @@ impl Sim {
             self.world.resource::<CommandQueue>().is_empty(),
             "the flush drains the admin change it staged"
         );
-        let refusal = last_result(&self.world)
-            .expect("the drain reports every admin change")
-            .refusal;
+        // Only a result whose sequence moved is this change's. With none,
+        // the drain's outcome is unknown: it is a refusal that changed
+        // nothing, made true by putting back the last good world.
+        let refusal = match last_result(&self.world) {
+            Some(result) if Some(result.sequence) != previous => result.refusal,
+            _ => Some((0, AdminRefusal::WouldNotLoad)),
+        };
         match refusal {
             None => {
                 let hash_after = self.world_hash();
@@ -343,7 +352,8 @@ impl Sim {
             }
             Some((edit, AdminRefusal::WouldNotLoad)) => {
                 // The edits were written before the post-condition refused
-                // them. Put back the world the journal describes; if even
+                // them, or may have been when no result came back. Put back
+                // the world the journal describes; if even
                 // that fails the live world holds edits that would not load,
                 // so the session is marked broken and refuses every later
                 // edit, Undo and save.
@@ -420,15 +430,31 @@ impl Sim {
     }
 }
 
-/// [T3]'s test hooks, the two the real edits cannot offer: the baseline's
-/// recorded hash can be made wrong, as a restore that was not exact would,
-/// and an `AdjustFunds` of exactly 13 cents fails the post-condition after
-/// it applies, to prove the `WouldNotLoad` path.
+/// [T3]'s test hooks, the ones the real edits cannot offer: the baseline's
+/// recorded hash can be made wrong, as a restore that was not exact would;
+/// an `AdjustFunds` of exactly 13 cents fails the post-condition after it
+/// applies, to prove the `WouldNotLoad` path; and one of exactly 17 cents
+/// applies and reports nothing, to prove a stale result is never read.
 #[cfg(test)]
 pub(crate) mod tests_stub {
     use super::*;
 
     pub(crate) const FAILS_POST_CONDITION: i64 = 13;
+
+    /// An `AdjustFunds` of exactly 17 cents applies at the drain and reports
+    /// nothing, as a drain that lost its result would.
+    pub(crate) const REPORTS_NOTHING: i64 = 17;
+
+    pub(super) fn reports_nothing(change: &AdminChange) -> bool {
+        change.edits.iter().any(|edit| {
+            matches!(
+                edit,
+                AdminEdit::AdjustFunds {
+                    cents: REPORTS_NOTHING
+                }
+            )
+        })
+    }
 
     /// Make the session's recorded baseline hash wrong, as a restore that
     /// was not exact would.
