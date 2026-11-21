@@ -1,6 +1,7 @@
 import type { SimBridge } from '../bridge.js';
 import { householdMembers } from '../ui/household-roster.js';
 import type { HousemateSource } from './admin-housemate.js';
+import type { RelationshipsSource } from './admin-relationships.js';
 
 // Adapters from the bridge to the admin tabs' sources (issue 312, [AP-web-files]
 // in docs/specs/2026-11-20-admin-panel.md). The tabs name people by SimId, which
@@ -14,12 +15,25 @@ export function entityOfSim(sim: SimBridge, simId: number): number | null {
   return householdMembers(sim).find(member => member.simId === simId)?.entity ?? null;
 }
 
+/** Runs `read` on the housemate's entity right now, or answers `empty` for a SimId that is no longer a member. */
+function readEntity<T>(sim: SimBridge, simId: number, empty: T, read: (entity: number) => T): T {
+  const entity = entityOfSim(sim, simId);
+  return entity === null ? empty : read(entity);
+}
+
+/** The Relationships tab's reads over the live bridge. */
+export function relationshipsSource(sim: SimBridge): RelationshipsSource {
+  return {
+    relationships: id => readEntity(sim, id, new Float32Array(0), entity => sim.relationshipsOf(entity)),
+    adminTimers: id => sim.adminTimers(id),
+    clockTick: () => sim.clockTick(),
+    dayTicks: () => sim.dayTicks(),
+  };
+}
+
 /** The Housemate tab's reads over the live bridge. */
 export function housemateSource(sim: SimBridge): HousemateSource {
-  const withEntity = <T>(simId: number, empty: T, read: (entity: number) => T): T => {
-    const entity = entityOfSim(sim, simId);
-    return entity === null ? empty : read(entity);
-  };
+  const withEntity = <T>(simId: number, empty: T, read: (entity: number) => T): T => readEntity(sim, simId, empty, read);
   return {
     library: () => {
       const pathLabels = sim.careerPathLabels();

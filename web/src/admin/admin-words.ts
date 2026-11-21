@@ -182,3 +182,19 @@ export const HOUSEMATE_WORDS = {
   search: 'Job search',
   searchWords: 'Looks for work on their own',
 } as const;
+
+/**
+ * S-rel: the Relationships tab's words, exactly as the plan's table has them.
+ * `fightMoodlet` is the existing name of the timed moodlet, used in the Undo
+ * button's "End {moodlet}".
+ */
+export const RELATIONSHIP_WORDS = {
+  pair: (a: string, b: string): string => `${a} and ${b}`,
+  feeling: (a: string, b: string): string => `${a}'s feeling about ${b}`,
+  startFight: (a: string): string => `${a} starts a fight`,
+  both: 'Set both to 0',
+  all: (a: string): string => `Set all of ${a}'s feelings to 0`,
+  fought: (a: string, duration: string): string => `${a} had a fight. Ends in ${duration}.`,
+  fightQueued: 'The fight starts when the game resumes.',
+  fightMoodlet: 'Had a fight',
+} as const;

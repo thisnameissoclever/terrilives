@@ -144,3 +144,15 @@
 .admin-moodlet-label { flex: 0 1 auto; }
 .admin-score { margin-left: auto; font-variant-numeric: tabular-nums; }
 .admin-trait-add { margin-top: 4px; }
+
+/* The Relationships tab ([T11]): the fight and Set all above, then one card per other housemate. */
+.admin-relationships { display: flex; flex-direction: column; gap: 14px; }
+.admin-relationships:focus { outline: none; }
+.admin-rel-bar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 16px; }
+.admin-rel-all { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-left: auto; }
+.admin-fight { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
+.admin-rel-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; align-items: start; }
+.admin-rel-all .admin-status, .admin-fight .admin-status { margin: 0; }
+.admin-tone-negative { color: var(--hud-danger, #e58c85); }
+.admin-tone-positive { color: var(--need-fill, #6fb2d2); }
+.admin-tone-neutral { color: var(--hud-muted, #9aa3ad); }
