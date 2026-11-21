@@ -2,7 +2,7 @@
 
 Implementation plan for issue 312. Nothing here is implemented yet. The owner approved the mockups in `D:/VIBES/.worktrees/mockups-admin/` on 2026-11-20: `admin-housemate`, `admin-relationships` and `admin-household` at 1440 by 900, and the three `-phone` views at 390 wide, each as `.html` and `.png`. `notes.md` in that folder maps every control to its model field and range, and records the owner's decisions at its end. Where a literal copy of a mockup would look poor, confuse or miss functionality, the owner asked for good interface design over a literal copy; [AP-conflicts] lists every place this plan departs from the mockups and why.
 
-Base: `origin/main` at `ebe7be646` (save schema 24, Go to work), merged forward to `7a69b617e` (save schema 27, needs affect mood over time, issue 355). Branch `twcl/admin-panel-312`.
+Base: `origin/main` at `ebe7be646` (save schema 24, Go to work), merged forward to `a80b38d9f` (save schema 27, needs affect mood over time, issue 355, then the last good save copy and the test repair). Branch `twcl/admin-panel-312`.
 
 ## Contents
 

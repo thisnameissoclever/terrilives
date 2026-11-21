@@ -182,7 +182,7 @@ class HousemateTab implements AdminTab {
     this.renderNeeds(member.simId, member.name, person, library);
     this.renderSatisfaction(member.simId, person);
     this.renderRepetition(member.simId, member.name, library);
-    this.renderMood(member.simId, member.name, library);
+    this.renderMood(member.simId, member.name);
     this.renderLikes(member.simId, library);
     this.renderSkills(member.simId, library);
     this.renderTraits(member.simId, library);
@@ -263,7 +263,7 @@ class HousemateTab implements AdminTab {
 
   // ---- Mood and moodlets ---------------------------------------------------
 
-  private renderMood(sim: number, name: string, library: HousemateLibrary): void {
+  private renderMood(sim: number, name: string): void {
     const doc = this.context.doc;
     const section = this.mood;
     const scores = Array.from(this.source.moodScores(sim));

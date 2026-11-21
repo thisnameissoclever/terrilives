@@ -441,10 +441,8 @@ fn admin_timers_and_moodlets_say_what_runs_and_where_it_comes_from() {
 
     // Mood from needs: the accumulated balance (issue 355), whose label says
     // where it comes from, so it carries no source.
-    let index = terri_sim::edit::living_entity(handle.sim.world(), first)
-        .unwrap()
-        .index_u32();
     let entity = terri_sim::edit::living_entity(handle.sim.world(), first).unwrap();
+    let index = entity.index_u32();
     handle
         .sim
         .world_mut()
