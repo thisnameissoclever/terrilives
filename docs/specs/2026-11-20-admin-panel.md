@@ -180,7 +180,7 @@ These checks are cheap and cover exactly what changed. The full save round trip 
 | [AP-e-shift] | Shift | `SetShift` | refusal 6; 4 for an unknown shift | Through `change_shift_or_refuse`'s core, so the change takes effect from the next day as the Career tab's does; the note "Takes effect tomorrow." shows under the select |
 | [AP-e-pay] | Pay per shift | `SetPay` | the level's `pay` to `pay_max`, whole dollars; refusal 3 | |
 | [AP-e-jsat] | Job satisfaction | `SetJobSatisfaction` | 0 to 100 | |
-| [AP-e-good] | Good weeks in a row | `SetGoodWeeks` | 0 to the level's `advance_weeks`; refusal 3 | hint "{n} or more make a promotion possible" ([AP-c-promote]) |
+| [AP-e-good] | Good weeks in a row | `SetGoodWeeks` | 0 to the level's `advance_weeks`; refusal 3 | hint "{n} earns a promotion" ([AP-c-promote]) |
 | [AP-e-poor] | Poor weeks in a row | `SetPoorWeeks` | 0 to `2 + ceil(1 / career_fire_base)` (15 at 0.08), the count at which firing becomes certain; 3 when `career_fire_base` is 0 | hint "2 brings a warning. 3 or more risk being fired." |
 | [AP-e-search] | Job search | `SetJobSearch` | | the same `search_off` change as the Career tab, without counting a career command |
 
@@ -373,7 +373,7 @@ Every string below is functional text proposed for the owner's review under the 
 | S-likes | Likes and dislikes; -1 to 1 | Housemate |
 | S-skills | Skills; Level 0 to {max} | Housemate |
 | S-traits | Traits; how far learned; how severe; No value to set; Remove; Choose a trait to add; Add; Four traits at most. | Housemate |
-| S-career | Career; Job; No job; {path}: {title} (level {n} of {m}); Shift; {shift name}, {hh:mm} to {hh:mm}; Takes effect tomorrow.; Pay per shift; ${min} to ${max}; Job satisfaction; of 100; Good weeks in a row; {n} or more make a promotion possible; Poor weeks in a row; 2 brings a warning. 3 or more risk being fired.; Job search; Looks for work on their own | Housemate |
+| S-career | Career; Job; No job; {path}: {title} (level {n} of {m}); Shift; {shift name}, {hh:mm} to {hh:mm}; Takes effect tomorrow.; Pay per shift; ${min} to ${max}; Job satisfaction; of 100; Good weeks in a row; {n} earns a promotion; Poor weeks in a row; 2 brings a warning. 3 or more risk being fired.; Job search; Looks for work on their own | Housemate |
 | S-rel | {A} and {B}; {A}'s feeling about {B}; {A} starts a fight; Set both to 0; Set all of {A}'s feelings to 0; {A} had a fight. Ends in {duration}.; The fight starts when the game resumes. | Relationships |
 | S-funds | Funds; Add $1,000; Subtract $1,000; Add $10,000; Set to $0; Use at most two decimal places. | Household |
 | S-bills | Bills; Bill; Due; Amount; Late fee; Status; Day {n}, {Weekday}; Overdue; Due; No fee until Day {n}; Paid Day {n}; Pay from funds; Mark paid, free; Delete; Add bill; Remove all late fees; Mark all paid, free; No bills.; Next bills due: Day {n}, {Weekday}; Late fee: {p}% a day after {g} days, up to {c}% of the bill; Unpaid bills are paid from funds automatically when the game resumes, oldest first, while funds cover them.; Funds don't cover this bill. | Household |
@@ -476,7 +476,7 @@ Change housemates, feelings, funds and bills directly while the game waits.
 5. **[AP-c-future] "Day 106" in the new-bill row.** A bill's due day must be a billing month start at or before today: bills are issued on that day, and an added future bill would collide with the one the game issues. The due select offers past and current month starts only.
 6. **[AP-c-amount] Bill amount "0 up".** The loader refuses a bill of 0 cents, so the minimum is $0.01. To remove a bill, Delete it.
 7. **[AP-c-capability] "Can't cook 35, how far learned".** The Traits panel shows a capability's linked skill mastery, not its trait state, and nothing reads the state once worn. Editing the state would change nothing visible. The row edits the linked skill instead, so it and the Skills row always agree.
-8. **[AP-c-promote] "3 earns a promotion".** Reaching `advance_weeks` good weeks only makes a promotion possible at the next review, weighted by the score. The hint reads "{n} or more make a promotion possible".
+8. **[AP-c-promote] "3 earns a promotion".** Reaching `advance_weeks` good weeks only makes a promotion possible at the next review, weighted by the score. Owner ruling 2026-11-19: the short hint "{n} earns a promotion" stays as written; it states the goal for the counter, and the panel does not need to explain the review weighting.
 9. **[AP-c-sources] Moodlet sources.** Mockup A explains derived moodlets ("From Energy below 40"). The existing moodlet read has labels and scores but no source. `admin_moodlets` adds a source code per moodlet from where `mood.rs` builds it; moodlets whose source has no short explanation show none.
 10. **[AP-c-mood] Mood cannot be set**, as `notes.md` records: it is derived from needs, feelings, traits, the job, bills and timed events. It stays read only.
 11. **[AP-c-undo] Undo's mechanism.** `notes.md` proposes keeping a snapshot of each field before each change. The plan keeps one baseline and replays the journal ([AP-undo-why]), which gives the same behavior with one checked mechanism.
