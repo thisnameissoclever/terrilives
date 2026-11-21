@@ -190,7 +190,7 @@ function usable(node: HTMLElement | null): node is HTMLElement {
 }
 
 /** A text or number field, which keeps its own Ctrl+Z. */
-function editsText(target: EventTarget | null): boolean {
+export function editsText(target: EventTarget | null): boolean {
   const node = target as (HTMLElement & { type?: string }) | null;
   const tag = node?.tagName?.toLowerCase();
   if (tag === 'textarea') return true;

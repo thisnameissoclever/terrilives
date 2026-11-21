@@ -13,6 +13,7 @@ import { createHousemateTab } from './admin/admin-housemate.js';
 import { createRelationshipsTab } from './admin/admin-relationships.js';
 import { createHouseholdTab } from './admin/admin-household.js';
 import { SkipRunner } from './admin/admin-skip.js';
+import { installAdminOpening, isDebugOverlayKey } from './admin/admin-open.js';
 import { householdSource, housemateSource, relationshipsSource } from './admin/admin-sources.js';
 import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
@@ -885,9 +886,8 @@ async function main(): Promise<void> {
   };
   // The admin panel ([AP-web] of docs/specs/2026-11-20-admin-panel.md): created
   // once, and closed when a load or import replaces the world. It pauses the game
-  // through the shared overlay pause and restores the speed from before. The tab
-  // modules plug in through `tabs` as they are built; no route opens it yet, so
-  // nothing here is player-visible until the opening routes land ([T13]).
+  // through the shared overlay pause and restores the speed from before. Two routes
+  // open it: the tilde key and a long press on the lot's bottom tile ([AP-web-keys], [AP-web-touch]).
   const adminDialog = document.querySelector<HTMLDialogElement>('#admin-panel');
   if (!adminDialog) throw new Error('missing the admin panel markup');
   const refreshHudAfterAdmin = (): void => {
@@ -922,6 +922,14 @@ async function main(): Promise<void> {
       relationships: createRelationshipsTab(relationshipsSource(sim)),
       household: createHouseholdTab(householdSource(sim)),
     },
+    skip: adminSkip,
+  });
+  // [AP-web-keys]: the tilde key opens and closes the panel. The debug overlay's backtick below ignores it.
+  installAdminOpening({
+    doc: document,
+    panel: adminPanel,
+    buildActive: () => builder.active,
+    say: text => { commandStatus.textContent = text; commandStatus.setAttribute('data-kind', 'error'); },
     skip: adminSkip,
   });
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
@@ -1154,9 +1162,9 @@ async function main(): Promise<void> {
   bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
-  // surface and no extra key binding. Backquote toggles it; that key
-  // collides with nothing (the only other keydown listener forwards to
-  // the flyout, which consumes Escape and arrows).
+  // surface and no extra key binding. The plain backtick toggles it; Shift
+  // plus that key is the tilde, which belongs to the admin panel, so
+  // isDebugOverlayKey leaves it alone.
   let debugPanel: DebugPanel | null = null;
   let updateOrderHistory: (() => void) | null = null;
   if (new URLSearchParams(location.search).get('debug') === '1') {
@@ -1217,7 +1225,7 @@ async function main(): Promise<void> {
       void navigator.clipboard.writeText(history.textContent ?? '').then(() => { copyStatus.textContent = 'Copied'; }, () => { copyStatus.textContent = 'Copy failed. Select the history text and copy it.'; });
     });
     document.addEventListener('keydown', (event) => {
-      if (event.code === 'Backquote') panel.toggle();
+      if (isDebugOverlayKey(event)) panel.toggle();
     });
     // Open immediately: someone who typed ?debug=1 wants the numbers,
     // not a hidden panel and a keyboard shortcut to discover.
@@ -2650,6 +2658,8 @@ async function main(): Promise<void> {
       if(hit?.kind==='person'&&sim.simIdOf(hit.entity)!==hit.sim)return undefined;
       return hit?{entity:hit.entity,isAgent:hit.kind==='person',cleanup:hit.cleanup,bookCopy:hit.bookCopy}:null;
     },
+    // [AP-web-touch]: a long press on the lot's bottom tile opens the admin panel. Build mode never arms it.
+    { open: () => { adminPanel.open(); }, lotSize: () => [lotWidth, lotHeight] as const },
   );
   function openBookCopy(copy: number): void {
     const rect = stage.getBoundingClientRect();

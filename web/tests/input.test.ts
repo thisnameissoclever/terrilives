@@ -8,6 +8,7 @@ import {
   handleLeftClick,
   handleRightClick,
   LongPressGesture,
+  bottomTile,
   pickAt,
   pickSprite,
   reportCommandOutcome,
@@ -2039,5 +2040,203 @@ describe('dispatchMenuAction', () => {
     const sink = recordingSink(0);
     dispatchMenuAction(sink, NOTHING.action);
     expect(sink.calls).toEqual(['cancel 0']);
+  });
+});
+
+// [AP-web-touch] and [AP-tests-web] item 5: a touch hold on the lot's bottom
+// tile, outside Build mode, opens the admin panel instead of the object menu.
+describe('the admin panel long press on the bottom tile', () => {
+  const LOT = { width: 6, height: 5 };
+  const ORIGIN = { originX: 400, originY: 80 };
+
+  function rig(options: { editing?: boolean; lot?: () => readonly [number, number] } = {}) {
+    vi.useFakeTimers();
+    const listeners = new Map<string, (event: any) => void>();
+    const capture = new Map<string, (event: any) => void>();
+    const canvas = { width: 1280, height: 720, focus: vi.fn(), setPointerCapture() {},
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 720 }),
+      addEventListener: (name: string, listener: (event: any) => void) => listeners.set(name, listener),
+      ownerDocument: { addEventListener: (type: string, callback: (event: any) => void, flag?: boolean) => {
+        if (flag === true) capture.set(type, callback);
+      } } };
+    const refuse = vi.fn(() => false);
+    const target = { ...source([]), selectedIndex: () => null, select: refuse, useObject: refuse,
+      useObjectFirst: refuse, cancelIntents: refuse, talkTo: refuse, talkToFirst: refuse,
+      entityName: () => '', interactionLabels: () => [], socialLabels: () => [] };
+    const menu = { close: vi.fn(), open: vi.fn(), handleKey: vi.fn(() => false), pointerDown: vi.fn() };
+    const openAdmin = vi.fn();
+    const state = { editing: options.editing ?? false };
+    const camera = { ...ORIGIN, scale: 1 };
+    attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu, {} as Node, camera,
+      { panBy: vi.fn(), zoomAt: vi.fn() }, undefined, undefined, undefined, undefined, undefined,
+      { active: () => state.editing, click: vi.fn() }, undefined, undefined,
+      { open: openAdmin, lotSize: options.lot ?? (() => [LOT.width, LOT.height] as const) });
+    const at = (tx: number, ty: number) => ({
+      clientX: screenX(tx, ty, camera.originX), clientY: screenY(tx, ty, camera.originY),
+    });
+    const touch = (id: number, point: { clientX: number; clientY: number }) =>
+      ({ pointerId: id, pointerType: 'touch', button: 0, ...point });
+    const press = (event: Record<string, unknown>) => {
+      capture.get('pointerdown')?.(event);
+      listeners.get('pointerdown')!(event);
+    };
+    const release = (event: Record<string, unknown>) => {
+      capture.get('pointerup')?.(event);
+      listeners.get('pointerup')!(event);
+    };
+    const click = (pointerId: number) => {
+      const event = { detail: 1, pointerId, preventDefault: vi.fn(), stopPropagation: vi.fn() };
+      capture.get('click')?.(event);
+      return event;
+    };
+    return { listeners, canvas, menu, openAdmin, state, camera, at, touch, press, release, click, target };
+  }
+
+  // The object menu's route: it opens with entries, or closes on bare floor.
+  const menuRouted = (t: { menu: { open: { mock: { calls: unknown[] } }; close: { mock: { calls: unknown[] } } } }): number =>
+    t.menu.open.mock.calls.length + t.menu.close.mock.calls.length;
+
+  it('opens the panel on a 500 ms hold on the bottom tile, not the object menu', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(499);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(t.openAdmin).toHaveBeenCalledOnce();
+    expect(menuRouted(t)).toBe(0);
+    expect(t.canvas.focus).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('swallows the click the phone sends after the hold', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(600);
+    t.release(finger);
+    const swallowed = t.click(1);
+    expect(swallowed.preventDefault).toHaveBeenCalledOnce();
+    expect(swallowed.stopPropagation).toHaveBeenCalledOnce();
+    expect(t.click(1).preventDefault).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it.each([[0, 0], [LOT.width - 2, LOT.height - 1], [LOT.width - 1, LOT.height - 2], [LOT.width - 1, 0], [0, LOT.height - 1]])(
+    'opens the object menu from tile %i,%i', (tx, ty) => {
+      const t = rig();
+      t.press(t.touch(1, t.at(tx, ty)));
+      vi.advanceTimersByTime(600);
+      expect(t.openAdmin).not.toHaveBeenCalled();
+      expect(menuRouted(t)).toBe(1);
+      vi.useRealTimers();
+    });
+
+  it('leaves a tap on the bottom tile as a tap', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(200);
+    t.release(finger);
+    vi.advanceTimersByTime(1000);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    expect(t.menu.open).not.toHaveBeenCalled();
+    expect(t.click(1).preventDefault).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('is not armed in Build mode', () => {
+    const t = rig({ editing: true });
+    t.press(t.touch(1, t.at(LOT.width - 1, LOT.height - 1)));
+    vi.advanceTimersByTime(1000);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    expect(t.menu.open).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('is cancelled by moving past the tap slop', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(300);
+    t.listeners.get('pointermove')!({ ...finger, clientX: finger.clientX + 40 });
+    vi.advanceTimersByTime(1000);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('survives a wobble inside the tap slop', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(300);
+    t.listeners.get('pointermove')!({ ...finger, clientX: finger.clientX + 2 });
+    vi.advanceTimersByTime(300);
+    expect(t.openAdmin).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it('is cancelled by a second finger', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(300);
+    t.press(t.touch(2, t.at(2, 2)));
+    vi.advanceTimersByTime(1000);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('is cancelled by lifting before the hold ends', () => {
+    const t = rig();
+    const finger = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(finger);
+    vi.advanceTimersByTime(499);
+    t.release(finger);
+    vi.advanceTimersByTime(1000);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('follows a land purchase: the new bottom tile opens it and the old one no longer does', () => {
+    let size: readonly [number, number] = [LOT.width, LOT.height];
+    const t = rig({ lot: () => size });
+    size = [LOT.width + 2, LOT.height + 3];
+    const old = t.touch(1, t.at(LOT.width - 1, LOT.height - 1));
+    t.press(old);
+    vi.advanceTimersByTime(600);
+    t.release(old);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    expect(menuRouted(t)).toBe(1);
+    t.press(t.touch(2, t.at(size[0] - 1, size[1] - 1)));
+    vi.advanceTimersByTime(600);
+    expect(t.openAdmin).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it('never opens from a mouse', () => {
+    const t = rig();
+    const mouse = { pointerId: 1, pointerType: 'mouse', button: 0, ...t.at(LOT.width - 1, LOT.height - 1) };
+    t.press(mouse);
+    vi.advanceTimersByTime(1000);
+    expect(t.openAdmin).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+});
+
+describe('bottomTile', () => {
+  it('is the largest x plus y on the lot, which is the lowest tile on screen', () => {
+    expect(bottomTile(6, 5)).toEqual([5, 4]);
+    expect(bottomTile(1, 1)).toEqual([0, 0]);
+    expect(bottomTile(14, 9)).toEqual([13, 8]);
+  });
+
+  it('is read in screen terms, so a rotated view names the corner that is now lowest', () => {
+    // A quarter turn clockwise puts the old south-west corner at the bottom of the screen.
+    expect(bottomTile(6, 5, (x, y) => y - x)).toEqual([0, 4]);
+    // The other quarter turn puts the old north-east corner there.
+    expect(bottomTile(6, 5, (x, y) => x - y)).toEqual([5, 0]);
+    // Half a turn: the old north-west corner.
+    expect(bottomTile(6, 5, (x, y) => -(x + y))).toEqual([0, 0]);
   });
 });
