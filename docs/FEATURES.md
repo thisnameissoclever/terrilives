@@ -1562,3 +1562,15 @@ Status: planned. Relationship calculations can produce dislike, but the player n
 3. Mildly lower the appeal of otherwise attractive activities when a disliked person occupies the room containing the relevant item, including a television or fridge. Evaluate the acting person's opinion, not the other person's opinion of them.
 4. Let urgent needs and player orders override this preference. Essential furniture must remain usable, and avoidance must not trap people, starve them or strand a multi-step activity.
 5. Revalidate relationship pacing when avoidance reduces contact between hostile Sims. Fewer encounters also mean fewer opportunities for friction and reconciliation; the existing balance measurements must cover both.
+
+### [B-admin-panel] The admin panel edits housemates, feelings, funds and bills
+
+Status: built on branch `twcl/admin-panel-312` (issue 312); see [the admin panel plan](specs/2026-11-20-admin-panel.md). Played evidence and the final gate are in [the verification record](specs/2026-11-20-admin-panel-verification.md).
+
+1. The panel opens with the tilde key, or on a touch screen with a 500 ms hold on the lot's bottommost tile. It is available in every game, not in Build mode, and carries a Cheat badge. No save records that it was used.
+2. Opening pauses the game and closing restores the speed that was chosen before: paused, 1x, 2x or 3x.
+3. Three tabs. Housemate and Relationships share one picker of housemates. Household holds Funds, the bills table and Skip ahead.
+4. Every control sends one change, applied atomically. The simulation refuses what is out of range instead of clamping, and says why on the status line.
+5. Undo steps back through every change since the panel opened, exact by hash. Skip ahead cannot be undone and clears Undo.
+6. Changes are saved with the game. There is no new save schema.
+7. The player-facing text is functional and awaits the owner's review ([the string inventory](player-visible-strings.md)).

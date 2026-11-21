@@ -1809,6 +1809,20 @@ deliberately minimal content sync, not a real-time or authoritative game server.
   some players before it is removed. For a free solo project that is
   defensible, but it is a choice rather than an oversight.
 
+## [D-admin-session] The admin session
+
+Status: built for issue 312; the full design is [the admin panel plan](specs/2026-11-20-admin-panel.md).
+
+The admin panel changes the world through one command, `SimCommand::Admin`, wire code 41, whose payload is a list of edits applied as one atomic change. It sits beside the Build transaction rather than inside it:
+
+1. **An admin session is a simulation resource that exists while the panel is open.** It holds a baseline snapshot taken at open and a journal of the changes applied since. Like the Build transaction it is not saved and not hashed. `begin_admin` refuses during Build and `begin_build` refuses during an admin session, and `tick` advances no clock while a session is active.
+2. **Edits apply only inside a session.** An edit with no session is refused with code 1. Each edit names people by `SimId`, so it survives the world restore Undo performs, and each runs the load validator of the state it changed.
+3. **Undo restores the baseline and replays the journal minus its last change**, checking the world hash after every replayed change against the hash recorded when it first applied. This is the Build transaction's mechanism and needs no hand-written inverse per edit.
+4. **An admin command never sits in a saved queue.** `admin_apply` stages the change and runs the paused command drain in the same wasm call, so JavaScript cannot save between the two. `enqueue_command` refuses admin bytes, and `capture_command` returns `SaveError::AdminCommandQueued` instead of panicking. `SavedCommand` stays frozen and the save schema does not change.
+5. **Skip ahead is ordinary ticking**, run by the web shell at a raised per-frame budget with the session closed around it, so it ends the Undo history.
+
+The web side lives in `web/src/admin/`: the shell (pause and restore, tabs, shared picker, Undo, focus), one module per tab, the codec for the wire bytes, the opening routes and the skip runner.
+
 ## [D12] Testing
 
 - **Shipped:** the native simulation core runs under `cargo test` with no

@@ -237,6 +237,28 @@ Queue mode and Clear orders are in the selected person's Queue panel, not in Opt
 
 :::illustration options
 
+### Admin panel {#admin-panel}
+
+The admin panel lets you change the household directly: needs, feelings, funds, bills and more. It is marked Cheat, but the game does not record that you used it.
+
+Desktop: press the ~ key (Shift with the key left of 1). Touch screen: hold the bottom corner tile of the lot, the one lowest on the screen, for half a second. A quick tap there still selects what is on it, and dragging still pans. The hold always opens the panel on that tile, so to open the menu of something standing on it, hold another tile it covers. The panel does not open in [Build mode](#build); leave Build first. While the panel is open, Build is unavailable.
+
+The game pauses while the panel is open. The panel says so, and says which speed returns when you close it. Close, Escape or ~ closes it and restores the speed you had before. If the game was already paused, it stays paused.
+
+The panel has three tabs. Housemate and Relationships act on the housemate named in the picker under the tabs; the picker starts on your selected person. Household acts on the whole household.
+
+- **Housemate** sets needs, life satisfaction, likes and dislikes, skills and traits, and the job, shift, pay, job satisfaction and good or poor weeks in a row, and turns Job search on or off. It clears repetition and ends timed moodlets such as Promoted or Had a fight. Mood is shown but cannot be set, because it follows from everything else.
+- **Relationships** sets how the chosen person feels about each other housemate, sets one or all of those feelings to 0, or has them start a fight. The fight begins when the game resumes.
+- **Household** sets Funds, edits, pays, adds or deletes bills, removes late fees and marks bills paid, and skips ahead.
+
+Sliders apply when you let go. The number box beside each slider applies when you leave it or press Enter. A change the game refuses leaves everything as it was and says why on the line below the controls, such as Four traits at most. Remove one first.
+
+Undo steps back one change at a time through everything you changed since you opened the panel. Its label names the change it will undo. Closing the panel clears Undo.
+
+Skip ahead by a number of hours, then choose Skip. The game runs through those hours quickly while you watch, and housemates live them as usual. Stop or Escape ends it early. It also ends if a housemate dies. Skipping cannot be undone and it clears Undo.
+
+Changes are part of the game, so Save keeps them. See [Save and Load](#saves).
+
 ## Save and Load confirmations {#saves}
 
 Choose Options, then Save to write the local household slot. Options, then Load opens confirmation before replacing progress. Options, then New game opens a separate confirmation before deleting the local save and starting again.

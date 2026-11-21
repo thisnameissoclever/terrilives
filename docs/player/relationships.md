@@ -8,7 +8,7 @@ Each person has their own opinion of every other housemate. Alex liking Sam does
 
 The labels run from Hostile through Dislikes, Wary and Stranger to Warm, Friendly and Close. Feelings change through contact, conversations, domestic work and incidents. Family ties are a separate classification, so a relative can still be disliked.
 
-Relationships affect how rewarding company feels and how nearby people affect mood. They are separate from the Social meter. A friend in the room can be comforting without directly relieving loneliness.
+Relationships affect how rewarding company feels and how nearby people affect mood. They are separate from the Social meter. A friend in the room can be comforting without directly relieving loneliness. The [admin panel](ui-elements/#admin-panel) can set one person's feeling about another.
 
 ## What changes feelings {#causes}
 

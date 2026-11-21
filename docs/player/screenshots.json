@@ -2395,6 +2395,30 @@
       "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
       "desktop": "images/ui-log-show-earlier-desktop.png",
       "mobile": "images/ui-log-show-earlier-mobile.png"
+    },
+    {
+      "id": "admin-housemate",
+      "section": "admin-panel",
+      "status": "pending-capture",
+      "description": "The admin panel open on its Housemate tab, with a housemate chosen in the picker, Undo and Close in the header and the game paused.",
+      "access": "Press ~, or hold the lot's bottom corner tile on a touch screen.",
+      "pendingReason": "The coordinator captures desktop (1440 by 960) and phone (390 by 844) images in the played pass of docs/specs/2026-11-20-admin-panel.md. Image paths, hashes and a new source snapshot are added then."
+    },
+    {
+      "id": "admin-relationships",
+      "section": "admin-panel",
+      "status": "pending-capture",
+      "description": "The admin panel open on its Relationships tab, with one housemate's feelings about each other housemate and the fight row.",
+      "access": "Open the admin panel, then choose Relationships.",
+      "pendingReason": "The coordinator captures desktop (1440 by 960) and phone (390 by 844) images in the played pass of docs/specs/2026-11-20-admin-panel.md. Image paths, hashes and a new source snapshot are added then."
+    },
+    {
+      "id": "admin-household",
+      "section": "admin-panel",
+      "status": "pending-capture",
+      "description": "The admin panel open on its Household tab, with Funds, the bills table and Skip ahead.",
+      "access": "Open the admin panel, then choose Household.",
+      "pendingReason": "The coordinator captures desktop (1440 by 960) and phone (390 by 844) images in the played pass of docs/specs/2026-11-20-admin-panel.md. Image paths, hashes and a new source snapshot are added then."
     }
   ],
   "uiSections": {

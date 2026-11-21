@@ -805,3 +805,9 @@ choices. Comfortable people vary their decisions more and retain appeal for Fun
 and Social even at full meters. Very low instinct can neglect critical needs;
 higher values increase urgency and penalize delays toward hunger or energy death.
 This does not change need decay, restoration or death timing. See [VA-choice].
+
+## [S-admin-panel] Admin panel
+
+The admin panel lets the player set any housemate's needs, life satisfaction, repetition, timed moodlets, likes, skills, traits and job details, set how housemates feel about each other, start a fight, set household funds, edit, pay, add and delete bills, and skip ahead by hours. It exists for play-testing and for players who want to correct a household; it changes no rule of the simulation. Mood stays derived and cannot be set.
+
+Each edit writes a state the game already saves, then checks the world the way the save loader would, so a change that would make an unloadable world is refused whole. The full design, refusal codes and the decisions the owner made are in [the admin panel plan](specs/2026-11-20-admin-panel.md). Player instructions are in the [player guide](player/ui-elements.md#admin-panel).

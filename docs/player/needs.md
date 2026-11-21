@@ -8,7 +8,7 @@ Select a person under Household. Desktop shows needs in the bottom dock; on a ph
 
 :::illustration sim-needs
 
-An activity can help one meter while another falls. Benefits also have requirements: a television needs another active viewer to supply Social, and hand washing stops at partial cleanliness. Check the [activity reference](activities/#all-actions) before repeating an action that is not solving the problem.
+An activity can help one meter while another falls. Benefits also have requirements: a television needs another active viewer to supply Social, and hand washing stops at partial cleanliness. Check the [activity reference](activities/#all-actions) before repeating an action that is not solving the problem. To set a meter directly instead, use the [admin panel](ui-elements/#admin-panel).
 
 ## Hunger {#hunger}
 
