@@ -192,10 +192,12 @@
 .admin-bill-money .admin-number { width: 5em; }
 .admin-bill-due .admin-select, .admin-bill-name .admin-select { width: 100%; }
 .admin-bill-due .admin-select { min-width: 10em; }
-.admin-bill-actions > .admin-action { padding: 0 8px; font-size: 13px; }
+.admin-bill-actions > .admin-action { padding: 0 8px; font-size: 13px; white-space: nowrap; overflow-wrap: normal; }
+/* "Funds don't cover this bill." goes under the buttons, so they keep their width and never break a word. */
+.admin-bill-actions > .admin-note { flex: 1 1 100%; order: 1; margin: 0; }
 .admin-household .admin-row-label { flex-basis: 7em; }
 .admin-bill-status { min-width: 7em; font-size: 12px; }
-.admin-bill-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px 6px; border-top: 0; }
+.admin-bill-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; border-top: 0; }
 .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { border-top: 1px solid var(--hud-edge, #2c2c36); }
 .admin-bill-notes { margin-top: 10px; }
 .admin-bill-notes .admin-note { margin: 2px 0; }
