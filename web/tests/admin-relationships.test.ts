@@ -186,6 +186,30 @@ describe('setting feelings to 0', () => {
     expect(b.f.root.querySelectorAll('.admin-word').map(node => node.textContent)).toEqual(['Stranger', 'Stranger', 'Stranger', 'Stranger']);
   });
 
+  it('is disabled when every feeling it would set is already 0, so it never adds an Undo step that changes nothing', () => {
+    const state = world();
+    // Tim feels nothing toward anyone, and only Casey feels something about Tim.
+    state.feelings.set(3, new Map());
+    state.feelings.get(5)!.delete(3);
+    const b = build(state);
+    const all = () => b.f.button("Set all of Tim's feelings to 0") as unknown as { disabled: boolean; click(): void };
+    expect(all().disabled, "Casey's feeling about Tim is not 0 yet").toBe(false);
+    all().click();
+    expect(sent(b).change.edits).toHaveLength(4);
+    expect(all().disabled, 'every feeling in both directions is 0 now').toBe(true);
+    all().click();
+    expect(b.h.sent).toHaveLength(1);
+  });
+
+  it('stays enabled for a feeling too small to show but not 0', () => {
+    const state = world();
+    state.feelings.set(3, new Map([[5, 0.001]]));
+    state.feelings.get(5)!.delete(3);
+    state.feelings.get(9)!.delete(3);
+    const b = build(state);
+    expect((b.f.button("Set all of Tim's feelings to 0") as unknown as { disabled: boolean }).disabled).toBe(false);
+  });
+
   it('does not touch the pairs of other housemates', () => {
     const b = build();
     b.h.state.selected = MEMBERS[1];
@@ -268,11 +292,16 @@ describe('focus', () => {
     expect(b.h.fake.activeElement).toBe(b.f.box("Tim's feeling about Bill"));
   });
 
-  it('keeps focus on a card button that stays, and falls back to a heading when its card is gone', () => {
+  it('keeps focus on a card button that stays, and moves it off one its own change disabled', () => {
     const b = build();
+    const both = b.f.button('Set both to 0');
+    both.focus();
+    both.click();
+    expect(b.h.fake.activeElement).toBe(b.f.button('Set both to 0'));
     const all = b.f.button("Set all of Tim's feelings to 0");
     all.focus();
     all.click();
-    expect(b.h.fake.activeElement).toBe(b.f.button("Set all of Tim's feelings to 0"));
+    expect((b.f.button("Set all of Tim's feelings to 0") as unknown as { disabled: boolean }).disabled).toBe(true);
+    expect(b.h.fake.activeElement).toBe(b.h.state.tab!.body);
   });
 });

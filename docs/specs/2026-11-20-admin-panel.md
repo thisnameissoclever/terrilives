@@ -194,7 +194,7 @@ The tab shows the picker and, for the chosen housemate A, one card per other liv
 | --- | --- | --- | --- | --- |
 | [AP-e-feel] | {A}'s feeling about {B}; {B}'s feeling about {A} | `SetFeeling` | -1 to 1, two decimals; refusal 11 for oneself; 0 removes the entry, as decay does | band word from `people-panel.ts` |
 | [AP-e-both] | Set both to 0 | two `SetFeeling` 0 | | one Undo step |
-| [AP-e-allzero] | Set all of {A}'s feelings to 0 | `SetFeeling` 0 in both directions for every card | | replaces the mockup's household-wide "Set every feeling to 0" ([AP-c-relpicker]) |
+| [AP-e-allzero] | Set all of {A}'s feelings to 0 | `SetFeeling` 0 in both directions for every card | | replaces the mockup's household-wide "Set every feeling to 0" ([AP-c-relpicker]); disabled, with no reason text, as "Set to $0" is at $0, when every feeling it would set is already 0 or there is no other housemate, so it never adds an Undo step that changes nothing |
 | [AP-e-fight] | {A} starts a fight | `StartFight` | refusal 11; 18 while either is at work or commuting | Appends the same fight order a player's talk order with the fighting row queues (`TalkTo` with `fight_index`), through the confirmed-order core so it is not held for a work-conflict confirmation: the click is the confirmation. It runs when play resumes. The topic is drawn when the fight begins, not at the drain ([AP-c-topic]). A full order queue is refused as 18 too, since the order would otherwise be dropped. Status: "The fight starts when the game resumes." |
 | [AP-e-fought] | {A} had a fight. Ends in {duration}. End now | `EndTimedMoodlet` timer 1 | refusal 5 | shown when A's fight timer runs; the timer belongs to A alone ([AP-c-fight]) |
 

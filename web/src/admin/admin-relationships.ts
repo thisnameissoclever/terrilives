@@ -77,7 +77,9 @@ class RelationshipsTab implements AdminTab {
     }));
 
     this.nodes.clear();
-    rebuild(doc, this.bar, this.body, () => this.barNodes(a, others, timers, now, dayTicks));
+    // Set all would change nothing when every feeling it sets, in both directions, is already 0.
+    const allZero = others.every(other => (feelings.get(other.simId) ?? 0) === 0 && (back.get(other.simId) ?? 0) === 0);
+    rebuild(doc, this.bar, this.body, () => this.barNodes(a, others, timers, now, dayTicks, allZero));
     rebuild(doc, this.cards, this.body, () => others.map(other => this.card(a, other, feelings.get(other.simId) ?? 0, back.get(other.simId) ?? 0)));
   }
 
@@ -110,7 +112,7 @@ class RelationshipsTab implements AdminTab {
 
   // ---- the bar: the chosen housemate's fight, and Set all ------------------
 
-  private barNodes(a: AdminMember, others: readonly AdminMember[], timers: readonly AdminTimer[], now: number, dayTicks: number): HTMLElement[] {
+  private barNodes(a: AdminMember, others: readonly AdminMember[], timers: readonly AdminTimer[], now: number, dayTicks: number, allZero: boolean): HTMLElement[] {
     const doc = this.context.doc;
     const nodes: HTMLElement[] = [];
     const fight = timers.find(timer => timer.timer === FIGHT_TIMER);
@@ -129,7 +131,8 @@ class RelationshipsTab implements AdminTab {
     const all = make(doc, 'div', 'admin-rel-all');
     all.append(
       actionButton(doc, {
-        text: W.all(a.name), key: 'all', disabled: others.length === 0,
+        // Disabled, as Set to $0 is at $0, when it would add an Undo step that changes nothing.
+        text: W.all(a.name), key: 'all', disabled: others.length === 0 || allZero,
         onClick: () => this.send('all', others.flatMap(other => this.zero(a, other)), undoLabels.allFeelings(a.name)),
       }),
       this.status('all'),
