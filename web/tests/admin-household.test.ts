@@ -26,6 +26,8 @@ interface World {
   monthAmounts: number[];
   skipLimits: { maxHours: number; defaultHours: number };
   terms: { graceDays: number; lateFeePercent: number; lateFeeCapPercent: number; nextDueDay: number } | null;
+  /** The world's tick; a skip moves it. */
+  tick?: number;
 }
 
 function world(): World {
@@ -52,9 +54,9 @@ function build(state: World = world()) {
     bills: () => ({ bills: state.bills.map(row => ({ ...row })), dueDays: state.dueDays.slice() }),
     terms: () => state.terms,
     monthAmounts: () => state.monthAmounts.slice(),
-    clockTick: () => TODAY * DAY_TICKS + 280,
+    clockTick: () => state.tick ?? TODAY * DAY_TICKS + 280,
     dayTicks: () => DAY_TICKS,
-    weekdayIndex: () => 1,
+    weekdayIndex: () => (Math.floor((state.tick ?? TODAY * DAY_TICKS + 280) / DAY_TICKS) - TODAY + 1) % 7,
   };
   const find = (due: number, kind: number) => state.bills.findIndex(row => row.dueDay === due && row.kind === kind);
   h.state.onApply = change => {
@@ -232,6 +234,22 @@ describe('Time and Skip ahead', () => {
     b.h.skip.state = { running: true, asked: 8, done: 5 } as AdminSkipState;
     b.h.state.tab!.skipChanged!();
     expect(b.f.section('Time').textContent).toContain('Skipping: 5 of 8 hours.');
+    expect(b.f.button('Stop')).toBe(stop);
+    expect(b.h.fake.activeElement).toBe(stop);
+  });
+
+  it('moves the Now clock with the skip, so it never shows the time the skip started from', () => {
+    const state = world();
+    const b = build(state);
+    b.h.skip.state = { running: true, asked: 24, done: 0 } as AdminSkipState;
+    b.h.state.tab!.refresh();
+    expect(b.f.section('Time').textContent).toContain('Day 100, Tuesday, 04:40');
+    const stop = b.f.button('Stop');
+    stop.focus();
+    state.tick = (TODAY + 1) * DAY_TICKS + 280;
+    b.h.skip.state = { running: true, asked: 24, done: 24 } as AdminSkipState;
+    b.h.state.tab!.skipChanged!();
+    expect(b.f.section('Time').textContent).toContain('Day 101, Wednesday, 04:40');
     expect(b.f.button('Stop')).toBe(stop);
     expect(b.h.fake.activeElement).toBe(stop);
   });

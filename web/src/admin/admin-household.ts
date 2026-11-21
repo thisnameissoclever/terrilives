@@ -64,6 +64,7 @@ class HouseholdTab implements AdminTab {
   private draft: Draft = { kind: 0, due: null, amountCents: null, feeCents: 0 };
   private skipHours: number | null = null;
   private skipLine: HTMLElement | null = null;
+  private nowNode: HTMLElement | null = null;
 
   constructor(private readonly context: AdminTabContext, private readonly source: HouseholdSource) {
     const doc = context.doc;
@@ -84,11 +85,23 @@ class HouseholdTab implements AdminTab {
     this.draw();
   }
 
-  /** A skip started, moved or ended: only its line changes, so the Stop button keeps its focus. */
+  /**
+   * A skip started, moved or ended. While it runs only its line and the clock
+   * change, so the Stop button keeps its focus and Now shows the time reached.
+   */
   skipChanged(): void {
     const state = this.context.skip.state();
-    if (state.running && this.skipLine !== null) this.skipLine.textContent = W.skipping(state.done, state.asked);
-    else this.draw();
+    if (state.running && this.skipLine !== null) {
+      this.skipLine.textContent = W.skipping(state.done, state.asked);
+      if (this.nowNode !== null) this.nowNode.textContent = this.clockText();
+    } else this.draw();
+  }
+
+  /** "Day {n}, {Weekday}, {hh:mm}" for the world's clock now. */
+  private clockText(): string {
+    const tick = this.source.clockTick();
+    const dayTicks = this.source.dayTicks();
+    return W.clock(Math.floor(tick / dayTicks) + 1, WEEKDAY_NAMES[this.source.weekdayIndex()] ?? '', formatTimeOfDay(tick % dayTicks, dayTicks));
   }
 
   private draw(): void {
@@ -148,14 +161,12 @@ class HouseholdTab implements AdminTab {
   private drawTime(): void {
     const doc = this.context.doc;
     const section = this.time;
-    const tick = this.source.clockTick();
-    const dayTicks = this.source.dayTicks();
-    const clock = W.clock(Math.floor(tick / dayTicks) + 1, WEEKDAY_NAMES[this.source.weekdayIndex()] ?? '', formatTimeOfDay(tick % dayTicks, dayTicks));
     const skip = this.context.skip;
     const state = skip.state();
     this.skipLine = null;
     rebuild(doc, section.body, section.heading, () => {
-      const nodes: HTMLElement[] = [labelled(doc, W.now, textNode(doc, 'strong', 'admin-now', clock))];
+      this.nowNode = textNode(doc, 'strong', 'admin-now', this.clockText());
+      const nodes: HTMLElement[] = [labelled(doc, W.now, this.nowNode)];
       if (!skip.available()) return nodes;
       const limits = skip.limits();
       this.skipHours ??= limits.defaultHours;
