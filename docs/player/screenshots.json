@@ -422,6 +422,27 @@
         "capturedAt": "2026-11-21",
         "method": "Playwright driving Chromium, muted through the game's Sound: off preference and suspended AudioContexts, against the branch served by the vite dev server (commit ad4124741, which includes the played-pass layout fixes). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. A new game was played to Day 15, Monday 15:36 with the admin panel itself: Tim's job changed to Barista, a $5,000 Water bill added on Day 1 so it stays overdue, bills issued on Days 8 and 15, Tim's fight with Casey played out, and Skip ahead used. The game was paused before opening the panel with ~, so the pill reads that the game stays paused, and Fill Tim's needs was pressed so Undo shows its label. Focus was moved off the controls with a click on the panel before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 with Chrome touch emulation, not a physical phone.",
         "evidence": "docs/assets/review-evidence/admin-panel/"
+      },
+      {
+        "id": "admin-household-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "dd1c9fe354dddd9744032ffc67ca75bcb78f320c79c41d053d95d64d8f98fa31",
+          "web/src/admin/admin-panel.ts": "1040833afde1dc660bc122c737b9ccac6aeb66257c057426cddf38a3420fba79",
+          "web/src/admin/admin-housemate.ts": "b444fba5345f16dce2d1fb93592675400c8e012fae311fee3800a80b3cfd2a9d",
+          "web/src/admin/admin-relationships.ts": "96e2ebcdead137c1d8c3bc190e8405c3612afe555776c71945736bee492ca5fe",
+          "web/src/admin/admin-household.ts": "5c2652bf765334a5746b9d8d5dc0956cd1749da5376b911d05a3ca36124ebd7a",
+          "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
+          "web/src/admin/admin-open.ts": "3a5d4e49a8553723b5d617282fdfbf22db696a6c8d5c0ee2e625ddbd72c028bc",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "af42dfc670109dcde40d9585a827e46ac7612ed6c40cd1b63b234657884f72bd",
+          "content/tuning.toml": "2b3deb3523bfc1dcd999786ca079800a201d17e623b52f4c15fb616af90cd1ee"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "Playwright driving Chromium, muted through the game's Sound: off preference, against the branch served by the vite dev server (commit db64a3bbc). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. A fresh New game was started (Start over accepted), so the HUD shows no Load failed text, and paused at Day 1, 00:05. With the admin panel, Skip ahead ran to Day 7, 23:05, funds were set to $0 so the first month's bills stayed unpaid, and Skip ahead ran to Day 8, Monday 05:05, before any shift was paid. The starting bills were then: Rent moved to Day 1 with the 15% late fee three days past its grace would have added, so it is overdue; Water paid from funds; Electricity and Transportation left in their grace days. Funds were set to $4.65, below every unpaid bill. Focus was moved off the controls with a click on the panel before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, without touch emulation; the phone layout is chosen by width.",
+        "evidence": "docs/player/images/ui-admin-household-desktop.png and docs/player/images/ui-admin-household-mobile.png"
       }
     ],
     "weatherSetup": {
@@ -2498,10 +2519,10 @@
       "access": "Open the admin panel, then choose Household.",
       "desktop": "images/ui-admin-household-desktop.png",
       "mobile": "images/ui-admin-household-mobile.png",
-      "sourceSnapshot": "admin-panel-2026-11-21",
+      "sourceSnapshot": "admin-household-2026-11-21",
       "imageSha256": {
-        "desktop": "78846e43fe988ca7adf98897da479bf259a48670b021ac885b13eb7dbc32187e",
-        "mobile": "40b6158c7ecd2289ba1c4de465a685567361b559a1357646dd6e28ea5614cf64"
+        "desktop": "846c68085e0b038c46d7c822d5a4a654bfaa6adc5f5c0f1a29dc88e306a228cb",
+        "mobile": "878938f971779ecbb63266bb6e5f0acd58cc1b9d798939020a24db8cd8af1dd4"
       },
       "captureMetadata": {
         "desktop": {
@@ -2513,7 +2534,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "78846e43fe988ca7adf98897da479bf259a48670b021ac885b13eb7dbc32187e"
+          "sourceImageSha256": "846c68085e0b038c46d7c822d5a4a654bfaa6adc5f5c0f1a29dc88e306a228cb"
         },
         "mobile": {
           "width": 390,
@@ -2524,7 +2545,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "40b6158c7ecd2289ba1c4de465a685567361b559a1357646dd6e28ea5614cf64"
+          "sourceImageSha256": "878938f971779ecbb63266bb6e5f0acd58cc1b9d798939020a24db8cd8af1dd4"
         }
       }
     }

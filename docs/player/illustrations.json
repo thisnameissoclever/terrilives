@@ -1459,8 +1459,8 @@
         "height": 820
       },
       "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "78846e43fe988ca7adf98897da479bf259a48670b021ac885b13eb7dbc32187e",
-      "outputSha256": "546a834555a3ce54e4156404ab654bcd59381cda5daff5e8e9fcc658d3bd10d0"
+      "sourceSha256": "846c68085e0b038c46d7c822d5a4a654bfaa6adc5f5c0f1a29dc88e306a228cb",
+      "outputSha256": "7ce430e12306d87b62c23fc0f89626ae003c46ce9fdea3ea68bad8f2adc257f3"
     }
   ]
 }
