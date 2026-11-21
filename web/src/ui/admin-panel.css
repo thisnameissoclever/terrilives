@@ -219,7 +219,7 @@
   .admin-undo { grid-column: 2; grid-row: 1; max-width: none; }
   .admin-close { grid-column: 3; grid-row: 1; }
   .admin-pill { grid-column: 1 / -1; grid-row: 2; justify-self: start; max-width: 100%; }
-  .admin-spacer, .admin-hint, .admin-undo-detail { display: none; }
+  .admin-spacer, .admin-header .admin-hint, .admin-undo-detail { display: none; }
   .admin-undo-status { padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
 
   .admin-bar { align-items: stretch; padding: 10px max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left)); }
@@ -233,8 +233,14 @@
   .admin-slider-row > .admin-number { grid-column: 2; grid-row: 1; }
   .admin-slider-row > .admin-slider { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; }
   .admin-slider-row > :not(.admin-row-label, .admin-slider, .admin-number) { grid-column: 1 / -1; }
+  /* The word that names the value ("Likes", "how severe") sits under the label, beside the number box. */
+  .admin-slider-row > .admin-word { grid-column: 1; grid-row: 2; min-width: 0; }
+  .admin-slider-row:has(> .admin-word) > .admin-number { grid-row: 1 / span 2; }
+  .admin-slider-row:has(> .admin-word) > .admin-slider { grid-row: 3; }
   .admin-trait-row > *, .admin-trait-row > .admin-action, .admin-trait-row > .admin-row-label { order: 0; }
-  .admin-trait-row.admin-slider-row > .admin-action { margin-left: 0; justify-self: start; }
+  .admin-trait-row.admin-slider-row > .admin-action { justify-self: end; }
+  /* A select takes its own line under its label, so a long job title is not cut off. */
+  .admin-row > .admin-select { flex-basis: 100%; }
 
   .admin-bill-table, .admin-bill-table tbody { display: block; }
   .admin-bill-table thead { display: none; }
