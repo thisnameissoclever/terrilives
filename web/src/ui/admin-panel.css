@@ -233,14 +233,17 @@
   .admin-slider-row > .admin-number { grid-column: 2; grid-row: 1; }
   .admin-slider-row > .admin-slider { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; }
   .admin-slider-row > :not(.admin-row-label, .admin-slider, .admin-number) { grid-column: 1 / -1; }
-  /* The word that names the value ("Likes", "how severe") sits under the label, beside the number box. */
-  .admin-slider-row > .admin-word { grid-column: 1; grid-row: 2; min-width: 0; }
-  .admin-slider-row:has(> .admin-word) > .admin-number { grid-row: 1 / span 2; }
-  .admin-slider-row:has(> .admin-word) > .admin-slider { grid-row: 3; }
+  /* The word or hint that names the value ("Likes", "$180 to $225") sits under the label, beside the number box. */
+  .admin-slider-row > :is(.admin-word, .admin-hint) { grid-column: 1; grid-row: 2; min-width: 0; }
+  .admin-slider-row:has(> :is(.admin-word, .admin-hint)) > .admin-number { grid-row: 1 / span 2; }
+  .admin-slider-row:has(> :is(.admin-word, .admin-hint)) > .admin-slider { grid-row: 3; }
+  /* A trait with a value: name and Remove on top, as for a trait without one; then the word and number; then the slider. */
   .admin-trait-row > *, .admin-trait-row > .admin-action, .admin-trait-row > .admin-row-label { order: 0; }
-  .admin-trait-row.admin-slider-row > .admin-action { justify-self: end; }
+  .admin-trait-row.admin-slider-row > .admin-action { grid-column: 2; grid-row: 1; justify-self: end; }
+  .admin-trait-row.admin-slider-row > .admin-number { grid-column: 2; grid-row: 2; }
+  .admin-trait-row.admin-slider-row > .admin-word { align-self: center; }
   /* A select takes its own line under its label, so a long job title is not cut off. */
-  .admin-row > .admin-select { flex-basis: 100%; }
+  .admin-row:not(.admin-trait-add) > .admin-select { flex-basis: 100%; }
 
   .admin-bill-table, .admin-bill-table tbody { display: block; }
   .admin-bill-table thead { display: none; }
