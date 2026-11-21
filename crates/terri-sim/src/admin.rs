@@ -210,6 +210,7 @@ mod career;
 mod edits;
 mod household;
 mod housemate;
+pub mod reads;
 mod relationships;
 
 impl Sim {

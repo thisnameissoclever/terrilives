@@ -1,0 +1,607 @@
+//! The admin panel across the wasm boundary (issue 312, [AP-tests-wasm] in
+//! `docs/specs/2026-11-20-admin-panel.md`): the shared wire fixture's bytes
+//! decode through `admin_apply`, each read has the layout its doc comment
+//! gives, a non-person reads empty, nothing an admin change does leaves a
+//! command in the queue, and a save refused for a queued admin command is
+//! an empty array rather than a panic.
+//!
+//! The release-wasm run of item 3 (open, one edit per tab, Undo twice,
+//! close, save, reload, compare hashes) is `web/tests/admin-wasm.test.ts`,
+//! which runs the built wasm through the bridge. These tests run natively;
+//! `docs/testing-protocol.md` section 8 asks for `--release` so a
+//! `debug_assert!` cannot stand in for a real check.
+use super::*;
+use terri_core::admin::{AdminChange, AdminEdit};
+use terri_core::{Agent, Habituation, ObjectDefId, SimId};
+
+const FIXTURE: &str = include_str!("../../terri-core/tests/fixtures/admin-wire.json");
+
+fn admin_bytes(edits: Vec<AdminEdit>) -> Vec<u8> {
+    postcard::to_allocvec(&SimCommand::Admin(Box::new(AdminChange { edits })))
+        .expect("an admin change serializes")
+}
+
+/// Every case of the shared fixture: its name and its bytes.
+fn fixture_cases() -> Vec<(String, Vec<u8>)> {
+    let mut name = String::new();
+    let mut cases = Vec::new();
+    for line in FIXTURE.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("\"name\": \"") {
+            name = rest.trim_end_matches(&['"', ','][..]).to_string();
+        } else if let Some(rest) = line.strip_prefix("\"bytes\": [") {
+            let bytes = rest
+                .trim_end_matches(&[']', ','][..])
+                .split(',')
+                .map(|byte| byte.trim().parse::<u8>().expect("a byte"))
+                .collect();
+            cases.push((name.clone(), bytes));
+        }
+    }
+    cases
+}
+
+fn opened() -> SimHandle {
+    let mut handle = SimHandle::from_lot();
+    assert_eq!(handle.admin_begin(), 0);
+    handle
+}
+
+/// Every living person's `SimId`, ascending.
+fn people(handle: &mut SimHandle) -> Vec<u32> {
+    let mut ids: Vec<u32> = handle
+        .sim
+        .world_mut()
+        .query::<(&Agent, &SimId)>()
+        .iter(handle.sim.world())
+        .map(|(_, id)| id.0)
+        .collect();
+    ids.sort_unstable();
+    ids
+}
+
+fn queue_len(handle: &SimHandle) -> usize {
+    handle.sim.world().resource::<CommandQueue>().len()
+}
+
+/// [AP-tests-wasm] item 1: the shared fixture's bytes, which the Rust and
+/// TypeScript encoders are both held to, decode through `admin_apply` to the
+/// change the ordinary decoder reads from them, and the world ends up as it
+/// does when that change is applied directly.
+#[test]
+fn the_shared_fixtures_bytes_decode_through_admin_apply_to_the_same_changes() {
+    let cases = fixture_cases();
+    assert!(cases.len() > 26, "every edit code and a two edit change");
+    for (name, bytes) in cases {
+        let SimCommand::Admin(expected) =
+            postcard::from_bytes::<SimCommand>(&bytes).expect("the fixture decodes")
+        else {
+            panic!("{name}: not an admin command");
+        };
+        assert_eq!(
+            postcard::to_allocvec(&SimCommand::Admin(expected.clone())).unwrap(),
+            bytes,
+            "{name}: the bytes are the change's own encoding"
+        );
+        let mut through_wasm = opened();
+        let mut direct = opened();
+        let reported = through_wasm.admin_apply(&bytes);
+        assert_ne!(reported[2], 19, "{name}: read as an admin change");
+        match direct.sim.admin_apply(*expected) {
+            Ok(depth) => assert_eq!(reported, vec![1, 0, 0, depth as u32], "{name}"),
+            Err(refusal) => assert_eq!(
+                reported,
+                vec![0, refusal.edit, u32::from(refusal.reason.code()), 0],
+                "{name}"
+            ),
+        }
+        assert_eq!(
+            through_wasm.sim.world_hash(),
+            direct.sim.world_hash(),
+            "{name}: the same world"
+        );
+        assert_eq!(queue_len(&through_wasm), 0, "{name}: nothing left queued");
+    }
+}
+
+/// [AP-tests-wasm] item 2: `admin_apply` drains what it stages, whether the
+/// change applies or is refused, and refuses bytes that are not exactly one
+/// admin change without staging anything.
+#[test]
+fn admin_apply_leaves_the_queue_empty_and_refuses_what_is_not_one_change() {
+    let mut handle = opened();
+    let first = people(&mut handle)[0];
+    let hunger = |value| AdminEdit::SetNeed {
+        sim: first,
+        need: 0,
+        value,
+    };
+    assert_eq!(
+        handle.admin_apply(&admin_bytes(vec![hunger(42.0)])),
+        vec![1, 0, 0, 1]
+    );
+    assert_eq!(queue_len(&handle), 0);
+    // A refusal names the edit and the reason, and the depth stays.
+    assert_eq!(
+        handle.admin_apply(&admin_bytes(vec![
+            hunger(40.0),
+            AdminEdit::SetNeed {
+                sim: u32::MAX,
+                need: 1,
+                value: 10.0,
+            },
+        ])),
+        vec![0, 1, 2, 1],
+        "the second edit names nobody: refusal 2 at edit 1"
+    );
+    assert_eq!(queue_len(&handle), 0);
+    assert_eq!(handle.admin_undo_depth(), 1);
+
+    let hash = handle.sim.world_hash();
+    let good = admin_bytes(vec![hunger(30.0)]);
+    let mut trailing = good.clone();
+    trailing.push(0);
+    let ordinary = postcard::to_allocvec(&SimCommand::Select(None)).unwrap();
+    for (what, bytes) in [
+        ("empty", Vec::new()),
+        ("truncated", good[..good.len() - 1].to_vec()),
+        ("trailing", trailing),
+        ("an ordinary command", ordinary),
+    ] {
+        assert_eq!(handle.admin_apply(&bytes), vec![0, 0, 19, 1], "{what}");
+        assert_eq!(queue_len(&handle), 0, "{what}");
+    }
+    assert_eq!(handle.sim.world_hash(), hash);
+}
+
+/// The ordinary entry point never admits admin bytes, even with the panel
+/// open, and `admin_apply` with no panel open is refused as 1 and stages
+/// nothing.
+#[test]
+fn only_admin_apply_admits_a_change_and_only_while_the_panel_is_open() {
+    let mut handle = SimHandle::from_lot();
+    let first = people(&mut handle)[0];
+    let bytes = admin_bytes(vec![AdminEdit::SetFunds { cents: 100 }]);
+    assert_eq!(handle.admin_apply(&bytes), vec![0, 0, 1, 0], "no session");
+    assert_eq!(queue_len(&handle), 0);
+    assert_eq!(handle.admin_begin(), 0);
+    assert!(!handle.enqueue_command(&bytes), "open or not, refused here");
+    assert_eq!(queue_len(&handle), 0);
+    assert_eq!(handle.admin_apply(&bytes), vec![1, 0, 0, 1]);
+    handle.admin_end();
+    assert_eq!(handle.admin_undo_depth(), 0, "closed: no journal");
+    assert_eq!(handle.admin_undo(), 1, "closed: nothing to undo");
+    assert!(first < u32::MAX);
+}
+
+/// The session codes: 0 opened, 3 already open, 1 while Build is open, and
+/// Build refuses to open during a session with its own failure 16.
+#[test]
+fn admin_begin_and_build_refuse_each_other() {
+    let mut handle = SimHandle::from_lot();
+    assert_eq!(handle.admin_begin(), 0);
+    assert_eq!(handle.admin_begin(), 3);
+    assert_eq!(handle.begin_build(), vec![1, 1, 16, 0], "AdminActive is 16");
+    handle.admin_end();
+    assert_eq!(
+        handle.begin_build()[1],
+        0,
+        "Build opens once the panel is closed"
+    );
+    assert_eq!(handle.admin_begin(), 1);
+}
+
+/// Undo's codes: 1 with nothing to undo, 0 when it steps back, and the depth
+/// follows the journal.
+#[test]
+fn admin_undo_steps_back_one_change_at_a_time() {
+    let mut handle = opened();
+    assert_eq!(handle.admin_undo(), 1);
+    let baseline = handle.sim.world_hash();
+    assert_eq!(
+        handle.admin_apply(&admin_bytes(vec![AdminEdit::AdjustFunds { cents: 500 }])),
+        vec![1, 0, 0, 1]
+    );
+    assert_eq!(
+        handle.admin_apply(&admin_bytes(vec![AdminEdit::AdjustFunds { cents: 700 }])),
+        vec![1, 0, 0, 2]
+    );
+    assert_eq!(handle.admin_undo_depth(), 2);
+    assert_eq!(handle.admin_undo(), 0);
+    assert_eq!(handle.admin_undo_depth(), 1);
+    assert_eq!(handle.admin_undo(), 0);
+    assert_eq!(handle.sim.world_hash(), baseline);
+    assert_eq!(handle.admin_undo(), 1);
+}
+
+/// `admin_person`: needs, satisfaction and the job fields, in the order its
+/// doc comment gives.
+#[test]
+fn admin_person_reads_needs_satisfaction_and_the_job() {
+    let mut handle = opened();
+    let ids = people(&mut handle);
+    let first = ids[0];
+    let applied = handle.admin_apply(&admin_bytes(vec![
+        AdminEdit::SetNeed {
+            sim: first,
+            need: 3,
+            value: 61.0,
+        },
+        AdminEdit::SetSatisfaction {
+            sim: first,
+            value: 44.0,
+        },
+    ]));
+    assert_eq!(applied[0], 1);
+    let row = handle.admin_person(first);
+    assert_eq!(row.len(), 18);
+    assert_eq!(row[3], 61.0, "Bladder is the fourth need");
+    assert_eq!(row[7], 44.0, "satisfaction follows the seven needs");
+    let index = terri_sim::edit::living_entity(handle.sim.world(), first)
+        .unwrap()
+        .index_u32();
+    for (need, value) in handle.needs_of(index).iter().enumerate() {
+        assert_eq!(
+            row[need],
+            f64::from(*value),
+            "need {need} agrees with needs_of"
+        );
+    }
+    // The shipped household already works: row 0 at the standard shift.
+    assert_eq!(row[8], 0.0, "career row 0");
+    assert_eq!(row[9], 0.0, "the standard shift");
+    assert!(row[10] > 0.0, "pay");
+    assert!(row[16] <= row[10] && row[10] <= row[17], "pay in its range");
+
+    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetJob {
+        sim: first,
+        job: None,
+        shift: 0,
+    }]));
+    assert_eq!(applied[0], 1, "{applied:?}");
+    assert_eq!(
+        handle.admin_person(first)[8..],
+        [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+        "no job: row -1, nothing else, the job search on"
+    );
+
+    // A job: the level's row, the standard shift, the level's starting pay,
+    // middling satisfaction and the range the pay and weeks take.
+    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetJob {
+        sim: first,
+        job: Some(0),
+        shift: 0,
+    }]));
+    assert_eq!(applied[0], 1, "{applied:?}");
+    let row = handle.admin_person(first);
+    assert_eq!(row[8], 0.0, "career row 0");
+    assert_eq!(row[9], 0.0, "the standard shift");
+    assert!(row[10] > 0.0, "pay");
+    assert_eq!(row[11], 50.0, "job satisfaction starts middling");
+    assert_eq!((row[12], row[13]), (0.0, 0.0), "no weeks yet");
+    assert_eq!(row[14], 1.0, "job search on");
+    assert!(row[15] >= 1.0, "advance_weeks");
+    assert!(row[16] <= row[10] && row[10] <= row[17], "pay in its range");
+    // Setting each field reads back. The three career counters share one
+    // unit, so each is its own change.
+    for edit in [
+        AdminEdit::SetJobSatisfaction {
+            sim: first,
+            value: 12.5,
+        },
+        AdminEdit::SetGoodWeeks {
+            sim: first,
+            weeks: 1,
+        },
+        AdminEdit::SetPoorWeeks {
+            sim: first,
+            weeks: 2,
+        },
+        AdminEdit::SetJobSearch {
+            sim: first,
+            on: false,
+        },
+    ] {
+        let applied = handle.admin_apply(&admin_bytes(vec![edit.clone()]));
+        assert_eq!(applied[0], 1, "{edit:?}: {applied:?}");
+    }
+    let row = handle.admin_person(first);
+    assert_eq!(&row[11..15], &[12.5, 1.0, 2.0, 0.0]);
+}
+
+/// Anyone but a living housemate reads empty from every per-person read:
+/// a `SimId` nobody has.
+#[test]
+fn reads_are_empty_for_anyone_who_is_not_a_living_housemate() {
+    let handle = opened();
+    for nobody in [u32::MAX, 987_654] {
+        assert!(handle.admin_person(nobody).is_empty());
+        assert!(handle.admin_repetition(nobody).is_empty());
+        assert!(handle.admin_moodlets(nobody).is_empty());
+        assert!(handle.admin_timers(nobody).is_empty());
+    }
+}
+
+/// `admin_repetition`: `[object, row, value]` per entry, and a set value
+/// reads back.
+#[test]
+fn admin_repetition_lists_each_entry() {
+    let mut handle = opened();
+    let first = people(&mut handle)[0];
+    assert!(handle.admin_repetition(first).is_empty(), "none yet");
+    let pack = handle.sim.world().resource::<terri_sim::Content>().0;
+    let (object, row) = (0..pack.objects.len() as u32)
+        .find(|&object| !terri_sim::action_rows::rows(pack, ObjectDefId(object)).is_empty())
+        .map(|object| (object, 0))
+        .expect("an object with an action row");
+    let entity = terri_sim::edit::living_entity(handle.sim.world(), first).unwrap();
+    // A person carries the component only once they have done something.
+    if handle.sim.world().get::<Habituation>(entity).is_none() {
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(entity)
+            .insert(Habituation::default());
+    }
+    handle
+        .sim
+        .world_mut()
+        .get_mut::<Habituation>(entity)
+        .expect("inserted above")
+        .bump(ObjectDefId(object), row, 1.5, pack.tuning.habituation_max);
+    assert_eq!(
+        handle.admin_repetition(first),
+        vec![f64::from(object), f64::from(row), 1.5]
+    );
+    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetRepetition {
+        sim: first,
+        object,
+        row,
+        value: 2.25,
+    }]));
+    assert_eq!(applied[0], 1, "{applied:?}");
+    assert_eq!(
+        handle.admin_repetition(first),
+        vec![f64::from(object), f64::from(row), 2.25]
+    );
+}
+
+/// `admin_timers` and `admin_moodlets`: a fight timer is code 1 with the tick
+/// it ends, the moodlet read says where each moodlet comes from, and its
+/// rows line up with the mood read's labels.
+#[test]
+fn admin_timers_and_moodlets_say_what_runs_and_where_it_comes_from() {
+    let mut handle = opened();
+    let ids = people(&mut handle);
+    let first = ids[0];
+    assert!(handle.admin_timers(first).is_empty());
+    let until = handle.sim.world().resource::<terri_core::SimClock>().tick + 500;
+    handle
+        .sim
+        .world_mut()
+        .resource_mut::<terri_sim::fights::Fights>()
+        .timers
+        .record(SimId(first), until);
+    assert_eq!(handle.admin_timers(first), vec![1.0, until as f64]);
+
+    // Starving: Hunger at 0 is a critical-need moodlet from the need.
+    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::SetNeed {
+        sim: first,
+        need: 0,
+        value: 0.0,
+    }]));
+    assert_eq!(applied[0], 1);
+    let index = terri_sim::edit::living_entity(handle.sim.world(), first)
+        .unwrap()
+        .index_u32();
+    let rows = handle.admin_moodlets(first);
+    let labels = handle.mood_summary_of(index);
+    assert_eq!(rows.len() % 4, 0);
+    assert_eq!(
+        rows.len() / 4 + 1,
+        labels.len(),
+        "overall label, then one per row"
+    );
+    let scores = handle.mood_snapshot_of(index);
+    let row_of = |label: &str| {
+        let at = labels.iter().position(|l| l == label).expect(label) - 1;
+        &rows[at * 4..at * 4 + 4]
+    };
+    let hunger = row_of("Starving");
+    let critical = handle
+        .sim
+        .world()
+        .resource::<terri_sim::Content>()
+        .0
+        .tuning
+        .mood_critical_need_level;
+    assert_eq!(hunger[0], 20.0, "critical, need 0");
+    assert_eq!(hunger[1], f64::from(critical));
+    assert_eq!(
+        hunger[2],
+        f64::from(scores[labels.iter().position(|l| l == "Starving").unwrap()])
+    );
+    assert_eq!(hunger[3], -1.0, "a need has no end");
+    let fight = row_of("Had a fight");
+    assert_eq!(
+        (fight[0], fight[3]),
+        (41.0, until as f64),
+        "timer 1 ends at its tick"
+    );
+}
+
+/// `admin_bills`: the count, each bill's seven numbers, then the due days.
+#[test]
+fn admin_bills_lists_each_bill_and_the_due_days() {
+    let mut handle = opened();
+    let empty = handle.admin_bills();
+    let first_count = empty[0] as usize;
+    let first_options = empty.len() - 1 - first_count * 7;
+    assert!(
+        first_options >= 1,
+        "today's month start is always an option"
+    );
+    let applied = handle.admin_apply(&admin_bytes(vec![AdminEdit::AddBill {
+        due_day: 0,
+        kind: 3,
+        amount_cents: 12_345,
+        late_fee_cents: 0,
+    }]));
+    assert_eq!(applied[0], 1, "{applied:?}");
+    let rows = handle.admin_bills();
+    let count = rows[0] as usize;
+    assert_eq!(count, first_count + 1);
+    assert_eq!(
+        rows.len() - 1 - count * 7,
+        first_options,
+        "options are not rows"
+    );
+    let bill = rows[1..1 + count * 7]
+        .chunks(7)
+        .find(|bill| bill[0] == 0.0 && bill[1] == 3.0)
+        .expect("the added bill");
+    assert_eq!(bill[2], 12_345.0, "amount");
+    assert_eq!(bill[3], 0.0, "no fee");
+    assert_eq!(bill[4], -1.0, "unpaid");
+    assert!(bill[5] >= 0.0, "fee cap");
+    assert!(bill[6] >= bill[0], "overdue from at or after due");
+    let options = &rows[1 + count * 7..];
+    assert_eq!(
+        options[0],
+        options.iter().cloned().fold(f64::MIN, f64::max),
+        "newest first"
+    );
+    assert!(options.windows(2).all(|pair| pair[0] > pair[1]));
+    assert!(options.contains(&0.0), "day 0 is a month start");
+}
+
+/// `skill_practice_for`: what comes back reads as the level and fraction
+/// asked for, and nonsense is -1.
+#[test]
+fn skill_practice_for_reads_back_as_the_level_and_fraction() {
+    let mut handle = SimHandle::from_lot();
+    let first = people(&mut handle)[0];
+    let index = terri_sim::edit::living_entity(handle.sim.world(), first)
+        .unwrap()
+        .index_u32();
+    let levels = handle.skill_levels();
+    assert!(!levels.is_empty());
+    let mut panel = opened();
+    for (skill, top) in levels.iter().enumerate() {
+        for level in 0..=*top {
+            for fraction in [0.0f32, 0.25, 0.5, 0.99] {
+                if level == *top && fraction != 0.0 {
+                    assert_eq!(
+                        handle.skill_practice_for(skill as u32, level, fraction),
+                        -1.0
+                    );
+                    continue;
+                }
+                let practice = handle.skill_practice_for(skill as u32, level, fraction);
+                assert!(
+                    practice >= 0.0,
+                    "skill {skill} level {level} fraction {fraction}"
+                );
+                let applied = panel.admin_apply(&admin_bytes(vec![AdminEdit::SetSkillPractice {
+                    sim: first,
+                    skill: skill as u32,
+                    practice,
+                }]));
+                assert_eq!(
+                    applied[0], 1,
+                    "{applied:?}: the practice is within the ladder"
+                );
+                let standing = &panel.skills_of(index)[skill * 3..skill * 3 + 3];
+                assert_eq!(
+                    standing[0], level as f32,
+                    "skill {skill} level {level} fraction {fraction}"
+                );
+                assert!(
+                    (standing[1] - fraction).abs() < 1e-3,
+                    "skill {skill} level {level}: {} for {fraction}",
+                    standing[1]
+                );
+            }
+        }
+        assert_eq!(handle.skill_practice_for(skill as u32, top + 1, 0.0), -1.0);
+    }
+    assert_eq!(
+        handle.skill_practice_for(levels.len() as u32, 0, 0.0),
+        -1.0,
+        "no such skill"
+    );
+    assert_eq!(
+        handle.skill_practice_for(0, 0, 1.0),
+        -1.0,
+        "fraction 1 is the next level"
+    );
+    assert_eq!(handle.skill_practice_for(0, 0, -0.1), -1.0);
+    assert_eq!(handle.skill_practice_for(0, 0, f32::NAN), -1.0);
+}
+
+/// [AP-save-queue] item 3 at the wasm save path: a queue that holds an admin
+/// command is refused as an empty array, not a panic, nothing is written
+/// and the same world saves once the queue is clear.
+#[test]
+fn a_save_with_an_admin_command_queued_is_refused_cleanly() {
+    let mut handle = SimHandle::from_lot();
+    let saved = handle.save_bytes();
+    assert!(!saved.is_empty());
+    handle
+        .sim
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::Admin(Box::new(AdminChange {
+            edits: vec![AdminEdit::SetFunds { cents: 1 }],
+        })));
+    assert!(handle.save_bytes().is_empty(), "refused, not written");
+    assert!(
+        !handle.load_bytes(&handle.save_bytes()),
+        "empty is not a save"
+    );
+    handle
+        .sim
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .drain()
+        .for_each(drop);
+    assert_eq!(
+        handle.save_bytes(),
+        saved,
+        "saves again once the queue is clear"
+    );
+}
+
+/// A save taken while the panel is open holds the edits applied so far and
+/// no session: it loads as an ordinary game with the panel closed, and the
+/// loaded world hashes as the live one.
+#[test]
+fn a_save_taken_with_the_panel_open_loads_with_the_edits_and_no_session() {
+    let mut handle = opened();
+    let first = people(&mut handle)[0];
+    for edit in [
+        AdminEdit::SetNeed {
+            sim: first,
+            need: 2,
+            value: 17.0,
+        },
+        AdminEdit::SetFunds { cents: 123_456 },
+        AdminEdit::SetFeeling {
+            from: first,
+            to: people(&mut handle)[1],
+            value: -0.5,
+        },
+    ] {
+        assert_eq!(handle.admin_apply(&admin_bytes(vec![edit]))[0], 1);
+    }
+    let bytes = handle.save_bytes();
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    assert_eq!(loaded.sim.world_hash(), handle.sim.world_hash());
+    assert_eq!(loaded.admin_undo_depth(), 0);
+    assert_eq!(
+        loaded.admin_begin(),
+        0,
+        "the loaded game opens a fresh session"
+    );
+}

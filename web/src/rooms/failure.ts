@@ -27,7 +27,7 @@ export function parseBuildFailureReport(json: string): BuildFailureReport {
 export const FAILURE_NAMES: readonly string[] = ['Unknown error', 'Build is closed', 'Build is already open', 'Not enough memory',
   'Room counter exhausted', 'Room no longer exists', 'Invalid room name', 'Room choices refused', 'Build replay differs',
   'Build draft differs', 'Build validation failed', 'Review is out of date', 'Command unavailable during Build',
-  'Invalid room request', 'Room request too large', 'Bed left outside'];
+  'Invalid room request', 'Room request too large', 'Bed left outside', 'Admin panel open'];
 
 /** The failure a Confirm reports when it would leave a bed outside every room ([WB-beds]). */
 export const BED_OUTSIDE = 15;
@@ -49,6 +49,8 @@ const WHAT: Readonly<Record<number, string>> = {
   14: 'The room request is too large.',
   // Issue 298, [WB-beds]: functional text proposed for the owner's review.
   15: 'A bed would be left outside.',
+  // Issue 312: functional text proposed for the owner's review.
+  16: 'The admin panel is open. Close it to use Build mode.',
 };
 
 /**

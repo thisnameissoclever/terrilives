@@ -1,6 +1,7 @@
 import { CURRENT_SAVE_VERSION } from '../src/storage/save-header.js';
 import { describe, expect, it, vi } from 'vitest';
 
+import { SaveRefusedError } from '../src/bridge.js';
 import type { SaveStore } from '../src/storage/save-store.js';
 import {
   PersistenceController,
@@ -298,6 +299,24 @@ describe('PersistenceController', () => {
     expect(await controller.load()).toBe(false);
     expect(view.textContent).toContain('Current game and saved data kept. Saving paused.');
     expect(report).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a save the simulation refuses and stores nothing (issue 312, [AP-save-queue])', async () => {
+    const view = status();
+    const report = vi.fn();
+    const backend = store(null);
+    const game = sim();
+    const refusal = new SaveRefusedError();
+    game.saveBytes = () => { throw refusal; };
+    const controller = new PersistenceController(backend, game, view, report);
+
+    expect(await controller.save()).toBe(false);
+    expect(backend.saves).toEqual([]);
+    expect(view.textContent).toBe('Save failed. The game is still running.');
+    expect(view.attributes.get('data-kind')).toBe('error');
+    expect(report).toHaveBeenCalledWith(refusal);
+    expect(await controller.exportSave(() => { throw new Error('nothing to deliver'); })).toBe(false);
+    expect(report).toHaveBeenCalledTimes(2);
   });
 
   it('autosaves once when each new day is first observed', async () => {

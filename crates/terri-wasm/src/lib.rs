@@ -14,6 +14,7 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+mod admin_exports;
 #[cfg(test)]
 mod book_commerce_tests;
 mod browser_bills;
@@ -2688,9 +2689,19 @@ impl SimHandle {
 
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
+    ///
+    /// **Empty means refused**, never a save: a queue that holds an admin
+    /// command cannot be saved ([AP-save-queue] in
+    /// `docs/specs/2026-11-20-admin-panel.md`), and a refusal is an empty
+    /// array rather than a panic inside the export. No valid save is empty
+    /// (it always carries a header), `load_bytes` refuses an empty array,
+    /// and the shell's `saveBytes` turns it into a thrown error so no caller
+    /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v24())
-            .expect("SaveSnapshotV24 serializes");
+        let Ok(snapshot) = self.sim.try_save_snapshot_v24() else {
+            return Vec::new();
+        };
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV24 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -11192,6 +11203,8 @@ fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
 #[cfg(test)]
 mod shift_save_tests;
 
+#[cfg(test)]
+mod admin_boundary_tests;
 #[cfg(test)]
 mod admin_queue_tests;
 #[cfg(test)]

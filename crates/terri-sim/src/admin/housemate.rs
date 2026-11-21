@@ -27,31 +27,36 @@ fn now(world: &World) -> u64 {
     world.resource::<SimClock>().tick
 }
 
-/// Whether timer `timer` ([`terri_core::admin::ADMIN_TIMER_COUNT`] lists them)
-/// is running for `sim` now.
-fn timer_running(world: &World, sim: SimId, timer: u8) -> bool {
+/// The tick timer `timer` ([`terri_core::admin::ADMIN_TIMER_COUNT`] lists
+/// them) ends for `sim`, while it is running now.
+pub(super) fn timer_end(world: &World, sim: SimId, timer: u8) -> Option<u64> {
     let now = now(world);
-    let active = |timers: &MoodletTimers| timers.active(sim, now);
+    let ends = |timers: &MoodletTimers| {
+        timers
+            .entries()
+            .iter()
+            .find(|(id, until)| *id == sim && now < *until)
+            .map(|&(_, until)| until)
+    };
     match timer {
-        0 => world
-            .get_resource::<BurntMeals>()
-            .is_some_and(|t| active(&t.0)),
-        1 => world
-            .get_resource::<Fights>()
-            .is_some_and(|t| active(&t.timers)),
+        0 => world.get_resource::<BurntMeals>().and_then(|t| ends(&t.0)),
+        1 => world.get_resource::<Fights>().and_then(|t| ends(&t.timers)),
         2 => world
             .get_resource::<Careers>()
-            .is_some_and(|c| active(&c.promoted)),
+            .and_then(|c| ends(&c.promoted)),
         3 => world
             .get_resource::<Careers>()
-            .is_some_and(|c| active(&c.raised)),
+            .and_then(|c| ends(&c.raised)),
         4 => world
             .get_resource::<Careers>()
-            .is_some_and(|c| active(&c.demoted)),
-        _ => world
-            .get_resource::<Careers>()
-            .is_some_and(|c| active(&c.fired)),
+            .and_then(|c| ends(&c.demoted)),
+        _ => world.get_resource::<Careers>().and_then(|c| ends(&c.fired)),
     }
+}
+
+/// Whether timer `timer` is running for `sim` now.
+fn timer_running(world: &World, sim: SimId, timer: u8) -> bool {
+    timer_end(world, sim, timer).is_some()
 }
 
 /// Drops the person's row from timer `timer`, as the moodlet's own end does.

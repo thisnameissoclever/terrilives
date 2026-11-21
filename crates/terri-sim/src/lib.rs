@@ -103,7 +103,7 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
-pub use mood::{MoodSnapshot, Moodlet};
+pub use mood::{MoodSnapshot, MoodSource, Moodlet};
 pub use save::{SaveError, MAX_TEXT_BYTES};
 
 /// The content pack, as a resource so systems can resolve object ids and
