@@ -149,6 +149,7 @@
 .admin-trait-row > .admin-row-label { order: 0; }
 .admin-trait-row > .admin-action { order: 1; margin-left: auto; }
 .admin-trait-row.admin-slider-row > .admin-row-label { flex: 1 1 calc(100% - 7em); }
+.admin-trait-row:not(.admin-slider-row) > .admin-word { order: 0; }
 .admin-action { min-height: 32px; padding: 0 12px; }
 .admin-check { width: 18px; height: 18px; }
 
@@ -173,7 +174,7 @@
 .admin-tone-neutral { color: var(--hud-muted, #9aa3ad); }
 
 /* The Household tab ([T12]): funds and time at the left, the bill table at the right. */
-.admin-household { display: grid; grid-template-columns: minmax(0, 16rem) minmax(0, 1fr); gap: 14px; align-items: start; }
+.admin-household { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 14px; align-items: start; }
 @media (width <= 900px) { .admin-household { grid-template-columns: minmax(0, 1fr); } }
 .admin-bills-column { min-width: 0; }
 .admin-funds-row .admin-money { flex: 0 1 11em; }
@@ -190,7 +191,9 @@
 .admin-bill-money { white-space: nowrap; }
 .admin-bill-money .admin-number { width: 5em; }
 .admin-bill-due .admin-select, .admin-bill-name .admin-select { width: 100%; }
-.admin-bill-due .admin-select { min-width: 9.5em; }
+.admin-bill-due .admin-select { min-width: 10em; }
+.admin-bill-actions > .admin-action { padding: 0 8px; font-size: 13px; }
+.admin-household .admin-row-label { flex-basis: 7em; }
 .admin-bill-status { min-width: 7em; font-size: 12px; }
 .admin-bill-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px 6px; border-top: 0; }
 .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { border-top: 1px solid var(--hud-edge, #2c2c36); }
