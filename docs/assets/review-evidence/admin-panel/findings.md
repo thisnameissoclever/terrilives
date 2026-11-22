@@ -73,3 +73,5 @@ Needs now build up one Mood from needs balance instead of separate need moodlets
 The same seven pictures were captured again from ab1a65d4c, which drops the rule under the last mood row; `layout-check.js` returned no findings and each shows one rule at the bottom of the Mood card. Older stills in this folder that show the Mood card predate that fix.
 
 All six admin guide pictures, their crops and the five stills above were captured again from 5dc36064b, which gives every card heading row a button's height so card titles line up; `layout-check.js` returned no findings, and every desktop card title measured 19 px below its card's top edge. The older stills in this folder also predate that heading fix.
+
+The three phone guide pictures were captured again from 2a93b6086, which gives every card title a 44 px line on touch-sized screens. Every card title now starts 25 px below its card's top edge, folded or open, but `layout-check.js` reports a top space larger than the side space on cards with no button beside the title (Life satisfaction, the two relationship cards, Funds and Time); that is open with the panel owner.
