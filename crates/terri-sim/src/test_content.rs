@@ -358,6 +358,7 @@ pub fn pack_with_circadian(
 pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         books: Vec::new(),
+        topics: terri_data::pack().topics.clone(),
         reading: None,
         traits: Vec::new(),
         decay_per_tick: terri_data::pack().decay_per_tick,

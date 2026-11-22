@@ -12,6 +12,8 @@ pub use weather_tuning::WeatherTuning;
 
 #[path = "src/books.rs"]
 mod books;
+#[path = "src/topics.rs"]
+mod topics;
 
 // The same modules the library and its tests use, included rather than
 // copied. A second validator here would drift from the one the tests
@@ -312,6 +314,17 @@ fn main() {
         pack.reading.is_some(),
         "book content requires reading tuning"
     );
+
+    // Topics compile after everything else because a subject's sources name
+    // compiled skills and affinity kinds. The frozen packs below keep none.
+    let topics_path = root.join("topics.toml");
+    println!("cargo:rerun-if-changed={}", topics_path.display());
+    let topics_src = fs::read_to_string(&topics_path)
+        .unwrap_or_else(|e| panic!("cannot read {}: {e}", topics_path.display()));
+    let topics = toml::from_str(&topics_src)
+        .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", topics_path.display()));
+    pack.topics = topics::compile_topics(topics, &pack.skills, &pack.affinities)
+        .unwrap_or_else(|e| panic!("topic content is invalid: {e}"));
 
     let bytes = postcard::to_allocvec(&pack).expect("pack serialises");
     let out = PathBuf::from(env::var("OUT_DIR").unwrap()).join("content_pack.postcard");
