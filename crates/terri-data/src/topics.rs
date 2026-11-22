@@ -371,6 +371,14 @@ pub fn compile_topics(
         if def.icon.trim().is_empty() {
             return Err(invalid(&def.id, "a topic needs an icon"));
         }
+        // The wasm table is one tab separated line per row.
+        let breaks = |text: &str| text.contains(['\t', '\n', '\r']);
+        if breaks(&def.icon) || breaks(&def.label) {
+            return Err(invalid(
+                &def.id,
+                "an icon or label cannot hold a tab or line break",
+            ));
+        }
         rows.push(compile_row(def, kind, skills, affinities)?);
     }
     check_tags_unique(&rows)?;
@@ -398,6 +406,12 @@ impl TopicRef {
                 0
             }
     }
+}
+
+/// Whether a saved tag names a random fight.
+#[allow(dead_code)]
+pub fn is_random_fight_tag(tag: &str) -> bool {
+    tag.starts_with(RANDOM_FIGHT_TAG_PREFIX)
 }
 
 // The runtime lookups below are never called by the build script, which

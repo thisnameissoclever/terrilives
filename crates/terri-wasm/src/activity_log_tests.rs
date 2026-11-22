@@ -121,3 +121,47 @@ fn reaction_bands_are_the_likes_and_dislikes_edges() {
         vec![tuning.affinity_band_loves, tuning.affinity_band_likes]
     );
 }
+
+#[test]
+fn conversation_topic_table_crosses_as_one_tab_separated_line_per_row() {
+    let handle = SimHandle::from_lot();
+    let rows = &handle.sim.world().resource::<terri_sim::Content>().0.topics;
+    let text = handle.conversation_topic_table();
+    let lines: Vec<&str> = text.split('\n').collect();
+    assert_eq!(lines.len(), rows.len());
+    for (line, row) in lines.iter().zip(rows) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(
+            fields,
+            [row.kind.name(), row.icon.as_str(), row.label.as_str()]
+        );
+    }
+    assert!(lines.iter().any(|line| line.starts_with("subject\t")));
+}
+
+#[test]
+fn activity_log_topic_rows_name_a_topic_value_for_each_label() {
+    let handle = SimHandle::from_lot();
+    let names = handle.sim.activity_log_labels();
+    let values = handle.activity_log_topic_rows();
+    assert_eq!(values.len(), names.len(), "one value per label");
+    let value_of = |label: &str| {
+        let at = names.iter().position(|name| name == label).unwrap();
+        values[at]
+    };
+    let rows = &handle.sim.world().resource::<terri_sim::Content>().0.topics;
+    let row_of = |value: u32| &rows[((value & 0xffff) - 1) as usize].id;
+    assert_eq!(row_of(value_of("reading")), "reading");
+    assert_eq!(row_of(value_of("food")), "eating");
+    assert_eq!(row_of(value_of("fight-privacy")), "fight-privacy");
+    let random = value_of("fight-random-12");
+    assert_eq!(row_of(random), "showers");
+    assert_eq!(
+        random & (1 << 16),
+        1 << 16,
+        "a random fight carries the fight bit"
+    );
+    assert_eq!(value_of("food") & (1 << 16), 0);
+    assert_eq!(value_of("cause:nuisance"), 0, "a cause is not a topic");
+    assert!(values.iter().any(|&value| value == 0));
+}

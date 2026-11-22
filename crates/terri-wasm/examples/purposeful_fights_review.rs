@@ -347,7 +347,20 @@ fn main() {
         .iter()
         .position(|id| *id == person(&sim, TIM).index_u32())
         .unwrap();
-    assert_eq!(sim.render_buffer().conversation_topics[row], 24);
+    // The render column carries the topic row plus one; the dishes fight's
+    // row is the one whose reason is `fight-dishes`.
+    let dishes_row = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .topics
+        .iter()
+        .position(|topic| topic.reason == "fight-dishes")
+        .expect("the dishes fight has a topic row");
+    assert_eq!(
+        sim.render_buffer().conversation_topics[row],
+        dishes_row as u32 + 1
+    );
     let running = write_phase(&directory, "running", &sim);
     // A real protected order keeps the initiator from volunteering for the recipient's work.
     queue_tv(&mut sim, TIM, television, tv_interaction, 12);

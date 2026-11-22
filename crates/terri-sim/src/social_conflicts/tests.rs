@@ -272,12 +272,13 @@ fn issue314_only_a_running_player_fight_preserves_a_removed_nuisance_source() {
     );
     episodes.topics.insert(
         a,
-        crate::social_episode::Topic {
-            code: 31,
-            tag: "fight-nuisance".into(),
-            initiator_preference: -1.,
-            listener_preference: -1.,
-        },
+        crate::social_episode::Topic::new(
+            terri_data::pack(),
+            31,
+            "fight-nuisance".into(),
+            -1.,
+            -1.,
+        ),
     );
     let context = SavedFightContext {
         initiator: SavedOrderActor::Sim(a_id.0),

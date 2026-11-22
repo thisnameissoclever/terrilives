@@ -306,3 +306,18 @@ fn a_random_fight_draws_its_activity_row_with_the_fight_bit() {
         "a random fight about the generic code names no subject"
     );
 }
+
+#[test]
+fn a_label_or_icon_with_a_tab_or_line_break_is_refused() {
+    for (field, value) in [("label", "a\tb"), ("label", "a\nb"), ("icon", "Ta\tlk")] {
+        let (label, icon) = if field == "label" {
+            (value, "Talk")
+        } else {
+            ("x", value)
+        };
+        let reason = refusal(&format!(
+            "[[topic]]\nid = \"row\"\nkind = \"activity\"\nlabel = \"{label}\"\nicon = \"{icon}\"\ncode = 9\n"
+        ));
+        assert!(reason.contains("tab"), "{field}: {reason}");
+    }
+}

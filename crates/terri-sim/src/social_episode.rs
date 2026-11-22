@@ -23,12 +23,45 @@ pub struct SocialEpisodes {
     pub(crate) topics: BTreeMap<Entity, Topic>,
     pub(crate) communal: BTreeMap<Entity, CommunalEpisode>,
 }
+/// What a conversation is about. `code` and `tag` are what a save holds;
+/// `row` is the topic's place in `content/topics.toml`, resolved from them
+/// when the topic is made or loaded, and is never saved or hashed.
 #[derive(Clone, Debug)]
 pub(crate) struct Topic {
     pub code: u32,
     pub tag: String,
+    pub row: u16,
     pub initiator_preference: f32,
     pub listener_preference: f32,
+}
+
+impl Topic {
+    pub(crate) fn new(
+        pack: &terri_data::ContentPack,
+        code: u32,
+        tag: String,
+        initiator_preference: f32,
+        listener_preference: f32,
+    ) -> Self {
+        let row = terri_data::topics::resolve_topic(&pack.topics, &tag).row;
+        Self {
+            code,
+            tag,
+            row,
+            initiator_preference,
+            listener_preference,
+        }
+    }
+
+    /// The render column's value for this topic: its row plus one, with the
+    /// random-fight bit for an argument about an everyday activity.
+    pub(crate) fn render_value(&self) -> u32 {
+        terri_data::topics::TopicRef {
+            row: self.row,
+            random_fight: terri_data::topics::is_random_fight_tag(&self.tag),
+        }
+        .render_value()
+    }
 }
 #[derive(Clone, Debug)]
 pub(crate) struct CommunalEpisode {
@@ -202,9 +235,11 @@ pub(crate) fn maintain(world: &mut World) {
         .retain(|e, _| active.contains(e));
 }
 
-/// Every topic tag with a bubble code of its own; any other tag draws the
-/// generic code 7. One list, so the activity log's label table names every
-/// tag a chat can show by its code.
+/// Every topic tag with a saved code of its own; any other tag saves the
+/// generic code 7. Topics themselves live in `content/topics.toml` and name
+/// their art and words there; this list survives to compute and validate the
+/// codes saves already hold, and so that the activity log's label table names
+/// every tag a chat can show.
 pub(crate) const TOPIC_CODES: [(&str, u32); 29] = [
     ("reading", 8),
     ("exercise", 9),
@@ -321,12 +356,7 @@ pub(crate) fn begin_topics(world: &mut World) {
             })
             .collect();
         let topic = if candidates.is_empty() {
-            Topic {
-                code: 4,
-                tag: "smalltalk".into(),
-                initiator_preference: 0.,
-                listener_preference: 0.,
-            }
+            Topic::new(pack, 4, "smalltalk".into(), 0., 0.)
         } else {
             let total: f32 = candidates.iter().map(|c| c.3).sum();
             let draw = world.resource_mut::<SimRng>().next_f32() * total;
@@ -338,12 +368,13 @@ pub(crate) fn begin_topics(world: &mut World) {
                     draw < cumulative
                 })
                 .unwrap_or(candidates.last().unwrap());
-            Topic {
-                code: tag_code(&choice.0),
-                tag: choice.0.clone(),
-                initiator_preference: choice.1,
-                listener_preference: choice.2,
-            }
+            Topic::new(
+                pack,
+                tag_code(&choice.0),
+                choice.0.clone(),
+                choice.1,
+                choice.2,
+            )
         };
         world
             .resource_mut::<SocialEpisodes>()
@@ -352,6 +383,8 @@ pub(crate) fn begin_topics(world: &mut World) {
     }
 }
 
+/// The render column's topic value for a row and that person's own
+/// preference: `row + 1` (see [`Topic::render_value`]), or 0 outside a chat.
 pub(crate) fn bubble(world: &World, index: u32) -> (u32, f32) {
     let Some(index) = bevy_ecs::entity::EntityIndex::from_raw_u32(index) else {
         return (0, 0.);
@@ -362,7 +395,7 @@ pub(crate) fn bubble(world: &World, index: u32) -> (u32, f32) {
         return episodes
             .topics
             .get(&entity)
-            .map_or((0, 0.), |t| (t.code, t.initiator_preference));
+            .map_or((0, 0.), |t| (t.render_value(), t.initiator_preference));
     }
     episodes
         .topics
@@ -371,7 +404,7 @@ pub(crate) fn bubble(world: &World, index: u32) -> (u32, f32) {
             world
                 .get::<Socialising>(*owner)
                 .filter(|talk| talk.partner == entity)
-                .map(|_| (topic.code, topic.listener_preference))
+                .map(|_| (topic.render_value(), topic.listener_preference))
         })
         .unwrap_or((0, 0.))
 }

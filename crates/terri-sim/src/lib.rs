@@ -2733,6 +2733,26 @@ impl Sim {
         activity_log::labels(self.world.resource::<Content>().0).names()
     }
 
+    /// For each activity log label, the render value of the topic the label
+    /// names, or 0 for a label that is not a topic tag ([RT-identity] 4).
+    pub fn activity_log_topic_rows(&self) -> &[u32] {
+        activity_log::labels(self.world.resource::<Content>().0).topic_rows()
+    }
+
+    /// The topic table the shell reads once ([RT-identity] 3): one line per
+    /// row in row order, the kind, the icon and the label, tab separated. A
+    /// render column value of `n` names line `n - 1`, ignoring the random-fight
+    /// bit.
+    pub fn conversation_topic_table(&self) -> Vec<String> {
+        self.world
+            .resource::<Content>()
+            .0
+            .topics
+            .iter()
+            .map(|row| format!("{}\t{}\t{}", row.kind.name(), row.icon, row.label))
+            .collect()
+    }
+
     /// Records overwritten before anything drained them. Diagnostic only.
     pub fn activity_log_dropped(&self) -> u32 {
         self.world.resource::<activity_log::ActivityLog>().dropped()

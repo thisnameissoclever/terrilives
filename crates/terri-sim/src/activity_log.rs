@@ -11,7 +11,7 @@
 
 use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use bevy_ecs::prelude::*;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Mutex;
 use terri_core::SimClock;
 use terri_data::ContentPack;
@@ -238,6 +238,9 @@ pub fn unpack_pair(value: i32) -> (i32, i32) {
 pub struct Labels {
     names: Vec<String>,
     index: BTreeMap<String, u32>,
+    /// For each name, the render value of the topic it names, or 0 for a
+    /// string that is not a topic tag ([RT-identity] 4).
+    topic_rows: Vec<u32>,
 }
 
 impl Labels {
@@ -245,7 +248,10 @@ impl Labels {
         let mut labels = Self {
             names: Vec::new(),
             index: BTreeMap::new(),
+            topic_rows: Vec::new(),
         };
+        // The indices of the names a chat or a fight can carry as its topic.
+        let mut topics = BTreeSet::new();
         for object in &pack.objects {
             for action in &object.interactions {
                 labels.add(&action.label);
@@ -261,29 +267,35 @@ impl Labels {
         for interaction in &pack.social {
             labels.add(&interaction.label);
         }
-        labels.add("smalltalk");
+        topics.insert(labels.add("smalltalk"));
         for (tag, _) in crate::social_episode::TOPIC_CODES {
-            labels.add(tag);
+            topics.insert(labels.add(tag));
         }
         for reason in crate::fights::Reason::all() {
-            labels.add(crate::fights::Reason::tag(reason));
+            topics.insert(labels.add(crate::fights::Reason::tag(reason)));
         }
         // Any other tag a preference can name is still a possible topic.
         for object in &pack.objects {
             for action in &object.interactions {
-                action.tags.iter().for_each(|tag| labels.add(tag));
+                action.tags.iter().for_each(|tag| {
+                    topics.insert(labels.add(tag));
+                });
             }
         }
         for chain in &pack.chains {
             for step in &chain.steps {
-                step.tags.iter().for_each(|tag| labels.add(tag));
+                step.tags.iter().for_each(|tag| {
+                    topics.insert(labels.add(tag));
+                });
             }
         }
         for definition in &pack.traits {
-            labels.add(&definition.tag);
+            topics.insert(labels.add(&definition.tag));
         }
         for member in &pack.household {
-            member.hobbies.iter().for_each(|tag| labels.add(tag));
+            member.hobbies.iter().for_each(|tag| {
+                topics.insert(labels.add(tag));
+            });
         }
         for skill in &pack.skills {
             labels.add(&skill.label);
@@ -305,14 +317,37 @@ impl Labels {
         for cause in crate::relationship_effects::RelationshipCause::ALL {
             labels.add(cause.log_label());
         }
+        labels.topic_rows = labels
+            .names
+            .iter()
+            .enumerate()
+            .map(|(at, name)| {
+                if topics.contains(&(at as u32)) {
+                    terri_data::topics::resolve_topic(&pack.topics, name).render_value()
+                } else {
+                    0
+                }
+            })
+            .collect();
         labels
     }
 
-    fn add(&mut self, text: &str) {
-        if !self.index.contains_key(text) {
-            self.index.insert(text.to_owned(), self.names.len() as u32);
-            self.names.push(text.to_owned());
+    /// Adds `text` if it is new and returns its index.
+    fn add(&mut self, text: &str) -> u32 {
+        if let Some(&at) = self.index.get(text) {
+            return at;
         }
+        let at = self.names.len() as u32;
+        self.index.insert(text.to_owned(), at);
+        self.names.push(text.to_owned());
+        at
+    }
+
+    /// One render value per name, in table order: the topic row the name
+    /// resolves to, with the random-fight bit, or 0 for a name that is not
+    /// a topic tag. The shell words a topic from its row's label.
+    pub fn topic_rows(&self) -> &[u32] {
+        &self.topic_rows
     }
 
     pub fn names(&self) -> &[String] {

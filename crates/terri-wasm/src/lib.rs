@@ -2098,6 +2098,10 @@ impl SimHandle {
         self.sim.render_buffer().activities.as_ptr()
     }
 
+    /// What each row's conversation is about: the topic table row plus one,
+    /// with bit 16 set for an argument over an everyday activity, or 0
+    /// outside a conversation. Read the table once with
+    /// `conversation_topic_table`.
     pub fn conversation_topics_ptr(&self) -> *const u32 {
         self.sim.render_buffer().conversation_topics.as_ptr()
     }
@@ -2160,6 +2164,21 @@ impl SimHandle {
     /// it once per page.
     pub fn activity_log_labels(&self) -> String {
         self.sim.activity_log_labels().join("\n")
+    }
+
+    /// For each `activity_log_labels` entry, the conversation topic value it
+    /// names (the same value the topic column carries), or 0 for a label that
+    /// is not a topic tag. Fixed by the content pack.
+    pub fn activity_log_topic_rows(&self) -> Vec<u32> {
+        self.sim.activity_log_topic_rows().to_vec()
+    }
+
+    /// The conversation topic table, one line per row in row order: the kind
+    /// (`smalltalk`, `activity`, `fight` or `subject`), the bubble sprite
+    /// name and the player word, tab separated. Fixed by the content pack, so
+    /// the shell reads it once per page.
+    pub fn conversation_topic_table(&self) -> String {
+        self.sim.conversation_topic_table().join("\n")
     }
 
     /// Turns the activity log off for the disabled performance baseline
