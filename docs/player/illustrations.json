@@ -1433,8 +1433,8 @@
         "height": 820
       },
       "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "c235bc169d4a50bb8e4d40afc16acd718812e88edc11ba319a0edb14bad93b62",
-      "outputSha256": "26991c8e6092204773d977e458950255cefa34cf88cf9be7cef92e5c81c426b2"
+      "sourceSha256": "8087974adfab2546629bde16eab1c02061eadfdf2e60c441913fd1e245c0ba08",
+      "outputSha256": "058104094151f0b0fa71891b91294896121732f9eced95f4408da4cb4c759d6a"
     },
     {
       "output": "images/guide/admin-relationships-desktop.png",
