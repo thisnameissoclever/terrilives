@@ -276,8 +276,10 @@
   .admin-housemate > .admin-column:nth-child(2) > :nth-child(2) { order: 3; }
   .admin-housemate > .admin-column:nth-child(3) > * { order: 4; }
   /* Folding sections: a tap on the heading row opens or closes one; the one-line summary shows only while closed. */
-  .admin-section-fold > .admin-section-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin: 0; min-height: 44px; cursor: pointer; }
-  .admin-section-fold[open] > .admin-section-head { margin-bottom: 8px; min-height: 0; }
+  /* The heading row spans the card's padding, so a closed card is one 44 px tap target
+     and its title sits where every other card's title sits. */
+  .admin-section-fold > .admin-section-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; box-sizing: border-box; margin: -12px -14px; padding: 12px 14px; min-height: 44px; cursor: pointer; }
+  .admin-section-fold[open] > .admin-section-head { margin-bottom: 8px; padding-bottom: 0; min-height: 0; }
   .admin-section-fold > .admin-section-head::before { content: '\25B8'; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
   .admin-section-fold[open] > .admin-section-head::before { content: '\25BE'; }
   .admin-section-fold:not([open]) .admin-range { display: none; }
@@ -330,7 +332,9 @@
   .admin-slider { height: 44px; }
   .admin-check-row { min-height: 44px; }
   .admin-check { width: 28px; height: 28px; }
-  /* A card title takes a line as tall as a button, so it sits at the same height
-     whether a button is beside it, wraps below it, or is absent. */
-  .admin-section-title { display: flex; align-items: center; min-height: 44px; }
+  /* Heading buttons are 44 px tall here, so they take their own line under the title,
+     and every title sits on its natural line at the card's top padding. */
+  .admin-section-head { min-height: 0; }
+  .admin-section-head > .admin-section-actions { flex: 1 0 100%; margin-left: 0; }
+  .admin-section-head > .admin-section-actions > .admin-action { flex: 1 1 auto; }
 }
