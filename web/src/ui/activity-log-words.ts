@@ -9,6 +9,8 @@
  * shell defines wording for the log.
  */
 
+import { topicRow, type TopicRow } from '../topic-table.js';
+
 /** The toggle, the panel and its filters ([AL-panel]). */
 export const PANEL_WORDS = {
   toggle: 'Log',
@@ -51,69 +53,16 @@ export function timestamp(day: number, hours: number, minutes: number): string {
 }
 
 /**
- * Topics with no subject to name: small talk, and a fight over nothing in
- * particular. Their lines read "Chat with Bill" or "Fight with Bill".
+ * The word after "about" for a topic value, from the topic table's row label
+ * ([RT-shell] 2 in docs/specs/2026-11-22-richer-topics.md). A row with an
+ * empty label, such as small talk or a plain argument, names no subject and
+ * reads "Chat with Bill" or "Fight with Bill"; a value that names no row
+ * reads as `SOMETHING`.
  */
-export const NO_SUBJECT_TAGS: ReadonlySet<string> = new Set([
-  'socialising', 'smalltalk', 'fight', 'fight-random-4', 'fight-random-7',
-]);
-
-/**
- * Phase 1 topic words by conversation topic tag, each read after "about".
- * Tags that share a bubble share a word. Phase 2 replaces this table with
- * content labels.
- */
-export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
-  ['eating', 'eating'], ['food', 'eating'],
-  ['sleeping', 'sleep'], ['sleep', 'sleep'],
-  ['reading', 'reading'],
-  ['exercise', 'exercise'],
-  ['aquarium', 'the aquarium'], ['fish', 'the aquarium'],
-  ['sitting', 'comfort'], ['comfort', 'comfort'],
-  ['showering', 'showers'], ['shower', 'showers'],
-  ['toilet', 'the toilet'],
-  ['television', 'TV'], ['tv', 'TV'],
-  ['lounging', 'lounging'],
-  ['bathroom_privacy', 'bathroom privacy'],
-  ['washing', 'washing'], ['hygiene', 'washing'],
-  ['cleaning', 'cleaning'],
-  ['music', 'music'], ['radio', 'music'],
-  ['correspondence', 'letters'],
-  ['bathing', 'baths'], ['bath', 'baths'],
-  ['cooking', 'cooking'],
-  ['fight-dishes', 'the dishes'],
-  ['fight-chore', 'chores'],
-  // Arguments over a remembered grievance.
-  ['fight-privacy', 'privacy'],
-  ['fight-television', 'TV'],
-  ['fight-music', 'music'],
-  ['fight-exercise', 'exercise'],
-  ['fight-nuisance', 'a nuisance'],
-  ['fight-interruption', 'interruptions'],
-  // Arguments over an everyday topic, by the topic's bubble code.
-  ['fight-random-3', 'eating'],
-  ['fight-random-5', 'sleep'],
-  ['fight-random-8', 'reading'],
-  ['fight-random-9', 'exercise'],
-  ['fight-random-10', 'the aquarium'],
-  ['fight-random-11', 'comfort'],
-  ['fight-random-12', 'showers'],
-  ['fight-random-13', 'the toilet'],
-  ['fight-random-14', 'TV'],
-  ['fight-random-15', 'lounging'],
-  ['fight-random-16', 'washing'],
-  ['fight-random-17', 'cleaning'],
-  ['fight-random-18', 'music'],
-  ['fight-random-19', 'letters'],
-  ['fight-random-20', 'baths'],
-  ['fight-random-21', 'ingredients'],
-  ['fight-random-22', 'preparing food'],
-  ['fight-random-23', 'cooking'],
-]);
-
-/** The word after "about", or null for a topic with no subject. */
-export function topicWord(tag: string): string | null {
-  return NO_SUBJECT_TAGS.has(tag) ? null : TOPIC_WORDS.get(tag) ?? SOMETHING;
+export function topicWord(table: readonly TopicRow[], value: number): string | null {
+  const row = topicRow(table, value);
+  if (row === null) return SOMETHING;
+  return row.label === '' ? null : row.label;
 }
 
 /** A chat reaction, chosen from the Likes and dislikes band edges. */

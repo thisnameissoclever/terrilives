@@ -1,6 +1,7 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { parseTopicTable, type TopicRow } from './topic-table.js';
 import type { WeatherTuning } from './render/weather.js';
 import type { ActionQueueRow, OrderEventBatch } from './ui/player-orders.js';
 import type { WorkConflict } from './ui/work-order-confirmation.js';
@@ -1393,8 +1394,20 @@ export class SimBridge {
     );
   }
 
+  /**
+   * Each row's topic value: the topic table row plus one, with bit 16 set for
+   * an argument about an everyday activity, or 0 outside a conversation.
+   */
   conversationTopics(): Uint32Array {
     return new Uint32Array(this.memory.buffer, this.handle.conversation_topics_ptr(), this.count);
+  }
+
+  /**
+   * The conversation topic table: one row per topic in content order. Fixed
+   * by the content pack, so it crosses the boundary once per page.
+   */
+  conversationTopicTable(): readonly TopicRow[] {
+    return this.conversationTopicTableCache ??= parseTopicTable(this.handle.conversation_topic_table());
   }
 
   conversationPreferences(): Float32Array {
@@ -1518,6 +1531,8 @@ export class SimBridge {
   clearCompletionSounds(): void { this.handle.clear_completion_sounds(); }
 
   private activityLogLabelsCache: string[] | null = null;
+  private conversationTopicTableCache: TopicRow[] | null = null;
+  private activityLogTopicRowsCache: Uint32Array | null = null;
 
   /**
    * Moves every staged activity log record into `into`, a ring of
@@ -1554,6 +1569,15 @@ export class SimBridge {
    */
   activityLogLabels(): readonly string[] {
     return this.activityLogLabelsCache ??= this.handle.activity_log_labels().split('\n');
+  }
+
+  /**
+   * For each `activityLogLabels` entry, the topic value it names (the same
+   * value the topic column carries), or 0 for a label that is not a topic
+   * tag. Fixed by the content pack, so it crosses the boundary once per page.
+   */
+  activityLogTopicRows(): Uint32Array {
+    return this.activityLogTopicRowsCache ??= this.handle.activity_log_topic_rows();
   }
 
   /** Records lost to a full staging ring before a take. Diagnostic only. */

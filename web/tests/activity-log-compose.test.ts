@@ -3,6 +3,7 @@ import {
   type ComposeContext, DEFAULT_FILTERS, FILTER, LogLines, composeAll, lineText, stamp,
 } from '../src/ui/activity-log-compose.js';
 import { ActivityLogStore, KIND, OTHER_PARTIAL, PARTIAL } from '../src/ui/activity-log-store.js';
+import { RANDOM_FIGHT_BIT, type TopicRow } from '../src/topic-table.js';
 import { QueueSource, pack, record } from './activity-log-records.js';
 
 // Every example line of [AL-compose] under each filter combination the
@@ -27,9 +28,28 @@ const L = Object.fromEntries(LABELS.map((label, index) => [label, index])) as Re
 
 const D74_1545 = 73 * 1_440 + 15 * 60 + 45;
 
+/** A small topic table: small talk and a plain argument name no subject. */
+const TOPIC_TABLE: readonly TopicRow[] = [
+  { kind: 'smalltalk', icon: 'Talk', label: '' },
+  { kind: 'activity', icon: 'Cooking', label: 'cooking' },
+  { kind: 'activity', icon: 'TV', label: 'TV' },
+  { kind: 'activity', icon: 'Radio', label: 'music' },
+  { kind: 'activity', icon: 'LyingDown', label: 'lounging' },
+  { kind: 'activity', icon: 'Use', label: 'bathroom privacy' },
+  { kind: 'fight', icon: 'Talk', label: '' },
+  { kind: 'fight', icon: 'WashDishes', label: 'the dishes' },
+];
+/** The topic value each label names, as the simulation's `activity_log_topic_rows` would. */
+const TOPIC_VALUES: Partial<Record<(typeof LABELS)[number], number>> = {
+  smalltalk: 1, socialising: 1, cooking: 2, television: 3, radio: 4, lounging: 5, bathroom_privacy: 6,
+  fight: 7, 'fight-dishes': 8, 'fight-random-4': 1 | RANDOM_FIGHT_BIT,
+};
+const TOPICS = { table: TOPIC_TABLE, rows: LABELS.map(label => TOPIC_VALUES[label] ?? 0) };
+
 function context(filters: number, selected: number | null = null): ComposeContext {
   return {
     labels: LABELS,
+    topics: TOPICS,
     filters,
     selected,
     dayTicks: 1_440,

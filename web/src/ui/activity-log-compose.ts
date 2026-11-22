@@ -16,6 +16,7 @@
 
 import { type ActivityLogStore, KIND, NONE, OTHER_PARTIAL, PARTIAL, highHalf, lowHalf } from './activity-log-store.js';
 import * as words from './activity-log-words.js';
+import type { TopicRow } from '../topic-table.js';
 
 /** Filter bits. The first five match the record's trigger mask. */
 export const FILTER = {
@@ -47,9 +48,18 @@ const REVIEW_WARNED = 1 << 8;
 /** The weekly review outcome code for a dismissal. */
 const REVIEW_FIRED = 4;
 
+/** What a log label's topic words come from: the topic table and each label's topic value. */
+export interface TopicNames {
+  readonly table: readonly TopicRow[];
+  /** One value per label: the topic the label names, as the topic column carries it, or 0 for none. */
+  readonly rows: ArrayLike<number>;
+}
+
 export interface ComposeContext {
   /** The simulation's label table, read once per page. */
   readonly labels: readonly string[];
+  /** The topic table and the topic each label names, read once per page. */
+  readonly topics: TopicNames;
   /** Enabled filters as `FILTER` bits. */
   readonly filters: number;
   /** The housemate the lines are narrowed to while Only is ticked, or null for everyone. */
@@ -504,7 +514,8 @@ class LineText {
     const { store, index } = this;
     let head = words.head(actor, this.label(store.label(index))) + words.withPerson(this.name(store.other(index)));
     const topic = store.label2(index);
-    const word = topic === NONE ? null : words.topicWord(this.label(topic));
+    const { table, rows } = this.context.topics;
+    const word = topic === NONE ? null : words.topicWord(table, rows[topic] ?? 0);
     if (word !== null) head += words.aboutTopic(word);
     return head;
   }

@@ -15,7 +15,7 @@
  */
 
 import {
-  type ComposeContext, DEFAULT_FILTERS, FILTER_ORDER, LogLines, type LogLine, lineText,
+  type ComposeContext, DEFAULT_FILTERS, FILTER_ORDER, LogLines, type LogLine, type TopicNames, lineText,
 } from './activity-log-compose.js';
 import { ACTIVITY_LOG_CAPACITY, type ActivityLogStore } from './activity-log-store.js';
 import { PANEL_WORDS, SOMEONE_IN_SENTENCE, onlyNamed } from './activity-log-words.js';
@@ -152,6 +152,8 @@ export interface ActivityLogPanelOptions {
   readonly names: ActivityLogNames;
   /** The label table, read once on the first open. */
   labels(): readonly string[];
+  /** The topic table and the topic each label names, read once on the first open. */
+  topics(): TopicNames;
   /** The Likes and dislikes band edges, from -1 to 1. */
   bands(): { loves: number; likes: number };
   readonly dayTicks: number;
@@ -173,6 +175,7 @@ export interface ActivityLogPanelOptions {
 
 class PanelContext implements ComposeContext {
   labels: readonly string[] = [];
+  topics: TopicNames = { table: [], rows: [] };
   filters = DEFAULT_FILTERS;
   selected: number | null = null;
   bands = { loves: 0, likes: 0 };
@@ -226,6 +229,7 @@ export class ActivityLogPanel {
     this.open_ = true;
     if (!this.prepared) {
       this.context.labels = this.options.labels();
+      this.context.topics = this.options.topics();
       const { loves, likes } = this.options.bands();
       this.context.bands = { loves: Math.round(loves * 100), likes: Math.round(likes * 100) };
       this.prepared = true;

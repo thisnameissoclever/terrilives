@@ -1083,6 +1083,7 @@ async function main(): Promise<void> {
     view: createActivityLogView(document, activityLogDom),
     names: activityLogNames,
     labels: () => sim.activityLogLabels(),
+    topics: () => ({ table: sim.conversationTopicTable(), rows: sim.activityLogTopicRows() }),
     bands: () => sim.activityLogReactionBands(),
     dayTicks: sim.dayTicks(),
     // The roster's own read, at the same cadence: no steady simIdOf call.

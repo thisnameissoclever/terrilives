@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { ACTIVITY_LOG_RECORD_WORDS, SimBridge } from '../src/bridge.js';
-import { NO_SUBJECT_TAGS, SOMETHING, TOPIC_WORDS, topicWord } from '../src/ui/activity-log-words.js';
+import { SOMETHING, topicWord } from '../src/ui/activity-log-words.js';
+import { RANDOM_FIGHT_BIT, topicRow } from '../src/topic-table.js';
 
 // [AL-bridge] against the freshly built wasm: records cross the boundary,
 // the label table decodes, a detached view cannot lose records, and a Load
@@ -49,7 +50,7 @@ function tickUntil(handle: SimHandle, bridge: SimBridge, wanted: (record: Uint32
 }
 
 describe('activity log bridge', () => {
-  it('names every cause and topic tag the shell words in the real label table', () => {
+  it('names every cause the shell words in the real label table', () => {
     // The shell matches these strings; a rename on either side must fail here.
     const source = ['activity-log-words.ts', 'activity-log-compose.ts']
       .map(file => readFileSync(new URL(`../src/ui/${file}`, import.meta.url), 'utf8')).join(' ');
@@ -59,20 +60,71 @@ describe('activity log bridge', () => {
     try {
       const labels = new Set(new SimBridge(handle, memory).activityLogLabels());
       expect(causes.filter(cause => !labels.has(cause))).toEqual([]);
-      const tags = [...TOPIC_WORDS.keys(), ...NO_SUBJECT_TAGS];
-      expect(tags.filter(tag => !labels.has(tag))).toEqual([]);
     } finally {
       handle.free();
     }
   });
 
-  it('has a topic word for every fight reason the simulation can name', () => {
+  it('has a topic value for every fight reason the simulation can name', () => {
     const handle = SimHandle.from_lot();
     try {
       const bridge = new SimBridge(handle, memory);
-      const fights = bridge.activityLogLabels().filter(label => label === 'fight' || label.startsWith('fight-'));
+      const table = bridge.conversationTopicTable();
+      const labels = bridge.activityLogLabels();
+      const values = bridge.activityLogTopicRows();
+      expect(values).toHaveLength(labels.length);
+      const fights = labels.map((label, at) => [label, values[at]] as const)
+        .filter(([label]) => label === 'fight' || label.startsWith('fight-'));
       expect(fights.length).toBeGreaterThan(3);
-      expect(fights.filter(tag => topicWord(tag) === SOMETHING)).toEqual([]);
+      for (const [label, value] of fights) {
+        expect(value, label).not.toBe(0);
+        // A named reason is a fight row; a random fight carries the fight bit.
+        expect((value & RANDOM_FIGHT_BIT) !== 0 || topicRow(table, value)?.kind === 'fight', label).toBe(true);
+        expect(topicWord(table, value), label).not.toBe(SOMETHING);
+      }
+    } finally {
+      handle.free();
+    }
+  });
+
+  it('words every topic label from its row as the old tag table did', () => {
+    // The tag-to-word table the shell kept before topics moved into content.
+    const legacyWords = new Map([
+      ['eating', 'eating'], ['food', 'eating'], ['sleeping', 'sleep'], ['sleep', 'sleep'], ['reading', 'reading'],
+      ['exercise', 'exercise'], ['aquarium', 'the aquarium'], ['fish', 'the aquarium'], ['sitting', 'comfort'],
+      ['comfort', 'comfort'], ['showering', 'showers'], ['shower', 'showers'], ['toilet', 'the toilet'],
+      ['television', 'TV'], ['tv', 'TV'], ['lounging', 'lounging'], ['bathroom_privacy', 'bathroom privacy'],
+      ['washing', 'washing'], ['hygiene', 'washing'], ['cleaning', 'cleaning'], ['music', 'music'],
+      ['radio', 'music'], ['correspondence', 'letters'], ['bathing', 'baths'], ['bath', 'baths'],
+      ['cooking', 'cooking'], ['fight-dishes', 'the dishes'], ['fight-chore', 'chores'],
+      ['fight-privacy', 'privacy'], ['fight-television', 'TV'], ['fight-music', 'music'],
+      ['fight-exercise', 'exercise'], ['fight-nuisance', 'a nuisance'], ['fight-interruption', 'interruptions'],
+      ['fight-random-3', 'eating'], ['fight-random-5', 'sleep'], ['fight-random-8', 'reading'],
+      ['fight-random-9', 'exercise'], ['fight-random-10', 'the aquarium'], ['fight-random-11', 'comfort'],
+      ['fight-random-12', 'showers'], ['fight-random-13', 'the toilet'], ['fight-random-14', 'TV'],
+      ['fight-random-15', 'lounging'], ['fight-random-16', 'washing'], ['fight-random-17', 'cleaning'],
+      ['fight-random-18', 'music'], ['fight-random-19', 'letters'], ['fight-random-20', 'baths'],
+      ['fight-random-21', 'ingredients'], ['fight-random-22', 'preparing food'], ['fight-random-23', 'cooking'],
+    ]);
+    const noSubject = new Set(['socialising', 'smalltalk', 'fight', 'fight-random-4', 'fight-random-7']);
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, memory);
+      const table = bridge.conversationTopicTable();
+      const labels = bridge.activityLogLabels();
+      const values = bridge.activityLogTopicRows();
+      for (const tag of [...legacyWords.keys(), ...noSubject]) {
+        expect(labels, tag).toContain(tag);
+      }
+      let topics = 0;
+      labels.forEach((label, at) => {
+        if (values[at] === 0) return;
+        topics++;
+        const expected = noSubject.has(label) ? null : legacyWords.get(label) ?? SOMETHING;
+        expect(topicWord(table, values[at]), label).toBe(expected);
+      });
+      expect(topics).toBeGreaterThan(legacyWords.size);
+      expect(topicWord(table, 0)).toBe(SOMETHING);
     } finally {
       handle.free();
     }
