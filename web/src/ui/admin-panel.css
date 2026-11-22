@@ -169,6 +169,8 @@
 .admin-check { width: 18px; height: 18px; }
 
 .admin-overall, .admin-moodlet { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 4px 0; border-bottom: 1px solid var(--hud-edge, #2c2c36); }
+/* The card's own edge closes the list, so the last row draws no rule of its own. */
+.admin-overall:last-child, .admin-moodlet:last-child { border-bottom: none; }
 .admin-overall { font-weight: 600; }
 .admin-moodlet-source { flex: 1 1 8em; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
 .admin-moodlet-label { flex: 0 1 auto; }
