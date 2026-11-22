@@ -62,7 +62,7 @@ The household pays four bills on the first day of each month: Rent, Electricity,
 - **Electricity** and **Water** have a base charge plus what the household used: each shower, bath, hand washing, flush, dish washing, use of the stove, television or radio, and every day a fridge, lamp, aquarium or pool stands on the lot.
 - **Transportation** has a base charge plus a fare for each shift someone traveled to.
 
-Bills are paid from Funds automatically and in order, oldest first: each waits until Funds cover it and every bill before it. A bill is never paid in part. A bill still unpaid after its grace period is overdue: it gains a late fee every day, up to a limit, and every housemate feels Behind on bills until it is paid. Nothing is shut off and nothing is taken away. To catch up, earn more, spend less or sell furniture.
+Bills are paid from Funds automatically and in order, oldest first: each waits until Funds cover it and every bill before it. A bill is never paid in part. A bill still unpaid after its grace period is overdue: it gains a late fee every day, up to a limit, and every housemate feels Behind on bills until it is paid. Nothing is shut off and nothing is taken away. To catch up, earn more, spend less or sell furniture. The [admin panel](ui-elements/#admin-panel) can also edit, pay, add or delete bills.
 
 Read the Bills row below Funds for the amount to keep aside and the day it is due. While a bill is unpaid the row shows what is unpaid and its due day, and once a bill is overdue it shows the overdue total in red. Select the row to open the [Bills panel](ui-elements/#bills), which pauses the game.
 

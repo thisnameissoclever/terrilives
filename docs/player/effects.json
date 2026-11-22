@@ -1024,6 +1024,19 @@
       }
     },
     {
+      "id": "need-mood",
+      "article": "mood-and-personality",
+      "section": "mood",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_mood.rs",
+        "crates/terri-sim/src/mood.rs"
+      ],
+      "review": {
+        "basis": "Each completed game minute counts empty needs and needs strictly above 80%. Their combined rate changes the saved contribution to overall mood."
+      }
+    },
+    {
       "id": "need-decay",
       "article": "needs",
       "section": "timing-and-decay",

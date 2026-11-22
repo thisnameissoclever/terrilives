@@ -285,9 +285,9 @@ export class GameHud {
     if (this.roots.bills !== undefined) this.roots.bills.disabled = active;
   }
 
-  update(nowMs: number, source: GameHudSource): boolean {
+  update(nowMs: number, source: GameHudSource, force = false): boolean {
     const selected = source.selectedIndex();
-    if (selected === this.renderedSelection && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
+    if (!force && selected === this.renderedSelection && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
       return false;
     }
     this.lastReadMs = nowMs;

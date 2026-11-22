@@ -244,7 +244,11 @@ describe('personal details surface', () => {
     expect(toggle).toContain('bedAssignmentPanel.update(nowMs, true);');
     const load = main.slice(main.indexOf('characterWorld.reset();'), main.indexOf('characterWorld.reset();') + 1700);
     expect(load).toContain('bedAssignmentPanel.resetAfterLoad();');
-    expect(load).toContain('bedAssignmentPanel.update(nowMs, true);');
+    // Load forces the shared refresh, which also serves the admin panel's edits.
+    expect(load).toContain('refreshHudPanels();');
+    const refresh = main.slice(main.indexOf('const refreshHudPanels = '), main.indexOf('const adoptLoadedWorld'));
+    expect(refresh).toContain('bedAssignmentPanel.update(nowMs, true);');
+    expect(refresh).toContain('personalDetailsPanel.update(nowMs, true);');
     expect(main).toContain('bedAssignmentPanel.afterCommands();');
     expect(main).toContain('bedAssignmentPanel.update(nowMs);');
     expect(main).toContain('personalDetailsPanel.update(nowMs, true);');

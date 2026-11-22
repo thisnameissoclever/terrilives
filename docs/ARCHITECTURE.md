@@ -295,7 +295,7 @@ full ticks can miss removals after multiple paused drains.
 15. `decay_relationships` - apply directional relationship decay.
 16. `bleed_neglect` - reduce satisfaction when needs remain neglected.
 17. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
-18. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
+18. Update each survivor's accumulated need contribution from the settled needs, then `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
 
 After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index. `waiting::clear` removes the previous item-wait decision before selection and chain scheduling publish the next one.
 
@@ -304,7 +304,7 @@ Death state is a sparse `SavedMortality` resource: a setting, positive counts or
 Death records include the issued-identity boundary, excluding later newcomers from grief. Survivors keep their affinity toward dead SimIds without decay. Grief strength and duration derive from that affinity and elapsed ticks; moodlets are never stored.
 
 Mood is derived for the HUD and for the once-per-tick satisfaction contribution.
-Moodlets remain unstored; the satisfaction ledger integrates their effects.
+Save V27 stores the accumulated contribution from needs. The simulation adds it to current moodlets and integrates overall mood into life satisfaction.
 Occupied-item waiting contributes more strongly as the relevant need falls.
 All balance inputs live in the validated tuning pack. Parallel advertisement scans,
 a fixed per-tick path budget with an overflow queue, ghost injection, an event
@@ -623,7 +623,7 @@ It also records manual work-trip priority and the source jobs and base pay behin
 exceptional Career input rows. Historical base pay that cannot be recovered stays
 explicitly unrecorded; the recorded shift cents remain authoritative for payout.
 Native V24 snapshots are historical field views for inspection and compatible
-fixtures. Current persistence uses V26. The envelope preserves exact player-order and social-execution
+fixtures. Current persistence uses V28. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -685,6 +685,10 @@ V24 wraps the complete V23 payload with the Career tab's score inputs and every 
 
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
+V28 wraps the complete editable-world V26 record and adds the accumulated need mood from public V27. Build rollback and admin Undo use V28 so they preserve pool and bath activity, work trips, and mood together. The two predecessor records retain their distinct wire formats.
+
+V27 wraps V24 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V24 begin at zero. Private editable-world V24, V25 and V26 files belong to other development builds. Loading or importing one is refused, and the browser protects the original slot and allows its bytes to be exported.
+
 V22 wraps the complete V21 payload with the household bills: the last counted day, the open month's start and the month length it is counted under, the month's day, tile, use, daily-object and trip counts, the last month's usage, and every unpaid bill and the bills of the last issued month with their late fees and the terms each was issued under (its month length, days of grace, and daily late fee and cap), so a later change to the tuning never makes a save unloadable. Use and daily kinds are saved by id, so an unknown kind is dropped on load. Loading V21 or earlier starts the bills record empty and raises saved career pay and open shifts' pay to the new wages; settled shifts keep the pay they were settled at ([wages and bills](specs/2026-10-18-wages-and-bills.md)).
 
 V21 wraps the complete V20 payload with each person's held shift other than their level's standard one, by shift id, the shift stream and its draw count, and each queued Assign or Change shift command with its position in the whole queue; the frozen command records stay unchanged and every older writer leaves those commands out. An older save loads with every job on its standard shift ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)).
@@ -730,10 +734,32 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-25. A published V21 primary therefore receives `terri-save-1.v21-backup.bin` before the first
-V26 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+27. The worker backs up a supported historical primary before the first V28 overwrite. Existing recovery files stay intact. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
-New game clears only `terri-save-1.bin`. Recovery copies are retained for
+Every current write first copies a non-empty, supported primary to
+`terri-save-1.previous.bin`, the last good copy, and a failed write restores the
+primary from those bytes. If that restore also fails, the worker stops copying the
+primary over the last good copy until a write succeeds, because the primary may be
+half written yet still carry a supported header. A worker killed mid-write (the
+tab closing during the save on `visibilitychange`) cannot restore anything, and
+not every browser stages `createWritable()` until close, so the next load handles
+it. A primary that is empty, has no readable header, or has a supported header
+the simulation rejects makes `PersistenceController` ask the worker for the last
+good copy and load it into the game. Only when that copy loads does the
+controller send `restore`: the worker re-reads the slot and the copy, changes
+nothing if either is no longer what the controller saw (another tab may have
+saved), keeps the unreadable bytes in `terri-save-1.damaged.bin` (never over an
+earlier damaged copy), and replaces the primary. A primary from an unsupported
+version is never recovered over. An empty primary with no usable copy counts as
+no save, and writes treat it as absent; a first save cut off at file creation
+leaves exactly such a slot. A primary cut off after a few bytes, with no readable
+header and no last good copy, still pauses saving until New game. The simulation
+also rejects an intact save whose content another build wrote, so a rejected
+primary is replaced only after its older copy loads, and the rejected bytes are
+kept. The extra copy costs the slot's size in quota on every save, and a failed
+copy write fails the save.
+New game clears `terri-save-1.bin` and the last good copy, never the historical
+recovery files. Those historical copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
 storage clearing can still erase all copies; this is not an external backup.
 
@@ -745,7 +771,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The storage writer and load-status controller share the current
+Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The frozen V23 worker refuses V27. The current worker recognizes both known V24 fingerprints and the private V25 and V26 formats. It protects an unrecognized V24 primary from replacement. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -1799,6 +1825,20 @@ deliberately minimal content sync, not a real-time or authoritative game server.
   Tracked as [R7]. The accepted tradeoff is that objectionable content reaches
   some players before it is removed. For a free solo project that is
   defensible, but it is a choice rather than an oversight.
+
+## [D-admin-session] The admin session
+
+Status: built for issue 312; the full design is [the admin panel plan](specs/2026-11-20-admin-panel.md).
+
+The admin panel changes the world through one command, `SimCommand::Admin`, wire code 41, whose payload is a list of edits applied as one atomic change. It sits beside the Build transaction rather than inside it:
+
+1. **An admin session is a simulation resource that exists while the panel is open.** It holds a baseline snapshot taken at open and a journal of the changes applied since. Like the Build transaction it is not saved and not hashed. `begin_admin` refuses during Build and `begin_build` refuses during an admin session, and `tick` advances no clock while a session is active.
+2. **Edits apply only inside a session.** An edit with no session is refused with code 1. Each edit names people by `SimId`, so it survives the world restore Undo performs, and each runs the load validator of the state it changed. No edit writes the need mood balance of V27; its rows are checked with the loader's own V27 checks after every change, and the baseline is a V27 snapshot, so Undo restores it.
+3. **Undo restores the baseline and replays the journal minus its last change**, checking the world hash after every replayed change against the hash recorded when it first applied. This is the Build transaction's mechanism and needs no hand-written inverse per edit.
+4. **An admin command never sits in a saved queue.** `admin_apply` stages the change and runs the paused command drain in the same wasm call, so JavaScript cannot save between the two. `enqueue_command` refuses admin bytes, and the current save, `try_save_snapshot_v27`, returns `SaveError::AdminCommandQueued` instead of writing a save that leaves one out. `SavedCommand` stays frozen and the save schema does not change.
+5. **Skip ahead is ordinary ticking**, run by the web shell at a raised per-frame budget with the session closed around it, so it ends the Undo history.
+
+The web side lives in `web/src/admin/`: the shell (pause and restore, tabs, shared picker, Undo, focus), one module per tab, the codec for the wire bytes, the opening routes and the skip runner.
 
 ## [D12] Testing
 

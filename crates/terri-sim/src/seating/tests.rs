@@ -97,9 +97,9 @@ fn build_replans_the_same_media_seat_and_updates_its_owned_endpoint() {
         sim.world().get::<Path>(person).unwrap().steps.last(),
         Some(&(4, 3))
     );
-    let saved = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 
 #[test]

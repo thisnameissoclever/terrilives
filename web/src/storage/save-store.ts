@@ -13,6 +13,14 @@ import {copyOriginalError,diagnosticMessage,requireDiagnosticKeys,restoreErrorDe
 
 export interface SaveStore {
   load(): Promise<Uint8Array | null>;
+  /** The copy of the save before the latest one, or null when there is none. */
+  lastGoodCopy(): Promise<Uint8Array | null>;
+  /**
+   * Makes a last good copy the slot, after the caller loaded it successfully.
+   * The unreadable bytes are kept aside, not discarded. Returns false, changing
+   * nothing, when the slot no longer holds `unreadable` or the copy changed.
+   */
+  restoreLastGood(unreadable: Uint8Array, lastGood: Uint8Array): Promise<boolean>;
   save(bytes: Uint8Array): Promise<void>;
   clear(): Promise<void>;
   close(): void;
@@ -30,6 +38,14 @@ export class SerializedSaveStore implements SaveStore {
 
   load(): Promise<Uint8Array | null> {
     return this.enqueue(() => this.backend.load());
+  }
+
+  lastGoodCopy(): Promise<Uint8Array | null> {
+    return this.enqueue(() => this.backend.lastGoodCopy());
+  }
+
+  restoreLastGood(unreadable: Uint8Array, lastGood: Uint8Array): Promise<boolean> {
+    return this.enqueue(() => this.backend.restoreLastGood(unreadable, lastGood));
   }
 
   save(bytes: Uint8Array): Promise<void> {
@@ -56,17 +72,31 @@ export class SerializedSaveStore implements SaveStore {
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
+  | { readonly id: number; readonly kind: 'previous' }
+  | {
+      readonly id: number;
+      readonly kind: 'restore';
+      readonly bytes: ArrayBuffer;
+      readonly expected: ArrayBuffer;
+    }
   | { readonly id: number; readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly id: number; readonly kind: 'clear' };
 
 type SaveRequestInput =
   | { readonly kind: 'load' }
+  | { readonly kind: 'previous' }
+  | { readonly kind: 'restore'; readonly bytes: ArrayBuffer; readonly expected: ArrayBuffer }
   | { readonly kind: 'save'; readonly bytes: ArrayBuffer }
   | { readonly kind: 'clear' };
 
+interface SaveResult {
+  readonly bytes?: ArrayBuffer | null;
+  readonly restored?: boolean;
+}
+
 interface PendingRequest {
   readonly kind: SaveRequestInput['kind'];
-  resolve(value: ArrayBuffer | null | undefined): void;
+  resolve(value: SaveResult): void;
   reject(reason: Error): void;
 }
 
@@ -122,17 +152,21 @@ class WorkerSaveBackend implements SaveBackend {
   private receive(response: unknown): void {
     let id: number | undefined, pending: PendingRequest | undefined;
     try {
-      requireDiagnosticKeys(response, ['id', 'ok', 'bytes', 'error', 'errorDetails', 'workerContext'], INVALID_RESPONSE);
+      requireDiagnosticKeys(response, ['id', 'ok', 'bytes', 'restored', 'error', 'errorDetails', 'workerContext'], INVALID_RESPONSE);
       if (!Number.isSafeInteger(response.id) || (response.id as number) < 1) throw new Error(INVALID_RESPONSE);
       id = response.id as number;
       if (response.ok === true) {
-        requireDiagnosticKeys(response, ['id', 'ok', 'bytes'], INVALID_RESPONSE);
-        if (response.bytes !== undefined && response.bytes !== null && !(response.bytes instanceof ArrayBuffer)) throw new Error(INVALID_RESPONSE);
+        requireDiagnosticKeys(response, ['id', 'ok', 'bytes', 'restored'], INVALID_RESPONSE);
+        const { bytes, restored } = response;
+        if (bytes !== undefined && bytes !== null && !(bytes instanceof ArrayBuffer)) throw new Error(INVALID_RESPONSE);
+        if (restored !== undefined && (typeof restored !== 'boolean' || bytes !== undefined)) throw new Error(INVALID_RESPONSE);
         pending = this.pending.get(id);
         if (!pending) return;
-        if (pending.kind === 'load' ? response.bytes !== null && !(response.bytes instanceof ArrayBuffer) : response.bytes !== undefined) throw new Error(INVALID_RESPONSE);
+        const readsSave = pending.kind === 'load' || pending.kind === 'previous';
+        if ((readsSave ? bytes === undefined : bytes !== undefined)
+          || (pending.kind === 'restore' ? restored === undefined : restored !== undefined)) throw new Error(INVALID_RESPONSE);
         this.pending.delete(id);
-        pending.resolve(response.bytes as ArrayBuffer | null | undefined);
+        pending.resolve({ bytes, restored });
         return;
       }
       requireDiagnosticKeys(response, ['id', 'ok', 'error', 'errorDetails', 'workerContext'], INVALID_RESPONSE);
@@ -145,7 +179,7 @@ class WorkerSaveBackend implements SaveBackend {
       }
       if (response.workerContext !== undefined) {
         requireDiagnosticKeys(response.workerContext, ['operation', 'requestId'], INVALID_RESPONSE);
-        if (!['load', 'save', 'clear'].includes(response.workerContext.operation as string) || response.workerContext.requestId !== id) throw new Error(INVALID_RESPONSE);
+        if (!['load', 'previous', 'restore', 'save', 'clear'].includes(response.workerContext.operation as string) || response.workerContext.requestId !== id) throw new Error(INVALID_RESPONSE);
       }
       // A stale ID is quiet only after the complete independent wire shape is valid.
       pending = this.pending.get(id);
@@ -172,8 +206,20 @@ class WorkerSaveBackend implements SaveBackend {
   }
 
   async load(): Promise<Uint8Array | null> {
-    const value = await this.request({ kind: 'load' });
-    return value instanceof ArrayBuffer ? new Uint8Array(value) : null;
+    const { bytes } = await this.request({ kind: 'load' });
+    return bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : null;
+  }
+
+  async lastGoodCopy(): Promise<Uint8Array | null> {
+    const { bytes } = await this.request({ kind: 'previous' });
+    return bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : null;
+  }
+
+  async restoreLastGood(unreadable: Uint8Array, lastGood: Uint8Array): Promise<boolean> {
+    const bytes = lastGood.slice().buffer;
+    const expected = unreadable.slice().buffer;
+    const { restored } = await this.request({ kind: 'restore', bytes, expected }, [bytes, expected]);
+    return restored === true;
   }
 
   async save(bytes: Uint8Array): Promise<void> {
@@ -195,7 +241,7 @@ class WorkerSaveBackend implements SaveBackend {
   private request(
     request: SaveRequestInput,
     transfer: Transferable[] = [],
-  ): Promise<ArrayBuffer | null | undefined> {
+  ): Promise<SaveResult> {
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject, kind: request.kind });

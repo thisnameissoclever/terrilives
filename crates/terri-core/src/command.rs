@@ -366,6 +366,13 @@ pub enum SimCommand {
     GoToWork {
         agent: u32,
     },
+    /// The admin panel (issue 312, [AP-command] in
+    /// `docs/specs/2026-11-20-admin-panel.md`): one change of edits applied
+    /// together, only while an admin session is open. Boxed as `Character`
+    /// is, which postcard does not see. Never queued by the ordinary entry
+    /// point and never left in a saved queue: the one path that stages it
+    /// drains it in the same call ([AP-save-queue]). Code 41.
+    Admin(Box<crate::admin::AdminChange>),
 }
 
 /// The finite set of commands that can require a work confirmation.

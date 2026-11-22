@@ -221,14 +221,14 @@ fn schema_twenty_four_round_trips_inputs_and_queued_go_to_work() {
 #[test]
 fn entering_and_leaving_build_keeps_the_inputs() {
     let mut sim = with_inputs();
-    let before = sim.save_snapshot_v26();
+    let before = sim.save_snapshot_v28();
     let rows = &before.previous.career_inputs;
     assert!(!rows.is_empty());
     sim.begin_build().expect("build opens");
-    assert_eq!(sim.save_snapshot_v26(), before, "in Build");
+    assert_eq!(sim.save_snapshot_v28(), before, "in Build");
     sim.cancel_build().expect("cancel");
     sim.end_build().expect("leave");
-    assert_eq!(sim.save_snapshot_v26(), before, "after Build");
+    assert_eq!(sim.save_snapshot_v28(), before, "after Build");
     assert_eq!(inputs_of(&sim), inputs_of(&with_inputs()));
 }
 

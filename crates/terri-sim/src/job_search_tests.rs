@@ -296,7 +296,8 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// (checked by turning the block off, which gave the old value). Read from
 /// the failing assertion.
 /// Editable world and water branch before the Career merge measured `(10164250803165790774, 7, 2)`.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (10164250803165790774, 7, 2);
+/// The V28 replay with gradual need mood changes the hash. Jobs, shifts and random draws agree.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (10978277937201669633, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
@@ -326,7 +327,7 @@ fn without_the_work_lateness_knobs_the_shipped_thursday_is_unchanged() {
     assert_eq!(
         (sim.world_hash(), careers.draws, careers.shift_draws),
         SHIPPED_THURSDAY,
-        "the shipped value, with the presence fade of issue 344 and the career inputs block"
+        "the shipped value, with the presence fade of issue 344, the career inputs block and the needs mood balance of issue 355"
     );
 }
 

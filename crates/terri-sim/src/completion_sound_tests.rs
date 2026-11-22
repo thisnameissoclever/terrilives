@@ -217,12 +217,12 @@ fn world_replacement_discards_an_undrained_completion() {
         .insert(terri_core::SelfPreservation(50));
     sim.tick();
     assert_eq!(sim.completion_sounds().len(), 2);
-    let save = sim.save_snapshot_v26();
+    let save = sim.save_snapshot_v28();
     let hash = sim.world_hash();
-    sim.load_snapshot_v26(save.clone()).unwrap();
+    sim.load_snapshot_v28(save.clone()).unwrap();
     assert!(sim.completion_sounds().is_empty());
     assert_eq!(sim.world_hash(), hash);
-    assert_eq!(sim.save_snapshot_v26(), save);
+    assert_eq!(sim.save_snapshot_v28(), save);
     sim.tick();
     assert!(sim.completion_sounds().is_empty());
 }

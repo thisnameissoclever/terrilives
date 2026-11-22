@@ -251,6 +251,21 @@
       "title": "Recover a save from the old website",
       "desktop": "images/guide/save-recovery-desktop.jpg",
       "mobile": "images/guide/save-recovery-mobile.jpg"
+    },
+    "admin-housemate": {
+      "title": "Admin panel: Housemate",
+      "desktop": "images/guide/admin-housemate-desktop.png",
+      "mobile": "images/ui-admin-housemate-mobile.png"
+    },
+    "admin-relationships": {
+      "title": "Admin panel: Relationships",
+      "desktop": "images/guide/admin-relationships-desktop.png",
+      "mobile": "images/ui-admin-relationships-mobile.png"
+    },
+    "admin-household": {
+      "title": "Admin panel: Household",
+      "desktop": "images/guide/admin-household-desktop.png",
+      "mobile": "images/ui-admin-household-mobile.png"
     }
   },
   "crops": [
@@ -1407,6 +1422,45 @@
       "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
       "sourceSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2",
       "outputSha256": "ac0ec7ba8fb7603854445d7bbee19000c96e46d0d1435ece0b0a27474a69bc81"
+    },
+    {
+      "output": "images/guide/admin-housemate-desktop.png",
+      "source": "images/ui-admin-housemate-desktop.png",
+      "rect": {
+        "x": 100,
+        "y": 70,
+        "width": 1240,
+        "height": 820
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "2a97081159d0edf6ca19f82c8e301d069d3c1b703ebc69908e78a2a996d80608",
+      "outputSha256": "8622da265a0710c07dc5e7879ff6864cfdeb5034da58bfd8d0002a315846ca67"
+    },
+    {
+      "output": "images/guide/admin-relationships-desktop.png",
+      "source": "images/ui-admin-relationships-desktop.png",
+      "rect": {
+        "x": 100,
+        "y": 70,
+        "width": 1240,
+        "height": 820
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "7baa4e2fb445e2eb191515966617689a2bddf2b20b7d9024f4a7806d2e534d73",
+      "outputSha256": "f90ad6e29276b3f6642d2cc64af30a6bc635a8cf1715fbff18e696d958940b5a"
+    },
+    {
+      "output": "images/guide/admin-household-desktop.png",
+      "source": "images/ui-admin-household-desktop.png",
+      "rect": {
+        "x": 100,
+        "y": 70,
+        "width": 1240,
+        "height": 820
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "4df307febaf242867fe71f1d912577f7c15807283343474490de4103cfd015d2",
+      "outputSha256": "9ae05b48b81044f41eabb1bac0a8b057141252e1529576024f45ca9467e581af"
     }
   ]
 }

@@ -401,6 +401,120 @@
         "capturedAt": "2026-11-20",
         "method": "Playwright driving installed Chrome, headless and muted, against the branch served by the vite dev server (commit 03bd42ae0, which includes the review window, graph, Score inputs and tab scroll fixes). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above matched the served modules after line ending normalisation. Audio was muted through the saved preference and --mute-audio. The same five reviewed weeks save as career-tab-2026-11-20 was imported with Options > Import save; Sim details captures show Tim on Day 36, Monday 15:00 and Career captures show Bill on Day 38, Wednesday 12:30. Desktop 1440 by 960 and phone 390 by 844 at device pixel ratio 1.",
         "evidence": "docs/assets/review-evidence/career-tab/README.md"
+      },
+      {
+        "id": "admin-panel-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "4a23e907606623977bebb0c9ac48a24da03f3ba142a073357f2ca4c336694cf1",
+          "web/src/admin/admin-panel.ts": "a055c00fc36cea3e0669694abb66bda82d10e5c2a5115ec4cf4a36b236b5113a",
+          "web/src/admin/admin-housemate.ts": "9f241f9e75e537f569b18da5b9b057f8ab07c8e47f184f5bf59881997c4375af",
+          "web/src/admin/admin-relationships.ts": "f31d0609d42ae0e74e6ba14dac440979646eb426d1d969f406be9a24b54ba1be",
+          "web/src/admin/admin-household.ts": "69d818a1b634ad8f7782c1c680c309e0287fed8298b698c2ef97ae35b65bbfe6",
+          "web/src/admin/admin-controls.ts": "c54aef55d63325d4f54d964ab802df2dacb4b393317125ea0e348646fc2f2da8",
+          "web/src/admin/admin-open.ts": "796d66b84a8073d9360ce241113fce720eb8f8e5b0723389c6f6e57ee282b552",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "9e570bab3f39577af02794e771cc6c20cf1a359682b06f2b5f1db1f6d5174a64",
+          "content/tuning.toml": "2b3deb3523bfc1dcd999786ca079800a201d17e623b52f4c15fb616af90cd1ee"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "Playwright driving Chromium, muted through the game's Sound: off preference and suspended AudioContexts, against the branch served by the vite dev server (commit ad4124741, which includes the played-pass layout fixes). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. A new game was played to Day 15, Monday 15:36 with the admin panel itself: Tim's job changed to Barista, a $5,000 Water bill added on Day 1 so it stays overdue, bills issued on Days 8 and 15, Tim's fight with Casey played out, and Skip ahead used. The game was paused before opening the panel with ~, so the pill reads that the game stays paused, and Fill Tim's needs was pressed so Undo shows its label. Focus was moved off the controls with a click on the panel before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 with Chrome touch emulation, not a physical phone.",
+        "evidence": "docs/assets/review-evidence/admin-panel/"
+      },
+      {
+        "id": "admin-review-round-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "dd1c9fe354dddd9744032ffc67ca75bcb78f320c79c41d053d95d64d8f98fa31",
+          "web/src/admin/admin-panel.ts": "6004f6bd284cf7a3a48931f9dbed5f912668588f01975417404268262f310100",
+          "web/src/admin/admin-housemate.ts": "15b29e57218754d27743359e4c2867c1e9f41b71af9b735135d4fd84791b7447",
+          "web/src/admin/admin-relationships.ts": "96e2ebcdead137c1d8c3bc190e8405c3612afe555776c71945736bee492ca5fe",
+          "web/src/admin/admin-household.ts": "643d0d39fe5eb83f315ece9d7c1ed0c83372e1b9a63e249cd17091c674a8e18d",
+          "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
+          "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "2990244e7673b3702a13adf833aff247b454d15286daf486bc41e50996072d02",
+          "content/tuning.toml": "2b3deb3523bfc1dcd999786ca079800a201d17e623b52f4c15fb616af90cd1ee"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "Playwright driving Chromium, muted through the game's Sound: off preference, against the branch served by the vite dev server (commit b616048fc). The dev server serves source modules, so there is no built bundle, built HTML or wasm hash to record; the source files above are hashed at that commit. The game was the saved game from the Household capture (a fresh New game played with the admin panel), now at Day 9, Tuesday 09:39. With the admin panel, Rent was moved to Day 1 with a 15 percent late fee, so it is overdue; Water was marked paid; Electricity and Transportation stayed in their grace days; and funds were set to $4.65, below every unpaid bill, so the funds note shows once under the table. The game was paused, the HUD shows no Load failed text, and Undo shows its label on the desktop. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, without touch emulation; the phone layout is chosen by width.",
+        "evidence": "docs/player/images/ui-admin-household-desktop.png, ui-admin-household-mobile.png, ui-admin-housemate-desktop.png and ui-admin-housemate-mobile.png"
+      },
+      {
+        "id": "need-mood",
+        "url": "http://127.0.0.1:48167/",
+        "htmlSha256": "8512a767fcf5957c552659797e7c44748c2800f7f02c49cf93111bb49d761a13",
+        "bundle": "index-BJZACyHg.js",
+        "bundleSha256": "d135267e9e890a50a7e2159d0c56a4d21bdafb1ac07cc95f11259c2074dd43dc",
+        "wasm": "terri_wasm_bg-BpwJCLLg.wasm",
+        "wasmSha256": "821bb1514a3beada72ea975e7ed48744d3ade581da7bcb977e625a4cff591f5f"
+      },
+      {
+        "id": "admin-housemate-needs-mood-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "dd1c9fe354dddd9744032ffc67ca75bcb78f320c79c41d053d95d64d8f98fa31",
+          "web/src/admin/admin-panel.ts": "6004f6bd284cf7a3a48931f9dbed5f912668588f01975417404268262f310100",
+          "web/src/admin/admin-housemate.ts": "dd5ffe4ea8dccdc77c12176cae5f190656e1f67a948f45cc2c37e5a4aebe22c3",
+          "web/src/admin/admin-relationships.ts": "96e2ebcdead137c1d8c3bc190e8405c3612afe555776c71945736bee492ca5fe",
+          "web/src/admin/admin-household.ts": "643d0d39fe5eb83f315ece9d7c1ed0c83372e1b9a63e249cd17091c674a8e18d",
+          "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
+          "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "cfc8733ee2cbbf6ae8b55c14d3c815d2bf29718dba643e4bd5522012ede77d59",
+          "content/tuning.toml": "6bb5c3945c29b2fc398f810df3ad281ddc6721de19304dba6eb65e21bfef4bb1"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "Playwright driving Google Chrome headless with scrollbars shown, muted with --mute-audio and the game's Sound: off preference, against the branch served by the vite dev server (commit ab1a65d4c, after the merge of save schema 27, where needs affect mood over time, and the fix that drops the rule under the last mood row). The wasm package was rebuilt with wasm-pack from 1492c853a; ab1a65d4c changes only web/src/ui/admin-panel.css. The source files above are hashed at ab1a65d4c. A fresh New game was played with the admin panel: Tim's job set to Cafe: Barista, Skip ahead used to Day 9, Tuesday 09:39, Hygiene and Fun set to 0 and one more hour skipped, then Hygiene set to 64 and Fun to 70, so Undo reads Change Fun and Mood from needs shows its balance. The game was paused by the panel. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1. The phone picture, 390 by 844 by viewport size only, was captured the same way at 1492c853a; it shows only the Needs section, which the CSS fix does not touch.",
+        "evidence": "docs/player/images/ui-admin-housemate-desktop.png and ui-admin-housemate-mobile.png"
+      },
+      {
+        "id": "admin-heading-rows-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "dd1c9fe354dddd9744032ffc67ca75bcb78f320c79c41d053d95d64d8f98fa31",
+          "web/src/admin/admin-panel.ts": "6004f6bd284cf7a3a48931f9dbed5f912668588f01975417404268262f310100",
+          "web/src/admin/admin-housemate.ts": "dd5ffe4ea8dccdc77c12176cae5f190656e1f67a948f45cc2c37e5a4aebe22c3",
+          "web/src/admin/admin-relationships.ts": "96e2ebcdead137c1d8c3bc190e8405c3612afe555776c71945736bee492ca5fe",
+          "web/src/admin/admin-household.ts": "643d0d39fe5eb83f315ece9d7c1ed0c83372e1b9a63e249cd17091c674a8e18d",
+          "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
+          "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "e024efa3d9cae9b6061709720a570c303b60fc45b66892b18c7c4fe8681dec9d",
+          "content/tuning.toml": "6bb5c3945c29b2fc398f810df3ad281ddc6721de19304dba6eb65e21bfef4bb1"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "Playwright driving Google Chrome headless with scrollbars shown, muted with --mute-audio and the game's Sound: off preference, against the branch served by the vite dev server (commit 5dc36064b, where every admin card heading row is a button's height). The wasm package was rebuilt with wasm-pack from 1492c853a; later commits change only web/src/ui/admin-panel.css. The source files above are hashed at 5dc36064b. Each tab was captured from its own fresh New game, played with the admin panel. Housemate: Tim's job set to Cafe: Barista, Skip ahead used to Day 9, Tuesday 09:39, Hygiene and Fun set to 0 and one more hour skipped, then Hygiene set to 64 and Fun to 70, so Undo reads Change Fun and Mood from needs shows its balance. Relationships: Skip ahead used to Day 15, Monday 15:39; Tim's feeling about Bill set to -0.10, Bill's about Tim to 0.55, and Tim and Casey's to 1.00 each; the panel was closed, the game paused, the panel opened again with ~ so the pill reads that the game stays paused, and Fill Tim's needs was pressed so Undo shows its label. Household: Skip ahead used to Day 9, Tuesday 07:39, then 2 more hours; the housemates had paid the Day 8 bills, so they were deleted and the table rebuilt with Add bill: Rent due Day 1 at $255.20 with a $38.28 late fee, so it is overdue; Electricity $40.88, Water $39.20 and Transportation $52.00 due Day 8, in their grace days; Water marked paid; the new-bill row set to Rent on Day 8; and funds set to $4.65, below every unpaid bill. The game was paused by the panel. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, in the same page; the phone layout is chosen by width.",
+        "evidence": "docs/player/images/ui-admin-housemate-*, ui-admin-relationships-* and ui-admin-household-* (desktop and mobile)"
+      },
+      {
+        "id": "admin-phone-titles-2026-11-21",
+        "url": "http://127.0.0.1:5174/",
+        "gameSourceFileSha256": {
+          "web/index.html": "989322db4c544af98e73c1d7d7cca3fa5dd6540966b5418ede19eb92224c5084",
+          "web/src/main.ts": "dd1c9fe354dddd9744032ffc67ca75bcb78f320c79c41d053d95d64d8f98fa31",
+          "web/src/admin/admin-panel.ts": "6004f6bd284cf7a3a48931f9dbed5f912668588f01975417404268262f310100",
+          "web/src/admin/admin-housemate.ts": "dd5ffe4ea8dccdc77c12176cae5f190656e1f67a948f45cc2c37e5a4aebe22c3",
+          "web/src/admin/admin-relationships.ts": "96e2ebcdead137c1d8c3bc190e8405c3612afe555776c71945736bee492ca5fe",
+          "web/src/admin/admin-household.ts": "643d0d39fe5eb83f315ece9d7c1ed0c83372e1b9a63e249cd17091c674a8e18d",
+          "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
+          "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
+          "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
+          "web/src/ui/admin-panel.css": "2e3c051ac817c302b067e5f6d3c5fdb07b32d7c7594d1be68de3b647ff78bc2a",
+          "content/tuning.toml": "6bb5c3945c29b2fc398f810df3ad281ddc6721de19304dba6eb65e21bfef4bb1"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-11-21",
+        "method": "The phone pictures were captured again from commit 5a0ecd7e1, where on touch-sized screens card titles sit at the card padding, heading buttons take their own full-width line under the title, and a closed folding card is one 44 px tap target; the source files above are hashed at that commit. Each tab was played and captured exactly as snapshot admin-heading-rows-2026-11-21 describes, then shown at 390 by 844 by viewport size only. The desktop pictures are the ones from that snapshot at 5dc36064b: the later changes apply only inside the block for screens 600 px wide or less, 480 px tall or less, or with a coarse pointer, which a 1440 by 960 desktop with a mouse does not match.",
+        "evidence": "docs/player/images/ui-admin-housemate-mobile.png, ui-admin-relationships-mobile.png and ui-admin-household-mobile.png"
       }
     ],
     "weatherSetup": {
@@ -611,12 +725,14 @@
       "description": "Overview. Phone needs appear here; desktop needs remain in the dock.",
       "access": "Select a name at the bottom of the screen, then Sim details > Overview.",
       "desktopDetail": "images/ui-sim-needs-detail-desktop.png",
-      "sourceSnapshot": "career-tab-fixes-2026-11-20",
+      "sourceSnapshot": "need-mood",
       "imageSha256": {
-        "desktop": "3e9fd5449941118ffbd1e3363282ff86a7a2496d6d3359560b49b02143dd7fa5",
-        "mobile": "48880f2dd707d0d6fc3c8cba5476743f7552e1c54ef1383f5722f9290450bf1e",
-        "desktopDetail": "fad57a56e6325b9174d7eaaeaec7d8527f68d264009c94ea79431b3cf5e92273"
-      }
+        "desktop": "4e00c79c25c38a9937150fbb217040a99cd3f91457e04350fd4c4c87c8eb2958",
+        "mobile": "cdd1cf241f39a90c48dca67c589902cbaaed1600eda7ca23156a18b7235e3b9b",
+        "desktopDetail": "a7447c112bda373174bc58288c7df524642251deac1c1ac5cf278b0693e9570d"
+      },
+      "htmlSha256": "8512a767fcf5957c552659797e7c44748c2800f7f02c49cf93111bb49d761a13",
+      "bundleSha256": "d135267e9e890a50a7e2159d0c56a4d21bdafb1ac07cc95f11259c2074dd43dc"
     },
     {
       "id": "sim-people",
@@ -2395,6 +2511,117 @@
       "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
       "desktop": "images/ui-log-show-earlier-desktop.png",
       "mobile": "images/ui-log-show-earlier-mobile.png"
+    },
+    {
+      "id": "admin-housemate",
+      "section": "admin-panel",
+      "description": "The admin panel open on its Housemate tab, with a housemate chosen in the picker, Undo and Close in the header and the game paused.",
+      "access": "Press ~, or hold the lot's bottom corner tile on a touch screen.",
+      "desktop": "images/ui-admin-housemate-desktop.png",
+      "mobile": "images/ui-admin-housemate-mobile.png",
+      "sourceSnapshot": "admin-phone-titles-2026-11-21",
+      "imageSha256": {
+        "desktop": "2a97081159d0edf6ca19f82c8e301d069d3c1b703ebc69908e78a2a996d80608",
+        "mobile": "7e18d940a3c27a7315bf25b6a39e473411826e3f406e0942927a3380b9597319"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "2a97081159d0edf6ca19f82c8e301d069d3c1b703ebc69908e78a2a996d80608"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "7e18d940a3c27a7315bf25b6a39e473411826e3f406e0942927a3380b9597319"
+        }
+      }
+    },
+    {
+      "id": "admin-relationships",
+      "section": "admin-panel",
+      "description": "The admin panel open on its Relationships tab, with one housemate's feelings about each other housemate and the fight row.",
+      "access": "Open the admin panel, then choose Relationships.",
+      "desktop": "images/ui-admin-relationships-desktop.png",
+      "mobile": "images/ui-admin-relationships-mobile.png",
+      "sourceSnapshot": "admin-phone-titles-2026-11-21",
+      "imageSha256": {
+        "desktop": "7baa4e2fb445e2eb191515966617689a2bddf2b20b7d9024f4a7806d2e534d73",
+        "mobile": "585621c493c811eaa0b48fcd2fdbad43a3896285e60c43e7c0557c82d61fbf4c"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "7baa4e2fb445e2eb191515966617689a2bddf2b20b7d9024f4a7806d2e534d73"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "585621c493c811eaa0b48fcd2fdbad43a3896285e60c43e7c0557c82d61fbf4c"
+        }
+      }
+    },
+    {
+      "id": "admin-household",
+      "section": "admin-panel",
+      "description": "The admin panel open on its Household tab, with Funds, the bills table and Skip ahead.",
+      "access": "Open the admin panel, then choose Household.",
+      "desktop": "images/ui-admin-household-desktop.png",
+      "mobile": "images/ui-admin-household-mobile.png",
+      "sourceSnapshot": "admin-phone-titles-2026-11-21",
+      "imageSha256": {
+        "desktop": "4df307febaf242867fe71f1d912577f7c15807283343474490de4103cfd015d2",
+        "mobile": "7f7a29723d65239874709022d3bd2ba9c26bf1f15b38e710caf52c4f17a2ebde"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "4df307febaf242867fe71f1d912577f7c15807283343474490de4103cfd015d2"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "7f7a29723d65239874709022d3bd2ba9c26bf1f15b38e710caf52c4f17a2ebde"
+        }
+      }
     }
   ],
   "uiSections": {

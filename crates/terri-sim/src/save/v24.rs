@@ -83,8 +83,8 @@ fn holds_inputs(record: &Record) -> bool {
 }
 
 /// Every record holding input data, ascending by person.
-fn rows(sim: &Sim) -> Vec<SavedCareerInputs> {
-    sim.world()
+fn rows(world: &bevy_ecs::world::World) -> Vec<SavedCareerInputs> {
+    world
         .get_resource::<Careers>()
         .map_or_else(Vec::new, |careers| {
             careers
@@ -116,8 +116,8 @@ fn source_rows(sources: &BTreeMap<u32, ShiftSource>) -> Vec<SavedShiftSourceOver
     }).collect()
 }
 
-pub(crate) fn capture_sources(sim: &Sim) -> Vec<SavedCareerInputSources> {
-    let Some(careers) = sim.world().get_resource::<Careers>() else {
+pub(crate) fn capture_sources(world: &bevy_ecs::world::World) -> Vec<SavedCareerInputSources> {
+    let Some(careers) = world.get_resource::<Careers>() else {
         return Vec::new();
     };
     careers.records.iter().filter_map(|(sim, record)| {
@@ -162,7 +162,7 @@ fn live_command(command: SavedQueuedWorkCommand) -> SimCommand {
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV24 {
     SaveSnapshotV24 {
         legacy: super::v23::capture(sim),
-        career_inputs: rows(sim),
+        career_inputs: rows(sim.world()),
         queued_work_commands: queued_work_commands(sim),
         replaced_shifts: crate::attendance::replaced_to_saved(sim.world()),
     }
@@ -172,7 +172,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV24 {
 pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV24 {
     SaveSnapshotV24 {
         legacy: super::v23::capture_without_commands(sim),
-        career_inputs: rows(sim),
+        career_inputs: rows(sim.world()),
         queued_work_commands: Vec::new(),
         replaced_shifts: crate::attendance::replaced_to_saved(sim.world()),
     }
@@ -349,7 +349,7 @@ fn valid_week(
 }
 
 fn validated(
-    sim: &Sim,
+    world: &bevy_ecs::world::World,
     rows: &[SavedCareerInputs],
     sourced: &[SavedCareerInputSources],
     pack: &ContentPack,
@@ -373,14 +373,14 @@ fn validated(
         return Err(InvalidValue);
     }
 
-    let careers = sim.world().resource::<Careers>();
+    let careers = world.resource::<Careers>();
     let all_jobs = ShiftBounds::any(pack);
     let mut installed = Vec::with_capacity(by_sim.len());
     for (person, (ordinary, sourced)) in by_sim {
         let id = SimId(person);
         let record = careers.record(id).ok_or(InvalidValue)?;
-        let entity = crate::edit::living_entity(sim.world(), person).ok_or(InvalidValue)?;
-        let career = sim.world().get::<terri_core::Career>(entity).ok_or(InvalidValue)?.0;
+        let entity = crate::edit::living_entity(world, person).ok_or(InvalidValue)?;
+        let career = world.get::<terri_core::Career>(entity).ok_or(InvalidValue)?.0;
         let job = pack.careers.get(career as usize).ok_or(InvalidValue)?;
         let default = ShiftSource { career, base_pay: Some(record.pay) };
 
@@ -452,6 +452,13 @@ fn validated(
     Ok(installed)
 }
 
+/// [AP-cmd-post]: the live career inputs pass the checks a load makes of
+/// the rows a save would write for them.
+pub(crate) fn validate_live_inputs(world: &bevy_ecs::world::World) -> Result<(), SaveError> {
+    let pack = world.resource::<Content>().0;
+    validated(world, &rows(world), &capture_sources(world), pack).map(|_| ())
+}
+
 /// The schema-twenty-three part restores first, so each row can be checked
 /// against the restored careers; any bad row refuses the whole save before
 /// the live world is touched. The queued Go to work commands then return
@@ -476,7 +483,7 @@ pub(crate) fn restore_with_sources(
     carried.pre_registered_shifts = true;
     let mut candidate = super::v23::restore(snapshot.legacy, content, carried)?;
     let pack = candidate.world().resource::<Content>().0;
-    let records = validated(&candidate, &snapshot.career_inputs, &sourced, pack)?;
+    let records = validated(candidate.world(), &snapshot.career_inputs, &sourced, pack)?;
     crate::attendance::validate_replaced(candidate.world(), &snapshot.replaced_shifts)?;
     crate::attendance::restore_replaced(candidate.world_mut(), snapshot.replaced_shifts);
     {

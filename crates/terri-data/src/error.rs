@@ -981,6 +981,11 @@ pub enum ContentError {
     CareerTuningOutOfRange {
         key: &'static str,
     },
+    /// The admin panel (issue 312, [AP-tuning]): an admin knob outside its
+    /// range, named by `key`.
+    AdminTuningOutOfRange {
+        key: &'static str,
+    },
     /// Bills (issue 298, [WB-tuning]): a `[bills]` value outside its range,
     /// named by its dotted key, such as `bills.grace_days` or
     /// `bills.uses.shower.water_cents`.
@@ -1383,6 +1388,7 @@ pub enum ContentError {
     InvalidMortalityTuning,
     InvalidMoodTuning,
     InvalidInterpersonalTuning,
+    InvalidNeedMoodTuning,
     InvalidSharedActivity {
         owner: String,
         interaction: String,
@@ -2290,6 +2296,13 @@ impl fmt::Display for ContentError {
                  burnt_meal_mood_penalty finite and not negative; \
                  burnt_meal_mood_ticks from 1 to 10080"
             ),
+            ContentError::AdminTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: admin_skip_max_hours \
+                 from 1 to 672; admin_skip_default_hours from 1 to \
+                 admin_skip_max_hours; admin_skip_ticks_per_frame from 1 to 1440; \
+                 admin_bill_due_months from 1 to 120"
+            ),
             ContentError::LandTuningOutOfRange { key } => write!(
                 f,
                 "{key} in tuning.toml is outside its range: land_strip_depth \
@@ -2752,6 +2765,7 @@ impl fmt::Display for ContentError {
             ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
             ContentError::InvalidWeatherTuning => write!(f, "weather in tuning.toml requires finite daily probabilities in [0, 1], zero Spring probability, positive event, fall and leaf durations, ordered start hours, a fall no longer than the event, and all leaves expired before midnight"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
+            ContentError::InvalidNeedMoodTuning => write!(f, "need_mood requires a high level from 0 up to 100 exclusive and rates from 0 to 10000 hundredths per game hour"),
             ContentError::InvalidInterpersonalTuning => write!(f, "interpersonal penalties, hated_communal_chance and meal_appreciation_gain must be finite, from zero to one, with the critical penalty at least the low penalty"),
             ContentError::InvalidSharedActivity { owner, interaction } => write!(f, "shared activity on {owner}.{interaction} must name one of its activity tags and cannot describe a conversation or private use"),
             ContentError::InvalidMortalityTuning => write!(f, "death requires a positive duration and an earlier warning; grief requires positive ordered durations and finite ordered scores, with a hatred cutoff from -1 up to but excluding 0"),

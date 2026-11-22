@@ -44,6 +44,8 @@
 
 1. Drag to move the camera. Pinch on touch or use the mouse wheel on desktop to zoom. Build mode also shows minus and plus zoom buttons.
 
+2. Press ~ to open or close the admin panel, which changes needs, feelings, funds and bills directly. On touch, hold the lot's bottom corner tile. The game pauses while it is open. See [the admin panel](ui-elements/#admin-panel).
+
 ## Options & saves
 
 1. Open Options for Light, Sound, Death, Save, Load, Export save, Import save, New game, New housemate, Help and Changelog. Export save downloads your household as a file; Import save loads one, for example on another device. Played at the old web address? See [saves from the old address](home-and-controls/#old-address). Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue new orders and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.

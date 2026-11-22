@@ -258,6 +258,10 @@ pub fn compile(root: &Path) -> pack::ContentPack {
             )),
         ),
         ("bills", shipped_bills_without_usage()),
+        (
+            "need_mood",
+            toml::Value::try_from(pack::NeedMoodTuning::HISTORICAL).unwrap(),
+        ),
         // Issue 315: the fill limit a pack published before it rebuilds with.
         ("need_fill_max_ticks", toml::Value::Integer(240)),
         // The presence fade (issue 344): the shipped rate, reconstructed by
@@ -277,6 +281,24 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         (
             "career_input_history_weeks",
             toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS)),
+        ),
+        // The admin panel (issue 312): the shipped knobs, reconstructed by the
+        // published-pack conversions too.
+        (
+            "admin_skip_max_hours",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_SKIP_MAX_HOURS)),
+        ),
+        (
+            "admin_skip_default_hours",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_SKIP_DEFAULT_HOURS)),
+        ),
+        (
+            "admin_skip_ticks_per_frame",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME)),
+        ),
+        (
+            "admin_bill_due_months",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS)),
         ),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.

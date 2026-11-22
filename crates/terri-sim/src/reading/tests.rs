@@ -63,9 +63,9 @@ fn build_replans_an_owned_fetch_contact_without_replacing_the_book_or_seat() {
         sim.world().get::<Path>(person).unwrap().steps.last(),
         Some(&(3, 2))
     );
-    let saved = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 
 #[test]
@@ -117,9 +117,9 @@ fn build_keeps_a_carried_book_waiting_when_its_return_contact_is_blocked() {
             .location,
         location
     );
-    let saved = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 
 #[test]
@@ -234,9 +234,9 @@ fn shelf_move_with_optional_pool(with_pool: bool) {
     let saved = sim.current_v19_view();
     sim.load_current_v19_view(saved.clone()).unwrap();
     assert_eq!(sim.current_v19_view(), saved);
-    let saved = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 
 #[test]
@@ -928,21 +928,21 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         let pack = sim.world().resource::<Content>().0;
         let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
         historical.load_snapshot_v10(frozen.clone()).unwrap();
-        let adopted = historical.save_snapshot_v26();
+        let adopted = historical.save_snapshot_v28();
         let historical_hash = historical.world_hash();
         let mut bad = frozen.clone();
         bad.legacy.reading[0].copy = BookCopyId(999);
         assert!(historical.load_snapshot_v10(bad).is_err());
-        assert_eq!(historical.save_snapshot_v26(), adopted);
+        assert_eq!(historical.save_snapshot_v28(), adopted);
         assert_eq!(historical.world_hash(), historical_hash);
         let mut unearned = frozen.clone();
         unearned.legacy.reading[0].earned_satisfaction = 10.0;
         assert!(historical.load_snapshot_v10(unearned).is_err());
-        assert_eq!(historical.save_snapshot_v26(), adopted);
+        assert_eq!(historical.save_snapshot_v28(), adopted);
         let mut bad = frozen.clone();
         bad.legacy.reading.clear();
         assert!(historical.load_snapshot_v10(bad).is_err());
-        assert_eq!(historical.save_snapshot_v26(), adopted);
+        assert_eq!(historical.save_snapshot_v28(), adopted);
         assert_eq!(sim.current_v10_view(), saved);
         assert_eq!(sim.world_hash(), hash);
         for fault in 0..3 {
@@ -3104,7 +3104,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v26::restore(
+    let mut returning = crate::save::v28::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

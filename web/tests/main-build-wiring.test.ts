@@ -108,6 +108,7 @@ function fixture(source = main) {
     selectionControls: undefined, reviewControls: undefined, toolSwitch: undefined, placementActions: undefined, cameraDirty: false,
     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isShowing: () => false },
     previousFrameMs: 0, frameElapsedMs, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
+    adminSkip: { step() {} },
     MAX_TICKS_PER_FRAME: 5, BACKGROUND_MAX_TICKS: 300,
     persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
     orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false, PreparedBuildCommit, contactRoster,

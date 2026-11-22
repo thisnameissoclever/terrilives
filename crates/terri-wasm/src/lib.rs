@@ -14,6 +14,7 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+mod admin_exports;
 #[cfg(test)]
 mod book_commerce_tests;
 mod browser_bills;
@@ -2411,6 +2412,12 @@ impl SimHandle {
         if !rest.is_empty() {
             return false;
         }
+        // [AP-cmd-admit]: an admin change is admitted only by the admin
+        // panel's own export, which drains it in the same call, so none can
+        // wait in this queue for a save ([AP-save-queue]).
+        if matches!(command, SimCommand::Admin(_)) {
+            return false;
+        }
 
         if let SimCommand::ConfirmedOrder { command, .. } = &command {
             if command.validate_structure().is_err() {
@@ -2722,9 +2729,20 @@ impl SimHandle {
 
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
+    ///
+    /// **Empty means refused**, never a save: a queue that holds an admin
+    /// command cannot be saved ([AP-save-queue] in
+    /// `docs/specs/2026-11-20-admin-panel.md`), nor can a world a broken
+    /// admin session left with edits that would not load, and a refusal is an empty
+    /// array rather than a panic inside the export. No valid save is empty
+    /// (it always carries a header), `load_bytes` refuses an empty array,
+    /// and the shell's `saveBytes` turns it into a thrown error so no caller
+    /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v26())
-            .expect("SaveSnapshotV26 serializes");
+        let Ok(snapshot) = self.sim.try_save_snapshot_v28() else {
+            return Vec::new();
+        };
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV28 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2754,6 +2772,18 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v28(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 27 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV27>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v27(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 26 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV26>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v26(snapshot).is_ok(),
                 _ => false,
@@ -2779,6 +2809,14 @@ impl SimHandle {
             };
         }
         if version == 24 {
+            // The unpublished editable-world branch also used V24. Only
+            // the published Career fingerprint belongs to this wire format.
+            if !matches!(
+                postcard::take_from_bytes::<u64>(payload),
+                Ok((0x5111_16ef_ac94_ae24, _))
+            ) {
+                return false;
+            }
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV24>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v24(snapshot).is_ok(),
                 _ => false,
@@ -5191,7 +5229,7 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v26()
+            uninterrupted.sim.save_snapshot_v28()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
@@ -5203,8 +5241,8 @@ mod boundary_tests {
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v26(),
-            uninterrupted.sim.save_snapshot_v26()
+            resumed.sim.save_snapshot_v28(),
+            uninterrupted.sim.save_snapshot_v28()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -5216,8 +5254,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v26(),
-            uninterrupted.sim.save_snapshot_v26()
+            resumed.sim.save_snapshot_v28(),
+            uninterrupted.sim.save_snapshot_v28()
         );
     }
 
@@ -9681,9 +9719,6 @@ mod boundary_tests {
             .iter()
             .position(|kind| *kind == "condition")
             .expect("the shipped pack carries a condition") as u32;
-        let mut needs = Needs::all_at(50.0);
-        needs.set(NeedId::Hunger, 20.0);
-        needs.set(NeedId::Energy, 40.0);
         let subject = handle
             .sim
             .world_mut()
@@ -9692,7 +9727,8 @@ mod boundary_tests {
                 SimId(50),
                 SimName("Subject".to_string()),
                 Position { x: 1.0, y: 1.0 },
-                needs,
+                Needs::all_at(50.0),
+                terri_sim::need_mood::NeedMood(-222_000),
                 Traits::from_entries(vec![(condition_index, 0.6)]),
                 Relationships::default(),
             ))
@@ -9729,7 +9765,7 @@ mod boundary_tests {
             labels,
             vec![
                 "Miserable",
-                "Starving",
+                "Mood from needs",
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
@@ -9737,7 +9773,7 @@ mod boundary_tests {
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");
-        let expected = [-61.5, -25.0, -18.0, -6.0, 7.5, -20.0];
+        let expected = [-73.5, -37.0, -18.0, -6.0, 7.5, -20.0];
         for (index, (actual, expected)) in scores.iter().zip(expected).enumerate() {
             assert!(
                 (*actual - expected).abs() < 1e-5,
@@ -9747,12 +9783,14 @@ mod boundary_tests {
     }
 
     #[test]
-    fn mood_boundary_preserves_exact_need_thresholds_and_empty_absence() {
+    fn mood_boundary_preserves_fractional_need_mood_and_empty_absence() {
         let mut handle = SimHandle::new(8, 8);
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, 0.0);
         let subject = handle
             .sim
             .world_mut()
-            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Needs::all_at(50.0)))
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, needs))
             .id();
         let non_sim = handle
             .sim
@@ -9767,33 +9805,17 @@ mod boundary_tests {
         let stale_index = stale.index_u32();
         assert!(handle.sim.world_mut().despawn(stale));
 
-        for (level, label, score) in [
-            (20.0, Some("Starving"), -25.0),
-            (20.001, None, 0.0),
-            (40.0, None, 0.0),
-        ] {
-            let mut needs = Needs::all_at(50.0);
-            needs.set(NeedId::Hunger, level);
-            handle.sim.world_mut().entity_mut(subject).insert(needs);
-            assert_eq!(
-                handle.mood_summary_of(subject.index_u32()),
-                label.map_or_else(|| vec!["Okay"], |label| vec!["Low", label])
-            );
-            assert_eq!(
-                handle.mood_snapshot_of(subject.index_u32()),
-                if label.is_some() {
-                    vec![score, score]
-                } else {
-                    vec![score]
-                }
-            );
-        }
-
-        let mut above = Needs::all_at(50.0);
-        above.set(NeedId::Hunger, 40.001);
-        handle.sim.world_mut().entity_mut(subject).insert(above);
         assert_eq!(handle.mood_summary_of(subject.index_u32()), vec!["Okay"]);
         assert_eq!(handle.mood_snapshot_of(subject.index_u32()), vec![0.0]);
+        handle.tick();
+        assert_eq!(
+            handle.mood_summary_of(subject.index_u32()),
+            vec!["Okay", "Mood from needs"]
+        );
+        assert_eq!(
+            handle.mood_snapshot_of(subject.index_u32()),
+            vec![-0.1, -0.1]
+        );
         assert!(handle.mood_summary_of(non_sim.index_u32()).is_empty());
         assert!(handle.mood_snapshot_of(non_sim.index_u32()).is_empty());
         assert!(handle.mood_summary_of(stale_index).is_empty());
@@ -11357,7 +11379,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v17();
+        let saved = source.sim.save_snapshot_v28();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -11367,8 +11389,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v17(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v17(), saved);
+        assert_eq!(restored.load_snapshot_v28(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v28(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();
@@ -11439,11 +11461,17 @@ mod published_v21_tests;
 #[cfg(test)]
 mod published_v24_tests;
 #[cfg(test)]
+mod admin_boundary_tests;
+#[cfg(test)]
+mod admin_queue_tests;
+#[cfg(test)]
 mod bills_boundary_tests;
 #[cfg(test)]
 mod career_inputs_v23_tests;
 #[cfg(test)]
 mod career_tab_boundary_tests;
+#[cfg(test)]
+mod need_mood_boundary_tests;
 #[cfg(test)]
 mod presence_fade_boundary_tests;
 

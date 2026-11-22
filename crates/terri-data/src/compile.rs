@@ -171,6 +171,13 @@ pub fn compile(
     // its usage kinds by id and compiles them to indices into these lists
     // ([WB-usage]).
     let bills = compile_bills(&tuning.bills)?;
+    let need_mood = tuning.need_mood;
+    if !(0.0..100.0).contains(&need_mood.high_level)
+        || !(0..=10000).contains(&need_mood.high_gain_units)
+        || !(0..=10000).contains(&need_mood.empty_loss_units)
+    {
+        return Err(ContentError::InvalidNeedMoodTuning);
+    }
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     // Colourways ride in objects.toml but apply to every object; they are
     // validated last, on their own.
@@ -758,6 +765,7 @@ pub fn compile(
         skills,
         affinities,
         bills,
+        need_mood,
     })
 }
 
@@ -3879,6 +3887,30 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = career_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::CareerTuningOutOfRange { key });
     }
+    // Issue 312 ([AP-tuning]): a Skip ahead of up to four game weeks, a
+    // starting value within it, a frame budget of up to a game day and Due
+    // selects reaching up to ten billing years back.
+    let admin_rules = [
+        (
+            "admin_skip_max_hours",
+            (1..=672).contains(&tuning.admin_skip_max_hours),
+        ),
+        (
+            "admin_skip_default_hours",
+            (1..=tuning.admin_skip_max_hours).contains(&tuning.admin_skip_default_hours),
+        ),
+        (
+            "admin_skip_ticks_per_frame",
+            (1..=1440).contains(&tuning.admin_skip_ticks_per_frame),
+        ),
+        (
+            "admin_bill_due_months",
+            (1..=120).contains(&tuning.admin_bill_due_months),
+        ),
+    ];
+    if let Some((key, _)) = admin_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::AdminTuningOutOfRange { key });
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -4508,6 +4540,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             affinity_presence_fade_points_per_hour: tuning.affinity_presence_fade_points_per_hour,
             go_to_work_window_ticks: tuning.go_to_work_window_ticks,
             career_input_history_weeks: tuning.career_input_history_weeks,
+            admin_skip_max_hours: tuning.admin_skip_max_hours,
+            admin_skip_default_hours: tuning.admin_skip_default_hours,
+            admin_skip_ticks_per_frame: tuning.admin_skip_ticks_per_frame,
+            admin_bill_due_months: tuning.admin_bill_due_months,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -6041,7 +6077,13 @@ mod tests {
             // Issues 311 and 317: likewise the shipped window and history.
             go_to_work_window_ticks: crate::Tuning::SHIPPED_GO_TO_WORK_WINDOW_TICKS,
             career_input_history_weeks: crate::Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS,
+            // Issue 312: and the shipped admin panel knobs.
+            admin_skip_max_hours: crate::Tuning::SHIPPED_ADMIN_SKIP_MAX_HOURS,
+            admin_skip_default_hours: crate::Tuning::SHIPPED_ADMIN_SKIP_DEFAULT_HOURS,
+            admin_skip_ticks_per_frame: crate::Tuning::SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME,
+            admin_bill_due_months: crate::Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS,
             bills: shipped_bills_def(),
+            need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
@@ -6209,6 +6251,40 @@ mod tests {
             test_atlas(),
             tuning,
         )
+    }
+
+    #[test]
+    fn need_mood_rates_and_threshold_are_checked_and_copied() {
+        let tuned = crate::pack::NeedMoodTuning {
+            high_level: 89.5,
+            high_gain_units: 3,
+            empty_loss_units: 47,
+        };
+        let with = |rules| compile_tuned(tuning_where(|t| t.need_mood = rules));
+        assert_eq!(with(tuned).unwrap().need_mood, tuned);
+        for invalid in [
+            crate::pack::NeedMoodTuning {
+                high_level: 100.0,
+                ..tuned
+            },
+            crate::pack::NeedMoodTuning {
+                high_level: f32::NAN,
+                ..tuned
+            },
+            crate::pack::NeedMoodTuning {
+                high_gain_units: -1,
+                ..tuned
+            },
+            crate::pack::NeedMoodTuning {
+                empty_loss_units: 10001,
+                ..tuned
+            },
+        ] {
+            assert!(matches!(
+                with(invalid),
+                Err(ContentError::InvalidNeedMoodTuning)
+            ));
+        }
     }
 
     #[test]
@@ -11495,6 +11571,84 @@ mod tests {
             assert_eq!(pack.tuning.career_input_history_weeks, weeks);
             assert_eq!(pack.tuning.go_to_work_window_ticks, 120);
         }
+    }
+
+    /// Issue 312 ([AP-tuning]): the four admin panel knobs compile within
+    /// their ranges, each refusal names its knob, each boundary is legal,
+    /// the default may not exceed the limit, and each knob reaches its own
+    /// compiled field rather than a neighbour's.
+    #[test]
+    fn admin_panel_knobs_are_ranged_and_copied_to_their_own_fields() {
+        let refused =
+            |change: fn(&mut TuningFile), key: &str| match compile_tuned(tuning_where(change)) {
+                Err(ContentError::AdminTuningOutOfRange { key: named }) => {
+                    assert_eq!(named, key)
+                }
+                other => panic!("{key}: {other:?}"),
+            };
+        refused(|t| t.admin_skip_max_hours = 0, "admin_skip_max_hours");
+        refused(|t| t.admin_skip_max_hours = 673, "admin_skip_max_hours");
+        refused(
+            |t| t.admin_skip_default_hours = 0,
+            "admin_skip_default_hours",
+        );
+        refused(
+            |t| {
+                t.admin_skip_max_hours = 10;
+                t.admin_skip_default_hours = 11;
+            },
+            "admin_skip_default_hours",
+        );
+        refused(
+            |t| t.admin_skip_ticks_per_frame = 0,
+            "admin_skip_ticks_per_frame",
+        );
+        refused(
+            |t| t.admin_skip_ticks_per_frame = 1441,
+            "admin_skip_ticks_per_frame",
+        );
+        refused(|t| t.admin_bill_due_months = 0, "admin_bill_due_months");
+        refused(|t| t.admin_bill_due_months = 121, "admin_bill_due_months");
+
+        let compiled = |change: fn(&mut TuningFile)| {
+            let tuning = compile_tuned(tuning_where(change))
+                .unwrap_or_else(|error| panic!("{error}"))
+                .tuning;
+            [
+                tuning.admin_skip_max_hours,
+                tuning.admin_skip_default_hours,
+                tuning.admin_skip_ticks_per_frame,
+                tuning.admin_bill_due_months,
+            ]
+        };
+        assert_eq!(compiled(|_| {}), [168, 8, 300, 12]);
+        assert_eq!(
+            compiled(|t| {
+                t.admin_skip_max_hours = 1;
+                t.admin_skip_default_hours = 1;
+            }),
+            [1, 1, 300, 12]
+        );
+        assert_eq!(
+            compiled(|t| {
+                t.admin_skip_max_hours = 672;
+                t.admin_skip_default_hours = 672;
+            }),
+            [672, 672, 300, 12]
+        );
+        assert_eq!(
+            compiled(|t| t.admin_skip_ticks_per_frame = 1),
+            [168, 8, 1, 12]
+        );
+        assert_eq!(
+            compiled(|t| t.admin_skip_ticks_per_frame = 1440),
+            [168, 8, 1440, 12]
+        );
+        assert_eq!(compiled(|t| t.admin_bill_due_months = 1), [168, 8, 300, 1]);
+        assert_eq!(
+            compiled(|t| t.admin_bill_due_months = 120),
+            [168, 8, 300, 120]
+        );
     }
 
     /// Issue 309 ([WL-tuning]): the lateness limit must be below the shift

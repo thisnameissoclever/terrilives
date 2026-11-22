@@ -3,6 +3,30 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 
+it.each([
+  ['published-v24/day-two', 24],
+  ['published-v24/week-two', 24],
+  ['private-editable/bath-v24', 24],
+  ['private-editable/bath-v25', 25],
+] as const)('restores the %s save and continues the current game', async (fixture, version) => {
+  await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
+  const original = new Uint8Array(readFileSync(new URL(
+    `../../crates/terri-wasm/tests/fixtures/${fixture}.sav`, import.meta.url)));
+  expect([...original.slice(8, 10)]).toEqual([version, 0]);
+  const migrated = SimHandle.from_lot();
+  const resumed = SimHandle.from_lot();
+  try {
+    expect(migrated.load_bytes(original)).toBe(true);
+    const current = migrated.save_bytes();
+    expect([...current.slice(8, 10)]).toEqual([CURRENT_SAVE_VERSION, 0]);
+    expect(resumed.load_bytes(current)).toBe(true);
+    expect(resumed.save_bytes()).toEqual(current);
+    for (let tick = 0; tick < 100; tick++) { migrated.tick(); resumed.tick(); }
+    expect(resumed.world_hash()).toBe(migrated.world_hash());
+    expect(resumed.save_bytes()).toEqual(migrated.save_bytes());
+  } finally { migrated.free(); resumed.free(); }
+});
+
 it('loads the captured historical save through release WASM and preserves continuation', async () => {
   await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
   const hex = readFileSync(new URL('../../crates/terri-wasm/tests/fixtures/pre-voice-157.hex',

@@ -1404,9 +1404,9 @@ fn waiting_review(
 fn reloads(sim: &Sim) {
     let mut loaded = Sim::new_from_shipped_lot();
     loaded.world_mut().insert_resource(Content(pack(sim)));
-    let saved = sim.save_snapshot_v26();
+    let saved = sim.save_snapshot_v28();
     assert_eq!(
-        loaded.load_snapshot_v26(saved),
+        loaded.load_snapshot_v28(saved),
         Ok(()),
         "the world still saves and loads"
     );

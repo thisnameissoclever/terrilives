@@ -46,6 +46,12 @@ function store(saved: Uint8Array | null): SaveStore & { saves: Uint8Array[] } {
     async load() {
       return saved;
     },
+    async lastGoodCopy() {
+      return null;
+    },
+    async restoreLastGood() {
+      return false;
+    },
     async save(bytes) {
       this.saves.push(bytes);
     },
@@ -147,7 +153,7 @@ describe('Import save', () => {
     const view = status();
     const controller = new PersistenceController(backend, game, view);
     await controller.restoreAtStartup();
-    const file = saveBytes(CURRENT_SAVE_VERSION - 1);
+    const file = saveBytes(23);
 
     expect(await controller.importSave(file)).toBe(true);
     expect(game.loaded).toEqual([file]);
@@ -172,6 +178,62 @@ describe('Import save', () => {
     expect(await controller.importSave(saveBytes())).toBe(true);
     expect(controller.isSavingPaused()).toBe(false);
     expect(controller.controlState().saveDisabled).toBe(false);
+  });
+
+  it('refuses an unknown V24 import before calling the simulation', async () => {
+    const backend = store(null);
+    const game = sim();
+    const load = vi.spyOn(game, 'loadBytes');
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    const file = saveBytes(24);
+    expect(controller.acceptImportFile(file.slice(0, 10))).toBe(false);
+    expect(await controller.importSave(file)).toBe(false);
+    expect(view.textContent).toBe('Saved game version 24 is not supported.');
+    expect(load).not.toHaveBeenCalled();
+    expect(backend.saves).toEqual([]);
+  });
+
+  it.each([
+    ['Career V24', 24, [164, 220, 210, 228, 250, 221, 197, 136, 81]],
+    ['editable-world V24', 24, [174, 199, 139, 189, 133, 195, 228, 148, 114]],
+    ['V25', 25, [7]],
+    ['V26', 26, [7]],
+    ['V27', 27, [7]],
+  ] as const)('passes a recognized %s import to prepared loading', async (_family, version, fingerprint) => {
+    const backend = store(null);
+    const game = sim();
+    const loadPrepared = vi.fn(async () => true);
+    const controller = new PersistenceController(backend, game, status(), vi.fn(), loadPrepared);
+    const file = saveBytes(version, [...fingerprint]);
+    expect(controller.acceptImportFile(file.slice(0, 19))).toBe(true);
+    expect(await controller.importSave(file)).toBe(true);
+    expect(loadPrepared).toHaveBeenCalledExactlyOnceWith(file);
+    expect(backend.saves).toEqual([game.saveBytes()]);
+  });
+
+  it('protects an unknown V24 slot until the player confirms New game', async () => {
+    const unknownSave = saveBytes(24, [174, 199, 139, 189, 133, 195, 228, 148, 113, 37, 22, 9]);
+    const backend = store(unknownSave);
+    const game = sim();
+    const load = vi.spyOn(game, 'loadBytes');
+    const deliver = vi.fn();
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(await controller.load()).toBe(false);
+    expect(view.textContent).toContain('Saved game version 24 is not supported.');
+    expect(await controller.exportSave(deliver)).toBe(true);
+    expect(deliver).toHaveBeenCalledWith(unknownSave);
+    expect(controller.acceptImportFile(saveBytes(23))).toBe(false);
+    expect(await controller.importSave(saveBytes(23))).toBe(false);
+    expect(await controller.save()).toBe(false);
+    expect(load).not.toHaveBeenCalled();
+    expect(backend.saves).toEqual([]);
+
+    expect(await controller.clear()).toBe(true);
+    expect(await controller.importSave(saveBytes(23))).toBe(true);
+    expect(backend.saves).toEqual([saveBytes(CURRENT_SAVE_VERSION, [1, 2, 3])]);
   });
 
   it.each([

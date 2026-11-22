@@ -983,15 +983,18 @@ describe('SimBridge', () => {
     expect(restored.count).toBe(0);
   });
 
-  it('rejects every current-save truncation, trailing bytes, and future versions transactionally', () => {
+  it('rejects current-save truncation, trailing bytes, and unsupported versions transactionally', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
     expect(new DataView(valid.buffer, valid.byteOffset, valid.byteLength).getUint16(8, true)).toBe(CURRENT_SAVE_VERSION);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
-    const future = valid.slice();
-    new DataView(future.buffer, future.byteOffset, future.byteLength).setUint16(8, CURRENT_SAVE_VERSION + 1, true);
-    const invalid = [trailing, future, ...Array.from({ length: valid.length }, (_, length) => valid.slice(0, length))];
+    const unsupported = [24, 25, 26, CURRENT_SAVE_VERSION + 1].map((version) => {
+      const bytes = valid.slice();
+      new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).setUint16(8, version, true);
+      return bytes;
+    });
+    const invalid = [trailing, ...unsupported, ...Array.from({ length: valid.length }, (_, length) => valid.slice(0, length))];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
@@ -1048,9 +1051,15 @@ describe('SimBridge', () => {
     expect(tim).toBeDefined();
     if (tim === undefined) throw new Error('the shipped lot houses Tim');
 
+    const initial = saved.moodSummaryOf(tim);
+    expect(initial[0]).toBe('Low');
+    expect(initial).not.toContain('Mood from needs');
+    saved.tick();
     const scores = Array.from(saved.moodSnapshotOf(tim));
     const labels = saved.moodSummaryOf(tim);
-    expect(labels[0]).toBe('Low');
+    const needsRow = labels.indexOf('Mood from needs');
+    expect(needsRow).toBeGreaterThan(0);
+    expect(scores[needsRow]).toBeCloseTo(10 / 6000, 6);
     expect(labels).toContain('Low spirits');
     expect(scores.length).toBe(labels.length);
     expect(scores.every(Number.isFinite)).toBe(true);
@@ -1458,7 +1467,7 @@ describe('SimBridge', () => {
     // Main's three-quarter need drain changes the scenario's need levels.
     // Independently measured on native and rebuilt release WebAssembly on
     // 2026-11-20 after integrating that balance with saved world surfaces.
-    expect(bridge.worldHash()).toBe(195701637562556713n);
+    expect(bridge.worldHash()).toBe(16523105578250608243n);
   });
 
   // ---- Player commands -------------------------------------------------

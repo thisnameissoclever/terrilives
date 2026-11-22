@@ -428,9 +428,9 @@ fn a_v4_save_with_bad_retired_indices_is_refused() {
         target.save_snapshot_v4().retired_indices,
         sim.save_snapshot_v4().retired_indices
     );
-    let migrated = target.save_snapshot_v26();
+    let migrated = target.save_snapshot_v28();
     let mut reloaded = house(0).0;
-    reloaded.load_snapshot_v26(migrated).unwrap();
+    reloaded.load_snapshot_v28(migrated).unwrap();
     assert_eq!(reloaded.world_hash(), target.world_hash());
 }
 

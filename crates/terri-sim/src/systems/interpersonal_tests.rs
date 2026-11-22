@@ -981,12 +981,12 @@ fn issue314_actual_privacy_incident_permits_a_neutral_person_to_fight() {
 fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order() {
     let (mut sim, offended, _) = issue314_privacy_household(1.);
     crate::fights::provoke(sim.world_mut());
-    let saved = sim.save_snapshot_v26();
+    let saved = sim.save_snapshot_v28();
     let context = saved.conflicts.fights[0].clone();
     assert!(context.autonomous && context.grievance.is_some() && context.order_id.is_some());
     let hash = sim.world_hash();
-    sim.load_snapshot_v26(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v26().conflicts.fights[0], context);
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28().conflicts.fights[0], context);
     assert_eq!(sim.world_hash(), hash);
     let order = sim
         .world()
@@ -997,7 +997,7 @@ fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order
     assert_eq!(context.order_id, Some(order));
     let mut missing = saved;
     missing.conflicts.fights.clear();
-    assert!(sim.load_snapshot_v26(missing).is_err());
+    assert!(sim.load_snapshot_v28(missing).is_err());
 }
 
 #[test]
@@ -1005,15 +1005,9 @@ fn issue314_mood_changes_fight_likelihood_without_urgent_needs() {
     let count = |bad_mood: bool| {
         let (mut sim, offended, responsible) = issue314_privacy_household(0.2);
         if bad_mood {
-            let mut needs = sim.world_mut().get_mut::<Needs>(offended).unwrap();
-            for need in [
-                NeedId::Social,
-                NeedId::Fun,
-                NeedId::Comfort,
-                NeedId::Hygiene,
-            ] {
-                needs.set(need, 1.0);
-            }
+            sim.world_mut()
+                .entity_mut(offended)
+                .insert(crate::need_mood::NeedMood(-600_000));
         }
         assert!(!crate::social_episode::urgent(sim.world(), offended));
         let mood = sim.mood_of(offended.index_u32()).unwrap().overall_score;
@@ -1473,15 +1467,15 @@ fn interpersonal_saved_starts_and_entries_replay_without_recharging_on_load() {
         } else {
             start(&mut sim, b, furniture);
         }
-        let before = sim.save_snapshot_v26();
+        let before = sim.save_snapshot_v28();
         movement(&mut sim);
         let after_hash = sim.world_hash();
-        let after = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(before)
+        let after = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(before)
             .expect("pre-event save must load");
         movement(&mut sim);
         assert_eq!(sim.world_hash(), after_hash, "event must replay exactly");
-        sim.load_snapshot_v26(after)
+        sim.load_snapshot_v28(after)
             .expect("post-event save must load");
         assert_eq!(
             sim.world_hash(),
@@ -1542,9 +1536,9 @@ fn interpersonal_affinity_flows_through_mood_to_satisfaction_only_once() {
     let b = person(&mut sim, 3.0, 2.0);
     let a = person(&mut sim, 4.0, 2.0);
     let toilet = object(&mut sim, "toilet");
-    for need in [NeedId::Hunger, NeedId::Energy, NeedId::Fun] {
-        sim.world_mut().get_mut::<Needs>(a).unwrap().set(need, 30.0);
-    }
+    sim.world_mut()
+        .entity_mut(a)
+        .insert(crate::need_mood::NeedMood(-216_000));
     *sim.world_mut().get_mut::<Satisfaction>(a).unwrap() = Satisfaction::from_value(10.0);
     let before = sim.mood_of(a.index_u32()).unwrap().overall_score;
     start(&mut sim, b, toilet);

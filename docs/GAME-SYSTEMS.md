@@ -445,7 +445,7 @@ An unassigned living Sim automatically claims a reachable unassigned sleeping pl
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, missing bed assignments, death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They include an accumulated need contribution, active conditions, nearby relationships, occupied-item waiting, missing bed assignments, death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 Future facial expressions and unique animations should reflect both current mood and overall life satisfaction. The owner requested this direction on 2026-10-01; expression states remain unbuilt. [Life satisfaction](specs/2026-10-01-life-satisfaction.md) defines the implemented score and meter.
 
@@ -809,3 +809,9 @@ choices. Comfortable people vary their decisions more and retain appeal for Fun
 and Social even at full meters. Very low instinct can neglect critical needs;
 higher values increase urgency and penalize delays toward hunger or energy death.
 This does not change need decay, restoration or death timing. See [VA-choice].
+
+## [S-admin-panel] Admin panel
+
+The admin panel lets the player set any housemate's needs, life satisfaction, repetition, timed moodlets, likes, skills, traits and job details, set how housemates feel about each other, start a fight, set household funds, edit, pay, add and delete bills, and skip ahead by hours. It exists for play-testing and for players who want to correct a household; it changes no rule of the simulation. Mood stays derived and cannot be set.
+
+Each edit writes a state the game already saves, then checks the world the way the save loader would, so a change that would make an unloadable world is refused whole. The full design, refusal codes and the decisions the owner made are in [the admin panel plan](specs/2026-11-20-admin-panel.md). Player instructions are in the [player guide](player/ui-elements.md#admin-panel).

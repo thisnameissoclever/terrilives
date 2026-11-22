@@ -1,5 +1,6 @@
 //! Pure simulation core. No web dependencies, ever.
 
+pub mod admin;
 pub mod appearance;
 pub mod books;
 pub mod character;
@@ -60,6 +61,8 @@ pub use save_editable_v21::LegacyEditableWorldSnapshotV21;
 pub use save_editable_v22::LegacyEditableWorldSnapshotV22;
 pub use save_editable_v23::LegacyEditableWorldSnapshotV23;
 pub use save_editable_v24::LegacyEditableWorldSnapshotV24;
+pub mod save_v27;
+pub mod save_v28;
 pub use save_v18::SaveSnapshotV18;
 pub use save_v19::SaveSnapshotV19;
 pub use save_v20::SaveSnapshotV20;
@@ -70,6 +73,8 @@ pub use save_v24::SaveSnapshotV24;
 pub use save_v25::SaveSnapshotV25;
 pub use save_v26::SaveSnapshotV26;
 pub use world_surfaces::WorldSurfaces;
+pub use save_v27::SaveSnapshotV27;
+pub use save_v28::SaveSnapshotV28;
 mod save_before_voice;
 pub mod windows;
 
@@ -78,6 +83,7 @@ pub mod windows;
 /// fields' type should not need `bevy_ecs` in its manifest to do it.
 /// `terri-wasm` is the consumer that matters: it is the boundary crate,
 /// and its dependency list is kept as short as [D1] can make it.
+pub use admin::{AdminChange, AdminEdit, AdminStructureError};
 pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};

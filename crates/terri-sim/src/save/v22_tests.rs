@@ -12,11 +12,16 @@ const DAY: u64 = 1440;
 
 /// The shipped household, Tuesday at 10:00, with Tim at work on his second
 /// shift: his first, on Monday, made his career record.
-fn at_work() -> Sim {
-    let mut sim = Sim::new_from_shipped_lot();
+fn at_work(mut sim: Sim) -> Sim {
     for _ in 0..(DAY + 600) {
         sim.tick();
     }
+    sim
+}
+
+fn historical_shipped_household() -> Sim {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.world_mut().remove_resource::<terri_core::WorldSurfaces>();
     sim
 }
 
@@ -265,6 +270,7 @@ fn a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change(
 #[test]
 fn schema_twenty_two_round_trips_the_bills_record() {
     let mut source = rich();
+    source.world_mut().remove_resource::<terri_core::WorldSurfaces>();
     let snapshot = capture(&source);
     assert_eq!(snapshot.bills.bills.len(), 3);
     assert_eq!(
@@ -726,7 +732,7 @@ fn before_the_raise(sim: &mut Sim) -> terri_core::SaveSnapshotV21 {
 /// the open shift to the raised pay, and starts the bills empty.
 #[test]
 fn loading_schema_twenty_one_migrates_pay_and_open_shift_cents() {
-    let mut source = at_work();
+    let mut source = at_work(historical_shipped_household());
     let snapshot = before_the_raise(&mut source);
     let id = worker(&mut source);
     let mut loaded = Sim::new_from_shipped_lot();
@@ -801,7 +807,7 @@ fn settled_shift_records_keep_their_settled_pay() {
 fn a_pay_no_old_range_held_is_still_refused() {
     assert_eq!(super::super::wage_migration::raised(85), 128);
     assert_eq!(super::super::wage_migration::raised(150), 225);
-    let mut source = at_work();
+    let mut source = at_work(historical_shipped_household());
     let id = worker(&mut source);
     for bad in [0, 100, 151] {
         let mut snapshot = before_the_raise(&mut source);
@@ -829,7 +835,7 @@ fn a_pay_no_old_range_held_is_still_refused() {
 /// month bills only the days lived after loading.
 #[test]
 fn loading_schemas_fourteen_to_twenty_one_starts_an_empty_prorated_month() {
-    let mut source = Sim::new_from_shipped_lot();
+    let mut source = historical_shipped_household();
     for _ in 0..(2 * DAY + 600) {
         source.tick();
     }
@@ -874,7 +880,7 @@ fn loading_schemas_fourteen_to_twenty_one_starts_an_empty_prorated_month() {
 /// they were, and only the older loaders select the migration.
 #[test]
 fn a_build_session_never_migrates_its_baseline() {
-    let mut sim = at_work();
+    let mut sim = at_work(Sim::new_from_shipped_lot());
     let id = worker(&mut sim);
     let before = sim.save_snapshot_v22();
     sim.begin_build().expect("Build opens");
@@ -992,7 +998,7 @@ fn migrate_attendance_raises_each_open_shift_to_its_own_persons_record() {
 /// its own loader too.
 #[test]
 fn loading_schema_fourteen_migrates_pay() {
-    let mut source = at_work();
+    let mut source = at_work(historical_shipped_household());
     let id = worker(&mut source);
     let mut snapshot = source
         .try_save_snapshot_v14()

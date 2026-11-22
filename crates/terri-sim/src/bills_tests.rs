@@ -156,7 +156,7 @@ fn the_shipped_lot_has_192_indoor_and_112_outdoor_rent_tiles() {
 #[test]
 fn rent_excludes_saved_outdoor_street_terrain_wherever_it_lies() {
     let mut sim = house();
-    let mut snapshot = sim.save_snapshot_v26();
+    let mut snapshot = sim.save_snapshot_v28();
     let surfaces = &mut snapshot.surfaces;
     for surface in &mut surfaces.tiles {
         if *surface == 2 {
@@ -170,7 +170,7 @@ fn rent_excludes_saved_outdoor_street_terrain_wherever_it_lies() {
     // The confirmed room still supplies indoor area over this base surface.
     surfaces.tiles[width + 1] = 2;
 
-    sim.load_snapshot_v26(snapshot).unwrap();
+    sim.load_snapshot_v28(snapshot).unwrap();
     assert_eq!(crate::rooms::rent_tiles(sim.world()), Some((192, 125)));
 }
 

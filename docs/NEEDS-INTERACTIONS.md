@@ -204,8 +204,7 @@ whose positive rate is too small to offset it.
 
 ## Systems that are not need refills
 
-Needs lower mood only at the Critical boundary; Low needs have no direct
-mood penalty. Mood combines current needs, conditions, nearby relationships, grief,
+Mood combines the accumulated effects of empty and well-filled needs with conditions, nearby relationships, grief,
 environmental mess and waiting. Removing dishes can improve mood without
 giving Hygiene points. Being near a friend can improve mood without providing
 Social points. A low meter can also block positive friendship development

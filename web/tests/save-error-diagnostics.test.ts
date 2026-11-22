@@ -58,6 +58,26 @@ it.each(['save','load','clear'] as const)('publishes one %s failure with the ori
   }finally{controller.close();}
 });
 
+it('accepts recovery replies and keeps the worker operation and cause on recovery failures', async () => {
+  const store = createSaveStore();
+  try {
+    await expect(store.lastGoodCopy()).resolves.toBeNull();
+    await expect(store.restoreLastGood(currentBytes, currentBytes)).resolves.toBe(false);
+    const original = new Error('Recovery read failed', { cause: new TypeError('Cannot read file') });
+    failure = original;
+    failStorage = true;
+    for (const [operation, invoke] of [
+      ['previous', () => store.lastGoodCopy()],
+      ['restore', () => store.restoreLastGood(currentBytes, currentBytes)],
+    ] as const) {
+      const received = await rejected(invoke());
+      expect(received).toMatchObject({ message: original.message, stack: original.stack,
+        cause: expect.any(TypeError), persistence: { operation, requestId: requests.at(-1)!.id } });
+    }
+    expect(escaped).toEqual([]);
+  } finally { store.close(); }
+});
+
 it.each([false,true])('retains an actual worker error event and its cause when frozen=%s with one publication',async frozen=>{
   scope.onmessage=()=>{};
   const original=new SyntaxError('Worker initialization failed',{cause:new TypeError('Invalid module')});
@@ -219,7 +239,8 @@ it.each([
     expect(report).toHaveBeenCalledOnce();expect(publish).toHaveBeenCalledOnce();
     expect(report.mock.calls[0][0]).toMatchObject({message:'The browser storage worker returned invalid data.',persistence:{operation:'load',requestId:2}});
     expect(view.attributes.has('data-pending')).toBe(false);
-    expect(controller.controlState()).toEqual({saveDisabled:true,loadDisabled:false,newGameDisabled:false,confirmationDisabled:false});
+    expect(controller.controlState()).toEqual({saveDisabled:true,loadDisabled:false,newGameDisabled:false,
+      exportDisabled:false,importDisabled:false,confirmationDisabled:false});
     expect(view.textContent).toContain('Saving paused. Retry Load or confirm New game');
     await expect(next).resolves.toBeNull();expect(requests.map(request=>request.id)).toEqual([1,2,3]);expect(escaped).toEqual([]);
   }finally{controller.close();await pending;await next.catch(()=>{});}

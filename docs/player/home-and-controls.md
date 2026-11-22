@@ -22,6 +22,8 @@ Drag the game view to move the camera. Pinch on touch or scroll the mouse wheel 
 
 With the game view focused, arrow keys choose a world target. Space selects a targeted person, and Enter opens the target's action menu. Escape closes menus or cancels the current Build selection according to the visible context. The Help dialog lists the current shortcut set.
 
+Press ~ to open or close the [admin panel](ui-elements/#admin-panel). On a touch screen, hold the bottom corner tile of the lot instead. The game pauses while the panel is open.
+
 Opening Options does not pause the household. Build and dialogs that say the household is paused hold game time while open. Use the visible pause control whenever you want to inspect the home without time advancing.
 
 The household keeps running at the selected speed when you switch tabs or minimize the browser, and its sound can keep playing. Pause before leaving the game if you want the household to wait. Choose Sound: off in Options to silence it. A browser can still suspend background tabs to save power; the game does not make up that lost time afterward.
@@ -92,7 +94,11 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work, accepted work trips, queued orders and career reviews, including pending reviews and recorded inputs, so the household can resume.
 
+Before each save replaces the one in your browser, the game keeps a copy of it. If the latest save cannot be read, for example because the tab closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
+
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
+
+Saves carry the effect that needs have accumulated on mood. An older published save starts with a neutral contribution. If this browser already holds an editable-world development save from version 24, 25 or 26, saving pauses to protect it. Export save downloads the original file for use in the build that created it. Choosing one of those files for Import leaves your current household in place.
 
 Choose **Load game** in the Load confirmation to restore the save. Choose **Start over** in the New game confirmation to delete the local save and begin again. **Keep playing** closes either confirmation without replacing the household.
 

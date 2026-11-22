@@ -246,6 +246,12 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::careers::go_to_work(world, agent);
             }
+            // [AP-cmd-drain]: after the ordinary commands before it, as the
+            // career commands are applied.
+            SimCommand::Admin(change) => {
+                flush_ordinary(world);
+                crate::admin::drain(world, &change);
+            }
             SimCommand::SetCareerAutonomy { change, search } => {
                 flush_ordinary(world);
                 crate::careers::set_autonomy(world, change, search);

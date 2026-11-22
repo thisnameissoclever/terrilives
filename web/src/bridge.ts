@@ -9,6 +9,10 @@ import { decodeRoomUnit, decodeRoomBoolean, decodeRoomSummary, decodeRoomTiles, 
   type BuildToken, type RoomChoices, type Point } from './rooms/codec.js';
 import { parseBuildFailureReport, type BuildFailureReport } from './rooms/failure.js';
 import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
+import { decodeAdminAffinities, decodeAdminApply, decodeAdminBegin, decodeAdminJobOptions, decodeAdminLimits, decodeAdminTraitSkills, decodeAdminBills, decodeAdminMoodlets, decodeAdminPerson,
+  decodeAdminRepetition, decodeAdminTimers, decodeAdminUndo, encodeAdminChange, type AdminApplyResult,
+  type AdminBeginResult, type AdminBills, type AdminChange, type AdminJobOption, type AdminLimits, type AdminMoodlet, type AdminPerson,
+  type AdminRepetition, type AdminTimer, type AdminUndoResult } from './admin/codec.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
 import type { CharacterDraftV1, CharacterPatchV1 } from './character/schema.js';
@@ -17,6 +21,20 @@ import { decodeBookCatalogue, decodeBookCopies, decodeBookMemory, decodeBookResu
   decodeBookShelves, decodeModelFacts, shelfEntity, type ModelFacts, type BookTitle } from './books/codec.js';
 import { decodeWindowCatalogue, decodeWindowPreview, type WindowDefinition,
   type WindowEditPreview } from './architecture/windows.js';
+
+/**
+ * The simulation refused to save: a queue that holds an admin command cannot
+ * be saved ([AP-save-queue] in `docs/specs/2026-11-20-admin-panel.md`). The
+ * admin panel's changes drain in the call that sends them, so none should
+ * ever wait there; this says so loudly if one does, rather than storing
+ * nothing as though it were a save.
+ */
+export class SaveRefusedError extends Error {
+  constructor() {
+    super('The simulation refused to save: an admin change is waiting in the command queue.');
+    this.name = 'SaveRefusedError';
+  }
+}
 
 /** Personal factors and recent repetition, read together without advancing time. */
 export interface SimDetails {
@@ -1180,9 +1198,68 @@ export class SimBridge {
       earliestHour: row[6], latestHour: row[7], leafHours: row[8], fallMinutes: row[9] };
   }
 
-  /** Versioned simulation bytes for browser-owned storage. */
+  /**
+   * Versioned simulation bytes for browser-owned storage. Throws
+   * `SaveRefusedError` when the simulation refuses to save, which it reports
+   * as an empty array; no caller can store that as a save.
+   */
   saveBytes(): Uint8Array {
-    return this.handle.save_bytes();
+    const bytes = this.handle.save_bytes();
+    if (bytes.length === 0) throw new SaveRefusedError();
+    return bytes;
+  }
+
+  // The admin panel ([AP-wasm] in docs/specs/2026-11-20-admin-panel.md).
+  // Every read names a person by SimId and returns a copy.
+
+  /** Opens the panel's session; anything but `ok` leaves it closed. */
+  adminBegin(): AdminBeginResult { return decodeAdminBegin(this.handle.admin_begin()); }
+  /** Closes the session. Every change applied stays in the world. */
+  adminEnd(): void { this.handle.admin_end(); }
+  /** Applies one change and drains it in the same call; the queue is empty after. */
+  adminApply(change: AdminChange): AdminApplyResult {
+    return decodeAdminApply(this.handle.admin_apply(encodeAdminChange(change)));
+  }
+  /** Steps back one change. After `ok` the world was rebuilt, so every entity-keyed cache is stale. */
+  adminUndo(): AdminUndoResult { return decodeAdminUndo(this.handle.admin_undo()); }
+  /** How many changes Undo can step back through. */
+  adminUndoDepth(): number { return this.handle.admin_undo_depth(); }
+  /** Whether admin edits left a world that would not load; edits, Undo and saves are refused then. */
+  adminBroken(): boolean { return this.handle.admin_broken(); }
+  /** Needs, satisfaction and job fields; null for anyone but a living housemate. */
+  adminPerson(sim: number): AdminPerson | null {
+    return isU32(sim) ? decodeAdminPerson(this.handle.admin_person(sim)) : null;
+  }
+  adminRepetition(sim: number): AdminRepetition[] {
+    return isU32(sim) ? decodeAdminRepetition(this.handle.admin_repetition(sim)) : [];
+  }
+  /** One row per moodlet, aligned with `moodSummaryOf` after its overall label. */
+  adminMoodlets(sim: number): AdminMoodlet[] {
+    return isU32(sim) ? decodeAdminMoodlets(this.handle.admin_moodlets(sim)) : [];
+  }
+  adminTimers(sim: number): AdminTimer[] {
+    return isU32(sim) ? decodeAdminTimers(this.handle.admin_timers(sim)) : [];
+  }
+  adminBills(): AdminBills { return decodeAdminBills(this.handle.admin_bills()); }
+  /** One value per affinity kind in pack order, -1 to 1; empty for anyone but a living housemate. */
+  adminAffinities(sim: number): number[] {
+    return isU32(sim) ? decodeAdminAffinities(this.handle.admin_affinities(sim)) : [];
+  }
+  /** Per pack trait, the skill a capability trains, or null. Read once. */
+  adminTraitSkills(): (number | null)[] { return decodeAdminTraitSkills(this.handle.admin_trait_skills()); }
+  /** Every level of every career path with the row `SetJob` takes. Read once. */
+  adminJobOptions(): AdminJobOption[] { return decodeAdminJobOptions(this.handle.admin_job_options()); }
+  /** The tuning the panel's ranges and words come from. Read once. */
+  adminLimits(): AdminLimits { return decodeAdminLimits(this.handle.admin_limits()); }
+  /**
+   * The practice that reads back as `level` whole levels and `fraction` of the
+   * next in `skill`, or null for an unknown skill, a level past its top or a
+   * fraction outside 0 to just under 1.
+   */
+  skillPracticeFor(skill: number, level: number, fraction: number): number | null {
+    if (!isU32(skill) || !isU32(level) || !Number.isFinite(fraction)) return null;
+    const practice = this.handle.skill_practice_for(skill, level, fraction);
+    return practice < 0 ? null : practice;
   }
 
   buildActive(): boolean { return this.handle.build_active(); }

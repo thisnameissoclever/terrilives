@@ -12,7 +12,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV26 {
         baths: crate::bath::capture(sim.world()),
         manual_work_trips: crate::attendance::capture_manual_work_trips(sim.world()),
         open_shift_base_pay: crate::attendance::capture_open_base_pay(sim.world()),
-        career_input_sources: super::v24::capture_sources(sim),
+        career_input_sources: super::v24::capture_sources(sim.world()),
     }
 }
 
@@ -25,7 +25,7 @@ pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV26 {
         baths: crate::bath::capture(sim.world()),
         manual_work_trips: crate::attendance::capture_manual_work_trips(sim.world()),
         open_shift_base_pay: crate::attendance::capture_open_base_pay(sim.world()),
-        career_input_sources: super::v24::capture_sources(sim),
+        career_input_sources: super::v24::capture_sources(sim.world()),
     }
 }
 

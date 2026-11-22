@@ -13993,3 +13993,9 @@ A shell exit or process identifier does not establish exporter completion. Do no
 2. Root cause: migration initialized the missing toy through the same live random draw used when a new bath begins during play.
 3. Prevention: derive missing activity state in stable actor order using a temporary copy of the restored stream. Save the result with the original activity owner and remaining time. Keep ordinary starts on the live stream.
 4. Verification: use an authentic fixture already in the activity. Require exact clock, random stream, request and order identity, and an exact migrated activity record. Reload the current save and compare its state across subsequent ticks. Exercise ordinary starts and malformed current activity records separately.
+## [L-private-save-version-reservations] Check active writers before assigning a save version
+
+1. What happened: the needs mood change initially chose V24 because the published writer used V23. The Career tab worktree already wrote a different V24, and the editable-world worktree had written private V24 and V25 files. The Career build shipped V24 while the change was in progress. The editable-world writer advanced to V26. The mood release used V27, which each older writer rejects.
+2. Root cause: the default branch records published formats. Active worktrees can already have produced files using higher version numbers.
+3. Prevention: inspect the current writers and frozen formats in active save-related branches before choosing a new number. When a version is reserved, list the supported versions explicitly in the loader, import controller and storage worker.
+4. Verification: try each reserved header against a running household and against an existing browser slot. Check the world hash and the stored bytes after refusal. Migrate a genuine published save and compare its recovery copy byte for byte.

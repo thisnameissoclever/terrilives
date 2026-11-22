@@ -8,6 +8,23 @@ mod activity_log_tests;
 pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
+pub mod admin;
+#[cfg(test)]
+mod admin_career_tests;
+#[cfg(test)]
+mod admin_household_tests;
+#[cfg(test)]
+mod admin_housemate_tests;
+#[cfg(test)]
+mod admin_need_mood_tests;
+#[cfg(test)]
+mod admin_relationship_tests;
+#[cfg(test)]
+mod admin_test_support;
+#[cfg(test)]
+mod admin_tests;
+#[cfg(test)]
+mod admin_wire_tests;
 pub mod affinity;
 mod bath;
 pub mod beds;
@@ -64,6 +81,7 @@ mod media;
 mod mood;
 pub mod mortality;
 mod need_interactions;
+pub mod need_mood;
 pub(crate) mod neglect;
 pub mod placement;
 pub mod portals;
@@ -93,7 +111,7 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
-pub use mood::{MoodSnapshot, Moodlet};
+pub use mood::{MoodSnapshot, MoodSource, Moodlet};
 pub use save::{SaveError, MAX_TEXT_BYTES};
 
 /// The content pack, as a resource so systems can resolve object ids and
@@ -1553,10 +1571,10 @@ impl Sim {
             .unwrap_or_else(|| save::v23::capture(self))
     }
 
-    /// The current save with Career history, surfaces, commutes, swimming and baths.
+    /// The private editable-world format before accumulated need mood.
     pub fn save_snapshot_v26(&self) -> terri_core::SaveSnapshotV26 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.editable.clone())
             .unwrap_or_else(|| save::v26::capture(self))
     }
 
@@ -1610,7 +1628,7 @@ impl Sim {
     }
 
     /// Historical typed projection for inspection and fixtures whose state fits V24.
-    /// Use V26 for current continuation, including world state and exceptional Career sources.
+    /// Use V28 for full continuation.
     pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
         build_transaction::committed(&self.world)
             .map(|snapshot| snapshot.previous.clone())
@@ -1639,6 +1657,71 @@ impl Sim {
             save::Carried::for_load(&self.world),
         )?;
         self.adopt_restored(candidate, false, false)
+    }
+
+    /// Published V27 carries Career data and accumulated need mood.
+    pub fn save_snapshot_v27(&self) -> terri_core::SaveSnapshotV27 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| terri_core::SaveSnapshotV27 {
+                legacy: snapshot.previous.clone(),
+                need_mood: snapshot.need_mood.clone(),
+            })
+            .unwrap_or_else(|| save::v27::capture(self))
+    }
+
+    /// The complete editable household and accumulated need mood.
+    pub fn save_snapshot_v28(&self) -> terri_core::SaveSnapshotV28 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v28::capture(self))
+    }
+
+    /// [`Sim::save_snapshot_v28`], the current save, refusing a queue that
+    /// holds an admin command, and a world a broken admin session left with
+    /// edits that would not load ([AP-save-queue] in
+    /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
+    /// save that met one would otherwise leave it out. The command paths
+    /// never leave one queued; this is the check that proves it at the save
+    /// boundary.
+    pub fn try_save_snapshot_v28(&self) -> Result<terri_core::SaveSnapshotV28, SaveError> {
+        save::refuse_queued_admin(&self.world)?;
+        if admin::world_broken(&self.world) {
+            return Err(SaveError::AdminSessionBroken);
+        }
+        Ok(self.save_snapshot_v28())
+    }
+
+    /// A checked projection for callers using the published V27 format.
+    pub fn try_save_snapshot_v27(&self) -> Result<terri_core::SaveSnapshotV27, SaveError> {
+        let snapshot = self.try_save_snapshot_v28()?;
+        Ok(terri_core::SaveSnapshotV27 {
+            legacy: snapshot.editable.previous,
+            need_mood: snapshot.need_mood,
+        })
+    }
+
+    pub fn load_snapshot_v27(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV27,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v27::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    pub fn load_snapshot_v28(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV28,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v28::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
     }
 
     pub fn load_snapshot_v22(
@@ -2385,7 +2468,14 @@ impl Sim {
                 // furniture now has the lift recorded, and a fade that has
                 // ended is dropped (issue 344).
                 (mortality::tick, chores::prune, presence_fade::refresh_all).chain(),
-                (mood::accrue_satisfaction, privacy::maintain).chain(),
+                // Sample the minute's settled needs before recording their
+                // mood contribution to satisfaction.
+                (
+                    need_mood::accrue,
+                    mood::accrue_satisfaction,
+                    privacy::maintain,
+                )
+                    .chain(),
             )
                 .chain(),
         );
@@ -2756,7 +2846,9 @@ impl Sim {
             self.world
                 .insert_resource(build_transaction::SkipCommandDrain);
         }
-        if self.build_active() {
+        // [AP-undo-model] item 3: no game time passes under an admin
+        // session's baseline, as none passes under Build's.
+        if self.build_active() || self.admin_active() {
             self.flush_commands();
             return;
         }
@@ -5198,6 +5290,14 @@ impl Sim {
                         vec![39, u64::from(*agent), u64::from(*shift)]
                     }
                     GoToWork { agent } => vec![40, u64::from(*agent)],
+                    // [AP-cmd-wire] item 3: unreachable in practice, as no
+                    // admin command outlives the call that staged it, but
+                    // the match is exhaustive and a test pins the arm.
+                    Admin(change) => {
+                        let mut fields = vec![41];
+                        fields.extend(change.hash_words());
+                        fields
+                    }
                     ConfirmedOrder {
                         fingerprint,
                         command,
@@ -5695,6 +5795,7 @@ impl Sim {
         // The score inputs the review window reads, only once some are held.
         careers::hash_inputs(&self.world, &mut hasher);
         careers::hash_input_sources(&self.world, &mut hasher);
+        need_mood::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -6979,6 +7080,7 @@ mod determinism_tests {
         // The historical control receives them before public person creation.
         let mut pack = terri_data::pack().clone();
         pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+        pack.need_mood = terri_data::NeedMoodTuning::HISTORICAL;
         pack.tuning.relationship_gain_per_talk = 0.17;
         pack.tuning.fight_rules = FightRules::Published;
         pack.tuning.fight_chance_per_tick = 0.01;
@@ -7865,7 +7967,10 @@ mod determinism_tests {
         // Main's three-quarter need drain changes this scenario's need levels.
         // On 2026-11-20, native and rebuilt release WebAssembly independently
         // measured 195701637562556713 after integrating that balance with surfaces.
-        const GOLDEN: u64 = 195701637562556713;
+        // Eight actors each gain 1200 need mood units in this scenario.
+        // Appending those exact saved rows to 195701637562556713 gives this
+        // digest, which the native test measured after integrating the ledger.
+        const GOLDEN: u64 = 16523105578250608243;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

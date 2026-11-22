@@ -173,7 +173,7 @@ fn combined_v25_preserves_activity_and_household_state_across_build() {
         },
     );
     for _ in 0..150 {
-        let snapshot = source.sim.save_snapshot_v26();
+        let snapshot = source.sim.save_snapshot_v28();
         if !snapshot.pools.is_empty() && !snapshot.baths.is_empty() {
             break;
         }

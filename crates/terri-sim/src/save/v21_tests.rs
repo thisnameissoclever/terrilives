@@ -153,7 +153,8 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// Explicit world state and current care rules move the whole-world hash.
 /// The prior branch measured this on 2026-10-25; the test separately requires the careers
 /// hash to equal its pre-shift encoding, so a new world pin cannot hide shift bytes.
-const STANDARD_ONLY_HASH: u64 = 1073110106914662708;
+/// With gradual need mood, the V28 replay reaches this digest and still passes that encoding check.
+const STANDARD_ONLY_HASH: u64 = 13043348246484619481;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.
@@ -532,7 +533,7 @@ fn a_build_transaction_keeps_the_held_shift() {
     assert!(before.iter().any(|shift| *shift != 0));
     sim.begin_build().expect("build starts");
     assert_eq!(
-        sim.save_snapshot_v26().previous.legacy.legacy.legacy.shifts.held.len(),
+        sim.save_snapshot_v28().previous.legacy.legacy.legacy.shifts.held.len(),
         before.iter().filter(|s| **s != 0).count()
     );
     sim.cancel_build().expect("cancel restores the baseline");
@@ -585,19 +586,19 @@ fn late_worker_with_a_deferred_departure() -> Sim {
 #[test]
 fn a_deferred_departure_on_a_held_shift_survives_a_save() {
     let sim = late_worker_with_a_deferred_departure();
-    let saved = sim.save_snapshot_v26();
+    let saved = sim.save_snapshot_v28();
     let mut loaded = Sim::new_from_shipped_lot();
-    assert_eq!(loaded.load_snapshot_v26(saved.clone()), Ok(()));
-    assert_eq!(loaded.save_snapshot_v26(), saved);
+    assert_eq!(loaded.load_snapshot_v28(saved.clone()), Ok(()));
+    assert_eq!(loaded.save_snapshot_v28(), saved);
 }
 
 #[test]
 fn a_deferred_departure_on_a_held_shift_survives_build_mode() {
     let mut sim = late_worker_with_a_deferred_departure();
-    let before = sim.save_snapshot_v26();
+    let before = sim.save_snapshot_v28();
     sim.begin_build().expect("build starts");
     sim.cancel_build().expect("cancel restores the baseline");
-    assert_eq!(sim.save_snapshot_v26(), before);
+    assert_eq!(sim.save_snapshot_v28(), before);
 }
 
 /// The owner's ruling of 2026-10-23: the day of a shift change is part of
@@ -634,7 +635,7 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         Some(None),
         "the change applies at home"
     );
-    let saved = sim.save_snapshot_v26();
+    let saved = sim.save_snapshot_v28();
     assert_eq!(
         saved.previous.legacy.legacy.legacy.shifts.changed_today,
         vec![terri_core::save_v21::SavedShiftChange {
@@ -645,14 +646,14 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         "the schedule held when the day began runs for the rest of it"
     );
     let mut loaded = Sim::new_from_shipped_lot();
-    assert_eq!(loaded.load_snapshot_v26(saved.clone()), Ok(()));
+    assert_eq!(loaded.load_snapshot_v28(saved.clone()), Ok(()));
     assert_eq!(loaded.world_hash(), sim.world_hash());
-    assert_eq!(loaded.save_snapshot_v26(), saved);
+    assert_eq!(loaded.save_snapshot_v28(), saved);
 
     let mut unknown = saved.clone();
     unknown.previous.legacy.legacy.legacy.shifts.changed_today[0].from = "no_such_shift".to_string();
     assert_eq!(
-        Sim::new_from_shipped_lot().load_snapshot_v26(unknown),
+        Sim::new_from_shipped_lot().load_snapshot_v28(unknown),
         Err(crate::SaveError::InvalidValue),
         "a shift the level does not list refuses to load"
     );
@@ -662,7 +663,7 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     let mut refused = Sim::new_from_shipped_lot();
     let untouched = refused.world_hash();
     assert_eq!(
-        refused.load_snapshot_v26(other_day),
+        refused.load_snapshot_v28(other_day),
         Err(crate::SaveError::InvalidValue)
     );
     assert_eq!(
@@ -674,7 +675,7 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     // The change is what made the hash move: the same world with the day
     // forgotten hashes as a world without a change today would.
     let mut forgotten = Sim::new_from_shipped_lot();
-    forgotten.load_snapshot_v26(saved).expect("loads");
+    forgotten.load_snapshot_v28(saved).expect("loads");
     forgotten
         .world_mut()
         .resource_mut::<Careers>()
@@ -687,5 +688,5 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     for _ in 0..1440 {
         sim.tick();
     }
-    assert!(sim.save_snapshot_v26().previous.legacy.legacy.legacy.shifts.changed_today.is_empty());
+    assert!(sim.save_snapshot_v28().previous.legacy.legacy.legacy.shifts.changed_today.is_empty());
 }

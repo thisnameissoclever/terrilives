@@ -704,11 +704,11 @@ mod tests {
         );
         sim.commit_build_with_access_ack(review.token).unwrap();
         sim.end_build().unwrap();
-        let snapshot = sim.save_snapshot_v26();
+        let snapshot = sim.save_snapshot_v28();
         let hash = sim.world_hash();
         let mut restored = Sim::new_with_lot(1, 1);
-        restored.load_snapshot_v26(snapshot.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v26(), snapshot);
+        restored.load_snapshot_v28(snapshot.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v28(), snapshot);
         assert_eq!(restored.world_hash(), hash);
         assert_eq!(
             access_report(restored.world()).regions[0].tiles,
@@ -758,8 +758,8 @@ mod tests {
         sim.world_mut()
             .resource_mut::<crate::LotFrame>()
             .purchased_area += 16;
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved).unwrap();
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved).unwrap();
         assert!(sim.world().resource::<TileGrid>().can_step((0, 2), (1, 2)));
     }
 }
@@ -831,9 +831,9 @@ mod migration_tests {
                 }
             }
         }
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), saved);
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), saved);
         sim.begin_build().unwrap();
         assert!(crate::placement::walls::validate_wall_edit(
             sim.world(),
@@ -849,7 +849,7 @@ mod migration_tests {
     #[test]
     fn surface_dimensions_are_checked_before_nested_world_restoration() {
         let mut sim = crate::Sim::new_with_lot(5, 5);
-        let before = sim.save_snapshot_v26();
+        let before = sim.save_snapshot_v28();
         let mut malformed = before.clone();
         malformed.surfaces = WorldSurfaces {
             width: 1,
@@ -857,10 +857,10 @@ mod migration_tests {
             tiles: vec![0],
         };
         assert_eq!(
-            sim.load_snapshot_v26(malformed),
+            sim.load_snapshot_v28(malformed),
             Err(crate::SaveError::InvalidGrid)
         );
-        assert_eq!(sim.save_snapshot_v26(), before);
+        assert_eq!(sim.save_snapshot_v28(), before);
     }
 }
 
@@ -898,9 +898,9 @@ mod generic_migration_tests {
         );
         assert!(sim.world().resource::<SavedLayout>().has_edges());
         assert!(!sim.world().resource::<TileGrid>().can_step((8, 7), (8, 8)));
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), saved);
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), saved);
         sim.begin_build().unwrap();
         assert!(crate::placement::walls::validate_wall_edit(
             sim.world(),
@@ -1323,9 +1323,9 @@ mod route_revalidation_tests {
                     .iter()
                     .any(|event| event.order_id == ids[0] && event.phase == "failed"));
             }
-            let saved = sim.save_snapshot_v26();
-            sim.load_snapshot_v26(saved.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v26(), saved);
+            let saved = sim.save_snapshot_v28();
+            sim.load_snapshot_v28(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v28(), saved);
         }
     }
     #[test]
@@ -1448,9 +1448,9 @@ mod route_revalidation_tests {
                 cursor: 0,
             },
         ));
-        let positive = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(positive.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), positive);
+        let positive = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(positive.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), positive);
         sim.begin_build().unwrap();
         sim.world_mut()
             .resource_mut::<CommandQueue>()
@@ -1507,9 +1507,9 @@ mod route_revalidation_tests {
             .iter()
             .any(|event| event.order_id == ids[0] && event.phase == "completed"));
         assert!(sim.world().get::<terri_core::ChainState>(actor).is_none());
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), saved);
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), saved);
     }
     fn build_barrier(sim: &mut crate::Sim, rows: impl Iterator<Item = u32>) {
         sim.begin_build().unwrap();
@@ -1550,7 +1550,7 @@ mod route_revalidation_tests {
             .events
             .iter()
             .any(|event| event.phase == "failed"));
-        sim.load_snapshot_v26(sim.save_snapshot_v26()).unwrap();
+        sim.load_snapshot_v28(sim.save_snapshot_v28()).unwrap();
     }
 
     #[test]
@@ -1616,9 +1616,9 @@ mod route_revalidation_tests {
             .events
             .iter()
             .any(|event| event.phase == "failed"));
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), saved);
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), saved);
     }
     #[test]
     fn a_cut_off_current_order_fails_once_and_keeps_the_later_queue_entry() {
@@ -1647,7 +1647,7 @@ mod route_revalidation_tests {
             failed[0].reason.as_deref(),
             Some("The route was blocked by a building change.")
         );
-        sim.load_snapshot_v26(sim.save_snapshot_v26()).unwrap();
+        sim.load_snapshot_v28(sim.save_snapshot_v28()).unwrap();
     }
 }
 
@@ -1693,14 +1693,14 @@ mod current_contract_tests {
                 .position = Some(position);
             let mut live = crate::Sim::new_from_shipped_lot();
             live.load_snapshot(historical).expect("positive historical worker admission with unchanged shipped content and valid career");
-            let current = live.save_snapshot_v26();
+            let current = live.save_snapshot_v28();
             let mut resumed = crate::Sim::new_from_shipped_lot();
             resumed
-                .load_snapshot_v26(current.clone())
+                .load_snapshot_v28(current.clone())
                 .unwrap_or_else(|error| {
                     panic!("supported historical work at {position:?} must reload: {error:?}")
                 });
-            assert_eq!(resumed.save_snapshot_v26(), current);
+            assert_eq!(resumed.save_snapshot_v28(), current);
             assert_eq!(
                 resumed.world().get::<Position>(actor),
                 Some(&Position {
@@ -1737,15 +1737,40 @@ mod current_contract_tests {
     }
 
     fn purchased_pair() -> crate::Sim {
-        purchased_pair_model("counter")
+        purchased_pair_model("counter", false)
     }
-    fn purchased_pair_model(model: &str) -> crate::Sim {
+    fn purchased_pair_model(model: &str, enclose: bool) -> crate::Sim {
         let pack = terri_data::pack();
         let model = pack.find(model).unwrap();
         let mut live = crate::Sim::new_with_lot(6, 6);
         live.world_mut()
             .insert_resource(terri_core::Funds::from_dollars(10_000));
         live.begin_build().unwrap();
+        if enclose {
+            use terri_core::layout::WallState;
+            for tile in 0..6 {
+                for (axis, x, y) in [
+                    (EdgeAxis::Vertical, 0, tile),
+                    (EdgeAxis::Vertical, 6, tile),
+                    (EdgeAxis::Horizontal, tile, 0),
+                    (EdgeAxis::Horizontal, tile, 6),
+                ] {
+                    live.world_mut()
+                        .resource_mut::<terri_core::CommandQueue>()
+                        .push(terri_core::SimCommand::SetWallEdge {
+                            axis,
+                            x,
+                            y,
+                            state: if x == 6 && y == 3 {
+                                WallState::Doorway
+                            } else {
+                                WallState::Wall
+                            },
+                        });
+                }
+            }
+            live.flush_commands();
+        }
         for (x, y) in [(1, 1), (4, 4)] {
             live.world_mut()
                 .resource_mut::<terri_core::CommandQueue>()
@@ -1790,12 +1815,12 @@ mod current_contract_tests {
         let mut live = crate::Sim::new_with_lot(6, 6);
         live.load_snapshot_v5(old)
             .expect("positive supported historical occupied overlap");
-        let current = live.save_snapshot_v26();
+        let current = live.save_snapshot_v28();
         let mut resumed = crate::Sim::new_with_lot(6, 6);
         resumed
-            .load_snapshot_v26(current.clone())
+            .load_snapshot_v28(current.clone())
             .expect("historical adoption must produce reloadable current state");
-        assert_eq!(resumed.save_snapshot_v26(), current);
+        assert_eq!(resumed.save_snapshot_v28(), current);
         let after = live.save_snapshot();
         let objects: Vec<_> = after
             .entities
@@ -1817,7 +1842,7 @@ mod current_contract_tests {
 
     #[test]
     fn legacy_occupied_bed_relocation_preserves_permanent_assignment() {
-        let mut source = purchased_pair_model("double_bed");
+        let mut source = purchased_pair_model("double_bed", true);
         let bed = source
             .world_mut()
             .query_filtered::<Entity, With<SmartObject>>()
@@ -1855,9 +1880,9 @@ mod current_contract_tests {
             restored.world().get::<Position>(bed),
             Some(&Position { x: 1., y: 1. })
         );
-        let current = restored.save_snapshot_v26();
-        restored.load_snapshot_v26(current.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v26(), current);
+        let current = restored.save_snapshot_v28();
+        restored.load_snapshot_v28(current.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v28(), current);
         assert_eq!(
             restored.world().resource::<crate::beds::BedAssignments>(),
             &assignments
@@ -1872,11 +1897,11 @@ mod current_contract_tests {
         for _ in 0..2 {
             developer.spawn_object(Position { x: 1., y: 1. }, model);
         }
-        let positive = developer.save_snapshot_v26();
+        let positive = developer.save_snapshot_v28();
         developer
-            .load_snapshot_v26(positive.clone())
+            .load_snapshot_v28(positive.clone())
             .expect("supported low-level spawns do not claim grid occupancy");
-        assert_eq!(developer.save_snapshot_v26(), positive);
+        assert_eq!(developer.save_snapshot_v28(), positive);
 
         let mut live = purchased_pair();
         let before = live.current_v5_view();
@@ -2010,7 +2035,7 @@ mod current_contract_tests {
     #[test]
     fn current_geometry_cannot_select_a_historical_implicit_layout() {
         let mut sim = crate::Sim::new_with_lot(4, 4);
-        let before = sim.save_snapshot_v26();
+        let before = sim.save_snapshot_v28();
         let mut malformed = before.clone();
         let rooms = malformed.room_world_v16_mut();
         rooms
@@ -2024,12 +2049,12 @@ mod current_contract_tests {
             .legacy
             .layout = SavedLayout::LegacyCells { walls: vec![] };
         assert_eq!(
-            sim.load_snapshot_v26(malformed.clone()),
+            sim.load_snapshot_v28(malformed.clone()),
             Err(crate::SaveError::InvalidGrid)
         );
-        assert_eq!(sim.save_snapshot_v26(), before);
+        assert_eq!(sim.save_snapshot_v28(), before);
         assert!(crate::save::v20::restore(
-            malformed.previous.legacy.legacy.legacy.legacy,
+            malformed.editable.previous.legacy.legacy.legacy.legacy,
             terri_data::pack(),
             crate::save::Carried::default()
         )
@@ -2038,7 +2063,7 @@ mod current_contract_tests {
     #[test]
     fn current_objects_require_saved_facings_instead_of_starting_placement_inference() {
         let mut sim = crate::Sim::new_from_shipped_lot();
-        let before = sim.save_snapshot_v26();
+        let before = sim.save_snapshot_v28();
         let mut malformed = before.clone();
         let rooms = malformed.room_world_v16_mut();
         rooms
@@ -2053,10 +2078,10 @@ mod current_contract_tests {
             .object_facings
             .clear();
         assert_eq!(
-            sim.load_snapshot_v26(malformed),
+            sim.load_snapshot_v28(malformed),
             Err(crate::SaveError::InvalidValue)
         );
-        assert_eq!(sim.save_snapshot_v26(), before);
+        assert_eq!(sim.save_snapshot_v28(), before);
     }
 }
 
@@ -2089,7 +2114,7 @@ mod door_model_tests {
         sim.commit_build_with_access_ack(review.token).unwrap();
         sim.end_build().unwrap();
         let mut restored = crate::Sim::new_with_lot(1, 1);
-        restored.load_snapshot_v26(sim.save_snapshot_v26()).unwrap();
+        restored.load_snapshot_v28(sim.save_snapshot_v28()).unwrap();
         assert_eq!(restored.portal_buffer().states.len(), 1);
         assert_eq!(restored.portal_buffer().frames, sim.portal_buffer().frames);
     }

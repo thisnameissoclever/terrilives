@@ -24,6 +24,8 @@ describe('SerializedSaveStore', () => {
     const write = deferred<void>();
     const calls: string[] = [];
     const backend: SaveBackend = {
+      async lastGoodCopy() { return null; },
+      async restoreLastGood() { return false; },
       async save() {
         calls.push('save started');
         await write.promise;
@@ -54,6 +56,8 @@ describe('SerializedSaveStore', () => {
   it('continues after a failed operation instead of poisoning the queue', async () => {
     const calls: string[] = [];
     const backend: SaveBackend = {
+      async lastGoodCopy() { return null; },
+      async restoreLastGood() { return false; },
       async save() {
         calls.push('save');
         throw new Error('disk full');

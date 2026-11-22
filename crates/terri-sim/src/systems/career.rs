@@ -290,7 +290,15 @@ mod tests {
     /// scheduled shift, is one trip when it ends, and only one.
     #[test]
     fn a_saved_countdown_ending_counts_one_trip() {
-        let pack = career_pack_with_portal();
+        let sunday = CompiledCareer {
+            working_days: 0b1000000,
+            ..a_career()
+        };
+        let pack = with_front_portal(
+            pack_with_career(sunday, vec![], thirty_tick_day()),
+            (15, 2),
+            (15, 3),
+        );
         let mut sim = test_content::sim_with_portals(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
         sim.world_mut()
@@ -332,9 +340,9 @@ mod tests {
         );
         assert_eq!(sim.funds(), 130 * 100, "the completed shift pays once");
 
-        let snapshot = sim.save_snapshot_v26();
+        let snapshot = sim.save_snapshot_v28();
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot_v26(snapshot), Ok(()));
+        assert_eq!(restored.load_snapshot_v28(snapshot), Ok(()));
         assert_eq!(restored.funds(), 130 * 100);
 
         for _ in 0..20 {

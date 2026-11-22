@@ -81,7 +81,7 @@ pub(crate) fn restore(
             .iter()
             .position(|known| known.id == id)
             .ok_or(SaveError::InvalidContentReference)?;
-        if !(value.is_finite() && (-1.0..=1.0).contains(&value) && value != 0.0) {
+        if !(valid_value(value) && value != 0.0) {
             return Err(SaveError::InvalidValue);
         }
         checked.push((person, kind, value));
@@ -103,6 +103,12 @@ pub(crate) fn restore(
             .insert(Affinities::from_values(held));
     }
     Ok(())
+}
+
+/// An affinity value a save can carry: finite and in -1.0..=1.0. Shared
+/// with the admin panel's post-condition ([AP-cmd-post]).
+pub(crate) fn valid_value(value: f32) -> bool {
+    value.is_finite() && (-1.0..=1.0).contains(&value)
 }
 
 /// The one-time draw for a save that holds no values: every living person,

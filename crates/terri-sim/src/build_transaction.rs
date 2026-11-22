@@ -10,10 +10,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV26,
+    SaveSnapshotV28,
 };
 
-fn saved_rooms(snapshot: &SaveSnapshotV26) -> &SavedRooms {
+fn saved_rooms(snapshot: &SaveSnapshotV28) -> &SavedRooms {
     &snapshot.room_world_v16().rooms
 }
 
@@ -64,6 +64,14 @@ pub enum BuildCommitError {
     BedOutside {
         object: u32,
     },
+    /// The admin panel's session is open ([AP-undo-model] item 1 in
+    /// `docs/specs/2026-11-20-admin-panel.md`), so Build cannot open.
+    AdminActive,
+    /// Admin edits left a world that would not load ([`Sim::admin_broken`]),
+    /// and saving stays refused until a load replaces the world. Build cannot
+    /// open on it: ending or cancelling Build installs a restored world that
+    /// would drop that mark and let a save through.
+    AdminBroken,
 }
 /// Which load rule refused the draft when Build could not open or confirm.
 /// `BuildCommitError::Validation` names only the kind of error; this names the
@@ -157,12 +165,12 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV26,
+    draft: SaveSnapshotV28,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV26,
+    baseline: SaveSnapshotV28,
     // The draft room map can move into a larger grid before land is confirmed.
     rent_tiles: Option<(u32, u32)>,
     pool_contacts_required: bool,
@@ -177,7 +185,7 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV26,
+        baseline: SaveSnapshotV28,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
         pool_contacts_required: bool,
@@ -254,11 +262,12 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV26> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV28> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
 }
+
 impl Sim {
     pub fn pool_contacts_required(&self) -> bool {
         self.world.get_resource::<BuildTransaction>().map_or_else(
@@ -291,7 +300,7 @@ impl Sim {
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v26::capture(self))
+            || !same_authored(&build.baseline, &save::v28::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -331,14 +340,25 @@ impl Sim {
         if self.build_active() {
             return Err(BuildCommitError::AlreadyActive);
         }
+        // [AP-undo-model] item 1: Build and the admin panel never overlap,
+        // since each restores its own baseline.
+        if self.admin_active() {
+            return Err(BuildCommitError::AdminActive);
+        }
+        // A broken world must not be saved until a load replaces it. Build's
+        // end and cancel install a restored world, which would drop that
+        // mark, so Build does not open on it.
+        if self.admin_broken() {
+            return Err(BuildCommitError::AdminBroken);
+        }
         if !self.world.resource::<terri_core::CommandQueue>().is_empty() {
             self.flush_commands();
             if let Some(error) = self.take_build_error() {
                 return Err(error);
             }
         }
-        let baseline = save::v26::capture(self);
-        if let Err(error) = save::v26::restore(
+        let baseline = save::v28::capture(self);
+        if let Err(error) = save::v28::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -427,8 +447,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v26::restore(
-                    save::v26::capture(candidate),
+                save::v28::restore(
+                    save::v28::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -479,7 +499,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v26::restore(
+        let mut candidate = save::v28::restore(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -506,13 +526,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v26::capture(self);
-        if save::v26::capture(&candidate) != draft {
+        let draft = save::v28::capture(self);
+        if save::v28::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v26::restore(
+            candidate = save::v28::restore(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -630,7 +650,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v26::capture(self) != prepared.draft {
+        if save::v28::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -731,7 +751,7 @@ impl Sim {
         // shell may have drained records since; installing that copy would
         // hand them over a second time.
         ordinary::runtime::carry_activity_log(&self.world, &mut prepared.candidate.world);
-        let baseline = save::v26::capture(&prepared.candidate);
+        let baseline = save::v28::capture(&prepared.candidate);
         let pool_contacts_required = crate::pool::contacts_required(&prepared.candidate.world);
         let rent_tiles = crate::rooms::rent_tiles(&prepared.candidate.world);
         let request_runtime =
@@ -766,6 +786,38 @@ impl Sim {
         b.prepared = None;
         Ok(())
     }
+    /// A world rebuilt from a session baseline, as Build's Cancel and the
+    /// admin panel's Undo both build one ([AP-undo-restore] item 2 in
+    /// `docs/specs/2026-11-20-admin-panel.md`): the baseline restored as a
+    /// load restores it, this world's unsaved feedback copied across, the
+    /// social request runtime captured with the baseline put back, and the
+    /// derived caches rebuilt. Nothing is installed; the live world is
+    /// untouched.
+    pub(crate) fn restore_session_baseline(
+        &self,
+        baseline: SaveSnapshotV28,
+        request_runtime: &crate::social_episode::requests::runtime::Runtime,
+    ) -> Result<Sim, SaveError> {
+        let mut restored = save::v28::restore(
+            baseline,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        ordinary::runtime::copy_feedback(&self.world, &mut restored.world);
+        crate::social_episode::requests::runtime::restore(request_runtime, &mut restored.world);
+        ordinary::runtime::refresh_derived(&mut restored.world);
+        Ok(restored)
+    }
+    /// Install a world rebuilt by [`Sim::restore_session_baseline`] and
+    /// replayed since, as the admin panel's Undo does. A replay writes
+    /// activity records the live world already holds or has handed over, so
+    /// the live log is kept, as Build's Confirm keeps it.
+    pub(crate) fn install_session_world(&mut self, mut candidate: Sim) -> Result<(), SaveError> {
+        ordinary::runtime::carry_activity_log(&self.world, &mut candidate.world);
+        ordinary::runtime::install(self, candidate)?;
+        self.sync_render_buffer_after_commands();
+        Ok(())
+    }
     fn restore_build(&mut self, end: bool) -> Result<(), BuildCommitError> {
         self.world.remove_resource::<BuildDiagnosis>();
         let baseline = self
@@ -779,14 +831,7 @@ impl Sim {
             .resource::<BuildTransaction>()
             .request_runtime
             .clone();
-        let mut restored = save::v26::restore(
-            baseline,
-            self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
-        )?;
-        ordinary::runtime::copy_feedback(&self.world, &mut restored.world);
-        crate::social_episode::requests::runtime::restore(&request_runtime, &mut restored.world);
-        ordinary::runtime::refresh_derived(&mut restored.world);
+        let restored = self.restore_session_baseline(baseline, &request_runtime)?;
         ordinary::runtime::install(self, restored)?;
         if end {
             self.world.remove_resource::<BuildTransaction>();
@@ -802,7 +847,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v26::restore(
+            save::v28::restore(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -876,7 +921,7 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV26, b: &SaveSnapshotV26) -> bool {
+fn same_authored(a: &SaveSnapshotV28, b: &SaveSnapshotV28) -> bool {
     if a.surfaces != b.surfaces {
         return false;
     }

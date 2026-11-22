@@ -2083,9 +2083,9 @@ mod editable_return_tests {
         assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
         assert_eq!(sim.activity_status_of(actor.index_u32()).unwrap().code, 9);
         assert!(sim.world().get::<Path>(actor).is_none());
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), saved);
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), saved);
         let layout = sim.world().resource::<SavedLayout>();
         let edges = layout
             .edges()
@@ -2154,9 +2154,9 @@ mod editable_return_tests {
         sim.world_mut()
             .entity_mut(actor)
             .insert(Needs::all_at(20.0));
-        let saved = sim.save_snapshot_v26();
-        sim.load_snapshot_v26(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v26(), saved);
+        let saved = sim.save_snapshot_v28();
+        sim.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v28(), saved);
         let paid = sim.funds();
         for _ in 0..20 {
             sim.tick();
@@ -2193,10 +2193,10 @@ mod editable_return_tests {
                 .iter(sim.world())
                 .any(|c| *c == Commuting::Inbound)
             {
-                let saved = sim.save_snapshot_v26();
+                let saved = sim.save_snapshot_v28();
                 let hash = sim.world_hash();
-                sim.load_snapshot_v26(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v26(), saved);
+                sim.load_snapshot_v28(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v28(), saved);
                 assert_eq!(sim.world_hash(), hash);
                 return;
             }

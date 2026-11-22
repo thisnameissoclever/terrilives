@@ -398,8 +398,8 @@ fn generic_v1_public_adoption_makes_custom_collisions_editable_and_preserves_obj
             .collect::<Vec<_>>(),
         identities
     );
-    let current = live.save_snapshot_v26();
-    live.load_snapshot_v26(current.clone()).unwrap();
-    assert_eq!(live.save_snapshot_v26(), current);
+    let current = live.save_snapshot_v28();
+    live.load_snapshot_v28(current.clone()).unwrap();
+    assert_eq!(live.save_snapshot_v28(), current);
     live.begin_build().unwrap();
 }

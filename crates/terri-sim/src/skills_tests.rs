@@ -1026,3 +1026,45 @@ fn practise_reports_levels_without_changing_practice() {
     let mut skills = Skills::default();
     assert!(practise(&mut skills, pack, &tags(&["television"])).is_empty());
 }
+
+/// [AP-e-skill]: the practice the admin panel sends for a level and a
+/// fraction reads back as exactly that level on the ladder, including the
+/// largest fraction below 1, where rounding in the sum could carry it onto
+/// the next rung; one past either end has no practice.
+#[test]
+fn practice_for_standing_reads_back_as_the_level_and_fraction_asked_for() {
+    let pack = terri_data::pack();
+    let ladder = Ladder::from_tuning(&pack.tuning);
+    let below_one = f32::from_bits(1.0f32.to_bits() - 1);
+    for levels in [1u8, 3, 5, 10, 100] {
+        for level in 0..levels {
+            for fraction in [0.0, 0.1, 0.5, 0.9, below_one] {
+                let practice = practice_for_standing(&ladder, levels, level, fraction)
+                    .expect("a level and fraction on the ladder");
+                let standing = standing(&ladder, levels, practice);
+                assert_eq!(
+                    standing.level, level,
+                    "{levels} levels, {level} + {fraction}"
+                );
+                assert!(
+                    (standing.progress - fraction).abs() < 1e-3,
+                    "{levels} levels, {level} + {fraction}: read {}",
+                    standing.progress
+                );
+            }
+        }
+        // The top has no next level: only fraction 0 names it.
+        assert_eq!(
+            practice_for_standing(&ladder, levels, levels, 0.0),
+            Some(ladder.max_practice(levels))
+        );
+        assert_eq!(practice_for_standing(&ladder, levels, levels, 0.5), None);
+        assert_eq!(
+            practice_for_standing(&ladder, levels, levels + 1, 0.0),
+            None
+        );
+        for fraction in [-0.0001, 1.0, f32::NAN, f32::INFINITY] {
+            assert_eq!(practice_for_standing(&ladder, levels, 0, fraction), None);
+        }
+    }
+}

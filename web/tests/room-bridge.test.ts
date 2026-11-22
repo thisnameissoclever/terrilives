@@ -46,7 +46,7 @@ it('projects sparse inherited choices from the actual prepared matcher', () => {
         value(sim.beginBuild());
         wall(4, 1);
         const initial=value(sim.prepareBuildCommit());
-        expect(sim.commitBuild(initial.token)).toEqual({ok:false,error:{code:16,detail:null}});
+        expect(sim.commitBuild(initial.token)).toEqual({ok:false,error:{code:18,detail:null}});
         value(sim.commitBuildWithAccessAck(initial.token));value(sim.endBuild());
         const before = value(sim.roomSummaries());
         const a = before.rooms.find(room => room.anchor?.[0] === 1)!.id, b = before.rooms.find(room => room.anchor?.[0] === 4)!.id;
@@ -99,7 +99,7 @@ it('routes real native Build capture through the persistence controller without 
     const handle = SimHandle.from_lot(), reload = SimHandle.from_lot();
     const sim = new SimBridge(handle, memory);
     let stored: Uint8Array | null = null;
-    const store = { save: async (bytes: Uint8Array) => { stored = bytes.slice(); }, load: async () => stored, clear: async () => { stored = null; }, close: () => { } };
+    const store = { save: async (bytes: Uint8Array) => { stored = bytes.slice(); }, load: async () => stored, lastGoodCopy: async () => null, restoreLastGood: async () => false, clear: async () => { stored = null; }, close: () => { } };
     const status = { textContent: '', setAttribute: () => { }, removeAttribute: () => { } };
     const persistence = new PersistenceController(store, sim, status);
     try {
@@ -205,7 +205,7 @@ it('autosaves native committed bytes at an already reached day boundary while re
         for (let n = 0; n < sim.dayTicks(); n++)
             sim.tick();
         const baseline = sim.saveBytes();
-        const controller = new PersistenceController({ save: async (bytes) => { stored = bytes.slice(); }, load: async () => stored, clear: async () => { }, close: () => { } }, sim, { textContent: '', setAttribute: () => { }, removeAttribute: () => { } });
+        const controller = new PersistenceController({ save: async (bytes) => { stored = bytes.slice(); }, load: async () => stored, lastGoodCopy: async () => null, restoreLastGood: async () => false, clear: async () => { }, close: () => { } }, sim, { textContent: '', setAttribute: () => { }, removeAttribute: () => { } });
         value(sim.beginBuild());
         value(sim.stageRoomName(0, 'Daily draft'));
         const review = value(sim.prepareBuildCommit());

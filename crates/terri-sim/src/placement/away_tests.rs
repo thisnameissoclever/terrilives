@@ -24,12 +24,15 @@ fn worker(position: Position, waiting: bool) -> (Sim, Entity) {
     if waiting {
         sim.world_mut()
             .entity_mut(actor)
-            .insert(crate::world_geometry::WaitingToReturn);
+            .insert((
+                AtWork { remaining_ticks: 1 },
+                crate::world_geometry::WaitingToReturn,
+            ));
     }
-    let saved = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(saved.clone())
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone())
         .expect("valid current hidden-worker control");
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    assert_eq!(sim.save_snapshot_v28(), saved);
     (sim, actor)
 }
 fn confirm(sim: &mut Sim) {
@@ -38,9 +41,9 @@ fn confirm(sim: &mut Sim) {
         .unwrap();
     sim.commit_build_with_access_ack(review.token).unwrap();
     sim.end_build().unwrap();
-    let saved = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 fn wall(sim: &mut Sim, x: u32, y: u32) {
     sim.world_mut()
@@ -110,7 +113,7 @@ fn hidden_fractional_body_does_not_block_a_wall_but_visible_body_does() {
         .unwrap();
     visible.world_mut().entity_mut(actor).insert(position);
     visible
-        .load_snapshot_v26(visible.save_snapshot_v26())
+        .load_snapshot_v28(visible.save_snapshot_v28())
         .expect("valid visible actor control");
     visible.begin_build().unwrap();
     visible
@@ -169,7 +172,7 @@ fn hidden_state_with_a_live_path_still_refuses_build_atomically() {
         steps: vec![],
         cursor: 0,
     });
-    let saved = sim.save_snapshot_v26();
+    let saved = sim.save_snapshot_v28();
     assert_eq!(
         walls::validate_wall_edit(
             sim.world(),
@@ -184,5 +187,5 @@ fn hidden_state_with_a_live_path_still_refuses_build_atomically() {
         Some(PlacementRefusal::SimOverlap)
     );
     assert!(sim.begin_build().is_err());
-    assert_eq!(sim.save_snapshot_v26(), saved);
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }

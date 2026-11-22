@@ -61,7 +61,7 @@ fn historical_occupied_overlap_reconciles_an_active_media_seat_before_resave() {
         .load_snapshot_v19(old)
         .expect("valid historical active media control");
     positive
-        .load_snapshot_v26(positive.save_snapshot_v26())
+        .load_snapshot_v28(positive.save_snapshot_v28())
         .expect("current control");
     let chair_position = *sim.world().get::<Position>(chair).unwrap();
     sim.world_mut().entity_mut(blocker).insert(chair_position);
@@ -99,11 +99,11 @@ fn historical_occupied_overlap_reconciles_an_active_media_seat_before_resave() {
         .resource::<crate::social_episode::SocialEpisodes>()
         .communal
         .contains_key(&actor));
-    let current = restored.save_snapshot_v26();
+    let current = restored.save_snapshot_v28();
     restored
-        .load_snapshot_v26(current.clone())
+        .load_snapshot_v28(current.clone())
         .expect("adoption must reconcile the moved physical owner");
-    assert_eq!(restored.save_snapshot_v26(), current);
+    assert_eq!(restored.save_snapshot_v28(), current);
 }
 
 #[test]
@@ -178,7 +178,7 @@ fn historical_occupied_overlap_reconciles_active_chore_contacts_before_resave() 
         .load_snapshot_v19(old)
         .expect("historical active chore control");
     positive
-        .load_snapshot_v26(positive.save_snapshot_v26())
+        .load_snapshot_v28(positive.save_snapshot_v28())
         .expect("current active chore control");
     let counter_position = *sim.world().get::<Position>(counter).unwrap();
     sim.world_mut().entity_mut(blocker).insert(counter_position);
@@ -191,9 +191,9 @@ fn historical_occupied_overlap_reconciles_active_chore_contacts_before_resave() 
         restored.world().get::<Position>(counter),
         Some(&counter_position)
     );
-    let current = restored.save_snapshot_v26();
+    let current = restored.save_snapshot_v28();
     restored
-        .load_snapshot_v26(current.clone())
+        .load_snapshot_v28(current.clone())
         .expect("adoption must reconcile the moved chore contact");
-    assert_eq!(restored.save_snapshot_v26(), current);
+    assert_eq!(restored.save_snapshot_v28(), current);
 }

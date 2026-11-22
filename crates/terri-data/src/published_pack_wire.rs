@@ -624,6 +624,10 @@ impl From<PublishedTuning> for Tuning {
                 Tuning::SHIPPED_AFFINITY_PRESENCE_FADE_POINTS_PER_HOUR,
             go_to_work_window_ticks: Tuning::SHIPPED_GO_TO_WORK_WINDOW_TICKS,
             career_input_history_weeks: Tuning::SHIPPED_CAREER_INPUT_HISTORY_WEEKS,
+            admin_skip_max_hours: Tuning::SHIPPED_ADMIN_SKIP_MAX_HOURS,
+            admin_skip_default_hours: Tuning::SHIPPED_ADMIN_SKIP_DEFAULT_HOURS,
+            admin_skip_ticks_per_frame: Tuning::SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME,
+            admin_bill_due_months: Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -900,6 +904,7 @@ impl From<PublishedContentPack> for ContentPack {
             // Bills (issue 298): the shipped charges, and no usage, because
             // a published pack's content declares none.
             bills: crate::pack::BillsTuning::shipped_without_usage(),
+            need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
         }
     }
 }
@@ -1081,6 +1086,7 @@ impl From<Published2fContentPack> for ContentPack {
             // Bills (issue 298): the shipped charges, and no usage, because
             // a published pack's content declares none.
             bills: crate::pack::BillsTuning::shipped_without_usage(),
+            need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
         }
     }
 }
@@ -1209,6 +1215,42 @@ fn a_published_pack_reconstructs_the_shipped_career_tab_knobs() {
     assert_eq!(
         old.tuning.career_input_history_weeks,
         shipped.tuning.career_input_history_weeks
+    );
+}
+
+/// Issue 312 ([AP-tuning]): an authentic published pack rebuilds the shipped
+/// admin panel knobs, so a world loaded from one opens the panel with the
+/// limits the content ships.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_admin_panel_knobs() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    let shipped = crate::pack().tuning;
+    assert_eq!(
+        [
+            old.tuning.admin_skip_max_hours,
+            old.tuning.admin_skip_default_hours,
+            old.tuning.admin_skip_ticks_per_frame,
+            old.tuning.admin_bill_due_months,
+        ],
+        [168, 8, 300, 12]
+    );
+    assert_eq!(
+        [
+            old.tuning.admin_skip_max_hours,
+            old.tuning.admin_skip_default_hours,
+            old.tuning.admin_skip_ticks_per_frame,
+            old.tuning.admin_bill_due_months,
+        ],
+        [
+            shipped.admin_skip_max_hours,
+            shipped.admin_skip_default_hours,
+            shipped.admin_skip_ticks_per_frame,
+            shipped.admin_bill_due_months,
+        ]
     );
 }
 

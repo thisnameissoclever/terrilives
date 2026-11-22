@@ -432,13 +432,18 @@ fn a_worker_on_the_way_to_work_or_at_work_is_not_turned_back_by_a_crisis() {
             "turned back at {}",
             now(&sim)
         );
-        arrived |= sim.world().get::<AtWork>(actor).is_some();
+        let at_work = sim.world().get::<AtWork>(actor).is_some();
+        if !at_work {
+            assert!(need(&sim, actor, NeedId::Hunger) <= 5.0);
+        }
+        assert!(sim.world().get::<Eating>(actor).is_none());
+        arrived |= at_work;
     }
     assert!(arrived, "reached work");
     assert!(sim.world().get::<AtWork>(actor).is_some(), "still at work");
     assert!(
-        need(&sim, actor, NeedId::Hunger) <= 5.0,
-        "no meal was eaten"
+        need(&sim, actor, NeedId::Hunger) > 5.0,
+        "work refills critical Hunger after arrival"
     );
 }
 

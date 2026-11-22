@@ -426,14 +426,25 @@ fn pay(world: &mut World, today: u32) {
         funds -= bill.total_cents();
         bill.paid_day = Some(today);
     }
-    // The record keeps every unpaid bill and only the last issued month's
-    // paid ones ([WB-save]), so an older month's bill paid late leaves it.
-    if let Some(last_issued) = bills.bills.iter().map(|bill| bill.due_day).max() {
-        bills
-            .bills
-            .retain(|bill| bill.paid_day.is_none() || bill.due_day == last_issued);
-    }
+    retain_last_issued_paid(&mut bills.bills);
     world.resource_mut::<Funds>().0 = funds;
+}
+
+/// The record keeps every unpaid bill and only the last issued month's paid
+/// ones ([WB-save]), so an older month's bill paid late leaves it. Shared with
+/// the admin panel's bill edits, which leave the record as the loader
+/// requires.
+pub(crate) fn retain_last_issued_paid(bills: &mut Vec<Bill>) {
+    if let Some(last_issued) = bills.iter().map(|bill| bill.due_day).max() {
+        bills.retain(|bill| bill.paid_day.is_none() || bill.due_day == last_issued);
+    }
+}
+
+/// Puts `bill` where the record keeps its bills: ascending by due day, then
+/// kind. The key is not already held.
+pub(crate) fn insert_sorted(bills: &mut Vec<Bill>, bill: Bill) {
+    let at = bills.partition_point(|held| (held.due_day, held.kind) < (bill.due_day, bill.kind));
+    bills.insert(at, bill);
 }
 
 /// Counts one use of each kind in `uses` ([WB-usage]).

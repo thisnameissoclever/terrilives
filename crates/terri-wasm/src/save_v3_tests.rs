@@ -756,7 +756,7 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV26>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
     assert_eq!(
@@ -764,7 +764,7 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
         &terri_core::SAVE_SCHEMA_VERSION.to_le_bytes()
     );
     assert!(decoded.previous.legacy.presence_fade.is_empty());
-    let decoded = decoded.previous.legacy.legacy.legacy;
+    let decoded = decoded.editable.previous.legacy.legacy.legacy;
     assert!(decoded.shifts.held.is_empty());
     let decoded = decoded.legacy;
     assert_eq!(decoded.conflicts, Default::default());

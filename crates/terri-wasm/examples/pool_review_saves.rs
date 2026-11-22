@@ -8,7 +8,7 @@ use terri_sim::{Content, Sim};
 use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
-    let snapshot = sim.save_snapshot_v26();
+    let snapshot = sim.save_snapshot_v28();
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -100,27 +100,39 @@ fn main() {
         receipts.push(receipt);
     }
     for facing in Facing::ALL {
-        for (preset, presentation, height, build, shirt, trousers) in [
-            ("neutral", "masculine", 50, 50, [170, 30, 80], [20, 70, 140]),
+        for (preset, presentation, height, build, torso, shirt, trousers) in [
+            ("neutral", "masculine", 50, 50, 50, [170, 30, 80], [20, 70, 140]),
             (
                 "short-wide",
                 "feminine",
                 0,
                 100,
+                0,
                 [120, 35, 155],
                 [30, 130, 90],
+            ),
+            (
+                "masculine-short-broad",
+                "masculine",
+                0,
+                100,
+                100,
+                [120, 35, 155],
+                [20, 70, 140],
             ),
             (
                 "tall-narrow",
                 "masculine",
                 100,
                 0,
+                100,
                 [190, 80, 20],
                 [90, 35, 140],
             ),
             (
                 "tall-wide",
                 "feminine",
+                100,
                 100,
                 100,
                 [15, 140, 160],
@@ -160,7 +172,7 @@ fn main() {
             appearance.body.build = build;
             appearance.body.shoulders = build;
             appearance.body.hips = build;
-            appearance.body.torso = height;
+            appearance.body.torso = torso;
             appearance.colors.shirt = shirt;
             appearance.colors.trousers = trousers;
             sim.world_mut().entity_mut(actor).insert((
@@ -168,6 +180,14 @@ fn main() {
                 SimName("Pool review".into()),
                 Needs::all_at(70.),
             ));
+            let prefix = format!("pool-f{}-{presentation}-{preset}", facing.code());
+            if preset == "masculine-short-broad" {
+                sim.world_mut().resource_mut::<CommandQueue>().push(
+                    SimCommand::Select(Some(actor.index_u32())),
+                );
+                sim.flush_commands();
+                receipts.push(write(&sim, &folder, &format!("{prefix}-idle"), actor.index_u32(), pool.index_u32()));
+            }
             sim.world_mut()
                 .resource_mut::<CommandQueue>()
                 .push(SimCommand::UseObjectFirst {
@@ -182,7 +202,7 @@ fn main() {
             for _ in 0..100 {
                 sim.tick();
                 if sim
-                    .save_snapshot_v26()
+                    .save_snapshot_v28()
                     .pools
                     .iter()
                     .any(|p| p.actor == actor.index_u32() && p.phase == 1)
@@ -190,8 +210,7 @@ fn main() {
                     break;
                 }
             }
-            let baseline = sim.save_snapshot_v26();
-            let prefix = format!("pool-f{}-{presentation}-{preset}", facing.code());
+            let baseline = sim.save_snapshot_v28();
             for (label, ticks, cancel) in [
                 ("entry", 0, false),
                 ("entry-step", 7, false),
@@ -207,7 +226,7 @@ fn main() {
                 {
                     continue;
                 }
-                sim.load_snapshot_v26(baseline.clone()).unwrap();
+                sim.load_snapshot_v28(baseline.clone()).unwrap();
                 for _ in 0..ticks {
                     sim.tick();
                 }
@@ -284,7 +303,7 @@ fn main() {
             .get::<terri_core::Eating>(actor)
             .expect("ordinary bath begins")
             .remaining_ticks;
-        let snapshot = sim.save_snapshot_v26();
+        let snapshot = sim.save_snapshot_v28();
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());

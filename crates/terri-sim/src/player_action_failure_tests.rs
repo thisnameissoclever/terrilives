@@ -89,15 +89,15 @@ fn real_media_plan_failure_owns_its_typed_cause_and_keeps_raw_event() {
         .action_queue_rows_of(actor.index_u32(), 100)
         .iter()
         .any(|row| row.order_id == Some(failed.order_id)));
-    let before = (sim.world_hash(), sim.save_snapshot_v26());
+    let before = (sim.world_hash(), sim.save_snapshot_v28());
     for _ in 0..3 {
         assert_eq!(
             sim.action_failure_cause(failed.sequence),
             Some(OrderFailureCause::NoReachableMediaPosition)
         );
     }
-    assert_eq!((sim.world_hash(), sim.save_snapshot_v26()), before);
-    sim.load_snapshot_v26(before.1).unwrap();
+    assert_eq!((sim.world_hash(), sim.save_snapshot_v28()), before);
+    sim.load_snapshot_v28(before.1).unwrap();
     assert!(sim.action_events_since(0).events.is_empty());
     assert_eq!(sim.action_failure_cause(failed.sequence), None);
     reject_submission(sim.world_mut(), actor.index_u32(), "unrelated rejection");
@@ -115,7 +115,7 @@ fn causes_share_ring_eviction_and_lookup_is_logarithmic() {
         .next()
         .unwrap()
         .clone();
-    let before = (sim.world_hash(), sim.save_snapshot_v26());
+    let before = (sim.world_hash(), sim.save_snapshot_v28());
     emit_with_cause(
         sim.world_mut(),
         actor,
@@ -164,7 +164,7 @@ fn causes_share_ring_eviction_and_lookup_is_logarithmic() {
         copy.lookup_failure_cause(current, || {}),
         Some(OrderFailureCause::NoReachableMediaPosition)
     );
-    assert_eq!((sim.world_hash(), sim.save_snapshot_v26()), before);
+    assert_eq!((sim.world_hash(), sim.save_snapshot_v28()), before);
 }
 
 #[test]

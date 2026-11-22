@@ -57,8 +57,8 @@ fn two_shift_fixture() -> (Sim, Entity, Vec<Entity>) {
 }
 
 fn reload(sim: &mut Sim) {
-    let snapshot = sim.save_snapshot_v26();
-    sim.load_snapshot_v26(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(snapshot).expect("loads");
 }
 
 fn home(sim: &Sim, actor: Entity) -> bool {

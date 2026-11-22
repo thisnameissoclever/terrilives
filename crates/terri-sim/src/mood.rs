@@ -1,8 +1,5 @@
-//! A read-only mood projection derived from the world the save already owns.
-//!
-//! Mood has no stored component. The HUD and the once-per-tick satisfaction
-//! contribution share the same projection of needs, conditions, relationships,
-//! grief and occupied-item waiting. Only the satisfaction ledger accumulates.
+//! The HUD and the once-per-tick satisfaction contribution share this
+//! read-only projection of accumulated need mood and other current effects.
 
 use bevy_ecs::prelude::*;
 use terri_core::{
@@ -11,7 +8,9 @@ use terri_core::{
 };
 use terri_data::{CompiledTraitKind, ContentPack, Tuning};
 
-use crate::{Content, Sim};
+use crate::{need_mood::NeedMood, Content, Sim};
+
+const MOOD_FROM_NEEDS: &str = "Mood from needs";
 
 /// One active reason the derived overall mood moved.
 #[derive(Debug, Clone, PartialEq)]
@@ -20,12 +19,39 @@ pub struct Moodlet {
     pub score: f32,
 }
 
+/// Where a moodlet comes from, when it has a short explanation: what the
+/// admin panel shows beside it ([AP-c-sources] in
+/// `docs/specs/2026-11-20-admin-panel.md`). Read only; mood stays derived.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MoodSource {
+    /// No short explanation. "Mood from needs" is one: its label already
+    /// says where it comes from.
+    Other,
+    /// The job's satisfaction is below the misery or above the joy level.
+    JobSatisfaction,
+    /// The feeling about the person with this `SimId`, who is close by.
+    Feeling { sim: u32 },
+    /// A bill is overdue.
+    BillsOverdue,
+    /// A timed moodlet: 0 burnt dinner, 1 had a fight, 2 promoted, 3 got a
+    /// raise, 4 demoted, 5 fired (the admin panel's timer codes).
+    Timer { timer: u8 },
+}
+
 /// One sim's current derived mood and its ordered causes.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MoodSnapshot {
     pub overall_score: f32,
     pub overall_label: &'static str,
     pub moodlets: Vec<Moodlet>,
+    /// One source per moodlet, in the same order.
+    pub sources: Vec<MoodSource>,
+}
+
+/// Gives every moodlet added since the last call `source`, so `sources`
+/// stays aligned with `moodlets` without touching each constructor.
+fn tag(moodlets: &[Moodlet], sources: &mut Vec<MoodSource>, source: MoodSource) {
+    sources.resize(moodlets.len(), source);
 }
 
 impl Sim {
@@ -50,7 +76,7 @@ pub(crate) fn score(
     derive_mood_with_chores(world, index, Some(chores)).map(|m| m.overall_score)
 }
 
-fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
+pub(crate) fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
     derive_mood_with_chores(
         world,
         index,
@@ -77,28 +103,20 @@ fn derive_mood_with_chores(
         .find(|(entity, ..)| entity.index_u32() == index)?;
 
     let mut moodlets = Vec::new();
+    let mut sources = Vec::new();
     if let Some(chores) = chores {
         moodlets.extend(crate::chores::moodlets_in(world, subject, chores));
     }
-    for need in NeedId::ALL {
-        let level = needs.get(need);
-        let (_, critical_label) = need_labels(need);
-        if level <= pack.tuning.mood_critical_need_level {
-            moodlets.push(Moodlet {
-                label: critical_label.to_string(),
-                score: -pack.tuning.mood_critical_need_penalty,
-            });
-        }
-    }
-
-    if NeedId::ALL
-        .into_iter()
-        .all(|need| needs.get(need) >= pack.tuning.mood_needs_met_level)
+    tag(&moodlets, &mut sources, MoodSource::Other);
+    if let Some(need_mood) = world
+        .get::<NeedMood>(subject)
+        .filter(|need_mood| need_mood.0 != 0)
     {
         moodlets.push(Moodlet {
-            label: "Needs met".to_string(),
-            score: pack.tuning.mood_needs_met_bonus,
+            label: MOOD_FROM_NEEDS.to_string(),
+            score: need_mood.points(),
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     if let Some(traits) = traits {
@@ -116,6 +134,7 @@ fn derive_mood_with_chores(
                     label: definition.label.clone(),
                     score: -pack.tuning.mood_condition_penalty * severity,
                 });
+                tag(&moodlets, &mut sources, MoodSource::Other);
             }
         }
     }
@@ -150,7 +169,7 @@ fn derive_mood_with_chores(
     // SimId is the contract. Entity index is only a deterministic tie
     // breaker for an invalid world containing duplicate stable ids.
     nearby.sort_unstable_by_key(|(sim_id, entity_index, ..)| (*sim_id, *entity_index));
-    for (_, _, name, feeling, distance) in nearby {
+    for (sim_id, _, name, feeling, distance) in nearby {
         moodlets.push(Moodlet {
             label: if feeling.is_sign_positive() {
                 format!("Comforted by {name}")
@@ -161,6 +180,7 @@ fn derive_mood_with_chores(
                 * feeling
                 * (1.0 - distance / pack.tuning.mood_relationship_radius),
         });
+        tag(&moodlets, &mut sources, MoodSource::Feeling { sim: sim_id });
     }
 
     if world
@@ -171,6 +191,7 @@ fn derive_mood_with_chores(
             label: "No assigned bed".to_string(),
             score: -20.0,
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     let now = world.resource::<terri_core::SimClock>().tick;
@@ -184,6 +205,7 @@ fn derive_mood_with_chores(
                 label: BURNT_DINNER.to_string(),
                 score: -pack.tuning.burnt_meal_mood_penalty,
             });
+            tag(&moodlets, &mut sources, MoodSource::Timer { timer: 0 });
         }
     }
     if let (Some(id), Some(fights)) = (subject_id, world.get_resource::<crate::fights::Fights>()) {
@@ -192,11 +214,12 @@ fn derive_mood_with_chores(
                 label: HAD_A_FIGHT.to_string(),
                 score: -pack.tuning.fight_mood_penalty,
             });
+            tag(&moodlets, &mut sources, MoodSource::Timer { timer: 1 });
         }
     }
     if let (Some(id), Some(careers)) = (subject_id, world.get_resource::<crate::careers::Careers>())
     {
-        career_moodlets(&mut moodlets, careers, *id, now, &pack.tuning);
+        career_moodlets(&mut moodlets, &mut sources, careers, *id, now, &pack.tuning);
     }
     // Bills (issue 298, [WB-paying]): derived from the bills each time, like
     // Warned at work, so it needs no timer and ends on the tick the last
@@ -206,6 +229,7 @@ fn derive_mood_with_chores(
             label: BEHIND_ON_BILLS.to_string(),
             score: -pack.bills.overdue_mood,
         });
+        tag(&moodlets, &mut sources, MoodSource::BillsOverdue);
     }
     for death in world
         .resource::<terri_core::save::SavedMortality>()
@@ -238,6 +262,7 @@ fn derive_mood_with_chores(
             label: format!("Grieving {}", death.name),
             score: -strength * (1.0 - elapsed as f32 / duration as f32),
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     if let Some(penalty) = crate::waiting::penalty(world, subject, needs) {
@@ -245,6 +270,7 @@ fn derive_mood_with_chores(
             label: "Waiting for an item".into(),
             score: -penalty,
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     if let Some(penalty) = crate::domestic::mood_penalty(world, subject) {
@@ -252,10 +278,12 @@ fn derive_mood_with_chores(
             label: "Dirty dishes".into(),
             score: -penalty,
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
     moodlets.extend(overdoing_moodlets(pack, habituation));
     moodlets.extend(crate::affinity::presence_moodlets(world, pack, subject));
     moodlets.extend(crate::affinity::use_moodlets(world, pack, subject));
+    tag(&moodlets, &mut sources, MoodSource::Other);
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)
@@ -265,6 +293,7 @@ fn derive_mood_with_chores(
         overall_score,
         overall_label: overall_label(overall_score),
         moodlets,
+        sources,
     })
 }
 
@@ -300,6 +329,7 @@ pub(crate) const CAREER_LABELS: [&str; 7] = [
 
 fn career_moodlets(
     moodlets: &mut Vec<Moodlet>,
+    sources: &mut Vec<MoodSource>,
     careers: &crate::careers::Careers,
     id: SimId,
     now: u64,
@@ -311,17 +341,20 @@ fn career_moodlets(
                 label: HATES_THE_JOB.to_string(),
                 score: -tuning.career_mood_misery,
             });
+            tag(moodlets, sources, MoodSource::JobSatisfaction);
         } else if record.job_satisfaction > tuning.career_job_joy {
             moodlets.push(Moodlet {
                 label: ENJOYS_THE_JOB.to_string(),
                 score: tuning.career_mood_joy,
             });
+            tag(moodlets, sources, MoodSource::JobSatisfaction);
         }
         if record.warned() {
             moodlets.push(Moodlet {
                 label: WARNED_AT_WORK.to_string(),
                 score: -tuning.career_mood_warned,
             });
+            tag(moodlets, sources, MoodSource::Other);
         }
     }
     let events = [
@@ -330,12 +363,16 @@ fn career_moodlets(
         (&careers.demoted, DEMOTED, -tuning.career_mood_demoted),
         (&careers.fired, FIRED, -tuning.career_mood_fired),
     ];
-    for (timers, label, score) in events {
+    for (offset, (timers, label, score)) in events.into_iter().enumerate() {
         if timers.active(id, now) {
             moodlets.push(Moodlet {
                 label: label.to_string(),
                 score,
             });
+            // The admin panel's timer codes 2 to 5 follow burnt dinner and
+            // the fight.
+            let timer = 2 + offset as u8;
+            tag(moodlets, sources, MoodSource::Timer { timer });
         }
     }
 }
@@ -449,18 +486,6 @@ fn has_assigned_bed(world: &World, person: SimId) -> bool {
         })
 }
 
-fn need_labels(need: NeedId) -> (&'static str, &'static str) {
-    match need {
-        NeedId::Hunger => ("Hungry", "Starving"),
-        NeedId::Energy => ("Tired", "Exhausted"),
-        NeedId::Hygiene => ("Needs a wash", "Very dirty"),
-        NeedId::Bladder => ("Needs the toilet", "Desperate for the toilet"),
-        NeedId::Social => ("Lonely", "Very lonely"),
-        NeedId::Fun => ("Bored", "Very bored"),
-        NeedId::Comfort => ("Uncomfortable", "Very uncomfortable"),
-    }
-}
-
 fn overall_label(score: f32) -> &'static str {
     if score <= -50.0 {
         "Miserable"
@@ -482,31 +507,18 @@ mod tests {
     use terri_core::{SmartObject, NEED_MAX};
     use terri_data::{CompiledTrait, ContentPack};
 
-    /// A condition's label is projected as a moodlet, in the same list as
-    /// the need moodlets. A trait called "Lonely" would put two rows reading
-    /// "Lonely" in one person's Mood panel, with different scores and no way
-    /// to tell them apart. Every trait is checked and not only conditions,
-    /// because the Traits panel and the Mood panel sit in the same sheet.
+    /// A condition with a reserved label would put two identical labels in
+    /// the Mood panel. Traits need distinct labels across the details sheet.
     #[test]
     fn no_trait_label_repeats_a_need_moodlet() {
-        let mut taken: Vec<&str> = vec!["Needs met", FEELING_SICK, BURNT_DINNER, HAD_A_FIGHT];
+        let mut taken = vec![MOOD_FROM_NEEDS, FEELING_SICK, BURNT_DINNER, HAD_A_FIGHT];
         taken.extend(CAREER_LABELS);
-        for need in NeedId::ALL {
-            let (low, critical) = need_labels(need);
-            taken.extend([low, critical]);
-        }
-        assert_eq!(
-            taken.len(),
-            25,
-            "seven needs, two labels each, the all-clear, feeling sick, burnt dinner, had a fight \
-             and the seven career moodlets"
-        );
         for trait_def in &terri_data::pack().traits {
             assert!(
                 !taken
                     .iter()
                     .any(|label| label.eq_ignore_ascii_case(trait_def.label.trim())),
-                "trait '{}' is labelled '{}', which the Mood panel already uses for a need",
+                "trait '{}' is labelled '{}', which the Mood panel already uses",
                 trait_def.id,
                 trait_def.label
             );
@@ -588,6 +600,7 @@ mod tests {
                 SimName("Jo".into()),
                 Position { x: 2.0, y: 1.0 },
                 Needs::all_at(100.0),
+                NeedMood(120_000),
                 ledger,
                 feelings,
             ))
@@ -631,15 +644,17 @@ mod tests {
     #[test]
     fn sustained_mood_changes_satisfaction_in_both_directions() {
         let mut sim = Sim::new();
-        let happy = subject(&mut sim, Needs::all_at(100.0));
-        let sad = subject(&mut sim, Needs::all_at(20.0));
+        let happy = subject(&mut sim, Needs::all_at(55.0));
+        let sad = subject(&mut sim, Needs::all_at(55.0));
         let neutral = subject(&mut sim, Needs::all_at(55.0));
+        sim.world_mut().entity_mut(happy).insert(NeedMood(120_000));
+        sim.world_mut().entity_mut(sad).insert(NeedMood(-504_000));
         for person in [happy, sad, neutral] {
             let mut ledger = terri_core::Satisfaction::from_value(0.0);
             ledger.add(50.0);
             sim.world_mut().entity_mut(person).insert(ledger);
         }
-        // Fixed needs isolate mood from neglect, decay, work and hobbies.
+        // Fixed mood isolates its effect from neglect, decay, work and hobbies.
         super::accrue_satisfaction(sim.world_mut());
         let read = |sim: &Sim, person| {
             sim.world()
@@ -697,6 +712,168 @@ mod tests {
     fn mood(sim: &Sim, entity: Entity) -> MoodSnapshot {
         sim.mood_of(entity.index_u32())
             .expect("the fixture entity is a live sim")
+    }
+
+    #[test]
+    fn needs_accumulate_only_at_zero_and_strictly_above_eighty() {
+        let pack = Box::leak(Box::new(ContentPack {
+            decay_per_tick: [0.0; terri_core::NEED_COUNT],
+            ..test_content::pack(Vec::new()).clone()
+        }));
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, 0.0);
+        needs.set(NeedId::Energy, 0.01);
+        needs.set(NeedId::Hygiene, 80.0);
+        needs.set(NeedId::Bladder, 81.0);
+        let person = subject(&mut sim, needs);
+
+        assert_eq!(mood(&sim, person).overall_score, 0.0);
+        for _ in 0..12 {
+            sim.tick();
+        }
+        assert_eq!(mood(&sim, person).overall_score, -1.196);
+    }
+
+    #[test]
+    fn full_needs_start_neutral_and_accrue_only_during_full_ticks() {
+        let mut sim = test_content::sim_with(8, 8, test_content::pack(Vec::new()));
+        let person = subject(&mut sim, Needs::all_at(100.0));
+        for _ in 0..5 {
+            assert!(mood(&sim, person).moodlets.is_empty());
+            sim.flush_commands();
+        }
+
+        sim.tick();
+        assert_eq!(mood(&sim, person).overall_score, 14.0 / 6000.0);
+    }
+
+    #[test]
+    fn need_mood_uses_the_levels_after_decay() {
+        let pack = test_content::pack(Vec::new());
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, pack.decay_per_tick[NeedId::Hunger.index()]);
+        needs.set(NeedId::Energy, 80.001);
+        let person = subject(&mut sim, needs);
+
+        sim.tick();
+        assert_eq!(
+            sim.world()
+                .get::<Needs>(person)
+                .unwrap()
+                .get(NeedId::Hunger),
+            0.0
+        );
+        assert!(
+            sim.world()
+                .get::<Needs>(person)
+                .unwrap()
+                .get(NeedId::Energy)
+                < 80.0
+        );
+        assert_eq!(mood(&sim, person).overall_score, -0.1);
+    }
+
+    #[test]
+    fn a_need_refilled_during_the_minute_avoids_the_empty_charge() {
+        let pack = test_content::pack(vec![test_content::object(
+            "meal",
+            &[(NeedId::Hunger, 10.0)],
+            10,
+        )]);
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, 0.0);
+        needs.set(NeedId::Energy, 0.0);
+        let person = subject(&mut sim, needs);
+        let object = sim.spawn_object(Position { x: 1.0, y: 2.0 }, ObjectDefId(0));
+        sim.world_mut().entity_mut(person).insert((
+            terri_core::Target {
+                object,
+                interaction: 0,
+            },
+            terri_core::Eating {
+                object: ObjectDefId(0),
+                interaction: 0,
+                remaining_ticks: 10,
+            },
+        ));
+
+        sim.tick();
+        assert_eq!(
+            sim.world()
+                .get::<Needs>(person)
+                .unwrap()
+                .get(NeedId::Hunger),
+            1.0
+        );
+        assert_eq!(mood(&sim, person).overall_score, -0.1);
+    }
+
+    #[test]
+    fn refilling_an_empty_need_keeps_the_mood_already_lost() {
+        let mut sim = test_content::sim_with(8, 8, test_content::pack(Vec::new()));
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, 0.0);
+        let person = subject(&mut sim, needs);
+        for _ in 0..12 {
+            sim.tick();
+        }
+        assert_eq!(mood(&sim, person).overall_score, -1.2);
+
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(Needs::all_at(50.0));
+        sim.flush_commands();
+        assert_eq!(mood(&sim, person).overall_score, -1.2);
+        sim.tick();
+        assert_eq!(mood(&sim, person).overall_score, -1.2);
+    }
+
+    #[test]
+    fn need_mood_clamps_after_adding_the_minute_net_change() {
+        let mut sim = test_content::sim_with(8, 8, test_content::pack(Vec::new()));
+        let high = subject(&mut sim, Needs::all_at(100.0));
+        let low = subject(&mut sim, Needs::all_at(0.0));
+        sim.world_mut().entity_mut(high).insert(NeedMood(599_999));
+        sim.world_mut().entity_mut(low).insert(NeedMood(-599_999));
+
+        sim.tick();
+        let units = |sim: &Sim, person| sim.world().get::<NeedMood>(person).unwrap().0;
+        assert_eq!(units(&sim, high), 600_000);
+        assert_eq!(units(&sim, low), -600_000);
+
+        sim.world_mut()
+            .get_mut::<Needs>(high)
+            .unwrap()
+            .set(NeedId::Comfort, 0.0);
+        sim.world_mut()
+            .get_mut::<Needs>(low)
+            .unwrap()
+            .set(NeedId::Comfort, 100.0);
+        sim.tick();
+        assert_eq!(units(&sim, high), 599_412);
+        assert_eq!(units(&sim, low), -600_000);
+    }
+
+    #[test]
+    fn world_hash_distinguishes_need_mood_by_person_and_exact_amount() {
+        let mut sim = test_content::sim_with(8, 8, test_content::pack(Vec::new()));
+        let first = subject(&mut sim, Needs::all_at(50.0));
+        let second = subject(&mut sim, Needs::all_at(50.0));
+        let baseline = sim.world_hash();
+        sim.world_mut().entity_mut(first).insert(NeedMood(0));
+        assert_eq!(sim.world_hash(), baseline);
+
+        sim.world_mut().entity_mut(first).insert(NeedMood(1));
+        let positive = sim.world_hash();
+        assert_ne!(positive, baseline);
+        sim.world_mut().entity_mut(first).insert(NeedMood(-1));
+        assert_ne!(sim.world_hash(), positive);
+        sim.world_mut().entity_mut(first).insert(NeedMood(0));
+        sim.world_mut().entity_mut(second).insert(NeedMood(1));
+        assert_ne!(sim.world_hash(), positive);
     }
 
     #[test]
@@ -792,106 +969,6 @@ mod tests {
             traits,
             ..base.clone()
         }))
-    }
-
-    #[test]
-    fn need_penalties_begin_only_at_the_critical_boundary() {
-        let pack = test_content::pack(Vec::new());
-        let mut sim = test_content::sim_with(8, 8, pack);
-        let subject = subject(&mut sim, Needs::all_at(NEED_MAX));
-        let labels = [
-            ("Hungry", "Starving"),
-            ("Tired", "Exhausted"),
-            ("Needs a wash", "Very dirty"),
-            ("Needs the toilet", "Desperate for the toilet"),
-            ("Lonely", "Very lonely"),
-            ("Bored", "Very bored"),
-            ("Uncomfortable", "Very uncomfortable"),
-        ];
-
-        for (need, (_, critical)) in NeedId::ALL.into_iter().zip(labels) {
-            for level in [0.0, 19.999, 20.0, 20.001, 40.0, 40.001] {
-                let mut needs = Needs::all_at(NEED_MAX);
-                needs.set(need, level);
-                sim.world_mut().entity_mut(subject).insert(needs);
-                let snapshot = mood(&sim, subject);
-                let expected = if level <= 20.0 {
-                    vec![Moodlet {
-                        label: critical.to_string(),
-                        score: -25.0,
-                    }]
-                } else {
-                    Vec::new()
-                };
-                assert_eq!(snapshot.moodlets, expected, "{need:?} at {level}");
-                assert_eq!(
-                    snapshot.overall_score,
-                    if level <= 20.0 { -25.0 } else { 0.0 },
-                    "{need:?} at {level} must not include another mood cause"
-                );
-            }
-
-            let mut needs = Needs::all_at(NEED_MAX);
-            needs.set(need, 40.001);
-            sim.world_mut().entity_mut(subject).insert(needs);
-            assert!(
-                mood(&sim, subject).moodlets.is_empty(),
-                "{} just above the low boundary must be inactive",
-                need.as_str()
-            );
-        }
-    }
-
-    #[test]
-    fn need_moodlets_follow_need_id_order_and_needs_met_includes_seventy() {
-        let pack = test_content::pack(Vec::new());
-        let mut sim = test_content::sim_with(8, 8, pack);
-        let mut needs = Needs::all_at(NEED_MAX);
-        for need in NeedId::ALL {
-            needs.set(need, 20.0);
-        }
-        let subject = subject(&mut sim, needs);
-        let snapshot = mood(&sim, subject);
-        assert_eq!(
-            snapshot
-                .moodlets
-                .iter()
-                .map(|moodlet| moodlet.label.as_str())
-                .collect::<Vec<_>>(),
-            vec![
-                "Starving",
-                "Exhausted",
-                "Very dirty",
-                "Desperate for the toilet",
-                "Very lonely",
-                "Very bored",
-                "Very uncomfortable",
-            ]
-        );
-        assert_eq!(
-            snapshot
-                .moodlets
-                .iter()
-                .map(|moodlet| moodlet.score)
-                .collect::<Vec<_>>(),
-            vec![-25.0; 7]
-        );
-        assert_eq!(snapshot.overall_score, -100.0, "the sum clamps at -100");
-
-        sim.world_mut()
-            .entity_mut(subject)
-            .insert(Needs::all_at(70.0));
-        assert_eq!(
-            mood(&sim, subject).moodlets,
-            vec![Moodlet {
-                label: "Needs met".to_string(),
-                score: 20.0,
-            }]
-        );
-        let mut almost = Needs::all_at(70.0);
-        almost.set(NeedId::Comfort, 69.999);
-        sim.world_mut().entity_mut(subject).insert(almost);
-        assert!(mood(&sim, subject).moodlets.is_empty());
     }
 
     #[test]
@@ -1646,11 +1723,9 @@ mod tests {
             "every snack fills hunger the same: {refills:?}"
         );
 
-        // While both stand, satisfaction falls. Without them his mood
-        // would sit inside the neutral band, which costs nothing, so the
-        // fall is theirs.
+        // While both stand, compare the satisfaction loss with the
+        // same minute after removing only those two penalties.
         const STRETCH: u64 = 200;
-        let band = tuning.satisfaction_mood_neutral_band;
         let satisfaction = |sim: &Sim| sim.world().get::<Satisfaction>(tim).unwrap().value();
         let start = clock(&sim);
         let satisfied_before = satisfaction(&sim);
@@ -1661,7 +1736,8 @@ mod tests {
             assert_eq!(sick(&snapshot), 1, "Feeling sick stands");
             let without = snapshot.overall_score - overdone + tuning.sick_penalty;
             assert!(
-                snapshot.overall_score < -band && without.abs() < band,
+                super::satisfaction_change(snapshot.overall_score, &tuning)
+                    < super::satisfaction_change(without, &tuning),
                 "{} with the two moodlets, {without} without",
                 snapshot.overall_score
             );

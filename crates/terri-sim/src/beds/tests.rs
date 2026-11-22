@@ -499,10 +499,10 @@ fn all_historical_loaders_migrate_one_place_without_restarting_the_walk() {
             before_reload,
             "V{version} modern re-save preserves the old-side route"
         );
-        let current = live.save_snapshot_v26();
-        live.load_snapshot_v26(current.clone()).unwrap();
+        let current = live.save_snapshot_v28();
+        live.load_snapshot_v28(current.clone()).unwrap();
         assert_eq!(
-            live.save_snapshot_v26(),
+            live.save_snapshot_v28(),
             current,
             "V{version} current roundtrip"
         );
@@ -553,9 +553,9 @@ fn unrelated_build_preserves_an_admitted_old_side_sleep_walk_and_later_order() {
     historical.sleeping_places = None;
     let mut live = test_content::sim_with(12, 12, source.world().resource::<crate::Content>().0);
     live.load_snapshot_v5(historical).unwrap();
-    let current = live.save_snapshot_v26();
-    live.load_snapshot_v26(current.clone()).unwrap();
-    assert_eq!(live.save_snapshot_v26(), current);
+    let current = live.save_snapshot_v28();
+    live.load_snapshot_v28(current.clone()).unwrap();
+    assert_eq!(live.save_snapshot_v28(), current);
     let path = live.world().get::<Path>(first).unwrap().clone();
     assert_eq!(path.cursor, 1);
     assert_eq!(path.steps.last(), Some(&(7, 8)));
@@ -598,9 +598,9 @@ fn unrelated_build_preserves_an_admitted_old_side_sleep_walk_and_later_order() {
         live.save_snapshot_v5().world.entities,
         before.world.entities
     );
-    let current = live.save_snapshot_v26();
-    live.load_snapshot_v26(current.clone()).unwrap();
-    assert_eq!(live.save_snapshot_v26(), current);
+    let current = live.save_snapshot_v28();
+    live.load_snapshot_v28(current.clone()).unwrap();
+    assert_eq!(live.save_snapshot_v28(), current);
 }
 
 #[test]
@@ -692,7 +692,7 @@ fn running_sleep_migrates_without_restart_and_incompatible_states_fail_atomicall
     }
     let mut live = test_content::sim_with(12, 12, content());
     live.load_snapshot_v5(saved.clone()).unwrap();
-    let admitted = live.save_snapshot_v26();
+    let admitted = live.save_snapshot_v28();
     for corruption in 0..4 {
         let mut bad = saved.clone();
         let agent = bad
@@ -716,7 +716,7 @@ fn running_sleep_migrates_without_restart_and_incompatible_states_fail_atomicall
             live.load_snapshot_v5(bad).is_err(),
             "accepted corruption {corruption}"
         );
-        assert_eq!(live.save_snapshot_v26(), admitted);
+        assert_eq!(live.save_snapshot_v28(), admitted);
     }
 }
 
