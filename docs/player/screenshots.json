@@ -466,12 +466,12 @@
           "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
           "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
           "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
-          "web/src/ui/admin-panel.css": "2990244e7673b3702a13adf833aff247b454d15286daf486bc41e50996072d02",
+          "web/src/ui/admin-panel.css": "cfc8733ee2cbbf6ae8b55c14d3c815d2bf29718dba643e4bd5522012ede77d59",
           "content/tuning.toml": "6bb5c3945c29b2fc398f810df3ad281ddc6721de19304dba6eb65e21bfef4bb1"
         },
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-11-21",
-        "method": "Playwright driving Google Chrome headless with scrollbars shown, muted with --mute-audio and the game's Sound: off preference, against the branch served by the vite dev server (commit 1492c853a, after the merge of save schema 27, where needs affect mood over time). The wasm package was rebuilt from that commit with wasm-pack; the source files above are hashed at that commit. A fresh New game was played with the admin panel: Tim's job set to Cafe: Barista, Skip ahead used to Day 9, Tuesday 09:39, Hygiene and Fun set to 0 and one more hour skipped, then Hygiene set to 64 and Fun to 70, so Undo reads Change Fun and Mood from needs shows its balance. The game was paused by the panel. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1; phone 390 by 844 by viewport size only, in the same page; the phone layout is chosen by width.",
+        "method": "Playwright driving Google Chrome headless with scrollbars shown, muted with --mute-audio and the game's Sound: off preference, against the branch served by the vite dev server (commit ab1a65d4c, after the merge of save schema 27, where needs affect mood over time, and the fix that drops the rule under the last mood row). The wasm package was rebuilt with wasm-pack from 1492c853a; ab1a65d4c changes only web/src/ui/admin-panel.css. The source files above are hashed at ab1a65d4c. A fresh New game was played with the admin panel: Tim's job set to Cafe: Barista, Skip ahead used to Day 9, Tuesday 09:39, Hygiene and Fun set to 0 and one more hour skipped, then Hygiene set to 64 and Fun to 70, so Undo reads Change Fun and Mood from needs shows its balance. The game was paused by the panel. Focus was moved off the controls before each capture. Desktop 1440 by 960 at device pixel ratio 1. The phone picture, 390 by 844 by viewport size only, was captured the same way at 1492c853a; it shows only the Needs section, which the CSS fix does not touch.",
         "evidence": "docs/player/images/ui-admin-housemate-desktop.png and ui-admin-housemate-mobile.png"
       }
     ],
@@ -2479,7 +2479,7 @@
       "mobile": "images/ui-admin-housemate-mobile.png",
       "sourceSnapshot": "admin-housemate-needs-mood-2026-11-21",
       "imageSha256": {
-        "desktop": "8087974adfab2546629bde16eab1c02061eadfdf2e60c441913fd1e245c0ba08",
+        "desktop": "c1fe5c62c0681b83a6b61f3ccbf1a66235c75114821c76718d62079912e521ba",
         "mobile": "6dbcc2afdcb67e6294ceaf2e0bf2bdb480e8fe8b6331f7f8a17cae4aa1094f4e"
       },
       "captureMetadata": {
@@ -2492,7 +2492,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "8087974adfab2546629bde16eab1c02061eadfdf2e60c441913fd1e245c0ba08"
+          "sourceImageSha256": "c1fe5c62c0681b83a6b61f3ccbf1a66235c75114821c76718d62079912e521ba"
         },
         "mobile": {
           "width": 390,

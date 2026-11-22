@@ -69,3 +69,5 @@ The guide pictures `ui-admin-household-desktop.png`, `ui-admin-household-mobile.
 ## Recapture after save schema 27, 2026-11-21
 
 Needs now build up one Mood from needs balance instead of separate need moodlets, so the stills that showed the old need rows were recaptured from commit 1492c853a: `desktop-night-housemate-moodlets.png`, `desktop-night-housemate-edited.png`, the three `desktop-night-undo-*.png` stills and the guide's Housemate pictures. `layout-check.js` returned no findings on any of them; the other Housemate stills show only rows that still exist, without the new Mood from needs row, and were left as they are.
+
+The same seven pictures were captured again from ab1a65d4c, which drops the rule under the last mood row; `layout-check.js` returned no findings and each shows one rule at the bottom of the Mood card. Older stills in this folder that show the Mood card predate that fix.
