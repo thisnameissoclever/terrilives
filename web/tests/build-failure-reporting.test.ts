@@ -8,7 +8,7 @@ import { SimBridge, wallReason } from '../src/bridge.js';
 import { BuildExit, type BuildExitHooks } from '../src/ui/build-exit.js';
 import { BuildSession } from '../src/ui/build-session.js';
 import { RoomFailureLog } from '../src/ui/room-selection.js';
-import { bedName, confirmFailure, enterFailure, parseBuildFailureReport } from '../src/rooms/failure.js';
+import { bedName, confirmFailure, enterFailure, failureDetails, failureWhat, FAILURE_NAMES, parseBuildFailureReport } from '../src/rooms/failure.js';
 import { decodeRoomUnit, RoomWireError, type RoomFailure } from '../src/rooms/codec.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -202,7 +202,7 @@ describe('a bed left outside (issue 298, [WB-beds])', () => {
   it('reads the bed refusal with the bed it names and refuses it without one', () => {
     expect(decodeRoomUnit(Uint8Array.of(1, 1, 15, 1, 42))).toEqual({ ok: false, error: { code: 15, detail: 42n } });
     expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 15, 0))).toThrow(RoomWireError);
-    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 16, 0))).toThrow(RoomWireError);
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 18, 0))).toThrow(RoomWireError);
   });
 
   it('tells the player to move the bed into a room or cancel', () => {
@@ -237,5 +237,29 @@ describe('a bed left outside (issue 298, [WB-beds])', () => {
     expect(session.error)
       .toBe('The bunk bed (Basic Oak) would be left outside. Move it into a room, or choose Cancel, before confirming.');
     expect(named).toEqual([42]);
+  });
+});
+
+describe('the admin panel is open (issue 312)', () => {
+  it('names the failure and tells the player what it means', () => {
+    const open: RoomFailure = { code: 16, detail: null };
+    expect(failureWhat(open)).toBe('Close admin panel to use Build mode.');
+    expect(enterFailure(open)).toBe('Close admin panel to use Build mode.');
+    expect(failureDetails(open)).toEqual({ code: 16, kind: 'Admin panel open', detail: null });
+  });
+
+  it('names the failure of a broken admin world and says how to get past it', () => {
+    const broken: RoomFailure = { code: 17, detail: null };
+    expect(failureWhat(broken)).toBe('Load a saved game to use Build mode.');
+    expect(enterFailure(broken), 'shown alone, without "Build mode stays closed."').toBe(failureWhat(broken));
+    expect(failureDetails(broken)).toEqual({ code: 17, kind: 'Admin world would not reload', detail: null });
+  });
+
+  it('gives every native failure code a console name and a sentence', () => {
+    for (let code = 1; code <= 17; code++) {
+      expect(FAILURE_NAMES[code], `console name for ${code}`).not.toBe(FAILURE_NAMES[0]);
+      expect(failureWhat({ code, detail: code === 7 || code === 8 ? 1n : null }), `sentence for ${code}`)
+        .not.toBe('Something went wrong with the build.');
+    }
   });
 });

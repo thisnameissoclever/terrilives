@@ -153,9 +153,24 @@ export class FakeDocument {
   readonly body = new FakeNode('body', this);
   /** Media queries that currently match; the test sets them. */
   readonly media = new Set<string>();
+  private readonly mediaListeners = new Map<string, Set<() => void>>();
   defaultView = {
-    matchMedia: (query: string) => ({ matches: this.media.has(query), addEventListener() {}, removeEventListener() {} }),
+    matchMedia: (query: string) => {
+      const media = this.media;
+      return {
+      get matches() { return media.has(query); },
+      addEventListener: (_type: string, listener: () => void) => {
+        this.mediaListeners.set(query, (this.mediaListeners.get(query) ?? new Set()).add(listener));
+      },
+      removeEventListener: (_type: string, listener: () => void) => { this.mediaListeners.get(query)?.delete(listener); },
+      };
+    },
   };
+  /** Makes `query` match or not, and tells whoever listens, as a window resize does. */
+  setMedia(query: string, on: boolean): void {
+    if (on) this.media.add(query); else this.media.delete(query);
+    for (const listener of this.mediaListeners.get(query) ?? []) listener();
+  }
   createElement(tag: string) { return new FakeNode(tag, this); }
   createElementNS(_namespace: string, tag: string) { return new FakeNode(tag, this); }
   createTextNode(text: string) { const node = new FakeNode('#text', this); node.textContent = text; return node; }

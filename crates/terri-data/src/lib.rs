@@ -1266,6 +1266,16 @@ mod tests {
             // reconstructs the shipped window and history.
             assert_eq!(historical.tuning.go_to_work_window_ticks, 120);
             assert_eq!(historical.tuning.career_input_history_weeks, 52);
+            // Issue 312: and the shipped admin panel knobs.
+            assert_eq!(
+                [
+                    historical.tuning.admin_skip_max_hours,
+                    historical.tuning.admin_skip_default_hours,
+                    historical.tuning.admin_skip_ticks_per_frame,
+                    historical.tuning.admin_bill_due_months,
+                ],
+                [168, 8, 300, 12]
+            );
             assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
         }
         // Households from before bills started with nothing, so only the
@@ -1644,6 +1654,13 @@ mod tests {
         // shift, and each person keeps 52 weeks of review inputs.
         assert_eq!(tuning.go_to_work_window_ticks, 120);
         assert_eq!(tuning.career_input_history_weeks, 52);
+        // Issue 312 ([AP-tuning]): Skip ahead runs at most a game week,
+        // starts at 8 hours and runs 300 ticks a frame; the Due selects
+        // reach a year back.
+        assert_eq!(tuning.admin_skip_max_hours, 168);
+        assert_eq!(tuning.admin_skip_default_hours, 8);
+        assert_eq!(tuning.admin_skip_ticks_per_frame, 300);
+        assert_eq!(tuning.admin_bill_due_months, 12);
         assert_eq!(tuning.affinity_band_loves, 0.6);
         assert_eq!(tuning.affinity_band_likes, 0.2);
         assert_eq!(tuning.affinity_from_mild_trait, 0.4);

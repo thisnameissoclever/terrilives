@@ -22,6 +22,8 @@ Drag the game view to move the camera. Pinch on touch or scroll the mouse wheel 
 
 With the game view focused, arrow keys choose a world target. Space selects a targeted person, and Enter opens the target's action menu. Escape closes menus or cancels the current Build selection according to the visible context. The Help dialog lists the current shortcut set.
 
+Press ~ to open or close the [admin panel](ui-elements/#admin-panel). On a touch screen, hold the bottom corner tile of the lot instead. The game pauses while the panel is open.
+
 Opening Options does not pause the household. Build and dialogs that say the household is paused hold game time while open. Use the visible pause control whenever you want to inspect the home without time advancing.
 
 The household keeps running at the selected speed when you switch tabs or minimize the browser, and its sound can keep playing. Pause before leaving the game if you want the household to wait. Choose Sound: off in Options to silence it. A browser can still suspend background tabs to save power; the game does not make up that lost time afterward.

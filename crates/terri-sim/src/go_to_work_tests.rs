@@ -34,7 +34,7 @@ fn push(sim: &mut Sim, command: SimCommand) {
     sim.world_mut().resource_mut::<CommandQueue>().push(command);
 }
 
-fn issue(sim: &mut Sim, command: SimCommand) {
+pub(crate) fn issue(sim: &mut Sim, command: SimCommand) {
     push(sim, command);
     sim.flush_commands();
 }
@@ -182,23 +182,23 @@ fn older_writers_leave_a_queued_go_to_work_out() {
 // ---- [CT-work]: the behavior ------------------------------------------
 
 /// The fixture's standard shift: it starts at 10:00 and lasts eight hours.
-const START: u64 = 600;
-const SHIFT: u32 = 480;
+pub(crate) const START: u64 = 600;
+pub(crate) const SHIFT: u32 = 480;
 /// The start of the fixture's second shift, offered for the shift change
 /// test only.
-const LATE_START: u32 = 840;
+pub(crate) const LATE_START: u32 = 840;
 
 /// The fixture's objects, by index into what [`fixture`] returns.
 const SNACK: usize = 0;
 const BED: usize = 1;
-const HOLD: usize = 2;
+pub(crate) const HOLD: usize = 2;
 
 /// A worker at (2, 4) on a 20 by 20 lot with a street exit, holding the
 /// first career row with a shift at [`START`] on every day, no decay and
 /// no random career events, so nothing moves unless the test moves it. The
 /// returned objects are a snack, a bed and a long Fun object an order can
 /// hold the worker with ([`SNACK`], [`BED`], [`HOLD`]).
-fn fixture(tune: impl Fn(&mut terri_data::ContentPack)) -> (Sim, Entity, Vec<Entity>) {
+pub(crate) fn fixture(tune: impl Fn(&mut terri_data::ContentPack)) -> (Sim, Entity, Vec<Entity>) {
     let mut pack = terri_data::pack().clone();
     pack.decay_per_tick = [0.0; 7];
     pack.tuning.neglect_bleed_per_tick = 0.0;
@@ -261,19 +261,19 @@ fn person(sim: &mut Sim, position: Position) -> Entity {
         .id()
 }
 
-fn now(sim: &Sim) -> u64 {
+pub(crate) fn now(sim: &Sim) -> u64 {
     sim.world().resource::<SimClock>().tick
 }
 
-fn at(sim: &mut Sim, tick: u64) {
+pub(crate) fn at(sim: &mut Sim, tick: u64) {
     sim.world_mut().resource_mut::<SimClock>().tick = tick;
 }
 
-fn day_ticks(sim: &Sim) -> u64 {
+pub(crate) fn day_ticks(sim: &Sim) -> u64 {
     u64::from(sim.world().resource::<Content>().0.tuning.day_ticks)
 }
 
-fn window(sim: &Sim) -> u64 {
+pub(crate) fn window(sim: &Sim) -> u64 {
     u64::from(
         sim.world()
             .resource::<Content>()
@@ -283,7 +283,7 @@ fn window(sim: &Sim) -> u64 {
     )
 }
 
-fn status(sim: &Sim, actor: Entity) -> WorkStatus {
+pub(crate) fn status(sim: &Sim, actor: Entity) -> WorkStatus {
     crate::careers::go_to_work_status(sim.world(), actor, now(sim))
 }
 
@@ -295,7 +295,7 @@ fn times(start_tick: u64, ticks: u32) -> ShiftTimes {
 }
 
 /// Sends `actor` to work and returns the drain's refusal, if any.
-fn send(sim: &mut Sim, actor: Entity) -> Option<CareerRefusal> {
+pub(crate) fn send(sim: &mut Sim, actor: Entity) -> Option<CareerRefusal> {
     let agent = actor.index_u32();
     issue(sim, SimCommand::GoToWork { agent });
     let result = sim
@@ -307,7 +307,7 @@ fn send(sim: &mut Sim, actor: Entity) -> Option<CareerRefusal> {
     result.reason
 }
 
-fn order(sim: &mut Sim, actor: Entity, object: Entity) {
+pub(crate) fn order(sim: &mut Sim, actor: Entity, object: Entity) {
     issue(
         sim,
         SimCommand::UseObject {
@@ -318,14 +318,14 @@ fn order(sim: &mut Sim, actor: Entity, object: Entity) {
     );
 }
 
-fn shift(sim: &Sim, actor: Entity) -> Option<SavedScheduledShift> {
+pub(crate) fn shift(sim: &Sim, actor: Entity) -> Option<SavedScheduledShift> {
     let id = *sim.world().get::<SimId>(actor).unwrap();
     sim.world()
         .get_resource::<Attendance>()
         .and_then(|attendance| attendance.shifts.get(&id).cloned())
 }
 
-fn outcomes(sim: &Sim) -> usize {
+pub(crate) fn outcomes(sim: &Sim) -> usize {
     sim.world()
         .get_resource::<Attendance>()
         .map_or(0, |attendance| attendance.outcomes.len())
@@ -335,7 +335,7 @@ fn the_outcome(sim: &Sim) -> SavedShiftOutcome {
     sim.world().resource::<Attendance>().outcomes[0].clone()
 }
 
-fn commuting(sim: &Sim, actor: Entity) -> Option<Commuting> {
+pub(crate) fn commuting(sim: &Sim, actor: Entity) -> Option<Commuting> {
     sim.world().get::<Commuting>(actor).copied()
 }
 
@@ -351,7 +351,7 @@ fn standard_pay(sim: &Sim) -> i64 {
 }
 
 /// Ticks until the shift settles and returns the first tick seen at work.
-fn work_the_shift(sim: &mut Sim, actor: Entity) -> u64 {
+pub(crate) fn work_the_shift(sim: &mut Sim, actor: Entity) -> u64 {
     let mut arrived = None;
     for _ in 0..START + u64::from(SHIFT) {
         if sim.world().get::<AtWork>(actor).is_some() {
@@ -368,7 +368,7 @@ fn work_the_shift(sim: &mut Sim, actor: Entity) -> u64 {
 
 /// Ticks from one tick before the start to the start with `needs` set,
 /// so the shift registers and the worker meets it in that state.
-fn start_with(sim: &mut Sim, actor: Entity, needs: &[(NeedId, f32)]) {
+pub(crate) fn start_with(sim: &mut Sim, actor: Entity, needs: &[(NeedId, f32)]) {
     at(sim, START - 1);
     for (id, level) in needs {
         sim.world_mut()

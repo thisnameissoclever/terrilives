@@ -8,6 +8,23 @@ mod activity_log_tests;
 pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
+pub mod admin;
+#[cfg(test)]
+mod admin_career_tests;
+#[cfg(test)]
+mod admin_household_tests;
+#[cfg(test)]
+mod admin_housemate_tests;
+#[cfg(test)]
+mod admin_need_mood_tests;
+#[cfg(test)]
+mod admin_relationship_tests;
+#[cfg(test)]
+mod admin_test_support;
+#[cfg(test)]
+mod admin_tests;
+#[cfg(test)]
+mod admin_wire_tests;
 pub mod affinity;
 pub mod beds;
 pub mod bills;
@@ -89,7 +106,7 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
-pub use mood::{MoodSnapshot, Moodlet};
+pub use mood::{MoodSnapshot, MoodSource, Moodlet};
 pub use save::{SaveError, MAX_TEXT_BYTES};
 
 /// The content pack, as a resource so systems can resolve object ids and
@@ -1596,6 +1613,21 @@ impl Sim {
             .unwrap_or_else(|| save::v27::capture(self))
     }
 
+    /// [`Sim::save_snapshot_v27`], the current save, refusing a queue that
+    /// holds an admin command, and a world a broken admin session left with
+    /// edits that would not load ([AP-save-queue] in
+    /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
+    /// save that met one would otherwise leave it out. The command paths
+    /// never leave one queued; this is the check that proves it at the save
+    /// boundary.
+    pub fn try_save_snapshot_v27(&self) -> Result<terri_core::SaveSnapshotV27, SaveError> {
+        save::refuse_queued_admin(&self.world)?;
+        if admin::world_broken(&self.world) {
+            return Err(SaveError::AdminSessionBroken);
+        }
+        Ok(self.save_snapshot_v27())
+    }
+
     pub fn load_snapshot_v27(
         &mut self,
         snapshot: terri_core::SaveSnapshotV27,
@@ -2613,7 +2645,9 @@ impl Sim {
             self.world
                 .insert_resource(build_transaction::SkipCommandDrain);
         }
-        if self.build_active() {
+        // [AP-undo-model] item 3: no game time passes under an admin
+        // session's baseline, as none passes under Build's.
+        if self.build_active() || self.admin_active() {
             self.flush_commands();
             return;
         }
@@ -4953,6 +4987,14 @@ impl Sim {
                         vec![39, u64::from(*agent), u64::from(*shift)]
                     }
                     GoToWork { agent } => vec![40, u64::from(*agent)],
+                    // [AP-cmd-wire] item 3: unreachable in practice, as no
+                    // admin command outlives the call that staged it, but
+                    // the match is exhaustive and a test pins the arm.
+                    Admin(change) => {
+                        let mut fields = vec![41];
+                        fields.extend(change.hash_words());
+                        fields
+                    }
                     ConfirmedOrder {
                         fingerprint,
                         command,

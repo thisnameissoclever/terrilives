@@ -171,6 +171,31 @@ pub enum SaveError {
     DuplicateSelection,
     InvalidSimIdAllocator,
     TooManyCommands,
+    /// The queue holds an admin command, which no save can record
+    /// ([AP-save-queue] in `docs/specs/2026-11-20-admin-panel.md`).
+    AdminCommandQueued,
+    /// An admin change failed its post-condition and the last good world
+    /// could not be rebuilt, so the live world holds edits that would not
+    /// load ([AP-cmd-drain]).
+    AdminSessionBroken,
+}
+
+/// [AP-save-queue] item 3: refuse a save whose queue holds an admin command.
+/// The command paths make this unreachable, since the only one that stages
+/// an admin change drains it in the same call; this is the check that says
+/// so loudly if one is ever found, rather than writing a save that leaves it
+/// out or panicking inside a capture.
+pub(crate) fn refuse_queued_admin(world: &bevy_ecs::world::World) -> Result<(), SaveError> {
+    if world
+        .resource::<CommandQueue>()
+        .as_slice()
+        .iter()
+        .any(|command| matches!(command, SimCommand::Admin(_)))
+    {
+        Err(SaveError::AdminCommandQueued)
+    } else {
+        Ok(())
+    }
 }
 
 pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
@@ -238,6 +263,9 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
                     SimCommand::Book(_)
                         | SimCommand::Character(_)
                         | SimCommand::ConfirmedOrder { .. }
+                        // [AP-save-queue]: never saved; `refuse_queued_admin`
+                        // is the check that one is never queued at a save.
+                        | SimCommand::Admin(_)
                 ) && !v18::left_out_of_records(command)
             })
             .map(|command| capture_command(command, pack))
@@ -406,6 +434,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::GoToWork { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
+        SimCommand::Admin(_) => unreachable!("admin commands are filtered out of every capture"),
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuyObjectInColourway {
             definition,
@@ -1714,20 +1743,10 @@ fn validate_entity(
         }
     }
     if let Some(levels) = entity.needs {
-        if !levels
-            .iter()
-            .all(|level| level.is_finite() && (NEED_MIN..=NEED_MAX).contains(level))
-        {
-            return Err(SaveError::InvalidValue);
-        }
+        validate_need_levels(&levels)?;
     }
     if let Some(value) = entity.satisfaction {
-        if !value.is_finite() {
-            return Err(SaveError::InvalidValue);
-        }
-        if value < 0.0 {
-            return Err(SaveError::InvalidValue);
-        }
+        validate_satisfaction(value)?;
     }
     if let Some(value) = entity.fumbled_delta_scale {
         if !value.is_finite() {
@@ -1774,15 +1793,7 @@ fn validate_entity(
         validate_object_interaction(pack, &eating.object, eating.interaction, pre_aquarium_bike)?;
     }
     if let Some(entries) = &entity.habituation {
-        // [OD-model]: habituation rises past 1 up to the tuned maximum, and
-        // the part above 1 is overdoing, a valid saved state.
-        validate_habituation(
-            entries,
-            pack,
-            0.0,
-            pack.tuning.habituation_max,
-            pre_aquarium_bike,
-        )?;
+        validate_repetition(entries, pack, pre_aquarium_bike)?;
     }
     if let Some(personality) = &entity.personality {
         for value in personality
@@ -1806,20 +1817,7 @@ fn validate_entity(
         )?;
     }
     if let Some(entries) = &entity.relationships {
-        if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
-            return Err(SaveError::InvalidValue);
-        }
-        for (_, value) in entries {
-            if !value.is_finite() {
-                return Err(SaveError::InvalidValue);
-            }
-            if !(-1.0..=1.0).contains(value) {
-                return Err(SaveError::InvalidValue);
-            }
-        }
-        if !strictly_increasing(entries.iter().map(|(id, _)| *id)) {
-            return Err(SaveError::InvalidValue);
-        }
+        validate_relationships(entries)?;
     }
     if let Some(social) = entity.socialising {
         validate_actor_reference(entities, entity.index, references)?;
@@ -1861,29 +1859,7 @@ fn validate_entity(
         }
     }
     if let Some(entries) = &entity.traits {
-        if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
-            return Err(SaveError::InvalidValue);
-        }
-        for entry in entries {
-            if !entry.state.is_finite() {
-                return Err(SaveError::InvalidValue);
-            }
-            if !(0.0..=1.0).contains(&entry.state) {
-                return Err(SaveError::InvalidValue);
-            }
-        }
-        let mut ids = Vec::with_capacity(entries.len());
-        for entry in entries {
-            pack.traits
-                .iter()
-                .find(|definition| definition.id == entry.id)
-                .ok_or(SaveError::InvalidContentReference)?;
-            ids.push(entry.id.as_str());
-        }
-        ids.sort_unstable();
-        if ids.windows(2).any(|pair| pair[0] == pair[1]) {
-            return Err(SaveError::InvalidValue);
-        }
+        validate_traits_worn(entries, pack)?;
     }
     if let Some(id) = entity.smart_object.as_deref() {
         resolve_object(pack, id)?;
@@ -1913,6 +1889,122 @@ fn validate_entity(
         if !pack.item_kinds.iter().any(|kind| kind == item) {
             return Err(SaveError::InvalidContentReference);
         }
+    }
+    Ok(())
+}
+
+/// The checks the loader makes on one person's needs, satisfaction,
+/// repetition, feelings and worn traits, run on the live person
+/// ([AP-cmd-post]): the person is captured as a save would hold them and
+/// held to the same rules, in the loader's order.
+pub(crate) fn validate_person_state(
+    entity: bevy_ecs::world::EntityRef<'_>,
+    pack: &ContentPack,
+) -> Result<(), SaveError> {
+    let saved = capture_entity(entity, pack);
+    if let Some(levels) = saved.needs {
+        validate_need_levels(&levels)?;
+    }
+    if let Some(value) = saved.satisfaction {
+        validate_satisfaction(value)?;
+    }
+    if let Some(entries) = &saved.habituation {
+        validate_repetition(entries, pack, false)?;
+    }
+    if let Some(entries) = &saved.relationships {
+        validate_relationships(entries)?;
+    }
+    if let Some(entries) = &saved.traits {
+        validate_traits_worn(entries, pack)?;
+    }
+    Ok(())
+}
+
+/// Every need finite and inside its range. Shared with the admin panel's
+/// post-condition ([AP-cmd-post]), so an edited world is held to the rule a
+/// loaded one is.
+pub(crate) fn validate_need_levels(levels: &[f32]) -> Result<(), SaveError> {
+    if levels
+        .iter()
+        .all(|level| level.is_finite() && (NEED_MIN..=NEED_MAX).contains(level))
+    {
+        Ok(())
+    } else {
+        Err(SaveError::InvalidValue)
+    }
+}
+
+/// Life satisfaction finite and not negative.
+pub(crate) fn validate_satisfaction(value: f32) -> Result<(), SaveError> {
+    if value.is_finite() && value >= 0.0 {
+        Ok(())
+    } else {
+        Err(SaveError::InvalidValue)
+    }
+}
+
+/// [OD-model]: habituation rises past 1 up to the tuned maximum, and the
+/// part above 1 is overdoing, a valid saved state.
+pub(crate) fn validate_repetition(
+    entries: &[SavedHabituation],
+    pack: &ContentPack,
+    pre_aquarium_bike: bool,
+) -> Result<(), SaveError> {
+    validate_habituation(
+        entries,
+        pack,
+        0.0,
+        pack.tuning.habituation_max,
+        pre_aquarium_bike,
+    )
+}
+
+/// Feelings finite, in -1 to 1, one per person, ascending by person.
+pub(crate) fn validate_relationships(entries: &[(u32, f32)]) -> Result<(), SaveError> {
+    if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
+        return Err(SaveError::InvalidValue);
+    }
+    for (_, value) in entries {
+        if !value.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !(-1.0..=1.0).contains(value) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if !strictly_increasing(entries.iter().map(|(id, _)| *id)) {
+        return Err(SaveError::InvalidValue);
+    }
+    Ok(())
+}
+
+/// Worn traits: states finite and in 0 to 1, every id known, none twice.
+pub(crate) fn validate_traits_worn(
+    entries: &[SavedTraitState],
+    pack: &ContentPack,
+) -> Result<(), SaveError> {
+    if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
+        return Err(SaveError::InvalidValue);
+    }
+    for entry in entries {
+        if !entry.state.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !(0.0..=1.0).contains(&entry.state) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    let mut ids = Vec::with_capacity(entries.len());
+    for entry in entries {
+        pack.traits
+            .iter()
+            .find(|definition| definition.id == entry.id)
+            .ok_or(SaveError::InvalidContentReference)?;
+        ids.push(entry.id.as_str());
+    }
+    ids.sort_unstable();
+    if ids.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err(SaveError::InvalidValue);
     }
     Ok(())
 }

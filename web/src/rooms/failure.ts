@@ -27,7 +27,8 @@ export function parseBuildFailureReport(json: string): BuildFailureReport {
 export const FAILURE_NAMES: readonly string[] = ['Unknown error', 'Build is closed', 'Build is already open', 'Not enough memory',
   'Room counter exhausted', 'Room no longer exists', 'Invalid room name', 'Room choices refused', 'Build replay differs',
   'Build draft differs', 'Build validation failed', 'Review is out of date', 'Command unavailable during Build',
-  'Invalid room request', 'Room request too large', 'Bed left outside'];
+  'Invalid room request', 'Room request too large', 'Bed left outside', 'Admin panel open',
+  'Admin world would not reload'];
 
 /** The failure a Confirm reports when it would leave a bed outside every room ([WB-beds]). */
 export const BED_OUTSIDE = 15;
@@ -49,6 +50,10 @@ const WHAT: Readonly<Record<number, string>> = {
   14: 'The room request is too large.',
   // Issue 298, [WB-beds]: functional text proposed for the owner's review.
   15: 'A bed would be left outside.',
+  // Issue 312: functional text proposed for the owner's review.
+  16: 'Close admin panel to use Build mode.',
+  // Issue 312: admin edits left a world that would not reload, so saving stays refused until a load.
+  17: 'Load a saved game to use Build mode.',
 };
 
 /**
@@ -107,6 +112,7 @@ export function confirmFailure(error: RoomFailure, report: BuildFailureReport = 
 
 /** A refused entry into Build mode. */
 export function enterFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
+  if (error.code === 16 || error.code === 17) return failureWhat(error, report);
   if (error.code !== 10) return `${failureWhat(error, report)} Build mode stays closed.`;
   const cause = obstacle(report, true);
   return `Build mode can't open because the house would not load as it stands${cause ? `: ${cause}` : ''}. `

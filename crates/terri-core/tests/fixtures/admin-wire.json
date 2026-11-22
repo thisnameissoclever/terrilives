@@ -1,0 +1,203 @@
+{
+  "about": "Admin panel wire vectors (issue 312). Written by crates/terri-core/tests/admin_wire.rs; every float is exact as an f32.",
+  "command_code": 41,
+  "cases": [
+    {
+      "name": "SetNeed",
+      "edits": [
+        { "edit": "SetNeed", "code": 0, "sim": 300, "need": 2, "value": 50.5 }
+      ],
+      "bytes": [41, 1, 0, 172, 2, 2, 0, 0, 74, 66]
+    },
+    {
+      "name": "SetSatisfaction",
+      "edits": [
+        { "edit": "SetSatisfaction", "code": 1, "sim": 3, "value": 72.25 }
+      ],
+      "bytes": [41, 1, 1, 3, 0, 128, 144, 66]
+    },
+    {
+      "name": "SetRepetition",
+      "edits": [
+        { "edit": "SetRepetition", "code": 2, "sim": 3, "object": 9, "row": 2, "value": 1.5 }
+      ],
+      "bytes": [41, 1, 2, 3, 9, 2, 0, 0, 192, 63]
+    },
+    {
+      "name": "EndTimedMoodlet",
+      "edits": [
+        { "edit": "EndTimedMoodlet", "code": 3, "sim": 3, "timer": 5 }
+      ],
+      "bytes": [41, 1, 3, 3, 5]
+    },
+    {
+      "name": "SetAffinity",
+      "edits": [
+        { "edit": "SetAffinity", "code": 4, "sim": 3, "kind": 1, "value": -0.75 }
+      ],
+      "bytes": [41, 1, 4, 3, 1, 0, 0, 64, 191]
+    },
+    {
+      "name": "SetSkillPractice",
+      "edits": [
+        { "edit": "SetSkillPractice", "code": 5, "sim": 3, "skill": 2, "practice": 12.5 }
+      ],
+      "bytes": [41, 1, 5, 3, 2, 0, 0, 72, 65]
+    },
+    {
+      "name": "SetTraitState",
+      "edits": [
+        { "edit": "SetTraitState", "code": 6, "sim": 3, "trait_index": 7, "state": 0.25 }
+      ],
+      "bytes": [41, 1, 6, 3, 7, 0, 0, 128, 62]
+    },
+    {
+      "name": "AddTrait",
+      "edits": [
+        { "edit": "AddTrait", "code": 7, "sim": 3, "trait_index": 200 }
+      ],
+      "bytes": [41, 1, 7, 3, 200, 1]
+    },
+    {
+      "name": "RemoveTrait",
+      "edits": [
+        { "edit": "RemoveTrait", "code": 8, "sim": 3, "trait_index": 4 }
+      ],
+      "bytes": [41, 1, 8, 3, 4]
+    },
+    {
+      "name": "SetJob",
+      "edits": [
+        { "edit": "SetJob", "code": 9, "sim": 3, "job": 6, "shift": 1 }
+      ],
+      "bytes": [41, 1, 9, 3, 1, 6, 1]
+    },
+    {
+      "name": "SetJob no job",
+      "edits": [
+        { "edit": "SetJob", "code": 9, "sim": 3, "job": null, "shift": 0 }
+      ],
+      "bytes": [41, 1, 9, 3, 0, 0]
+    },
+    {
+      "name": "SetShift",
+      "edits": [
+        { "edit": "SetShift", "code": 10, "sim": 3, "shift": 2 }
+      ],
+      "bytes": [41, 1, 10, 3, 2]
+    },
+    {
+      "name": "SetPay",
+      "edits": [
+        { "edit": "SetPay", "code": 11, "sim": 3, "dollars": 145 }
+      ],
+      "bytes": [41, 1, 11, 3, 145, 1]
+    },
+    {
+      "name": "SetJobSatisfaction",
+      "edits": [
+        { "edit": "SetJobSatisfaction", "code": 12, "sim": 3, "value": 33.5 }
+      ],
+      "bytes": [41, 1, 12, 3, 0, 0, 6, 66]
+    },
+    {
+      "name": "SetGoodWeeks",
+      "edits": [
+        { "edit": "SetGoodWeeks", "code": 13, "sim": 3, "weeks": 2 }
+      ],
+      "bytes": [41, 1, 13, 3, 2]
+    },
+    {
+      "name": "SetPoorWeeks",
+      "edits": [
+        { "edit": "SetPoorWeeks", "code": 14, "sim": 3, "weeks": 15 }
+      ],
+      "bytes": [41, 1, 14, 3, 15]
+    },
+    {
+      "name": "SetJobSearch",
+      "edits": [
+        { "edit": "SetJobSearch", "code": 15, "sim": 3, "on": true }
+      ],
+      "bytes": [41, 1, 15, 3, 1]
+    },
+    {
+      "name": "SetFeeling",
+      "edits": [
+        { "edit": "SetFeeling", "code": 16, "from": 3, "to": 5, "value": -0.5 }
+      ],
+      "bytes": [41, 1, 16, 3, 5, 0, 0, 0, 191]
+    },
+    {
+      "name": "StartFight",
+      "edits": [
+        { "edit": "StartFight", "code": 17, "from": 3, "to": 5 }
+      ],
+      "bytes": [41, 1, 17, 3, 5]
+    },
+    {
+      "name": "SetFunds",
+      "edits": [
+        { "edit": "SetFunds", "code": 18, "cents": -231840 }
+      ],
+      "bytes": [41, 1, 18, 191, 166, 28]
+    },
+    {
+      "name": "AdjustFunds",
+      "edits": [
+        { "edit": "AdjustFunds", "code": 19, "cents": 100000 }
+      ],
+      "bytes": [41, 1, 19, 192, 154, 12]
+    },
+    {
+      "name": "SetBill",
+      "edits": [
+        { "edit": "SetBill", "code": 20, "due_day": 28, "kind": 1, "amount_cents": 6100, "late_fee_cents": 305 }
+      ],
+      "bytes": [41, 1, 20, 28, 1, 168, 95, 226, 4]
+    },
+    {
+      "name": "MoveBill",
+      "edits": [
+        { "edit": "MoveBill", "code": 21, "due_day": 28, "kind": 2, "to_due_day": 56 }
+      ],
+      "bytes": [41, 1, 21, 28, 2, 56]
+    },
+    {
+      "name": "PayBill",
+      "edits": [
+        { "edit": "PayBill", "code": 22, "due_day": 28, "kind": 3 }
+      ],
+      "bytes": [41, 1, 22, 28, 3]
+    },
+    {
+      "name": "MarkBillPaid",
+      "edits": [
+        { "edit": "MarkBillPaid", "code": 23, "due_day": 0, "kind": 0 }
+      ],
+      "bytes": [41, 1, 23, 0, 0]
+    },
+    {
+      "name": "DeleteBill",
+      "edits": [
+        { "edit": "DeleteBill", "code": 24, "due_day": 84, "kind": 1 }
+      ],
+      "bytes": [41, 1, 24, 84, 1]
+    },
+    {
+      "name": "AddBill",
+      "edits": [
+        { "edit": "AddBill", "code": 25, "due_day": 112, "kind": 0, "amount_cents": 1000000000000, "late_fee_cents": 0 }
+      ],
+      "bytes": [41, 1, 25, 112, 0, 128, 192, 168, 202, 154, 58, 0]
+    },
+    {
+      "name": "Two edits",
+      "edits": [
+        { "edit": "SetNeed", "code": 0, "sim": 3, "need": 0, "value": 100 },
+        { "edit": "SetNeed", "code": 0, "sim": 3, "need": 6, "value": 100 }
+      ],
+      "bytes": [41, 2, 0, 3, 0, 0, 0, 200, 66, 0, 3, 6, 0, 0, 200, 66]
+    }
+  ]
+}

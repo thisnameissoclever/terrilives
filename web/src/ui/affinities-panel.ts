@@ -33,7 +33,7 @@ export interface AffinitiesPanelSurface {
 const UNAVAILABLE: AffinitiesPanelState = { kind: 'unavailable' };
 
 /** "plants" becomes "Plants": kind labels are lower case so they read inside the moodlet sentences. */
-function rowLabel(label: string): string {
+export function affinityRowLabel(label: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
@@ -42,7 +42,7 @@ export function affinitiesPanelState(source: AffinitiesPanelSource, labels: read
   if (selected === null) return { kind: 'unselected' };
   const words = source.affinityWordsOf(selected);
   if (words === null || words.length === 0 || words.length !== labels.length) return UNAVAILABLE;
-  return { kind: 'ready', rows: words.map((word, index) => ({ label: rowLabel(labels[index]), word })) };
+  return { kind: 'ready', rows: words.map((word, index) => ({ label: affinityRowLabel(labels[index]), word })) };
 }
 
 /** A closed disclosure does no periodic reads; opening or loading forces a fresh one. */

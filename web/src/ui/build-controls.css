@@ -32,6 +32,7 @@ body[data-building='true'] #build-toggle { display: none; }
 .shortcuts > summary:focus-visible, .help-topic > summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
 .shortcut-group h3 { margin: 12px 0 4px; font-size: 12px; color: var(--need-fill); }
 .shortcut-tool-name { margin: 16px 0 4px; font-size: 14px; }
+.shortcut-note { margin: 6px 0 0; font-size: 12px; color: var(--hud-muted); }
 .shortcut-group dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 10px; margin: 0; font-size: 12px; }
 .shortcut-group dt, .shortcut-group dd { padding: 6px 0; border-bottom: 1px solid var(--hud-edge); margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .shortcut-group dd { display: flex; justify-content: flex-end; align-items: center; gap: 4px; flex-wrap: wrap; max-width: 150px; }

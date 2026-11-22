@@ -135,19 +135,21 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 355 (needs affect mood over time): one struct,
-            // `need_mood`, appended to `ContentPack` after the bills. The
-            // proof always runs against the fixture as it was on main before
-            // it (26152 bytes, SHA-256
+            // Issue 355 (needs affect mood over time) appended `need_mood`
+            // to `ContentPack`, after the bills, and issue 312 (the admin
+            // panel) appended four integers to `Tuning`, after the Career
+            // tab knobs of issues 311 and 317. The proof always runs against
+            // the fixture as it was before both (26152 bytes, SHA-256
             // fcc3460bbcc92b525f9e0c6bf26c8dccf83e548874fa289396a21b74c883602e,
-            // main at ebe7be646): restore that file before regenerating.
+            // main at ebe7be646 and still at 7a69b617e, which did not
+            // regenerate it): restore that file before regenerating.
             assert_eq!(
-                previous_without_need_mood(&pack),
+                previous_without_need_mood_and_admin_panel_knobs(&pack),
                 old_bytes,
-                "only the field issue 355 appended may change the current fixture"
+                "only the fields issues 355 and 312 appended may change the current fixture"
             );
             eprintln!(
-                "Need mood fixture proof: leaving out the field issue 355 appended recovers every byte of the previous fixture"
+                "Need mood and admin panel fixture proof: leaving out the fields issues 355 and 312 appended recovers every byte of the previous fixture"
             );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
@@ -165,14 +167,16 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 355 (needs affect mood
-/// over time), rebuilt from the current pack by writing it as postcard does
-/// while leaving out the field that issue appended at the end of
-/// `ContentPack`. Postcard writes a struct as its fields in order with no
-/// names, so leaving a field out removes exactly its bytes. The unfiltered
-/// writer must reproduce postcard byte for byte first, or the filtered bytes
-/// would prove nothing.
-fn previous_without_need_mood(pack: &terri_data::ContentPack) -> Vec<u8> {
+/// The fixture's bytes as they were before issues 355 (needs affect mood
+/// over time) and 312 (the admin panel), rebuilt from the current pack by
+/// writing it as postcard does while leaving out the field issue 355
+/// appended at the end of `ContentPack` and the four fields issue 312
+/// appended at the end of `Tuning`.
+/// Postcard writes a struct as its fields in order with no names,
+/// so leaving a field out removes exactly its bytes. The unfiltered writer
+/// must reproduce postcard byte for byte first, or the filtered bytes would
+/// prove nothing.
+fn previous_without_need_mood_and_admin_panel_knobs(pack: &terri_data::ContentPack) -> Vec<u8> {
     use filtered_postcard::Rule;
     assert_eq!(
         filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
@@ -180,6 +184,13 @@ fn previous_without_need_mood(pack: &terri_data::ContentPack) -> Vec<u8> {
         "the filtered writer reproduces postcard when it filters nothing"
     );
     filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
+        (
+            "Tuning",
+            "admin_skip_max_hours"
+            | "admin_skip_default_hours"
+            | "admin_skip_ticks_per_frame"
+            | "admin_bill_due_months",
+        ) => Rule::Omit,
         ("ContentPack", "need_mood") => Rule::Omit,
         _ => Rule::Keep,
     })

@@ -1,0 +1,340 @@
+/*
+ * The admin panel's shell (issue 312, [AP-web-modal] of
+ * docs/specs/2026-11-20-admin-panel.md). Colours come from the page's custom
+ * properties (--hud-*, --need-fill, --action-*), so the panel follows whatever
+ * theme the page sets; the fallbacks are the dark values. Tab contents style
+ * themselves further down. The phone layout is the last block of this file
+ * ([AP-web-phone]), because it must come after the rules it changes.
+ */
+#admin-panel {
+  --admin-card: color-mix(in srgb, var(--hud-text, #d8d8e0) 5%, var(--hud-bg, #16161c));
+  --admin-cheat-bg: #3a3220;
+  --admin-cheat-edge: #b89a52;
+  --admin-cheat-text: #f3e2b5;
+  /* The grace status of a bill: no existing token is a warning amber. */
+  --admin-warn: #f0c36b;
+  width: min(1240px, calc(100vw - 48px));
+  height: min(820px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--hud-text, #d8d8e0);
+  background: var(--hud-bg, #16161c);
+  border: 1px solid var(--hud-edge, #2c2c36);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px #000c;
+}
+#admin-panel[open] { display: flex; }
+#admin-panel::backdrop { background: rgba(0, 0, 0, .62); }
+
+.admin-frame { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
+
+.admin-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--hud-edge, #2c2c36);
+}
+.admin-title { margin: 0; font-size: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
+.admin-title:focus { outline: none; }
+.admin-cheat {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: var(--admin-cheat-bg);
+  border: 1px solid var(--admin-cheat-edge);
+  color: var(--admin-cheat-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.admin-pill {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--admin-card);
+  border: 1px solid var(--hud-edge, #2c2c36);
+  font-weight: 600;
+}
+.admin-pill-note { font-weight: 400; color: var(--hud-muted, #9aa3ad); }
+.admin-spacer { flex: 1 1 0; }
+.admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+.admin-undo, .admin-close, .admin-person, .admin-tab { min-height: 36px; padding: 0 14px; }
+.admin-undo { max-width: min(22em, 100%); gap: 0; overflow: hidden; white-space: nowrap; }
+/* "Undo" and ": {change}" are two spans of one label: no flex gap between them, and a long change ends in an ellipsis. */
+.admin-undo-detail { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.admin-undo-status { margin: 0; padding: 6px 18px; color: var(--hud-danger, #e58c85); border-bottom: 1px solid var(--hud-edge, #2c2c36); }
+.admin-undo-status:empty { display: none; }
+
+.admin-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--hud-edge, #2c2c36);
+}
+.admin-bar [hidden] { display: none; }
+.admin-tabs, .admin-picker { display: flex; flex-wrap: wrap; gap: 4px; }
+.admin-tab[aria-selected='true'] { border-color: var(--need-fill, #6fb2d2); background: var(--action-hover-background, #29313a); font-weight: 600; }
+.admin-person { font-weight: 600; }
+
+/* The body scrolls; the header and the tab row stay fixed. */
+.admin-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px; }
+.admin-tabpanel[hidden] { display: none; }
+.admin-placeholder { margin: 0; color: var(--hud-muted, #9aa3ad); }
+
+.admin-alert {
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 16px 18px;
+  color: var(--hud-text, #d8d8e0);
+  background: var(--hud-bg, #16161c);
+  border: 1px solid var(--hud-edge, #2c2c36);
+  border-radius: 8px;
+}
+.admin-alert::backdrop { background: rgba(0, 0, 0, .62); }
+.admin-alert-message { margin: 0 0 14px; }
+
+/* The same query as COMPACT_HUD_MEDIA_QUERY, in range syntax. */
+@media (width <= 600px), (height <= 480px) {
+  #admin-panel { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border: 0; border-radius: 0; }
+}
+
+/*
+ * The tabs' shared controls and the Housemate tab's columns ([T10]). Sections
+ * are cards; rows are a label, a slider and a number box. The phone layout is
+ * [T14]; until then the columns stack when the dialog is narrow.
+ */
+.admin-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.admin-column { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@media (width <= 900px) { .admin-columns { grid-template-columns: minmax(0, 1fr); } }
+
+.admin-section { min-width: 0; padding: 12px 14px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
+/* Every heading row is as tall as a heading button, so titles line up across cards with and without one. */
+.admin-section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 32px; margin-bottom: 8px; }
+.admin-section-title { margin: 0; font-size: 15px; }
+.admin-section-title:focus { outline: none; }
+.admin-section-title:focus-visible { outline: 2px solid var(--need-fill, #6fb2d2); outline-offset: 3px; border-radius: 3px; }
+.admin-range { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+.admin-range:empty { display: none; }
+.admin-section-actions { margin-left: auto; display: inline-flex; gap: 6px; }
+.admin-section-actions:empty { display: none; }
+/*
+ * The six sections that fold on a phone are details elements. On a desktop they
+ * are always open and look like the other cards: no marker, no summary line,
+ * and their buttons (which follow the body, never sit in the summary) are lifted
+ * to the heading row.
+ */
+.admin-section-fold { position: relative; }
+.admin-section-fold > .admin-section-head { list-style: none; cursor: default; }
+.admin-section-fold > .admin-section-head::-webkit-details-marker { display: none; }
+.admin-section-fold > .admin-section-actions { position: absolute; top: 12px; right: 14px; }
+.admin-section-summary { display: none; }
+.admin-section-body { display: flex; flex-direction: column; gap: 6px; }
+.admin-status { margin: 8px 0 0; color: var(--hud-danger, #e58c85); }
+.admin-status:empty { display: none; }
+/* A success that needs saying, such as a fight waiting for the game to resume, is information, not a refusal. */
+.admin-status.admin-status-note { color: var(--hud-muted, #9aa3ad); }
+.admin-note { margin: 4px 0 0; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+
+.admin-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.admin-row-label { flex: 0 0 8.5em; min-width: 0; }
+.admin-slider { flex: 1 1 6em; min-width: 4em; accent-color: var(--need-fill, #6fb2d2); }
+.admin-number { width: 5.5em; min-height: 32px; box-sizing: border-box; text-align: right; font: inherit; color: inherit; background: var(--hud-bg, #16161c); border: 1px solid var(--hud-edge, #2c2c36); border-radius: 4px; padding: 0 6px; }
+/* A locked number box reads as locked, as the buttons and selects beside it do. */
+.admin-number:disabled { opacity: 0.6; }
+.admin-select { flex: 1 1 10em; min-width: 0; min-height: 32px; font: inherit; color: inherit; background: var(--hud-bg, #16161c); border: 1px solid var(--hud-edge, #2c2c36); border-radius: 4px; padding: 0 6px; }
+.admin-word, .admin-hint { color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+/* A word after a slider's number box takes at least one width, so the boxes of a section line up. */
+.admin-slider-row > .admin-word { flex: 0 0 auto; min-width: 5em; }
+/*
+ * A trait row: the name and Remove on the first line, the slider, number and
+ * hint on the second, so Remove sits in the same place on every trait.
+ */
+.admin-trait-row > * { order: 2; }
+.admin-trait-row > .admin-row-label { order: 0; }
+.admin-trait-row > .admin-action { order: 1; margin-left: auto; }
+.admin-trait-row.admin-slider-row > .admin-row-label { flex: 1 1 calc(100% - 7em); }
+.admin-trait-row:not(.admin-slider-row) > .admin-word { order: 0; }
+.admin-action { min-height: 32px; padding: 0 12px; }
+.admin-check { width: 18px; height: 18px; }
+
+.admin-overall, .admin-moodlet { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 4px 0; border-bottom: 1px solid var(--hud-edge, #2c2c36); }
+/* The card's own edge closes the list, so the last row draws no rule of its own. */
+.admin-overall:last-child, .admin-moodlet:last-child { border-bottom: none; }
+.admin-overall { font-weight: 600; }
+.admin-moodlet-source { flex: 1 1 8em; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+.admin-moodlet-label { flex: 0 1 auto; }
+.admin-score { margin-left: auto; font-variant-numeric: tabular-nums; }
+.admin-trait-add { margin-top: 4px; }
+
+/* The Relationships tab ([T11]): the fight and Set all above, then one card per other housemate. */
+.admin-relationships { display: flex; flex-direction: column; gap: 14px; }
+.admin-relationships:focus { outline: none; }
+.admin-rel-bar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 16px; }
+.admin-rel-all { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-left: auto; }
+.admin-fight { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
+.admin-rel-card .admin-row-label { flex-basis: 12em; }
+.admin-rel-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; align-items: start; }
+.admin-rel-all .admin-status, .admin-fight .admin-status { margin: 0; }
+.admin-tone-negative { color: var(--hud-danger, #e58c85); }
+.admin-tone-positive { color: var(--need-fill, #6fb2d2); }
+.admin-tone-neutral { color: var(--hud-muted, #9aa3ad); }
+
+/* The Household tab ([T12]): funds and time at the left, the bill table at the right. */
+.admin-household { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (width <= 900px) { .admin-household { grid-template-columns: minmax(0, 1fr); } }
+.admin-bills-column { min-width: 0; }
+.admin-funds-row .admin-money { flex: 0 1 11em; }
+.admin-funds-buttons { gap: 6px; }
+.admin-prefix { color: var(--hud-muted, #9aa3ad); }
+.admin-now { font-variant-numeric: tabular-nums; }
+/* "Now" is short: its date takes the rest of the row, so "Day 10, Wednesday, 00:36" stays on one line. */
+.admin-row:has(> .admin-now) > .admin-row-label { flex: 0 0 auto; }
+.admin-row:has(> .admin-now) > .admin-now { margin-left: auto; }
+.admin-skip-row .admin-number { width: 4.5em; }
+.admin-skip-line { margin: 4px 0 0; min-height: 1.2em; }
+.admin-skip-line:empty { display: none; }
+
+.admin-bill-table { width: 100%; border-collapse: collapse; }
+.admin-bill-head { padding: 4px 6px; text-align: left; font-size: 12px; font-weight: 600; color: var(--hud-muted, #9aa3ad); }
+.admin-bill-row > td, .admin-bill-new > td { padding: 5px 6px; border-top: 1px solid var(--hud-edge, #2c2c36); vertical-align: middle; }
+.admin-bill-money { white-space: nowrap; }
+.admin-bill-money .admin-number { width: 5em; }
+.admin-bill-due .admin-select, .admin-bill-name .admin-select { width: 100%; }
+.admin-bill-due .admin-select { min-width: 10em; }
+.admin-bill-actions > .admin-action { padding: 0 8px; font-size: 13px; white-space: nowrap; overflow-wrap: normal; }
+/* "Funds don't cover this bill." goes under the buttons, so they keep their width and never break a word. */
+.admin-bill-actions > .admin-note { flex: 1 1 100%; order: 1; margin: 0; }
+.admin-household .admin-row-label { flex-basis: 7em; }
+.admin-bill-status { min-width: 7em; font-size: 12px; white-space: nowrap; }
+/* Overdue is the danger colour and bold, the grace status is amber and bold, Paid is green and plain; the words differ too. */
+.admin-bill-overdue { color: var(--hud-danger, #e58c85); font-weight: 700; }
+.admin-bill-grace { color: var(--admin-warn, #f0c36b); font-weight: 600; }
+.admin-bill-paid { color: var(--career-up, #7fc98a); font-weight: 400; }
+.admin-bill-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; border-top: 0; }
+.admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { border-top: 1px solid var(--hud-edge, #2c2c36); }
+.admin-bill-notes { margin-top: 10px; }
+.admin-bill-notes .admin-note { margin: 2px 0; }
+
+/*
+ * The phone layout ([AP-web-phone], [T14]), under the compact HUD's query: the
+ * dialog fills the screen, the header wraps the pill under the title, tabs and
+ * picker span the width, sections stack, each slider sits under its label with
+ * its number box at the right, and the bill table becomes one card per bill.
+ * The page never scrolls sideways: every child may shrink (min-width: 0) and the
+ * dialog clips nothing it should show.
+ */
+@media (width <= 600px), (height <= 480px) {
+  .admin-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+  }
+  .admin-title { grid-column: 1; grid-row: 1; font-size: 18px; }
+  .admin-undo { grid-column: 2; grid-row: 1; max-width: none; }
+  .admin-close { grid-column: 3; grid-row: 1; }
+  .admin-pill { grid-column: 1 / -1; grid-row: 2; justify-self: start; max-width: 100%; }
+  .admin-spacer, .admin-header .admin-hint, .admin-undo-detail { display: none; }
+  .admin-undo-status { padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
+
+  .admin-bar { align-items: stretch; padding: 10px max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left)); }
+  .admin-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .admin-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 6px; }
+  .admin-tab, .admin-person { padding-inline: 4px; overflow-wrap: anywhere; }
+  .admin-body { padding: 12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+
+  .admin-slider-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+  .admin-slider-row > .admin-row-label { grid-column: 1; grid-row: 1; }
+  .admin-slider-row > .admin-number { grid-column: 2; grid-row: 1; }
+  .admin-slider-row > .admin-slider { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; }
+  .admin-slider-row > :not(.admin-row-label, .admin-slider, .admin-number) { grid-column: 1 / -1; }
+  /* The word or hint that names the value ("Likes", "$180 to $225") sits under the label, beside the number box. */
+  .admin-slider-row > :is(.admin-word, .admin-hint) { grid-column: 1; grid-row: 2; min-width: 0; }
+  .admin-slider-row:has(> :is(.admin-word, .admin-hint)) > .admin-number { grid-row: 1 / span 2; }
+  .admin-slider-row:has(> :is(.admin-word, .admin-hint)) > .admin-slider { grid-row: 3; }
+  /* A trait with a value: name and Remove on top, as for a trait without one; then the word and number; then the slider. */
+  .admin-trait-row > *, .admin-trait-row > .admin-action, .admin-trait-row > .admin-row-label { order: 0; }
+  .admin-trait-row.admin-slider-row > .admin-action { grid-column: 2; grid-row: 1; justify-self: end; }
+  .admin-trait-row.admin-slider-row > .admin-number { grid-column: 2; grid-row: 2; }
+  .admin-trait-row.admin-slider-row > .admin-word { align-self: center; }
+  /* One column in the mockup's order: Needs, Life satisfaction, Mood, Repetition, Likes, then Skills, Traits, Career. */
+  .admin-housemate { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+  .admin-housemate > .admin-column { display: contents; }
+  .admin-housemate > .admin-column:nth-child(2) > :first-child { order: 1; }
+  .admin-housemate > .admin-column:nth-child(1) > .admin-section-fold { order: 2; }
+  .admin-housemate > .admin-column:nth-child(2) > :nth-child(2) { order: 3; }
+  .admin-housemate > .admin-column:nth-child(3) > * { order: 4; }
+  /* Folding sections: a tap on the heading row opens or closes one; the one-line summary shows only while closed. */
+  /* The heading row spans the card's padding, so a closed card is one 44 px tap target
+     and its title sits where every other card's title sits. */
+  .admin-section-fold > .admin-section-head { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; box-sizing: border-box; margin: -12px -14px; padding: 12px 14px; min-height: 44px; cursor: pointer; }
+  .admin-section-fold[open] > .admin-section-head { margin-bottom: 8px; padding-bottom: 0; min-height: 0; }
+  .admin-section-fold > .admin-section-head::before { content: '\25B8'; color: var(--hud-muted, #9aa3ad); font-size: 12px; }
+  .admin-section-fold[open] > .admin-section-head::before { content: '\25BE'; }
+  .admin-section-fold:not([open]) .admin-range { display: none; }
+  .admin-section-fold:not([open]) > .admin-section-head .admin-section-summary { display: block; margin-left: auto; min-width: 0; color: var(--hud-muted, #9aa3ad); font-size: 12px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-section-fold > .admin-section-actions { position: static; display: flex; margin-top: 10px; }
+  .admin-section-fold > .admin-section-actions > .admin-action { flex: 1 1 auto; }
+  /* A check box row stays on one line: the label shrinks to its words and the description sits beside the box. */
+  .admin-check-row { flex-wrap: nowrap; }
+  .admin-check-row > .admin-row-label { flex: 0 0 auto; }
+  .admin-check-row > .admin-check-words { flex: 1 1 0; min-width: 0; }
+  /* A select takes its own line under its label, so a long job title is not cut off. */
+  .admin-row:not(.admin-trait-add) > .admin-select { flex-basis: 100%; }
+
+  .admin-bill-table, .admin-bill-table tbody { display: block; }
+  .admin-bill-table thead { display: none; }
+  .admin-bill-row, .admin-bill-new {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+    padding: 12px 0;
+    border-top: 1px solid var(--hud-edge, #2c2c36);
+  }
+  .admin-bill-row > td, .admin-bill-new > td { padding: 0; border: 0; min-width: 0; }
+  .admin-bill-name { grid-column: 1; grid-row: 1; font-weight: 700; }
+  .admin-bill-new .admin-bill-name { grid-column: 1 / -1; }
+  .admin-bill-status { grid-column: 2; grid-row: 1; text-align: right; }
+  .admin-bill-status:empty { display: none; }
+  .admin-bill-due { grid-column: 1 / -1; grid-row: 2; }
+  .admin-bill-due + .admin-bill-money { grid-column: 1; grid-row: 3; }
+  .admin-bill-money + .admin-bill-money { grid-column: 2; grid-row: 3; }
+  .admin-bill-money { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+  .admin-bill-money .admin-number { flex: 1 1 0; width: auto; min-width: 0; }
+  .admin-bill-row > td[data-label]::before, .admin-bill-new > td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 100%;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--hud-muted, #9aa3ad);
+    font-size: 12px;
+  }
+  .admin-bill-row > .admin-bill-actions, .admin-bill-new > .admin-bill-actions { grid-column: 1 / -1; grid-row: 4; border-top: 0; gap: 6px; }
+  .admin-bill-actions > .admin-action { flex: 1 1 0; }
+  .admin-bill-actions > .admin-note { flex: 1 1 100%; }
+}
+
+/* Touch targets: 44 px on a phone and on any touch screen, as the HUD's own controls are. */
+@media (width <= 600px), (height <= 480px), (any-pointer: coarse) {
+  .admin-undo, .admin-close, .admin-tab, .admin-person, .admin-action, .admin-number, .admin-select { min-height: 44px; }
+  .admin-number { min-width: 44px; }
+  .admin-slider { height: 44px; }
+  .admin-check-row { min-height: 44px; }
+  .admin-check { width: 28px; height: 28px; }
+  /* Heading buttons are 44 px tall here, so they take their own line under the title,
+     and every title sits on its natural line at the card's top padding. */
+  .admin-section-head { min-height: 0; }
+  .admin-section-head > .admin-section-actions { flex: 1 0 100%; margin-left: 0; }
+  .admin-section-head > .admin-section-actions > .admin-action { flex: 1 1 auto; }
+}

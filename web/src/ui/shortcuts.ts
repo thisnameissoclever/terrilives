@@ -1,6 +1,13 @@
 export type ShortcutTool = 'furniture' | 'walls' | 'room' | 'buy' | 'floors' | 'land';
 interface ShortcutRow { readonly label: string; readonly keys: readonly string[]; readonly alternatives?: boolean }
-interface ShortcutGroup { readonly label: string; readonly rows: readonly ShortcutRow[] }
+interface ShortcutGroup { readonly label: string; readonly rows: readonly ShortcutRow[]; readonly note?: string }
+
+/** S-help: how to open the admin panel; the touch route has no key, so it is a note under the keys. */
+export const ADMIN_PANEL_SHORTCUTS: ShortcutGroup = {
+  label: 'Admin panel',
+  rows: [{ label: 'Open or close the admin panel', keys: ['~'] }],
+  note: "Touch: hold the lot's bottom corner tile",
+};
 const MOVE: ShortcutRow = { label: 'Move selection', keys: ['↑', '↓', '←', '→'], alternatives: true };
 // With nothing selected, Escape leaves Build mode instead: Help lists that row.
 const CANCEL: ShortcutRow = { label: 'Clear selection', keys: ['Esc'] };
@@ -47,7 +54,9 @@ function appendGroups(doc: Document, root: HTMLElement, groups: readonly Shortcu
       });
       list.append(label, keys);
     }
-    section.append(list); root.append(section);
+    section.append(list);
+    if (group.note) { const note = doc.createElement('p'); note.className = 'shortcut-note'; note.textContent = group.note; section.append(note); }
+    root.append(section);
   }
 }
 
@@ -69,6 +78,7 @@ export function installShortcuts(doc: Document, coverings: readonly string[]): v
     { label: 'Queue action: hold either key when selecting an action', keys: ['Ctrl', 'Cmd'], alternatives: true },
     { label: 'Clear target or close actions', keys: ['Esc'] },
   ] }]);
+  appendGroups(doc, help, [ADMIN_PANEL_SHORTCUTS]);
   appendGroups(doc, help, [{ label: 'Build mode', rows: [
     { label: 'Exit Build with no selection', keys: ['Esc'] },
   ] }]);

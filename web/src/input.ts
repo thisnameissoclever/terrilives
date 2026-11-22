@@ -1333,7 +1333,36 @@ export class LongPressGesture {
   }
 }
 
+/**
+ * The lot's bottommost tile on screen: the corner whose drawn centre is lowest.
+ * With the shipped projection that is the south corner on the street edge,
+ * `(width - 1, height - 1)`, the largest `x + y`. `depth` is a tile's screen
+ * height in the current view and is the only thing that says which corner is
+ * lowest, so a view that turned the lot would name the new one without a
+ * second rule to keep in step.
+ */
+export function bottomTile(
+  width: number,
+  height: number,
+  depth: (x: number, y: number) => number = (x, y) => screenY(x, y, 0),
+): [number, number] {
+  const corners: [number, number][] = [[0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1]];
+  return corners.reduce((lowest, corner) => depth(corner[0], corner[1]) > depth(lowest[0], lowest[1]) ? corner : lowest);
+}
+
+/**
+ * The touch route into the admin panel ([AP-web-touch]): a long press on the
+ * lot's bottom tile, outside Build mode, opens it instead of the object menu.
+ */
+export interface AdminCornerPress {
+  /** Opens the panel. */
+  open(): void;
+  /** The lot's current width and height in tiles; read at each press, since a land purchase changes it. */
+  lotSize(): readonly [number, number];
+}
+
 export interface CanvasEditInput {
+
   active(): boolean;
   /** Invalidates a deferred pick when tools change inside active Build. */
   mode?(): string | number;
@@ -1362,6 +1391,7 @@ export function attachPointerInput(
   editing?: CanvasEditInput,
   onBookPicked: (copy: number) => void = () => {},
   displayedPick?:(point:CanvasPoint)=>Promise<Pick|null|undefined>,
+  adminCorner?: AdminCornerPress,
 ): void {
   let pickGeneration=0;
   const withPick=(point:CanvasPoint|null,apply:(pick:Pick|null|undefined)=>void)=>{
@@ -1405,11 +1435,23 @@ export function attachPointerInput(
   let suppressNextClick = false;
   let menuOpeningPointer: number | null = null;
   let lastReleasedPointer: number | null = null;
+  /** Whether a press at these client pixels lands on the lot's bottom tile. */
+  const pressedBottomTile = (clientX: number, clientY: number, [width, height]: readonly [number, number]): boolean => {
+    const tile = clientToTile(clientX, clientY, canvas.getBoundingClientRect(), canvas.width, canvas.height,
+      camera.originX, camera.originY, camera.scale);
+    if (tile === null) return false;
+    const [bottomX, bottomY] = bottomTile(width, height);
+    return tile[0] === bottomX && tile[1] === bottomY;
+  };
   const longPress = new LongPressGesture((clientX, clientY, pointerId) => {
     if (editing?.active()) return;
     suppressNextClick = true;
     menuOpeningPointer = pointerId;
     canvas.focus();
+    if (adminCorner && pressedBottomTile(clientX, clientY, adminCorner.lotSize())) {
+      adminCorner.open();
+      return;
+    }
     const point=canvasPoint({clientX,clientY});
     withPick(point,pick=>handleRightClick(
       target,

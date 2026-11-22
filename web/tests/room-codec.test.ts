@@ -92,7 +92,18 @@ it('decodes literal pure summary and enforces native error detail shapes', () =>
     expect(bom.ok && bom.value.rooms[0].name).toBe('\uFEFFX');
     expect(decodeRoomSummary(new Uint8Array([1, 0, 2, 1, 1, 0, 0, 1, 79, 2]))).toEqual({ ok: true, value: { width: 2, height: 1, rooms: [{ id: 0, anchor: null, name: 'O', area: 2, outside: true }] } });
     expect(decodeRoomUnit(new Uint8Array([1, 1, 7, 1, 9]))).toEqual({ ok: false, error: { code: 7, detail: 9n } });
-    for (const bytes of [[1, 1, 7, 0], [1, 1, 1, 1, 0], [1, 1, 15, 0], [1, 1, 10, 1, 11], [1, 0, 0]])
+    for (const bytes of [[1, 1, 7, 0], [1, 1, 1, 1, 0], [1, 1, 15, 0], [1, 1, 10, 1, 12], [1, 0, 0]])
+        expect(() => decodeRoomUnit(new Uint8Array(bytes))).toThrow(RoomWireError);
+});
+it('accepts the admin panel native failures and nothing past them (issue 312)', () => {
+    // Save detail 11: the queue held an admin command, which no save can record.
+    expect(decodeRoomUnit(new Uint8Array([1, 1, 10, 1, 11]))).toEqual({ ok: false, error: { code: 10, detail: 11n } });
+    expect(decodeRoomUnit(new Uint8Array([1, 1, 10, 1, 10]))).toEqual({ ok: false, error: { code: 10, detail: 10n } });
+    // Build code 16: refused because the panel's session is open; it names nothing.
+    expect(decodeRoomUnit(new Uint8Array([1, 1, 16, 0]))).toEqual({ ok: false, error: { code: 16, detail: null } });
+    // Build code 17: refused because admin edits left a world that would not reload; it names nothing.
+    expect(decodeRoomUnit(new Uint8Array([1, 1, 17, 0]))).toEqual({ ok: false, error: { code: 17, detail: null } });
+    for (const bytes of [[1, 1, 16, 1, 1], [1, 1, 17, 1, 1], [1, 1, 18, 0], [1, 1, 10, 1, 0], [1, 1, 10, 0]])
         expect(() => decodeRoomUnit(new Uint8Array(bytes))).toThrow(RoomWireError);
 });
 it('checks each group kind and rejects impossible group relationships', () => {

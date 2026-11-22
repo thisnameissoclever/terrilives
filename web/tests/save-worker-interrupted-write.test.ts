@@ -153,6 +153,24 @@ describe('an interrupted save never costs the player their game', () => {
     expect(s.files.get(PREVIOUS)).toEqual(save(2));
   });
 
+  it('refuses an empty write before touching the slot or its last good copy (issue 312, [AP-save-queue])', async () => {
+    // A refused admin save never reaches storage, because the bridge throws
+    // SaveRefusedError for the empty array the simulation returns. Should an
+    // empty array arrive anyway, the worker refuses it, so it can neither empty
+    // the slot, which a later load would treat as an interrupted write, nor
+    // replace the last good copy.
+    const s = await slot(null);
+    await s.request('save', save(1));
+    await s.request('save', save(2));
+    expect(await s.request('save', new Uint8Array())).toMatchObject({ ok: false });
+    expect(s.files.get(PRIMARY)).toEqual(save(2));
+    expect(s.files.get(PREVIOUS)).toEqual(save(1));
+    expect(s.files.has(DAMAGED)).toBe(false);
+    await s.reload();
+    expect(bytesOf(await s.request('load'))).toEqual(save(2));
+    expect(bytesOf(await s.request('previous'))).toEqual(save(1));
+  });
+
   it('keeps the slot good when the last good copy itself is cut off', async () => {
     const s = await slot(null);
     await s.request('save', save(1));

@@ -8,6 +8,13 @@ import { BillsPanel } from './ui/bills-panel.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
+import { AdminPanel } from './admin/admin-panel.js';
+import { createHousemateTab } from './admin/admin-housemate.js';
+import { createRelationshipsTab } from './admin/admin-relationships.js';
+import { createHouseholdTab } from './admin/admin-household.js';
+import { SkipRunner } from './admin/admin-skip.js';
+import { installAdminOpening, isDebugOverlayKey } from './admin/admin-open.js';
+import { householdSource, housemateSource, relationshipsSource } from './admin/admin-sources.js';
 import { CareerReviewWindow } from './ui/career-graph-modal.js';
 import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
@@ -877,6 +884,58 @@ async function main(): Promise<void> {
     const agent = sim.selectedIndex();
     if (agent !== null) careerReviewWindow.open(agent, opener);
   };
+  // The admin panel ([AP-web] of docs/specs/2026-11-20-admin-panel.md): created
+  // once, and closed when a load or import replaces the world. It pauses the game
+  // through the shared overlay pause and restores the speed from before. Two routes
+  // open it: the tilde key and a long press on the lot's bottom tile ([AP-web-keys], [AP-web-touch]).
+  const adminDialog = document.querySelector<HTMLDialogElement>('#admin-panel');
+  if (!adminDialog) throw new Error('missing the admin panel markup');
+  // Every HUD panel, the clock, funds and bills row included, reads at once after an admin
+  // change, an Undo and a close, rather than on its next periodic read.
+  const refreshHudAfterAdmin = (): void => {
+    gameHud.update(performance.now(), sim, true);
+    refreshHudPanels();
+    if (needsPanel.update(performance.now(), sim)) syncDockSummary();
+  };
+  // Skip ahead ([AP-skip]): ordinary ticks, a budget of them each rendered frame, run from the frame
+  // loop below with the per-tick footstep sampling off so the sound events drain silently.
+  let adminLimitsRead: ReturnType<typeof sim.adminLimits> | null = null;
+  const adminLimits = () => (adminLimitsRead ??= sim.adminLimits());
+  const adminSkip = new SkipRunner({
+    tick: () => { sim.tick(); drainCompletionAudioAfterTick(sim, audio, false); },
+    ticksPerHour: () => sim.dayTicks() / 24,
+    ticksPerFrame: () => adminLimits().skipTicksPerFrame,
+    living: () => new Map(householdMembers(sim).map(member => [member.simId, member.name] as const)),
+  }, () => ({ maxHours: adminLimits().skipMaxHours, defaultHours: adminLimits().skipDefaultHours }));
+  const adminPanel = new AdminPanel(document, adminDialog, sim, overlayPause, {
+    members: () => householdMembers(sim).map(({ simId, name }) => ({ simId, name })),
+    selectedSimId: () => {
+      const selected = sim.selectedIndex();
+      return selected === null ? null : sim.simIdOf(selected);
+    },
+    fallbackFocus: () => canvas,
+    worldChanged: cause => {
+      // Undo rebuilt the world, as Build's Cancel does: entity indices may differ,
+      // so every entity-keyed shell cache is reset before the HUD reads again.
+      if (cause === 'undo') restoreBuildPresentation();
+      refreshHudAfterAdmin();
+    },
+    closed: refreshHudAfterAdmin,
+    tabs: {
+      housemate: createHousemateTab(housemateSource(sim)),
+      relationships: createRelationshipsTab(relationshipsSource(sim)),
+      household: createHouseholdTab(householdSource(sim)),
+    },
+    skip: adminSkip,
+  });
+  // [AP-web-keys]: the tilde key opens and closes the panel. The debug overlay's backtick below ignores it.
+  installAdminOpening({
+    doc: document,
+    panel: adminPanel,
+    buildActive: () => builder.active,
+    say: text => { commandStatus.textContent = text; commandStatus.setAttribute('data-kind', 'error'); },
+    skip: adminSkip,
+  });
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at
   // start, after Load and after an edit read whether or not it is open.
@@ -1107,9 +1166,9 @@ async function main(): Promise<void> {
   bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
-  // surface and no extra key binding. Backquote toggles it; that key
-  // collides with nothing (the only other keydown listener forwards to
-  // the flyout, which consumes Escape and arrows).
+  // surface and no extra key binding. The plain backtick toggles it; Shift
+  // plus that key is the tilde, which belongs to the admin panel, so
+  // isDebugOverlayKey leaves it alone.
   let debugPanel: DebugPanel | null = null;
   let updateOrderHistory: (() => void) | null = null;
   if (new URLSearchParams(location.search).get('debug') === '1') {
@@ -1170,7 +1229,7 @@ async function main(): Promise<void> {
       void navigator.clipboard.writeText(history.textContent ?? '').then(() => { copyStatus.textContent = 'Copied'; }, () => { copyStatus.textContent = 'Copy failed. Select the history text and copy it.'; });
     });
     document.addEventListener('keydown', (event) => {
-      if (event.code === 'Backquote') panel.toggle();
+      if (isDebugOverlayKey(event)) panel.toggle();
     });
     // Open immediately: someone who typed ?debug=1 wants the numbers,
     // not a hidden panel and a keyboard shortcut to discover.
@@ -1332,6 +1391,20 @@ async function main(): Promise<void> {
     restorePersistenceFocus(document, loadGameDialog, optionsToggle, persistenceFocusFallbacks);
     overlayPause.resume('load-game');
   });
+  // Forces every HUD panel to re-read now, for a world that was replaced (Load, Import)
+  // or edited (the admin panel), instead of waiting for its next refresh interval.
+  const refreshHudPanels = (): void => {
+    const nowMs = performance.now();
+    householdRoster.update(nowMs, true);
+    peoplePanel.update(nowMs, true);
+    moodPanel.update(nowMs, true);
+    traitsPanel.update(nowMs, true);
+    personalDetailsPanel.update(nowMs, true);
+    skillsPanel.update(nowMs, true);
+    affinitiesPanel.update(nowMs, true);
+    bedAssignmentPanel.update(nowMs, true);
+    careerPanel.update(nowMs, true);
+  };
   // Load and Import both replace the world, so both refresh every view of it.
   const adoptLoadedWorld = (): void => {
       wallFade.reset();
@@ -1372,6 +1445,7 @@ async function main(): Promise<void> {
       bedAssignmentPanel.resetAfterLoad();
       // The window shows a person of the replaced world: close it, which also resumes the game.
       careerReviewWindow.close();
+      adminPanel.close();
       careerPanel.resetAfterLoad();
       syncNewHousemateButton();
       syncEditHousemateButton();
@@ -1382,16 +1456,7 @@ async function main(): Promise<void> {
       floorTool.resetAfterLoad(lotWidth, lotHeight);
       landTool.resetAfterLoad(lotWidth, lotHeight);
       audio.reset('load');
-      const nowMs = performance.now();
-      householdRoster.update(nowMs, true);
-      peoplePanel.update(nowMs, true);
-      moodPanel.update(nowMs, true);
-      traitsPanel.update(nowMs, true);
-      personalDetailsPanel.update(nowMs, true);
-      skillsPanel.update(nowMs, true);
-      affinitiesPanel.update(nowMs, true);
-      bedAssignmentPanel.update(nowMs, true);
-      careerPanel.update(nowMs, true);
+      refreshHudPanels();
   };
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
@@ -2597,6 +2662,8 @@ async function main(): Promise<void> {
       if(hit?.kind==='person'&&sim.simIdOf(hit.entity)!==hit.sim)return undefined;
       return hit?{entity:hit.entity,isAgent:hit.kind==='person',cleanup:hit.cleanup,bookCopy:hit.bookCopy}:null;
     },
+    // [AP-web-touch]: a long press on the lot's bottom tile opens the admin panel. Build mode never arms it.
+    { open: () => { adminPanel.open(); }, lotSize: () => [lotWidth, lotHeight] as const },
   );
   function openBookCopy(copy: number): void {
     const rect = stage.getBoundingClientRect();
@@ -2657,6 +2724,9 @@ async function main(): Promise<void> {
     const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
     previousFrameMs = nowMs;
     const tickBudget = presenting ? MAX_TICKS_PER_FRAME : BACKGROUND_MAX_TICKS;
+
+    // [AP-skip]: a skip ahead runs its budget of ticks first, so the frame that follows draws the result.
+    adminSkip.step();
 
     // Chromium's media-query event is not reliable under every embedding and
     // emulation path. The value is already read each frame for animation, so

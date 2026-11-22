@@ -1,6 +1,7 @@
 import { CURRENT_SAVE_VERSION } from '../src/storage/save-header.js';
 import { describe, expect, it, vi } from 'vitest';
 
+import { SaveRefusedError } from '../src/bridge.js';
 import type { SaveStore } from '../src/storage/save-store.js';
 import {
   PersistenceController,
@@ -312,6 +313,24 @@ describe('PersistenceController', () => {
     expect(report).toHaveBeenCalledTimes(1);
   });
 
+  it('reports a save the simulation refuses and stores nothing (issue 312, [AP-save-queue])', async () => {
+    const view = status();
+    const report = vi.fn();
+    const backend = store(null);
+    const game = sim();
+    const refusal = new SaveRefusedError();
+    game.saveBytes = () => { throw refusal; };
+    const controller = new PersistenceController(backend, game, view, report);
+
+    expect(await controller.save()).toBe(false);
+    expect(backend.saves).toEqual([]);
+    expect(view.textContent).toBe('Save failed. The game is still running.');
+    expect(view.attributes.get('data-kind')).toBe('error');
+    expect(report).toHaveBeenCalledWith(refusal);
+    expect(await controller.exportSave(() => { throw new Error('nothing to deliver'); })).toBe(false);
+    expect(report).toHaveBeenCalledTimes(2);
+  });
+
   it('autosaves once when each new day is first observed', async () => {
     const game = sim();
     const backend = store(null);
@@ -568,6 +587,45 @@ describe('PersistenceController after an interrupted save', () => {
     const controller = new PersistenceController(backend, pickySim(lastGood), status());
     expect(await controller.restoreAtStartup()).toBe('loaded');
     expect(controller.isSavingPaused()).toBe(false);
+  });
+
+  it('never lets a refused admin save reach storage or start a recovery (issue 312, [AP-save-queue])', async () => {
+    // The simulation refuses to save while an admin command is queued or a
+    // broken admin session left edits that would not load. The bridge turns
+    // that refusal into SaveRefusedError, so no empty bytes are ever written
+    // and nothing here looks like an interrupted write.
+    const backend = store(lastGood, damaged);
+    const game = pickySim(lastGood);
+    let refusing = false;
+    game.saveBytes = () => {
+      if (refusing) throw new SaveRefusedError();
+      return lastGood;
+    };
+    const view = status();
+    const controller = new PersistenceController(backend, game, view, () => undefined);
+    expect(await controller.restoreAtStartup()).toBe('loaded');
+    expect(backend.recoveries).toBe(0);
+
+    refusing = true;
+    expect(await controller.save()).toBe(false);
+    game.tick = 250;
+    controller.updateAutosave();
+    await vi.waitFor(() => expect(view.textContent).toBe('Save failed. The game is still running.'));
+    expect(backend.saves).toEqual([]);
+    expect(backend.recoveries).toBe(0);
+    expect(backend.restored).toEqual([]);
+    expect(controller.isSavingPaused()).toBe(false);
+
+    // The slot and its last good copy are what they were, so Load reads the
+    // slot itself and never falls back to the copy.
+    expect(await controller.load()).toBe(true);
+    expect(view.textContent).toBe('Saved game loaded');
+    expect(backend.recoveries).toBe(0);
+    expect(backend.restored).toEqual([]);
+
+    refusing = false;
+    expect(await controller.save()).toBe(true);
+    expect(backend.saves).toEqual([lastGood]);
   });
 
   it('treats an empty slot with no last good copy as no save instead of a failed load', async () => {

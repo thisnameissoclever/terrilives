@@ -19,12 +19,39 @@ pub struct Moodlet {
     pub score: f32,
 }
 
+/// Where a moodlet comes from, when it has a short explanation: what the
+/// admin panel shows beside it ([AP-c-sources] in
+/// `docs/specs/2026-11-20-admin-panel.md`). Read only; mood stays derived.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MoodSource {
+    /// No short explanation. "Mood from needs" is one: its label already
+    /// says where it comes from.
+    Other,
+    /// The job's satisfaction is below the misery or above the joy level.
+    JobSatisfaction,
+    /// The feeling about the person with this `SimId`, who is close by.
+    Feeling { sim: u32 },
+    /// A bill is overdue.
+    BillsOverdue,
+    /// A timed moodlet: 0 burnt dinner, 1 had a fight, 2 promoted, 3 got a
+    /// raise, 4 demoted, 5 fired (the admin panel's timer codes).
+    Timer { timer: u8 },
+}
+
 /// One sim's current derived mood and its ordered causes.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MoodSnapshot {
     pub overall_score: f32,
     pub overall_label: &'static str,
     pub moodlets: Vec<Moodlet>,
+    /// One source per moodlet, in the same order.
+    pub sources: Vec<MoodSource>,
+}
+
+/// Gives every moodlet added since the last call `source`, so `sources`
+/// stays aligned with `moodlets` without touching each constructor.
+fn tag(moodlets: &[Moodlet], sources: &mut Vec<MoodSource>, source: MoodSource) {
+    sources.resize(moodlets.len(), source);
 }
 
 impl Sim {
@@ -49,7 +76,7 @@ pub(crate) fn score(
     derive_mood_with_chores(world, index, Some(chores)).map(|m| m.overall_score)
 }
 
-fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
+pub(crate) fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
     derive_mood_with_chores(
         world,
         index,
@@ -76,9 +103,11 @@ fn derive_mood_with_chores(
         .find(|(entity, ..)| entity.index_u32() == index)?;
 
     let mut moodlets = Vec::new();
+    let mut sources = Vec::new();
     if let Some(chores) = chores {
         moodlets.extend(crate::chores::moodlets_in(world, subject, chores));
     }
+    tag(&moodlets, &mut sources, MoodSource::Other);
     if let Some(need_mood) = world
         .get::<NeedMood>(subject)
         .filter(|need_mood| need_mood.0 != 0)
@@ -87,6 +116,7 @@ fn derive_mood_with_chores(
             label: MOOD_FROM_NEEDS.to_string(),
             score: need_mood.points(),
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     if let Some(traits) = traits {
@@ -104,6 +134,7 @@ fn derive_mood_with_chores(
                     label: definition.label.clone(),
                     score: -pack.tuning.mood_condition_penalty * severity,
                 });
+                tag(&moodlets, &mut sources, MoodSource::Other);
             }
         }
     }
@@ -138,7 +169,7 @@ fn derive_mood_with_chores(
     // SimId is the contract. Entity index is only a deterministic tie
     // breaker for an invalid world containing duplicate stable ids.
     nearby.sort_unstable_by_key(|(sim_id, entity_index, ..)| (*sim_id, *entity_index));
-    for (_, _, name, feeling, distance) in nearby {
+    for (sim_id, _, name, feeling, distance) in nearby {
         moodlets.push(Moodlet {
             label: if feeling.is_sign_positive() {
                 format!("Comforted by {name}")
@@ -149,6 +180,7 @@ fn derive_mood_with_chores(
                 * feeling
                 * (1.0 - distance / pack.tuning.mood_relationship_radius),
         });
+        tag(&moodlets, &mut sources, MoodSource::Feeling { sim: sim_id });
     }
 
     if world
@@ -159,6 +191,7 @@ fn derive_mood_with_chores(
             label: "No assigned bed".to_string(),
             score: -20.0,
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     let now = world.resource::<terri_core::SimClock>().tick;
@@ -172,6 +205,7 @@ fn derive_mood_with_chores(
                 label: BURNT_DINNER.to_string(),
                 score: -pack.tuning.burnt_meal_mood_penalty,
             });
+            tag(&moodlets, &mut sources, MoodSource::Timer { timer: 0 });
         }
     }
     if let (Some(id), Some(fights)) = (subject_id, world.get_resource::<crate::fights::Fights>()) {
@@ -180,11 +214,12 @@ fn derive_mood_with_chores(
                 label: HAD_A_FIGHT.to_string(),
                 score: -pack.tuning.fight_mood_penalty,
             });
+            tag(&moodlets, &mut sources, MoodSource::Timer { timer: 1 });
         }
     }
     if let (Some(id), Some(careers)) = (subject_id, world.get_resource::<crate::careers::Careers>())
     {
-        career_moodlets(&mut moodlets, careers, *id, now, &pack.tuning);
+        career_moodlets(&mut moodlets, &mut sources, careers, *id, now, &pack.tuning);
     }
     // Bills (issue 298, [WB-paying]): derived from the bills each time, like
     // Warned at work, so it needs no timer and ends on the tick the last
@@ -194,6 +229,7 @@ fn derive_mood_with_chores(
             label: BEHIND_ON_BILLS.to_string(),
             score: -pack.bills.overdue_mood,
         });
+        tag(&moodlets, &mut sources, MoodSource::BillsOverdue);
     }
     for death in world
         .resource::<terri_core::save::SavedMortality>()
@@ -226,6 +262,7 @@ fn derive_mood_with_chores(
             label: format!("Grieving {}", death.name),
             score: -strength * (1.0 - elapsed as f32 / duration as f32),
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     if let Some(penalty) = crate::waiting::penalty(world, subject, needs) {
@@ -233,6 +270,7 @@ fn derive_mood_with_chores(
             label: "Waiting for an item".into(),
             score: -penalty,
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
     if let Some(penalty) = crate::domestic::mood_penalty(world, subject) {
@@ -240,10 +278,12 @@ fn derive_mood_with_chores(
             label: "Dirty dishes".into(),
             score: -penalty,
         });
+        tag(&moodlets, &mut sources, MoodSource::Other);
     }
     moodlets.extend(overdoing_moodlets(pack, habituation));
     moodlets.extend(crate::affinity::presence_moodlets(world, pack, subject));
     moodlets.extend(crate::affinity::use_moodlets(world, pack, subject));
+    tag(&moodlets, &mut sources, MoodSource::Other);
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)
@@ -253,6 +293,7 @@ fn derive_mood_with_chores(
         overall_score,
         overall_label: overall_label(overall_score),
         moodlets,
+        sources,
     })
 }
 
@@ -288,6 +329,7 @@ pub(crate) const CAREER_LABELS: [&str; 7] = [
 
 fn career_moodlets(
     moodlets: &mut Vec<Moodlet>,
+    sources: &mut Vec<MoodSource>,
     careers: &crate::careers::Careers,
     id: SimId,
     now: u64,
@@ -299,17 +341,20 @@ fn career_moodlets(
                 label: HATES_THE_JOB.to_string(),
                 score: -tuning.career_mood_misery,
             });
+            tag(moodlets, sources, MoodSource::JobSatisfaction);
         } else if record.job_satisfaction > tuning.career_job_joy {
             moodlets.push(Moodlet {
                 label: ENJOYS_THE_JOB.to_string(),
                 score: tuning.career_mood_joy,
             });
+            tag(moodlets, sources, MoodSource::JobSatisfaction);
         }
         if record.warned() {
             moodlets.push(Moodlet {
                 label: WARNED_AT_WORK.to_string(),
                 score: -tuning.career_mood_warned,
             });
+            tag(moodlets, sources, MoodSource::Other);
         }
     }
     let events = [
@@ -318,12 +363,16 @@ fn career_moodlets(
         (&careers.demoted, DEMOTED, -tuning.career_mood_demoted),
         (&careers.fired, FIRED, -tuning.career_mood_fired),
     ];
-    for (timers, label, score) in events {
+    for (offset, (timers, label, score)) in events.into_iter().enumerate() {
         if timers.active(id, now) {
             moodlets.push(Moodlet {
                 label: label.to_string(),
                 score,
             });
+            // The admin panel's timer codes 2 to 5 follow burnt dinner and
+            // the fight.
+            let timer = 2 + offset as u8;
+            tag(moodlets, sources, MoodSource::Timer { timer });
         }
     }
 }

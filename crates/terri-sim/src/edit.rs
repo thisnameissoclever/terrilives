@@ -143,24 +143,7 @@ fn apply(world: &mut World, entity: Entity, name: String, edit: &Edit) {
             domestic.cleanliness.sort_by_key(|(index, _)| *index);
         }
     }
-    let current = world.get::<Traits>(entity).cloned().unwrap_or_default();
-    let entries = edit
-        .traits
-        .iter()
-        .map(|&index| {
-            let state = current
-                .state(index)
-                .unwrap_or_else(|| authored_trait_state(&content.traits[index as usize]));
-            (index, state)
-        })
-        .collect();
-    let worn = Traits::from_entries(entries);
-    // A newly worn capability raises its skill to the trait's start level;
-    // nothing here lowers practice, and a removed trait leaves its skill
-    // where it is ([SK-capability]).
-    let mut skills = world.get::<Skills>(entity).cloned().unwrap_or_default();
-    crate::skills::seed_from_capabilities(&mut skills, &worn, content);
-    world.entity_mut(entity).insert((worn, skills));
+    apply_traits(world, entity, edit.traits);
     if !edit.ties.is_empty() {
         if world.get_resource::<FamilyTies>().is_none() {
             world.insert_resource(FamilyTies::default());
@@ -170,6 +153,30 @@ fn apply(world: &mut World, entity: Entity, name: String, edit: &Edit) {
             family.set(edit.sim, *relative, *relation);
         }
     }
+}
+
+/// Makes `traits` the person's worn set: a trait already worn keeps its
+/// state, a newly worn one starts at its authored state, and a newly worn
+/// capability raises its skill to the trait's start level. Nothing here
+/// lowers practice, and a removed trait leaves its skill where it is
+/// ([SK-capability]). The caller has checked the indices. Shared by the
+/// edit above and the admin panel's trait edits ([AP-e-tadd]).
+pub(crate) fn apply_traits(world: &mut World, entity: Entity, traits: &[u32]) {
+    let content = world.resource::<Content>().0;
+    let current = world.get::<Traits>(entity).cloned().unwrap_or_default();
+    let entries = traits
+        .iter()
+        .map(|&index| {
+            let state = current
+                .state(index)
+                .unwrap_or_else(|| authored_trait_state(&content.traits[index as usize]));
+            (index, state)
+        })
+        .collect();
+    let worn = Traits::from_entries(entries);
+    let mut skills = world.get::<Skills>(entity).cloned().unwrap_or_default();
+    crate::skills::seed_from_capabilities(&mut skills, &worn, content);
+    world.entity_mut(entity).insert((worn, skills));
 }
 
 /// Validates, applies when valid, and records the numbered answer.

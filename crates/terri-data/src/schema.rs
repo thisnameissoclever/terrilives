@@ -512,6 +512,16 @@ pub struct TuningFile {
     /// How many reviewed weeks of score inputs each person keeps for the
     /// review window - [CT-tuning], issue 317. From 1 to 520.
     pub career_input_history_weeks: u32,
+    /// The admin panel ([AP-tuning] in `docs/specs/2026-11-20-admin-panel.md`,
+    /// issue 312): the most hours one Skip ahead runs, from 1 to 672.
+    pub admin_skip_max_hours: u32,
+    /// The hours the Skip ahead box starts with, from 1 to
+    /// `admin_skip_max_hours`.
+    pub admin_skip_default_hours: u32,
+    /// Ticks run per rendered frame while skipping ahead, from 1 to 1440.
+    pub admin_skip_ticks_per_frame: u32,
+    /// How many billing months back the Due selects offer, from 1 to 120.
+    pub admin_bill_due_months: u32,
 }
 
 /// The `[bills]` section of `tuning.toml` - [WB-tuning] in
@@ -1786,7 +1796,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 164] = [
+    const TUNING_LINES: [(&str, &str); 168] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1897,6 +1907,10 @@ mod tests {
         ),
         ("go_to_work_window_ticks", "97"),
         ("career_input_history_weeks", "321"),
+        ("admin_skip_max_hours", "169"),
+        ("admin_skip_default_hours", "9"),
+        ("admin_skip_ticks_per_frame", "301"),
+        ("admin_bill_due_months", "13"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -2110,6 +2124,10 @@ mod tests {
         assert_eq!(parsed.need_mood.empty_loss_units, 37);
         assert_eq!(parsed.go_to_work_window_ticks, 97);
         assert_eq!(parsed.career_input_history_weeks, 321);
+        assert_eq!(parsed.admin_skip_max_hours, 169);
+        assert_eq!(parsed.admin_skip_default_hours, 9);
+        assert_eq!(parsed.admin_skip_ticks_per_frame, 301);
+        assert_eq!(parsed.admin_bill_due_months, 13);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(

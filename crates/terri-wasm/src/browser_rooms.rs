@@ -60,6 +60,8 @@ fn error(error: BuildCommitError) -> Failure {
                     DuplicateSelection => 8,
                     InvalidSimIdAllocator => 9,
                     TooManyCommands => 10,
+                    AdminCommandQueued => 11,
+                    AdminSessionBroken => 12,
                 }),
             )
         }
@@ -68,6 +70,10 @@ fn error(error: BuildCommitError) -> Failure {
         // Issue 298 ([WB-beds]): the bed a Confirm would leave outside, by
         // its entity index in the draft.
         BedOutside { object } => (15, Some(u64::from(object))),
+        // Issue 312: the admin panel is open.
+        AdminActive => (16, None),
+        // Admin edits left a world that would not load.
+        AdminBroken => (17, None),
     }
 }
 
@@ -599,6 +605,11 @@ mod tests {
                 format!(r#"{{"rule":"{rule}"}}"#)
             );
         }
+    }
+    #[test]
+    fn the_admin_refusals_of_build_have_their_own_codes() {
+        assert_eq!(error(BuildCommitError::AdminActive), (16, None));
+        assert_eq!(error(BuildCommitError::AdminBroken), (17, None));
     }
     #[test]
     fn room_transport_chore_tags_are_not_preference_indices() {

@@ -386,6 +386,21 @@ impl Habituation {
         }
         self.0.retain(|entry| entry.2 > 0.0);
     }
+    /// Sets one interaction's habituation to exactly `value`, as the admin
+    /// panel does ([AP-e-rep]). A value of zero or below removes the entry,
+    /// for the reason [`Self::decay`] drops entries at zero: an entry pinned
+    /// at 0.0 behaves as an absent one and must not hash differently from it.
+    /// Inserting at the searched position keeps the Vec sorted.
+    pub fn set(&mut self, object: ObjectDefId, interaction: u32, value: f32) {
+        match (self.find(object, interaction), value > 0.0) {
+            (Ok(i), true) => self.0[i].2 = value,
+            (Ok(i), false) => {
+                self.0.remove(i);
+            }
+            (Err(i), true) => self.0.insert(i, (object, interaction, value)),
+            (Err(_), false) => {}
+        }
+    }
     /// Every entry, in key order. For `world_hash` and for tests.
     pub fn entries(&self) -> &[(ObjectDefId, u32, f32)] {
         &self.0
@@ -467,6 +482,21 @@ impl Relationships {
             }
         }
         self.0.retain(|entry| entry.1 != 0.0);
+    }
+    /// Sets the feeling toward `other` to exactly `value`, clamped to
+    /// `-1.0..=1.0`, as the admin panel does ([AP-e-feel]). Zero removes
+    /// the entry, as [`Self::decay`] does: an entry pinned at 0.0 behaves as
+    /// an absent one and must not hash differently from it.
+    pub fn set(&mut self, other: SimId, value: f32) {
+        let value = value.clamp(-1.0, 1.0);
+        match (self.find(other), value != 0.0) {
+            (Ok(i), true) => self.0[i].1 = value,
+            (Ok(i), false) => {
+                self.0.remove(i);
+            }
+            (Err(i), true) => self.0.insert(i, (other, value)),
+            (Err(_), false) => {}
+        }
     }
     /// Every entry, in key order. For `world_hash` and for tests.
     pub fn entries(&self) -> &[(SimId, f32)] {

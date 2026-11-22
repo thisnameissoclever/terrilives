@@ -131,6 +131,28 @@ pub fn practice_for_mastery(ladder: &Ladder, levels: u8, mastery: f32) -> f32 {
     ladder.cumulative(level) + fraction * ladder.level_cost(level + 1)
 }
 
+/// The practice whose [`standing`] on a ladder with `levels` rungs reads
+/// back as `level` whole levels and `fraction` of the next one, for the admin
+/// panel's skill rows ([AP-e-skill]). `None` for a level past `levels` or a
+/// fraction outside `[0, 1)`. At the top level there is no next one, so the
+/// fraction must be 0 and the answer is the top of the ladder.
+pub fn practice_for_standing(ladder: &Ladder, levels: u8, level: u8, fraction: f32) -> Option<f32> {
+    if level > levels || !(0.0..1.0).contains(&fraction) {
+        return None;
+    }
+    if level == levels {
+        return (fraction == 0.0).then(|| ladder.max_practice(levels));
+    }
+    // The boundary's own sum, so a whole level reads back exactly; the
+    // fraction is kept under the next boundary.
+    let practice = ladder.cumulative(level) + fraction * ladder.level_cost(level + 1);
+    Some(
+        practice
+            .min(just_below(ladder.cumulative(level + 1)))
+            .max(ladder.cumulative(level)),
+    )
+}
+
 /// The skill that keys on `tag`, with its pack index. Compile allows one
 /// skill per tag, so the first match is the only one.
 pub fn skill_for_tag<'a>(pack: &'a ContentPack, tag: &str) -> Option<(u32, &'a CompiledSkill)> {

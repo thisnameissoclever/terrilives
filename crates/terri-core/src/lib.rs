@@ -1,5 +1,6 @@
 //! Pure simulation core. No web dependencies, ever.
 
+pub mod admin;
 pub mod appearance;
 pub mod books;
 pub mod character;
@@ -66,6 +67,7 @@ pub mod windows;
 /// fields' type should not need `bevy_ecs` in its manifest to do it.
 /// `terri-wasm` is the consumer that matters: it is the boundary crate,
 /// and its dependency list is kept as short as [D1] can make it.
+pub use admin::{AdminChange, AdminEdit, AdminStructureError};
 pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
