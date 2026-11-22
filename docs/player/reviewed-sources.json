@@ -666,7 +666,7 @@
     "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
     "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
     "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908",
-    "web/src/ui/admin-panel.css": "cfc8733ee2cbbf6ae8b55c14d3c815d2bf29718dba643e4bd5522012ede77d59",
+    "web/src/ui/admin-panel.css": "e024efa3d9cae9b6061709720a570c303b60fc45b66892b18c7c4fe8681dec9d",
     "web/src/ui/affinities-panel.ts": "0a9967b554bd9ec7bfe9fb67b0049087c64fc544ea3fd57cacde917acee2b308",
     "web/src/ui/audio-controls.ts": "6cfd6e8be532bdb07424298a6195fe7c0f3f5feefe2f2eb4011c410e399aab95",
     "web/src/ui/bed-assignment.ts": "a8f00f9ca9d1459c8f14f1fc1947d029c96a9ddc4b7925f0a66b077fdc8ca693",
