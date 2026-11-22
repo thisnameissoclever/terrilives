@@ -330,4 +330,7 @@
   .admin-slider { height: 44px; }
   .admin-check-row { min-height: 44px; }
   .admin-check { width: 28px; height: 28px; }
+  /* A card title takes a line as tall as a button, so it sits at the same height
+     whether a button is beside it, wraps below it, or is absent. */
+  .admin-section-title { display: flex; align-items: center; min-height: 44px; }
 }
