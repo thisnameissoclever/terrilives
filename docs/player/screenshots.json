@@ -508,12 +508,12 @@
           "web/src/admin/admin-controls.ts": "d61b8a6cfaa64946ac417138a194158707c584ca6b2edbdb339d18a0aec53e43",
           "web/src/admin/admin-open.ts": "cdc4ca7262d17b7e7ac9fe3f183374975483d19cd673e99152e58c7e6ce48250",
           "web/src/admin/admin-skip.ts": "18bc3604dff87daaf81c269f4af8e21f5f7c80d8754c6d3a77bdb49f66678f14",
-          "web/src/ui/admin-panel.css": "8ce53f5d1cf73b073e13368d08268a4ba627ecb7226ca019f5e45877f8483a6b",
+          "web/src/ui/admin-panel.css": "2e3c051ac817c302b067e5f6d3c5fdb07b32d7c7594d1be68de3b647ff78bc2a",
           "content/tuning.toml": "6bb5c3945c29b2fc398f810df3ad281ddc6721de19304dba6eb65e21bfef4bb1"
         },
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-11-21",
-        "method": "The phone pictures were captured again from commit 2a93b6086, which gives every admin card title a 44 px line on touch-sized screens; the source files above are hashed at that commit. Each tab was played and captured exactly as snapshot admin-heading-rows-2026-11-21 describes, then shown at 390 by 844 by viewport size only. The desktop pictures are the ones from that snapshot at 5dc36064b: 2a93b6086 adds one rule inside the block for screens 600 px wide or less, 480 px tall or less, or with a coarse pointer, which a 1440 by 960 desktop with a mouse does not match.",
+        "method": "The phone pictures were captured again from commit 5a0ecd7e1, where on touch-sized screens card titles sit at the card padding, heading buttons take their own full-width line under the title, and a closed folding card is one 44 px tap target; the source files above are hashed at that commit. Each tab was played and captured exactly as snapshot admin-heading-rows-2026-11-21 describes, then shown at 390 by 844 by viewport size only. The desktop pictures are the ones from that snapshot at 5dc36064b: the later changes apply only inside the block for screens 600 px wide or less, 480 px tall or less, or with a coarse pointer, which a 1440 by 960 desktop with a mouse does not match.",
         "evidence": "docs/player/images/ui-admin-housemate-mobile.png, ui-admin-relationships-mobile.png and ui-admin-household-mobile.png"
       }
     ],
@@ -2522,7 +2522,7 @@
       "sourceSnapshot": "admin-phone-titles-2026-11-21",
       "imageSha256": {
         "desktop": "2a97081159d0edf6ca19f82c8e301d069d3c1b703ebc69908e78a2a996d80608",
-        "mobile": "dd060aa33360259acb88dc68186ff71bcd163eebbeaa4d6799819182d12820b4"
+        "mobile": "7e18d940a3c27a7315bf25b6a39e473411826e3f406e0942927a3380b9597319"
       },
       "captureMetadata": {
         "desktop": {
@@ -2545,7 +2545,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "dd060aa33360259acb88dc68186ff71bcd163eebbeaa4d6799819182d12820b4"
+          "sourceImageSha256": "7e18d940a3c27a7315bf25b6a39e473411826e3f406e0942927a3380b9597319"
         }
       }
     },
@@ -2559,7 +2559,7 @@
       "sourceSnapshot": "admin-phone-titles-2026-11-21",
       "imageSha256": {
         "desktop": "7baa4e2fb445e2eb191515966617689a2bddf2b20b7d9024f4a7806d2e534d73",
-        "mobile": "3b02e9dc1bc1755a5f646098edbdb1ec9f9ea711de98779d60671fd81ae52a1a"
+        "mobile": "585621c493c811eaa0b48fcd2fdbad43a3896285e60c43e7c0557c82d61fbf4c"
       },
       "captureMetadata": {
         "desktop": {
@@ -2582,7 +2582,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "3b02e9dc1bc1755a5f646098edbdb1ec9f9ea711de98779d60671fd81ae52a1a"
+          "sourceImageSha256": "585621c493c811eaa0b48fcd2fdbad43a3896285e60c43e7c0557c82d61fbf4c"
         }
       }
     },
@@ -2596,7 +2596,7 @@
       "sourceSnapshot": "admin-phone-titles-2026-11-21",
       "imageSha256": {
         "desktop": "4df307febaf242867fe71f1d912577f7c15807283343474490de4103cfd015d2",
-        "mobile": "6fdb9f5b3d411a55df2ee2d29aa0cecf3a2799c859ddbb2cecd8f8a6430c2f27"
+        "mobile": "7f7a29723d65239874709022d3bd2ba9c26bf1f15b38e710caf52c4f17a2ebde"
       },
       "captureMetadata": {
         "desktop": {
@@ -2619,7 +2619,7 @@
           },
           "devicePixelRatio": 1,
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "6fdb9f5b3d411a55df2ee2d29aa0cecf3a2799c859ddbb2cecd8f8a6430c2f27"
+          "sourceImageSha256": "7f7a29723d65239874709022d3bd2ba9c26bf1f15b38e710caf52c4f17a2ebde"
         }
       }
     }
