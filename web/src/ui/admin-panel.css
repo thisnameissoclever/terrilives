@@ -119,7 +119,8 @@
 @media (width <= 900px) { .admin-columns { grid-template-columns: minmax(0, 1fr); } }
 
 .admin-section { min-width: 0; padding: 12px 14px; border: 1px solid var(--hud-edge, #2c2c36); border-radius: 8px; background: var(--admin-card); }
-.admin-section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 8px; }
+/* Every heading row is as tall as a heading button, so titles line up across cards with and without one. */
+.admin-section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 32px; margin-bottom: 8px; }
 .admin-section-title { margin: 0; font-size: 15px; }
 .admin-section-title:focus { outline: none; }
 .admin-section-title:focus-visible { outline: 2px solid var(--need-fill, #6fb2d2); outline-offset: 3px; border-radius: 3px; }
@@ -136,7 +137,6 @@
 .admin-section-fold { position: relative; }
 .admin-section-fold > .admin-section-head { list-style: none; cursor: default; }
 .admin-section-fold > .admin-section-head::-webkit-details-marker { display: none; }
-.admin-section-fold:has(> .admin-section-actions:not(:empty)) > .admin-section-head { min-height: 32px; }
 .admin-section-fold > .admin-section-actions { position: absolute; top: 12px; right: 14px; }
 .admin-section-summary { display: none; }
 .admin-section-body { display: flex; flex-direction: column; gap: 6px; }
