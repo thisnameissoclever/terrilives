@@ -309,7 +309,7 @@ fn a_random_fight_draws_its_activity_row_with_the_fight_bit() {
 
 #[test]
 fn a_label_or_icon_with_a_tab_or_line_break_is_refused() {
-    for (field, value) in [("label", "a\tb"), ("label", "a\nb"), ("icon", "Ta\tlk")] {
+    for (field, value) in [("label", "a\\tb"), ("label", "a\\nb"), ("icon", "Ta\\tlk")] {
         let (label, icon) = if field == "label" {
             (value, "Talk")
         } else {

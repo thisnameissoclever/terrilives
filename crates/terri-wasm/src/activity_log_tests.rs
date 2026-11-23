@@ -163,5 +163,5 @@ fn activity_log_topic_rows_name_a_topic_value_for_each_label() {
     );
     assert_eq!(value_of("food") & (1 << 16), 0);
     assert_eq!(value_of("cause:nuisance"), 0, "a cause is not a topic");
-    assert!(values.iter().any(|&value| value == 0));
+    assert!(values.contains(&0));
 }
