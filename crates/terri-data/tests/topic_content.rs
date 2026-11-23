@@ -285,7 +285,11 @@ fn saved_tags_resolve_to_their_rows() {
     assert_eq!(id_of("fight-privacy"), "fight-privacy");
     assert_eq!(id_of("fight"), "fight");
     assert_eq!(id_of("never-heard-of-it"), "other");
-    assert_eq!(id_of("subject:trains"), "unknown-subject");
+    assert_eq!(id_of("subject:trains"), "trains");
+    assert_eq!(id_of("subject:the-weather"), "unknown-subject");
+    assert_eq!(id_of("subject:unknown-subject"), "unknown-subject");
+    // A subject tag never reaches an activity row, so `food` is not a subject.
+    assert_eq!(id_of("subject:food"), "unknown-subject");
     assert_eq!(id_of("fight-random-xyz"), "other");
 }
 

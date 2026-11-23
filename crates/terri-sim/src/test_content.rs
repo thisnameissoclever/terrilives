@@ -355,10 +355,26 @@ pub fn pack_with_circadian(
     }))
 }
 
+/// The shipped topic rows without the authored subjects. A fixture pack is
+/// about the activities it builds, and a subject a person happens to like
+/// would add a topic draw to every chat in it. The `unknown-subject` row
+/// stays, because every table needs it. Tests of subjects set their own rows.
+pub fn without_subjects(
+    rows: &[terri_data::topics::CompiledTopic],
+) -> Vec<terri_data::topics::CompiledTopic> {
+    rows.iter()
+        .filter(|row| {
+            row.kind != terri_data::topics::TopicKind::Subject
+                || row.id == terri_data::topics::UNKNOWN_SUBJECT_ID
+        })
+        .cloned()
+        .collect()
+}
+
 pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         books: Vec::new(),
-        topics: terri_data::pack().topics.clone(),
+        topics: without_subjects(&terri_data::pack().topics),
         reading: None,
         traits: Vec::new(),
         decay_per_tick: terri_data::pack().decay_per_tick,

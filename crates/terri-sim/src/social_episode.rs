@@ -313,16 +313,8 @@ pub(crate) fn begin_topics(world: &mut World) {
             }
             continue;
         }
-        let prefs = |person| {
-            crate::compatibility::preferences(
-                pack,
-                world.get::<terri_core::Personality>(person),
-                world.get::<terri_core::Traits>(person),
-                world.get::<terri_core::Hobbies>(person),
-            )
-        };
-        let mine = prefs(initiator);
-        let theirs = prefs(listener);
+        let mine = crate::subjects::preferences_of(world, pack, initiator);
+        let theirs = crate::subjects::preferences_of(world, pack, listener);
         let inclination = mine
             .get("socialising")
             .copied()
@@ -343,18 +335,29 @@ pub(crate) fn begin_topics(world: &mut World) {
                 )
                 .unwrap_or(0.),
             );
-        let candidates: Vec<_> = mine
+        // Activity topics first, in tag order, then the subjects the
+        // initiator offers, in content order ([RT-subjects]).
+        let mut candidates: Vec<_> = mine
             .iter()
             .filter(|(_, value)| **value > 0.)
             .map(|(tag, &value)| {
+                let theirs = theirs.get(tag).copied().unwrap_or(0.);
                 (
                     tag.clone(),
                     value,
-                    theirs.get(tag).copied().unwrap_or(0.),
-                    topic_weight(value, theirs.get(tag).copied().unwrap_or(0.), inclination),
+                    theirs,
+                    topic_weight(value, theirs, inclination),
                 )
             })
             .collect();
+        candidates.extend(
+            crate::subjects::offered(world, pack, (initiator, &mine), (listener, &theirs))
+                .into_iter()
+                .map(|offer| {
+                    let weight = topic_weight(offer.mine, offer.theirs, inclination);
+                    (offer.tag, offer.mine, offer.theirs, weight)
+                }),
+        );
         let topic = if candidates.is_empty() {
             Topic::new(pack, 4, "smalltalk".into(), 0., 0.)
         } else {

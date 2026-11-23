@@ -722,6 +722,112 @@ mod tests {
         }
     }
 
+    /// A world in the middle of a chat whose topic is the subject `tag`, and
+    /// the topic's initiator.
+    fn subject_chat(tag: &str, preferences: (f32, f32)) -> (Sim, terri_core::Entity) {
+        let mut source = populated();
+        let initiator = *source
+            .world
+            .resource::<SocialEpisodes>()
+            .topics
+            .keys()
+            .next()
+            .unwrap();
+        source.world.resource_mut::<SocialEpisodes>().topics.insert(
+            initiator,
+            Topic::new(
+                terri_data::pack(),
+                crate::social_episode::tag_code(tag),
+                tag.into(),
+                preferences.0,
+                preferences.1,
+            ),
+        );
+        (source, initiator)
+    }
+
+    fn topic_of(sim: &Sim) -> Topic {
+        let topics = &sim.world.resource::<SocialEpisodes>().topics;
+        assert_eq!(topics.len(), 1);
+        topics.values().next().unwrap().clone()
+    }
+
+    fn row_id(topic: &Topic) -> &'static str {
+        &terri_data::pack().topics[usize::from(topic.row)].id
+    }
+
+    /// [RT-saves] 1: a subject saves as the generic code and its tag, so the
+    /// schema is unchanged, and the row comes back from the tag.
+    #[test]
+    fn subject_topic_round_trips_through_a_current_save() {
+        let (source, initiator) = subject_chat("subject:trains", (0.6, -0.4));
+        let record = source
+            .save_snapshot_v10()
+            .social
+            .topics
+            .into_iter()
+            .find(|t| t.initiator == initiator.index_u32())
+            .expect("the subject chat is saved");
+        assert_eq!(
+            (record.code, record.tag.as_str()),
+            (7, "subject:trains"),
+            "a subject saves as the generic code and its tag"
+        );
+        let saved = source.save_snapshot_v27();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored.load_snapshot_v27(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v27(), saved);
+        let topic = topic_of(&restored);
+        assert_eq!((topic.code, topic.tag.as_str()), (7, "subject:trains"),);
+        assert_eq!(
+            (topic.initiator_preference, topic.listener_preference),
+            (0.6, -0.4)
+        );
+        assert_eq!(row_id(&topic), "trains");
+        assert_eq!(restored.world_hash(), source.world_hash());
+    }
+
+    #[test]
+    fn subject_topic_loads_through_the_v19_published_reader() {
+        let (source, _) = subject_chat("subject:gardening", (0.3, 0.1));
+        let published = source.save_snapshot_v19();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored.load_snapshot_v19(published).unwrap();
+        let topic = topic_of(&restored);
+        assert_eq!((topic.code, topic.tag.as_str()), (7, "subject:gardening"));
+        assert_eq!(row_id(&topic), "gardening");
+        assert_eq!(restored.world_hash(), source.world_hash());
+    }
+
+    /// [RT-R3]: a subject that has left content loads as "something".
+    #[test]
+    fn missing_subject_loads_as_unknown_subject() {
+        let (source, _) = subject_chat("subject:left-the-game", (0.5, 0.2));
+        let saved = source.save_snapshot_v27();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored.load_snapshot_v27(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v27(), saved);
+        let topic = topic_of(&restored);
+        assert_eq!(topic.tag, "subject:left-the-game", "the saved tag is kept");
+        let row = &terri_data::pack().topics[usize::from(topic.row)];
+        assert_eq!(
+            (row.id.as_str(), row.label.as_str()),
+            ("unknown-subject", "something")
+        );
+    }
+
+    /// A subject topic needs a positive initiator interest like any other.
+    #[test]
+    fn a_subject_topic_the_initiator_does_not_like_is_refused() {
+        let (source, _) = subject_chat("subject:trains", (0.6, 0.0));
+        let mut invalid = source.save_snapshot_v10();
+        invalid.social.topics[0].initiator_preference = -0.2;
+        let mut live = Sim::new_from_shipped_lot();
+        let before = live.world_hash();
+        assert!(live.load_snapshot_v10(invalid).is_err());
+        assert_eq!(live.world_hash(), before);
+    }
+
     #[test]
     fn current_social_records_round_trip_without_drawing_rng() {
         let source = populated();

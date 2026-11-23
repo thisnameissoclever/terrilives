@@ -260,6 +260,63 @@ label = "interruptions"
 code = 32
 reason = "fight-interruption"
 
+# Subjects ([RT-subjects]): what people talk about beyond their activities.
+# interest = clamp(bias + sum(weight * source) + variation * personal, -1, 1).
+# Sources read a tag preference, a skill's mastery (0 to 1), a saved affinity
+# or, for `job`, the person's job satisfaction as (satisfaction - 50) / 50.
+# `personal` is a fixed value from -1 to 1 for each person and subject. Only
+# a person with a positive interest offers a subject. These numbers are
+# rulings for the owner to confirm, tuned by the frequency check.
+
+[[topic]]
+id = "trains"
+kind = "subject"
+icon = "Talk"
+label = "trains"
+bias = 0.0
+variation = 0.45
+sources = []
+
+[[topic]]
+id = "bicycling"
+kind = "subject"
+icon = "Talk"
+label = "bicycling"
+bias = 0.0
+variation = 0.5
+sources = [
+  { kind = "tag", key = "exercise", weight = 0.5 },
+  { kind = "skill", key = "exercise", weight = 0.3 },
+]
+
+[[topic]]
+id = "gardening"
+kind = "subject"
+icon = "Talk"
+label = "gardening"
+bias = 0.0
+variation = 0.5
+sources = [{ kind = "affinity", key = "plants", weight = 0.6 }]
+
+[[topic]]
+id = "weather"
+kind = "subject"
+icon = "Talk"
+label = "the weather"
+bias = 0.1
+variation = 0.6
+sources = []
+
+[[topic]]
+id = "work"
+kind = "subject"
+icon = "Talk"
+label = "work"
+bias = 0.0
+variation = 0.3
+requires = "job"
+sources = [{ kind = "job", weight = 0.8 }]
+
 # Never offered: bias and variation are 0, so its interest is never positive.
 # Any `subject:` tag whose subject has left this file resolves here.
 [[topic]]

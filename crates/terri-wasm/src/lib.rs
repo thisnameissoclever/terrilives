@@ -3128,6 +3128,29 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// The word for each listed subject, in content order, from the same
+    /// edges as `affinity_words_of` - the Likes and dislikes view's read
+    /// ([RT-shell] in `docs/specs/2026-11-22-richer-topics.md`). A subject
+    /// the person cannot offer, such as Work for someone without a job,
+    /// reads as the empty string. Empty for anything that is not a living
+    /// person.
+    pub fn subject_words_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .subject_words_of(entity_index)
+            .map(|words| words.into_iter().map(str::to_string).collect())
+            .unwrap_or_default()
+    }
+
+    /// One label per listed subject, in content order - what
+    /// `subject_words_of`'s words resolve against. Read once at startup.
+    pub fn subject_labels(&self) -> Vec<String> {
+        self.sim
+            .subject_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
     /// One label per affinity kind, in pack order - what
     /// `affinity_words_of`'s words resolve against. Read once at startup,
     /// like `skill_labels`.

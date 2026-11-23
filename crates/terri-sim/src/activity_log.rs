@@ -317,6 +317,10 @@ impl Labels {
         for cause in crate::relationship_effects::RelationshipCause::ALL {
             labels.add(cause.log_label());
         }
+        // A subject chat carries `subject:{id}` as its topic ([RT-subjects]).
+        for (row, _) in crate::subjects::subject_rows(pack) {
+            topics.insert(labels.add(&crate::subjects::tag_of(row)));
+        }
         labels.topic_rows = labels
             .names
             .iter()
@@ -358,6 +362,23 @@ impl Labels {
     /// names, which the shell shows as a generic word.
     pub fn index(&self, text: &str) -> u32 {
         self.index.get(text).copied().unwrap_or(NONE)
+    }
+
+    /// The label a finished chat's topic tag carries. A subject the content
+    /// no longer has reads as the `unknown-subject` row's label, so the line
+    /// still says "something" ([RT-R3] in
+    /// `docs/specs/2026-11-22-richer-topics.md`); any other tag the content
+    /// never names stays [`NONE`].
+    pub fn topic_index(&self, tag: &str) -> u32 {
+        let at = self.index(tag);
+        if at == NONE && tag.starts_with(terri_data::topics::SUBJECT_TAG_PREFIX) {
+            return self.index(&format!(
+                "{}{}",
+                terri_data::topics::SUBJECT_TAG_PREFIX,
+                terri_data::topics::UNKNOWN_SUBJECT_ID
+            ));
+        }
+        at
     }
 }
 
@@ -998,7 +1019,7 @@ impl ActivityLog {
         let mut record = LogRecord::new(kind, ACTIONS | SOCIAL, tick, initiator)
             .with_other(listener)
             .with_label(labels.index(interaction))
-            .with_label2(topic.map_or(NONE, |topic| labels.index(&topic.tag)))
+            .with_label2(topic.map_or(NONE, |topic| labels.topic_index(&topic.tag)))
             .with_value(2, opinion_units(spoke))
             .with_value(3, opinion_units(heard));
         if !fight {
