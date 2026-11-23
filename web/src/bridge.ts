@@ -70,6 +70,17 @@ function isAffinityWord(word: string): word is AffinityWord {
   return AFFINITY_WORDS.includes(word);
 }
 
+/**
+ * What a subject reads as in the Likes and dislikes view: the same five words,
+ * or the empty string for a subject the person cannot offer, such as Work for
+ * someone without a job ([RT-shell] in docs/specs/2026-11-22-richer-topics.md).
+ */
+export type SubjectWord = AffinityWord | '';
+
+function isSubjectWord(word: string): word is SubjectWord {
+  return word === '' || isAffinityWord(word);
+}
+
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
 export interface BedPlaceStatus extends BedPlace {
   readonly label: string;
@@ -2621,6 +2632,25 @@ export class SimBridge {
   /** One label per affinity kind, in pack order. Read once, like skillLabels. */
   affinityLabels(): string[] {
     return this.handle.affinity_labels();
+  }
+
+  /**
+   * The word for each listed subject of the person at `entityIndex`, in
+   * content order, worded by the simulation from the same edges as
+   * affinityWordsOf. A subject the person cannot offer reads as the empty
+   * string. Null for anything that is not a living person and for a reading
+   * holding any other word. Read only; subjects are never saved or edited.
+   */
+  subjectWordsOf(entityIndex: number): SubjectWord[] | null {
+    if (!isU32(entityIndex)) return null;
+    const words = this.handle.subject_words_of(entityIndex);
+    if (words.length === 0 || !words.every(isSubjectWord)) return null;
+    return words;
+  }
+
+  /** One label per listed subject, in content order. Read once, like affinityLabels. */
+  subjectLabels(): string[] {
+    return this.handle.subject_labels();
   }
 
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */

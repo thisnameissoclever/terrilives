@@ -38,6 +38,17 @@ describe('conversation bubbles', () => {
     expect(bubbles.tint(-1, 1, COOKING)).toBe(0.78);
   });
 
+  it('draws a subject in the Talk symbol with the like or dislike tint, never fight red', () => {
+    const table: readonly TopicRow[] = [...TABLE, {kind: 'subject', icon: 'Talk', label: 'trains'}];
+    const subject = table.length;
+    const drawn = conversationBubbles(table);
+    expect(drawn.bubble(4, subject, 0.5)).toBe(spriteIndex('conversationTalkLike'));
+    expect(drawn.bubble(4, subject, -0.5)).toBe(spriteIndex('conversationTalkDislike'));
+    expect(drawn.bubble(8, subject, 0.5)).toBeNull();
+    expect([0, 1, 2].map(channel => drawn.tint(1, channel, subject))).toEqual([1 - 0.18, 0.985, 0.76]);
+    expect([0, 1, 2].map(channel => drawn.tint(-1, channel, subject))).toEqual([0.99, 0.78, 0.76]);
+  });
+
   it('draws a random fight as its activity row in red', () => {
     const random = COOKING | RANDOM_FIGHT_BIT;
     expect(bubbles.bubble(4, random, 1)).toBe(spriteIndex('conversationCookingDislike'));

@@ -106,6 +106,11 @@ describe('activity log bridge', () => {
       ['fight-random-18', 'music'], ['fight-random-19', 'letters'], ['fight-random-20', 'baths'],
       ['fight-random-21', 'ingredients'], ['fight-random-22', 'preparing food'], ['fight-random-23', 'cooking'],
     ]);
+    // A subject chat's topic is `subject:{id}`; its word is the subject's label.
+    const subjectWords = new Map([
+      ['subject:trains', 'trains'], ['subject:bicycling', 'bicycling'], ['subject:gardening', 'gardening'],
+      ['subject:weather', 'the weather'], ['subject:work', 'work'], ['subject:unknown-subject', 'something'],
+    ]);
     const noSubject = new Set(['socialising', 'smalltalk', 'fight', 'fight-random-4', 'fight-random-7']);
     const handle = SimHandle.from_lot();
     try {
@@ -113,17 +118,17 @@ describe('activity log bridge', () => {
       const table = bridge.conversationTopicTable();
       const labels = bridge.activityLogLabels();
       const values = bridge.activityLogTopicRows();
-      for (const tag of [...legacyWords.keys(), ...noSubject]) {
+      for (const tag of [...legacyWords.keys(), ...noSubject, ...subjectWords.keys()]) {
         expect(labels, tag).toContain(tag);
       }
       let topics = 0;
       labels.forEach((label, at) => {
         if (values[at] === 0) return;
         topics++;
-        const expected = noSubject.has(label) ? null : legacyWords.get(label) ?? SOMETHING;
+        const expected = noSubject.has(label) ? null : legacyWords.get(label) ?? subjectWords.get(label) ?? SOMETHING;
         expect(topicWord(table, values[at]), label).toBe(expected);
       });
-      expect(topics).toBeGreaterThan(legacyWords.size);
+      expect(topics).toBeGreaterThan(legacyWords.size + subjectWords.size);
       expect(topicWord(table, 0)).toBe(SOMETHING);
     } finally {
       handle.free();

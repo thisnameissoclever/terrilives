@@ -945,7 +945,7 @@ async function main(): Promise<void> {
   if (!affinitiesBlock || !affinitiesEmpty || !affinityList) {
     throw new Error('missing likes and dislikes markup');
   }
-  const affinitiesPanel = new AffinitiesPanel(sim, sim.affinityLabels(),
+  const affinitiesPanel = new AffinitiesPanel(sim, sim.affinityLabels(), sim.subjectLabels(),
     createAffinitiesPanelSurface(document, affinitiesBlock, affinitiesEmpty, affinityList), sim.needBarRefreshMs(),
     () => affinitiesBlock.open && !simOverview.hidden && !simSheet.hidden);
   affinitiesBlock.addEventListener('toggle', () => {

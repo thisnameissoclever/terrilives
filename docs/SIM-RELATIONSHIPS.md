@@ -125,11 +125,28 @@ After a completed argument about an unfinished assigned duty, the recipient make
 
 ## Conversation topics and waiting
 
-The initiator chooses a topic from their enjoyed activities using seeded
-weighted randomness. Enjoyment of socializing favors shared interests.
-Each participant sees the same topic but their own approval and background
-color. A disliked topic produces a small listener-to-initiator penalty in
-place of that listener's ordinary positive conversation completion gain.
+The initiator chooses a topic from their enjoyed activities and the subjects
+they offer, using seeded weighted randomness with one draw per chat. Enjoyment
+of socializing favors shared interests. Each participant sees the same topic
+but their own approval and background color. A disliked topic produces a small
+listener-to-initiator penalty in place of that listener's ordinary positive
+conversation completion gain.
+
+The subjects are trains, bicycling, gardening, the weather and work, authored
+in `content/topics.toml`. A person's interest in a subject is its bias plus
+weighted sources (a tag preference, a skill's mastery, a saved affinity, or job
+satisfaction for an employed person) plus a fixed personal variation hashed from
+their `SimId` and the subject, clamped to -1 to 1. Nothing about it is saved or
+drawn from the random stream. The initiator offers each subject they hold a
+positive interest in, after the activity topics and with the same weight rule;
+only an employed initiator offers work. The listener's reaction is the listener's
+own interest in the same subject, so a listener can dislike what the initiator
+loves. A subject chat saves as the generic topic code with the tag
+`subject:{id}`, and a subject that later leaves content loads as "something".
+Subjects never enter compatibility, so relationship drift and friction are
+unchanged. The Likes and dislikes view lists each person's subjects read only,
+with Work shown only for someone with a job. See
+[richer topics](specs/2026-11-22-richer-topics.md).
 
 Chosen conversations retain a request with an exact initiator, recipient and
 origin. The initiator approaches and waits while the recipient finishes their
