@@ -22,7 +22,7 @@ use terri_data::ContentPack;
 /// have, such as Work for someone without a job.
 pub(crate) const HIDDEN: &str = "";
 
-/// `personal(person, subject)`, from -1 to just under 1: FNV-1a 64 over the
+/// `personal(person, subject)`, from -1 to 1: FNV-1a 64 over the
 /// person's `SimId` as four little-endian bytes and then the subject id's
 /// bytes, read as the top 53 bits of the hash.
 pub(crate) fn personal(sim: SimId, subject: &str) -> f32 {

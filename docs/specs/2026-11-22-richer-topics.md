@@ -104,7 +104,7 @@ These values are rulings for owner confirmation ([RT-rulings]); they are tuned b
 ## [RT-shell] Shell changes
 
 1. `conversation-bubbles.ts` builds its sprite and tint lookup from `conversation_topic_table`. The legacy 54-entry table survives only in a test, which proves every old code draws the same sprite and tint as before through its row.
-2. `activity-log-words.ts` drops its tag-to-word table; a topic's word is its row's label, and an empty label means no subject. The phrases around topics are unchanged.
+2. `activity-log-words.ts` drops its tag-to-word table; a topic's word is its row's label, and an empty label means no subject. The phrases around topics are unchanged. As before, a chat tag that no row names, such as one from an older save, is not in the Log's label table, so its line names no subject; its bubble still draws the `other` row.
 3. The Likes and dislikes panel appends one read-only row per subject after the affinity rows, through a new read `subject_words_of(entity)` with the same band words and edges as `affinity::band`, aligned with `subject_labels()`. The Work row shows only for an employed housemate; for anyone else its entry is empty. The admin panel's editable likes are unchanged.
 
 ## [RT-tests] Tests
