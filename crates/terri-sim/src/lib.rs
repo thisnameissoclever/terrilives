@@ -7687,7 +7687,12 @@ mod determinism_tests {
         // The need mood ledger adds eight rows, each with +1200 units.
         // Appending those rows to 15287039064284998688 gives the new
         // native result below without any other change in this scenario.
-        const GOLDEN: u64 = 10536286167581425162;
+        // Conversation subjects (issue 275) add candidates to the topic draw,
+        // a BEHAVIOR change here: three chats complete within 100 ticks and
+        // several begin with a subject, so the draws pick different topics
+        // (previously 10536286167581425162). The digest encoding is unchanged.
+        // Measured on native and on rebuilt release WebAssembly: identical.
+        const GOLDEN: u64 = 1841635519881759335;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

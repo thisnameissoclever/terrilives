@@ -82,7 +82,7 @@ These values are rulings for owner confirmation ([RT-rulings]); they are tuned b
 
 | id | label | bias | sources | variation | requires |
 | --- | --- | --- | --- | --- | --- |
-| trains | trains | 0 | none | 0.9 | |
+| trains | trains | 0 | none | 0.45 | |
 | bicycling | bicycling | 0 | tag exercise 0.5; skill exercise 0.3 | 0.5 | |
 | gardening | gardening | 0 | affinity plants 0.6 | 0.5 | |
 | weather | the weather | 0.1 | none | 0.6 | |
@@ -97,7 +97,7 @@ These values are rulings for owner confirmation ([RT-rulings]); they are tuned b
 1. **Schema.** Unchanged. A subject topic saves as code 7 with the tag `subject:{id}`, which `restore_into_mode` in `crates/terri-sim/src/save/social.rs` already accepts: the code is in 3 to 23 and not 6, equals `tag_code` of an unknown tag, and the initiator preference is positive. Old saves load to the same rows they draw today.
 2. **Random stream.** Each chat still spends one draw, or none for small talk or a fight. The topic a draw selects changes whenever a subject is a candidate, so worlds diverge after the first such chat. That is the intended behavior change.
 3. **World hash.** The `social-episodes-v1` block keeps hashing code and tag; the row is derived and is not hashed.
-4. **Pins.** `world_hash_matches_its_golden_vector` and its browser copy run no completed chat and must not move. Every other pin that moves is classified by [L-fingerprint-fixtures-by-role](../lessons-learned.md#l-fingerprint-fixtures-by-role-classify-every-digest-expectation-before-changing-a-hash), confirmed to complete a chat, and re-pinned with the reason beside it. Published-save continuation pins are reported to the owner before any is re-pinned.
+4. **Pins.** `world_hash_matches_its_golden_vector` and its browser copy complete three chats in their 100 ticks, so subjects move them; both are re-pinned with the reason, measured on native and on rebuilt release WebAssembly. Every other pin that moves is classified by [L-fingerprint-fixtures-by-role](../lessons-learned.md#l-fingerprint-fixtures-by-role-classify-every-digest-expectation-before-changing-a-hash), confirmed to complete a chat, and re-pinned with the reason beside it. Published-save continuation pins are reported to the owner before any is re-pinned.
 5. **Content digest.** Topics stay out of `content_fingerprint`. A restored topic carries both preferences, completion reads only those, and a row resolves from the saved tag with a defined fallback, so no restored state depends on topic content ([L-save-digest-must-follow-post-load-reads](../lessons-learned.md#l-save-digest-must-follow-post-load-reads-a-save-digest-owns-current-content-reads-after-load-too)). A test pins that adding `topics.toml` leaves the digest unchanged.
 6. **Save manifest.** Topics are not added to `SavedActionManifest`.
 
@@ -105,7 +105,7 @@ These values are rulings for owner confirmation ([RT-rulings]); they are tuned b
 
 1. `conversation-bubbles.ts` builds its sprite and tint lookup from `conversation_topic_table`. The legacy 54-entry table survives only in a test, which proves every old code draws the same sprite and tint as before through its row.
 2. `activity-log-words.ts` drops its tag-to-word table; a topic's word is its row's label, and an empty label means no subject. The phrases around topics are unchanged.
-3. The Likes and dislikes panel appends one read-only row per subject after the affinity rows, through a new read `subject_words_of(entity)` with the same band words and edges as `affinity::band`. The Work row shows only for an employed housemate. The admin panel's editable likes are unchanged.
+3. The Likes and dislikes panel appends one read-only row per subject after the affinity rows, through a new read `subject_words_of(entity)` with the same band words and edges as `affinity::band`, aligned with `subject_labels()`. The Work row shows only for an employed housemate; for anyone else its entry is empty. The admin panel's editable likes are unchanged.
 
 ## [RT-tests] Tests
 
