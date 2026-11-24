@@ -6,7 +6,10 @@ import {poolContactRelease} from '../src/render/character/pool-contact-release.j
 import {expect,it} from 'vitest';
 import {defaultAppearance,validateAppearance} from '../src/character/schema.js';
 import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
-import {interpolatePoolPoseProgram} from '../src/render/character/pool-contact-sample.js';
+import {bindPoolContacts,interpolatePoolPoseProgram,requirePoolPose} from '../src/render/character/pool-contact-sample.js';
+import {createPoolContactInput} from '../src/render/character/pool-contact-preparation.js';
+import {poolPartKey,poolShapeIdentity} from '../src/render/character/pool-contact-identity.js';
+import type {PoolShapePlayback} from '../src/render/character/pool-contact-types.js';
 import {parseOwnedPoolFixture} from '../src/render/character/pool-owned-fixture.js';
 import {measureRawPoolPhysicalObservation} from '../src/render/character/pool-owned-compilation.js';
 import type {PoolPoseProgram} from '../src/render/character/pool-pose-program.js';
@@ -24,7 +27,7 @@ function shortBroadBody() {
  const selection=new PreparedBody(poolBase,appearance).select(poolRig,appearance,{wear:'bare',prop:'none',fixture:'none',
   eyes_closed:false,includeFixture:false,clip:'pool_enter',swimwear:'trunks'});
  if(!selection.extra)throw new Error('Pool transfer needs the selected swimwear.');
- return {shape,geometry:[selection.body,selection.extra]};
+ return {appearance,shape,geometry:[selection.body,selection.extra]};
 }
 
 it('reproduces the rejected V16 transfer and preserves its admitted poses in both directions',()=>{
@@ -88,8 +91,8 @@ it('reproduces the rejected V16 transfer and preserves its admitted poses in bot
 },140_000);
 
 
-it('clears the installed short, broad swimmer on the way to the crest, at the handoff and after takeoff',()=>{
- const {shape,geometry}=shortBroadBody(),definition=poolContactRelease.motion;
+it('clears the installed short, broad swimmer at the crest and renders the fractional exit frames',async()=>{
+ const {appearance,shape,geometry}=shortBroadBody(),definition=poolContactRelease.motion;
  validatePoolCycleDefinition(definition);
  const source=new PoolCycleSource(poolRig.manifest,shape,anatomicalHeight(poolBase.vertices),geometry,
   parseOwnedPoolFixture(poolContactRelease.fixtureText),definition);
@@ -109,5 +112,25 @@ it('clears the installed short, broad swimmer on the way to the crest, at the ha
   const missing=result.supports.filter(s=>s.required&&!s.satisfied).map(({limb,surface,reasons})=>({limb,surface,reasons}));
   expect.soft({passed:result.passed,collisions,missing},'Physical observation at '+phase)
    .toEqual({passed:true,collisions:[],missing:[]});
+ }
+
+ // The browser stopped between authored arm poses at elapsed ticks 28 and 35 of the 40-tick exit.
+ const input=await createPoolContactInput(appearance);
+ const playback:PoolShapePlayback={
+  kind:'configured-shape',version:1,family:family.sha256,solverRevision:input.solverRevision,key:input.key,
+  appearanceKey:input.appearanceKey,revisions:input.revisions,source:source.bundle.sourceSha256,
+  shapeKey:poolShapeIdentity(shape,source.top),partKeys:geometry.map(poolPartKey),top:source.top,
+  waterHeight:source.fixture.waterHeight,graph:sampler.configuredGraph(),
+ };
+ bindPoolContacts(playback,geometry[0],shape,source.top,geometry.slice(1),source.fixture);
+ const action='pool_exit_0',lastFrame=source.bundle.actions[action].length-1;
+ for(const tick of [28,28.125,35,35.125]){
+  const phase=tick/40;
+  const sample=sampler.samplePrograms({action,phase});
+  expect(sample.amount).toBeGreaterThan(0);
+  expect(sample.amount).toBeLessThan(1);
+  const matrices=requirePoolPose(playback,geometry[0],shape,source.top,action,phase*lastFrame);
+  expect(matrices).toHaveLength(source.bundle.bones.length*16);
+  expect(matrices.every(Number.isFinite),'Exit matrices at elapsed tick '+tick).toBe(true);
  }
 },120_000);
