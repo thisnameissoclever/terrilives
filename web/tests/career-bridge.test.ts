@@ -67,6 +67,7 @@ function fake(overrides: Partial<Record<string, unknown>> = {}) {
     career_history: () => new Float64Array([0, 70, 0, 1, 82, 2]),
     career_factors: () => new Float64Array([0.4, 0.4, 0.7, 0.3, 0.25, -0.1]),
     career_path_labels: () => ['Office'],
+    career_input_sources: () => new Float64Array(),
     assign_career: (...args: unknown[]) => { calls.push(['assign', ...args]); return true; },
     quit_career: (...args: unknown[]) => { calls.push(['quit', ...args]); return true; },
     career_result_sequence: () => 4n,
@@ -282,6 +283,27 @@ describe('career tab bridge (issues 311 and 317, [CT-web])', () => {
         socialDemand: 0.3, mastery: 0.5, mood: 0.5, missedMinutes: 0, pay: 170 },
     ]);
     expect(fake({ career_input_history: () => new Float64Array() }).bridge.careerInputHistory(3)).toEqual([]);
+  });
+
+  it('attaches complete source groups in scored-shift order and rejects malformed companions', () => {
+    const history = [...row.slice(0, 4), 3, 3, ...row.slice(6)];
+    const read = (sources: number[]) => fake({ career_input_history: () => new Float64Array(history),
+      career_input_sources: () => new Float64Array(sources) }).bridge.careerInputHistory(3);
+    const sources = [3, 2, 0, 140, 3, 0, 1, 175, 3, 0, 1, 175];
+    const result = read(sources);
+    expect(result[0].sources).toEqual([{ path: 2, level: 0, basePay: 140 },
+      { path: 0, level: 1, basePay: 175 }, { path: 0, level: 1, basePay: 175 }]);
+    expect(read([3, 2, 0, -1, ...sources.slice(4)])[0].sources?.[0].basePay).toBeNull();
+    expect(Object.isFrozen(result[0].sources)).toBe(true);
+    expect(Object.isFrozen(result[0].sources![0])).toBe(true);
+    for (const bad of [sources.slice(0, -1), sources.slice(0, 8), [...sources, 3, 0, 1, 175],
+      [4, ...sources.slice(1)], [3, -1, ...sources.slice(2)], [3, 2, 0.5, ...sources.slice(3)],
+      [3, 2, 0, -2, ...sources.slice(4)], [3, 2, 0, -0.5, ...sources.slice(4)], [3, 2, 0, NaN, ...sources.slice(4)]]) {
+      expect(read(bad), String(bad)).toEqual([]);
+    }
+    const two = [...history, ...history.map((value, index) => index === 0 ? 4 : value)];
+    expect(fake({ career_input_history: () => new Float64Array(two),
+      career_input_sources: () => new Float64Array([4, 0, 0, 140, 3, 0, 0, 140]) }).bridge.careerInputHistory(3)).toEqual([]);
   });
 
   it('refuses a malformed input history whole', () => {

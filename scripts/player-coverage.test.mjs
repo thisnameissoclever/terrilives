@@ -3,7 +3,20 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { test } from 'node:test';
-import { validatePlayerCoverage } from './player-coverage.mjs';
+import { baselineHtml, validatePlayerCoverage } from './player-coverage.mjs';
+
+test('pool values describe swimming-only delivery and retain source-driven total duration', () => {
+  const action = { id: 'object:pool/hop_in', object_id: 'pool', action_id: 'hop_in', label: 'Hop in',
+    duration_ticks: 200, need_deltas: { fun: 30, comfort: 10, energy: -5 } };
+  const reference = { ticks_per_sim_hour: 120, objects: [{ id: 'pool', type: 'Pool', name: 'Backyard' }], actions: [action] };
+  const html = baselineHtml(reference);
+  assert.match(html, /<td>100<\/td>/);
+  assert.match(html, /Fun \+30; Comfort \+10; Energy -5/);
+  assert.match(html, /Benefits and costs apply during swimming only; entry and exit are included in the total time/);
+  assert.doesNotMatch(html, /Paid as a rate while actively using it/);
+  assert.match(baselineHtml({ ...reference, actions: [{ ...action, duration_ticks: 240 }] }), /<td>120<\/td>/);
+  assert.match(baselineHtml({ ...reference, actions: [{ ...action, object_id: 'pond', id: 'object:pond/hop_in' }] }), /Paid as a rate while actively using it/);
+});
 
 test('removed activity mapping, new relationship cause and broken evidence each fail', () => {
   const root = mkdtempSync(join(tmpdir(), 'guide-coverage-'));

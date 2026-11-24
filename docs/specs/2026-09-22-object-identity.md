@@ -4,11 +4,11 @@ Object types identify a familiar physical kind. Model names distinguish specific
 
 ## Presentation
 
-The object menu shows the smaller model name above the bold type. Click or tap the name, or activate it with Enter or Space, to toggle the description. Hover and keyboard focus alone do not open it. The description remains open while using the surrounding menu and starts closed when the menu is reopened or another object is chosen. Escape closes the menu and returns focus. Initial placement reserves space for the expanded description so it stays inside the viewport. Very short screens can scroll the menu.
+The object menu identifies an object with a compact capsule: bold type first, smaller model name beneath it. Click or tap the capsule, or activate it with Enter or Space, to toggle a separate nearby description bubble. Hover and keyboard focus alone do not open it. The description remains open while using the surrounding menu and starts closed when the menu is reopened or another object is chosen. Description placement accounts for the viewport and neighboring controls when opened; the closed capsule does not reserve an expanded text block. Escape closes the menu and returns focus without sending a Sim order.
 
 The Buy list identifies objects as `Type: Model (price)`, sorted by type, model, then content order. The chosen item's identity block uses the same disclosure as the object menu. Prices, the Good for line, and controls stay outside the optional description. Changing the chosen item clears the previous description; periodic redraws preserve its open state. Existing affordability rules remain in force.
 
-Keyboard targeting includes described decorative objects even when they offer no actions. The washing machine still has no washing interaction. Its menu offers only the existing cancel action; adding copy does not add simulation behavior.
+Keyboard targeting includes described decorative objects even when they offer no Sim interaction. Enter build mode and the menu's Close control remain available. Clear orders appears only when the selected person has player-issued orders it can clear. The washing machine has no washing interaction; adding copy does not add simulation behavior.
 
 ## Content and compatibility
 

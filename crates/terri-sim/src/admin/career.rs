@@ -169,9 +169,9 @@ pub(super) fn post_condition(world: &World, touched: &Touched) -> Result<(), ()>
         return Ok(());
     }
     let careers = world.resource::<Careers>();
-    careers::validate_saved(world, &careers.to_saved()).map_err(|_| ())?;
+    careers::validate_saved(world, &careers.to_saved(), true).map_err(|_| ())?;
     careers::validate_live_shifts(world, touched.careers.iter().copied()).map_err(|_| ())?;
     save::v24::validate_live_inputs(world).map_err(|_| ())?;
-    attendance::validate_saved(world, &attendance::to_saved(world)).map_err(|_| ())?;
+    attendance::validate_saved(world, &attendance::to_saved(world), true).map_err(|_| ())?;
     attendance::validate_replaced(world, &attendance::replaced_to_saved(world)).map_err(|_| ())
 }

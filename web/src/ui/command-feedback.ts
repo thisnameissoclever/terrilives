@@ -29,8 +29,8 @@ export interface CommandFeedbackStatus {
  *
  * The attempt and the later simulation drain happen in separate browser
  * turns. Clearing here gives a repeated identical rejection a real DOM state
- * transition, while the dedicated surface keeps persistence messages under
- * their own owner.
+ * transition. Commands and persistence share scene feedback; clear the prior
+ * command before another operation publishes its pending state or result.
  */
 export function clearCommandFeedback(status: CommandFeedbackStatus): void {
   status.textContent = '';

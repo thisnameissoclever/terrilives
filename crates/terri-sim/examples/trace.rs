@@ -19,12 +19,11 @@
 //! `--night-worker` puts Casey on the night watch's standard shift,
 //! `--careers-seed <n>` reseeds the careers stream, and
 //! `--pre-shift-careers` runs the career content and search from before
-//! shifts (`examples/trace/shifts.rs`). Issue 309 adds
-//! `--lateness-limit <ticks>` and `--work-relief-threshold <level>`, which
-//! replace the two work knobs; `--lateness-limit 0 --work-relief-threshold 0`
-//! runs the game as it was before that issue, and the LATENESS and WORK
-//! BLADDER lines of the SHIFTS section report how late each worker left.
-//! Each late departure also prints its own LATE DEPARTURE line;
+//! shifts (`examples/trace/shifts.rs`). Set `--lateness-limit <ticks>` to
+//! change how long a critical need or a book return can delay a worker.
+//! A limit of 0 disables need delays and leaves book returns uncapped.
+//! The SHIFTS section reports lateness and Bladder.
+//! Each late departure prints a LATE DEPARTURE line.
 //! `TRACE_LATE_TICKS=1` lists what the worker did on each late tick, and
 //! `TRACE_LATE_START=<tick>` keeps only the shifts starting at that tick.
 //! The FLOOR BOOKS line counts books left on the floor and put back.

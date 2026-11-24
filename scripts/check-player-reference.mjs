@@ -94,9 +94,9 @@ export function checkReference(root = repository) {
   return errors;
 }
 
-export function exportReference(root = repository) {
-  const result = spawnSync('cargo', ['run', '--quiet', '-p', 'terri-data', '--example', 'player_guide'], {
-    cwd: root, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
+export function exportReference(root = repository, run = spawnSync) {
+  const result = run('cargo', ['run', '--quiet', '-p', 'terri-data', '--example', 'player_guide'], {
+    cwd: root, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, windowsHide: true,
   });
   if (result.error || result.status !== 0) throw new Error(`Player reference exporter failed: ${result.error?.message ?? result.stderr}`);
   const output = normalized(result.stdout);

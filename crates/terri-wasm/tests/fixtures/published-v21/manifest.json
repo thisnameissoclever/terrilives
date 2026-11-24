@@ -1,0 +1,120 @@
+{
+  "publishedCommit": "4b537037e10c8f3c0169f385a49c4da9c4b311b1",
+  "producerWasmSha256": "a73ca0bb02253837a71d83ae8b6e98b0ac840dcb88bcfc0b002023e5649585e1",
+  "adapterSha256": "79b9b9c58f6a5afc6d9e0c59313375d1052138b9a6b34ca40bdfc842dd087c15",
+  "adapterQualification": "generated-adapter.js is the existing local V23 JavaScript ABI adapter, not a claim of an original published V21 generated wrapper. Imports and raw new shift exports must be verified when exercising the frozen native producer. The native bytes and compiled save worker above are the public artifacts.",
+  "producerImports": [
+    {
+      "module": "./terri_wasm_bg.js",
+      "name": "__wbg___wbindgen_throw_344f42d3211c4765",
+      "kind": "function"
+    },
+    {
+      "module": "./terri_wasm_bg.js",
+      "name": "__wbindgen_init_externref_table",
+      "kind": "function"
+    },
+    {
+      "module": "./terri_wasm_bg.js",
+      "name": "__wbindgen_cast_0000000000000001",
+      "kind": "function"
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "shipped-household",
+      "bytes": 5409,
+      "sha256": "40ea9205a5ebec3750ef08c6e4929d3224f45fdabec623182e44f171521681a5",
+      "version": 21,
+      "tick": "0",
+      "state": {
+        "purpose": "Unmodified published household"
+      }
+    },
+    {
+      "name": "held-and-changed-today",
+      "bytes": 5437,
+      "sha256": "e481879da27a40265b5e44143be16a6b3dbffe5cd7ae60c56032a65714a58f56",
+      "version": 21,
+      "tick": "0",
+      "state": {
+        "actor": 34,
+        "path": 0,
+        "pathLabel": "Office",
+        "alternate": 1,
+        "offered": [
+          0,
+          0,
+          360,
+          480,
+          31,
+          19,
+          1,
+          2,
+          720,
+          480,
+          31,
+          1
+        ],
+        "schedule": [
+          31,
+          720,
+          480,
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "name": "mixed-queued-commands",
+      "bytes": 5450,
+      "sha256": "dde2cf822b34495de61aa6a29e645e87dda7f9589c2abeb16e464ff8353a3926",
+      "version": 21,
+      "tick": "0",
+      "state": {
+        "actor": 34,
+        "queue": [
+          "ChangeShift standard",
+          "SetJobSearch false",
+          "AssignCareerShift alternate"
+        ]
+      }
+    },
+    {
+      "name": "active-attendance",
+      "bytes": 6048,
+      "sha256": "d9dea4665069bc77f5e83835e709fb31be6321b44d1bb8b580c720698ce3e322",
+      "version": 21,
+      "tick": "396",
+      "state": {
+        "actor": 34,
+        "conflict": [
+          "10727342180654949672",
+          "34",
+          "Tim",
+          "3",
+          "444",
+          "480"
+        ],
+        "attendance": [
+          480,
+          0,
+          36,
+          -1,
+          0,
+          -1,
+          0,
+          0
+        ],
+        "schedule": [
+          31,
+          360,
+          480,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "status": "passed"
+}

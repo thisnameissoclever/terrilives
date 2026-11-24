@@ -180,13 +180,16 @@ fn schema_twenty_one_round_trips_through_the_save_bytes() {
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
         &SAVE_SCHEMA_VERSION.to_le_bytes()
     );
-    let snapshot = super::current_test_snapshot::decode_current(&bytes)
+    let snapshot = super::current_test_snapshot::decode_current(&bytes);
+    assert!(snapshot
+        .previous.legacy
         .legacy
         .legacy
-        .legacy
-        .legacy;
-    assert!(snapshot.shifts.held.iter().any(|row| row.shift == "late"));
-    assert_eq!(snapshot.shifts.draws, 1);
+        .shifts
+        .held
+        .iter()
+        .any(|row| row.shift == "late"));
+    assert_eq!(snapshot.previous.legacy.legacy.legacy.shifts.draws, 1);
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
     assert_eq!(

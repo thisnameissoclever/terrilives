@@ -164,6 +164,7 @@ fn fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_infl
         let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
         historical.load_snapshot_v10(frozen.clone()).unwrap();
         let historical_hash = historical.world_hash();
+        let admitted_historical = historical.save_snapshot_v28();
         for inflated in [earned * 1.05, 1_000_000.0] {
             let mut bad = frozen.clone();
             bad.legacy.reading[0].earned_satisfaction = inflated;
@@ -171,7 +172,7 @@ fn fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_infl
                 historical.load_snapshot_v10(bad).is_err(),
                 "accepted fabricated {inflated} after actual {earned}"
             );
-            assert_eq!(historical.save_snapshot_v10(), frozen);
+            assert_eq!(historical.save_snapshot_v28(), admitted_historical);
             assert_eq!(historical.world_hash(), historical_hash);
             assert_eq!(*historical.world().resource::<SimRng>(), rng);
             let mut bad = saved.clone();

@@ -297,12 +297,15 @@ describe('an interrupted save never costs the player their game', () => {
     expect(await s.request('previous')).toMatchObject({ ok: true, bytes: null });
   });
 
-  it('does not save over the previous copy with an unsupported slot', async () => {
-    const newer = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION + 1, 0, 9]);
-    const s = await slot(newer);
-    s.files.set(PREVIOUS, save(1));
+  it.each([CURRENT_SAVE_VERSION + 1, 24])('protects an unsupported V%s slot from writes and recovery', async version => {
+    const original = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, version, 0, 9]);
+    const copy = save(1);
+    const s = await slot(original);
+    s.files.set(PREVIOUS, copy);
     expect(await s.request('save', save(2))).toMatchObject({ ok: false });
-    expect(s.files.get(PRIMARY)).toEqual(newer);
-    expect(s.files.get(PREVIOUS)).toEqual(save(1));
+    expect(await s.request('restore', copy, original)).toMatchObject({ ok: true, restored: false });
+    expect(s.files.get(PRIMARY)).toEqual(original);
+    expect(s.files.get(PREVIOUS)).toEqual(copy);
+    expect(s.files.has(DAMAGED)).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 # Work lateness and Bladder at work
 
-Issue 309 asks that a housemate stay home from work because of critical needs for a bounded time only, and that while a need is critical after the shift has started they have a rising chance, up to 99 percent, of doing something that relieves it. The owner decided on 2026-11-15 that the allowance is one hour, that only Hunger and Energy count, and that Bladder is instead relieved at work whenever it falls below about half, so it never becomes critical during a shift.
+Issue 309 bounds how long critical needs may keep a housemate home from work. Only Hunger and Energy delay departure, for at most one hour. During that allowance, the chance of choosing relief rises to 99 percent. Once at work, Hunger, Bladder and Social receive automatic care before they become Critical.
 
 This document amends the Work section of the [player orders spec](2026-10-17-player-orders.md) and [WS-systems] of the [shifts and careers spec](2026-10-18-shifts-and-careers.md). The implementation plan for the issue is the source of the questions answered in [WL-answers].
 
@@ -59,9 +59,9 @@ While a person is at home, inside the allowance, with a counted need critical, `
 
 ## [WL-bladder] Bladder at work
 
-A person at work has their Bladder restored to full whenever it is below `work_bladder_relief_threshold` (50). It runs at the end of every tick for each person at work, after the tick's decay, so a worker never sits at work with a Bladder under the threshold. Nothing else is relieved at work; Hunger, Energy and the rest still drain at `at_work_decay_scale`, and the energy cost of the shift is unchanged. A threshold of 0 relieves nobody. The commute is not at work, so Bladder drains normally while commuting and at home.
+A person at work has Hunger, Bladder and Social restored to 50 when their decay would cross `mood_critical_need_level`. Arrival restores those three needs when they are at or below `mood_low_need_level`. Ordinary decay continues, and Energy, Hygiene, Fun and Comfort receive no work refill. The shift's Energy cost still applies. Commuting and waiting outside for a route home receive no work refill.
 
-With the shipped rates a worker who arrives at 100 percent Bladder reaches about 84 over a whole shift, so the relief matters for people who arrive low. The relief is instant and costs no minutes and no money: it stands for a trip to the office toilet, as the doc comment of `decay_needs` already describes the office.
+The relief is instant and costs no minutes or money. It represents meals, toilet breaks and company during a shift.
 
 ## [WL-tuning] Tuning
 
@@ -72,9 +72,9 @@ Four root keys follow `night_shift_premium_percent` in `content/tuning.toml`, an
 | `work_lateness_limit_ticks` | 60 | 0 to 720, and below the shift ticks of every job | Longest a critical need may keep a worker home after the scheduled start. 0 leaves on time. |
 | `work_lateness_ramp_ticks` | 30 | 1 to 720, and at most the limit when the limit is above 0 | Lateness at which the remedy share reaches its maximum. |
 | `work_lateness_remedy_share` | 0.99 | above `1 - unrelated_single`, below 1 | The most the remedies of the late need can take. |
-| `work_bladder_relief_threshold` | 50 | 0 to 100 | A worker at work is relieved of Bladder below this level. 0 is no relief. |
+| `work_bladder_relief_threshold` | 50 | 0 to 100 | Retained in the published pack layout for compatibility. Current work care uses the Low and Critical need thresholds. |
 
-The compiler refuses each out-of-range value by name and refuses non-finite values. A pack published before the knobs reconstructs a limit of 0 and a threshold of 0, so a published world keeps leaving on time and is never relieved at work, with the ramp and share at their shipped values, which are inert. The frozen pre-books sources are expanded the same way ([L-required-tuning-historical-expansion]). The crisis level is not a new knob: it is `mood_critical_need_level`. The 120-minute grace and the 10-point deduction are still code literals, as they were; moving them to tuning is a follow-up.
+The compiler refuses each out-of-range value by name and refuses non-finite values. A pack published before the knobs reconstructs a lateness limit and legacy bladder threshold of 0, with the ramp and share at their shipped values. The frozen pre-books sources are expanded the same way ([L-required-tuning-historical-expansion]). Current work care uses `mood_low_need_level` for arrival and `mood_critical_need_level` after decay. The 120-minute attendance grace and the 10-point deduction remain code literals.
 
 ## [WL-save] Saves, hashes and pinned values
 
@@ -106,7 +106,7 @@ The tests are in `crates/terri-sim/src/lateness_tests.rs`, `crates/terri-sim/src
 9. A save taken mid-lateness continues with the same world hash on every tick.
 10. The choice parameter reports the lateness along the ramp, and nothing for Bladder or for an uncritical worker.
 11. The unrelated share equals today's cap at the start, the exact linear value halfway and `1 - work_lateness_remedy_share` from the ramp on, and stays above 0; relief of an uncounted critical need is unrelated while late; with no lateness the probabilities are the pinned vector of before this change.
-12. A worker at work is relieved of Bladder below the threshold and not at it, only Bladder is relieved, a worker at home is not relieved, and with the real decay rates Bladder never falls below the threshold during a shift.
+12. A worker receives half-full Hunger, Bladder and Social at Low or Critical arrival and before ongoing decay exposes Critical values. Home, commuting and waiting-to-return states receive no work care. The other four needs continue decaying.
 13. A worker who is not critical but is mid-meal on the start tick leaves on the start tick, and the allowance predicate is pinned on its own: it opens at the start, closes at the limit or at the shift's end, whichever is first, and is shut for a settled shift or a limit of 0.
 14. `select_action` gives a late worker the ramped remedy share: the same critical decision gives the remedy 95 percent on the start tick and 99 percent 45 minutes in, with the television that tempts the worker most scoring far above the weak snack, so the cap decides the shares. A housemate with no job gets no lateness and today's share. With Hunger and Bladder both critical, Hunger keeps the worker home and only the relief of Hunger is a remedy, while the relief of Bladder joins the unrelated choices.
 15. The knob compile, published-pack, pre-books and fixture checks in the data crate.

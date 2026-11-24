@@ -33,6 +33,7 @@ it('uses native predecessor choices and retains explicit names and inheritance a
     expect(await review.confirm()).toBe(false); // Updated choices must be displayed before adoption.
     expect(review.review!.rooms.find(room => room.id === old.id)?.anchor).toEqual(anchors[1]);
     expect(review.review!.rooms.find(room => room.id === old.id)?.name).toBe('Original');
+    expect(await review.confirm()).toBe(false); expect(review.accessActive).toBe(true);
     expect(await review.confirm()).toBe(true); expect(review.active).toBe(false);
     expect(value(sim.roomSummaries()).rooms.some(room => room.name === '<b>Child</b>')).toBe(true);
   } finally { handle.free(); }
@@ -42,6 +43,7 @@ it('refuses a stale token without silently preparing another review or committin
   try {
     const before = sim.saveBytes(), token = review.review!.token;
     value(sim.stageRoomName(0, 'Changed'));
+    expect(await review.confirm()).toBe(false); // Access step precedes adoption.
     expect(await review.confirm()).toBe(false); expect(review.active).toBe(true);
     expect(review.review!.token).toEqual(token); expect(sim.saveBytes()).toEqual(before);
     expect(review.error).toContain('out of date');
@@ -71,7 +73,8 @@ it('retains separate names while changing between two native review groups', asy
     const first = review.review!.groups[0].finalAnchors[0], second = review.review!.groups[1].finalAnchors[0];
     review.setName(first, 'Same name'); review.selectGroup(1); review.setName(second, 'Same name');
     review.selectGroup(0); expect(review.name(first)).toBe('Same name'); expect(review.name(second)).toBe('Same name');
-    expect(await review.confirm()).toBe(false); expect(await review.confirm()).toBe(true);
+    expect(await review.confirm()).toBe(false); expect(await review.confirm()).toBe(false);
+    expect(review.accessActive).toBe(true); expect(await review.confirm()).toBe(true);
     expect(value(sim.roomSummaries()).rooms.filter(room => room.name === 'Same name')).toHaveLength(2);
   } finally { handle.free(); }
 });
@@ -80,7 +83,10 @@ it('offers a retiring custom merge name separately from the retained identity', 
   const handle = new SimHandle(10, 8), sim = new SimBridge(handle, memory), review = new RoomReviewController(sim);
   try {
     sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 }); sim.flushCommands();
+    value(sim.beginBuild());
     for (let y = 1; y <= 5; y++) { sim.setWallEdge(0, 4, y, 1); sim.flushCommands(); }
+    value(sim.commitBuildWithAccessAck(value(sim.prepareBuildCommit()).token));
+    value(sim.endBuild());
     const rooms = value(sim.roomSummaries()).rooms.filter(room => room.id !== 0);
     value(sim.beginBuild()); value(sim.stageRoomName(rooms[0].id, 'First')); value(sim.stageRoomName(rooms[1].id, 'Retiring custom name'));
     for (let y = 1; y <= 5; y++) { sim.setWallEdge(0, 4, y, 0); sim.flushCommands(); }
@@ -94,7 +100,7 @@ it('offers a retiring custom merge name separately from the retained identity', 
 
 it.each(['owner-zero', 'unassigned', 'no-duty'] as const)('shows the receiving Outside metadata in lost-enclosure review: %s', mode => {
   const outside = { id: 0, name: '<b>Garden</b>', anchor: null, area: 100, outside: true, previousName: 'Outside', previousArea: 80 };
-  const review: BuildReview = { token: { session: 1n, revision: 2n, preparation: 3n }, rooms: [outside], retiredNames: [{ id: 1, name: 'Former room' }],
+  const review: BuildReview = { access: { regions: [], blockedTargets: [] }, token: { session: 1n, revision: 2n, preparation: 3n }, rooms: [outside], retiredNames: [{ id: 1, name: 'Former room' }],
     groups: [{ kind: 3, oldIds: [1], finalAnchors: [], formerTiles: [[1, 1]], openings: [{ axis: 0, x: 1, y: 1 }] }],
     duties: { duties: mode === 'no-duty' ? [] : [{ key: { kind: 1, target: 0 }, previous: { kind: 1, target: 0 }, owner: mode === 'owner-zero' ? 0 : null, kind: 0 }], replannedPeople: [], unavailablePeople: [] } };
   const source: RoomBridge = { roomsRevision: () => 1n, roomSummaries: () => ({ ok: true, value: { width: 10, height: 10, rooms: [outside] } }),

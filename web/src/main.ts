@@ -43,6 +43,9 @@ import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { RoomSelection, RoomSelectionControls, RoomsTool } from './ui/room-selection.js';
 import { RoomReviewController, RoomReviewControls } from './ui/room-review.js';
+import { BuildSceneFeedback, PendingIndicator, SceneFeedback, operationFeedback } from './ui/operation-feedback.js';
+import { PersistenceSceneFeedback } from './ui/persistence-feedback.js';
+import { SceneLayoutObserver } from './ui/scene-feedback-layout.js';
 import { screenX, screenY } from './render/iso.js';
 import type { BuildReview } from './rooms/codec.js';
 import { FloorTool } from './ui/floor-tool.js';
@@ -61,18 +64,20 @@ import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { edgesWithShell } from './render/house-shell.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
+import {prepareWorldPoolRigs} from './render/character/creator-assets.js';
 import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.js';
 import {CharacterFrameMeasurement,type CharacterFrameReport} from './render/character/measurement.js';
 import {DeviceLifetime} from './render/character/device-lifetime.js';
 import {CharacterContactOwner,CharacterContactRoster,sharedCharacterPreparation} from './render/character/contact-admission.js';
-import {loadPreparedCharacterState} from './render/character/prepared-character-load.js';
+import {CharacterContactFrameSync,loadPreparedCharacterState} from './render/character/prepared-character-load.js';
+import {PreparedBuildCommit} from './ui/prepared-build-commit.js';
 import {StressCharacterAdmission,guardedCharacterStressSource,type StressCharacterActions} from './render/character/stress-admission.js';
 import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
 import { activeFloorFinishKeys } from './render/floor-materials.js';
 import { FloorFinishResources, canonicalFloorFinishKeys } from './render/floor-finish-resources.js';
+import type { PreparedFloorFinishes } from './render/sprite-finish-resources.js';
 import { FloorScenePresentation } from './render/floor-scene-presentation.js';
 import { createFloorSceneStatus } from './ui/floor-scene-status.js';
-import type { ActiveFinishes } from './render/architecture-finishes.js';
 import { drawFloorSwatch } from './ui/floor-swatches.js';
 import { decodeWindowPlacements } from './architecture/windows.js';
 import {
@@ -104,7 +109,7 @@ import {
   setSelectedLines,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
-import { DebugPanel } from './ui/debug-panel.js';
+import { DebugPanel, createDebugRoot, createStructuredDebugSurface } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
@@ -129,7 +134,8 @@ import { KIND_AGENT } from './render/instances.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
-import { OrderDiagnostics } from './ui/player-orders.js';
+import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
+import { OrderHistoryPanel } from './ui/order-history.js';
 import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
 import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
@@ -426,7 +432,7 @@ async function main(): Promise<void> {
   const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
     .then(response => countAlongside(response, count => loading.bytes(count),
       () => loading.step('Starting the simulation'))) });
-  const characterContacts=sharedCharacterPreparation(),contactRoster=new CharacterContactRoster(characterContacts);
+  const characterContacts=sharedCharacterPreparation(),contactRoster=new CharacterContactRoster(characterContacts,undefined,prepareWorldPoolRigs);
   let graphicsClosed=false,graphicsGeneration=0;
 
   // The lot, its walls and all eight authored objects come out of
@@ -442,9 +448,19 @@ async function main(): Promise<void> {
   const [seedLow, seedHigh] = newGameSeed();
   const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
+  const contactFrameSync = new CharacterContactFrameSync(sim, contactRoster);
   let replaceBuildLocalState = (_reason: 'load' | 'cancel' | 'end'): void => {};
+  let resetSceneBuildFeedback = ():void => {};
   let hasRetainedReviewChoices = (): boolean => false;
   let requestRoomReview: (review: BuildReview) => Promise<boolean> = async () => false;
+  let buildPoolPending = false;
+  let reflectBuildPoolPending = (_pending: boolean): void => {};
+  const preparedBuildCommit = new PreparedBuildCommit(contactRoster, {
+    poolRequired: token => sim.buildPoolContactRequired(token),
+    appearances: () => sim.characterAppearances(),
+    pending: active => { buildPoolPending = active; reflectBuildPoolPending(active); },
+  });
+  const runPreparedBuildCommit: typeof preparedBuildCommit.run = (token, adopt) => preparedBuildCommit.run(token, adopt);
   const buildSession = new BuildSession(sim, {
     prepare: () => prepareBuildConfirmation(),
     settled: () => settleBuildControllers(),
@@ -452,15 +468,19 @@ async function main(): Promise<void> {
     replaced: reason => replaceBuildLocalState(reason),
     needsReview: () => hasRetainedReviewChoices(),
     review: review => requestRoomReview(review),
+    commit: runPreparedBuildCommit,
   });
-  let contactAppearanceHash:bigint|null=null;
+  let restoringStartup = true;
   const loadCharacters=async(bytes:Uint8Array):Promise<boolean>=>{
     const loaded=await loadPreparedCharacterState(bytes,buildSession,()=>{
       const candidate=SimHandle.from_lot(),source=new SimBridge(candidate,wasm.memory);
       return {loadBytes:(bytes:Uint8Array)=>source.loadBytes(bytes),characterAppearances:()=>source.characterAppearances(),
-        flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
-    },contactRoster);
-    if(loaded)contactAppearanceHash=null;return loaded;
+        poolContactRequired:()=>source.poolContactRequired(),flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
+    },contactRoster,undefined,()=>{
+      if(restoringStartup)loading.note('Preparing swimming');
+      else persistence.preparingSwimming();
+    });
+    if(loaded)contactFrameSync.reset();return loaded;
   };
   // The names of the conversation recordings come from the compiled content
   // pack, so this is the first moment they exist. The controller decides WHEN
@@ -472,16 +492,20 @@ async function main(): Promise<void> {
   const saveStatus: HTMLElement = saveStatusElement;
   const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
   if (!commandStatusElement) throw new Error('missing #command-feedback');
-  const commandStatus: HTMLElement = commandStatusElement;
+  const sceneFeedback = new SceneFeedback(commandStatusElement);
+  const commandStatus = sceneFeedback.status;
+  const persistenceFeedback = new PersistenceSceneFeedback(sceneFeedback, saveStatus);
   const persistence = new PersistenceController(
     createSaveStore(),
     buildSession,
     saveStatus,
     (error) => console.error('save storage failed:', error),
     loadCharacters,
+    (event) => persistenceFeedback.present(event),
   );
   loading.step('Loading the household');
   await persistence.restoreAtStartup();
+  restoringStartup = false;
 
   const canvas = document.querySelector<HTMLCanvasElement>('#stage');
   if (!canvas) {
@@ -542,7 +566,7 @@ async function main(): Promise<void> {
     characterWorld.drawEffects(encoder, target);
     weatherScene.draw(encoder, target);
   };
-  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
+  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;preparedBuildCommit.cancel();renderer.destroy();characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
   // Let the cover paint before assembling the controls and character resources.
   loading.step('Setting up the game');
   await afterPaint();
@@ -636,14 +660,11 @@ async function main(): Promise<void> {
   // refuses furniture cells; count actual additions rather than attempts.
   // Hunger 100 leaves selection autonomous without immediate hunger pressure.
   spawnStressAgents(sim, lotWidth, lotHeight, stress);
-  loading.note('Preparing characters');
+  const initialContactMode=sim.poolContactRequired()?'pool-required':'base';
+  loading.note(initialContactMode==='pool-required'?'Preparing characters and swimming':'Preparing characters');
   await afterPaint();
-  await contactRoster.prepareCurrent(sim.characterAppearances());characterWorld.prepareFixtures(sim);contactAppearanceHash=sim.appearanceHash();
+  await contactRoster.prepareCurrent(sim.characterAppearances(),initialContactMode);characterWorld.prepareFixtures(sim);contactFrameSync.reset();
   loading.step('Setting up the game');
-  const syncCharacterContacts=()=>{
-    const hash=sim.appearanceHash();if(hash===contactAppearanceHash&&!contactRoster.hasQueued)return;
-    contactRoster.afterCommands(sim.characterAppearances());contactAppearanceHash=hash;
-  };
   if (stress > 0) {
     // Startup, not steady state, and it is superlinear: `spawn_agent`
     // calls `sync_render_buffer`, which sorts and clones on every
@@ -1024,12 +1045,24 @@ async function main(): Promise<void> {
     const critical = needsContent.hidden ? [] : needMeters
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
-    // The current activity always shows; critical needs get their own line.
+    // Critical needs share the activity line in expanded and collapsed states.
     const activity = activityValue.textContent ?? '';
     const urgent = critical.length ? `Critical: ${critical.join(', ')}` : '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
     if (dockCritical.textContent !== urgent) dockCritical.textContent = urgent;
+    dockCritical.title = urgent;
+    const selected = sim.selectedIndex() !== null;
+    const dock = document.getElementById('sim-dock')!;
+    if (dock.dataset.hasSelection !== String(selected)) {
+      dock.dataset.hasSelection = String(selected);
+      compactHud.refresh();
+    }
+    for (const id of ['sim-details', 'dock-queue']) {
+      const control = document.getElementById(id) as HTMLButtonElement;
+      control.disabled = !selected;
+      control.title = selected ? '' : 'Select a person';
+    }
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
     queueEmpty.hidden = !actionQueueRoot.hidden;
     const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
@@ -1184,51 +1217,21 @@ async function main(): Promise<void> {
     // once the player has a preference, the browser's own <details>
     // state keeps it.
     debugDetails.open = window.innerWidth > 900;
-    const root = {
-      get hidden(): boolean {
-        // Folded counts as hidden for the panel's throttle, so a
-        // collapsed overlay costs no formatting per frame; the backtick
-        // toggle still owns the section's own visibility.
-        return debugSection.hidden || !debugDetails.open;
-      },
-      set hidden(value: boolean) {
-        debugSection.hidden = value;
-      },
-      get textContent(): string | null {
-        return debugReport.textContent;
-      },
-      set textContent(value: string | null) {
-        debugReport.textContent = value;
-      },
-    };
-    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs());
+    const root = createDebugRoot(debugSection, debugDetails, debugReport);
+    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs(), createStructuredDebugSurface(document, debugReport, () => root.readable));
     debugPanel = panel;
     const filter = document.querySelector<HTMLSelectElement>('#order-history-person')!;
     const history = document.querySelector<HTMLElement>('#order-history')!;
     const copy = document.querySelector<HTMLButtonElement>('#order-history-copy')!;
     const copyStatus = document.querySelector<HTMLElement>('#order-history-copy-status')!;
-    let roster = '', revision = -1, lastFilter = '';
-    updateOrderHistory = () => {
-      if (root.hidden) return;
-      const ids = sim.ids(), kinds = sim.kinds();
-      const people = Array.from(ids).filter((_, row) => kinds[row] === 0);
-      const signature = people.map(entity => `${entity}:${sim.simName(entity)}`).join('|');
-      if (signature !== roster) {
-        roster = signature;
-        const selected = filter.value;
-        filter.replaceChildren(new Option('Selected person', 'selected'), new Option('Everyone', 'all'),
-          ...people.map(entity => new Option(sim.simName(entity), String(entity))));
-        if (Array.from(filter.options).some(option => option.value === selected)) filter.value = selected;
-      }
-      const entity = filter.value === 'all' ? null : filter.value === 'selected' ? sim.selectedIndex() : Number(filter.value);
-      const selection = `${filter.value}:${entity}`;
-      if (revision === orderDiagnostics.revision && selection === lastFilter) return;
-      revision = orderDiagnostics.revision; lastFilter = selection;
-      history.textContent = entity === null && filter.value === 'selected' ? 'Select a person to see their order history.' : orderDiagnostics.history(entity);
-    };
-    copy.addEventListener('click', () => {
-      void navigator.clipboard.writeText(history.textContent ?? '').then(() => { copyStatus.textContent = 'Copied'; }, () => { copyStatus.textContent = 'Copy failed. Select the history text and copy it.'; });
-    });
+    const orderHistory = new OrderHistoryPanel(document, {
+      disclosure: document.querySelector<HTMLDetailsElement>('#order-history-details')!,
+      summary: document.querySelector<HTMLElement>('#order-history-summary')!,
+      notice: document.querySelector<HTMLElement>('#order-history-notice')!,
+      filter, list: history, copy, status: copyStatus,
+    }, orderDiagnostics, () => root.readable, text => navigator.clipboard.writeText(text));
+    debugDetails.addEventListener('toggle', () => {panel.update(performance.now(), true); orderHistory.update(sim);});
+    updateOrderHistory = () => orderHistory.update(sim);
     document.addEventListener('keydown', (event) => {
       if (isDebugOverlayKey(event)) panel.toggle();
     });
@@ -1313,6 +1316,7 @@ async function main(): Promise<void> {
   }
 
   const queueMode = new QueueMode(queueButton);
+  const clearOrdersAvailability = new ClearOrdersAvailability(stopOrdersButton, sim.needBarRefreshMs());
   const audioControls = new AudioControls(
     audio,
     audioMuteButton,
@@ -1419,6 +1423,7 @@ async function main(): Promise<void> {
       // height they landed on unrelated tiles, because the renderer keys
       // the list by height.
       lot.floors = sim.floorTiles();
+      lot.surfaces = sim.worldSurfaces();
       lot.doors = sim.interiorDoorLines();
       lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lot.frontDoors = sim.frontDoorLines();
@@ -1434,8 +1439,7 @@ async function main(): Promise<void> {
       activityLogStore.resetAfterLoad();
       activityLogPanel.resetAfterLoad();
       orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
-      commandStatus.textContent = '';
-      commandStatus.removeAttribute('data-kind');
+      sceneFeedback.clear('command');
       bookCommerce.resetAfterLoad();
       builder.resetAfterLoad();
       // [ES-form]: a draft names a person of the replaced world, so
@@ -1467,6 +1471,8 @@ async function main(): Promise<void> {
     event.preventDefault();
     loadingGame = true;
     loadGameDialog.close('confirm');
+    // Clear the old world's command before Load takes ownership of scene feedback.
+    sceneFeedback.clear('command');
     const loading = persistence.load();
     syncPersistenceButtons();
     void loading
@@ -1568,6 +1574,7 @@ async function main(): Promise<void> {
     newHousemateButton.disabled = buildSession.active || graphicsRecovering || current >= limit;
   };
   const syncEditHousemateButton = (): void => {
+    editHousemateButton.hidden = sim.selectedIndex() === null;
     editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;
   };
   const openCreator = (person: number | null): void => {
@@ -1666,6 +1673,10 @@ async function main(): Promise<void> {
     });
   });
   stopOrdersButton.addEventListener('click', () => {
+    if (!hasClearablePlayerOrders(sim)) {
+      stopOrdersButton.disabled = true;
+      return;
+    }
     const selected = sim.selectedIndex();
     if (selected === null) {
       commandStatus.textContent = 'Select a person first';
@@ -1674,8 +1685,7 @@ async function main(): Promise<void> {
       return;
     }
     if (sim.cancelIntents(selected)) {
-      commandStatus.textContent = 'Orders cleared';
-      commandStatus.removeAttribute('data-kind');
+      clearCommandFeedback(commandStatus);
       audio.emit({ type: 'command.staged' });
     } else {
       commandStatus.textContent = 'Could not clear orders';
@@ -1718,7 +1728,7 @@ async function main(): Promise<void> {
   document.addEventListener('visibilitychange', () => {
     const hidden = document.visibilityState === 'hidden';
     if (hidden && !startingNewGame) {
-      const saving = persistence.save('Game saved');
+      const saving = persistence.saveAutomatically();
       syncPersistenceButtons();
       void saving.then(() => syncPersistenceButtons());
     }
@@ -1757,6 +1767,7 @@ async function main(): Promise<void> {
     floorPreview: null as readonly number[] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
+    surfaces: sim.worldSurfaces(),
     coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
@@ -1772,13 +1783,13 @@ async function main(): Promise<void> {
   // The house's implicit shell is a wall to the lamps and the sky once
   // bought land lies beyond it (land expansion, issue 254).
   const lightingEdges = (): Uint32Array | null =>
-    edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height, lot.windows ?? []);
+    lot.surfaces.length ? (lot.edges ?? null) : edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height, lot.windows ?? []);
   let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
   // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin);
+    buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin, lot.surfaces);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
@@ -1914,6 +1925,7 @@ async function main(): Promise<void> {
   // off, because every object on it offers exactly one.
   // Queue mode or the modifier held on the row: either appends, the same
   // rule the canvas click follows.
+  let menuSceneAnchor: {x: number; y: number} | null = null;
   const menu: ObjectMenu = new ObjectMenu(createMenuSurface(document, menuRoot, {
     anchor(model) {
       if (model.object === undefined) return null;
@@ -1925,15 +1937,18 @@ async function main(): Promise<void> {
       if (!object) return null;
       const footprint = { x, y, width: object.width, depth: object.depth };
       const height = spriteFramingHeight(sprite);
-      return canvasToClient(ghostAnchorX(footprint, camera, spriteDrawOffsetX(sprite)),
+      const point = canvasToClient(ghostAnchorX(footprint, camera, spriteDrawOffsetX(sprite)),
         ghostAnchorTop(footprint, camera, height) + height * camera.scale / 2,
         stage.getBoundingClientRect(), stage.width, stage.height);
+      return point;
     },
     revision: () => [camera.originX, camera.originY, camera.scale, stage.width, stage.height, sim.clockTick()].join(','),
     keepouts: () => ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls']
       .map(id => document.getElementById(id)?.getBoundingClientRect())
       .filter((rect): rect is DOMRect => !!rect && rect.width > 0 && rect.height > 0),
     dismiss: () => menu.close(),
+    closed: () => sceneFeedback.anchor(null),
+    positioned: point => { menuSceneAnchor = point; sceneFeedback.anchor(point); },
   }), (action, additive) => {
     if (action.kind === 'build') {
       if (overlayPause.suspendedExcept('builder') || builder.pending) return;
@@ -1955,7 +1970,7 @@ async function main(): Promise<void> {
     if (overlayPause.suspendedExcept('builder') || roomReview.active) return false;
     if (action.kind === 'build') return !builder.pending && !buildTools.some(tool => Boolean(tool.pending));
     return ['buy-book', 'sell-book', 'recover-book'].includes(action.kind) || !builder.active;
-  });
+  }, () => hasClearablePlayerOrders(sim));
   optionsToggle.addEventListener('click', () => menu.close());
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
@@ -2012,7 +2027,7 @@ async function main(): Promise<void> {
   let hoverLine: WallLine | null = null;
   /** Every barrier line at the height the static walls draw it, for picking the one under the pointer. */
   const wallFacesNow = () => wallFaces({
-    width: lot.width, height: lot.height, house: lot.house, houseOrigin: lot.houseOrigin,
+    width: lot.width, height: lot.height, house: lot.house, houseOrigin: lot.houseOrigin, explicit: !!lot.surfaces.length,
     edges: lot.edges ?? [], windowLines: lot.windows ?? [],
     hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [],
     low: lot.showCutAwayWalls !== true, raised: new Set(lot.selectedLines?.keys() ?? []),
@@ -2051,7 +2066,7 @@ async function main(): Promise<void> {
   let finishReview: ((adopted: boolean) => void) | null = null;
   const roomSelection = new RoomSelection(sim, () => {
     selectionControls?.render(); cameraDirty = true;
-    if (buildSession.active && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
+    if (buildSession.active && !buildPoolPending && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
       setBuildStatus(roomSelection.error, roomSelection.error !== '');
     }
   });
@@ -2060,8 +2075,11 @@ async function main(): Promise<void> {
   });
   const roomReview = new RoomReviewController(sim, {
     changed: () => { reviewControls?.render(); placementActions?.invalidate(); cameraDirty = true; },
+    commit: runPreparedBuildCommit,
+    cancelPending: () => preparedBuildCommit.cancel(),
+    preparing: () => buildPoolPending,
     completed: adopted => {
-      if (!adopted) { buildSession.noteReviewCancellation(); buildExit.clearExitIntent(); }
+      if (!adopted) { buildSession.noteReviewCancellation(); buildExit.protectReturnToBuild(); buildExit.clearExitIntent(); }
       const finish = finishReview; finishReview = null; finish?.(adopted);
     },
     refused: () => buildExit.cancelDestination(),
@@ -2099,38 +2117,35 @@ async function main(): Promise<void> {
   });
   const syncFloorScene = () => floorScene.update(activeFloorFinishKeys(sim.floorTiles(), null),
     lot.architecture.finishes?.keys ?? [], floorResourceError);
-  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; finishes: ActiveFinishes | undefined }>({
-    // Reports to the startup cover, which ignores it once lifted: on the
-    // startup fallback path this load is what the cover is waiting for.
+  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; prepared: PreparedFloorFinishes }>({
     prepare: async finishKeys => {
-      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys, progress: startupProgress });
-      try {
-        return { renderer: await SpriteRenderer.create(gpu, atlas, startupProgress), finishes: atlas.finishes };
-      }
-      finally { closeArchitectureAtlas(atlas); }
+      const owner = renderer;
+      // Publish pending feedback first, then allow a frame to paint before preparation.
+      await afterPaint();
+      if (graphicsClosed || owner !== renderer || graphicsRecovering) throw new Error('Graphics changed during floor preparation');
+      return { renderer: owner, prepared: await owner.prepareFloorFinishes(finishKeys, startupProgress) };
     },
     publish: next => {
-      const previous = renderer, previousFinishes = lot.architecture.finishes;
-      renderer = next.renderer;
-      lot.architecture.finishes = next.finishes;
-      lot.floors = sim.floorTiles();
-      try { applyCamera(); }
-      catch (error) {
-        renderer = previous;
-        lot.architecture.finishes = previousFinishes;
-        throw error;
-      }
-      previous.destroy();
+      if (graphicsClosed || next.renderer !== renderer || next.prepared.device !== gpu.device) throw new Error('Floor preparation belongs to an old graphics device');
+      const previousFinishes = lot.architecture.finishes;
+      try {
+        renderer.publishFloorFinishes(next.prepared, () => {
+          lot.architecture.finishes = next.prepared.finishes;
+          lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces();
+          applyCamera();
+        });
+      } catch (error) { lot.architecture.finishes = previousFinishes; throw error; }
     },
-    dispose: next => next.renderer.destroy(),
+    dispose: next => next.renderer.discardFloorFinishes(next.prepared),
+    failure: (error, context) => console.warn('Floor material resource failed', context, error),
     state: (ready, error) => {
       floorResourceError = error;
-      if (error) console.warn('Floor material resource failed', error);
       floorTool.setResourceStatus(ready ? null : error ? 'Floor materials could not load. Try again.' : 'Loading floor materials.', error !== null);
       syncFloorScene();
       cameraDirty = true;
     },
   }, residentFinishKeys);
+  window.addEventListener('pagehide', event => { if (!event.persisted) floorResources.destroy(); });
   syncFloorResources = () => {
     floorResources.request(activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null));
     syncFloorScene();
@@ -2240,6 +2255,15 @@ async function main(): Promise<void> {
     buildBatchStatus.textContent = text;
     if (error) buildBatchStatus.setAttribute('data-kind', 'error'); else buildBatchStatus.removeAttribute('data-kind');
   }
+  reflectBuildPoolPending = pending => {
+    const confirm = document.querySelector<HTMLButtonElement>('#build-batch-confirm')!;
+    const cancel = document.querySelector<HTMLButtonElement>('#build-batch-cancel')!;
+    confirm.disabled = pending;
+    cancel.textContent = pending ? 'Return to build mode' : 'Cancel';
+    buildBatchStatus.dataset.pending = String(pending && !roomReview.active);
+    if (roomReview.active) reviewControls?.render();
+    else setBuildStatus(pending ? 'Preparing swimming…' : '');
+  };
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {
     session: buildSession, furniture: builder,
@@ -2281,11 +2305,11 @@ async function main(): Promise<void> {
     lot.walls = sim.wallTiles(); lot.edges = sim.wallEdges();
     lot.windows = sim.windowLines();
     lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
-    lot.floors = sim.floorTiles(); syncFloorResources();
+    lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces(); syncFloorResources();
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
-    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
+    if (buildSession.active && !buildPoolPending && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
   }
   /**
    * Reads the lot's size and the house's place from the simulation; true
@@ -2350,6 +2374,7 @@ async function main(): Promise<void> {
   const buildExit: BuildExit = new BuildExit(document, {
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,
     confirm: confirmBuildBatch,
+    cancelPending: () => preparedBuildCommit.cancel(),
     discard: () => {
       const cancelled = buildSession.end();
       if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be cancelled. Try Cancel again.', true);
@@ -2359,11 +2384,17 @@ async function main(): Promise<void> {
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
-    escapeBuild: () => { if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder); },
+    escapeBuild: () => {
+      if (roomReview.active) roomReview.back();
+      else if (!preparedBuildCommit.cancel()) routeBuildKey('Escape', buildTools, builder);
+    },
     escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder') && !document.querySelector('dialog:popover-open'),
     beforeAsk: () => { optionsMenu.close(); menu.close(); },
+    focusReviewReturn: () => { if (roomReview.active) document.querySelector<HTMLButtonElement>('#room-review-back')?.focus(); },
   });
   replaceBuildLocalState = reason => {
+    preparedBuildCommit.cancel();
+    resetSceneBuildFeedback();
     buildExit.dismiss(); roomReview.reset(); roomSelection.reset();
     if (reason === 'load' || reason === 'end') roomSelection.select(null);
   };
@@ -2379,7 +2410,7 @@ async function main(): Promise<void> {
     { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
       clearSelection: () => clearBuildSelection(buildTools, builder),
       suspended: () => optionsMenu.isOpen() || roomReview.active,
-      focusCatalogue: () => buyControls?.focusCatalogue() },
+      focusCatalogue: () => buyControls?.focusCatalogue(), retryFloorResources: () => floorResources.retry() },
     createContextSurface(document, placementRoot, stage,
       () => {
         const zoom = document.querySelector<HTMLElement>('#build-camera')!.getBoundingClientRect();
@@ -2402,6 +2433,36 @@ async function main(): Promise<void> {
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
+  const buildSceneFeedback = new BuildSceneFeedback(sceneFeedback);
+  resetSceneBuildFeedback = () => { buildSceneFeedback.reset(); presentFloorSceneStatus.preview(null); };
+  const simDockObstacle=document.getElementById('sim-dock');
+  const sceneObstacles=[hudRoot,menuRoot,optionsPanel,placementRoot,document.getElementById('build-camera')!,
+    ...(simDockObstacle?[simDockObstacle]:[])];
+  const sceneLayout = new SceneLayoutObserver(() => {
+    const viewport=stage.getBoundingClientRect();
+    return {left:viewport.left,top:viewport.top,right:viewport.right,
+      bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
+  },sceneObstacles,[stage,builderDock], () => menuRoot.hidden ? [] :
+    Array.from(menuRoot.querySelectorAll<HTMLElement>('.menu-entry, .radial-identity, .radial-close, .radial-description, .object-action-rail')));
+  let highlightRevision = sim.lotRevision();
+  const renderBuildFeedback = (now: number): void => {
+    if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
+    const active = buyTool.active ? buyTool : wallTool.active ? wallTool : roomTool.active ? roomTool : floorTool.active ? floorTool : landTool.active ? landTool : builder;
+    const ghost=active===buyTool?buyTool.ghost():active===builder?builder.preview:null;
+    const point=ghost?[ghost.x+(ghost.width-1)/2,ghost.y+(ghost.depth-1)/2]:active===wallTool?wallTool.anchorPoint()
+      :active===floorTool?floorTool.anchorPoint():active===roomTool&&roomTool.first
+        ?[(roomTool.first[0]+(roomTool.second??roomTool.first)[0])/2,(roomTool.first[1]+(roomTool.second??roomTool.first)[1])/2]:null;
+    const rect=stage.getBoundingClientRect();
+    const anchor=point?{x:rect.left+screenX(point[0],point[1],camera.originX,camera.scale)*rect.width/stage.width,
+      y:rect.top+screenY(point[0],point[1],camera.originY,camera.scale)*rect.height/stage.height}:null;
+    const layout=sceneLayout.read();
+    const optionalFloorRecovery=builder.active&&!roomReview.active&&floorScene.visible&&active===floorTool
+      &&point===null&&floorTool.resourceStatus!=null;
+    const recoveryBounds=presentFloorSceneStatus.preview(optionalFloorRecovery?floorTool.feedback:null,layout);
+    buildSceneFeedback.frame({active:builder.active,reviewing:roomReview.active,tool:active,feedback:optionalFloorRecovery?null:'feedback' in active?active.feedback:null,
+      result:active===buyTool?buyTool.resultFeedback:active===landTool?landTool.resultFeedback:null,contextual:point!==null,anchor},now);
+    sceneFeedback.layout(recoveryBounds?{...layout,obstacles:[...layout.obstacles,recoveryBounds]}:layout);sceneFeedback.frame(now);
+  };
   installShortcuts(document, sim.coveringNames());
   builderControls = new BuilderControls(document, builder);
   builderControls.setCompact(compactBuildQuery.matches);
@@ -2679,20 +2740,35 @@ async function main(): Promise<void> {
   graphicsStatus.style.cssText='position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:20px;background:#202630;color:white;z-index:5';
   const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';setActionIntent(graphicsRetry,'affirmative');
   graphicsStatus.append(graphicsText,graphicsRetry);document.body.append(graphicsStatus);
+  const graphicsPending = new PendingIndicator(graphicsText);
   let recoveryPending=false;
   const deviceLifetime=new DeviceLifetime();
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
+    floorResources.pause(); floorTool.setBlocked(true); renderer.destroy();
     void audio.setBackgrounded(true);
-    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
-    graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
+    overlayPause.suspend('graphics');menu.close();preparedBuildCommit.cancel();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
+    graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics...';graphicsPending.start();
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
       Object.assign(gpu,await initDevice(stage));
       watchGraphics(gpu.device);
       weatherScene = new WeatherScene(gpu.device);
       const replacement=CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
-      try{await floorResources.invalidate();characterWorld=await replacement;characterWorld.prepareFixtures(sim);}
+      // Observe rejection immediately while the base renderer loads; the awaited result below reports it.
+      void replacement.catch(() => {});
+      try {
+        const finishKeys = activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null);
+        const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys });
+        let rebuilt: SpriteRenderer;
+        try { rebuilt = await SpriteRenderer.create(gpu, atlas); }
+        finally { closeArchitectureAtlas(atlas); }
+        if (graphicsClosed) { rebuilt.destroy(); throw new Error('Graphics closed during recovery'); }
+        renderer = rebuilt; lot.architecture.finishes = atlas.finishes;
+        lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces(); applyCamera();
+        floorResources.resume(finishKeys);
+        characterWorld = await replacement; characterWorld.prepareFixtures(sim);
+      }
       catch(error){void replacement.then(world=>world.destroy(),()=>{});throw error;}
       if(graphicsClosed){characterWorld.destroy();weatherScene.destroy();return;}
       deviceLifetime.assertAvailable(gpu.device);
@@ -2700,8 +2776,8 @@ async function main(): Promise<void> {
       graphicsGeneration++;graphicsRecovering=false;graphicsStatus.hidden=true;document.body.append(graphicsStatus);
       previousFrameMs=performance.now();cameraDirty=true;overlayPause.resume('graphics');
       void audio.setBackgrounded(false);
-    }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart. Your game is still available to save. Try again.';graphicsRetry.hidden=false;}
-    finally{recoveryPending=false;}
+    }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart.';graphicsRetry.hidden=false;}
+    finally{recoveryPending=false;graphicsPending.stop();}
   };
   function watchGraphics(device:GPUDevice):void {deviceLifetime.watch(device,()=>{if(!graphicsClosed&&device===gpu.device)void recoverGraphics();});}
   graphicsRetry.addEventListener('click',()=>void recoverGraphics());watchGraphics(gpu.device);
@@ -2780,7 +2856,7 @@ async function main(): Promise<void> {
     landTool.afterCommands();
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands();
-    syncCharacterContacts();
+    contactFrameSync.afterFrame();
     bedAssignmentPanel.afterCommands();
     careerPanel.afterCommands();
     if(choresDialog.open)choresBoard.update();
@@ -2811,7 +2887,8 @@ async function main(): Promise<void> {
 
       // [PA-place]: after the camera settles, so the buttons follow this
       // frame's pan and zoom.
-      placementButtons.frame(camera, stage.width, stage.height);
+      if(placementButtons.frame(camera, stage.width, stage.height))sceneLayout.invalidate();
+      renderBuildFeedback(nowMs);
       // Editing marks the original furniture; play mode marks the selected Sim.
       const selected = builder.active ? builder.selected : sim.selectedIndex();
       const ambient=lightingMode.isFlat()?AMBIENT_NEUTRAL:ambientFor(sim.clockTick(),sim.dayTicks());
@@ -2859,6 +2936,7 @@ async function main(): Promise<void> {
         batch.owners,
         batch.annotations,
         drawWorldEffects,
+        characterWorld.waterSurfaceDraw,
       );
       if (!firstSceneRecorded) {
         firstSceneRecorded = true;
@@ -2876,10 +2954,11 @@ async function main(): Promise<void> {
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside
     // the budget is a budget that does not describe the frame ([L19]).
-    // On five frames in six this is two comparisons and a return.
+    // Value reads keep their cadence; selection changes invalidate them immediately.
     const needsUpdated = needsPanel.update(nowMs, sim);
-    gameHud.update(nowMs, sim);
+    if (gameHud.update(nowMs, sim)) menu.refresh();
     actionQueue.update(nowMs, sim);
+    clearOrdersAvailability.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
     careerAutonomy.update();
@@ -2906,7 +2985,7 @@ async function main(): Promise<void> {
     }
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
-    updateOrderHistory?.();
+    if (needsUpdated) updateOrderHistory?.();
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.

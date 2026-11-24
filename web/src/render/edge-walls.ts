@@ -1,3 +1,4 @@
+import { rearWallLines } from './rear-wall-lines.js';
 /** Half-panels meet at integer edge vertices, drawn half a tile northwest. */
 export interface EdgeWallPanel {
   readonly x: number;
@@ -71,8 +72,10 @@ export function buildEdgeWallGeometry(
   horizontalHinged: ArrayLike<number> = [],
   /** The house's north-west tile; the origin unless land lies behind or beside it. */
   houseOrigin: readonly [number, number] = [0, 0],
+  explicit = false,
 ): EdgeWallPanel[] {
   const [houseX, houseY] = houseOrigin;
+  const rear = explicit ? rearWallLines(edges,windows) : null;
   const inHouse = (x: number, y: number): boolean => x >= houseX && x < houseX + house[0]
     && y >= houseY && y < houseY + house[1];
   const cutAway = (axis: number, x: number, y: number): boolean => (axis === 0
@@ -114,16 +117,17 @@ export function buildEdgeWallGeometry(
     addArm(x, y, vertical ? 4 : 2, cells, low);
     addArm(x + (vertical ? 0 : 1), y + (vertical ? 1 : 0), vertical ? 1 : 8, cells, low);
   };
-  for (let y = houseY; y < Math.min(height, houseY + house[1]); y++) addSegment(0, houseX, y, false);
-  for (let x = houseX; x < Math.min(width, houseX + house[0]); x++) addSegment(1, x, houseY, false);
+  for (let y = houseY; !explicit && y < Math.min(height, houseY + house[1]); y++) addSegment(0, houseX, y, false);
+  for (let x = houseX; !explicit && x < Math.min(width, houseX + house[0]); x++) addSegment(1, x, houseY, false);
   for (let i = 0; i + 3 < edges.length; i += 4) {
-    if (!shortWalls && !showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
-    const rearPerimeter = edges[i] === 0 ? edges[i + 1] === houseX : edges[i + 2] === houseY;
+    if (!explicit && !shortWalls && !showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
+    const rearPerimeter = rear ? rear.has(`${edges[i]}/${edges[i + 1]}/${edges[i + 2]}`)
+      : edges[i] === 0 ? edges[i + 1] === houseX : edges[i + 2] === houseY;
     addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1, shortWalls && !rearPerimeter);
   }
   for (let i = 0; i + 2 < windows.length; i += 3) {
     const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];
-    if (!shortWalls && !showCutAway && cutAway(axis, x, y)) continue;
+    if (!explicit && !shortWalls && !showCutAway && cutAway(axis, x, y)) continue;
     const vertical = axis === 0;
     doors.push({
       x: vertical ? x - 0.5 : x,
@@ -157,6 +161,7 @@ export function buildShortEdgeWallGeometry(
   windows: ArrayLike<number> = [],
   horizontalHinged: ArrayLike<number> = [],
   houseOrigin: readonly [number, number] = [0, 0],
+  explicit = false,
 ): EdgeWallPanel[] {
-  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true, horizontalHinged, houseOrigin);
+  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true, horizontalHinged, houseOrigin, explicit);
 }

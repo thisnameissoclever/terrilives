@@ -4,6 +4,7 @@ import meshSource from './mesh.wgsl?raw';
 import skinSource from './skin-cage.wgsl?raw';
 import subdivisionSource from './subdivide.wgsl?raw';
 import normalSource from './surface-normals.wgsl?raw';
+import registeredDepthSource from '../registered-depth.wgsl?raw';
 
 export const characterShaderSource=sceneColorFunctions+colourwayShader+meshSource;
 export function characterBindGroupLayoutEntries():GPUBindGroupLayoutEntry[] {return [
@@ -84,7 +85,7 @@ export const worldPickingShaderSource=`
       }`;
 export function worldPickingPipelineDescriptor(module:GPUShaderModule):GPUComputePipelineDescriptor {return {layout:'auto',compute:{module,entryPoint:'main'}};}
 
-export const previewFixtureShaderSource=`${sceneColorFunctions}
+export const previewFixtureShaderSource=`${sceneColorFunctions}${registeredDepthSource}
 struct View { scene:vec4f, rectangle:vec4f, settings:vec4f };
 @group(0) @binding(0) var<uniform> view:View;
 @group(0) @binding(1) var picture:texture_2d_array<f32>;
@@ -102,7 +103,7 @@ struct Fragment { @location(0) color:vec4f, @location(1) surface:f32, @location(
  let color=textureLoad(picture,pixel,i32(view.settings.x),0);
  if(!sceneCovered(color.a,in.position.xy)){discard;}
  let sample=textureLoad(surface,pixel,i32(view.settings.x),0);
- let sum=dot(sample.rg,vec2f(65280.,255.))/65535.*4.-2.;
+ let sum=registeredFixtureDepth(sample,true);
  let depth=clamp(view.settings.y-sum*view.settings.z,0.,1.);
  var out:Fragment;out.color=vec4f(sceneLinear(color.rgb),1.);out.surface=depth;out.identity=u32(view.settings.w);out.depth=depth;return out;
 }`;

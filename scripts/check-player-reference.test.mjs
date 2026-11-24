@@ -5,7 +5,24 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { refreshReview, checkReference } from './check-player-reference.mjs';
+import { refreshReview, checkReference, exportReference } from './check-player-reference.mjs';
+
+test('compiled exporter uses a hidden bounded-output child and preserves failures', () => {
+  let calls = 0;
+  const root = tmpdir();
+  const exported = exportReference(root, (program, args, options) => {
+    calls += 1;
+    assert.equal(program, 'cargo');
+    assert.deepEqual(args, ['run', '--quiet', '-p', 'terri-data', '--example', 'player_guide']);
+    assert.equal(options.cwd, root);
+    assert.equal(options.windowsHide, true);
+    assert.equal(options.maxBuffer, 8 * 1024 * 1024);
+    return { status: 0, stdout: '{"schema_version":1}\r\n', stderr: '' };
+  });
+  assert.equal(calls, 1);
+  assert.equal(exported, '{"schema_version":1}\n');
+  assert.throws(() => exportReference(root, () => ({ status: 101, stderr: 'compile failed' })), /compile failed/);
+});
 
 function fixture(run) {
   const root = mkdtempSync(join(tmpdir(), 'player-reference-'));
@@ -75,7 +92,7 @@ test('missing review and malformed reference fail with useful messages', () => f
 
 test('CLI rejects unknown arguments even when invoked from another directory', () => {
   const command = fileURLToPath(new URL('./check-player-reference.mjs', import.meta.url));
-  const result = spawnSync(process.execPath, [command, '--unknown'], { cwd: tmpdir(), encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [command, '--unknown'], { cwd: tmpdir(), encoding: 'utf8', windowsHide: true });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Unknown argument: --unknown/);
   assert.equal(result.stdout, '');

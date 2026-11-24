@@ -270,6 +270,42 @@ fn career_input_history_has_fourteen_numbers_a_row() {
     assert!(handle.career_input_history(u32::MAX).is_empty());
 }
 
+#[test]
+fn exceptional_career_week_sources_keep_pre_review_pay_and_report_weighted_demand() {
+    let mut handle = SimHandle::from_lot();
+    let worker = worker(&handle);
+    let id = sim_id_of(&handle, worker);
+    let pack = handle.sim.world().resource::<Content>().0;
+    let previous = &pack.careers[0];
+    let role = pack.career_paths[1].levels[1];
+    let current = &pack.careers[role as usize];
+    let record = record_of(&mut handle, id);
+    let expected_week = 4;
+    let mut reviewed = week(expected_week, role, 0.5, current.pay);
+    reviewed.shifts = 3;
+    reviewed.attended = 2;
+    record.input_weeks.push_back(reviewed);
+    record.reviewed_input_sources.insert(expected_week, [(0, terri_sim::careers::ShiftSource {
+        career: 0,
+        base_pay: Some(previous.pay),
+    })].into());
+
+    let row = handle.career_input_history(worker);
+    assert_eq!(row.len(), 14);
+    assert_eq!(row[9], f64::from((previous.social_demand + current.social_demand + current.social_demand) / 3.0));
+    assert_eq!(row[13], f64::from(current.pay));
+    assert_eq!(handle.career_input_sources(worker), [
+        4.0, f64::from(previous.path), f64::from(previous.level), f64::from(previous.pay),
+        4.0, f64::from(current.path), f64::from(current.level), f64::from(current.pay),
+        4.0, f64::from(current.path), f64::from(current.level), f64::from(current.pay),
+    ]);
+    assert!(handle.career_input_sources(u32::MAX).is_empty());
+    record_of(&mut handle, id).reviewed_input_sources.get_mut(&expected_week)
+        .unwrap().get_mut(&0).unwrap().base_pay = None;
+    assert_eq!(handle.career_input_sources(worker)[3], -1.0);
+    assert_eq!(handle.career_input_history(worker)[13], f64::from(current.pay));
+}
+
 /// [CT-web] item 4: the seven `ShiftInputs` numbers, `[fit, trait_fit,
 /// social_capacity, mastery, mood, missed_minutes, attended]`, or empty
 /// before a shift has been scored and for anything but a living person.
@@ -297,7 +333,7 @@ fn career_last_shift_has_the_seven_inputs() {
 }
 
 /// [CT-tests] wasm boundary item 3: a save written through the wasm save
-/// path at schema 24 reloads with the rows and the last shift, and the
+/// path at the current schema reloads with the rows and the last shift, and the
 /// hash agrees.
 #[test]
 fn schema_twenty_four_saves_reload_with_the_rows() {

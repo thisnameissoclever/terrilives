@@ -505,15 +505,15 @@ fn stove_neighbors_follow_rotation_walls_moves_and_missing_counters() {
     let expected = grime::adjacent_counters(sim.world(), stove);
     assert_eq!(expected.len(), 2);
     for facing in terri_core::Facing::ALL {
-        sim.world_mut()
-            .resource_mut::<terri_core::CommandQueue>()
-            .push(terri_core::SimCommand::PlaceObject {
+        crate::test_content::reviewed_command(
+            &mut sim,
+            terri_core::SimCommand::PlaceObject {
                 object: stove.index_u32(),
                 x: 2,
                 y: 0,
                 facing,
-            });
-        sim.flush_commands();
+            },
+        );
         assert_eq!(
             sim.world()
                 .get::<terri_core::ObjectFacing>(stove)
@@ -546,25 +546,25 @@ fn stove_neighbors_follow_rotation_walls_moves_and_missing_counters() {
                 .is_ok()
         })
         .unwrap();
-    sim.world_mut()
-        .resource_mut::<terri_core::CommandQueue>()
-        .push(terri_core::SimCommand::PlaceObject {
+    crate::test_content::reviewed_command(
+        &mut sim,
+        terri_core::SimCommand::PlaceObject {
             object: expected[1],
             x: destination.0,
             y: destination.1,
             facing: terri_core::Facing::SouthWest,
-        });
-    sim.flush_commands();
+        },
+    );
     assert_eq!(
         grime::adjacent_counters(sim.world(), stove),
         vec![expected[0]]
     );
-    sim.world_mut()
-        .resource_mut::<terri_core::CommandQueue>()
-        .push(terri_core::SimCommand::SellObject {
+    crate::test_content::reviewed_command(
+        &mut sim,
+        terri_core::SimCommand::SellObject {
             object: expected[0],
-        });
-    sim.flush_commands();
+        },
+    );
     assert!(grime::adjacent_counters(sim.world(), stove).is_empty());
 }
 

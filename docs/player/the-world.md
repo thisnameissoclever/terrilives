@@ -44,15 +44,15 @@ A shift's kind moves when the person wants to sleep, on working days and days of
 
 :::illustration sim-career
 
-A person commutes to an off-lot job and returns after the shift. Work has an Energy cost and slows ordinary need loss while at work. At work a housemate is relieved of Bladder whenever it falls below {{number:tuning.work_bladder_relief_threshold}} percent, so it never becomes critical during a shift; no other need is refilled there. Commuting uses ordinary need loss. Days off use normal household rules.
+A person walks to an open lot edge to leave for work. After the shift, they return through a reachable opening. If no route home is available, they wait outside until one opens. Work has an Energy cost and slows ordinary need loss. Hunger, Bladder and Social refill halfway if Low or Critical on arrival, or when they would reach Critical during the shift. Commuting and days off follow the [ordinary need rules](needs/#timing-and-decay).
 
 A housemate whose Hunger or Energy is critical when the shift starts deals with it first and leaves for work late, at most {{number:tuning.work_lateness_limit_ticks}} game minutes after the shift starts. A meal or sleep already under way that raises the need finishes first, and nobody leaves late for a shift that has already ended. While they are late they almost always spend the time on that need. A critical Bladder never delays leaving. A housemate reading when the shift starts puts the book back before leaving, but the same limit applies: one still carrying it back {{number:tuning.work_lateness_limit_ticks}} minutes after the shift starts leaves it on the floor where they stand and goes to work. Lateness still counts as missed time, which affects pay and performance.
 
-You can also send a housemate to work early or late with the [Career tab's Go to work button](ui-elements/#go-to-work), once the shift is within {{number:tuning.go_to_work_window_ticks}} game minutes of starting. Leaving early is on time, and the wait before the shift is unpaid. Leaving after the shift has started counts the minutes since the start as missed work. The person leaves whatever they are doing, even with low needs, and a reader puts the book down where they stand.
+You can also send a housemate to work early or late with the [Career tab's Go to work button](ui-elements/#go-to-work), once the shift is within {{number:tuning.go_to_work_window_ticks}} game minutes of starting. Arriving before the shift starts avoids missed time; the wait is unpaid. Any time from the scheduled start until arrival counts as missed work. Go to work takes priority over ordinary activities, even with low needs. Swimmers climb out before leaving, and readers put the book down where they stand.
 
 Your orders can delay a shift or bring someone home. The scheduled end does not move later to compensate, so actual attendance affects pay and performance. Career assignment and quitting are unavailable while the person is at work or commuting.
 
-Weekly reviews use performance and a limited random contribution. Good results can bring a raise or promotion; poor runs can bring demotion and eventually dismissal. A promotion or demotion keeps the person's shift when the new level offers it. Turning off automatic career changes does not turn off reviews. A person's automatic job search is controlled separately in their own Career tab. A person looking for work tries careers by chance, favoring the ones that suit their traits.
+Weekly reviews use performance and a limited random contribution. A review can wait for a shift or work trip already in progress. Good results can bring a raise or promotion; poor runs can bring demotion and eventually dismissal. A promotion or demotion keeps the person's shift when the new level offers it. Turning off automatic career changes does not turn off reviews. A person's automatic job search is controlled separately in their own Career tab. A person looking for work tries careers by chance, favoring the ones that suit their traits.
 
 ## Bills {#bills}
 
@@ -74,7 +74,7 @@ A month is {{number:bills.days_per_month}} days. An unpaid bill becomes overdue 
 
 Confirmed walls and doorways define the home's rooms. Room names help you identify spaces and chore areas. Outside is one shared named area for the yard and other outdoor tiles, but distant people outdoors do not gain passive friendship merely because they share that name.
 
-Doorways permit travel and daylight. Windows permit daylight while blocking travel. Furniture placement and construction must preserve usable routes. [Build](home-and-controls/#build) keeps edits in a draft until you confirm them.
+Doorways permit travel and daylight. Windows permit daylight while blocking travel. [Build](home-and-controls/#build) keeps edits in a draft. If the draft cuts off ground or makes people or objects unreachable, the game highlights the affected area and asks you to review it before confirming.
 
 Floor grime comes from actual use on eligible flooring. Grass and street do not accumulate it. Surfaces can become dirty through use, and food preparation creates dishes and bin waste. These are household work rather than seasonal weather effects.
 

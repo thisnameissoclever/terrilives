@@ -12,6 +12,9 @@
       "outline": true,
       "reason": "Closed structural body, hair, clothing, prop and fixture surfaces own their visible silhouette.",
       "parts": [
+        "Creator clip bath Bath play duck",
+        "Creator clip bath Bath play boat",
+        "Creator clip bath Bath play submarine",
         "Arm left",
         "Arm right",
         "Back cushion",

@@ -285,7 +285,11 @@
   },
   {
     "label": "Work",
-    "helps": [],
+    "helps": [
+      "Hunger",
+      "Bladder",
+      "Social"
+    ],
     "costs": [
       "Energy"
     ],
@@ -310,7 +314,18 @@
     "harmsFeelings": false
   },
   {
-    "label": "Washer-dryer and pool",
+    "label": "Pool: Hop in",
+    "helps": [
+      "Fun",
+      "Comfort"
+    ],
+    "costs": [
+      "Energy"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Washer-dryer",
     "helps": [],
     "costs": [],
     "harmsFeelings": false

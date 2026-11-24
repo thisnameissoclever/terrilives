@@ -45,7 +45,7 @@ export function loadedLine(bytes: number): string {
 }
 
 export interface StartupLoading {
-  /** Names the current step and clears the previous step's file count. */
+  /** Names the current step and hides the previous step's download progress. */
   step(step: StartupStep): void;
   /** An unnumbered step, for a wait outside the usual order. */
   note(text: string): void;
@@ -108,6 +108,7 @@ export function startupLoading(
     if (stepText) stepText.textContent = text;
     if (countText) { countText.textContent = ''; countText.hidden = true; }
     if (bar) bar.hidden = true;
+    if (bytesText) bytesText.hidden = true;
   };
   return {
     step(step) { show(startupStepLine(step)); },

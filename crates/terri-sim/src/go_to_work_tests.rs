@@ -502,25 +502,19 @@ fn status_after_a_settled_shift_today_is_tomorrow() {
     let id = *sim.world().get::<SimId>(actor).unwrap();
     let end = START + u64::from(SHIFT);
     let pay_cents = standard_pay(&sim);
-    sim.world_mut().insert_resource(Attendance {
-        shifts: [(
-            id,
-            SavedScheduledShift {
-                sim: id.0,
-                career: 0,
-                start_tick: START,
-                end_tick: end,
-                worked_ticks: u64::from(SHIFT),
-                accounted_tick: end,
-                pay_cents,
-                settled: true,
-                legacy: false,
-            },
-        )]
-        .into(),
-        outcomes: Vec::new(),
-        replaced: Default::default(),
+    let mut attendance = Attendance::default();
+    attendance.shifts.insert(id, SavedScheduledShift {
+        sim: id.0,
+        career: 0,
+        start_tick: START,
+        end_tick: end,
+        worked_ticks: u64::from(SHIFT),
+        accounted_tick: end,
+        pay_cents,
+        settled: true,
+        legacy: false,
     });
+    sim.world_mut().insert_resource(attendance);
     at(&mut sim, end + 10);
     let day = day_ticks(&sim);
     assert_eq!(
@@ -1114,13 +1108,13 @@ fn a_saved_shift_registered_before_its_start_validates() {
     assert_eq!(send(&mut sim, actor), None);
     let saved = crate::attendance::to_saved(sim.world());
     assert_eq!(
-        crate::attendance::validate_saved(sim.world(), &saved),
+        crate::attendance::validate_saved(sim.world(), &saved, true),
         Ok(())
     );
     let refuses = |change: &dyn Fn(&mut SavedScheduledShift)| {
         let mut bad = saved.clone();
         change(&mut bad.shifts[0]);
-        crate::attendance::validate_saved(sim.world(), &bad).is_err()
+        crate::attendance::validate_saved(sim.world(), &bad, true).is_err()
     };
     assert!(refuses(&|s| s.accounted_tick -= 1), "accounting moved back");
     assert!(refuses(&|s| s.worked_ticks = 1), "worked time");
@@ -1130,7 +1124,7 @@ fn a_saved_shift_registered_before_its_start_validates() {
     let sent = now(&sim);
     at(&mut sim, sent - 1);
     assert!(
-        crate::attendance::validate_saved(sim.world(), &saved).is_err(),
+        crate::attendance::validate_saved(sim.world(), &saved, true).is_err(),
         "a start one tick past the window"
     );
     at(&mut sim, sent);
@@ -1141,8 +1135,8 @@ fn a_saved_shift_registered_before_its_start_validates() {
         sim.tick();
     }
     let hash = sim.world_hash();
-    let snapshot = sim.save_snapshot_v27();
-    sim.load_snapshot_v27(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(snapshot).expect("loads");
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -1156,8 +1150,8 @@ fn a_saved_shift_registered_before_its_start_validates() {
 /// comparison below start from a loaded world.
 fn loaded_fixture() -> (Sim, Entity, Vec<Entity>) {
     let (mut sim, actor, objects) = fixture(|_| {});
-    let snapshot = sim.save_snapshot_v27();
-    sim.load_snapshot_v27(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(snapshot).expect("loads");
     (sim, actor, objects)
 }
 
@@ -1167,7 +1161,7 @@ fn loaded_fixture() -> (Sim, Entity, Vec<Entity>) {
 fn assert_reload_continues(mut sim: Sim) {
     let (mut loaded, _, _) = fixture(|_| {});
     loaded
-        .load_snapshot_v27(sim.save_snapshot_v27())
+        .load_snapshot_v28(sim.save_snapshot_v28())
         .expect("loads");
     assert_eq!(loaded.world_hash(), sim.world_hash(), "after the load");
     let last = START + u64::from(SHIFT) + window(&sim);
@@ -1182,13 +1176,13 @@ fn assert_reload_continues(mut sim: Sim) {
     loaded.tick();
     assert_eq!(loaded.world_hash(), sim.world_hash(), "after settling");
     assert_eq!(
-        sim.save_snapshot_v24().career_inputs.len(),
+        sim.save_snapshot_v28().previous.career_inputs.len(),
         1,
         "the settled shift's inputs are kept"
     );
     assert_eq!(
-        loaded.save_snapshot_v24().career_inputs,
-        sim.save_snapshot_v24().career_inputs
+        loaded.save_snapshot_v28().previous.career_inputs,
+        sim.save_snapshot_v28().previous.career_inputs
     );
 }
 
@@ -1212,7 +1206,7 @@ fn saves_while_waiting_at_work_or_with_go_to_work_queued_continue_identically() 
     let agent = actor.index_u32();
     push(&mut sim, SimCommand::GoToWork { agent });
     assert_eq!(
-        sim.save_snapshot_v24().queued_work_commands,
+        sim.save_snapshot_v28().previous.queued_work_commands,
         vec![(0, SavedQueuedWorkCommand::GoToWork { agent })]
     );
     assert_reload_continues(sim);

@@ -10,7 +10,7 @@
 
 4. Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.
 
-5. Floors selects a tile without changing it. Select a second tile to select every tile in the rectangle between them. Choose Boards, Tiles, Carpet or Outdoor patio beside the selection to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and exits Build.
+5. Floors selects a tile without changing it. Select a second tile to select every tile in the rectangle between them. Choose Boards, Tiles, Carpet or Outdoor patio beside the selection to apply a covering. Remove clears the covering and replaces an underlying indoor floor with grass; underlying grass and street stay unchanged. Confirm at the bottom keeps changes and exits Build.
 
 6. Land starts a fresh batch. If your current batch has changes, choose Confirm changes to keep them, Discard changes to undo them, or Keep building to stay with the current tool and draft. Land purchases have their own Buy land confirmation before joining the draft. See [rooms and land](home-and-controls/#rooms-and-land).
 
@@ -22,7 +22,7 @@
 
 3. Long-press or right-click for more actions, including talking to another person.
 
-4. Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.
+4. Queue new orders starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.
 
 5. Use Clear orders to stop the action you gave the selected person and remove their waiting actions.
 
@@ -48,8 +48,8 @@
 
 ## Options & saves
 
-1. Open Options for Light, Sound, Death, Save, Load, Export save, Import save, New game, New housemate, Help and Changelog. Export save downloads your household as a file; Import save loads one, for example on another device. Played at the old web address? See [saves from the old address](home-and-controls/#old-address). Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.
+1. Open Options for Light, Sound, Death, Save, Load, Export save, Import save, New game, New housemate, Help and Changelog. Export save downloads your household as a file; Import save loads one, for example on another device. Played at the old web address? See [saves from the old address](home-and-controls/#old-address). Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue new orders and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.
 
 ## Full player guide
 
-Read the [player guide](start-here/) for screenshots, activities and explanations. Open [Options](ui-elements/#options) and choose [New housemate](ui-elements/#new-housemate) to add a person. The guide opens separately; pause first if you want the household to wait.
+Read the [player guide](start-here/) for screenshots, activities and explanations. Open [Options](ui-elements/#options) and choose [New housemate](ui-elements/#new-housemate) to add a person. The guide opens in a separate tab.

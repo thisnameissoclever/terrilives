@@ -9,7 +9,7 @@ import {
 } from '../src/ui/needs-panel.js';
 
 // What this file guards is [D-5]: the panel renders simulation state and
-// owns none of it, and the only state it may hold is a throttle timestamp.
+// owns none of its values. The last rendered identity only invalidates presentation.
 // Two things follow, and both are tested here rather than asserted in a
 // comment - that every read goes back to the source, and that the throttle
 // is a rate rather than a latch.
@@ -27,6 +27,7 @@ function bar(): TestBar {
     setAttribute(name, value) {
       attributes[name] = value;
     },
+    removeAttribute(name) { delete attributes[name]; },
   };
 }
 
@@ -110,6 +111,47 @@ describe('levelPercent', () => {
 });
 
 describe('NeedsPanel', () => {
+  it('clears and replaces readings immediately when selection changes inside the refresh interval', () => {
+    const fills = Array.from({length: 7}, bar), title = caption();
+    const panel = new NeedsPanel({hidden: false}, title, fills, 100, 100);
+    const source = new CountingSource(3, SEVEN);
+    panel.update(0, source);
+    source.selected = null;
+    expect(panel.update(1, source)).toBe(true);
+    expect(fills.every(fill => fill.attributes['aria-valuenow'] === undefined)).toBe(true);
+    expect(widths(fills)).toEqual(Array(7).fill('0%'));
+    source.selected = 9; source.name = 'Casey'; source.levels = new Float32Array(7);
+    expect(panel.update(2, source)).toBe(true);
+    expect(title.textContent).toBe('Casey');
+    expect(fills[0].attributes['aria-valuenow']).toBe('0');
+    expect(fills[0].attributes['aria-valuetext']).toBe('0% full, critical');
+    expect(panel.update(3, source)).toBe(false);
+    expect(source.needsReads).toBe(2);
+  });
+  it('keeps seven hollow tracks after deselection without stale numbers or critical readings', () => {
+    const fills = Array.from({length: 7}, bar), root = {hidden: false};
+    const empty = {hidden: false}, content = {hidden: true}, title = caption();
+    const panel = new NeedsPanel(root, title, fills, 0, 100, empty, content);
+    const source = new CountingSource(7, SEVEN);
+    panel.update(0, source);
+    source.selected = null;
+    panel.update(1, source);
+    expect(root.hidden).toBe(false);
+    expect(content.hidden).toBe(false);
+    expect(empty.hidden).toBe(true);
+    expect(title.textContent).toBe('Select a person');
+    for (const fill of fills) {
+      expect(fill.style.width).toBe('0%');
+      expect(fill.attributes['aria-valuenow']).toBeUndefined();
+      expect(fill.attributes['aria-valuetext']).toBe('No person selected');
+    }
+    source.selected = 9;
+    source.levels = new Float32Array(0);
+    panel.update(2, source);
+    expect(empty.hidden).toBe(false);
+    expect(content.hidden).toBe(true);
+    expect(title.textContent).toBe('Terri');
+  });
   it('skips unchanged captions and warnings in selected and empty states', () => {
     const title = caption();
     const stateText = { textContent: '' };
@@ -183,11 +225,9 @@ describe('NeedsPanel', () => {
     expect(source.needsReads).toBeGreaterThan(1);
   });
 
-  it('touches neither the source nor the bars on a throttled frame', () => {
-    // The throttle's real claim. A panel that read the simulation and
-    // then decided not to redraw would produce the same picture and the
-    // same test result on every assertion about widths, while making
-    // every boundary call the throttle exists to avoid.
+  it('checks live selection while throttling need reads and unchanged bar writes', () => {
+    // Selection must invalidate stale readings immediately; expensive need
+    // projection reads still wait for the cadence when identity is unchanged.
     const fills = bars(7);
     const panel = new NeedsPanel({ hidden: false }, caption(), fills, 100, 100);
     const source = new CountingSource(3, SEVEN);
@@ -200,7 +240,7 @@ describe('NeedsPanel', () => {
     source.levels = new Float32Array([0, 0, 0, 0, 0, 0, 0]);
     expect(panel.update(50, source)).toBe(false);
 
-    expect(source.selectionReads).toBe(1);
+    expect(source.selectionReads).toBe(2);
     expect(source.needsReads).toBe(1);
     expect(widths(fills)).toEqual(afterFirst);
   });
@@ -223,7 +263,7 @@ describe('NeedsPanel', () => {
     expect(source.selectionReads).toBe(2);
   });
 
-  it('hides itself for a selection with no needs to show', () => {
+  it('shows hollow tracks without selection and hides unavailable needs without an error target', () => {
     // Nothing selected, a sim that despawned between the click and this
     // frame, and a click that landed on a fridge all arrive as an empty
     // array. All three draw no bars, and all three are asserted, because
@@ -234,7 +274,7 @@ describe('NeedsPanel', () => {
 
     const nothingSelected = new CountingSource(null, SEVEN);
     panel.update(0, nothingSelected);
-    expect(root.hidden).toBe(true);
+    expect(root.hidden).toBe(false);
     // And it did not ask for the needs of a sim that is not there.
     expect(nothingSelected.needsReads).toBe(0);
 
@@ -282,7 +322,7 @@ describe('NeedsPanel', () => {
     expect(fills[1].attributes['aria-valuetext']).toBe('55% full, steady');
   });
 
-  it('shows a compact selection prompt when display targets are supplied', () => {
+  it('keeps hollow tracks visible without repeating the caption selection prompt', () => {
     const root = { hidden: true };
     const empty = { hidden: true };
     const content = { hidden: false };
@@ -290,8 +330,8 @@ describe('NeedsPanel', () => {
 
     panel.update(0, new CountingSource(null, SEVEN));
     expect(root.hidden).toBe(false);
-    expect(empty.hidden).toBe(false);
-    expect(content.hidden).toBe(true);
+    expect(empty.hidden).toBe(true);
+    expect(content.hidden).toBe(false);
 
     panel.update(1, new CountingSource(4, SEVEN));
     expect(empty.hidden).toBe(true);

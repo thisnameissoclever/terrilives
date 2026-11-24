@@ -24,7 +24,7 @@ use crate::social_episode::requests::runtime::Runtime;
 use crate::{save, SaveError, Sim};
 use bevy_ecs::prelude::*;
 use terri_core::admin::{AdminChange, AdminEdit, AdminStructureError};
-use terri_core::{CommandQueue, SaveSnapshotV27, SimCommand};
+use terri_core::{CommandQueue, SaveSnapshotV28, SimCommand};
 
 /// Why the drain refused a change ([AP-cmd-refusals]). The discriminant is
 /// the code the shell words.
@@ -124,7 +124,7 @@ pub(crate) struct AdminEntry {
 /// not hashed, like Build mode's transaction.
 #[derive(Resource, Clone)]
 pub(crate) struct AdminSession {
-    baseline: SaveSnapshotV27,
+    baseline: SaveSnapshotV28,
     baseline_hash: u64,
     request_runtime: Runtime,
     pub(crate) journal: Vec<AdminEntry>,
@@ -141,7 +141,7 @@ pub(crate) struct AdminSession {
 struct AdminBroken;
 
 /// Whether admin edits have left a world that would not load: a broken
-/// session, open or closed. [`Sim::try_save_snapshot_v27`] refuses every
+/// session, open or closed. [`Sim::try_save_snapshot_v28`] refuses every
 /// save then.
 pub(crate) fn world_broken(world: &World) -> bool {
     world.contains_resource::<AdminBroken>()
@@ -277,7 +277,7 @@ impl Sim {
         if !self.world.resource::<CommandQueue>().is_empty() {
             self.flush_commands();
         }
-        let baseline = save::v27::capture(self);
+        let baseline = save::v28::capture(self);
         let request_runtime = crate::social_episode::requests::runtime::capture(&self.world);
         self.restore_session_baseline(baseline.clone(), &request_runtime)
             .map_err(AdminOpenError::WouldNotReload)?;

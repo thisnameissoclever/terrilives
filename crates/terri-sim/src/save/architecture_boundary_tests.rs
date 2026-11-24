@@ -1,3 +1,4 @@
+use super::super::v3_tests::{assert_current_roundtrip, assert_materialized_rear_shell};
 use super::*;
 use terri_core::{layout::WallEdge, Agent, Footprint, Path, Position, Reserved, Target};
 
@@ -56,7 +57,11 @@ fn furniture_rejects_internal_edges_and_accepts_its_outer_perimeter() {
             assert_eq!(outcome, Ok(()), "perimeter edge {from:?} -> {to:?}");
             let mut expected = saved.clone();
             expected.world = super::super::tests::after_legacy_load_draws(expected.world);
+            let adopted = live.save_snapshot_v2();
+            assert_materialized_rear_shell(&adopted.layout, &saved.layout, 8, 8);
+            expected.layout = adopted.layout;
             assert_eq!(live.save_snapshot_v2(), expected);
+            assert_current_roundtrip(&mut live);
         }
     }
 }
@@ -85,7 +90,11 @@ fn repeated_path_tiles_are_valid_and_a_walking_target_need_not_be_in_contact_yet
     live.load_snapshot_v2(saved.clone()).unwrap();
     let mut expected = saved.clone();
     expected.world = super::super::tests::after_legacy_load_draws(expected.world);
+    let adopted = live.save_snapshot_v2();
+    assert_materialized_rear_shell(&adopted.layout, &saved.layout, 7, 5);
+    expected.layout = adopted.layout;
     assert_eq!(live.save_snapshot_v2(), expected);
+    assert_current_roundtrip(&mut live);
 
     saved
         .world
@@ -95,13 +104,17 @@ fn repeated_path_tiles_are_valid_and_a_walking_target_need_not_be_in_contact_yet
         .unwrap()
         .path = None;
     live.load_snapshot_v2(saved.clone()).unwrap();
+    let adopted = live.save_snapshot_v2();
+    assert_materialized_rear_shell(&adopted.layout, &saved.layout, 7, 5);
     let mut expected = saved;
     expected.world = super::super::tests::after_legacy_load_draws(expected.world);
+    expected.layout = adopted.layout;
     assert_eq!(
         live.save_snapshot_v2(),
         expected,
         "an idle target is not an active contact"
     );
+    assert_current_roundtrip(&mut live);
 }
 
 #[test]

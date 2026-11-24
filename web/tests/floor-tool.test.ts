@@ -55,6 +55,79 @@ function tool(): { floors: FloorTool; source: FakeFloors; renders: number } {
   return { floors, source, get renders() { return state.renders; } };
 }
 
+it('reports the selected covering and resource state without parsing the status text', () => {
+  const { floors } = tool(); floors.choose(2); floors.choosePoint(1, 1);
+  floors.setResourceStatus('Unrelated translation');
+  expect(floors.feedback).toMatchObject({ operation: 'floor', state: 'pending', target: 'Tiles' });
+  floors.setResourceStatus('Unrelated translation', true);
+  expect(floors.feedback).toMatchObject({ state: 'failure', target: 'Tiles', recovery: 'retry' });
+  floors.setResourceStatus(null); expect(floors.feedback).toBeNull();
+});
+
+it('waits for finish resources before staging the requested edit and resumes it after Retry succeeds', () => {
+  const { floors, source } = tool(); floors.choosePoint(1, 1);
+  floors.setResourceStatus('Loading'); floors.applyCovering(2);
+  expect(source.staged).toEqual([]); expect(floors.status).not.toMatch(/not possible/);
+  floors.setResourceStatus('Failed', true); expect(source.staged).toEqual([]);
+  floors.setResourceStatus('Loading'); floors.setResourceStatus(null);
+  expect(source.staged).toEqual([[1, 1, 2]]);
+});
+
+it.each(['choice', 'tile', 'exit', 'load'] as const)('cancels resource-waiting apply intent on %s change', change => {
+  const { floors, source } = tool(); floors.choosePoint(1, 1);
+  floors.setResourceStatus('Loading'); floors.applyCovering(2);
+  if (change === 'choice') floors.choose(3);
+  if (change === 'tile') floors.choosePoint(2, 1);
+  if (change === 'exit') floors.exit();
+  if (change === 'load') floors.resetAfterLoad(4, 3);
+  floors.setResourceStatus(null); expect(source.staged).toEqual([]);
+});
+
+it('does not replay a waiting edit into a revised world when resource loading finishes', () => {
+  const { floors, source } = tool(); floors.choosePoint(1, 1);
+  floors.setResourceStatus('Loading'); floors.applyCovering(2); source.revision++;
+  floors.setResourceStatus(null);
+  expect(source.staged).toEqual([]);
+  expect(floors.feedback).toMatchObject({ state: 'failure', recovery: 'edit' });
+});
+
+it('restores selected-floor assistive information after recovery cancels a waiting edit', () => {
+  const { floors, source } = tool(), elements = new Map<string, FakeElement>();
+  const view = new FloorToolControls(fakeDocument(elements) as never, floors, async () => {});
+  floors.choosePoint(1, 1); const selectedStatus = floors.status;
+  floors.setResourceStatus('Arbitrary resource progress'); floors.applyCovering(2); view.render();
+  expect(elements.get('floor-status')!.textContent).toBe('Loading Tiles...');
+  floors.setBlocked(true); floors.setResourceStatus(null); floors.setBlocked(false); view.render();
+  expect(elements.get('floor-status')!.textContent).toBe(selectedStatus);
+  expect(floors.feedback).toBeNull(); expect(source.staged).toEqual([]);
+});
+
+it('keeps physical, already-current and native-pending gates when offering alternative requests', () => {
+  const { floors, source } = tool(); source.tiles = [1, 1, 1]; source.refusals[3] = 7;
+  floors.choosePoint(1, 1); floors.choose(2); floors.setResourceStatus('Unavailable', true);
+  expect(floors.canRequestCovering(1)).toBe(false); // Already Boards.
+  expect(floors.canRequestCovering(2)).toBe(false); // Retry owns the selected failure.
+  expect(floors.canRequestCovering(3)).toBe(false); // Native preflight refusal.
+  expect(floors.canRequestCovering(0)).toBe(true);
+  expect(floors.canApplyCovering(0)).toBe(false); // Readiness still gates staging.
+  floors.pending = 2; expect(floors.canRequestCovering(0)).toBe(false);
+  floors.pending = null; floors.setBlocked(true); expect(floors.canRequestCovering(0)).toBe(false);
+  expect(source.staged).toEqual([]);
+});
+
+it('preserves a native refusal when a later optional loading wait is canceled by recovery', () => {
+  const { floors, source } = tool(), elements = new Map<string, FakeElement>();
+  const view = new FloorToolControls(fakeDocument(elements) as never, floors, async () => {});
+  floors.choosePoint(1, 1); floors.applyCovering(2);
+  source.result = { x: 1, y: 1, covering: 2, reason: 7 }; floors.afterCommands();
+  const refusal = floors.feedback, status = floors.status;
+  floors.setResourceStatus('Untranslated resource text'); floors.apply();
+  floors.setBlocked(true); floors.setResourceStatus(null); floors.setBlocked(false); view.render();
+  expect(floors.feedback).toEqual(refusal); expect(floors.status).toBe(status);
+  expect(elements.get('floor-status')!.textContent).toBe(refusal!.message);
+  expect(source.staged).toEqual([[1, 1, 2]]);
+});
+
 describe('tileAt', () => {
   it('rounds to the tile under a point and refuses one off the lot', () => {
     expect(tileAt(0.4, 1.6, 4, 3)).toEqual([0, 2]);
@@ -207,7 +280,7 @@ describe('the Floors tool', () => {
     source.result = { x: 2, y: 0, covering: BARE, reason: 0 };
     source.tiles = [];
     floors.afterCommands();
-    expect(floors.status).toBe('This floor is as the house came.');
+    expect(floors.status).toBe('No floor covering is laid here.');
   });
 
   it('refuses a covering the simulation will not have, and says so', () => {
@@ -324,8 +397,8 @@ describe('the Floors tool in the page', () => {
     expect(MAIN_TS).toContain('coveringLooks: sim.coveringLooks(),');
     // Review finding [F1] on PR 128: a Load left the previous game's floors
     // on screen, because only the lot-edit path re-read them. Both paths
-    // must, so this counts rather than merely finding one.
-    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(4);
+    // must. Device recovery now has its own fourth refresh as well.
+    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(5);
     const load = MAIN_TS.slice(MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();') - 1200,
       MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();'));
     expect(load).toContain('lot.floors = sim.floorTiles();');
@@ -357,7 +430,7 @@ describe('the Floors tool in the page', () => {
     expect(source.staged).toEqual([]);
   });
 
-  it('offers Retry for a failed preview without staging a paint or exposing resource details', () => {
+  it('leaves failed-preview Retry to the contextual or scene owner, never the sidebar', () => {
     const source = new FakeFloors();
     const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
     const elements = new Map<string, FakeElement>();
@@ -374,11 +447,9 @@ describe('the Floors tool in the page', () => {
     floors.choosePoint(1, 1);
     view.render();
     expect(source.staged).toEqual([]);
-    expect(elements.get('floor-status')!.textContent).toBe('Floor materials could not load. Try again.');
-    expect(retry.hidden).toBe(false);
-    retry.listeners.click?.();
-    expect(retries).toBe(1);
+    expect(elements.get('floor-status')!.textContent).toBe('Boards could not load.');
     expect(retry.hidden).toBe(true);
+    expect(retries).toBe(0);
     expect(source.staged).toEqual([]);
   });
 });
@@ -435,3 +506,15 @@ function fakeDocument(elements: Map<string, FakeElement>): {
     createElement: fakeElement,
   };
 }
+
+
+it('Remove can remove an ordinary saved starting floor with no added covering', () => {
+  const source = new FakeFloors();
+  const surfaces = new Uint8Array(12).fill(1);
+  surfaces[5] = 0;
+  const floors = new FloorTool(Object.assign(source,{worldSurfaces: () => surfaces}) as never,4,3,{changed: () => {}});
+  floors.enter(); floors.choosePoint(1,1);
+  expect(floors.canApplyCovering(BARE)).toBe(true);
+  floors.applyCovering(BARE);
+  expect(source.staged).toEqual([[1,1,BARE]]);
+});

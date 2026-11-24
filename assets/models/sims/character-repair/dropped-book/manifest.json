@@ -208,7 +208,7 @@
   "producerHashes": {
     "export_dropped_book.py": "af016ac51f6520c9c9d1799ac26316ee36c21cd6d65d98a8b46c571dd27277ac",
     "fit_dropped_book.py": "fe26af3e8ccd0031f7e62793df8cc336c25bdce0f216f93c483c99d35559ec8a",
-    "depth_geometry.py": "6a76cc2dcc44d00a29acd8c6dedf382ae306bcfcd365e82fa22257fcf3d7f365",
+    "dropped-book/producers/depth_geometry.py": "6a76cc2dcc44d00a29acd8c6dedf382ae306bcfcd365e82fa22257fcf3d7f365",
     "color_pixels.py": "a912c009a6de163d2a440399481d14dd984242e10a01b208563423e14f49268e"
   },
   "cameraSource": {

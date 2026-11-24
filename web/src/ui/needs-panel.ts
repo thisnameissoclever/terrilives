@@ -5,10 +5,8 @@ import { setTextIfChanged } from './set-text-if-changed.js';
  * SIMULATION says is selected.
  *
  * **This panel renders simulation state and owns none of it** ([D-5]).
- * The only state it holds is a throttle timestamp, and that is not a
- * projection of anything in the world - it is a fact about when the DOM
- * was last written. Everything else is re-read: the selection, the seven
- * levels, and the labels' order.
+ * Its timestamp and last-rendered identity invalidate presentation only.
+ * Current selection and all need levels are always read from the source.
  *
  * That is a rule about rot rather than about tidiness. The standard way a
  * project like this paints itself into a corner is that the shell caches
@@ -51,6 +49,8 @@ export interface CaptionText {
 export interface BarFill {
   readonly style: { width: string };
   setAttribute?(name: string, value: string): void;
+  removeAttribute?(name: string): void;
+  readonly valueText?: CaptionText;
   readonly stateText?: CaptionText;
 }
 
@@ -61,6 +61,7 @@ export interface PanelRoot {
 
 export interface VisibilityTarget {
   hidden: boolean;
+  textContent?: string | null;
 }
 
 /**
@@ -98,16 +99,13 @@ export class NeedsPanel {
    * When the panel last read the simulation, or null before the first
    * read.
    *
-   * **The only state this class holds**, and the only state [D-5] permits
-   * it. Note what is deliberately NOT here: the selected index, the last
-   * seven levels, and whether the panel is currently showing. All three
-   * are re-read or re-derived, because all three are things a replay must
-   * reproduce from the simulation rather than from the shell.
+   * Values remain source-owned; this timestamp only bounds DOM refreshes.
    */
   private lastReadMs: number | null = null;
+  private renderedSelection: number | null | undefined;
 
   /**
-   * @param root       hidden when there is nothing to show.
+   * @param root       retains hollow tracks without a selected person.
    * @param bars       one fill per need, in `NeedId` index order.
    * @param refreshMs  `need_bar_refresh_ms` from `content/tuning.toml`.
    * @param levelMax   the simulation's full-need level, from the bridge.
@@ -124,43 +122,32 @@ export class NeedsPanel {
 
   /**
    * Reads the simulation and redraws, if the throttle interval has
-   * elapsed. Returns whether it read.
+   * elapsed or the selected identity changed. Returns whether values refreshed.
    *
    * Called every frame; the throttle is why that is cheap. The
    * simulation advances ten times a second and the display runs at sixty
-   * or more, so without this five reads in six would return the seven
-   * numbers the previous one already returned, each one a call across the
-   * WASM boundary that allocates. **The skipped path allocates nothing at
-   * all** - it is two comparisons and a return - which is what keeps a
-   * DOM panel out of [D11]'s way.
+   * or more. Each frame checks selection; an unchanged identity skips need
+   * array reads and DOM writes until the cadence permits another refresh.
    *
    * `nowMs` is passed in rather than read from `performance.now()` here,
    * so the caller's single frame timestamp governs everything in the
    * frame and a test can drive the clock directly.
    */
   update(nowMs: number, source: NeedsSource): boolean {
-    if (this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
+    const selected = source.selectedIndex();
+    if (selected === this.renderedSelection && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
       return false;
     }
     this.lastReadMs = nowMs;
-
-    // Read, never remembered. `selectedIndex` is the simulation's answer
-    // to "what is the player looking at", so asking it every read is what
-    // makes the panel follow a selection that changed inside a tick.
-    //
-    // Nothing selected, a sim that despawned between the click and this
-    // frame, and a click that landed on a fridge all draw no bars, and
-    // collapsing them is deliberate: the useful response to all three is
-    // identical. The null case exits before `needsOf` so a deselected
-    // panel costs no boundary call - the test counting reads pins that.
-    const selected = source.selectedIndex();
+    this.renderedSelection = selected;
     if (selected === null) {
       this.showEmptyState();
       return true;
     }
     const levels = source.needsOf(selected);
     if (levels.length === 0) {
-      this.showEmptyState();
+      this.showEmptyState('unavailable');
+      setTextIfChanged(this.caption, source.simName(selected));
       return true;
     }
     this.root.hidden = false;
@@ -189,6 +176,8 @@ export class NeedsPanel {
       bar.setAttribute?.('aria-valuemax', '100');
       bar.setAttribute?.('aria-valuenow', String(percent));
       const state = percent <= 20 ? 'critical' : percent <= 40 ? 'low' : 'steady';
+      bar.setAttribute?.('data-state', state);
+      if (bar.valueText) setTextIfChanged(bar.valueText, String(percent));
       bar.setAttribute?.('aria-valuetext', `${percent}% full, ${state}`);
       if (bar.stateText) {
         setTextIfChanged(bar.stateText, state === 'steady' ? '' : ` (${state})`);
@@ -197,18 +186,22 @@ export class NeedsPanel {
     return true;
   }
 
-  private showEmptyState(): void {
+  private showEmptyState(kind: 'unselected' | 'unavailable' = 'unselected'): void {
     setTextIfChanged(this.caption, 'Select a person');
     for (const bar of this.bars) {
+      bar.style.width = '0%';
+      bar.removeAttribute?.('aria-valuenow');
+      bar.setAttribute?.('aria-valuetext', kind === 'unselected' ? 'No person selected' : 'Needs unavailable');
+      bar.setAttribute?.('data-state', 'empty');
       if (bar.stateText) setTextIfChanged(bar.stateText, '');
+      if (bar.valueText) setTextIfChanged(bar.valueText, '');
     }
-    if (this.emptyState && this.content) {
-      this.root.hidden = false;
-      this.emptyState.hidden = false;
-      this.content.hidden = true;
-      return;
+    this.root.hidden = kind === 'unavailable' && !this.emptyState;
+    if (this.emptyState) {
+      this.emptyState.hidden = kind === 'unselected';
+      if ('textContent' in this.emptyState) setTextIfChanged(this.emptyState as CaptionText, kind === 'unavailable' ? 'Needs unavailable' : '');
     }
-    this.root.hidden = true;
+    if (this.content) this.content.hidden = kind === 'unavailable';
   }
 }
 
@@ -262,15 +255,20 @@ export function buildNeedBars(
     fill.setAttribute('aria-label', name);
     fill.setAttribute('aria-valuemin', '0');
     fill.setAttribute('aria-valuemax', '100');
-    fill.setAttribute('aria-valuenow', '0');
-    fill.setAttribute('aria-valuetext', '0% full, critical');
+    fill.setAttribute('aria-valuetext', 'No person selected');
+    fill.setAttribute('data-state', 'empty');
     fill.style.width = '0%';
 
     track.appendChild(fill);
     row.appendChild(label);
+    const valueText = doc.createElement('span');
+    valueText.className = 'need-value';
+    valueText.setAttribute('aria-hidden', 'true');
+    row.appendChild(valueText);
     row.appendChild(track);
     root.appendChild(row);
     Object.defineProperty(fill, 'stateText', { value: stateText });
+    Object.defineProperty(fill, 'valueText', { value: valueText });
     fills.push(fill as BarFill);
   }
   return fills;

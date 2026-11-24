@@ -10,12 +10,13 @@ import { floorReason, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { EDITS_PER_FRAME } from './command-batch.js';
 import { logWarning } from '../diagnostics/log.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 
-/** No covering: the tile is drawn by where it is ([OS-yard]). */
+/** No added covering. Current base surfaces are saved separately. */
 export const BARE = 0;
 
 type FloorSource = Pick<SimBridge, 'coveringNames' | 'floorTiles' | 'floorEditPreview' |
-  'setFloor' | 'lastFloorEditResult' | 'lotRevision'>;
+  'setFloor' | 'lastFloorEditResult' | 'lotRevision'> & Partial<Pick<SimBridge, 'worldSurfaces'>>;
 type Tile = [number, number];
 
 export const CHOOSE_TILE = '';
@@ -53,6 +54,17 @@ export class FloorTool {
   blocked = false;
   resourceStatus: string | null = null;
   resourceFailed = false;
+  private applyWhenReady: { covering: number; revision: number } | null = null;
+  private outcome: OperationFeedback | null = null;
+  get feedback(): OperationFeedback | null {
+    const target = this.chosen === BARE ? 'Floor covering' : this.coverings()[this.chosen - 1];
+    if (this.resourceStatus !== null) return operationFeedback('floor', this.resourceFailed ? 'failure' : 'pending', target,
+      this.resourceFailed ? `${target} could not load.` : `Loading ${target}...`, this.resourceFailed ? 'retry' : undefined);
+    if (this.pending !== null) return operationFeedback('floor', 'pending', target, `Applying ${target}...`);
+    if (this.outcome) return this.outcome;
+    const refusal = this.tile ? this.codes(this.chosen).find(code => code !== 0) : undefined;
+    return refusal !== undefined ? operationFeedback('floor', 'failure', target, floorReason(refusal), 'edit') : null;
+  }
   private revision: number;
   private shownHighlight: TileHighlight | null = null;
   /** Whether the next click may be the opposite corner of an area. */
@@ -95,6 +107,7 @@ export class FloorTool {
   choose(covering: number): void {
     if (!this.active || this.pending !== null || this.blocked) return;
     if (!Number.isInteger(covering) || covering < BARE || covering > this.coverings().length) return;
+    this.applyWhenReady = null;
     this.chosen = covering;
     if (this.tile) this.refresh();
     this.hooks.changed();
@@ -107,6 +120,7 @@ export class FloorTool {
    */
   choosePoint(wx: number, wy: number): void {
     if (!this.active || this.pending !== null || this.blocked) return;
+    this.applyWhenReady = null;
     const tile = tileAt(wx, wy, this.width, this.height);
     if (!tile) return;
     if (this.tile !== null && this.extendable) {
@@ -151,6 +165,7 @@ export class FloorTool {
   setBlocked(blocked: boolean): void {
     if (this.blocked === blocked) return;
     this.blocked = blocked;
+    if (blocked) this.applyWhenReady = null;
     this.hooks.changed();
   }
 
@@ -158,6 +173,14 @@ export class FloorTool {
     if (status === this.resourceStatus && failed === this.resourceFailed) return;
     this.resourceStatus = status;
     this.resourceFailed = failed;
+    if (status === null && this.applyWhenReady !== null) {
+      const intent = this.applyWhenReady; this.applyWhenReady = null;
+      if (this.active && !this.blocked && this.chosen === intent.covering) {
+        if (this.source.lotRevision() === intent.revision) { this.apply(); return; }
+        this.status = 'The world changed while loading. Select the tiles again.';
+        this.outcome = operationFeedback('floor', 'failure', this.coverings()[this.chosen - 1] ?? 'Floor', this.status, 'edit');
+      }
+    }
     this.hooks.changed();
   }
 
@@ -180,6 +203,11 @@ export class FloorTool {
   apply(): void {
     if (!this.active || this.pending !== null || this.blocked) return;
     const tile = this.tile;
+    if (tile !== null && this.resourceStatus !== null) {
+      this.applyWhenReady = { covering: this.chosen, revision: this.source.lotRevision() };
+      // Resource feedback is transient; keep selection and native outcome text intact.
+      this.hooks.changed(); return;
+    }
     if (tile === null || !this.canApply()) {
       if (tile !== null) this.status = this.isArea || this.chosen === this.current ? this.describe()
         : this.refusal(this.codes(this.chosen)[0]);
@@ -193,6 +221,7 @@ export class FloorTool {
     } else {
       this.waiting = [];
       this.status = NOT_SENT;
+      this.outcome = operationFeedback('floor', 'failure', this.coverings()[this.chosen - 1] ?? 'Floor', NOT_SENT);
     }
     this.hooks.changed();
   }
@@ -228,8 +257,14 @@ export class FloorTool {
   }
 
   canApplyCovering(covering: number): boolean {
+    return this.resourceStatus === null && this.canRequestCovering(covering);
+  }
+
+  /** A different valid choice may replace a waiting or failed optional request. */
+  canRequestCovering(covering: number): boolean {
     return Number.isInteger(covering) && covering >= BARE && covering <= this.coverings().length
-      && this.active && !this.blocked && this.resourceStatus === null && this.pending === null && this.tile !== null
+      && this.active && !this.blocked && this.pending === null && this.tile !== null
+      && (this.resourceStatus === null || covering !== this.chosen)
       && this.targets(covering).length > 0;
   }
 
@@ -283,6 +318,11 @@ export class FloorTool {
         this.refresh();
         this.status = this.isArea ? this.areaOutcome(done, sent)
           : result.reason === 0 ? this.describe() : this.refusal(result.reason);
+        const updated = this.source.floorTiles(), incomplete = this.isArea && sent.some(([x,y]) => coveringOf(updated, x, y) !== done);
+        const failed = result.reason !== 0 || incomplete;
+        this.outcome = failed
+          ? operationFeedback('floor', 'failure', this.coverings()[done - 1] ?? 'Floor', this.status, 'edit')
+          : null;
         if (result.reason !== 0) logWarning('Floors', 'Floor change refused.', { ...result, code: result.reason });
         this.hooks.changed();
         return;
@@ -309,6 +349,8 @@ export class FloorTool {
   }
 
   private clear(): void {
+    this.applyWhenReady = null;
+    this.outcome = null;
     this.tile = null;
     this.corner = null;
     this.extendable = false;
@@ -337,10 +379,13 @@ export class FloorTool {
   /** The chosen tiles `covering` would change and the simulation would accept. */
   private targets(covering: number): Tile[] {
     const codes = this.codes(covering);
-    return this.tiles().filter((_, at) => this.currents[at] !== covering && codes[at] === 0);
+    const surfaces = this.source.worldSurfaces?.();
+    return this.tiles().filter(([x,y], at) => codes[at] === 0
+      && (this.currents[at] !== covering || covering === BARE && surfaces?.[y * this.width + x] === 0));
   }
 
   private refresh(): void {
+    this.outcome = null;
     const tile = this.tile;
     if (tile === null) return;
     const floors = this.source.floorTiles();
@@ -370,7 +415,7 @@ export class FloorTool {
     }
     const names = this.coverings();
     return this.current === BARE
-      ? 'This floor is as the house came.'
+      ? 'No floor covering is laid here.'
       : `This floor is ${names[this.current - 1] ?? 'unknown'}.`;
   }
 

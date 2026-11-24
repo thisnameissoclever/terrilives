@@ -1,3 +1,4 @@
+// Historical projection only. Current worlds supply their saved wall edges directly.
 // The house's implicit shell as wall rows for the light field and the sky
 // flood (land expansion, issue 254, rule 3). The content never records the
 // house's west and north lines as walls because they were the lot's edge;

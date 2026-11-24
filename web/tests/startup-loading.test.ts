@@ -80,6 +80,19 @@ describe('startup loading cover', () => {
     expect(loadedLine(103_066_594)).toBe('103.1 MB loaded');
   });
 
+  it('hides completed transfer progress during preparation and restores it for later downloads', () => {
+    const f = fixture();
+    f.loading.step('Downloading the simulation');
+    f.loading.bytes(600_000);
+    expect(f.loaded).toMatchObject({ hidden: false, textContent: '0.6 MB loaded' });
+    f.loading.step('Starting the simulation');
+    expect(f.loaded.hidden).toBe(true);
+    f.loading.bytes(1_000_000);
+    expect(f.loaded).toMatchObject({ hidden: false, textContent: '1.6 MB loaded' });
+    f.loading.note('Preparing pool animations');
+    expect(f.loaded.hidden).toBe(true);
+  });
+
   it('fades, then removes itself once, and ignores later updates', () => {
     const f = fixture();
     f.loading.finish();

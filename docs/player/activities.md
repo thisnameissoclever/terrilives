@@ -44,11 +44,12 @@ On a narrow screen, scroll a table sideways to read its remaining columns. With 
 | Clean floor | No direct need benefit | Cleans reachable dirty patches | Completed cleaning earns appreciation toward the cleaner |
 | Wipe surface | No direct need benefit | Cleans grime rather than dishes or the person | Completed cleaning earns appreciation toward the cleaner |
 | Empty bin | No direct need benefit | Removes accumulated waste | Completed emptying earns appreciation toward the cleaner |
-| Work | No direct need benefit | Scheduled Energy cost and time away | No household company while away |
+| Work | Hunger, Bladder and Social refill halfway at the [work thresholds](needs/#timing-and-decay) | Scheduled Energy cost and time away | No household company while away |
 | Walk, wait, carry or prepare | No direct need benefit | Time passes before relief | No Social from these stages |
 | Buy, sell, move, rotate, recolor, recover a book or edit the home | No direct need benefit | Funds, space and placement rules apply | No direct relationship reward |
 | Stove and counter without a recipe running | No standalone need benefit | They are stations within food preparation, not separate eating actions | No Social |
-| Washer-dryer and pool | No direct need benefit | They currently offer no washing or swimming action | No Social |
+| Pool: Hop in | Fun and Comfort during swimming | Costs Energy; one person per pool; ladder access required | No Social |
+| Washer-dryer | No direct need benefit | It currently offers no washing action | No Social |
 | Patio umbrella, potted plant, floor lamp, coat rack, nightstand and dresser | No direct need benefit | Furniture, decoration or lighting does not itself refill needs | No Social |
 
 ## Food: preparation and eating {#food}
@@ -75,6 +76,8 @@ Take a shower restores Hygiene at an Energy cost. Take a bath restores Hygiene a
 
 These three run until the meter they fill is full: Hygiene for the shower and bath, Bladder for the toilet. How long that takes depends on how far the meter has to rise, so a nearly full person finishes quickly, though they still use the fixture for a short minimum time. From an empty meter the toilet takes about a quarter of an hour of game time, and a shower or bath a little under an hour (roughly 40 minutes). A shower costs Energy and a bath gives Comfort for every minute the person stays, so a longer use costs or gives more. Stopping early keeps only the gain from the minutes already spent: an order that sends the person elsewhere leaves the meter where it had got to.
 
+During a bath, water covers the person's legs and feet. Each bath gets one randomly chosen rubber duck, toy boat or toy submarine to play with. Save and Load preserve the toy and the animation's progress. Finishing or canceling the bath removes its water and toy and restores the person's usual clothes.
+
 Wash hands is partial cleaning. Either sink stops adding Hygiene at the same ceiling, so washing repeatedly cannot replace bathing or remove body odor. The kitchen sink's rate differs from the bathroom sink's. Neither action has an extra Comfort cost. Cleaning household dishes at the kitchen sink is a different action and supplies no personal Hygiene.
 
 Toilets, showers and baths are [private activities](relationships/#privacy). Entering an occupied bathroom, or starting private use with somebody already inside, can harm feelings in different directions.
@@ -83,6 +86,28 @@ Toilets, showers and baths are [private activities](relationships/#privacy). Ent
 Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from the normal slow fall of Hygiene. Body-odor consequences clear only above that level, so bathing is necessary.
 
 A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} game minutes at most, even if the meter is not yet full. A person reaches that limit only when their personality gives them very little from the activity, so that filling the meter would take that long. If they get almost nothing from it, the use has an ordinary length and the meter is not filled.
+:::
+
+## Swimming {#swimming}
+
+Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, climbs to the rim, pushes off into the water, paddles, then climbs back out. Each pool holds one person; the pool and its ladder approach stay reserved until that person is safely out.
+
+The Backyard Rectangle pool in Build takes up three tiles by two, including its outside ladder. Leave the tile at the foot of the ladder clear so a person can reach it. A pool already placed in an older save keeps its original two-by-two space.
+
+:::illustration pool-hop-in
+
+Only paddling supplies Fun and Comfort and costs Energy. Walking to the ladder, climbing in and climbing out supply none of those action effects. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
+
+To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue new orders off](home-and-controls/#orders) before giving the new instruction. If the person is still walking to the pool, they can stop right away. If they have started to climb but haven't taken off, they climb back down. Once airborne, they land in the water and climb out before starting the next activity.
+
+Benefits and costs already delivered remain. Save and Load preserve the current phase and progress.
+
+Masculine swim trunks use the person's pants color; a feminine two-piece uses the person's top color. The usual outfit returns after leaving the pool.
+
+:::numbers Numbers and limits
+An uninterrupted visit has 20 game minutes of entry, 60 game minutes of swimming and 40 game minutes of exit. These phases have fixed lengths. The ordinary action-duration variation does not apply.
+
+The 60-minute swimming phase has baseline totals of Fun +30 points, Comfort +10 points and Energy -5 points, delivered over elapsed swimming time. Personality changes positive refill; ordinary need loss and meter limits can change the final meter difference. Interrupting before swimming gives no swimming benefit or cost.
 :::
 
 ## Chairs and secondary seats {#chairs}
@@ -154,5 +179,5 @@ Personality scales positive need delivery separately for each need. Negative act
 Meters remain bounded. Hand washing has an extra ceiling. Need decay continues, so the change you see includes both the action and the time passing. Preferences and repetition influence selection; they do not add an extra need payment. [Mood and personality](mood-and-personality/#personality) explains the other outcomes.
 
 :::numbers Numbers and limits
-All need meters range from 0 to 100. Ordinary action durations can vary up to 40 percent around their reference duration, biased toward shorter actions. Reference totals describe the baseline before personality, failure, need loss and caps. A completed-action food total and a per-minute company rate are different kinds of number.
+All need meters range from 0 to 100. Ordinary action durations can vary up to 40 percent around their reference duration, biased toward shorter actions. Swimming uses the fixed phases described above. Reference totals describe the baseline before personality, failure, need loss and caps. A completed-action food total and a per-minute company rate are different kinds of number.
 :::

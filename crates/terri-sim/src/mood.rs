@@ -732,7 +732,7 @@ mod tests {
         for _ in 0..12 {
             sim.tick();
         }
-        assert_eq!(mood(&sim, person).overall_score, -0.996);
+        assert_eq!(mood(&sim, person).overall_score, -1.196);
     }
 
     #[test]
@@ -772,7 +772,7 @@ mod tests {
                 .get(NeedId::Energy)
                 < 80.0
         );
-        assert_eq!(mood(&sim, person).overall_score, -1.0 / 12.0);
+        assert_eq!(mood(&sim, person).overall_score, -0.1);
     }
 
     #[test]
@@ -808,7 +808,7 @@ mod tests {
                 .get(NeedId::Hunger),
             1.0
         );
-        assert_eq!(mood(&sim, person).overall_score, -1.0 / 12.0);
+        assert_eq!(mood(&sim, person).overall_score, -0.1);
     }
 
     #[test]
@@ -820,15 +820,15 @@ mod tests {
         for _ in 0..12 {
             sim.tick();
         }
-        assert_eq!(mood(&sim, person).overall_score, -1.0);
+        assert_eq!(mood(&sim, person).overall_score, -1.2);
 
         sim.world_mut()
             .entity_mut(person)
             .insert(Needs::all_at(50.0));
         sim.flush_commands();
-        assert_eq!(mood(&sim, person).overall_score, -1.0);
+        assert_eq!(mood(&sim, person).overall_score, -1.2);
         sim.tick();
-        assert_eq!(mood(&sim, person).overall_score, -1.0);
+        assert_eq!(mood(&sim, person).overall_score, -1.2);
     }
 
     #[test]
@@ -853,7 +853,7 @@ mod tests {
             .unwrap()
             .set(NeedId::Comfort, 100.0);
         sim.tick();
-        assert_eq!(units(&sim, high), 599_512);
+        assert_eq!(units(&sim, high), 599_412);
         assert_eq!(units(&sim, low), -600_000);
     }
 

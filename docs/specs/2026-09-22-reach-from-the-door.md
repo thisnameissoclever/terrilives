@@ -1,86 +1,50 @@
-# Build mode: the house is judged from its front door
+# Build mode: review access through the current layout
 
-Status: [RD-slice-root] shipped in PR 99 at merge `ed9f5fb`.
-
-This is [B-reach-from-the-door] in `docs/FEATURES.md`, found in review of the
-Room tool (`docs/specs/2026-09-22-room-tool.md`). Every lot edit proves the
-house stays usable (`prove_lot_usable` in `crates/terri-sim/src/placement.rs`):
-it floods the floor from one tile and checks that every sim, every object's
-approach and the front door's landing are in the flooded region. The flood
-started at the first walkable tile in reading order, so an empty room sealed
-around that tile made the rest of the house look cut off. In the shipped lot
-that tile is (7, 0): a one-tile room with no doorway there was refused as
-blocking someone's way, while the same room at (9, 0) was built.
+Build preparation reports inaccessible ground and objects from the current saved geometry. The player may confirm a valid disconnected layout after reviewing the highlighted ground. No person, doorway or original asset serves as a privileged reachability root.
 
 ## What the player gets
 
-* **An empty room with no way in can be built anywhere.** Sealing off floor
-  with nobody and nothing in it is allowed wherever it is, not only away from
-  the top-left corner of the house.
-* **A refusal names what the edit would cut off from the front door**:
-  someone's way, or furniture out of reach.
+1. Original walls, floors and doors follow the same editing rules as equivalent player-built assets. Multiple doors and ordinary wall openings can provide access.
+2. Before confirming a disconnected layout, the game highlights the affected ground and explains the access issue. The prompt offers **Confirm** and **Return to build mode**.
+3. Return to build mode receives initial keyboard focus. Return and Escape preserve the draft, choices and highlight so the player can adjust the layout.
+4. A confirmed inaccessible layout can be saved and loaded. Save and autosave do not ask for the same approval again.
 
 ## Decisions
 
-### [RD-root] The flood starts at the front door
+### [RD-root] Current connected ground determines access
 
-On a lot with a front door the flood starts at the front door's tile, which
-every usable house must reach anyway. On a lot whose content names no front
-door it starts at the first walkable tile in reading order, as before, so that
-tile still cannot be sealed off there. No lot a player can reach is one: a
-blank custom lot (`Sim::new_with_lot`) keeps the shipped content and its front
-door. Only test content without a door uses the fallback.
+`world_geometry::access_report` builds connected components using the current movement grid and edge barriers. An open boundary tile connects a component to the outside. A door or opening contributes through its ordinary traversable connection; no original door coordinate is required.
 
-### [RD-reasons] Which refusal a cut-off house gives
+The report includes a component when it has no external access, or when an on-lot person occupies a different component. An empty enclosed area can therefore require acknowledgment. Components report their ground tiles, resident people, objects whose legal approaches belong only to that component, whether they have external access, and people who cannot reach them. Working people are excluded from the on-lot-person comparison.
 
-The checks keep their order ([WT-rules] 8 in
-`docs/specs/2026-09-21-wall-tool.md`): the front door's tile and its landing
-are clear, then every sim, then every object's approach, then every portal's
-landing is in the region. A house cut in two now reads as what the cut leaves
-unreachable from the front door:
+Objects with no legal approach anywhere are reported separately with their footprint tiles. The interface highlights native-reported tiles and uses these structured causes. It does not infer a particular door's role or invent an obstruction from an error string.
 
-* a sim on the far side: `BlockedRoute`, "A wall there would block someone's
-  way.";
-* furniture on the far side: `InaccessibleInteraction`, "A wall there would
-  leave furniture out of reach.";
-* nothing on the far side: built.
+### [RD-reasons] Access warnings and physical refusals have separate meanings
 
-The door's own reach check goes: the flood starts there. The landing's reach
-check stays, for two cases. A lot with a second portal could cut that portal's
-landing off; the wall rules guard only the front door's own line. And a loaded
-save may already hold a wall between the front door and its landing, which the
-loader accepts while nobody has a job; no edit can build that wall, because
-the wall rules refuse it first.
+Inaccessible valid ground requires player acknowledgment. Corrupt source state, object overlap, a wall through a visible person, and a barrier through an ongoing interaction remain refusals. A wall cannot pass through someone's physical contact with an object merely because the player accepts an access warning.
 
-Before this, a cut that left the first walkable tile on the far side from the
-door reported `BlockedDoor`, "A wall there would cut off the front door.",
-when no sim and no object's approach stood on the door's side; otherwise it
-reported `BlockedRoute` or `InaccessibleInteraction`, because the door's reach
-check ran last. `BlockedDoor` now only refuses an edit while the front door's
-tile is not open floor: something stands on it, or it lies outside the lot. A
-furniture move or a purchase can stand something there; a wall or a room never
-changes whether a tile is walkable, so it meets `BlockedDoor` only where the
-door tile is already not open floor. Play never makes that: it takes a
-hand-edited save, or a blank custom lot too small to hold the shipped door at
-(15, 2). No doorway can mend it, so the Room tool's doorway hint no longer
-offers one for it. The line
-stays in the shell's refusal tables so every code keeps its meaning.
+A hidden working or waiting person's retained position does not count as a construction body. The current hidden-away rule requires AtWork with no live Path. A visible person and malformed live paths retain their physical constraints. Historical validation branches retain their frozen interpretation.
 
-### [RD-save] Nothing saved changes
+After a valid world edit, future routes are reconciled through the activity's own approach rules. A replacement path preserves the target, active order and any owned seat, sleeping place, book or station. If no legal continuation exists, the affected player order fails with its actual reason; later queued orders remain available.
 
-The flood runs only while validating an edit, and the V3 loader does not
-flood, so no save that loads today stops loading, and no save or world hash
-changes. Build-time content validation in `terri-data` keeps its own flood
-from the first walkable tile (rule 3 of the content checks in
-`docs/specs/2026-07-30-object-footprints-design.md`): an authored lot must have
-every object reachable from every other, which is a stricter rule than this
-one and is unchanged.
+### [RD-save] Approval belongs to an exact prepared candidate
 
-## Slices
+`prepare_build_commit` produces the room review, access report and candidate token. Room choices must be applied before the final access acknowledgment. `commit_build` rejects a candidate requiring acknowledgment with `AccessAcknowledgmentRequired`. `commit_build_with_access_ack` accepts that exact prepared candidate after the player chooses Confirm.
 
-* **[RD-slice-root]** Everything above.
+The token is bound to the Build session, draft revision and preparation. Editing or preparing another candidate invalidates an earlier token. Returning to Build does not grant future approval. Normal Save/autosave persists the confirmed world rather than an unconfirmed draft.
 
-## What this does not do
+The current save envelope stores explicit base surfaces and commute direction alongside saved architecture and activity continuation. Loading current state uses its walls, doors, windows, floors and surfaces; it does not reconstruct missing original assets. A confirmed access warning is not save corruption. Structural and reference validation still apply.
 
-It does not mend a house that is already cut off from its front door: such a
-house refuses every new wall until the player opens a way through, as before.
+Historical readers remain frozen. Public adoption materializes their implicit geometry once and performs the supported migration before creating current state. Original fixture bytes remain evidence of those historical formats. Migration preserves useful progress and valid activity ownership, and refuses an input when no safe supported placement can be produced.
+
+## [RD-slice-root] Construction boundaries
+
+The Build transaction owns access approval. A construction command outside an explicit Build session may apply automatically only when it introduces no new access issue. It cannot silently approve a newly inaccessible layout.
+
+Arrivals and departures use traversable connections to the current lot boundary. The route choice uses distance and stable coordinate ties. A worker who cannot return waits outside; the old entrance position does not become a required asset. Hidden retained positions remain state records rather than occupied ground.
+
+## Verification
+
+Exercise equivalent original and player-built assets, replacement doors at new positions, many doors, openings without doors, removed original walls and floors, empty enclosed ground, separated people, and objects with blocked approaches. Require exact candidate acknowledgment, stale-token refusal and current save/load of an approved inaccessible layout.
+
+Exercise hidden working and waiting positions before ticking, alongside visible-body, active-contact and malformed-path controls. Block an old approach while independently proving an alternative exists, and require ownership and later queued orders to survive. Keep source rejection, migration, route repair, interface behavior and played visual evidence as separate checks.

@@ -1520,6 +1520,32 @@ fn regression_dining_wall_contact_live_and_current_rollback() {
     }
 }
 
+/// Both historical dining fixtures are explicit edge layouts on a 10x10 lot.
+/// Current adoption adds only their formerly implicit north and west walls.
+fn materialized_dining_fixture_layout(
+    layout: &terri_core::layout::SavedLayout,
+) -> terri_core::layout::SavedLayout {
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    let SavedLayout::EdgeWallsV1 { edges } = layout else {
+        panic!("expected explicit dining fixture edges")
+    };
+    let mut expected = edges.clone();
+    expected.extend((0..10).map(|y| WallEdge {
+        axis: EdgeAxis::Vertical,
+        x: 0,
+        y,
+        doorway: false,
+    }));
+    expected.extend((0..10).map(|x| WallEdge {
+        axis: EdgeAxis::Horizontal,
+        x,
+        y: 0,
+        doorway: false,
+    }));
+    expected.sort_by_key(|edge| (edge.axis, edge.x, edge.y));
+    SavedLayout::EdgeWallsV1 { edges: expected }
+}
+
 #[test]
 fn regression_dining_wall_contact_published_meal_migration() {
     for active in [false, true] {
@@ -1534,10 +1560,12 @@ fn regression_dining_wall_contact_published_meal_migration() {
             assert!(old.world().get::<StepWork>(person).is_some());
         }
         let saved = old.save_snapshot_v5();
-        let mut source_control = Sim::new_with_lot_and_content(10, 10, Content::pre_books());
-        source_control
-            .load_snapshot_v5(saved.clone())
-            .expect("the complete frozen source accepts its historical contact");
+        let source_control = crate::save::architecture::restore_v5(
+            saved.clone(),
+            Content::pre_books().0,
+            crate::save::Carried::default(),
+        )
+        .expect("the complete frozen source accepts its historical contact");
         assert_eq!(source_control.save_snapshot_v5(), saved);
 
         let expected = saved
@@ -1586,6 +1614,7 @@ fn regression_dining_wall_contact_published_meal_migration() {
             assert_eq!(migrated.seats.len(), 1);
         }
         let mut expected_save = saved.clone();
+        expected_save.layout = materialized_dining_fixture_layout(&expected_save.layout);
         expected_save.world.rng = crate::test_content::after_affinity_migration(&saved);
         expected_save.skills = Some(terri_core::save::SavedSkills::default());
         expected_save.world.content_fingerprint =
@@ -1611,7 +1640,7 @@ fn regression_dining_wall_contact_published_meal_migration() {
         source_fields.affinities = None;
         assert_eq!(
             source_fields, expected_save,
-            "every unrelated published field remains exact"
+            "every unrelated published field remains exact after explicit rear walls"
         );
         current.load_current_v6_view(migrated.clone()).unwrap();
         assert_eq!(current.current_v6_view(), migrated);
@@ -1774,10 +1803,12 @@ fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact()
             ..Default::default()
         });
         let saved = old.save_snapshot_v5();
-        let mut source_control = Sim::new_with_lot_and_content(10, 10, Content::pre_books());
-        source_control
-            .load_snapshot_v5(saved.clone())
-            .expect("complete historical two-diner source is valid");
+        let source_control = crate::save::architecture::restore_v5(
+            saved.clone(),
+            Content::pre_books().0,
+            crate::save::Carried::default(),
+        )
+        .expect("complete historical two-diner source is valid");
         assert_eq!(source_control.save_snapshot_v5(), saved);
         let mut current = Sim::new_with_lot(10, 10);
         current
@@ -1785,6 +1816,7 @@ fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact()
             .unwrap();
         let migrated = current.current_v6_view();
         let mut expected = saved.clone();
+        expected.layout = materialized_dining_fixture_layout(&expected.layout);
         expected.world.rng = crate::test_content::after_affinity_migration(&saved);
         expected.skills = Some(terri_core::save::SavedSkills::default());
         expected.world.content_fingerprint = terri_data::content_fingerprint(terri_data::pack());
@@ -1804,7 +1836,7 @@ fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact()
             .retain(|d| d.person != a.index_u32());
         let mut source_fields = migrated.legacy.clone();
         source_fields.affinities = None;
-        assert_eq!(source_fields,expected,"only A's unusable travel/seat commitment and new affinity state differ; food, progress, queue and B remain exact");
+        assert_eq!(source_fields,expected,"only explicit rear walls, A's unusable travel/seat commitment and new affinity state differ; food, progress, queue and B remain exact");
         assert_eq!(migrated.seats.len(), 1);
         assert_eq!(migrated.seats[0].person, b.index_u32());
         current.load_current_v6_view(migrated.clone()).unwrap();

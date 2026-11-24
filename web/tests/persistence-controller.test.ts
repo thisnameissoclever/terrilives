@@ -50,6 +50,16 @@ function sim(load = true): PersistableSim & { tick: number } {
   };
 }
 
+it('marks storage waits immediately and clears the spinner on success and failure', async () => {
+  const wait = deferred<Uint8Array | null>(), view = status();
+  const backend = store(null); backend.load = () => wait.promise;
+  const controller = new PersistenceController(backend, sim(), view);
+  const load = controller.load(); expect(view.attributes.get('data-pending')).toBe('true');
+  wait.resolve(new Uint8Array([1])); await load; expect(view.attributes.has('data-pending')).toBe(false);
+  backend.load = async () => { throw Error('Storage unavailable'); };
+  await controller.load(); expect(view.attributes.has('data-pending')).toBe(false);
+});
+
 function store(saved: Uint8Array | null, lastGood: Uint8Array | null = null): SaveStore & {
   saves: Uint8Array[];
   cleared: number;
@@ -182,6 +192,36 @@ describe('restorePersistenceFocus', () => {
 });
 
 describe('PersistenceController', () => {
+  it.each(['save', 'load'] as const)('retains local %s failure identity, cause and operation context for extensible and frozen Errors', async (operation) => {
+    for (const frozen of [false, true]) {
+      const original = new TypeError('Local persistence callback failed', { cause: new Error('Invalid game state') });
+      const stack = original.stack;
+      if (frozen) Object.freeze(original);
+      const backend = store(new Uint8Array([9])), game = sim(), report = vi.fn();
+      if (operation === 'save') game.saveBytes = () => { throw original; };
+      else game.loadBytes = () => { throw original; };
+      const controller = new PersistenceController(backend, game, status(), report);
+      expect(await controller[operation]()).toBe(false);
+      expect(report).toHaveBeenCalledOnce();
+      const received = report.mock.calls[0][0] as Error & { persistence: unknown; originalError?: Error };
+      expect(received.name).toBe(original.name); expect(received.stack).toBe(stack); expect(received.cause).toBe(original.cause);
+      expect(received.persistence).toEqual({ operation });
+      if (frozen) expect(received.originalError).toBe(original); else expect(received).toBe(original);
+    }
+  });
+
+  it('retains a local non-Error failure as bounded data without conversion or an invented original stack', async () => {
+    let conversions = 0;
+    const game = sim(), report = vi.fn();
+    game.saveBytes = () => { throw { problem: 'capture failed', toString() { conversions++; throw new Error('Unsafe conversion'); } }; };
+    const controller = new PersistenceController(store(null), game, status(), report);
+    expect(await controller.save()).toBe(false); expect(conversions).toBe(0); expect(report).toHaveBeenCalledOnce();
+    const received = report.mock.calls[0][0] as Error & { persistence: unknown; thrownValue: unknown };
+    expect(received).toBeInstanceOf(Error); expect(received.stack).toBeUndefined(); expect(Object.hasOwn(received, 'cause')).toBe(false);
+    expect(received.persistence).toEqual({ operation: 'save' });
+    expect(received.thrownValue).toEqual({ problem: 'capture failed', toString: { diagnosticLimit: 'unsupported' } });
+  });
+
   it('identifies an unsupported envelope version without claiming the payload is corrupt', async () => {
     const bytes = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION + 1, 0, 17]);
     const view = status();
@@ -252,7 +292,8 @@ describe('PersistenceController', () => {
         confirmationDisabled: false,
       });
       expect(view.textContent).toContain('Saving paused');
-      expect(view.textContent).toContain('kept');
+      expect(view.textContent).not.toContain('kept');
+      expect(view.textContent).toContain('Retry Load or confirm New game');
       game.tick = 100;
       controller.updateAutosave();
       expect(await controller.save()).toBe(false);
@@ -309,7 +350,7 @@ describe('PersistenceController', () => {
     const controller = new PersistenceController(broken, sim(), view, report);
 
     expect(await controller.load()).toBe(false);
-    expect(view.textContent).toContain('Current game and saved data kept. Saving paused.');
+    expect(view.textContent).toContain('Load failed. Saving paused. Retry Load or confirm New game to resume saving.');
     expect(report).toHaveBeenCalledTimes(1);
   });
 
@@ -324,7 +365,7 @@ describe('PersistenceController', () => {
 
     expect(await controller.save()).toBe(false);
     expect(backend.saves).toEqual([]);
-    expect(view.textContent).toBe('Save failed. The game is still running.');
+    expect(view.textContent).toBe('Save failed. Try again.');
     expect(view.attributes.get('data-kind')).toBe('error');
     expect(report).toHaveBeenCalledWith(refusal);
     expect(await controller.exportSave(() => { throw new Error('nothing to deliver'); })).toBe(false);
@@ -363,7 +404,7 @@ describe('PersistenceController', () => {
     const controller = new PersistenceController(backend, sim(), view);
 
     expect(await controller.clear()).toBe(false);
-    expect(view.textContent).toBe('Could not remove the saved game.');
+    expect(view.textContent).toBe('Could not remove the saved game. Try New game again.');
   });
 
   it('marks a successfully cleared slot unavailable to Load', async () => {
@@ -610,7 +651,7 @@ describe('PersistenceController after an interrupted save', () => {
     expect(await controller.save()).toBe(false);
     game.tick = 250;
     controller.updateAutosave();
-    await vi.waitFor(() => expect(view.textContent).toBe('Save failed. The game is still running.'));
+    await vi.waitFor(() => expect(view.textContent).toBe('Save failed. Try again.'));
     expect(backend.saves).toEqual([]);
     expect(backend.recoveries).toBe(0);
     expect(backend.restored).toEqual([]);

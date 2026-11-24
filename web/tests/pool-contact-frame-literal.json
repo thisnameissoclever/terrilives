@@ -1,0 +1,1055 @@
+{
+  "provenance": "Retained geometric phase .6 candidate. Its old numerical classification is superseded; this literal is an input to new constructive contact checks.",
+  "receiptSha256": "fbeab0a3c56eb0bb07a7e66bb554f35200f94ec9be8c33c0ec44c07185f1fa6b",
+  "appearance": {
+    "version": 1,
+    "presentation": "feminine",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "face": {
+      "shape": "oval",
+      "cheeks": 50,
+      "jaw": 50,
+      "chin": 50,
+      "eyes": "almond",
+      "eye_size": 50,
+      "brows": "soft",
+      "brow_thickness": 50,
+      "nose": "straight",
+      "nose_width": 50,
+      "mouth": "neutral",
+      "mouth_fullness": 50,
+      "ears": 50
+    },
+    "colors": {
+      "skin": [
+        190,
+        143,
+        107
+      ],
+      "hair": [
+        101,
+        69,
+        46
+      ],
+      "facial_hair": [
+        101,
+        69,
+        46
+      ],
+      "eyes": [
+        102,
+        91,
+        69
+      ],
+      "shirt": [
+        107,
+        159,
+        155
+      ],
+      "trousers": [
+        57,
+        70,
+        80
+      ],
+      "shoes": [
+        76,
+        64,
+        55
+      ]
+    },
+    "undertone": "neutral",
+    "hairstyle": "bob",
+    "bald": false,
+    "facial_hair": "none",
+    "freckles": false,
+    "freckle_density": 50,
+    "scar": "none",
+    "top": "overshirt",
+    "sleeves": "rolled",
+    "bottoms": "trousers",
+    "footwear": "loafers",
+    "glasses": false,
+    "glasses_style": "round",
+    "earrings": "none"
+  },
+  "basis": [
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      -0.5,
+      0.5601806735860897,
+      -0.800000011920929,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0.7431449228450591,
+      0.6691304982210955,
+      0,
+      0,
+      -0.6691304982210955,
+      0.7431449228450591,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0.9135454743097147,
+      -0.4067366056408473,
+      0,
+      0,
+      0.4067366056408473,
+      0.9135454743097147,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.36259607578122494,
+      0.6448239886520092,
+      -0.67284924722182,
+      0,
+      -0.9318418260946593,
+      0.2616713694198003,
+      -0.2513939250788236,
+      0,
+      0.013960550441404013,
+      0.7181435219264183,
+      0.6957549747910489,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      -0.3590272850043379,
+      -0.9193624871853838,
+      0.16084783423695348,
+      0,
+      0.6785715489298084,
+      -0.37544917920435245,
+      -0.6313307903292685,
+      0,
+      0.6408120329748923,
+      -0.11751821557138559,
+      0.7586497264241928,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.4349301150110423,
+      0.8495121615122733,
+      0.2986048936290681,
+      0,
+      -0.8491853742599265,
+      0.2766449943795968,
+      0.4498352445370875,
+      0,
+      0.29953296179136957,
+      -0.44921780299478153,
+      0.841714542034906,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.3625960803884623,
+      -0.6448239545231932,
+      0.6728492774462901,
+      0,
+      0.9318418252174707,
+      0.26167131324212894,
+      -0.25139398680460195,
+      0,
+      -0.013960489328693426,
+      0.7181435730403848,
+      0.6957549232585372,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      -0.35902727887361663,
+      0.9193625122018708,
+      -0.16084770493380252,
+      0,
+      -0.6785716520310145,
+      -0.37544910433476275,
+      -0.631330724037825,
+      0,
+      -0.6408119272333391,
+      -0.11751825905828293,
+      0.7586498090050536,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.43493026317570244,
+      -0.8495121473365301,
+      -0.2986047181502522,
+      0,
+      0.8491853611689559,
+      0.27664528813620676,
+      0.44983508859179205,
+      0,
+      -0.2995327837654242,
+      -0.44921764889606974,
+      0.8417146876287851,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.9380621045936979,
+      0.030584843135969958,
+      0.34511455387391365,
+      0,
+      0.34646715273635015,
+      -0.08280839255194866,
+      -0.9343999583677908,
+      0,
+      -9.470035406203281e-08,
+      0.9960960483273241,
+      -0.08827605851350946,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.9999409717274251,
+      0.0007133591035522025,
+      0.010841779355922523,
+      0,
+      -0.010865222538592045,
+      0.06565139302499792,
+      0.9977834642511691,
+      0,
+      1.144668127645021e-14,
+      -0.997842365162287,
+      0.06565526854208556,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.9382538414309117,
+      -0.34571972956144514,
+      0.012553789551332148,
+      0,
+      0.2828992120765662,
+      0.7876397050858572,
+      0.5473497335147995,
+      0,
+      -0.19911746494618673,
+      -0.5100015329037996,
+      0.8368098180525724,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.9410751008422205,
+      0.10430039347087297,
+      -0.3217127328792341,
+      0,
+      -0.3381976560752615,
+      0.29022805030969673,
+      -0.8952039009290742,
+      0,
+      -5.988021845038105e-08,
+      0.9512565935305013,
+      0.3084005403120156,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.9956602783443838,
+      -0.018385489213805454,
+      0.09122819692152818,
+      0,
+      -0.09306239910503104,
+      -0.19670351811443335,
+      0.9760364316121714,
+      0,
+      1.416922135177856e-14,
+      -0.9802906200447772,
+      -0.19756087733209263,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0.9432090786791273,
+      0.3315318356918061,
+      -0.021054116464331578,
+      0,
+      -0.08091675147705482,
+      0.29075273607235325,
+      0.9533705081429995,
+      0,
+      0.322194216626669,
+      -0.8975240879158967,
+      0.30106709946964544,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ]
+  ],
+  "rest": [
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0.8600000143051147,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      0,
+      0,
+      1.0299999713897705,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      0,
+      0,
+      1.399999976158142,
+      1
+    ],
+    [
+      0.9543962369481634,
+      0.21090775914023474,
+      -0.2112953857367206,
+      0,
+      -0.21090571520468115,
+      -0.024605672666518322,
+      -0.9771966742507006,
+      0,
+      -0.21129742590288864,
+      0.9771962331113809,
+      0.020998090383184464,
+      0,
+      -0.21620000417232513,
+      0,
+      1.2999999523162842,
+      1
+    ],
+    [
+      0.9791782428074732,
+      0.13985721410743582,
+      -0.14713914664213482,
+      0,
+      -0.13985599627047546,
+      -0.06060425955105095,
+      -0.9883154476337308,
+      0,
+      -0.14714030419861704,
+      0.9883152752975013,
+      -0.03978250235923747,
+      0,
+      -0.2761999916553497,
+      -0.007000000216066837,
+      1.0219999551773071,
+      1
+    ],
+    [
+      0.9999999999994792,
+      -1.0111014211762334e-06,
+      1.3787745407230937e-07,
+      0,
+      0,
+      -0.13511319275398842,
+      -0.9908301696778433,
+      0,
+      1.020458855734057e-06,
+      0.9908301696773273,
+      -0.13511319275391806,
+      0,
+      -0.3061999928474426,
+      -0.019999999552965164,
+      0.8100000023841858,
+      1
+    ],
+    [
+      0.9543962369481634,
+      -0.21090775914023474,
+      0.2112953857367206,
+      0,
+      0.21090571520468115,
+      -0.024605672666518322,
+      -0.9771966742507006,
+      0,
+      0.21129742590288864,
+      0.9771962331113809,
+      0.020998090383184464,
+      0,
+      0.21620000417232513,
+      0,
+      1.2999999523162842,
+      1
+    ],
+    [
+      0.9791782428074732,
+      -0.13985721410743582,
+      0.14713914664213482,
+      0,
+      0.13985599627047546,
+      -0.06060425955105095,
+      -0.9883154476337308,
+      0,
+      0.14714030419861704,
+      0.9883152752975013,
+      -0.03978250235923747,
+      0,
+      0.2761999916553497,
+      -0.007000000216066837,
+      1.0219999551773071,
+      1
+    ],
+    [
+      0.9999999999994792,
+      1.0111014211762334e-06,
+      -1.3787745407230937e-07,
+      0,
+      0,
+      -0.13511319275398842,
+      -0.9908301696778433,
+      0,
+      -1.020458855734057e-06,
+      0.9908301696773273,
+      -0.13511319275391806,
+      0,
+      0.3061999928474426,
+      -0.019999999552965164,
+      0.8100000023841858,
+      1
+    ],
+    [
+      0.9999999999999962,
+      8.742277657347553e-08,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      -8.742277657347553e-08,
+      0.9999999999999962,
+      0,
+      0,
+      -0.1363999977707863,
+      0,
+      0.8600000143051147,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -0.1363999977707863,
+      0,
+      0.49000000953674316,
+      1
+    ],
+    [
+      -0.9999999999999962,
+      0,
+      8.742277657347553e-08,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      8.742277657347553e-08,
+      0,
+      0.9999999999999962,
+      0,
+      -0.1363999977707863,
+      0,
+      0.12999999523162842,
+      1
+    ],
+    [
+      0.9999999999999962,
+      8.742277657347553e-08,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      -8.742277657347553e-08,
+      0.9999999999999962,
+      0,
+      0,
+      0.1363999977707863,
+      0,
+      0.8600000143051147,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0.1363999977707863,
+      0,
+      0.49000000953674316,
+      1
+    ],
+    [
+      -0.9999999999999962,
+      0,
+      8.742277657347553e-08,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      8.742277657347553e-08,
+      0,
+      0.9999999999999962,
+      0,
+      0.1363999977707863,
+      0,
+      0.12999999523162842,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      0,
+      -0.4000000059604645,
+      0.8899999856948853,
+      1
+    ]
+  ],
+  "contacts": [
+    {
+      "limb": "footL",
+      "target": [
+        -0.5013939374888009,
+        0.6881409906821829,
+        0.800000011920929
+      ],
+      "surface": "Pool inside ladder tread 4",
+      "part": "Creator bare foot L",
+      "triangles": [
+        4428,
+        4429,
+        4430,
+        4431,
+        4432,
+        4433,
+        4434,
+        4435,
+        4436,
+        4437,
+        4438,
+        4439,
+        4440,
+        4441,
+        4442,
+        4443,
+        4444,
+        4445,
+        4446,
+        4447,
+        4448,
+        4449
+      ]
+    },
+    {
+      "limb": "footR",
+      "target": [
+        -0.498606061985655,
+        0.9374415810672945,
+        0.8999999761581421
+      ],
+      "surface": "Pool stone coping",
+      "part": "Creator bare foot R",
+      "triangles": [
+        7860,
+        7861,
+        7862,
+        7863,
+        7864,
+        7865,
+        7866,
+        7867,
+        7868,
+        7869,
+        7870,
+        7871,
+        7872,
+        7873,
+        7874,
+        7875,
+        7876,
+        7877,
+        7878,
+        7879,
+        7880,
+        7881,
+        7883,
+        7906
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "web/src/character/schema.ts",
+      "sha256": "56638e8e6b7628454ba68e6e7a0aa1a35920b6e28f694302319c833d47414b46"
+    },
+    {
+      "path": "web/src/render/character/bundle.ts",
+      "sha256": "8146047ca715e31d3ec48da145681b11695c64773ff2bc78b7468cfe52940118"
+    },
+    {
+      "path": "web/src/render/character/geometry-proof.ts",
+      "sha256": "0741ee37a42613f9bbe181fc2f4357dd23896e598c6f72fd39f88ec6a7e3d3d4"
+    },
+    {
+      "path": "web/src/render/character/math.ts",
+      "sha256": "9bcf7d44fc597eff1fd15109dc07827b9bcba54ea573d209881041bdb20b8a9b"
+    },
+    {
+      "path": "web/src/render/character/motion.ts",
+      "sha256": "2791b1c4f2690d48e1f5185527df80e092ed12e464b49525be8b3d22777a5388"
+    },
+    {
+      "path": "web/src/render/character/pool-canonical-pose.ts",
+      "sha256": "b6e5315044e17f127ed4fbe6a17ce0494c6cb6d38659301e391a41bcb521e28f"
+    },
+    {
+      "path": "web/src/render/character/pool-contact-evaluator.ts",
+      "sha256": "d5c345de648de1aceaf4c092f2868a34856e76c9d79b9eab5634d4df8f273fca"
+    },
+    {
+      "path": "web/src/render/character/pool-contact-identity.ts",
+      "sha256": "732790e1182cfd299e80c75a1d2ad277aba83348a9ae90528019925d1c78e8c8"
+    },
+    {
+      "path": "web/src/render/character/pool-contact-patch.ts",
+      "sha256": "1da2766d15ff9bd587ae07d8162ef6a03b7823ff50d2cc44086fcd992e13f783"
+    },
+    {
+      "path": "web/src/render/character/pool-contact-protocol.ts",
+      "sha256": "c614087dacbae20de5a7ec38db2c1574aec0d8a2109f69e0315c3149cb4f49fa"
+    },
+    {
+      "path": "web/src/render/character/pool-contact-sample.ts",
+      "sha256": "a5d2fdfe8bd35995a8e3ecebdbfd61f658fd0bea77409655717b381666d88820"
+    },
+    {
+      "path": "web/src/render/character/pool-contact-types.ts",
+      "sha256": "3cb5fa83766cb652125bedbe623cb896c3029a8c4b7ac3ebad91cc3673d03dfc"
+    },
+    {
+      "path": "web/src/render/character/pool-entry-anatomy.ts",
+      "sha256": "515be23e49a95ce9cfd0d91c8aeca904913e5b40982114e26ebd0f482c53481a"
+    },
+    {
+      "path": "web/src/render/character/pool-entry-compiler.ts",
+      "sha256": "c589133fde9c96a3e838ef6327a8b703e9a0b200f7c3d03b5b5976a6ddc8ddd4"
+    },
+    {
+      "path": "web/src/render/character/pool-fit.ts",
+      "sha256": "2994a3078e31ad26e129678fda1561339db6ee37ad00c5c311312c042c7c3719"
+    },
+    {
+      "path": "web/src/render/character/pool-motion-graph.ts",
+      "sha256": "80d0e110c83ea653b0766c0dde9864865191939b273d5d51ad79cd11e375a507"
+    },
+    {
+      "path": "web/src/render/character/pool-observer.ts",
+      "sha256": "59e3b42888d24a87e33f2df8644439952a154855a5afa83624eca2fef56cf212"
+    },
+    {
+      "path": "web/src/render/character/pool-paddle-track.ts",
+      "sha256": "f1571a54c2f7127caa6160a9182beb54aafc2b45986b4da984ffadda1a788cf3"
+    },
+    {
+      "path": "web/src/render/character/pool-pose-compiler.ts",
+      "sha256": "e9293d64a98c26f627e3fbf74e44618128c72ac46b00916140b7433820f0bfb6"
+    },
+    {
+      "path": "web/src/render/character/pool-rail-region.ts",
+      "sha256": "9ee68aa33353f2a02725376d0693ec0259485f4ca7e01fa2022c14f394aecb5c"
+    },
+    {
+      "path": "web/src/render/character/pool-solid.ts",
+      "sha256": "81bc99a080dfc801aba0cd57c33612b9fc45e1a9b74680f63e8fb967ee63348e"
+    },
+    {
+      "path": "web/src/render/character/pool-surface-coefficient.ts",
+      "sha256": "7f7eaa02ad07b3e8828d79fed46f72b14954442fc2a61aa0e07917ff151dd597"
+    },
+    {
+      "path": "web/src/render/character/pose-joints.ts",
+      "sha256": "c32f4c0571e31d42510a687f315241a9368f22c656c76b1ef94e73c3bce578ca"
+    },
+    {
+      "path": "web/src/render/character/prepared-body.ts",
+      "sha256": "21098069e5a7c662ee73f10ea1b4bec9cc2206faa0de103684d4d411ef238eaf"
+    },
+    {
+      "path": "web/src/render/character/shape.ts",
+      "sha256": "e5826037e4149e84080828ce2b40f5599bd8268c41299a1bffa5ec083a75d66e"
+    },
+    {
+      "path": "web/src/render/character/surface.ts",
+      "sha256": "f4c05761f55795b76e08c8ee34f84b55addc838e74856840b152d178e88b7ff7"
+    },
+    {
+      "path": "web/tests/pool-activity.test.ts",
+      "sha256": "7cc20bd664b2b2cdd0019c9443f950bb8f34d4f7b2a9f48a940520586b7b7585"
+    },
+    {
+      "path": "web/tests/pool-canonical-pose.test.ts",
+      "sha256": "2821f56cd09ca336b4f22173f606bbd886d0d9f5896ee2f9156f0e2a2fb2635c"
+    },
+    {
+      "path": "web/tests/pool-contact-artifact.test.ts",
+      "sha256": "0ecaf3f6a3fe79cb546a7e1e9ade61f4f8ea6c7c4ba199f9610c59ea6b2f582c"
+    },
+    {
+      "path": "web/tests/pool-contact-evaluator.test.ts",
+      "sha256": "9bfa410084ebc2ae66e70b5068ddd4867b18808221a1595e76a9506b1ab90cbd"
+    },
+    {
+      "path": "web/tests/pool-contact-patch.test.ts",
+      "sha256": "83377c18ad10051da25c32125abff10c574381c832aed67e28272b2c8c3124f4"
+    },
+    {
+      "path": "web/tests/pool-entry-anatomy.test.ts",
+      "sha256": "f33bd406335d1c3b1c7865ce09310cc1df696c85ccef22f5a01e35defc5d9994"
+    },
+    {
+      "path": "web/tests/pool-entry-keys.test.ts",
+      "sha256": "403c903afd9b4f9a5149a2122afd9fe39169ee958a78dbc9d090509040341eb4"
+    },
+    {
+      "path": "web/tests/pool-free-limb.test.ts",
+      "sha256": "6cc4b7eceec9e0762e495898c01111cc118c0d05c8c434902ef3c4f112aff4fe"
+    },
+    {
+      "path": "web/tests/pool-motion-graph.test.ts",
+      "sha256": "c20491e2c932f2d10b8c46e24da6cd0535349381d323c29ba43be3336bb920df"
+    },
+    {
+      "path": "web/tests/pool-observation.test.ts",
+      "sha256": "04d78e7685b3441876335f06ff8543d54e8b24a9a92da9a79fd93070bdf140c4"
+    },
+    {
+      "path": "web/tests/pool-observer-fixture.ts",
+      "sha256": "c08d36feb76a968ecc778982bc414f1e4b6b251d33749cd4548c39c52f99cc28"
+    },
+    {
+      "path": "web/tests/pool-observer-profile.test.ts",
+      "sha256": "c98c110b2561974885e0508056e1fa2c1fedfc87617d6aa13b7697aa0486db57"
+    },
+    {
+      "path": "web/tests/pool-observer.test.ts",
+      "sha256": "ac5228b490341f21de6067148be265705cfe515dbee08bf9900091b0b43348e2"
+    },
+    {
+      "path": "web/tests/pool-paddle-track.test.ts",
+      "sha256": "bf1c2c567e8b41b0a92a3494e069f7619a6b415c9fad5aab84fd8e829514db05"
+    },
+    {
+      "path": "web/tests/pool-patch-measurement.test.ts",
+      "sha256": "3947fb0422c5712f372613e2ad12da614b0930e417f3e9d865c79a8afda72e1d"
+    },
+    {
+      "path": "web/tests/pool-pose-compiler.test.ts",
+      "sha256": "fe15bb691fa7d7ff16538e88e83af364a9046341c439606c1a249661e6d7f1e9"
+    },
+    {
+      "path": "web/tests/pool-rail-region.test.ts",
+      "sha256": "aaa12cb094f4b74c86a11497dad569bd0bd4107a2e2737e21e852521ad9c58f4"
+    },
+    {
+      "path": "web/tests/pool-supported-interval.test.ts",
+      "sha256": "bb30379c139278bf9cb29851bd3bcd45655f57b5988348242b6845191d233143"
+    },
+    {
+      "path": "web/tests/pool-surface-coefficient.test.ts",
+      "sha256": "fc158039ecdf3f5488261522d8b0b4d546116d6a2bd1c001b894685083aad5b2"
+    },
+    {
+      "path": "web/tests/pool-wasm.test.ts",
+      "sha256": "87803e538925154f80899243304e6a33a7bcb0dcaa03b7a5b2c3322e502aafab"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/clips.json",
+      "sha256": "3b8b072a7d8e1ffb18171b5bccb85707b8e2ec2a80578860f9be0087e9d17102"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/contacts-v1.json",
+      "sha256": "47a7d690754eb4d92aa7e8457f48a70c91b179e7e42ac4e2ea2693b5141e9649"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+      "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/manifest.json",
+      "sha256": "c28286c84370a5b4c1c2923ca22ad9290e1c27a40431fff188c41981435bb126"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.cage.bin",
+      "sha256": "ad9fc73dc01548606cab3559e149737c4e32def6e9ee98b892d16be4475792b8"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.indices.bin",
+      "sha256": "bdef34b8a11205eceef384feef06ba92017d5bd59a5804bfa1f92b2b3b2ed310"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.normalRanges.bin",
+      "sha256": "e032e7f678af2dc47356ac4b2f3c33349359255eb2b769c9f31fed244fa2b0c8"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.normalTriangles.bin",
+      "sha256": "31f99cb362f52bb73e66d0970053645b3f4f9b235434f7a05d7d6209bba575ab"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.stencilRanges.bin",
+      "sha256": "201c0a61ce2817e9a590907bc2e0f9afc97427ae5f660684f6f5c9f2da04ee51"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.stencilWeights.bin",
+      "sha256": "6935e5e36592a7e5223cdccb4f4fbcc9ef81da65f02c3e66765467f0c9fbbf68"
+    },
+    {
+      "path": "assets/models/sims/character-creator/clips/pool/runtime.vertices.bin",
+      "sha256": "a62fe388c6b93381664f81dc737675b0c6296d748412a64001333bcfaf1a08a6"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.cage.bin",
+      "sha256": "8e85c0079561d360461b047cca4e70443efe5b18be042fef25dfc512a2d1a8b2"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.indices.bin",
+      "sha256": "87a841607cecd6492dccea8eaef895035eaae1eb373f54986efb54bdcf3da64b"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.normalRanges.bin",
+      "sha256": "66a20a5218862103c09a00645c14f8041e3a737e2f203e6e5bc4d8596e9cbe90"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.normalTriangles.bin",
+      "sha256": "f67c7a00798380722fe407c285062aefbd7504fd1238bce2d58b1f674578f82a"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.stencilRanges.bin",
+      "sha256": "e305b5974ef8ccd3129a2196f1a189482f0b4e387d3f792830a65075456991c8"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.stencilWeights.bin",
+      "sha256": "5bbd16d8869be30238eba268098803f7ebb625742b3e758156c818862cd31479"
+    },
+    {
+      "path": "assets/models/sims/character-creator/export/runtime.vertices.bin",
+      "sha256": "b97bf9b9a4fbe5ed79d4462ab259c8714b97fe977c598d99184d4f262451efdf"
+    },
+    {
+      "path": "web/tests/pool-entry-domain-candidate.test.ts",
+      "sha256": "27368ab812eba846cd071b5acfef8d5f37a051f3c9290be3973a33d817019f42"
+    },
+    {
+      "path": "web/src/render/character/pool-entry-domain.ts",
+      "sha256": "75f90e9f4b7df9b71220d60abfaec5d00bdbfea13457834f8a685d6d5360b33c"
+    },
+    {
+      "path": "web/src/render/character/pool-support-observer.ts",
+      "sha256": "65b0a010970ac3719830d9a96be61e78ece3b95a5f82e52ecb426d1401186718"
+    },
+    {
+      "path": "web/src/render/character/pool-arithmetic.ts",
+      "sha256": "2ebe1c4e0a831d700e91ebe6db57049cabdc42eb761aec6c5da8fa708ccea014"
+    },
+    {
+      "path": "web/src/render/character/pool-skin-arithmetic.ts",
+      "sha256": "560767ed09c1274726df6430396712164ac21387b367c7d366dfd6aa59c55e30"
+    },
+    {
+      "path": "web/src/render/character/pool-support-arithmetic.ts",
+      "sha256": "02de9f7f98cc509dc84f376245259347397028204da74c9e7e2809948085ffdb"
+    },
+    {
+      "path": "web/src/render/character/pool-exact-projection.ts",
+      "sha256": "fc3a196a305e6baa83442d3c862470e9d3ab63718694b1cb28c6c745935757f1"
+    }
+  ]
+}

@@ -2,6 +2,107 @@ use crate::{Content, Sim};
 use terri_core::{Eating, Facing, Intent, IntentQueue, Path, Position, Target};
 
 #[test]
+fn build_replans_the_same_media_seat_and_updates_its_owned_endpoint() {
+    use terri_core::layout::{EdgeAxis, WallState};
+    use terri_core::{CommandQueue, SimCommand, SmartObject, TileGrid};
+    let (mut sim, person, device, chair) = fixture();
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let model = sim.world().get::<SmartObject>(chair).unwrap().0;
+    pack.objects[model.0 as usize].seats[0].approaches = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    for entity in [device, chair] {
+        let at = *sim.world().get::<Position>(entity).unwrap();
+        let model = sim.world().get::<SmartObject>(entity).unwrap().0;
+        let fp = crate::placed_footprint(
+            pack,
+            model,
+            sim.world().get::<terri_core::ObjectFacing>(entity),
+        );
+        for y in at.y as usize..at.y as usize + fp.depth as usize {
+            for x in at.x as usize..at.x as usize + fp.width as usize {
+                sim.world_mut()
+                    .resource_mut::<TileGrid>()
+                    .set_blocked(x, y, true);
+            }
+        }
+    }
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Position { x: 5., y: 0. });
+    sim.tick();
+    let claim = sim
+        .world()
+        .get::<super::PhysicalClaim>(person)
+        .unwrap()
+        .clone();
+    let mut expected = super::claim(sim.world(), person.index_u32())
+        .unwrap()
+        .clone();
+    assert_eq!(expected.endpoint, (5, 2));
+    let target = *sim.world().get::<Target>(person).unwrap();
+    let orders = sim
+        .world()
+        .get::<IntentQueue>(person)
+        .unwrap()
+        .entries()
+        .iter()
+        .map(|entry| entry.id)
+        .collect::<Vec<_>>();
+    sim.begin_build().unwrap();
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetWallEdge {
+            axis: EdgeAxis::Horizontal,
+            x: 5,
+            y: 3,
+            state: WallState::Wall,
+        });
+    sim.flush_commands();
+    assert!(sim.world().resource::<TileGrid>().can_interact_with_rect(
+        (4, 3),
+        (5, 3),
+        terri_core::Footprint::SINGLE
+    ));
+    assert!(sim
+        .world()
+        .resource::<TileGrid>()
+        .segment_can_cross((5., 3.), (2., 3.)));
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    expected.endpoint = (4, 3);
+    assert_eq!(
+        super::claim(sim.world(), person.index_u32()),
+        Some(&expected)
+    );
+    assert_eq!(
+        sim.world().get::<super::PhysicalClaim>(person),
+        Some(&claim)
+    );
+    assert_eq!(sim.world().get::<Target>(person), Some(&target));
+    assert_eq!(
+        sim.world()
+            .get::<IntentQueue>(person)
+            .unwrap()
+            .entries()
+            .iter()
+            .map(|entry| entry.id)
+            .collect::<Vec<_>>(),
+        orders
+    );
+    assert_eq!(
+        sim.world().get::<Path>(person).unwrap().steps.last(),
+        Some(&(4, 3))
+    );
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
+}
+
+#[test]
 fn review_physical_media_prediction_includes_the_actual_company_multiplier() {
     use terri_core::{
         CommandQueue, NeedId, Needs, Personality, Relationships, Reserved, SimCommand,
@@ -2920,3 +3021,6 @@ fn a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating() {
     assert_eq!(needs.get(NeedId::Fun), 30.);
     assert_eq!(needs.get(NeedId::Energy), 30.);
 }
+
+#[path = "overlap_migration_tests.rs"]
+mod overlap_migration_tests;

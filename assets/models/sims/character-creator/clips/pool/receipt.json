@@ -1,0 +1,50 @@
+{
+  "state": "complete",
+  "source": "sims/sim-01/sim-01-rigged.blend",
+  "sourceSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "producerHashes": {
+    "sims/character-creator/export_pool_activity_v1.py": "ca4fb1e40e3ea54113893dd093b37293b3d121b38df9c573162066899df45744",
+    "sims/character-creator/pool_activity_pose_v1.py": "f9d60a4be2ec8c1263d21b35e279587fd927b2493cbb9a46d5d2f3b6f613edb4",
+    "sims/character-creator/pool_swimwear_v1.py": "7c540ed97396b01c33227bb1c546a7aa80a2412eecae987c9bc2f342f56872ff",
+    "sims/character-creator/author_parts.py": "69b6286cc862c0a0dd6e9639a5f3d5a7fa5f28376f4d36b6ec4f59ef8090c3bc",
+    "sims/character-creator/author_long_sleeves.py": "e61b8d1642b03bad7d4b65b2767c3e5521aab78d7dc9fec67110d830825ccfca",
+    "sims/character-creator/contact_metadata.py": "827ab675650dd5039c1d2b73b33cd5fa4c53fbe49bf3ac49d132f2652efa24c8",
+    "sims/sim-01/build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "sims/appearance-proof/export_bundle.py": "70e5c897a3073a6394d1aedaccc5e1588c9611400a90f76c6521d7eaa255a387",
+    "outdoor/pool_activity_layout_v1.py": "e645ef02a0a5208317b100262922ef3ce1f57c985c26933b145b60900ddc2c13",
+    "outdoor/pool_activity_model_v1.py": "45b270cd888745e5efc070f9ae3620681aa20dcbc2e4082d643a1fb68302de7f",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28"
+  },
+  "fixtureGeometry": {
+    "footprint": [
+      2,
+      2
+    ],
+    "rim_outer": [
+      1.92,
+      1.92
+    ],
+    "coping_top": 0.9,
+    "water_z": 0.82,
+    "outer_bounds": [
+      1.92,
+      2.0959999999999996,
+      1.323
+    ],
+    "decorative": false,
+    "rungs": 8,
+    "ladder_side": "+Y"
+  },
+  "clips": 14,
+  "samples": 545,
+  "parts": [
+    "Creator pool trunks L",
+    "Creator pool trunks R",
+    "Creator pool trunks waist",
+    "Creator pool two_piece waist",
+    "Creator pool two_piece top",
+    "Creator pool shoulder strap -1",
+    "Creator pool shoulder strap 1"
+  ],
+  "partsSha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+}

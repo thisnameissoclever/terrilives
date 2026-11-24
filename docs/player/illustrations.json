@@ -73,13 +73,13 @@
     },
     "object-menu": {
       "title": "Object menu",
-      "desktop": "images/ui-object-menu-detail-desktop.png",
-      "mobile": "images/ui-object-menu-detail-mobile.png"
+      "desktop": "images/guide/object-menu-desktop.png",
+      "mobile": "images/guide/object-menu-mobile.png"
     },
     "object-description": {
       "title": "Object description",
-      "desktop": "images/ui-object-description-detail-desktop.png",
-      "mobile": "images/ui-object-description-detail-mobile.png"
+      "desktop": "images/guide/object-description-desktop.png",
+      "mobile": "images/guide/object-description-mobile.png"
     },
     "person-menu": {
       "title": "Person menu",
@@ -102,7 +102,7 @@
       "mobile": "images/guide/build-buy-mobile.png"
     },
     "buy-details": {
-      "title": "Buy details",
+      "title": "Buy placement preview",
       "desktop": "images/guide/buy-details-desktop.png",
       "mobile": "images/guide/buy-details-mobile.png"
     },
@@ -228,7 +228,7 @@
       "mobile": "images/guide/weather-winter-snow-mobile.png"
     },
     "household": {
-      "title": "Household",
+      "title": "Household dock",
       "desktop": "images/guide/household-desktop.png",
       "mobile": "images/guide/household-mobile.png"
     },
@@ -266,6 +266,26 @@
       "title": "Admin panel: Household",
       "desktop": "images/guide/admin-household-desktop.png",
       "mobile": "images/ui-admin-household-mobile.png"
+    },
+    "dock-no-selection": {
+      "title": "Expanded dock with nobody selected",
+      "desktop": "images/guide/dock-no-selection-desktop.png",
+      "mobile": "images/guide/dock-no-selection-mobile.png"
+    },
+    "floor-retry": {
+      "title": "Floor material failure and Retry",
+      "desktop": "images/guide/floor-retry-desktop.png",
+      "mobile": "images/guide/floor-retry-mobile.png"
+    },
+    "pool-hop-in": {
+      "title": "Hop in from the pool menu",
+      "desktop": "images/guide/pool-hop-in-desktop.png",
+      "mobile": "images/guide/pool-hop-in-mobile.png"
+    },
+    "build-access-review": {
+      "title": "Review unreachable areas",
+      "desktop": "images/guide/build-access-review-desktop.png",
+      "mobile": "images/guide/build-access-review-mobile.png"
     }
   },
   "crops": [
@@ -478,32 +498,6 @@
       "outputSha256": "93f51bd092dfff8a9a84a15f4607330bd838d7d59eb73d42bdaf1ebb58ba324c"
     },
     {
-      "output": "images/guide/household-desktop.png",
-      "source": "images/ui-guide-shortcut-desktop.png",
-      "rect": {
-        "x": 180,
-        "y": 866,
-        "width": 1080,
-        "height": 90
-      },
-      "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "f562193f89c380e3b9f78a8b8ee22b385046c367b053055639c0f46046e70c20",
-      "outputSha256": "2e2b072e08161dfc16ca25a776667d5fe78ebeec39ccaccc2f6521e23f006e67"
-    },
-    {
-      "output": "images/guide/household-mobile.png",
-      "source": "images/ui-guide-shortcut-mobile.png",
-      "rect": {
-        "x": 8,
-        "y": 687,
-        "width": 374,
-        "height": 153
-      },
-      "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "d2fd158d1b9873a37ebd49795241eb112793b32be3fd15068490ce941c222d3d",
-      "outputSha256": "b045d3b95585708f437e6d99071f5df7a54bb2197e41653446c13929d3f8ea11"
-    },
-    {
       "output": "images/guide/sim-needs-desktop.png",
       "source": "images/ui-sim-needs-desktop.png",
       "rect": {
@@ -554,32 +548,6 @@
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
       "sourceSha256": "7b9272c2dbeb8da97a255aa05aef4dc0c3a55bde5a844da3385adcfafb1a6b6f",
       "outputSha256": "a9e66f59388e0d3a3010526344ea40b4ea8c12380a08f27cbdee6bb5b252fee3"
-    },
-    {
-      "output": "images/guide/sim-queue-desktop.png",
-      "source": "images/ui-sim-queue-desktop.png",
-      "rect": {
-        "x": 699,
-        "y": 479,
-        "width": 560,
-        "height": 370
-      },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "69addac3f7958ba7cfa23821fd52e34c51e6fb25b8b4637d0755463ca91ccc94",
-      "outputSha256": "612b725dbba77074c7ac793ab88f03b6f95fe87e727e07caf8d72a1c11dc1a24"
-    },
-    {
-      "output": "images/guide/sim-queue-mobile.png",
-      "source": "images/ui-sim-queue-mobile.png",
-      "rect": {
-        "x": 8,
-        "y": 250,
-        "width": 374,
-        "height": 420
-      },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "c9f9d0a10a2a820d889564b73377c6dd50518f51705092365f80b066ea364761",
-      "outputSha256": "bfe804209f60c1be6f77f724af1c8bb599c846ea130907e98f8d10182c859cf7"
     },
     {
       "output": "images/guide/sim-people-desktop.png",
@@ -974,32 +942,6 @@
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
       "sourceSha256": "a063e541ff84f4e14b3e34396ca7f9489af437d608d530563ff4a53c729af396",
       "outputSha256": "b1218b4aa843a0e60a3b02acd333317ed7df2e3e94a393d1afd2528af53c6c7f"
-    },
-    {
-      "output": "images/guide/buy-details-desktop.png",
-      "source": "images/ui-buy-details-desktop.png",
-      "rect": {
-        "x": 8,
-        "y": 112,
-        "width": 304,
-        "height": 800
-      },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "0bbb09c89b0c15eccab6e7af835b387c13aca391f9cb686850fd0391757532f9",
-      "outputSha256": "fb42bb5dd88013ebb4863e704ab0302e98015bb842045934089e903a3de042ab"
-    },
-    {
-      "output": "images/guide/buy-details-mobile.png",
-      "source": "images/ui-buy-details-mobile.png",
-      "rect": {
-        "x": 0,
-        "y": 300,
-        "width": 390,
-        "height": 232
-      },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "8613c9e93f80c3fe8c62112351ee998c3bb99c061cc06d1a87acbe445b513034",
-      "outputSha256": "6fea92b7ea5372b6556c9d36be7f0265a17c0a5c62bb722b7e07fbc229dfd91d"
     },
     {
       "output": "images/guide/build-buy-desktop.png",
@@ -1461,6 +1403,240 @@
       "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
       "sourceSha256": "4df307febaf242867fe71f1d912577f7c15807283343474490de4103cfd015d2",
       "outputSha256": "9ae05b48b81044f41eabb1bac0a8b057141252e1529576024f45ca9467e581af"
+    },
+    {
+      "output": "images/guide/sim-queue-desktop.png",
+      "source": "images/ui-editable-sim-queue-desktop.png",
+      "rect": {
+        "x": 895,
+        "y": 467,
+        "width": 368,
+        "height": 225
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "16c1176fa9470c6858c740cf2593c86b4e53ef9c1857b5f9d5dd3e7756c38729",
+      "outputSha256": "0c4974b2585d10a6829497f9678dce53d7be958da90a38d708881748ff87577b"
+    },
+    {
+      "output": "images/guide/sim-queue-mobile.png",
+      "source": "images/ui-editable-sim-queue-mobile.png",
+      "rect": {
+        "x": 4,
+        "y": 280,
+        "width": 382,
+        "height": 240
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "fae9c323cf00abee64853d7eca31e66d4ff1fc676ced50993e37c4286a3ab976",
+      "outputSha256": "712f465082c05ef84450659071622cc9f654ccc39de21b8947a69da1a8e56f96"
+    },
+    {
+      "output": "images/guide/household-desktop.png",
+      "source": "images/ui-editable-sim-queue-desktop.png",
+      "rect": {
+        "x": 176,
+        "y": 851,
+        "width": 1088,
+        "height": 105
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "16c1176fa9470c6858c740cf2593c86b4e53ef9c1857b5f9d5dd3e7756c38729",
+      "outputSha256": "58e716d5baea776f136f082a66f49da19fae95eaaf5548a559eb3a07783a385e"
+    },
+    {
+      "output": "images/guide/household-mobile.png",
+      "source": "images/ui-editable-sim-queue-mobile.png",
+      "rect": {
+        "x": 4,
+        "y": 680,
+        "width": 382,
+        "height": 160
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "fae9c323cf00abee64853d7eca31e66d4ff1fc676ced50993e37c4286a3ab976",
+      "outputSha256": "e7ef34c3d2aa6f5b44e83da94c19f2242c3ebd9727e5559ff0aa8fc0866f94f6"
+    },
+    {
+      "output": "images/guide/dock-no-selection-desktop.png",
+      "source": "images/ui-editable-dock-no-selection-desktop.jpg",
+      "rect": {
+        "x": 95,
+        "y": 614,
+        "width": 1090,
+        "height": 101
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "3c5904e6aeb4e5e0e3682d7fc544bdae3af38abf08c96b67e918afe600e16cfc",
+      "outputSha256": "dd12020a7071a130c4b9676765d3c05ce3ddb2a3b944c53191c047ac9df72fe0"
+    },
+    {
+      "output": "images/guide/dock-no-selection-mobile.png",
+      "source": "images/ui-editable-dock-no-selection-mobile.jpg",
+      "rect": {
+        "x": 4,
+        "y": 612,
+        "width": 382,
+        "height": 227
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "de4627add890a18b098af97a626d3458ee272628e1a5684f7c941391e531511f",
+      "outputSha256": "d18d31d59c3446e81f01cba02869ab7ab083013c854547421bb5993dd5c6629d"
+    },
+    {
+      "output": "images/guide/object-menu-desktop.png",
+      "source": "images/ui-editable-object-menu-desktop.jpg",
+      "rect": {
+        "x": 346,
+        "y": 333,
+        "width": 429,
+        "height": 278
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "026d713a5f059079ef56ea8c6903e2dda9b8ccdda38c96e2ef74d1da7f1a19d4",
+      "outputSha256": "5c56595ac2c1f58cec8229a68f89d47bd53ad0f18c1464412bf869203cd80d6a"
+    },
+    {
+      "output": "images/guide/object-menu-mobile.png",
+      "source": "images/ui-editable-object-menu-mobile.jpg",
+      "rect": {
+        "x": 95,
+        "y": 288,
+        "width": 292,
+        "height": 172
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "e528d45b92efc95a0d49105c63a0acb3c6891b26f3069d1b428eb873b8b52c3d",
+      "outputSha256": "ac4f22809369f3a72276ba8f192d74ef1c9667cb0b5db040ae3ccd5e3c83d2de"
+    },
+    {
+      "output": "images/guide/object-description-desktop.png",
+      "source": "images/ui-editable-object-description-desktop.jpg",
+      "rect": {
+        "x": 781,
+        "y": 163,
+        "width": 416,
+        "height": 323
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "e33f9acafb0aa93182cd44ce345a39709802e8124ed811ead99ef68f76465e92",
+      "outputSha256": "d2be10b20d7f25209d0b07207fb05bfb5a2517798b9c56b422ffb27cb964687e"
+    },
+    {
+      "output": "images/guide/object-description-mobile.png",
+      "source": "images/ui-editable-object-description-mobile.jpg",
+      "rect": {
+        "x": 3,
+        "y": 287,
+        "width": 383,
+        "height": 295
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "060628f639107364cca8bb727709cee1a6d22f3b923d9d6236f8a5b28c819b38",
+      "outputSha256": "26a3223a7e1d97c643ec97e10c3d330ab4cdee79c6de95e519f19df1cd58fb95"
+    },
+    {
+      "output": "images/guide/floor-retry-desktop.png",
+      "source": "images/ui-editable-floor-retry-desktop.png",
+      "rect": {
+        "x": 745,
+        "y": 573,
+        "width": 332,
+        "height": 282
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "50240272fc3a12295448c089c1a94724038a359bd6a0b72b2ec0afff47065c12",
+      "outputSha256": "fc5f8e475efe124f1f273851032c57a8ea345a28065caea924eee1f3d3e6b1f5"
+    },
+    {
+      "output": "images/guide/floor-retry-mobile.png",
+      "source": "images/ui-editable-floor-retry-mobile.jpg",
+      "rect": {
+        "x": 4,
+        "y": 199,
+        "width": 331,
+        "height": 284
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "6aee6573e22c1790566eaf00fd18c9db2f42fb77dbeeaad28448ff44013b33a0",
+      "outputSha256": "81f68c71ccfaf763c99d203fd76107262e52df222275261859da7533bd09bb16"
+    },
+    {
+      "output": "images/guide/buy-details-desktop.png",
+      "source": "images/ui-editable-buy-details-desktop.jpg",
+      "rect": {
+        "x": 550,
+        "y": 500,
+        "width": 339,
+        "height": 230
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "ff4485c3d72b9e27b1f74d6153e9aeaeaba99aefacf9e2075071c30e0a5d1c2b",
+      "outputSha256": "469de504c31a12460eeccd58f83d3545f3284b00c28f449604fa9de7d6f30a35"
+    },
+    {
+      "output": "images/guide/buy-details-mobile.png",
+      "source": "images/ui-editable-buy-details-mobile.jpg",
+      "rect": {
+        "x": 30,
+        "y": 371,
+        "width": 331,
+        "height": 163
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "c81e3620b9d4a519181aa46c431a1e6c5c9d60b4d73ba022e5e8596253988b0f",
+      "outputSha256": "71a244387ea70130bfa1639e60bb34246899357237e296e89434a772837b59b0"
+    },
+    {
+      "output": "images/guide/pool-hop-in-desktop.png",
+      "source": "images/ui-editable-pool-hop-in-desktop.jpg",
+      "rect": {
+        "x": 448,
+        "y": 237,
+        "width": 420,
+        "height": 289
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab",
+      "outputSha256": "98dc65bd8b95db685cf9dae7155749c4da676718607758126717f076aec6a648"
+    },
+    {
+      "output": "images/guide/pool-hop-in-mobile.png",
+      "source": "images/ui-editable-pool-hop-in-mobile.jpg",
+      "rect": {
+        "x": 0,
+        "y": 236,
+        "width": 390,
+        "height": 352
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9",
+      "outputSha256": "8cd2e4fd0c9aef10866b0ba431fb03b117cec9ca5d73e4f25ceedfb9848ec7e0"
+    },
+    {
+      "output": "images/guide/build-access-review-desktop.png",
+      "source": "images/ui-editable-build-access-review-desktop.jpg",
+      "rect": {
+        "x": 4,
+        "y": 108,
+        "width": 312,
+        "height": 213
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "e377cf626ebf8aa8a5f8e168f455f5774797df9f80a73d392914a33ae4577760",
+      "outputSha256": "734b61b73cd2d372db4e73fef4e2a396b455b1006ff5104d27d99769bb6e71a7"
+    },
+    {
+      "output": "images/guide/build-access-review-mobile.png",
+      "source": "images/ui-editable-build-access-review-mobile.jpg",
+      "rect": {
+        "x": 4,
+        "y": 280,
+        "width": 382,
+        "height": 560
+      },
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "40c72f5c4520df7c6c869c83cf9fb6e5db507ff39757e6c7e4ef179145a3787a",
+      "outputSha256": "4110d89e246d0a69ff7a6c2c8cb3a184a5a55f2f894198f0f6c6785c8056e270"
     }
   ]
 }

@@ -18,6 +18,13 @@ function fixture() {
   const walls = new WallTool(bridge, handle.lot_width(), handle.lot_height(), { changed() {} }, tool);
   return { handle, bridge, tool, walls };
 }
+
+it('reports the native window refusal beside its action without selection filler', () => {
+  const { handle, tool } = fixture();
+  try { tool.enter(); expect(tool.feedback).toBeNull(); tool.choose({ axis: 0, x: 99, y: 99 }); tool.status = 'Unrelated translation';
+    expect(tool.feedback).toMatchObject({ operation: 'window', state: 'failure' });
+  } finally { handle.free(); }
+});
 describe('whole-window controller', () => {
   it.each([0, 1] as const)('reaches ordinary wall edits from every selected window unit on axis %s', axis => {
     for (const model of [1, 4, 7] as const) for (const action of ['W', 'd', 'Back/Wall', 'Back/Doorway', 'Back/Remove'] as const) {
@@ -59,7 +66,7 @@ describe('whole-window controller', () => {
     }
   });
 
-  it('keeps Remove window distinct, preserves pending selection, and reports rear-shell wall refusals', () => {
+  it('permits rear-shell wall edits and keeps Remove window distinct with a pending selection', () => {
     const { handle, bridge, tool, walls } = fixture();
     try {
       bridge.fitWindow(1, 10, 0, 7); bridge.flushCommands();
@@ -67,9 +74,13 @@ describe('whole-window controller', () => {
       const before = bridge.saveBytes();
       walls.handleKey('D');
       expect(tool.active).toBe(false); expect(walls.line).toEqual({ axis: 1, x: 12, y: 0 });
-      expect(walls.pending).toBeNull(); expect(walls.canApply(DOORWAY)).toBe(false);
-      expect(walls.canApply(OPEN)).toBe(false);
-      expect(bridge.saveBytes()).toEqual(before);
+      expect(walls.pending).toBe(DOORWAY);
+      bridge.flushCommands(); walls.afterCommands();
+      expect(bridge.saveBytes()).not.toEqual(before);
+      bridge.setWallEdge(1, 12, 0, WALL); bridge.flushCommands();
+      bridge.fitWindow(1, 10, 0, 7); bridge.flushCommands();
+      expect(bridge.lastWindowEditResult()?.reason).toBe(0);
+      walls.choose({ axis: 1, x: 12, y: 0 });
       walls.selectWindows(); walls.handleKey('Backspace');
       expect(tool.pending).toBe('remove'); expect(walls.pending).toBeNull();
       walls.handleKey('W'); walls.handleKey('D'); walls.selectWalls(); walls.handleKey('Delete');

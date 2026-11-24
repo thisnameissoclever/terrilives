@@ -378,7 +378,14 @@ pub(crate) fn route(world: &mut World) {
                     && world.get::<terri_core::Commuting>(actor).is_none();
                 if let Some(mut steps) = safe
                     .find_path(from, end)
-                    .and_then(|s| safe.anchor_path((pos.x, pos.y), s))
+                    .and_then(|s| {
+                        if target.is_some_and(|target| world.get::<SmartObject>(target.object)
+                            .is_some_and(|object| crate::pool::has_pool(pack.object(object.0)))) {
+                            crate::beds::navigation::Route::Exact(end).bind_path(&safe, (pos.x, pos.y), s)
+                        } else {
+                            safe.anchor_path((pos.x, pos.y), s)
+                        }
+                    })
                     .filter(|s| {
                         !strolling
                             || path.cursor + s.len() <= pack.tuning.wander_radius_tiles as usize
@@ -741,7 +748,7 @@ pub(crate) fn substitute(
                         path.clone()
                     } else {
                         let steps = route.route.path(safe, from)?;
-                        safe.anchor_path((pos.x, pos.y), steps)?
+                        route.route.bind_path(safe, (pos.x, pos.y), steps)?
                     };
                     let risk = crate::systems::autonomy::survival_penalty(
                         pack,

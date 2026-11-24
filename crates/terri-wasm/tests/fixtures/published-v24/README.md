@@ -10,3 +10,5 @@ Both original files have schema 24 and content fingerprint `0x511116efac94ae24`.
 | --- | --- | --- |
 | `day-two.sav` | 6,773 | `e0ebf3d8855e99f8c94a9989e0712b9d73ef3cb7df579469d4e55c33110dfe5e` |
 | `week-two.sav` | 9,866 | `fb14b95ac1bb87a6a5caa2df18b51b8b370ba85c4a3bd2fda7983ba22cd1baa8` |
+
+The adjacent private-editable `bath-v25.sav` came from the native bath fixture producer on the pre-Career branch, based on commit `0683357985fc39cb2975ea18f447879c921ae8a5`. It preserves a running submarine bath. Its SHA-256 is `46f22a7e039f0d040fbf1071dae2de22ed97521eaa39b06c050eda13ee9f39fa`.

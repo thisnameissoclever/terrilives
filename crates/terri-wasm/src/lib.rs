@@ -627,9 +627,14 @@ impl SimHandle {
         self.sim.world().resource::<TileGrid>().height()
     }
 
-    /// `[width, height]` of the house, from the lot's north-west corner; every
-    /// other tile of the lot is yard - [OS-yard] in
-    /// `docs/specs/2026-09-22-the-outside.md`. The view opens framed on it.
+    /// Saved base surfaces in row-major order, independent of original house coordinates.
+    pub fn world_surfaces(&self) -> Vec<u8> {
+        self.sim
+            .world()
+            .get_resource::<terri_core::WorldSurfaces>()
+            .map_or_else(Vec::new, |s| s.tiles.clone())
+    }
+    /// Initial camera framing only. Geometry uses saved walls and surfaces.
     pub fn house_size(&self) -> Vec<u32> {
         let (width, height) = self.sim.world().resource::<Content>().0.lot.house;
         vec![width, height]
@@ -2019,7 +2024,7 @@ impl SimHandle {
         self.sim.render_buffer().colourways.as_ptr()
     }
 
-    /// The doorway lines that hold an interior door ([DR-derived]), as
+    /// Saved doorway lines, including current perimeter doors, as
     /// `[x, y]` pairs of vertical lines, sorted. The renderer draws these as
     /// portal rows, so the shell leaves out their empty doorway panels.
     pub fn interior_door_lines(&self) -> Vec<u32> {
@@ -2037,10 +2042,9 @@ impl SimHandle {
             .collect()
     }
 
-    /// The front door's line, as an `[x, y]` pair, or empty on a lot with no
-    /// front door - [WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`.
-    /// The door draws its own frame there, so when the Walls tool shows the
-    /// house's front walls the shell leaves out that line's doorway panel.
+    /// Historical separately drawn entrance line, as an `[x, y]` pair.
+    /// Current worlds return empty: every saved doorway uses the ordinary
+    /// door projection above, without a privileged starting frame.
     pub fn front_door_lines(&self) -> Vec<u32> {
         terri_sim::portals::front_door_lines(self.sim.world())
             .into_iter()
@@ -2119,6 +2123,47 @@ impl SimHandle {
     /// Current work phase, aligned with entity rows, for cleaning animations.
     pub fn chore_progress_ptr(&self) -> *const u32 {
         self.sim.render_buffer().chore_progress.as_ptr()
+    }
+    pub fn pool_phases_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_phases.as_ptr()
+    }
+    pub fn pool_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_elapsed.as_ptr()
+    }
+    pub fn prev_pool_phases_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_phases.as_ptr()
+    }
+    pub fn prev_pool_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_elapsed.as_ptr()
+    }
+    pub fn prev_pool_exit_origins_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_exit_origins.as_ptr()
+    }
+    pub fn prev_pool_targets_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_targets.as_ptr()
+    }
+    pub fn pool_exit_origins_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_exit_origins.as_ptr()
+    }
+
+    /// The native exit duration used by the character motion sampler.
+    pub fn pool_exit_ticks(&self) -> u32 {
+        self.sim.pool_exit_ticks()
+    }
+    pub fn bath_toys_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().bath_toys.as_ptr()
+    }
+    pub fn bath_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().bath_elapsed.as_ptr()
+    }
+    pub fn prev_bath_toys_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_bath_toys.as_ptr()
+    }
+    pub fn prev_bath_elapsed_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_bath_elapsed.as_ptr()
+    }
+    pub fn prev_bath_targets_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_bath_targets.as_ptr()
     }
 
     /// Authored object-audio category per row. Re-read after every sync or
@@ -2718,10 +2763,10 @@ impl SimHandle {
     /// and the shell's `saveBytes` turns it into a thrown error so no caller
     /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let Ok(snapshot) = self.sim.try_save_snapshot_v27() else {
+        let Ok(snapshot) = self.sim.try_save_snapshot_v30() else {
             return Vec::new();
         };
-        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV27 serializes");
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV30 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2750,9 +2795,52 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV30>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v30(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 29 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV29>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v29(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 28 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v28(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 27 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV27>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v27(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 26 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV26>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v26(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 25 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV25>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v25(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        // Private editable-world producers used the same version tags as later
+        // published releases. Their content fingerprint precedes every divergence.
+        let private_editable = matches!(version, 22 | 23 | 24)
+            && matches!(
+                postcard::take_from_bytes::<u64>(payload),
+                Ok((0x7229_9218_57a2_e3ae, _))
+            );
+        if version == 24 && private_editable {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV24>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v24(snapshot).is_ok(),
                 _ => false,
             };
         }
@@ -2770,9 +2858,21 @@ impl SimHandle {
                 _ => false,
             };
         }
+        if version == 23 && private_editable {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV23>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v23(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 23 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v23(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 22 && private_editable {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV22>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v22(snapshot).is_ok(),
                 _ => false,
             };
         }
@@ -3289,6 +3389,11 @@ impl SimHandle {
             .collect()
     }
 
+    /// Exceptional weekly input sources as [week, path, level, captured base pay].
+    pub fn career_input_sources(&self, entity_index: u32) -> Vec<f64> {
+        self.sim.career_input_sources(entity_index)
+    }
+
     /// The inputs of the last shift scored for the person carrying
     /// `entity_index` ([CT-web] item 4): `[fit, trait_fit,
     /// social_capacity, mastery, mood, missed_minutes, attended]`, with
@@ -3521,6 +3626,18 @@ impl SimHandle {
                 ]
             })
             .collect()
+    }
+
+    /// Optional cause for one exact session event; the event stream stays unchanged.
+    pub fn order_failure_cause(&self, sequence: &str) -> String {
+        if sequence.is_empty() || !sequence.bytes().all(|byte| byte.is_ascii_digit()) {
+            return String::new();
+        }
+        sequence
+            .parse::<u64>()
+            .ok()
+            .and_then(|sequence| self.sim.action_failure_cause(sequence))
+            .map_or_else(String::new, |cause| cause.as_str().to_owned())
     }
 
     /// Cursor and expired flag, then nine strings per event. Reading never drains.
@@ -3930,6 +4047,11 @@ impl SimHandle {
 fn published_empty(width: usize, height: usize) -> SimHandle {
     let sim = Sim::new_with_lot_and_content(width, height, Content::pre_books());
     assert_eq!(
+        sim.world().resource::<terri_core::layout::SavedLayout>(),
+        &terri_core::layout::SavedLayout::LegacyCells { walls: vec![] },
+        "historical blank producer records an empty cell list"
+    );
+    assert_eq!(
         sim.save_snapshot().content_fingerprint,
         0xcf78_7472_e9e8_38f5
     );
@@ -4006,6 +4128,14 @@ fn current_world(mut world: terri_core::SaveSnapshotV1) -> terri_core::SaveSnaps
 #[cfg(test)]
 fn current_v5(mut snapshot: terri_core::SaveSnapshotV5) -> terri_core::SaveSnapshotV5 {
     snapshot.world = current_world(snapshot.world);
+    let size = (snapshot.world.grid_width, snapshot.world.grid_height);
+    let (width, height) = if size == (20, 16) { (16, 12) } else { size };
+    snapshot.layout = if snapshot.layout.has_edges() {
+        current_test_snapshot::materialized_shell(&snapshot.layout, 0, 0, width, height)
+    } else {
+        current_test_snapshot::empty_cell_fixture_shell(&snapshot.layout, width, height)
+    };
+
     if snapshot.skills.is_none() {
         let pack = SimHandle::from_lot().sim.world().resource::<Content>().0;
         let mut rows = vec![];
@@ -4235,18 +4365,31 @@ mod boundary_tests {
         snapshot
     }
 
-    /// `layout` followed by the content's walls outside the house, as a
-    /// house that grew into the yard on Load has them ([OS-migrate]).
+    /// Historical growth adds east/south walls. Current adoption also writes
+    /// the former implicit north/west shell as ordinary editable edges.
     fn grown_layout(layout: &terri_core::layout::SavedLayout) -> terri_core::layout::SavedLayout {
         assert!(
             layout.has_edges(),
             "only an edge-wall house grows: {layout:?}"
         );
         let (_, _, outside) = shipped_lot();
-        terri_core::layout::SavedLayout::from_parts(
+        let grown = terri_core::layout::SavedLayout::from_parts(
             layout.edges().iter().copied().chain(outside).collect(),
             layout.windows().to_vec(),
-        )
+        );
+        super::current_test_snapshot::materialized_shell(&grown, 0, 0, 16, 12)
+    }
+
+    fn confirm_test_build(handle: &mut SimHandle) {
+        let review = handle.sim.prepare_build_commit(Default::default()).unwrap();
+        handle
+            .sim
+            .commit_build_with_access_ack(review.token)
+            .unwrap();
+        handle.sim.end_build().unwrap();
+        let saved = handle.save_bytes();
+        assert!(handle.load_bytes(&saved));
+        assert_eq!(handle.save_bytes(), saved);
     }
 
     /// Hunger levels as the ECS actually stored them.
@@ -4362,7 +4505,7 @@ mod boundary_tests {
             after_legacy_load_draws(expected)
         );
         assert_eq!(resumed.wall_layout_kind(), 1);
-        assert_eq!(resumed.wall_edges().len(), (34 + 28) * 4);
+        assert_eq!(resumed.wall_edges().len(), (34 + 28 + 28) * 4);
 
         // The retry must not turn genuine corruption into a load. Two
         // bytes short is not a shape any version ever wrote.
@@ -4436,22 +4579,72 @@ mod boundary_tests {
     }
 
     #[test]
-    fn legacy_spawn_keeps_finite_off_lot_coordinates_and_does_not_gain_edge_restrictions() {
+    fn adopted_legacy_worlds_apply_current_spawn_bounds() {
         let mut legacy = SimHandle::new(4, 4);
         let source = published_empty(4, 4);
         let bytes = encode_save(&source.sim.save_snapshot());
         assert!(legacy.load_bytes(&bytes));
-        assert_eq!(legacy.wall_layout_kind(), 0);
+        assert_eq!(legacy.wall_layout_kind(), 1);
+        let before = legacy.save_bytes();
         legacy.spawn_agent(30.0, 30.0, 50.0);
-        assert!(legacy.spawn_object(7.0, 5.0, "bathtub"));
+        assert_eq!(legacy.entity_count(), 0);
+        assert_eq!(legacy.save_bytes(), before);
+        legacy.spawn_agent(1.0, 1.0, 50.0);
+        assert!(legacy.spawn_object(2.0, 2.0, "bathtub"));
         assert_eq!(legacy.entity_count(), 2);
         let mut positions = stored_positions(&legacy);
         positions.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-        assert_eq!(positions, vec![(7.0, 5.0), (30.0, 30.0)]);
+        assert_eq!(positions, vec![(1.0, 1.0), (2.0, 2.0)]);
         let bytes = legacy.save_bytes();
         let mut restored = SimHandle::from_lot();
         assert!(restored.load_bytes(&bytes));
         assert_eq!(restored.save_bytes(), bytes);
+    }
+
+    #[test]
+    fn existing_off_lot_v1_people_adopt_into_reloadable_current_ground() {
+        let mut source = published_empty(4, 4);
+        source
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
+        source.spawn_agent(-2.0, 1.0, 50.0);
+        assert_eq!(
+            source.entity_count(),
+            1,
+            "the historical producer accepts this position"
+        );
+        let historical = source.sim.save_snapshot();
+        let original = historical
+            .entities
+            .iter()
+            .find(|person| person.agent)
+            .unwrap();
+        let mut live = SimHandle::new(4, 4);
+        assert!(
+            live.load_bytes(&encode_save(&historical)),
+            "valid historical actor loads"
+        );
+        let bytes = live.save_bytes();
+        let mut resumed = SimHandle::from_lot();
+        assert!(
+            resumed.load_bytes(&bytes),
+            "adopted actor must be reloadable under current geometry"
+        );
+        assert_eq!(resumed.save_bytes(), bytes);
+        let saved = live.sim.save_snapshot();
+        let person = saved
+            .entities
+            .iter()
+            .find(|person| person.index == original.index)
+            .unwrap();
+        assert_eq!(person.sim_id, original.sim_id);
+        assert_eq!(person.sim_name, original.sim_name);
+        assert_eq!(person.needs, original.needs);
+        assert_eq!(
+            person.position,
+            Some(terri_core::SavedPosition { x: 0.0, y: 1.0 })
+        );
     }
 
     #[test]
@@ -4649,15 +4842,10 @@ mod boundary_tests {
         panic!("the worker never got there");
     }
 
-    /// [OS-street], review finding [S4], with real bytes: every saved stage of
-    /// a shift finishes on the street build as it started, paid exactly once,
-    /// and the next shift goes out to the street. `pre-builder-600` is at work
-    /// on the door and `pre-builder-908` is walking home, both from the front
-    /// door release; `main-commuting-366` is walking out to the door, from main
-    /// before the yard. See tests/fixtures/README.md.
+    /// Published shift stages retain attendance and settle once. Current
+    /// departures use a reachable plot boundary, without a designated door.
     #[test]
-    fn real_saved_shifts_finish_as_they_started_and_the_next_goes_to_the_street() {
-        let (door, landing, exit) = ((15.0, 2.0), (15.0, 3.0), (19.0, 2.0));
+    fn real_saved_shifts_settle_once_and_future_departures_use_current_boundaries() {
         let main: terri_core::SaveSnapshotV3 = postcard::from_bytes(
             &fixture_bytes(include_str!("../tests/fixtures/main-commuting-366.hex"))
                 [SAVE_HEADER_BYTES..],
@@ -4672,7 +4860,7 @@ mod boundary_tests {
             .and_then(|path| path.steps.last().copied());
         assert_eq!(walking_to, Some((15, 2)), "saved walking out to the door");
 
-        for (name, hex, clocks_in_at_the_door) in [
+        for (name, hex, starts_outbound) in [
             (
                 "at work",
                 include_str!("../tests/fixtures/pre-builder-600.hex"),
@@ -4720,8 +4908,15 @@ mod boundary_tests {
                 }
                 handle.tick();
                 let after = worker_state(&mut handle);
-                if clocks_in_at_the_door && !before.1 && after.1 {
-                    assert_eq!(after.0, door, "{name}: clocks in at the door");
+                if starts_outbound && !before.1 && after.1 {
+                    let (x, y) = after.0;
+                    assert!(
+                        x == 0.0
+                            || y == 0.0
+                            || x == (handle.lot_width() - 1) as f32
+                            || y == (handle.lot_height() - 1) as f32,
+                        "{name}: departure reaches a current boundary"
+                    );
                 }
                 if !after.1 && !after.2 {
                     reached_home = true;
@@ -4735,10 +4930,18 @@ mod boundary_tests {
             });
             let (at, ..) = worker_state(&mut handle);
             let paid = handle.sim.world().resource::<terri_core::Funds>().0;
+            assert!(
+                handle
+                    .sim
+                    .world()
+                    .resource::<TileGrid>()
+                    .is_walkable(at.0 as i32, at.1 as i32),
+                "{name}: returned to usable ground"
+            );
             assert_eq!(
-                (at, paid),
-                (landing, funds + owed),
-                "{name}: home, paid once for the measured attendance"
+                paid,
+                funds + owed,
+                "{name}: paid once for the measured attendance"
             );
             let outcomes = handle.sim.save_snapshot_v17().attendance.outcomes;
             if let Some(shift) = shift {
@@ -4757,7 +4960,13 @@ mod boundary_tests {
                 );
             }
             let (at, ..) = tick_until(&mut handle, |state| state.1);
-            assert_eq!(at, exit, "{name}: the next shift goes to the street");
+            assert!(
+                at.0 == 0.0
+                    || at.1 == 0.0
+                    || at.0 == (handle.lot_width() - 1) as f32
+                    || at.1 == (handle.lot_height() - 1) as f32,
+                "{name}: next departure reaches a current boundary"
+            );
         }
     }
 
@@ -5004,7 +5213,7 @@ mod boundary_tests {
     }
 
     #[test]
-    fn actual_previous_main_schema2_save_gains_the_portal_without_rewriting_its_layout() {
+    fn actual_previous_main_schema2_save_gains_explicit_outer_walls_and_current_doors() {
         // Captured from c0eca30's checked-in browser module. The JS and WASM
         // SHA-256 values were d2e855c70ad938dab7bd44646b4883366f1c6db762eaec900304f5e3946482c5
         // and eaf35f7b68825a303ccd6c96fc5d3e4b5d40c057cc46846376f29535541ac99f.
@@ -5028,15 +5237,13 @@ mod boundary_tests {
             terri_core::layout::SavedLayout::EdgeWallsV1 { edges } if edges.len() == 34
         ));
 
-        // The front door, then a door in each of the three vertical
-        // doorways ([DR-derived]).
+        // Every authored doorway has the same current presentation.
         let mut migrated = SimHandle::from_lot();
         assert_eq!(migrated.portal_count(), 6);
         assert!(migrated.load_bytes(&bytes));
         assert_eq!(migrated.portal_count(), 6);
 
-        // The saved walls are kept as saved; growing into the yard only adds
-        // the house's outside walls after them ([OS-migrate]).
+        // Preserve the authored walls and materialize the historical perimeter.
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
         expected_world.content_fingerprint = Sim::new_from_shipped_lot()
@@ -5048,7 +5255,7 @@ mod boundary_tests {
         );
         assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
-        assert_eq!(migrated.wall_edges().len(), (34 + 28) * 4);
+        assert_eq!(migrated.wall_edges().len(), (34 + 28 + 28) * 4);
 
         let resaved = migrated.save_bytes();
         let mut resumed = SimHandle::from_lot();
@@ -5081,20 +5288,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v27()
+            uninterrupted.sim.save_snapshot_v28()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            27,
-            "the public writer must emit the schema-27 envelope"
+            SAVE_SCHEMA_VERSION,
+            "the public writer must emit the complete current envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v27(),
-            uninterrupted.sim.save_snapshot_v27()
+            resumed.sim.save_snapshot_v28(),
+            uninterrupted.sim.save_snapshot_v28()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -5106,13 +5313,13 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v27(),
-            uninterrupted.sim.save_snapshot_v27()
+            resumed.sim.save_snapshot_v28(),
+            uninterrupted.sim.save_snapshot_v28()
         );
     }
 
     #[test]
-    fn v2_public_loader_restores_custom_edges_and_empty_layout_without_current_house_walls() {
+    fn v2_public_loader_preserves_custom_edges_and_materializes_only_the_historical_shell() {
         use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
         for edges in [
             vec![
@@ -5141,19 +5348,21 @@ mod boundary_tests {
             let bytes = save_v3_tests::v2_bytes(&snapshot);
             assert_eq!(&bytes[8..10], &[2, 0]);
             let mut restored = SimHandle::from_lot();
-            assert_eq!(restored.wall_edges().len(), (34 + 28) * 4);
+            assert_eq!(restored.wall_edges().len(), (34 + 28 + 28) * 4);
             assert!(restored.load_bytes(&bytes));
             assert_eq!((restored.lot_width(), restored.lot_height()), (5, 4));
             assert_eq!(restored.wall_layout_kind(), 1);
             assert!(restored.wall_tiles().is_empty());
-            let expected = if edges.is_empty() {
-                vec![]
-            } else {
-                vec![0, 2, 1, 0, 1, 3, 2, 1]
-            };
-            assert_eq!(restored.wall_edges(), expected);
+            let adopted = restored.sim.save_snapshot_v2();
+            super::current_test_snapshot::assert_materialized_shell(
+                &adopted.layout,
+                &snapshot.layout,
+                5,
+                4,
+            );
             let mut expected = snapshot;
             expected.world = after_legacy_load_draws(expected.world);
+            expected.layout = adopted.layout;
             assert_eq!(restored.sim.save_snapshot_v2(), expected);
             assert_eq!(
                 restored.sim.save_snapshot_v5(),
@@ -5206,7 +5415,7 @@ mod boundary_tests {
     }
 
     #[test]
-    fn custom_v1_snapshot_keeps_its_frozen_legacy_wall_export_when_resaved_as_v2() {
+    fn custom_v1_collision_becomes_editable_edges_and_resaves_in_current_format() {
         let mut old = legacy_cell_handle().sim.save_snapshot();
         // An extra blocked tile makes this a custom world, not the reviewed
         // shipped shape eligible for the edge migration.
@@ -5214,15 +5423,35 @@ mod boundary_tests {
         old.blocked_tiles[16] = true;
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&encode_save(&old)));
-        assert_eq!(loaded.sim.save_snapshot(), after_legacy_load_draws(old));
-        assert_eq!(loaded.wall_layout_kind(), 0);
-        assert!(loaded.wall_edges().is_empty());
-        let expected: Vec<_> = LEGACY_WALLS.iter().flat_map(|&(x, y)| [x, y]).collect();
-        assert_eq!(loaded.wall_tiles(), expected);
+        let mut expected = after_legacy_load_draws(old);
+        // Static cell bodies become their editable perimeter. Object occupancy
+        // and every other saved field remain unchanged in this coherent fixture.
+        set_legacy_walls(&mut expected, false);
+        expected.blocked_tiles[16] = false;
+        assert_eq!(loaded.sim.save_snapshot(), expected);
+        assert_eq!(loaded.wall_layout_kind(), 1);
+        assert!(loaded.wall_tiles().is_empty());
+        let edges = loaded.wall_edges();
+        for edge in [[0, 0, 1, 0], [0, 1, 1, 0], [1, 0, 1, 0], [1, 0, 2, 0]] {
+            assert!(
+                edges.chunks_exact(4).any(|row| row == edge),
+                "missing custom cell perimeter {edge:?}"
+            );
+        }
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&loaded.save_bytes()));
-        assert_eq!(resumed.wall_tiles(), expected);
+        assert_eq!(resumed.wall_edges(), edges);
         assert_eq!(resumed.save_bytes(), loaded.save_bytes());
+        resumed.sim.begin_build().unwrap();
+        assert_eq!(resumed.wall_edit_preview(0.0, 1.0, 1.0, 0.0), 0);
+        assert!(resumed.set_wall_edge(0.0, 1.0, 1.0, 0.0));
+        resumed.flush_commands();
+        assert_eq!(resumed.last_wall_edit_result(), [0, 1, 1, 0, 0]);
+        confirm_test_build(&mut resumed);
+        assert!(!resumed
+            .wall_edges()
+            .chunks_exact(4)
+            .any(|row| row == [0, 1, 1, 0]));
     }
 
     #[test]
@@ -5661,46 +5890,60 @@ mod boundary_tests {
         assert_ne!(closed, open, "the closed and open leaves must be distinct");
         assert_ne!(ajar, open, "the ajar and open leaves must be distinct");
 
-        // The front door is row 0; a door in each of the three vertical
-        // doorways follows it ([DR-derived]). The pointer reads below address
-        // row 0 only.
+        // Current doors are sorted by saved line. Locate the starting door
+        // by geometry rather than granting it a reserved render row.
+        let row = addressed(
+            handle.portal_positions_ptr(),
+            handle.portal_count() * 2,
+            "positions",
+        )
+        .chunks_exact(2)
+        .position(|position| position == [15.0, 2.0])
+        .unwrap();
+        fn addressed_row<T: Copy>(ptr: *const T, row: usize, what: &str) -> Vec<T> {
+            vec![addressed(ptr, row + 1, what)[row]]
+        }
         assert_eq!(handle.portal_count(), 6);
-        assert_eq!(handle.interior_door_lines(), [6, 9, 8, 2, 12, 8]);
+        assert_eq!(handle.interior_door_lines(), [6, 9, 8, 2, 12, 8, 16, 2]);
         // Outside the front door, then the tile right of each door's line.
         assert_eq!(
             addressed(handle.portal_far_sides_ptr(), 8, "portal_far_sides_ptr"),
-            vec![16.0, 2.0, 6.0, 9.0, 8.0, 2.0, 12.0, 8.0]
-        );
-        assert_eq!(
-            addressed(handle.portal_positions_ptr(), 2, "portal_positions_ptr"),
-            vec![15.0, 2.0]
+            vec![6.0, 9.0, 8.0, 2.0, 12.0, 8.0, 16.0, 2.0]
         );
         assert_eq!(
             addressed(
+                handle.portal_positions_ptr(),
+                handle.portal_count() * 2,
+                "portal_positions_ptr"
+            )[row * 2..row * 2 + 2],
+            vec![15.0, 2.0]
+        );
+        assert_eq!(
+            addressed_row(
                 handle.portal_depth_offsets_ptr(),
-                1,
+                row,
                 "portal_depth_offsets_ptr"
             ),
             vec![0.5]
         );
         assert_eq!(
-            addressed(handle.portal_frames_ptr(), 1, "portal_frames_ptr"),
+            addressed_row(handle.portal_frames_ptr(), row, "portal_frames_ptr"),
             vec![frame]
         );
         assert_eq!(
-            addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
+            addressed_row(handle.portal_leaves_ptr(), row, "portal_leaves_ptr"),
             vec![closed]
         );
         assert_eq!(
-            addressed(
+            addressed_row(
                 handle.portal_reduced_leaves_ptr(),
-                1,
+                row,
                 "portal_reduced_leaves_ptr"
             ),
             vec![closed]
         );
         assert_eq!(
-            addressed(handle.portal_states_ptr(), 1, "portal_states_ptr"),
+            addressed_row(handle.portal_states_ptr(), row, "portal_states_ptr"),
             vec![terri_sim::portals::CLOSED]
         );
 
@@ -5709,10 +5952,10 @@ mod boundary_tests {
             .world_mut()
             .spawn((
                 Agent,
-                Position { x: 15.0, y: 3.25 },
+                Position { x: 14.75, y: 2.0 },
                 terri_core::Commuting::Outbound,
                 terri_core::Path {
-                    steps: vec![(15, 2)],
+                    steps: vec![(15, 2), (16, 2)],
                     cursor: 0,
                 },
             ))
@@ -5721,21 +5964,21 @@ mod boundary_tests {
 
         assert_eq!(handle.portal_count(), 6);
         assert_eq!(
-            addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
+            addressed_row(handle.portal_leaves_ptr(), row, "portal_leaves_ptr"),
             vec![ajar],
             "ordinary motion exposes the authored transition leaf"
         );
         assert_eq!(
-            addressed(
+            addressed_row(
                 handle.portal_reduced_leaves_ptr(),
-                1,
+                row,
                 "portal_reduced_leaves_ptr"
             ),
             vec![open],
             "reduced motion skips the transition leaf"
         );
         assert_eq!(
-            addressed(handle.portal_states_ptr(), 1, "portal_states_ptr"),
+            addressed_row(handle.portal_states_ptr(), row, "portal_states_ptr"),
             vec![terri_sim::portals::OPENING]
         );
 
@@ -5743,23 +5986,23 @@ mod boundary_tests {
             .sim
             .world_mut()
             .entity_mut(commuter)
-            .insert(Position { x: 15.0, y: 2.25 });
+            .insert(Position { x: 15.25, y: 2.0 });
         handle.sim.sync_render_buffer();
 
         assert_eq!(
-            addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
+            addressed_row(handle.portal_leaves_ptr(), row, "portal_leaves_ptr"),
             vec![open]
         );
         assert_eq!(
-            addressed(
+            addressed_row(
                 handle.portal_reduced_leaves_ptr(),
-                1,
+                row,
                 "portal_reduced_leaves_ptr"
             ),
             vec![open]
         );
         assert_eq!(
-            addressed(handle.portal_states_ptr(), 1, "portal_states_ptr"),
+            addressed_row(handle.portal_states_ptr(), row, "portal_states_ptr"),
             vec![terri_sim::portals::OPEN]
         );
     }
@@ -7695,12 +7938,12 @@ mod boundary_tests {
     }
 
     #[test]
-    fn shipped_edge_export_pins_all_62_segments_and_symmetric_collision() {
+    fn shipped_edge_export_pins_all_explicit_segments_and_symmetric_collision() {
         let handle = SimHandle::from_lot();
         assert!(handle.wall_tiles().is_empty());
         assert_eq!(handle.wall_layout_kind(), 1);
         let packed = handle.wall_edges();
-        assert_eq!(packed.len(), (34 + 28) * 4);
+        assert_eq!(packed.len(), (34 + 28 + 28) * 4);
         let mut expected = Vec::new();
         for y in 0..6 {
             expected.extend([0, 8, y, u32::from(y == 2)]);
@@ -7722,6 +7965,15 @@ mod boundary_tests {
         for x in 0..16 {
             expected.extend([1, x, 12, 0]);
         }
+        for y in 0..12 {
+            expected.extend([0, 0, y, 0]);
+        }
+        for x in 0..16 {
+            expected.extend([1, x, 0, 0]);
+        }
+        let mut rows: Vec<_> = expected.chunks_exact(4).map(|row| row.to_vec()).collect();
+        rows.sort_by_key(|row| (row[0], row[1], row[2]));
+        expected = rows.into_iter().flatten().collect();
         assert_eq!(
             packed, expected,
             "axis, coordinate, doorway and ordering are the wire contract"
@@ -7746,7 +7998,7 @@ mod boundary_tests {
                 solid += 1;
             }
         }
-        assert_eq!((solid, doors), (29 + 27, 5 + 1));
+        assert_eq!((solid, doors), (29 + 27 + 28, 5 + 1));
         assert_eq!(grid.blocked_edges().count(), 29 + 27);
     }
 
@@ -8270,6 +8522,7 @@ mod boundary_tests {
     fn a_wall_edit_crosses_the_boundary_and_the_renderer_sees_it() {
         use terri_sim::placement::PlacementRefusal;
         let mut handle = SimHandle::from_lot();
+        handle.sim.begin_build().unwrap();
         let revision = handle.lot_revision();
         let edges_before = handle.wall_edges();
         let wall = 1.0;
@@ -8296,17 +8549,24 @@ mod boundary_tests {
         assert_eq!(after.len(), edges_before.len() + 4);
         assert_eq!(&after[after.len() - 4..], &[0, x, y, 0]);
 
-        // A doorway on the same line, then the refusal for the outside wall,
-        // read from the same result the shell reads.
+        // A doorway on the same line, then a refusal beyond the plot boundary.
         assert!(handle.set_wall_edge(0.0, x as f64, y as f64, 2.0));
         handle.flush_commands();
         assert_eq!(handle.last_wall_edit_result(), [0, x, y, 2, 0]);
         assert_eq!(&handle.wall_edges()[after.len() - 4..], &[0, x, y, 1]);
         let out = PlacementRefusal::OutOfBounds as u32;
-        assert_eq!(handle.wall_edit_preview(0.0, 0.0, 1.0, wall), out);
-        assert!(handle.set_wall_edge(0.0, 0.0, 1.0, wall));
+        let outside = handle.lot_width() + 1;
+        assert_eq!(
+            handle.wall_edit_preview(0.0, outside as f64, 1.0, wall),
+            out
+        );
+        assert!(handle.set_wall_edge(0.0, outside as f64, 1.0, wall));
         handle.flush_commands();
-        assert_eq!(handle.last_wall_edit_result(), [0, 0, 1, 1, out]);
+        assert_eq!(
+            handle.last_wall_edit_result(),
+            [0, outside as u32, 1, 1, out]
+        );
+        confirm_test_build(&mut handle);
     }
 
     /// [SL-shell]: a sale is previewed with its payout, staged, and reported,
@@ -8673,13 +8933,15 @@ mod boundary_tests {
         assert_eq!(SimHandle::from_lot().daylight_tuning(), vec![0.25, 0.2]);
     }
 
-    /// [WB-draw]: the shipped front door's line, the one the Walls tool
-    /// must not draw a second frame on: the house's east wall, on the door's
-    /// row (`content/lot.toml`'s front door is the tile at x 15, y 2).
+    /// Current door projection has no separately privileged starting line.
     #[test]
     fn the_front_door_line_crosses_the_boundary() {
         let handle = SimHandle::from_lot();
-        assert_eq!(handle.front_door_lines(), vec![handle.house_size()[0], 2]);
+        assert!(handle.front_door_lines().is_empty());
+        assert!(handle
+            .interior_door_lines()
+            .chunks_exact(2)
+            .any(|line| line == [16, 2]));
     }
 
     /// [CS-command]: a move-in is staged through the boundary with its name
@@ -8769,11 +9031,10 @@ mod boundary_tests {
         assert_eq!(handle.object_colourway(f64::from(result[5])), 2);
     }
 
-    /// [BM-shell]: the catalogue is every priced object, in pack order, with
-    /// its price, the directions it has art for and its base direction, and
-    /// its names come in the same order. An object with no price is left out.
+    /// [BM-shell]: the catalogue columns use the same order for price,
+    /// supported facings, base facing, names, and advertised needs.
     #[test]
-    fn the_catalogue_lists_every_priced_object_and_nothing_else() {
+    fn the_catalogue_lists_each_current_offer_in_pack_order() {
         let mut handle = SimHandle::from_lot();
         let mut pack = handle.sim.world().resource::<Content>().0.clone();
         let dropped = pack.find("coat_rack").unwrap().0 as usize;
@@ -8787,7 +9048,7 @@ mod boundary_tests {
             .objects
             .iter()
             .enumerate()
-            .filter(|(index, _)| *index != dropped)
+            .filter(|(index, object)| *index != dropped && object.id != "pool")
             .collect();
         assert_eq!(names.len(), priced.len());
         assert_eq!(needs.len(), priced.len());
@@ -8897,6 +9158,7 @@ mod boundary_tests {
         use terri_sim::placement::rooms::{validate_room, RoomEdit};
         use terri_sim::placement::PlacementRefusal;
         let mut handle = SimHandle::from_lot();
+        handle.sim.begin_build().unwrap();
         let revision = handle.lot_revision();
         let edges_before = handle.wall_edges();
         let hash = handle.world_hash();
@@ -8947,6 +9209,7 @@ mod boundary_tests {
             handle.last_room_result(),
             [x, y, x, y, invalid, 0, x + 5, y]
         );
+        confirm_test_build(&mut handle);
     }
 
     #[test]
@@ -9609,7 +9872,7 @@ mod boundary_tests {
         );
         assert_eq!(
             handle.mood_snapshot_of(subject.index_u32()),
-            vec![-1.0 / 12.0, -1.0 / 12.0]
+            vec![-0.1, -0.1]
         );
         assert!(handle.mood_summary_of(non_sim.index_u32()).is_empty());
         assert!(handle.mood_snapshot_of(non_sim.index_u32()).is_empty());
@@ -11174,7 +11437,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v27();
+        let saved = source.sim.save_snapshot_v28();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -11184,8 +11447,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v27(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v27(), saved);
+        assert_eq!(restored.load_snapshot_v28(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v28(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();
@@ -11219,6 +11482,10 @@ mod social_boundary_regressions {
 #[cfg(test)]
 mod job_search_tests;
 #[cfg(test)]
+mod pool_save_tests;
+#[cfg(test)]
+mod pool_v22_migration_tests;
+#[cfg(test)]
 mod published_v15_tests;
 #[cfg(test)]
 mod published_v19_tests;
@@ -11247,6 +11514,10 @@ fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
 #[cfg(test)]
 mod shift_save_tests;
 
+#[cfg(test)]
+mod published_v21_tests;
+#[cfg(test)]
+mod published_v24_tests;
 #[cfg(test)]
 mod admin_boundary_tests;
 #[cfg(test)]

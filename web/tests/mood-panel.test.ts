@@ -101,6 +101,7 @@ class FakeElement {
   getAttribute(name: string): string | null {
     return this.attributes.get(name) ?? null;
   }
+  removeAttribute(name: string): void { this.attributes.delete(name); }
 
   find(className: string): FakeElement | null {
     if (this.className === className) {
@@ -332,6 +333,21 @@ describe('moodPanelState', () => {
 });
 
 describe('MoodPanel', () => {
+  it('clears and restores the actual mood surface on selection changes inside the refresh interval', () => {
+    const source = new MutableMoodSource(), fixture = createFixture();
+    source.snapshot = Float32Array.of(35); source.summary = ['Content'];
+    const panel = new MoodPanel(source, fixture.surface, 100);
+    panel.update(0);
+    source.selected = null; expect(panel.update(1)).toBe(true);
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBeNull();
+    expect(fixture.marker.hidden).toBe(true);
+    source.selected = 9; source.snapshot = Float32Array.of(-30); source.summary = ['Low'];
+    expect(panel.update(2)).toBe(true);
+    expect(fixture.overallLabel.textContent).toBe('Low');
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBe('-30');
+    expect(panel.update(3)).toBe(false);
+    expect(source.snapshotReads).toBe(2);
+  });
   it('throttles source reads and refreshes again at the interval', () => {
     const source = new MutableMoodSource();
     const renders: MoodPanelState[] = [];
@@ -343,7 +359,7 @@ describe('MoodPanel', () => {
     expect(panel.update(100)).toBe(true);
 
     expect(renders).toHaveLength(2);
-    expect(source.selectedReads).toBe(2);
+    expect(source.selectedReads).toBe(4);
     expect(source.snapshotReads).toBe(2);
     expect(source.summaryReads).toBe(2);
   });
@@ -379,6 +395,20 @@ describe('MoodPanel', () => {
 });
 
 describe('createMoodPanelSurface', () => {
+  it('keeps an unselected hollow mood track without announcing neutral or repeating the selection prompt', () => {
+    const fixture = createFixture();
+    fixture.surface.render(ready('Content', 35, []));
+    fixture.surface.render({kind: 'unselected'});
+    expect(fixture.content.hidden).toBe(false);
+    expect(fixture.empty.hidden).toBe(true);
+    expect(fixture.empty.textContent).toBe('');
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBeNull();
+    expect(fixture.overallMeter.getAttribute('aria-valuetext')).toBe('No person selected');
+    expect(fixture.marker.hidden).toBe(true);
+    fixture.surface.render(ready('Low', -25, []));
+    expect(fixture.marker.hidden).toBe(false);
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBe('-25');
+  });
   it('skips unchanged overall, moodlet and empty text while reflecting changes', () => {
     const fixture = createFixture();
     const state = ready('Content', 35, [{ key: 'meal', label: 'Good meal', score: 25 }]);
@@ -396,7 +426,7 @@ describe('createMoodPanelSurface', () => {
     expect(probes.map(probe => probe.writes)).toEqual(writes);
     fixture.empty.textContent = 'External change';
     fixture.surface.render({ kind: 'unselected' });
-    expect(fixture.empty.textContent).toBe('Select a person to see their mood.');
+    expect(fixture.empty.textContent).toBe('');
   });
 
   it('renders the overall accessible meter and moodlet tone rows', () => {
@@ -420,6 +450,7 @@ describe('createMoodPanelSurface', () => {
     expect(fixture.overallMeter.getAttribute('aria-valuetext')).toBe('Content');
     expect(fixture.overallMeter.dataset.tone).toBe('positive');
     expect(fixture.marker.style.left).toBe('67.5%');
+    expect(fixture.marker.style.width).toBe('67.5%');
     expect(fixture.list.nodes.map((row) => row.dataset.tone)).toEqual([
       'positive',
       'negative',
@@ -509,7 +540,7 @@ describe('createMoodPanelSurface', () => {
     expect(fixture.empty.textContent).toBe('Mood unavailable');
     expect(fixture.content.hidden).toBe(true);
     expect(fixture.overallLabel.textContent).toBe('');
-    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBe('0');
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBeNull();
     expect(fixture.overallMeter.getAttribute('aria-valuetext')).toBe('Mood unavailable');
     expect(fixture.marker.style.left).toBe('50%');
     expect(fixture.list.hidden).toBe(true);
@@ -527,7 +558,7 @@ describe('createMoodPanelSurface', () => {
     const fixture = createFixture();
 
     fixture.surface.render({ kind: 'unselected' });
-    expect(fixture.empty.textContent).toBe('Select a person to see their mood.');
+    expect(fixture.empty.textContent).toBe('');
 
     fixture.surface.render({ kind: 'unavailable' });
     expect(fixture.empty.textContent).toBe('Mood unavailable');

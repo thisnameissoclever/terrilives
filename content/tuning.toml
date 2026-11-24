@@ -748,10 +748,9 @@ work_lateness_ramp_ticks = 30
 # is late for it, strictly between 1 minus `[autonomy] unrelated_single`
 # and 1. Below 1 on purpose: other choices stay possible, only rare.
 work_lateness_remedy_share = 0.99
-# A housemate at work is relieved of Bladder whenever it falls below this
-# level, from 0 to 100, so it never becomes critical during a shift. 0
-# switches the relief off, which is what a pack published before this knob
-# reconstructs. Bladder is the only need relieved at work.
+# Published packs carry this historical Bladder threshold. Current work breaks
+# refill Hunger, Bladder and Social halfway at the Critical boundary. A Sim
+# arriving at work gets the same relief for any of those needs already Low.
 work_bladder_relief_threshold = 50.0
 
 # How many game minutes before a shift starts the Career tab's Go to work
@@ -1186,4 +1185,4 @@ pool = { label = "Pools", water_cents = 50, electricity_cents = 60 }
 [need_mood]
 high_level = 80.0
 gain_hundredths_per_hour = 2
-loss_hundredths_per_hour = 500
+loss_hundredths_per_hour = 600

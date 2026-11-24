@@ -3,9 +3,9 @@ function isBookIndex(value: number): boolean { return Number.isInteger(value) &&
 import type { SimHandle } from './wasm/terri_wasm.js';
 import { parseTopicTable, type TopicRow } from './topic-table.js';
 import type { WeatherTuning } from './render/weather.js';
-import type { ActionQueueRow, OrderEventBatch } from './ui/player-orders.js';
+import type { ActionQueueRow, OrderEvent, OrderEventBatch } from './ui/player-orders.js';
 import type { WorkConflict } from './ui/work-order-confirmation.js';
-import { decodeRoomUnit, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecessors, decodeBuildReview,
+import { decodeRoomUnit, decodeRoomBoolean, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecessors, decodeBuildReview,
   decodeBuildError, encodeRoomChoices, encodeRoomName, checkBuildToken, RoomWireError, EMPTY_ROOM_CHOICES,
   type BuildToken, type RoomChoices, type Point } from './rooms/codec.js';
 import { parseBuildFailureReport, type BuildFailureReport } from './rooms/failure.js';
@@ -155,6 +155,12 @@ export interface GoToWorkStatus {
 /** The runtime's state numbers, in order. */
 const GO_TO_WORK_STATES: readonly GoToWorkState[] = ['none', 'due', 'late', 'early', 'atWork', 'outbound', 'inbound'];
 
+export interface CareerShiftSource {
+  readonly path: number;
+  readonly level: number;
+  readonly basePay: number | null;
+}
+
 /** One reviewed week's score inputs ([CT-web] item 3): means over its scored shifts, missed minutes summed. */
 export interface CareerInputWeek {
   readonly week: number;
@@ -174,6 +180,8 @@ export interface CareerInputWeek {
   readonly missedMinutes: number;
   /** Dollars per shift held during the week, before the review's outcome. */
   readonly pay: number;
+  /** Sources in scored-shift order, present for exceptional weeks. */
+  readonly sources?: readonly CareerShiftSource[];
 }
 
 /** The inputs of the last scored shift ([CT-web] item 4). */
@@ -371,7 +379,7 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   9: 'A Sim is standing there.',
   10: 'That position blocks a Sim’s route.',
   11: 'Leave every object reachable.',
-  12: 'Keep the front door clear and reachable.',
+  12: 'That would make a doorway unreachable.',
   13: 'Keep the front-door landing clear and reachable.',
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
@@ -593,7 +601,7 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   9: 'Someone is standing on that line.',
   10: "A wall there would block someone's way.",
   11: 'A wall there would leave furniture out of reach.',
-  12: 'A wall there would cut off the front door.',
+  12: 'A wall there would block access to a doorway.',
   13: 'A wall there would cut off the front-door landing.',
   18: 'Fit the entire window into a solid wall.',
   19: 'A window cannot cross a wall junction.',
@@ -698,7 +706,7 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
   9: "Someone is standing on the room's outline.",
   10: "The room would block someone's way.",
   11: 'The room would leave furniture out of reach.',
-  12: 'The room would cut off the front door.',
+  12: 'The room would block access to a doorway.',
   13: 'The room would cut off the front-door landing.',
   20: 'Remove the window before changing this room.',
   // Issue 298, [WB-beds]: functional text proposed for the owner's review.
@@ -809,6 +817,9 @@ function pushVarint(out: number[], value: number): void {
  */
 export class SimBridge {
   private orderGate: OrderGate | null = null;
+  private drainedCommands = 0;
+
+  commandDrainRevision(): number { return this.drainedCommands; }
 
   setOrderGate(gate: OrderGate | null): void { this.orderGate = gate; }
 
@@ -893,10 +904,17 @@ export class SimBridge {
   }
   readingProgress(agent: number, title: string) { return isBookIndex(agent) ? decodeBookMemory(this.handle.readingProgress(agent, title)) : null; }
   readingStatusOf(agent: number): string | null { return isBookIndex(agent) ? this.handle.readingStatusOf(agent) || null : null; }
+  private readonly readOrderFailureCause?: (sequence: string) => string;
+
   constructor(
     private readonly handle: SimHandle,
     private readonly memory: WebAssembly.Memory,
-  ) {}
+  ) {
+    const getter = (handle as SimHandle & {
+      order_failure_cause?: (sequence: string) => string;
+    }).order_failure_cause;
+    if (typeof getter === 'function') this.readOrderFailureCause = getter.bind(handle);
+  }
 
   placementPreview(object: number, x: number, y: number, facing: number): PlacementPreview {
     return previewOf(this.handle.placement_preview(object, x, y, facing));
@@ -951,6 +969,8 @@ export class SimBridge {
    * The house's `[width, height]` from the lot's north-west corner; every
    * other tile is yard ([OS-yard] in `docs/specs/2026-09-22-the-outside.md`).
    */
+  worldSurfaces(): Uint8Array { return this.handle.world_surfaces(); }
+
   houseSize(): [number, number] {
     const [width, height] = this.handle.house_size();
     return [width, height];
@@ -1113,11 +1133,13 @@ export class SimBridge {
 
   tick(): void {
     this.handle.tick();
+    this.drainedCommands++;
   }
 
   /** Applies queued input while paused without advancing simulation time. */
   flushCommands(): void {
     this.handle.flush_commands();
+    this.drainedCommands++;
   }
 
   /**
@@ -1271,6 +1293,15 @@ export class SimBridge {
   }
   prepareBuildCommit(choices: RoomChoices = EMPTY_ROOM_CHOICES, expected: BuildToken | null = null) {
     return decodeBuildReview(this.handle.prepare_build_commit(encodeRoomChoices(choices,expected)),this.roomContext());
+  }
+  poolContactRequired(): boolean { return this.handle.pool_contacts_required(); }
+  buildPoolContactRequired(token: BuildToken) {
+    checkBuildToken(token);
+    return decodeRoomBoolean(this.handle.build_pool_contacts_required(token.session, token.revision, token.preparation));
+  }
+  commitBuildWithAccessAck(token: BuildToken) {
+    checkBuildToken(token);
+    return decodeRoomUnit(this.handle.commit_build_with_access_ack(token.session,token.revision,token.preparation));
   }
   commitBuild(token: BuildToken) {
     checkBuildToken(token);
@@ -1446,6 +1477,22 @@ export class SimBridge {
   choreProgress(): Uint32Array {
     return new Uint32Array(this.memory.buffer,this.handle.chore_progress_ptr(),this.count);
   }
+  poolPhases(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_phases_ptr(),this.count); }
+  poolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_elapsed_ptr(),this.count); }
+  prevPoolPhases(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_phases_ptr(),this.count); }
+  prevPoolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_elapsed_ptr(),this.count); }
+  prevPoolExitOrigins(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_exit_origins_ptr(),this.count); }
+  prevPoolTargets(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_targets_ptr(),this.count); }
+  poolExitTicks(): number {
+    const handle=this.handle as typeof this.handle&{pool_exit_ticks?:()=>number};
+    return handle.pool_exit_ticks?.()??20;
+  }
+  poolExitOrigins(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_exit_origins_ptr(),this.count); }
+  bathToys(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.bath_toys_ptr(),this.count); }
+  bathElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.bath_elapsed_ptr(),this.count); }
+  prevBathToys(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_bath_toys_ptr(),this.count); }
+  prevBathElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_bath_elapsed_ptr(),this.count); }
+  prevBathTargets(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_bath_targets_ptr(),this.count); }
 
 
   /** Exact active socket target IDs, never inferred from position or row order. */
@@ -2461,8 +2508,14 @@ export class SimBridge {
       if (BigInt(sequence) <= previous || BigInt(sequence) > BigInt(batch.nextCursor)
         || !action || !phase) throw new Error('Malformed player-order event.');
       previous = BigInt(sequence);
-      batch.events.push({sequence,tick:tickValue,actor:wireEntity(actor),counterpart:counterpart ? wireEntity(counterpart) : null,
-        orderId:wireIdentity(id),action,phase,reason:reason || null,blockingState:blocking || null});
+      const event: OrderEvent = {sequence,tick:tickValue,actor:wireEntity(actor),counterpart:counterpart ? wireEntity(counterpart) : null,
+        orderId:wireIdentity(id),action,phase,reason:reason || null,blockingState:blocking || null};
+      if (phase === 'failed' && this.readOrderFailureCause) {
+        const cause = this.readOrderFailureCause(sequence);
+        if (typeof cause !== 'string') throw new Error('Malformed player-order failure cause.');
+        if (cause) event.failureCause = cause;
+      }
+      batch.events.push(event);
     }
     return batch;
   }
@@ -2881,6 +2934,26 @@ export class SimBridge {
       if (weeks.length > 0 && week <= weeks[weeks.length - 1].week) return [];
       weeks.push({ week, career, path, level, shifts, attended, fit, traitFit, socialCapacity, socialDemand, mastery,
         mood, missedMinutes, pay });
+    }
+    const sources = this.handle.career_input_sources(entityIndex);
+    if (sources.length % 4 !== 0) return [];
+    const grouped = new Map<number, CareerShiftSource[]>();
+    let previous = -1;
+    for (let at = 0; at < sources.length; at += 4) {
+      const [week, path, level, basePay] = Array.from(sources.slice(at, at + 4));
+      if (![week, path, level].every(isU32) || !(basePay === -1 || isU32(basePay)) || week < previous) return [];
+      const row = weeks.find(candidate => candidate.week === week);
+      if (row === undefined) return [];
+      const group = grouped.get(week) ?? [];
+      group.push(Object.freeze({ path, level, basePay: basePay === -1 ? null : basePay }));
+      if (group.length > row.shifts) return [];
+      grouped.set(week, group);
+      previous = week;
+    }
+    for (const [week, group] of grouped) {
+      const index = weeks.findIndex(row => row.week === week);
+      if (group.length !== weeks[index].shifts) return [];
+      weeks[index] = { ...weeks[index], sources: Object.freeze(group) };
     }
     return weeks;
   }

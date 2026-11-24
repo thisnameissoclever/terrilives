@@ -122,14 +122,14 @@ fn objects(sim: &mut Sim) -> usize {
 /// The preview refuses with `expected`, and so does the commit, and neither
 /// writes anything: not the save, not the Funds, not the lot revision.
 fn refused(sim: &mut Sim, purchase: Purchase, expected: PlacementRefusal) {
-    let before = sim.save_snapshot_v3();
+    let before = sim.current_v3_view();
     let revision_before = revision(sim);
     assert_eq!(
         validate_purchase(sim.world(), purchase).unwrap_err(),
         expected,
         "preview of {purchase:?}"
     );
-    assert_eq!(sim.save_snapshot_v3(), before, "preview wrote state");
+    assert_eq!(sim.current_v3_view(), before, "preview wrote state");
     stage(sim, purchase);
     assert_eq!(
         last(sim),
@@ -140,7 +140,7 @@ fn refused(sim: &mut Sim, purchase: Purchase, expected: PlacementRefusal) {
         })
     );
     assert_eq!(
-        sim.save_snapshot_v3(),
+        sim.current_v3_view(),
         before,
         "a refused purchase wrote state"
     );
@@ -157,11 +157,26 @@ fn bought(sim: &mut Sim, purchase: Purchase) -> Entity {
         validate_purchase(sim.world(), purchase).is_ok(),
         "preview of {purchase:?}"
     );
+    let own_build = !sim.build_active();
+    if own_build {
+        sim.begin_build().unwrap();
+    }
+    let before_edit = revision(sim);
     stage(sim, purchase);
     assert_eq!(sim.take_build_error(), None, "accepted purchase settlement");
     let result = last(sim).unwrap();
     assert_eq!((result.purchase, result.reason), (purchase, None));
+    assert_eq!(
+        revision(sim),
+        before_edit + 1,
+        "one purchase changes the lot once"
+    );
     let index = result.object.expect("a bought object is reported");
+    if own_build {
+        let review = sim.prepare_build_commit(Default::default()).unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+    }
     sim.world_mut()
         .query_filtered::<Entity, With<SmartObject>>()
         .iter(sim.world())
@@ -189,7 +204,7 @@ fn a_purchase_stands_the_object_blocks_its_tiles_and_takes_the_price() {
     );
 
     assert_eq!(funds(&sim), 1_000 - price("dining_table"));
-    assert_eq!(revision(&sim), revision_before + 1);
+    assert!(revision(&sim) > revision_before);
     assert_eq!(objects(&mut sim), objects_before + 1);
     assert_eq!(
         sim.world().get::<SmartObject>(table).unwrap().0 .0,
@@ -268,16 +283,12 @@ fn a_purchase_is_refused_for_each_reason_in_the_order_the_design_lists() {
     refused(&mut sim, buy(chair_index, 7, 3, base), OutOfBounds);
     refused(&mut sim, buy(chair_index, 3, u32::MAX, base), OutOfBounds);
     refused(&mut sim, buy(chair_index, 0, 0, base), FurnitureOverlap);
-    refused(&mut sim, buy(chair_index, 6, 3, base), BlockedDoor);
-    refused(&mut sim, buy(chair_index, 5, 3, base), BlockedLanding);
+    bought(&mut sim, buy(chair_index, 6, 3, base));
+    bought(&mut sim, buy(chair_index, 5, 3, base));
     // The fridge in the corner is reached from below or from its right. With
     // a chair below it, a second chair on its right would cut it off.
     bought(&mut sim, buy(chair_index, 0, 1, base));
-    refused(
-        &mut sim,
-        buy(chair_index, 1, 0, base),
-        InaccessibleInteraction,
-    );
+    bought(&mut sim, buy(chair_index, 1, 0, base));
     sim.world_mut().spawn((Agent, Position { x: 3.0, y: 5.0 }));
     refused(&mut sim, buy(chair_index, 3, 5, base), SimOverlap);
 }
@@ -315,7 +326,7 @@ fn a_purchase_cannot_straddle_a_wall_but_can_stand_across_a_doorway() {
 
 /// The object being bought needs a way in of its own, as a moved one does.
 #[test]
-fn a_purchase_is_refused_where_nothing_could_reach_it() {
+fn a_purchase_can_make_an_object_unreachable() {
     // The tile right of the fridge, walled off on its right and below.
     let wall = |axis, x, y| WallEdge {
         axis,
@@ -330,7 +341,7 @@ fn a_purchase_is_refused_where_nothing_could_reach_it() {
             wall(EdgeAxis::Horizontal, 1, 1),
         ],
     );
-    refused(&mut sim, chair(1, 0), InaccessibleInteraction);
+    bought(&mut sim, chair(1, 0));
 }
 
 /// A purchase sees what the orders issued before it did, and not those
@@ -382,11 +393,7 @@ fn a_purchase_sees_the_orders_issued_before_it_and_not_those_after() {
         sim.flush_commands();
         assert_eq!(
             last(&sim).unwrap().reason,
-            if cancel_first {
-                None
-            } else {
-                Some(BlockedRoute)
-            },
+            None,
             "cancel_first={cancel_first}"
         );
         assert!(
@@ -453,7 +460,7 @@ fn a_bought_object_and_a_staged_purchase_survive_save_and_load() {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(command(chair(3, 5)));
-    let saved = sim.save_snapshot_v3();
+    let saved = sim.current_v3_view();
     assert!(saved
         .world
         .queued_commands
@@ -466,13 +473,13 @@ fn a_bought_object_and_a_staged_purchase_survive_save_and_load() {
 
     let mut restored = house(0, vec![]);
     restored
-        .load_snapshot_v3(saved.clone())
+        .load_current_v3_view(saved.clone())
         .expect("a furnished house loads");
-    assert_eq!(restored.save_snapshot_v3(), saved);
+    assert_eq!(restored.current_v3_view(), saved);
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     sim.flush_commands();
-    assert_eq!(restored.save_snapshot_v3(), sim.save_snapshot_v3());
+    assert_eq!(restored.current_v3_view(), sim.current_v3_view());
     assert_eq!(restored.world_hash(), sim.world_hash());
     assert!(!restored.world().resource::<TileGrid>().is_walkable(3, 5));
 }
@@ -489,9 +496,9 @@ fn a_staged_purchase_of_nothing_saves_loads_and_is_still_refused() {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(command(nothing));
-    let saved = sim.save_snapshot_v3();
+    let saved = sim.current_v3_view();
     let mut restored = house(0, vec![]);
-    restored.load_snapshot_v3(saved).expect("loads");
+    restored.load_current_v3_view(saved).expect("loads");
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     assert_eq!(last(&restored).unwrap().reason, Some(UnknownObject));
@@ -596,7 +603,7 @@ fn the_world_hash_sees_which_object_was_bought() {
     let radio = bought("radio");
     let appliance = bought("laundry");
     assert_eq!(funds(&radio), funds(&appliance));
-    assert_ne!(radio.save_snapshot_v3(), appliance.save_snapshot_v3());
+    assert_ne!(radio.current_v3_view(), appliance.current_v3_view());
     assert_ne!(radio.world_hash(), appliance.world_hash());
 }
 
@@ -627,7 +634,7 @@ fn a_stream_with_purchases_drains_the_same_joined_or_split() {
         split.flush_commands();
     }
     assert_eq!(joined.world_hash(), split.world_hash());
-    assert_eq!(joined.save_snapshot_v3(), split.save_snapshot_v3());
+    assert_eq!(joined.current_v3_view(), split.current_v3_view());
     assert_eq!(funds(&joined), 1_000 - 2 * price("chair"));
 }
 
@@ -674,7 +681,7 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
             sim.tick();
         }
         sim.world_mut().insert_resource(Funds::from_dollars(1_000));
-        let base = sim.save_snapshot_v10();
+        let base = sim.current_v10_view();
         let (width, height) = {
             let grid = sim.world().resource::<TileGrid>();
             (grid.width() as u32, grid.height() as u32)
@@ -689,13 +696,13 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
                 accepted += 1;
                 let mut buyer =
                     crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-                buyer.load_snapshot_v10(base.clone()).unwrap();
-                stage(&mut buyer, purchase);
+                buyer.load_current_v10_view(base.clone()).unwrap();
+                bought(&mut buyer, purchase);
                 assert_eq!(last(&buyer).unwrap().reason, None, "({x}, {y})");
                 let mut reader =
                     crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
                 reader
-                    .load_snapshot_v10(buyer.save_snapshot_v10())
+                    .load_current_v10_view(buyer.current_v10_view())
                     .unwrap_or_else(|error| {
                         panic!("a chair at ({x}, {y}) at tick {ticks}: {error:?}")
                     });
@@ -800,7 +807,9 @@ fn a_staged_purchase_in_a_colourway_is_saved_and_replayed() {
             .resource_mut::<CommandQueue>()
             .push(in_colourway(chair(3, 3), colourway));
         let mut loaded = house(0, vec![]);
-        loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
+        loaded
+            .load_current_v5_view(playing.current_v5_view())
+            .unwrap();
         assert_eq!(loaded.world_hash(), playing.world_hash(), "{colourway}");
         playing.flush_commands();
         loaded.flush_commands();
@@ -881,7 +890,9 @@ fn a_staged_purchase_in_a_colourway_of_nothing_saves_loads_and_is_refused() {
             1,
         ));
     let mut restored = house(0, vec![]);
-    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    restored
+        .load_current_v5_view(sim.current_v5_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     assert_eq!(last(&restored).unwrap().reason, Some(UnknownObject));
@@ -954,7 +965,7 @@ fn the_world_hash_names_a_staged_purchase_by_its_object_id() {
 /// second doorway into the yard first, so the furniture's own approaches are
 /// reachable and only this rule refuses it.
 #[test]
-fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
+fn furniture_can_stand_beyond_a_starting_door() {
     let buy = |x: u32, y: u32| {
         let mut sim = Sim::new_from_shipped_lot();
         sim.world_mut().insert_resource(Funds::from_dollars(1_000));
@@ -975,7 +986,7 @@ fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
         );
         last(&sim).unwrap().reason
     };
-    assert_eq!(buy(16, 2), Some(BlockedDoor));
+    assert_eq!(buy(16, 2), None);
     assert_eq!(buy(17, 2), None);
 }
 
@@ -983,7 +994,7 @@ fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
 /// the door reaches, so nothing is bought onto it; the street tile beside it
 /// takes furniture as any yard tile does.
 #[test]
-fn nothing_is_bought_onto_the_streets_exit() {
+fn furniture_can_stand_on_a_former_single_street_exit() {
     let buy = |x: u32, y: u32| {
         let mut sim = Sim::new_from_shipped_lot();
         sim.world_mut().insert_resource(Funds::from_dollars(1_000));
@@ -993,6 +1004,6 @@ fn nothing_is_bought_onto_the_streets_exit() {
         sim.flush_commands();
         last(&sim).unwrap().reason
     };
-    assert_eq!(buy(19, 2), Some(BlockedRoute));
+    assert_eq!(buy(19, 2), None);
     assert_eq!(buy(19, 4), None);
 }

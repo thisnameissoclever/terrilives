@@ -26,11 +26,15 @@ mod admin_tests;
 #[cfg(test)]
 mod admin_wire_tests;
 pub mod affinity;
+mod bath;
 pub mod beds;
 pub mod bills;
 pub mod books;
 pub mod build_transaction;
 pub mod burnt_meals;
+mod pool;
+#[cfg(test)]
+mod pool_tests;
 pub use burnt_meals::BurntMeals;
 pub mod attendance;
 pub mod careers;
@@ -47,6 +51,7 @@ pub(crate) mod social_conflicts;
 pub use fights::Fights;
 pub mod land;
 pub mod lot_frame;
+pub mod world_geometry;
 pub use lot_frame::LotFrame;
 pub mod character_draft;
 pub mod chores;
@@ -1492,94 +1497,153 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| {
-                save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy.legacy.legacy.legacy)
-            })
+            .map(|snapshot| save::v18::project_v17(&snapshot.gameplay_v20().legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| {
-                snapshot
-                    .legacy
-                    .legacy
-                    .legacy
-                    .legacy
-                    .legacy
-                    .legacy
-                    .legacy
-                    .clone()
-            })
+            .map(|snapshot| snapshot.gameplay_v20().legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.gameplay_v20().legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
-    /// Historical schema twenty, before held shifts: pending fights and
-    /// repair decisions, with every shift command left out of the queue.
+    /// Historical schema twenty, before held shifts and explicit world state.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.gameplay_v20().clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
-    pub fn load_snapshot_v20(
+    /// Published schema twenty-one retains shift and queued-command ownership.
+    pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.legacy.legacy.legacy.clone())
+            .unwrap_or_else(|| save::v21::capture(self))
+    }
+
+    /// Explicit private producer family; generic header21 always means published shifts.
+    pub fn save_snapshot_editable_world_v21(&self) -> terri_core::LegacyEditableWorldSnapshotV21 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_editable_world_v21();
+        }
+        save::editable_v21::capture(self)
+    }
+
+    /// Frozen private pool format with historical coordinates.
+    pub fn try_save_snapshot_editable_world_v22(
+        &self,
+    ) -> Result<terri_core::LegacyEditableWorldSnapshotV22, SaveError> {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.try_save_snapshot_editable_world_v22();
+        }
+        if pool::has_swimming_state(&self.world) {
+            return Err(SaveError::InvalidValue);
+        }
+        Ok(save::editable_v22::capture_current_layer(self))
+    }
+
+    /// Frozen private continuation for fixtures without the published shifts.
+    /// Exit progress rounds down to the earlier historical tick.
+    pub fn save_snapshot_editable_world_v23(&self) -> terri_core::LegacyEditableWorldSnapshotV23 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_editable_world_v23();
+        }
+        save::editable_v23::capture(self)
+    }
+
+    /// The published household bills projection.
+    pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
+            .unwrap_or_else(|| save::v22::capture(self))
+    }
+
+    /// The published bills and lingering preference projection.
+    pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.legacy.clone())
+            .unwrap_or_else(|| save::v23::capture(self))
+    }
+
+    /// The private editable-world format before accumulated need mood.
+    /// Exit progress rounds down to the earlier historical tick.
+    pub fn save_snapshot_v26(&self) -> terri_core::SaveSnapshotV26 {
+        let mut snapshot = build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.editable.clone())
+            .unwrap_or_else(|| save::v26::capture(self));
+        save::v26::project_legacy_clock(&mut snapshot, pool::SavedPoolClock::Legacy);
+        snapshot
+    }
+
+    pub fn load_snapshot_v26(
         &mut self,
-        snapshot: terri_core::SaveSnapshotV20,
+        snapshot: terri_core::SaveSnapshotV26,
     ) -> Result<(), SaveError> {
-        let candidate = save::v20::restore(
+        let candidate = save::v26::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    /// Historical private projection with world state and without Career inputs.
+    /// Exit progress rounds down to the earlier historical tick.
+    pub fn save_snapshot_v25(&self) -> terri_core::SaveSnapshotV25 {
+        let mut snapshot = build_transaction::committed(&self.world)
+            .map(|snapshot| terri_core::SaveSnapshotV25 {
+                previous: snapshot.previous.legacy.clone(),
+                surfaces: snapshot.surfaces.clone(),
+                commutes: snapshot.commutes.clone(),
+                pools: snapshot.pools.clone(),
+                baths: snapshot.baths.clone(),
+            })
+            .unwrap_or_else(|| save::v25::capture(self));
+        pool::project_legacy_clock(
+            &mut snapshot.previous.legacy.legacy.legacy,
+            &mut snapshot.pools,
+            pool::SavedPoolClock::Legacy,
+        );
+        snapshot
+    }
+
+    pub fn load_snapshot_v25(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV25,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v25::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_editable_world_v24(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV24,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v24::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_older_load(&self.world),
         )?;
-        self.adopt_restored(candidate, false, false)
+        self.adopt_complete_activity_state(candidate)
     }
 
-    /// Historical schema twenty-one, before bills: each person's held shift,
-    /// the shift stream and queued shift commands (issue 296, [WS-save] in
-    /// `docs/specs/2026-10-18-shifts-and-careers.md`). It has no place for
-    /// the bills, and its loader raises pay saved before issue 298, so it is
-    /// not used to write saves for current content.
-    pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
-        build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
-            .unwrap_or_else(|| save::v21::capture(self))
-    }
-
-    /// Historical schema twenty-two, before the lingering lift of liked
-    /// furniture: the household's bills (issue 298, [WB-save] in
-    /// `docs/specs/2026-10-18-wages-and-bills.md`). It has no place for the
-    /// fades, so it is not used to write saves.
-    pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
-        build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
-            .unwrap_or_else(|| save::v22::capture(self))
-    }
-
-    /// Historical schema twenty-three, before the Career tab's score
-    /// inputs: every lift from liked furniture that is still fading (issue
-    /// 344, [OA-presence] in `docs/specs/2026-10-06-object-affinities.md`).
-    /// It has no place for the inputs or a queued Go to work, which it
-    /// leaves out of the queue, so it is not used to write saves.
-    pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
-        build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
-            .unwrap_or_else(|| save::v23::capture(self))
-    }
-
-    /// Historical schema twenty-four adds each person's score
-    /// inputs and every queued Go to work (issues 311 and 317, [CT-save] in
-    /// `docs/specs/2026-11-19-career-tab.md`).
+    /// Historical typed projection for inspection and fixtures whose state fits V24.
+    /// Use V30 for full continuation.
     pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.previous.clone())
             .unwrap_or_else(|| save::v24::capture(self))
     }
 
@@ -1607,26 +1671,88 @@ impl Sim {
         self.adopt_restored(candidate, false, false)
     }
 
-    /// Schema twenty-seven also carries each actor's accumulated needs mood balance.
+    /// Published V27 carries Career data and accumulated need mood.
     pub fn save_snapshot_v27(&self) -> terri_core::SaveSnapshotV27 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| terri_core::SaveSnapshotV27 {
+                legacy: snapshot.previous.clone(),
+                need_mood: snapshot.need_mood.clone(),
+            })
             .unwrap_or_else(|| save::v27::capture(self))
     }
 
-    /// [`Sim::save_snapshot_v27`], the current save, refusing a queue that
+    /// Historical V28 projection with airborne cancellation encoded as a retreat.
+    /// Exit progress rounds down to the earlier historical tick.
+    pub fn save_snapshot_v28(&self) -> terri_core::SaveSnapshotV28 {
+        let mut snapshot = self.save_snapshot_v30();
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::Legacy);
+        snapshot
+    }
+
+    /// Historical forward-hop projection with the twenty-tick exit clock.
+    /// Exit progress rounds down to the earlier historical tick.
+    pub fn save_snapshot_v29(&self) -> terri_core::SaveSnapshotV29 {
+        let mut snapshot = self.save_snapshot_v30();
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::ForwardHop);
+        snapshot
+    }
+
+    /// The complete editable household with the current pool clock.
+    pub fn save_snapshot_v30(&self) -> terri_core::SaveSnapshotV30 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v28::capture(self))
+    }
+
+    /// Number of simulation ticks in an ordinary pool exit.
+    pub fn pool_exit_ticks(&self) -> u32 {
+        pool::EXIT_TICKS
+    }
+
+    /// [`Sim::save_snapshot_v30`], the current save, refusing a queue that
     /// holds an admin command, and a world a broken admin session left with
     /// edits that would not load ([AP-save-queue] in
     /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
     /// save that met one would otherwise leave it out. The command paths
     /// never leave one queued; this is the check that proves it at the save
     /// boundary.
-    pub fn try_save_snapshot_v27(&self) -> Result<terri_core::SaveSnapshotV27, SaveError> {
+    pub fn try_save_snapshot_v30(&self) -> Result<terri_core::SaveSnapshotV30, SaveError> {
         save::refuse_queued_admin(&self.world)?;
         if admin::world_broken(&self.world) {
             return Err(SaveError::AdminSessionBroken);
         }
-        Ok(self.save_snapshot_v27())
+        Ok(self.save_snapshot_v30())
+    }
+
+    /// A checked V29 projection that requires exact progress on its exit clock.
+    pub fn try_save_snapshot_v29(&self) -> Result<terri_core::SaveSnapshotV29, SaveError> {
+        let mut snapshot = self.try_save_snapshot_v30()?;
+        if !pool::legacy_exit_clock_is_exact(&snapshot.pools) {
+            return Err(SaveError::InvalidValue);
+        }
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::ForwardHop);
+        Ok(snapshot)
+    }
+
+    /// A checked V28 projection that requires exact exit progress and a V28 phase.
+    pub fn try_save_snapshot_v28(&self) -> Result<terri_core::SaveSnapshotV28, SaveError> {
+        let mut snapshot = self.try_save_snapshot_v30()?;
+        if !pool::legacy_exit_clock_is_exact(&snapshot.pools)
+            || snapshot.pools.iter().any(|episode| episode.phase == pool::CANCELED_LANDING)
+        {
+            return Err(SaveError::InvalidValue);
+        }
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::Legacy);
+        Ok(snapshot)
+    }
+
+    /// A checked projection for callers using the published V27 format.
+    pub fn try_save_snapshot_v27(&self) -> Result<terri_core::SaveSnapshotV27, SaveError> {
+        let snapshot = self.try_save_snapshot_v30()?;
+        Ok(terri_core::SaveSnapshotV27 {
+            legacy: snapshot.editable.previous,
+            need_mood: snapshot.need_mood,
+        })
     }
 
     pub fn load_snapshot_v27(
@@ -1641,6 +1767,42 @@ impl Sim {
         self.adopt_restored(candidate, false, false)
     }
 
+    pub fn load_snapshot_v28(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV28,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v28::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_v29(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV29,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v28::restore_forward_hop(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_v30(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV30,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v28::restore_current(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
     pub fn load_snapshot_v22(
         &mut self,
         snapshot: terri_core::SaveSnapshotV22,
@@ -1653,11 +1815,59 @@ impl Sim {
         self.adopt_restored(candidate, false, false)
     }
 
+    pub fn load_snapshot_editable_world_v23(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV23,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v23::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_editable_world_v22(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV22,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v22::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    pub fn load_snapshot_editable_world_v21(
+        &mut self,
+        snapshot: terri_core::LegacyEditableWorldSnapshotV21,
+    ) -> Result<(), SaveError> {
+        let candidate = save::editable_v21::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
     pub fn load_snapshot_v21(
         &mut self,
         snapshot: terri_core::SaveSnapshotV21,
     ) -> Result<(), SaveError> {
         let candidate = save::v21::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_older_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    pub fn load_snapshot_v20(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV20,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v20::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_older_load(&self.world),
@@ -1869,11 +2079,32 @@ impl Sim {
 
     fn adopt_restored(
         &mut self,
-        mut restored: Sim,
+        restored: Sim,
         infer_legacy_state: bool,
         adopt_legacy_conflicts: bool,
     ) -> Result<(), SaveError> {
+        self.adopt_with_activity_policy(restored, infer_legacy_state, adopt_legacy_conflicts, true)
+    }
+
+    fn adopt_complete_activity_state(&mut self, restored: Sim) -> Result<(), SaveError> {
+        self.adopt_with_activity_policy(restored, false, false, false)
+    }
+
+    fn adopt_with_activity_policy(
+        &mut self,
+        mut restored: Sim,
+        infer_legacy_state: bool,
+        adopt_legacy_conflicts: bool,
+        infer_legacy_bath: bool,
+    ) -> Result<(), SaveError> {
         rooms::migration::migrate(&mut restored)?;
+        let migrated_geometry = !world_geometry::current(&restored.world)
+            && !terri_data::is_pre_books_pack(restored.world.resource::<Content>().0);
+        // Frozen producer packs remain historical controls. Every historical
+        // input adopted into the current content pack receives current geometry.
+        if !terri_data::is_pre_books_pack(restored.world.resource::<Content>().0) {
+            world_geometry::materialize(&mut restored.world)?;
+        }
         player_actions::continue_session(&self.world, &mut restored.world);
         if infer_legacy_state {
             recipe_actions::adopt_legacy_activity(&mut restored.world);
@@ -1889,7 +2120,19 @@ impl Sim {
         if adopt_legacy_conflicts {
             social_conflicts::adopt_legacy(&mut restored.world);
         }
+        if migrated_geometry {
+            world_geometry::normalize_legacy_occupied_objects(&mut restored.world)?;
+            world_geometry::admit_legacy_people(&mut restored.world)?;
+            world_geometry::revalidate_routes(&mut restored.world);
+        }
+        attendance::pin_historical_open_base_pay(&mut restored.world);
         character_draft::ensure_appearance_components(&mut restored.world);
+        // The current format already requires a complete current bath continuation.
+        if infer_legacy_bath {
+            bath::adopt_legacy(&mut restored.world);
+        }
+        // Restoration attaches activity state in stages; seed interpolation from the final snapshot.
+        restored.render_rows.clear();
         restored.sync_render_buffer_after_commands();
         restored
             .world
@@ -2221,7 +2464,12 @@ impl Sim {
                 // station walk on the same tick a chosen fridge gets
                 // its path - and there is exactly ONE targeting code
                 // path for chains, this system ([K4]).
-                (dining::advance, systems::chain::advance_chains).chain(),
+                (
+                    dining::advance,
+                    systems::chain::advance_chains,
+                    pool::prepare,
+                )
+                    .chain(),
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -2267,7 +2515,10 @@ impl Sim {
                     domestic::gather_diners,
                     social_company::tick_meals,
                     need_interactions::tick,
+                    pool::tick,
+                    bath::begin,
                     systems::interact::tick_interactions,
+                    bath::maintain,
                 )
                     .chain(),
                 // Beside tick_interactions because it is the same job
@@ -2319,6 +2570,7 @@ impl Sim {
 
         if !terri_data::is_pre_books_pack(pack) {
             rooms::initialize(&mut world).expect("empty current lot has valid rooms");
+            world_geometry::blank(&mut world);
         }
         Self {
             world,
@@ -2342,6 +2594,7 @@ impl Sim {
             .insert_resource(terri_core::TileGrid::new(width, height));
         if !terri_data::is_pre_books_pack(content.0) {
             rooms::initialize(sim.world_mut()).expect("empty current lot has valid rooms");
+            world_geometry::blank(sim.world_mut());
         }
         sim
     }
@@ -2383,19 +2636,41 @@ impl Sim {
         lot: &terri_data::CompiledLot,
         objects: &[terri_data::CompiledObject],
     ) -> Self {
-        Self::place_initial_lot(Self::new(), lot, objects)
+        Self::place_initial_lot(Self::new(), lot, objects, true)
     }
 
     pub fn new_from_lot_and_content(lot: &terri_data::CompiledLot, content: Content) -> Self {
         let objects = &content.0.objects;
-        Self::place_initial_lot(Self::new_with_content(content), lot, objects)
+        Self::place_initial_lot(Self::new_with_content(content), lot, objects, true)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn new_from_historical_lot(
+        lot: &terri_data::CompiledLot,
+        objects: &[terri_data::CompiledObject],
+    ) -> Self {
+        Self::place_initial_lot(Self::new(), lot, objects, false)
+    }
+    #[cfg(test)]
+    pub(crate) fn new_from_historical_lot_and_content(
+        lot: &terri_data::CompiledLot,
+        content: Content,
+    ) -> Self {
+        Self::place_initial_lot(
+            Self::new_with_content(content),
+            lot,
+            &content.0.objects,
+            false,
+        )
     }
 
     fn place_initial_lot(
         mut sim: Self,
         lot: &terri_data::CompiledLot,
         objects: &[terri_data::CompiledObject],
+        materialize: bool,
     ) -> Self {
+        sim.world.remove_resource::<world_geometry::WorldSurfaces>();
         let mut grid = terri_core::TileGrid::new(lot.width as usize, lot.height as usize);
         for &(x, y) in &lot.walls {
             grid.set_blocked(x as usize, y as usize, true);
@@ -2463,6 +2738,10 @@ impl Sim {
 
         if !terri_data::is_pre_books_pack(sim.world.resource::<Content>().0) {
             rooms::initialize(sim.world_mut()).expect("authored current lot has valid rooms");
+            if materialize {
+                world_geometry::materialize(sim.world_mut())
+                    .expect("authored geometry can be materialized");
+            }
         }
         sim
     }
@@ -2589,7 +2868,7 @@ impl Sim {
                 .collect(),
             ..test_content::historical_lot(pack)
         };
-        let mut sim = Self::new_from_lot_and_content(&lot, content);
+        let mut sim = Self::new_from_historical_lot_and_content(&lot, content);
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -2682,10 +2961,12 @@ impl Sim {
         }
         if build_transaction::needs_atomic_drain(&self.world) {
             build_transaction::run_atomic_drain(self);
+            bath::maintain(&mut self.world);
             return;
         }
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+        bath::maintain(&mut self.world);
         if self.build_active()
             || build_transaction::has_error(&self.world)
             || build_transaction::native_batch(&self.world)
@@ -2886,6 +3167,29 @@ impl Sim {
 
         if advance_interpolation {
             std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
+            std::mem::swap(
+                &mut self.render.prev_pool_phases,
+                &mut self.render.pool_phases,
+            );
+            std::mem::swap(
+                &mut self.render.prev_pool_elapsed,
+                &mut self.render.pool_elapsed,
+            );
+            std::mem::swap(
+                &mut self.render.prev_pool_exit_origins,
+                &mut self.render.pool_exit_origins,
+            );
+            self.render
+                .prev_pool_targets
+                .clone_from(&self.render.interaction_targets);
+            std::mem::swap(&mut self.render.prev_bath_toys, &mut self.render.bath_toys);
+            std::mem::swap(
+                &mut self.render.prev_bath_elapsed,
+                &mut self.render.bath_elapsed,
+            );
+            self.render
+                .prev_bath_targets
+                .clone_from(&self.render.interaction_targets);
         }
         self.render.positions.clear();
         self.render.kinds.clear();
@@ -2901,6 +3205,11 @@ impl Sim {
         self.render.conversation_preferences.clear();
         self.render.visual_actions.clear();
         self.render.chore_progress.clear();
+        self.render.pool_phases.clear();
+        self.render.pool_elapsed.clear();
+        self.render.pool_exit_origins.clear();
+        self.render.bath_toys.clear();
+        self.render.bath_elapsed.clear();
         self.render.interaction_targets.clear();
         self.render.meal_tables.clear();
         self.render.sleeping_beds.clear();
@@ -3258,6 +3567,12 @@ impl Sim {
                 };
             let activity = if !is_agent {
                 render_buffer::activity::NONE
+            } else if self
+                .world
+                .get::<world_geometry::WaitingToReturn>(entity)
+                .is_some()
+            {
+                render_buffer::activity::WAITING
             } else if at_work {
                 render_buffer::activity::AT_WORK
             } else if socially_active {
@@ -3520,11 +3835,37 @@ impl Sim {
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
             self.render.ids.push(row.index);
-            self.render.activities.push(row.activity);
+            let pool = self
+                .world
+                .get::<pool::PoolEpisode>(row.entity)
+                .filter(|episode| episode.phase > 0);
+            self.render.activities.push(if pool.is_some() {
+                render_buffer::activity::SWIMMING
+            } else {
+                row.activity
+            });
+            self.render
+                .pool_phases
+                .push(pool.map_or(0, |e| u32::from(e.render_phase())));
+            self.render.pool_elapsed.push(pool.map_or(0, |e| e.elapsed));
+            self.render
+                .pool_exit_origins
+                .push(pool.map_or(0, |e| e.exit_origin));
+            let bath = bath::current(&self.world, row.entity);
+            self.render
+                .bath_toys
+                .push(bath.map_or(0, |episode| u32::from(episode.toy)));
+            self.render
+                .bath_elapsed
+                .push(bath.map_or(0, |episode| episode.elapsed));
             let (topic, preference) = social_episode::bubble(&self.world, row.index);
             self.render.conversation_topics.push(topic);
             self.render.conversation_preferences.push(preference);
-            self.render.visual_actions.push(row.visual_action);
+            self.render.visual_actions.push(if pool.is_some() {
+                render_buffer::visual_action::SWIM
+            } else {
+                row.visual_action
+            });
             let bin_progress = self
                 .world
                 .get_resource::<terri_core::chores::SavedChores>()
@@ -3540,7 +3881,9 @@ impl Sim {
             self.render
                 .chore_progress
                 .push(row.chore_progress.max(bin_progress));
-            self.render.interaction_targets.push(row.interaction_target);
+            self.render
+                .interaction_targets
+                .push(pool.map_or(row.interaction_target, |e| e.pool.index_u32()));
             self.render.meal_tables.push(row.meal_table);
             self.render.sleeping_beds.push(row.sleeping_bed);
             self.render.sleeping_places.push(row.sleeping_place);
@@ -3681,6 +4024,27 @@ impl Sim {
             || self.render.prev_positions.len() != self.render.positions.len()
         {
             self.render.prev_positions = self.render.positions.clone();
+            self.render
+                .prev_pool_phases
+                .clone_from(&self.render.pool_phases);
+            self.render
+                .prev_pool_elapsed
+                .clone_from(&self.render.pool_elapsed);
+            self.render
+                .prev_pool_exit_origins
+                .clone_from(&self.render.pool_exit_origins);
+            self.render
+                .prev_pool_targets
+                .clone_from(&self.render.interaction_targets);
+            self.render
+                .prev_bath_toys
+                .clone_from(&self.render.bath_toys);
+            self.render
+                .prev_bath_elapsed
+                .clone_from(&self.render.bath_elapsed);
+            self.render
+                .prev_bath_targets
+                .clone_from(&self.render.interaction_targets);
         } else {
             for (slot, row) in rows.iter().enumerate() {
                 if previous_socket_projection.contains(&row.entity) != row.socket_projected
@@ -3689,6 +4053,13 @@ impl Sim {
                     let position = slot * 2;
                     self.render.prev_positions[position] = self.render.positions[position];
                     self.render.prev_positions[position + 1] = self.render.positions[position + 1];
+                    self.render.prev_pool_phases[slot] = self.render.pool_phases[slot];
+                    self.render.prev_pool_elapsed[slot] = self.render.pool_elapsed[slot];
+                    self.render.prev_pool_exit_origins[slot] = self.render.pool_exit_origins[slot];
+                    self.render.prev_pool_targets[slot] = self.render.interaction_targets[slot];
+                    self.render.prev_bath_toys[slot] = self.render.bath_toys[slot];
+                    self.render.prev_bath_elapsed[slot] = self.render.bath_elapsed[slot];
+                    self.render.prev_bath_targets[slot] = self.render.interaction_targets[slot];
                 }
             }
         }
@@ -4272,6 +4643,13 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// The contributing jobs and base pay of exceptional reviewed weeks.
+    pub fn career_input_sources(&self, index: u32) -> Vec<f64> {
+        self.person_at(index)
+            .map(|entity| careers::input_sources(&self.world, entity))
+            .unwrap_or_default()
+    }
+
     /// The inputs of the last shift scored for the person carrying `index`
     /// (`careers::last_shift_inputs`); empty before one.
     pub fn career_last_shift(&self, index: u32) -> Vec<f32> {
@@ -4610,6 +4988,9 @@ impl Sim {
 
         let mut hasher = terri_core::FnvHasher::default();
         rooms::hash(&self.world, &mut hasher);
+        world_geometry::hash(&self.world, &mut hasher);
+        pool::hash(&self.world, &mut hasher);
+        bath::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<SimClock>().tick);
 
         // (entity index, x, y, all seven need levels). Every level is
@@ -5533,6 +5914,7 @@ impl Sim {
         presence_fade::hash(&self.world, &mut hasher);
         // The score inputs the review window reads, only once some are held.
         careers::hash_inputs(&self.world, &mut hasher);
+        careers::hash_input_sources(&self.world, &mut hasher);
         need_mood::hash(&self.world, &mut hasher);
         hasher.finish()
     }
@@ -5853,11 +6235,8 @@ mod lot_tests {
         assert!(!grid.is_walkable(3, 5), "(3, 5) is outside a 6x4 lot");
     }
 
-    /// Renamed from `..._and_only_those` when footprints arrived: walls are
-    /// no longer the only blocked tiles, since [F3] blocks every footprint
-    /// tile as well. The four tiles asserted walkable below are chosen clear
-    /// of both objects, so the mutation this kills is unchanged - a
-    /// transposed or single-coordinate `set_blocked`.
+    /// Historical wall cells become ordinary editable perimeters. Their exact
+    /// coordinates still matter; transposed cells must not gain those barriers.
     #[test]
     fn new_from_lot_blocks_every_declared_wall_and_not_its_transpose() {
         let lot = a_lot();
@@ -5865,11 +6244,32 @@ mod lot_tests {
         let grid = sim.world().resource::<TileGrid>();
 
         assert!(!lot.walls.is_empty(), "a lot with no walls blocks nothing");
+        let historical = Sim::new_from_historical_lot(&lot, &one_tile_defs());
         for &(x, y) in &lot.walls {
             assert!(
-                !grid.is_walkable(x as i32, y as i32),
-                "the declared wall at ({x}, {y}) must be unwalkable"
+                !historical
+                    .world()
+                    .resource::<TileGrid>()
+                    .is_walkable(x as i32, y as i32),
+                "frozen constructor retains the old cell body"
             );
+            assert!(
+                grid.is_walkable(x as i32, y as i32),
+                "materialized cell interior at ({x}, {y}) is editable ground"
+            );
+            for (axis, ex, ey) in [
+                (terri_core::layout::EdgeAxis::Vertical, x, y),
+                (terri_core::layout::EdgeAxis::Vertical, x + 1, y),
+                (terri_core::layout::EdgeAxis::Horizontal, x, y),
+                (terri_core::layout::EdgeAxis::Horizontal, x, y + 1),
+            ] {
+                assert_eq!(
+                    sim.world()
+                        .resource::<terri_core::layout::SavedLayout>()
+                        .state_of(terri_core::layout::WallLine { axis, x: ex, y: ey }),
+                    terri_core::layout::WallState::Wall
+                );
+            }
         }
         // The transposes and the cross products of the two declared
         // walls, none of which is a wall. Without these, blocking
@@ -5881,6 +6281,17 @@ mod lot_tests {
             (1, 2, "y alone must not block a tile"),
         ] {
             assert!(grid.is_walkable(x, y), "{why}");
+        }
+        for (a, b) in [
+            ((1, 3), (2, 3)),
+            ((0, 1), (0, 2)),
+            ((2, 0), (3, 0)),
+            ((1, 1), (1, 2)),
+        ] {
+            assert!(
+                grid.can_cross(a, b),
+                "transposed coordinates and full rows/columns must not gain wall edges"
+            );
         }
     }
 
@@ -5999,10 +6410,10 @@ mod lot_tests {
             grid.is_walkable(1, 1),
             "the rectangle runs +x from the origin, not -x - [F2]"
         );
-        // The wall still blocks, so footprints did not replace walls.
+        // Materialization keeps the wall as an edge around its former cell.
         assert!(
-            !grid.is_walkable(6, 0),
-            "the declared wall must still block"
+            grid.is_walkable(6, 0) && !grid.can_cross((6, 0), (6, 1)),
+            "the declared wall's southern perimeter must still block"
         );
     }
 
@@ -6762,6 +7173,7 @@ mod determinism_tests {
             sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
             sim.world.remove_resource::<rooms::RoomMap>();
             sim.world.insert_resource(rooms::RoomReferenceMode::Legacy);
+            sim.world.remove_resource::<world_geometry::WorldSurfaces>();
             sim.world.insert_resource(layout);
         }
         // The shipped fridge, deliberately: the golden vector below is
@@ -7671,28 +8083,18 @@ mod determinism_tests {
         // conversation choices change even though no argument starts. Native
         // and rebuilt release WebAssembly independently measured this state.
         // The immutable published control above retains its original value.
-        // Issue 315 cut every base need drain rate to three quarters of what
-        // it was, which is a BEHAVIOR change in this scenario: the eight
-        // agents' needs cross the same thresholds at different ticks, so
-        // their choices and the draws they spend differ from the first
-        // minutes. The digest encoding is unchanged, and the published
-        // control sets its own drain in `pre_balance_content`, so it did not
-        // move. Measured from the native assertion, which was 4733362429942472337
-        // before; the release-wasm twin in `web/tests/bridge.test.ts` gave the
-        // same value independently after rebuilding the module. Merging main
-        // at 54cf96b46 (wages and bills, furniture presence) into this change
-        // did not move it: the native assertion still passes with this value
-        // on the merged tree, and the full local check rebuilds the release
-        // module and runs the twin against it.
-        // The need mood ledger adds eight rows, each with +1200 units.
-        // Appending those rows to 15287039064284998688 gives the new
-        // native result below without any other change in this scenario.
-        // Conversation subjects (issue 275) add candidates to the topic draw,
-        // a BEHAVIOR change here: three chats complete within 100 ticks and
-        // several begin with a subject, so the draws pick different topics
-        // (previously 10536286167581425162). The digest encoding is unchanged.
-        // Measured on native and on rebuilt release WebAssembly: identical.
-        const GOLDEN: u64 = 1841635519881759335;
+        // V21 adds explicit base surfaces and commute direction to the digest.
+        // Native and release WASM independently measured this encoding change;
+        // the published historical control above remains unchanged.
+        // Main's three-quarter need drain changes this scenario's need levels.
+        // On 2026-11-20, native and rebuilt release WebAssembly independently
+        // measured 195701637562556713 after integrating that balance with surfaces.
+        // Eight actors each gain 1200 need mood units in this scenario.
+        // Appending those exact saved rows to 195701637562556713 gives this
+        // digest, which the native test measured after integrating the ledger.
+        // Subjects change the chat choices and subsequent draws in the current
+        // household. The historical control uses its published topic rows.
+        const GOLDEN: u64 = 17435874788369320558;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(
@@ -7850,3 +8252,22 @@ mod determinism_tests {
 
 #[cfg(test)]
 mod current_test_snapshot;
+#[cfg(test)]
+mod editable_world_tests {
+    use super::*;
+    #[test]
+    fn starting_rear_wall_can_be_removed_like_any_other_wall() {
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.begin_build().unwrap();
+        let result = crate::placement::walls::validate_wall_edit(
+            sim.world(),
+            crate::placement::walls::WallEdit {
+                axis: terri_core::layout::EdgeAxis::Vertical,
+                x: 0,
+                y: 2,
+                state: terri_core::layout::WallState::Open,
+            },
+        );
+        assert!(result.is_ok(), "ordinary starting wall: {result:?}");
+    }
+}

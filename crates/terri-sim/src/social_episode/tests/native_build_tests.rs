@@ -3,7 +3,7 @@ use crate::rooms::RoomChoices;
 use terri_core::rooms::RoomSelection;
 
 fn exercise(sim: &mut Sim) {
-    let baseline = sim.save_snapshot_v17();
+    let baseline = sim.current_v17_view();
     let runtime = requests::runtime::capture(sim.world());
     sim.begin_build().unwrap();
     assert!(!sim.build_dirty());
@@ -21,13 +21,13 @@ fn exercise(sim: &mut Sim) {
     assert!(!sim.build_dirty());
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     sim.commit_build(review.token).unwrap();
-    assert_eq!(sim.save_snapshot_v17(), baseline);
+    assert_eq!(sim.current_v17_view(), baseline);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
     sim.stage_room_name(RoomSelection::Outside, "Confirmed garden".into())
         .unwrap();
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     sim.commit_build(review.token).unwrap();
-    let confirmed = sim.save_snapshot_v17();
+    let confirmed = sim.current_v17_view();
     assert_eq!(confirmed.legacy.legacy, baseline.legacy.legacy);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
     sim.stage_room_name(RoomSelection::Outside, "Cancelled garden".into())
@@ -36,28 +36,28 @@ fn exercise(sim: &mut Sim) {
         .prepare_build_commit(RoomChoices::default())
         .unwrap()
         .token;
-    let draft = crate::save::v17::capture(sim);
+    let draft = crate::save::v21::capture(sim);
     let mut bad = confirmed.clone();
     bad.legacy.legacy.conversation_requests.next_id = 0;
     assert!(!bad.legacy.legacy.conversation_requests.requests.is_empty());
-    assert!(sim.load_snapshot_v17(bad).is_err());
-    assert_eq!(crate::save::v17::capture(sim), draft);
-    assert_eq!(sim.save_snapshot_v17(), confirmed);
+    assert!(sim.load_current_v17_view(bad).is_err());
+    assert_eq!(crate::save::v21::capture(sim), draft);
+    assert_eq!(sim.current_v17_view(), confirmed);
     assert_eq!(sim.validate_build_token(token), Ok(()));
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
     sim.cancel_build().unwrap();
-    assert_eq!(sim.save_snapshot_v17(), confirmed);
+    assert_eq!(sim.current_v17_view(), confirmed);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
-    sim.load_snapshot_v17(baseline.clone()).unwrap();
+    sim.load_current_v17_view(baseline.clone()).unwrap();
     let loaded_runtime = requests::runtime::capture(sim.world());
-    assert_eq!(sim.save_snapshot_v17(), baseline);
+    assert_eq!(sim.current_v17_view(), baseline);
     sim.stage_room_name(RoomSelection::Outside, "Discard after load".into())
         .unwrap();
     sim.cancel_build().unwrap();
     assert_eq!(requests::runtime::capture(sim.world()), loaded_runtime);
     sim.end_build().unwrap();
     assert!(!sim.build_active());
-    assert_eq!(sim.save_snapshot_v17(), baseline);
+    assert_eq!(sim.current_v17_view(), baseline);
     let published = sim.save_snapshot_v16();
     let grid = sim.world().resource::<terri_core::TileGrid>();
     let mut legacy = test_content::sim_with(
@@ -66,7 +66,22 @@ fn exercise(sim: &mut Sim) {
         sim.world().resource::<Content>().0,
     );
     legacy.load_snapshot_v16(published.clone()).unwrap();
-    assert_eq!(legacy.save_snapshot_v16(), published);
+    let mut expected = sim.current_v5_view();
+    let adopted_layout = legacy.current_v5_view().layout.clone();
+    let house = crate::lot_frame::house_or_grid(sim.world());
+    assert_eq!(
+        (house.x, house.y),
+        (0, 0),
+        "this published compatibility fixture is not shifted"
+    );
+    crate::save::assert_materialized_rear_shell(
+        &adopted_layout,
+        &expected.layout,
+        house.width,
+        house.height,
+    );
+    expected.layout = adopted_layout;
+    assert_eq!(legacy.save_snapshot_v16(), *expected.0.room_world_v16());
 }
 
 #[test]

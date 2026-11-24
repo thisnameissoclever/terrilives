@@ -1,7 +1,7 @@
 //! Schema-23 saves from before the Career tab's score inputs
 //! (`docs/specs/2026-11-19-career-tab.md`, [CT-save-migrate] and
 //! [CT-tests] `v24_tests.rs` item 4): they load with no inputs, save as
-//! schema 27 and continue, and the first full week after the load writes
+//! the current schema and continue, and the first full week after the load writes
 //! a row.
 use super::current_test_snapshot::decode_current;
 use super::*;
@@ -20,8 +20,8 @@ fn fixtures() -> [(&'static str, &'static [u8]); 2] {
 }
 
 /// Every schema-23 fixture loads with no inputs and no queued Go to work,
-/// keeps its schema-23 part exactly, saves as schema 27 with four empty
-/// trailing lists, and continues tick for tick after a reload.
+/// keeps Career, attendance and bills state while adopting explicit world geometry,
+/// then continues tick for tick after a current-envelope reload.
 #[test]
 fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
     for (name, bytes) in fixtures() {
@@ -31,21 +31,21 @@ fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
         let mut migrated = SimHandle::from_lot();
         assert!(migrated.load_bytes(bytes), "{name}");
         let current = migrated.save_bytes();
-        assert_eq!(
-            &current[8..10],
-            &SAVE_SCHEMA_VERSION.to_le_bytes(),
-            "{name}"
-        );
+        assert_eq!(&current[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes(), "{name}");
         let saved = decode_current(&current);
-        assert!(saved.need_mood.is_empty(), "{name}");
-        let saved = saved.legacy;
-        assert!(saved.career_inputs.is_empty(), "{name}");
-        assert!(saved.queued_work_commands.is_empty(), "{name}");
-        assert!(saved.replaced_shifts.is_empty(), "{name}");
-        assert_eq!(saved.legacy, original, "{name}: the schema-23 part is kept");
-        // Each of the four appended lists starts empty.
-        assert_eq!(current.len(), bytes.len() + 4, "{name}");
-        assert_eq!(&current[current.len() - 4..], &[0, 0, 0, 0], "{name}");
+        assert!(saved.previous.career_inputs.is_empty(), "{name}");
+        assert!(saved.previous.queued_work_commands.is_empty(), "{name}");
+        assert!(saved.previous.replaced_shifts.is_empty(), "{name}");
+        assert_eq!(saved.previous.legacy.presence_fade, original.presence_fade, "{name}");
+        assert_eq!(saved.previous.legacy.legacy.bills, original.legacy.bills, "{name}");
+        assert_eq!(saved.previous.legacy.legacy.legacy.shifts, original.legacy.legacy.shifts, "{name}");
+        assert_eq!(saved.previous.legacy.legacy.legacy.queued_shift_commands,
+            original.legacy.legacy.queued_shift_commands, "{name}");
+        let before = &original.legacy.legacy.legacy.legacy.legacy.legacy;
+        let after = &saved.gameplay_v20().legacy.legacy.legacy;
+        assert_eq!(after.attendance, before.attendance, "{name}");
+        assert_eq!(after.legacy.legacy.legacy.careers,
+            before.legacy.legacy.legacy.careers, "{name}");
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");

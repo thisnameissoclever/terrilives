@@ -348,10 +348,10 @@ mod tests {
             .collect();
         sim.world_mut().insert_resource(state);
         for object in members(sim.world(), key) {
-            sim.world_mut()
-                .resource_mut::<terri_core::CommandQueue>()
-                .push(terri_core::SimCommand::SellObject { object });
-            sim.flush_commands();
+            crate::test_content::reviewed_command(
+                &mut sim,
+                terri_core::SimCommand::SellObject { object },
+            );
         }
         assert!(!super::super::keys(sim.world()).contains(&key));
         assert!(sim
@@ -392,15 +392,15 @@ mod tests {
                 .is_ok()
             })
             .unwrap();
-        sim.world_mut()
-            .resource_mut::<terri_core::CommandQueue>()
-            .push(terri_core::SimCommand::BuyObject {
+        crate::test_content::reviewed_command(
+            &mut sim,
+            terri_core::SimCommand::BuyObject {
                 definition,
                 x: destination.0,
                 y: destination.1,
                 facing: terri_core::Facing::SouthWest,
-            });
-        sim.flush_commands();
+            },
+        );
         let new_key = ChoreKey { target: 2, ..key };
         assert_eq!(members(sim.world(), new_key).len(), 1);
         assert!(sim
@@ -637,15 +637,15 @@ mod tests {
                     .is_ok()
                 })
                 .unwrap();
-            sim.world_mut()
-                .resource_mut::<terri_core::CommandQueue>()
-                .push(terri_core::SimCommand::PlaceObject {
+            crate::test_content::reviewed_command(
+                &mut sim,
+                terri_core::SimCommand::PlaceObject {
                     object: id,
                     x: destination.0,
                     y: destination.1,
                     facing: terri_core::Facing::SouthWest,
-                });
-            sim.flush_commands();
+                },
+            );
             let mut loaded =
                 crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
             let saved = sim.current_v19_view();

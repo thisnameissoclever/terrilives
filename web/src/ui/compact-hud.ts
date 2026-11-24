@@ -67,6 +67,9 @@ export class CompactHud {
     this.reflect();
   }
 
+  /** Reparent existing presentation nodes after its source-owned selection changes. */
+  refresh(): void { this.reflect(); }
+
   private reflect(): void { this.render({ ...this.state }); }
 }
 
@@ -97,14 +100,14 @@ export function createCompactHud(document: Document, refreshQueue: () => void, b
     body.hidden = state.collapsed;
     dock.dataset.compact = String(state.compact);
     sheet.hidden = state.panel === null;
-    const host = state.compact || state.collapsed ? overviewNeeds : needsHost;
+    const host = state.collapsed || state.compact && dock.dataset.hasSelection !== 'false' ? overviewNeeds : needsHost;
     if (needs.parentElement !== host) host.append(needs);
     for (const panel of panels) panel.hidden = panel.dataset.simPanel !== state.panel;
     for (const button of buttons) {
       button.setAttribute('aria-expanded', String(button.dataset.openSimPanel === state.panel));
     }
     details.setAttribute('aria-expanded', String(state.panel !== null));
-    collapse.textContent = state.collapsed ? 'Expand' : 'Collapse';
+    collapse.textContent = '';
     collapse.setAttribute('aria-expanded', String(!state.collapsed));
     collapse.setAttribute('aria-label', state.collapsed ? 'Expand Sim dock' : 'Collapse Sim dock');
     if (state.panel === 'traits') element<HTMLDetailsElement>('traits-block').open = true;

@@ -1,13 +1,12 @@
-//! Bounded lateness for critical needs, and Bladder relief at work (issue
-//! 309, `docs/specs/2026-11-16-work-lateness.md`).
+//! Bounded lateness for critical Hunger and Energy (issue 309).
 use crate::Content;
 use bevy_ecs::prelude::*;
 use terri_core::save_v17::SavedScheduledShift;
-use terri_core::{AtWork, Eating, NeedId, Needs, NEED_MAX};
+use terri_core::{Eating, NeedId, Needs};
 use terri_data::Tuning;
 
-/// The needs whose neglect can keep a housemate home from work. Bladder is
-/// not among them: it is relieved at work instead ([WL-bladder]).
+/// Hunger and Energy can keep a housemate home. Bladder is
+/// handled during a shift by workplace need care.
 pub(crate) const COUNTED_NEEDS: [NeedId; 2] = [NeedId::Hunger, NeedId::Energy];
 
 /// The bit mask of [`COUNTED_NEEDS`], bit `n` for the need with index `n`.
@@ -140,24 +139,6 @@ pub(crate) fn waits_for_needs(
         .get::<Needs>(actor)
         .is_some_and(|needs| counted_critical(needs, tuning))
         || (now > shift.start_tick && running_remedy(world, actor))
-}
-
-/// Relieves the Bladder of every housemate at work whose level is below
-/// `work_bladder_relief_threshold`, to full, so it never becomes critical
-/// during a shift ([WL-bladder]). Runs after the tick's decay and after
-/// arrival is recorded. A threshold of 0 relieves nobody.
-pub(crate) fn relieve_bladder_at_work(world: &mut World) {
-    let threshold = world
-        .resource::<Content>()
-        .0
-        .tuning
-        .work_bladder_relief_threshold;
-    let mut workers = world.query_filtered::<&mut Needs, With<AtWork>>();
-    for mut needs in workers.iter_mut(world) {
-        if needs.get(NeedId::Bladder) < threshold {
-            needs.set(NeedId::Bladder, NEED_MAX);
-        }
-    }
 }
 
 #[cfg(test)]

@@ -8,7 +8,8 @@ export interface ActionQueueSource {
 
 export function structuredActionCards(rows: readonly ActionQueueRow[]): {label: string; phase: string; orderId: string | null; reason: string | null}[] {
   return rows.filter(row => row.label !== '').map(row => ({label: row.label, orderId: row.orderId, reason: row.reason,
-    phase: `${row.role === 'incoming' ? 'Incoming ← · ' : ''}${row.phase.charAt(0).toUpperCase()}${row.phase.slice(1)}`}));
+    phase: row.role === 'initiator' && row.orderId === null ? 'Current activity'
+      : `${row.role === 'incoming' ? 'Incoming ← · ' : ''}${row.phase.charAt(0).toUpperCase()}${row.phase.slice(1)}`}));
 }
 
 /** Entry zero is the current action; an empty entry means nothing is running. */

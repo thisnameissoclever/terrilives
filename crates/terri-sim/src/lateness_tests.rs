@@ -432,13 +432,18 @@ fn a_worker_on_the_way_to_work_or_at_work_is_not_turned_back_by_a_crisis() {
             "turned back at {}",
             now(&sim)
         );
-        arrived |= sim.world().get::<AtWork>(actor).is_some();
+        let at_work = sim.world().get::<AtWork>(actor).is_some();
+        if !at_work {
+            assert!(need(&sim, actor, NeedId::Hunger) <= 5.0);
+        }
+        assert!(sim.world().get::<Eating>(actor).is_none());
+        arrived |= at_work;
     }
     assert!(arrived, "reached work");
     assert!(sim.world().get::<AtWork>(actor).is_some(), "still at work");
     assert!(
-        need(&sim, actor, NeedId::Hunger) <= 5.0,
-        "no meal was eaten"
+        need(&sim, actor, NeedId::Hunger) > 5.0,
+        "work refills critical Hunger after arrival"
     );
 }
 
@@ -530,53 +535,6 @@ fn the_choice_parameter_reports_lateness_along_the_ramp() {
     );
 }
 
-/// [WL-bladder]: a worker at work is relieved of Bladder below the
-/// threshold, to full, and not at the threshold itself.
-#[test]
-fn a_worker_at_work_is_relieved_of_bladder_below_the_threshold() {
-    let (mut sim, actor, _) = fixture(480, &[], |_| {});
-    start_with(&mut sim, actor, &[]);
-    let mut worked = false;
-    for _ in 0..200 {
-        sim.tick();
-        if sim.world().get::<AtWork>(actor).is_some() {
-            worked = true;
-            break;
-        }
-    }
-    assert!(worked, "the worker reaches the office");
-    let threshold = sim
-        .world()
-        .resource::<Content>()
-        .0
-        .tuning
-        .work_bladder_relief_threshold;
-    assert_eq!(threshold, 50.0);
-    for (level, relieved) in [(50.0, false), (49.9, true), (0.0, true), (75.0, false)] {
-        sim.world_mut()
-            .get_mut::<Needs>(actor)
-            .unwrap()
-            .set(NeedId::Bladder, level);
-        sim.world_mut()
-            .get_mut::<Needs>(actor)
-            .unwrap()
-            .set(NeedId::Hunger, 30.0);
-        sim.tick();
-        assert!(sim.world().get::<AtWork>(actor).is_some());
-        let expected = if relieved {
-            terri_core::NEED_MAX
-        } else {
-            level
-        };
-        assert_eq!(need(&sim, actor, NeedId::Bladder), expected, "from {level}");
-        assert_eq!(
-            need(&sim, actor, NeedId::Hunger),
-            30.0,
-            "Bladder is the only need relieved at work"
-        );
-    }
-}
-
 /// [WL-bladder]: relief belongs to work. A worker still at home with a low
 /// Bladder is not relieved by it.
 #[test]
@@ -589,48 +547,6 @@ fn bladder_is_not_relieved_away_from_work() {
         .set(NeedId::Bladder, 5.0);
     sim.tick();
     assert_eq!(need(&sim, actor, NeedId::Bladder), 5.0);
-}
-
-/// [WL-bladder]: with the real decay rates, Bladder never falls below the
-/// threshold during a shift, while without the relief it does.
-#[test]
-fn bladder_never_falls_below_the_threshold_during_a_shift() {
-    let lowest_at_work = |threshold: f32| {
-        let (mut sim, actor, _) = fixture(480, &[], |pack| {
-            pack.decay_per_tick = terri_data::pack().decay_per_tick;
-            pack.tuning.work_bladder_relief_threshold = threshold;
-        });
-        start_with(&mut sim, actor, &[(NeedId::Bladder, 60.0)]);
-        let mut lowest = f32::INFINITY;
-        let mut ticks_at_work = 0;
-        for _ in 0..520 {
-            sim.tick();
-            // Keep the other needs out of the way of the sleep and meal
-            // choices the real decay would otherwise provoke.
-            for other in NeedId::ALL {
-                if other != NeedId::Bladder {
-                    sim.world_mut()
-                        .get_mut::<Needs>(actor)
-                        .unwrap()
-                        .set(other, 100.0);
-                }
-            }
-            if sim.world().get::<AtWork>(actor).is_some() {
-                ticks_at_work += 1;
-                lowest = lowest.min(need(&sim, actor, NeedId::Bladder));
-            }
-        }
-        assert!(ticks_at_work > 300, "a real stretch at work");
-        lowest
-    };
-    assert!(
-        lowest_at_work(50.0) >= 50.0,
-        "relieved whenever it falls below the threshold"
-    );
-    assert!(
-        lowest_at_work(0.0) < 50.0,
-        "with the relief off the shift does drain it below the threshold"
-    );
 }
 
 /// [WL-limit]: the allowance is a window from the scheduled start to the

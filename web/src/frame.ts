@@ -858,6 +858,8 @@ export function advanceSimulationFrame(
 export interface RenderSource {
   lotRevision?():number;
   wallEdges?():Uint32Array|undefined;
+  windowLines?():Uint32Array;
+  worldSurfaces?():Uint8Array;
   houseSize?():readonly [number,number];
   houseOrigin?():readonly [number,number];
   portals?(): PortalSource;
@@ -947,6 +949,19 @@ export interface RenderSource {
   soundSources?(): Uint32Array;
   carriedDishes?(): Uint32Array;
   choreProgress?(): Uint32Array;
+  poolPhases?(): Uint32Array;
+  poolElapsed?(): Uint32Array;
+  prevPoolPhases?(): Uint32Array;
+  prevPoolElapsed?(): Uint32Array;
+  prevPoolExitOrigins?(): Uint32Array;
+  prevPoolTargets?(): Uint32Array;
+  poolExitOrigins?(): Uint32Array;
+  poolExitTicks?(): number;
+  bathToys?(): Uint32Array;
+  bathElapsed?(): Uint32Array;
+  prevBathToys?(): Uint32Array;
+  prevBathElapsed?(): Uint32Array;
+  prevBathTargets?(): Uint32Array;
   mealPortions?(): Uint32Array;
   /**
    * One name per pack item kind - `carried_<kind>` atlas resolution's

@@ -109,6 +109,7 @@ const ACTIVITY_NAMES = [
   'Mopping floor',
   'Wiping surface',
   'Emptying bin',
+  'Using pool',
 ] as const;
 
 export function formatActivity(
@@ -118,7 +119,7 @@ export function formatActivity(
 ): string {
   if (chain !== null) return chain;
   if (stalled !== null) return `Waiting: ${stalled}`;
-  if (activity === null) return 'Nothing selected';
+  if (activity === null) return '';
   return ACTIVITY_NAMES[activity] ?? `Activity ${activity}`;
 }
 
@@ -263,6 +264,7 @@ export function formatSatisfaction(value: number | null): string {
  */
 export class GameHud {
   private lastReadMs: number | null = null;
+  private renderedSelection: number | null | undefined;
   private billsText: string | null = null;
   private billsOverdue: boolean | null = null;
   private building = false;
@@ -283,12 +285,13 @@ export class GameHud {
     if (this.roots.bills !== undefined) this.roots.bills.disabled = active;
   }
 
-  /** Reads the source when the refresh interval has passed, or at once when `force` is set. */
   update(nowMs: number, source: GameHudSource, force = false): boolean {
-    if (!force && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
+    const selected = source.selectedIndex();
+    if (!force && selected === this.renderedSelection && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
       return false;
     }
     this.lastReadMs = nowMs;
+    this.renderedSelection = selected;
 
     const dayTicks = source.dayTicks();
     const tick = source.clockTick();
@@ -307,11 +310,10 @@ export class GameHud {
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
     this.updateBills(source);
 
-    const selected = source.selectedIndex();
     const satisfaction =
       selected === null ? null : source.satisfactionOf(selected);
     setTextIfChanged(this.roots.satisfaction, formatSatisfaction(satisfaction));
-    this.satisfactionSurface?.render(satisfaction);
+    this.satisfactionSurface?.render(satisfaction, selected !== null);
 
     const career = selected === null ? null : source.careerOf(selected);
     this.roots.careerRow.hidden = career === null;
@@ -328,7 +330,7 @@ export class GameHud {
     const status = selected === null ? null : source.activityStatusOf?.(selected);
     const partner = status?.partner == null ? '' : source.simName?.(status.partner) ?? '';
     const contextual = status ? activityStatusLabel(status, partner, source.needNames?.()) : null;
-    setTextIfChanged(this.roots.activity, contextual ?? chain ?? formatActivity(activity, chain, stalled));
+    setTextIfChanged(this.roots.activity, selected === null ? '' : contextual ?? chain ?? formatActivity(activity, chain, stalled));
 
     const queued = selected === null ? 0 : source.queuedOrdersOf(selected);
     this.roots.ordersRow.hidden = queued === 0;

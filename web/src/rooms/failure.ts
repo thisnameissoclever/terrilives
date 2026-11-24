@@ -28,7 +28,7 @@ export const FAILURE_NAMES: readonly string[] = ['Unknown error', 'Build is clos
   'Room counter exhausted', 'Room no longer exists', 'Invalid room name', 'Room choices refused', 'Build replay differs',
   'Build draft differs', 'Build validation failed', 'Review is out of date', 'Command unavailable during Build',
   'Invalid room request', 'Room request too large', 'Bed left outside', 'Admin panel open',
-  'Admin world would not reload'];
+  'Admin world would not reload', 'Access acknowledgment required'];
 
 /** The failure a Confirm reports when it would leave a bed outside every room ([WB-beds]). */
 export const BED_OUTSIDE = 15;
@@ -54,6 +54,7 @@ const WHAT: Readonly<Record<number, string>> = {
   16: 'Close admin panel to use Build mode.',
   // Issue 312: admin edits left a world that would not reload, so saving stays refused until a load.
   17: 'Load a saved game to use Build mode.',
+  18: 'Review the unreachable areas before confirming.',
 };
 
 /**
@@ -69,11 +70,11 @@ function obstacle(report: BuildFailureReport, now = false): string | null {
         case 9: return `someone is standing where a wall or window ${now ? 'is' : 'would go'}`;
         case 10: return `a wall or window ${now ? 'blocks' : 'would block'} someone's way`;
         case 11: return `some furniture ${now ? 'faces' : 'would face'} a space nobody can reach`;
-        case 12: case 13: return `the front door ${is} cut off`;
+        case 12: case 13: return `external access ${is} cut off`;
         default: return null;
       }
     case 'edge_world': return `a wall or window ${now ? 'blocks' : 'would block'} a housemate's walk or what they are using`;
-    case 'portal_return': return `the front door or its landing ${is} cut off`;
+    case 'portal_return': return `an arrival point or its landing ${is} cut off`;
     case 'seating': return `someone's seat ${would}${now ? 'is not' : 'no longer be'} usable`;
     case 'reading': return `someone's reading spot ${would}${now ? 'is not' : 'no longer be'} usable`;
     case null: return null;
@@ -88,7 +89,7 @@ function obstacle(report: BuildFailureReport, now = false): string | null {
 export function failureWhat(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
   if (error.code !== 10) return WHAT[error.code] ?? 'Something went wrong with the build.';
   const cause = obstacle(report);
-  return cause ? `These changes can't be confirmed: ${cause}.` : "These changes can't be confirmed because the house would not load afterwards.";
+  return cause ? `These changes can't be confirmed: ${cause}.` : "These changes can't be confirmed. See Console for details.";
 }
 
 /** The bed a refusal names: its type first, then its model, for example `bunk bed (Basic Oak)`. */
@@ -105,18 +106,15 @@ export function confirmFailure(error: RoomFailure, report: BuildFailureReport = 
     const what = bed === '' ? WHAT[BED_OUTSIDE] : `The ${bed} would be left outside.`;
     return `${what} Move it into a room, or choose Cancel, before confirming.`;
   }
-  const fix = error.code === 10 ? 'Change the walls, doors or windows involved, or choose Cancel to undo all pending changes.'
-    : 'Check the pending changes and try again, or choose Cancel to undo them.';
-  return `${failureWhat(error, report)} ${fix}`;
+  const fix = error.code === 10 && obstacle(report) ? ' Adjust the affected layout.' : '';
+  return `${failureWhat(error, report)}${fix}`;
 }
 
 /** A refused entry into Build mode. */
 export function enterFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
-  if (error.code === 16 || error.code === 17) return failureWhat(error, report);
-  if (error.code !== 10) return `${failureWhat(error, report)} Build mode stays closed.`;
+  if (error.code !== 10) return failureWhat(error, report);
   const cause = obstacle(report, true);
-  return `Build mode can't open because the house would not load as it stands${cause ? `: ${cause}` : ''}. `
-    + 'Let the game run for a moment and try again. If it keeps happening, load an earlier save.';
+  return cause ? `Build mode can't open: ${cause}.` : "Build mode can't open. See Console for details.";
 }
 
 /** The console's details for a native failure. */

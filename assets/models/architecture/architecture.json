@@ -75,7 +75,11 @@
     },
     {
       "catalog": "assets/models/static-props-07.json",
-      "canonicalSha256": "ad19cb6b272360a9979e122a3b55eda335ea3b28f7ce00d79d9093cbc05470ce"
+      "canonicalSha256": "f99892d627cd2a75c988078c46306b90e954bdfa766639b06330044c74cff8de"
+    },
+    {
+      "catalog": "assets/models/static-props-08.json",
+      "canonicalSha256": "d96ded4ad0b77f2d25d4a23c83a18a5e420e4d3d99a113e5da62114488d807dc"
     }
   ],
   "historicalFiles": {

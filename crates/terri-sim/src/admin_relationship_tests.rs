@@ -7,7 +7,7 @@ use crate::admin_test_support::*;
 use crate::fights::fight_index;
 use crate::Sim;
 use terri_core::admin::AdminEdit;
-use terri_core::{AtWork, Commuting, IntentQueue, Relationships, Socialising};
+use terri_core::{AtWork, Commuting, IntentQueue, Path, Position, Relationships, Socialising};
 
 fn feeling_of(sim: &Sim, from: u32, to: u32) -> f32 {
     sim.world()
@@ -212,9 +212,11 @@ fn a_fight_is_refused_toward_oneself_a_stranger_and_while_at_work() {
     sim.world_mut().entity_mut(b_entity).insert(AtWork {
         remaining_ticks: 90,
     });
+    let position = *sim.world().get::<Position>(c_entity).unwrap();
+    let steps = crate::world_geometry::route_to_boundary(sim.world(), position).unwrap();
     sim.world_mut()
         .entity_mut(c_entity)
-        .insert(Commuting::Outbound);
+        .insert((Commuting::Outbound, Path { steps, cursor: 0 }));
     sim.begin_admin().expect("opens");
     refused(
         &mut sim,
@@ -309,10 +311,10 @@ fn an_edited_world_saved_and_reloaded_continues_identically_for_two_days() {
     ] {
         live.admin_apply(change(vec![edit])).expect("applies");
     }
-    let snapshot = live.try_save_snapshot_v27().expect("saves");
+    let snapshot = live.try_save_snapshot_v28().expect("saves");
     live.end_admin();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v27(snapshot).expect("loads");
+    loaded.load_snapshot_v28(snapshot).expect("loads");
     assert_eq!(loaded.world_hash(), live.world_hash());
     for tick in 0..2 * 1440 {
         live.tick();

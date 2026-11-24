@@ -597,7 +597,7 @@ fn kept_home() -> (Sim, Entity) {
     );
     sim.world_mut().resource_mut::<SimClock>().tick = 60;
     crate::attendance::start_tick(sim.world_mut());
-    assert!(crate::attendance::has_open_shift(sim.world(), actor));
+    assert!(crate::attendance::open_shift(sim.world(), actor).is_some());
     assert!(sim.world().get::<terri_core::Commuting>(actor).is_none());
     (sim, actor)
 }
@@ -616,7 +616,7 @@ fn changing_shift_settles_an_open_shift_at_home() {
         },
     );
     assert_eq!(reason(&sim), Some(None));
-    assert!(!crate::attendance::has_open_shift(sim.world(), actor));
+    assert!(crate::attendance::open_shift(sim.world(), actor).is_none());
     let attendance = sim.world().resource::<crate::attendance::Attendance>();
     assert_eq!(attendance.outcomes.len(), 1, "settled once");
     assert_eq!(attendance.outcomes[0].worked_minutes, 0.0);
@@ -1404,9 +1404,9 @@ fn waiting_review(
 fn reloads(sim: &Sim) {
     let mut loaded = Sim::new_from_shipped_lot();
     loaded.world_mut().insert_resource(Content(pack(sim)));
-    let saved = sim.save_snapshot_v21();
+    let saved = sim.save_snapshot_v28();
     assert_eq!(
-        loaded.load_snapshot_v21(saved),
+        loaded.load_snapshot_v28(saved),
         Ok(()),
         "the world still saves and loads"
     );

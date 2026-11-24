@@ -208,13 +208,13 @@ fn confirm_keeps_the_draft_unchanged_when_refused() {
     let mut sim = house();
     sim.begin_build().unwrap();
     issue(&mut sim, bedroom_south_wall(WallState::Open));
-    let draft = sim.save_snapshot_v22();
+    let draft = sim.save_snapshot_v28();
     assert!(sim
         .prepare_build_commit(crate::rooms::RoomChoices::default())
         .is_err());
     assert!(sim.build_active());
     assert!(sim.build_dirty());
-    assert_eq!(sim.save_snapshot_v22(), draft);
+    assert_eq!(sim.save_snapshot_v28(), draft);
     // Putting the wall back lets the same session confirm.
     issue(&mut sim, bedroom_south_wall(WallState::Wall));
     let token = sim

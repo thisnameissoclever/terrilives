@@ -488,8 +488,7 @@ pub struct TuningFile {
     /// The largest share of choices the late need's remedies take,
     /// strictly between `1 - unrelated_single` and 1.
     pub work_lateness_remedy_share: f32,
-    /// A housemate at work is relieved of Bladder below this level, from 0
-    /// to 100; 0 is no relief.
+    /// Historical Bladder threshold retained for published content pack compatibility.
     pub work_bladder_relief_threshold: f32,
     /// The household's monthly bills - [WB-tuning].
     pub bills: BillsTuningDef,

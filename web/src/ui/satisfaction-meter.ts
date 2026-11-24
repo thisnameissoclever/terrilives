@@ -6,7 +6,7 @@ export interface SatisfactionView {
 }
 
 export interface SatisfactionSurface {
-  render(value: number | null): void;
+  render(value: number | null, selected?: boolean): void;
 }
 
 /** Bands describe a life assessment; their boundaries do not change its score. */
@@ -29,9 +29,10 @@ export function createSatisfactionSurface(
     if (node.getAttribute(name) !== value) node.setAttribute(name, value);
   };
   return {
-    render(value): void {
+    render(value, selected = true): void {
       const view = describeSatisfaction(value);
-      setTextIfChanged(label, view?.label ?? 'Unavailable');
+      setTextIfChanged(label, selected ? view?.label ?? 'Unavailable' : '');
+      attribute(summary, 'data-empty', String(!selected));
       if (meter.hidden !== (view === null)) meter.hidden = view === null;
       if (view) {
         if (meter.value !== view.value) meter.value = view.value;
@@ -42,8 +43,8 @@ export function createSatisfactionSurface(
       } else {
         if (meter.value !== 0) meter.value = 0;
         attribute(meter, 'aria-valuetext', 'Life satisfaction unavailable');
-        attribute(summary, 'aria-label', 'Life satisfaction unavailable');
-        attribute(summary, 'title', 'Life satisfaction unavailable');
+        attribute(summary, 'aria-label', selected ? 'Life satisfaction unavailable' : 'Life satisfaction: no person selected');
+        attribute(summary, 'title', selected ? 'Life satisfaction unavailable' : '');
       }
     },
   };

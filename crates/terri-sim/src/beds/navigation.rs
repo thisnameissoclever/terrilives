@@ -20,6 +20,17 @@ impl Route {
             Self::Exact(tile) => grid.find_path(from, tile),
         }
     }
+
+    /// Exact contacts retain their final waypoint even inside the rounded source tile.
+    pub(crate) fn bind_path(self, grid: &TileGrid, position: (f32, f32), mut steps: Vec<(i32, i32)>) -> Option<Vec<(i32, i32)>> {
+        if let Self::Exact(goal) = self {
+            if !grid.is_walkable(goal.0, goal.1) { return None; }
+            if steps.is_empty() && position != (goal.0 as f32, goal.1 as f32) {
+                steps.push(goal);
+            }
+        }
+        grid.anchor_path(position, steps)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -44,12 +55,19 @@ impl Access {
         field: &TileDistanceField,
     ) -> Self {
         let footprint = object.footprint_at(facing);
-        let perimeter = field
+        let mut perimeter = field
             .distance_to_adjacent(origin, footprint)
             .map(|distance| Reachable {
                 route: Route::Perimeter { origin, footprint },
                 distance,
             });
+        if crate::pool::has_pool(object) {
+            let tile = crate::pool::approach(object, origin, facing);
+            let contact = (tile.0.clamp(origin.0, origin.0 + footprint.width as i32 - 1),
+                tile.1.clamp(origin.1, origin.1 + footprint.depth as i32 - 1));
+            perimeter = field.distance_to_contact(tile, contact).map(|distance| Reachable {
+                route: Route::Exact(tile), distance });
+        }
         let capacity = object.sleep_capacity(sleep_tag);
         let places = (0..capacity)
             .map(|ordinal| {

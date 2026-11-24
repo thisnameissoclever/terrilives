@@ -591,7 +591,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
     let local = fixturePixel - vec2i(round(in.uvBounds.xy * atlasSize));
     let sourcePixel = vec2i(round(surface.uv.xy * atlasSize)) + local;
     let sample = atlasLoad(sourcePixel,i32(surface.registration.z));
-    var sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0;
+    var sum = registeredFixtureDepth(sample, in.wall.x == REGISTERED_SURFACE_DEPTH);
     if(in.wall.x==SHELF_SURFACE_DEPTH){
       let mask=u32(in.wall.w);
       for(var slot=0u;slot<24u;slot++){
@@ -599,7 +599,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
         let layer=atlas.sprites[u32(in.wall.z)+1u+slot];
         let at=vec2i(round(layer.uv.xy*atlasSize))+local;
         let covered=atlasLoad(at,i32(layer.registration.z));
-        if(covered.a>0.){sum=max(sum,dot(covered.rg,vec2f(65280.,255.))/65535.*4.-2.);}
+        if(covered.a>0.){sum=max(sum,registeredFixtureDepth(covered,false));}
       }
     }
     out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);

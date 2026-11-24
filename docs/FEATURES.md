@@ -839,38 +839,21 @@ On 2026-09-21 the owner added two requirements: the player directs each Sim's ca
 
 **Status: Partial: yard, street and daylight complete; exterior extensions remain.**
 
-The lot now has a walkable yard, a street used for commutes, and outdoor daylight.
-The remaining exterior work includes roofs, exterior presentation, outdoor
-ambience and objects, and transitions between home, neighborhood, and future lots. This is
-the spatial foundation for visitors, pets, disasters, and neighborhood play.
+The lot includes walkable ground and saved indoor-floor, grass and street surfaces. Current walls, doors, windows and openings determine enclosure and access. Original assets have ordinary editing rules. Workers choose reachable open lot boundaries; the original entrance and street appearance do not select or protect an exit. Valid disconnected layouts can be confirmed after reviewing highlighted ground.
 
-The design is `docs/specs/2026-09-22-the-outside.md`, in slices. The first,
-[OS-slice-yard], shipped in PR 106 at merge `00e8c81`: the lot grows to 20 by 16
-and the house stands in a yard four tiles deep on its east and south sides,
-drawn as green floor until there is grass art ([T-yard-art]). Sims walk out
-through the front door, which swings for them, and furniture can be bought and
-walls built in the yard. A saved house whose walls are edges, which is every
-save since the Walls tool, grows into the yard on Load. The
-played check is [A-yard]. The second, [OS-slice-street], shipped in PR 107
-at merge `5f7cc73`: a street along the lot's east edge, drawn grey until there
-is street art, where a worker walks out through the front door and across
-the yard to leave for work, and back the same way; its played check is
-[A-street]. For both, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The first part of the
-third slice, [OS-daylight], shipped in PR 116 at merge `6908a94`: the sky lights
-the yard by day while the rooms stay dimmer, lighter by an open doorway and
-darkest at the back of the house, and people, furniture, interior doors and the
-placement preview take their tile's shade. Its played check is
-[A-yard-daylight]. Windows also shipped in PR 126 ([B-windows]). The first outdoor
-objects, a decorative pool, a pool lounger with Sit and a decorative patio umbrella
-sold under a Yard room, are specified in `docs/specs/2026-10-17-outdoor-furniture.md`
-(issue 250); the house seen from outside, more outdoor objects and outdoor
-activities such as swimming remain.
+Daylight follows the current enclosure, enters through openings, doorways and windows, and falls off indoors with distance. The original house rectangle does not determine current exterior exposure. Remaining exterior work includes roofs, exterior presentation, outdoor ambience and objects, and transitions between home, neighborhood and future lots. These systems support visitors, pets, disasters and neighborhood play.
+
+The current contract is `docs/specs/2026-09-22-the-outside.md`. The original [OS-slice-yard] shipped in PR 106 at merge `00e8c81`, enlarging the authored house lot to 20 by 16 with a yard east and south. Its played check is [A-yard]. The original [OS-slice-street] shipped in PR 107 at merge `5f7cc73`; its played check is [A-street]. Those releases used a designated entrance and east-side street exit. Their frozen readers retain those historical rules before public adoption materializes current geometry. Main's CI run 35747234064 and Pages deployment run 35753693759 passed for main at `0b0f5b5`, which held PRs 97 through 108.
+
+The first part of [OS-daylight] shipped in PR 116 at merge `6908a94`; its played check is [A-yard-daylight]. Windows shipped in PR 126 ([B-windows]). The original outdoor-furniture scope added a decorative pool, a pool lounger with Sit and a patio umbrella under the Yard room; see `docs/specs/2026-10-17-outdoor-furniture.md` (issue 250). Each outdoor activity follows its object's current action contract.
 
 ### [B-floors] The player chooses what each floor is
 
 **Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Outdoor patio appends a distinct rectangular paving material. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering. Remove clears a covering and also removes underlying indoor base floor to expose grass; grass and street bases remain. Saved base surfaces and covering IDs preserve the edited ground independently of the original house. Outdoor patio supplies rectangular paving. Unpainted indoor floor uses pale tile, grass uses its seasonal appearance and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+
+A missing material prepares before the selected edit applies. Contextual loading and Retry follow the active selection; another ready covering remains available after an optional material fails. Changing the selection, draft, household or tool cancels the waiting edit. The renderer retains base textures and static resources when a finish changes.
 
 Since 2026-10-19 a second click on another tile selects every tile in the rectangle between the two, and a covering applies to all of them that accept it ([FL-area] in `docs/specs/2026-09-22-floors.md`).
 
@@ -912,17 +895,13 @@ Revised on 2026-10-19 at the owner's request: the tools draw interior and front 
 
 Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision has six Build destinations: Furniture, Walls, Rooms, Buy, Floors and Land. It shares contextual actions where applicable, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
 
-### [A-front-door-animation] The front door opens when Sims come and go
+### [A-front-door-animation] Door crossing animation
 
 **Status: Complete.**
 
-Commutes route through the front-door tile. The animated doorway is implemented
-and played locally: authored hinge and facing, open and close frames, body occlusion,
-and a step into the house on return. Door state follows simulation state,
-pause, speed, save and load. See
-`docs/specs/2026-09-20-front-door-and-builder.md` for the contract and release
-checks. Done in PR 84 at merge `d26b60e`; main's CI (run 35553958873) and the
-Pages deployment (run 35554122223) both passed for that commit.
+Current doorway art and opening state follow ordinary saved doorway geometry. Moving or replacing an original door grants no special travel role. Commutes use reachable open boundaries. See `docs/specs/2026-09-22-interior-doors.md` and `docs/specs/2026-09-22-the-outside.md` for the current contracts.
+
+The original designated-entrance animation release included authored hinge and facing, open/close frames, body occlusion and a return step. Its contract and historical release checks remain in `docs/specs/2026-09-20-front-door-and-builder.md`. It shipped in PR 84 at merge `d26b60e`; main's CI run 35553958873 and Pages deployment run 35554122223 passed for that commit. The stable entry ID identifies that release history.
 
 ### [B-neighborhood-dynamics] Neighbors and households have a relationship map
 

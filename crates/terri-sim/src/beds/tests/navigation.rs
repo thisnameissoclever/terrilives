@@ -2,6 +2,22 @@ use super::*;
 use bevy_ecs::system::RunSystemOnce;
 use terri_core::{Facing, ObjectFacing, Path, TileGrid};
 
+#[test]
+fn exact_route_binding_retains_fractional_contact_without_changing_perimeter_routes() {
+    use super::super::navigation::Route;
+    let mut grid = TileGrid::new(8, 8);
+    let exact = Route::Exact((3, 4));
+    assert_eq!(exact.path(&grid, (3, 4)), Some(vec![]));
+    assert_eq!(exact.bind_path(&grid, (3.2, 4.), vec![]), Some(vec![(3, 4)]));
+    assert_eq!(exact.bind_path(&grid, (3., 4.), vec![]), Some(vec![]));
+    let perimeter = Route::Perimeter { origin: (4, 4), footprint: terri_core::Footprint::SINGLE };
+    assert_eq!(perimeter.bind_path(&grid, (3.2, 4.), vec![]), Some(vec![]));
+    grid.set_edge_blocked((1, 1), (2, 1), true);
+    assert_eq!(exact.bind_path(&grid, (3.2, 4.), vec![]), Some(vec![(3, 4)]));
+    grid.set_blocked(3, 4, true);
+    assert_eq!(exact.bind_path(&grid, (3.2, 4.), vec![]), None);
+}
+
 fn serve(sim: &mut Sim) {
     sim.world_mut()
         .run_system_once(crate::systems::action::serve_intents)

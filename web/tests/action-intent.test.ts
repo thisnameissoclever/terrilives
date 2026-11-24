@@ -4,7 +4,7 @@ import { setActionIntent } from '../src/ui/action-intent.js';
 import { createContextSurface, type ContextModel } from '../src/ui/placement-actions.js';
 import { ChoresBoard, type ChoresSource } from '../src/ui/chores-board.js';
 import { createBedAssignmentSurface } from '../src/ui/bed-assignment.js';
-import { createMenuSurface, NOTHING, type MenuEntry } from '../src/ui/object-menu.js';
+import { createMenuSurface, ObjectMenu, menuEntries, NOTHING, type MenuEntry } from '../src/ui/object-menu.js';
 
 /** The surface tests exercise real rendering and events without a browser layout. */
 class Element {
@@ -14,6 +14,9 @@ class Element {
   attributes: Record<string, string> = {};
   listeners: Record<string, (event: unknown) => void> = {};
   className = ''; type = ''; textContent = ''; disabled = false; hidden = false;
+  open = false;
+  style: Record<string, string> = {}; offsetHeight = 0;
+  getBoundingClientRect() { return { left: 0, top: 0, width: 1280, height: 900 }; }
   classList = { add: vi.fn() };
   constructor(readonly tag: string, readonly doc: { activeElement: Element | null }) {}
   get ownerDocument(): Document { return this.doc as unknown as Document; }
@@ -26,9 +29,9 @@ class Element {
   removeEventListener(name: string) { delete this.listeners[name]; }
   remove() { if (this.parent) this.parent.children = this.parent.children.filter(child => child !== this); this.parent = null; }
   contains(node: Element | null): boolean { return node !== null && (this === node || this.children.some(child => child.contains(node))); }
-  querySelector(tag: string): Element | null { return this.children.find(child => child.tag === tag) ?? null; }
+  querySelector(tag: string): Element | null { return this.all().slice(1).find(child => tag.startsWith('.') ? child.className === tag.slice(1) : child.tag === tag) ?? null; }
   focus() { this.doc.activeElement = this; }
-  click() { this.listeners.click?.({ stopPropagation() {} }); }
+  click() { this.listeners.click?.({ stopPropagation() {}, preventDefault() {} }); }
 }
 function fixture() {
   const doc = { activeElement: null as Element | null, defaultView: null,
@@ -41,6 +44,21 @@ function fixture() {
   return { doc, root: doc.createElement('div') };
 }
 afterEach(() => vi.unstubAllGlobals());
+
+it('retains an open description and summary focus when Clear orders disappears, then restores the original opener', () => {
+  const {doc, root} = fixture(); root.hidden = true;
+  const opener = doc.createElement('button'); opener.focus();
+  let clearable = true;
+  const controller = new ObjectMenu(createMenuSurface(doc as never, root as never), () => {}, () => true, () => clearable);
+  controller.open(menuEntries('Armchair', ['Sit'], 1, {modelName: 'Exact model', description: 'Exact description.'}), 50, 50);
+  const summary = root.querySelector('summary')!; summary.focus(); summary.click();
+  expect(root.querySelector('.object-identity')!.open).toBe(true);
+  clearable = false; controller.refresh();
+  expect(root.querySelector('.object-identity')!.open).toBe(true);
+  expect(root.querySelector('.radial-description')!.hidden).toBe(false);
+  expect(doc.activeElement).toBe(root.querySelector('summary'));
+  controller.close(); expect(doc.activeElement).toBe(opener);
+});
 
 it.each([
   ['build-exit-confirm', 'affirmative', 'confirm'],
@@ -102,6 +120,20 @@ it('updates reused placement intent independently of labels, prices and capabili
   expect(button.attributes['data-action-intent']).toBeUndefined();
 });
 
+it('places actual rotation groups clear of the measured refusal and bottom actions', () => {
+  const {doc,root}=fixture();
+  const surface=createContextSurface(doc as never,root as never,doc.createElement('canvas') as never,
+    ()=>({width:1280,bottom:900,keepOut:{left:312,gearLeft:1400,gearBottom:0}}),()=>{});
+  const [top,left,right,bottom]=root.children;
+  top.offsetHeight=152;bottom.offsetHeight=64;
+  surface.place(700,350,400,1280,900);
+  const centre=Number.parseFloat(left.style.top);
+  expect(root.dataset.compact).toBe('false');
+  expect(centre-22).toBeGreaterThanOrEqual(20+152+8);
+  expect(centre+22+8).toBeLessThanOrEqual(Number.parseFloat(root.style.height)-64);
+  expect(right.style.top).toBe(left.style.top);
+});
+
 it('colors radial forward and back navigation while preserving ordinary gameplay choices', () => {
   const { doc, root } = fixture();
   const surface = createMenuSurface(doc as unknown as Document, root as unknown as HTMLElement);
@@ -118,7 +150,7 @@ it('colors radial forward and back navigation while preserving ordinary gameplay
     expect(find('Back').attributes['data-action-intent']).toBe('negative');
     expect(find('More actions').attributes['data-action-intent']).toBe('affirmative');
     find('More actions').click();
-    expect(find('Nothing').attributes['data-action-intent']).toBe('negative');
+    expect(find('Clear orders').attributes['data-action-intent']).toBe('negative');
     find('Back').click();
     expect(find('Back').attributes['data-action-intent']).toBe('negative');
   } finally { surface.hide(); }

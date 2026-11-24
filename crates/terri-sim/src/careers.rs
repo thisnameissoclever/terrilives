@@ -173,6 +173,8 @@ pub struct Record {
     /// [CT-save-memory] item 1: the current week's scored shifts' inputs,
     /// one per entry of `shifts`, in the same order.
     pub shift_inputs: Vec<ShiftInputs>,
+    pub current_input_sources: BTreeMap<u32, ShiftSource>,
+    pub reviewed_input_sources: BTreeMap<u64, BTreeMap<u32, ShiftSource>>,
     /// [CT-save-memory] item 2: the most recent scored shift's inputs, kept
     /// across reviews.
     pub last_shift: Option<ShiftInputs>,
@@ -181,7 +183,21 @@ pub struct Record {
     pub input_weeks: VecDeque<WeekInputs>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ShiftSource {
+    pub career: u32,
+    pub base_pay: Option<u32>,
+}
+
 impl Record {
+    fn record_shift_input(&mut self, career: u32, read: ShiftInputs, source: ShiftSource) {
+        if source != (ShiftSource { career, base_pay: Some(self.pay) }) {
+            self.current_input_sources.insert(self.shift_inputs.len() as u32, source);
+        }
+        self.shift_inputs.push(read);
+        self.last_shift = Some(read);
+    }
+
     /// A fresh record for a job just taken: starting pay, middling job
     /// satisfaction, nothing reviewed.
     pub fn new(job: &CompiledCareer) -> Self {
@@ -195,6 +211,8 @@ impl Record {
             review_due: None,
             shift: 0,
             shift_inputs: Vec::new(),
+            current_input_sources: BTreeMap::new(),
+            reviewed_input_sources: BTreeMap::new(),
             last_shift: None,
             input_weeks: VecDeque::new(),
         }
@@ -443,6 +461,8 @@ impl Careers {
                     review_due: record.review_due,
                     shift: 0,
                     shift_inputs: Vec::new(),
+                    current_input_sources: BTreeMap::new(),
+                    reviewed_input_sources: BTreeMap::new(),
                     last_shift: None,
                     input_weeks: VecDeque::new(),
                 },
@@ -661,6 +681,7 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
     let Some(job) = job_of(world, pack, worker) else {
         return;
     };
+    let original_career = world.get::<Career>(worker).expect("employed").0;
     let Some(sim) = world.get::<SimId>(worker).copied() else {
         // A hand-built worker with no id (a fixture) is paid the level's
         // pay and credited its reward, and has no week to score.
@@ -707,6 +728,7 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
         world.insert_resource(careers);
     }
     // A dismissal just applied leaves no record to score into.
+    let current_career = world.get::<Career>(worker).map(|career| career.0);
     let fit = job_of(world, pack, worker).map_or(fit, |job| self::fit(world, pack, job, worker));
     let miserable = {
         let mut careers = world.resource_mut::<Careers>();
@@ -714,8 +736,11 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
             return;
         };
         record.shifts.push(score);
-        record.shift_inputs.push(read);
-        record.last_shift = Some(read);
+        record.record_shift_input(
+            current_career.expect("an employed worker kept their career record"),
+            read,
+            ShiftSource { career: original_career, base_pay: Some(pay) },
+        );
         let target = 50.0 + 40.0 * fit;
         let step = tuning.career_satisfaction_rate;
         record.job_satisfaction = if record.job_satisfaction < target {
@@ -738,14 +763,14 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
 pub(crate) fn complete_attended_shift(
     world: &mut World,
     worker: Entity,
-    career: u32,
+    source: ShiftSource,
     pay_cents: i64,
     ratio: f32,
     scored: Option<(f32, ShiftInputs)>,
     scheduled_week: u64,
 ) {
     let pack = world.resource::<Content>().0;
-    let job = &pack.careers[career as usize];
+    let job = &pack.careers[source.career as usize];
     world.resource_mut::<Funds>().0 += pay_cents;
     if let Some(mut satisfaction) = world.get_mut::<Satisfaction>(worker) {
         satisfaction.reward(job.satisfaction * ratio);
@@ -753,6 +778,18 @@ pub(crate) fn complete_attended_shift(
     let Some(sim) = world.get::<SimId>(worker).copied() else {
         return;
     };
+    let previous_review_due = world
+        .resource::<Careers>()
+        .record(sim)
+        .and_then(|record| record.review_due)
+        .is_some_and(|due| due < scheduled_week);
+    if previous_review_due {
+        settle_due_review(world, worker);
+        if world.get::<Career>(worker).is_none() {
+            return;
+        }
+    }
+    let current_career = world.get::<Career>(worker).map_or(source.career, |career| career.0);
     let fit = fit(world, pack, job, worker);
     let miserable = {
         let mut careers = world.resource_mut::<Careers>();
@@ -762,8 +799,7 @@ pub(crate) fn complete_attended_shift(
             .or_insert_with(|| Record::new(job));
         if let Some((score, read)) = scored {
             record.shifts.push(score);
-            record.shift_inputs.push(read);
-            record.last_shift = Some(read);
+            record.record_shift_input(current_career, read, source);
         }
         let target = 50.0 + 40.0 * fit;
         let step = pack.tuning.career_satisfaction_rate * ratio;
@@ -987,7 +1023,7 @@ pub(crate) fn review(world: &mut World, ended_week: u64, tick: u64) {
         if record.shifts.is_empty() {
             continue;
         }
-        if world.get::<AtWork>(entity).is_some() || world.get::<Commuting>(entity).is_some() {
+        if crate::attendance::review_must_wait(world, entity, ended_week, true) {
             record.review_due = Some(ended_week);
             continue;
         }
@@ -1047,6 +1083,9 @@ fn review_person(
     if record.shifts.is_empty() {
         return;
     }
+    let future_shift = crate::attendance::open_shift(world, entity)
+        .filter(|shift| shift.start_tick > tick)
+        .map(|shift| (shift.start_tick, shift.career));
     let mean = record.shifts.iter().sum::<f32>() / record.shifts.len() as f32;
     let noise = (careers.draw() * 2.0 - 1.0) * tuning.career_review_noise;
     let performance = (mean + noise).clamp(0.0, 100.0);
@@ -1084,10 +1123,16 @@ fn review_person(
     // [CT-save-row]: the week's inputs, read before the outcome changes the
     // job or the pay. A week whose scores do not all have inputs (a save
     // migrated mid-week) gets no row.
+    let input_sources = std::mem::take(&mut record.current_input_sources);
     if let Some(row) = week_inputs(record, ended_week, world.get::<Career>(entity).map(|c| c.0)) {
+        if !input_sources.is_empty() {
+            record.reviewed_input_sources.insert(row.week, input_sources);
+        }
         record.input_weeks.push_back(row);
         while record.input_weeks.len() > tuning.career_input_history_weeks as usize {
-            record.input_weeks.pop_front();
+            if let Some(oldest) = record.input_weeks.pop_front() {
+                record.reviewed_input_sources.remove(&oldest.week);
+            }
         }
     }
     record.shift_inputs.clear();
@@ -1181,6 +1226,11 @@ fn review_person(
             .entity_mut(entity)
             .remove::<Career>()
             .remove::<crate::reading::PendingShift>();
+    }
+    if let Some((start, career)) = future_shift {
+        if world.get::<Career>(entity) != Some(&Career(career)) {
+            crate::attendance::remove_registration(world, sim, start);
+        }
     }
     if let Some(factors) = logged {
         let title = job_of(world, pack, entity).map(|job| job.label.as_str());
@@ -1415,7 +1465,7 @@ fn go_to_work_or_refuse(world: &mut World, agent: u32) -> Option<CareerRefusal> 
         crate::reading::floor::put_down_and_end(world, entity);
     }
     // 4. Leave now, dropping sleep, a meal, a conversation and the rest.
-    crate::attendance::depart(world, entity);
+    crate::attendance::depart_manually(world, entity);
     None
 }
 
@@ -1443,6 +1493,9 @@ pub fn go_to_work_status(world: &World, entity: Entity, now: u64) -> WorkStatus 
         // A worker from before scheduled shifts has only a countdown.
         let end_tick = open.map_or(now + u64::from(work.remaining_ticks), |s| s.end_tick);
         return WorkStatus::AtWork { end_tick };
+    }
+    if crate::attendance::manual_work_trip(world, entity) {
+        return WorkStatus::Outbound;
     }
     match world.get::<Commuting>(entity) {
         Some(Commuting::Outbound) => return WorkStatus::Outbound,
@@ -1480,7 +1533,10 @@ fn person_at_home(world: &World, agent: u32) -> Result<(Entity, SimId), CareerRe
     let entity = crate::family::sim_id_at(world, agent)
         .and_then(|sim| crate::edit::living_entity(world, sim))
         .ok_or(CareerRefusal::NotAPerson)?;
-    if world.get::<AtWork>(entity).is_some() || world.get::<Commuting>(entity).is_some() {
+    if world.get::<AtWork>(entity).is_some()
+        || world.get::<Commuting>(entity).is_some()
+        || crate::attendance::manual_work_trip(world, entity)
+    {
         return Err(CareerRefusal::AtWork);
     }
     let sim = *world
@@ -1732,6 +1788,39 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     for (sim, career) in jobs {
         hash.write_u64(u64::from(sim));
         hash.write_u64(u64::from(career));
+    }
+}
+
+pub(crate) fn hash_input_sources(world: &World, hash: &mut FnvHasher) {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return;
+    };
+    let exceptional = |record: &&Record| {
+        !record.current_input_sources.is_empty() || !record.reviewed_input_sources.is_empty()
+    };
+    let count = careers.records.values().filter(exceptional).count();
+    if count == 0 {
+        return;
+    }
+    hash.write_bytes(b"career-input-sources-v1");
+    hash.write_u64(count as u64);
+    for (sim, record) in careers.records.iter().filter(|(_, record)| exceptional(record)) {
+        hash.write_u64(u64::from(sim.0));
+        hash_source_rows(&record.current_input_sources, hash);
+        hash.write_u64(record.reviewed_input_sources.len() as u64);
+        for (week, rows) in &record.reviewed_input_sources {
+            hash.write_u64(*week);
+            hash_source_rows(rows, hash);
+        }
+    }
+}
+
+fn hash_source_rows(rows: &BTreeMap<u32, ShiftSource>, hash: &mut FnvHasher) {
+    hash.write_u64(rows.len() as u64);
+    for (index, row) in rows {
+        hash.write_u64(u64::from(*index));
+        hash.write_u64(u64::from(row.career));
+        hash.write_u64(row.base_pay.map_or(0, |pay| u64::from(pay) + 1));
     }
 }
 
@@ -2017,7 +2106,11 @@ pub(crate) fn validate_live_shifts(
 /// inside their level's range, scores and job satisfaction inside 0 to
 /// 100, history in week order and no week ahead of the clock; every
 /// moodlet names a living person and ends within a week of now.
-pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), crate::SaveError> {
+pub(crate) fn validate_saved(
+    world: &World,
+    saved: &SavedCareers,
+    current_reviews: bool,
+) -> Result<(), crate::SaveError> {
     use crate::SaveError::InvalidValue;
     let pack = world.resource::<Content>().0;
     let now = world.resource::<SimClock>().tick;
@@ -2057,12 +2150,11 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
             // week's scores to review, for a week after the last one
             // reviewed and before the one running.
             || record.review_due.is_some_and(|due| {
+                let scheduled = crate::attendance::scheduled_week(world, entity);
                 due >= week
-                    || (record.shifts.is_empty() && crate::attendance::scheduled_week(world,entity)!=Some(due))
+                    || (record.shifts.is_empty() && scheduled != Some(due))
                     || record.history.last().is_some_and(|last| last.week >= due)
-                    || (world.get::<AtWork>(entity).is_none()
-                        && world.get::<Commuting>(entity).is_none()
-                        && crate::attendance::scheduled_week(world,entity)!=Some(due))
+                    || !crate::attendance::review_must_wait(world, entity, due, current_reviews)
             })
         {
             return Err(InvalidValue);
@@ -2185,6 +2277,16 @@ pub fn input_history(world: &World, entity: Entity) -> Vec<f32> {
         .iter()
         .filter_map(|week| {
             let job = pack.careers.get(week.career as usize)?;
+            let social_demand = record.reviewed_input_sources.get(&week.week).map_or(
+                job.social_demand,
+                |sources| {
+                    (0..week.shifts).map(|index| {
+                        sources.get(&index).map_or(job.social_demand, |source| {
+                            pack.careers[source.career as usize].social_demand
+                        })
+                    }).sum::<f32>() / week.shifts as f32
+                },
+            );
             Some([
                 week.week as f32,
                 week.career as f32,
@@ -2195,7 +2297,7 @@ pub fn input_history(world: &World, entity: Entity) -> Vec<f32> {
                 week.fit,
                 week.trait_fit,
                 week.social_capacity,
-                job.social_demand,
+                social_demand,
                 week.mastery,
                 week.mood,
                 week.missed_minutes,
@@ -2204,6 +2306,32 @@ pub fn input_history(world: &World, entity: Entity) -> Vec<f32> {
         })
         .flatten()
         .collect()
+}
+
+/// Sources for every scored shift in a reviewed week with exceptional inputs.
+pub fn input_sources(world: &World, entity: Entity) -> Vec<f64> {
+    let Some(sim) = world.get::<SimId>(entity) else {
+        return Vec::new();
+    };
+    let Some(pack) = world.get_resource::<Content>().map(|content| content.0) else {
+        return Vec::new();
+    };
+    let Some(record) = world.get_resource::<Careers>().and_then(|careers| careers.record(*sim)) else {
+        return Vec::new();
+    };
+    let mut output = Vec::new();
+    for week in &record.input_weeks {
+        let Some(sources) = record.reviewed_input_sources.get(&week.week) else {
+            continue;
+        };
+        let default = ShiftSource { career: week.career, base_pay: Some(week.pay) };
+        for index in 0..week.shifts {
+            let source = sources.get(&index).copied().unwrap_or(default);
+            let job = &pack.careers[source.career as usize];
+            output.extend([week.week as f64, f64::from(job.path), f64::from(job.level), source.base_pay.map_or(-1.0, f64::from)]);
+        }
+    }
+    output
 }
 
 /// [CT-web] item 4: the inputs of the last scored shift of `entity`, as

@@ -73,6 +73,16 @@ describe('game HUD formatting', () => {
     expect(formatActivity(0, null, null)).toBe('Idle');
   });
 
+  it('leaves an unavailable activity empty while preserving specific context', () => {
+    expect(formatActivity(null, null, null)).toBe('');
+    expect(formatActivity(null, 'Bringing dinner to the table', null)).toBe(
+      'Bringing dinner to the table',
+    );
+    expect(formatActivity(null, null, 'the door is blocked')).toBe(
+      'Waiting: the door is blocked',
+    );
+  });
+
   it('reads at once when forced, inside the refresh interval, so an admin change shows on the next frame', () => {
     const r = roots();
     const hud = new GameHud(r, 1000);
@@ -264,6 +274,18 @@ describe('game HUD formatting', () => {
 });
 
 describe('GameHud', () => {
+  it('distinguishes empty and genuine zero satisfaction immediately across selection changes', () => {
+    const view = roots(), rendered: [number | null, boolean | undefined][] = [];
+    const hud = new GameHud(view, 100, {render: (value, selected) => rendered.push([value, selected])});
+    let selected: number | null = 34;
+    const state = source({selectedIndex: () => selected, satisfactionOf: entity => entity === 34 ? 81 : 0});
+    hud.update(0, state);
+    selected = null; expect(hud.update(1, state)).toBe(true);
+    expect(view.activity.textContent).toBe('');
+    selected = 9; expect(hud.update(2, state)).toBe(true);
+    expect(rendered).toEqual([[81, true], [null, false], [0, true]]);
+    expect(hud.update(3, state)).toBe(false);
+  });
   it('shares one satisfaction read with the numeric value and meter, including deselection', () => {
     const view = roots();
     const rendered: (number | null)[] = [];
@@ -381,11 +403,11 @@ describe('GameHud', () => {
     expect(view.satisfaction.textContent).toBe('unavailable');
     expect(view.careerRow.hidden).toBe(true);
     expect(view.career.textContent).toBe('');
-    expect(view.activity.textContent).toBe('Nothing selected');
+    expect(view.activity.textContent).toBe('');
     expect(view.ordersRow.hidden).toBe(true);
   });
 
-  it('throttles all reads as one coherent snapshot', () => {
+  it('throttles value reads as one coherent snapshot after checking selection', () => {
     const view = roots();
     const hud = new GameHud(view, 100);
     let reads = 0;

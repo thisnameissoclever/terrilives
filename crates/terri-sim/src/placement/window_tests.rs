@@ -26,14 +26,18 @@ fn house() -> Sim {
     let pack = Box::leak(Box::new(pack));
     let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
-    let edges: Vec<_> = window(WindowModel::Picture)
+    let mut edges: Vec<_> = window(WindowModel::Picture)
         .lines()
         .into_iter()
         .map(|l| record(l, false))
         .collect();
+    for at in 0..7 {
+        edges.push(record(line(EdgeAxis::Vertical, 0, at), false));
+        edges.push(record(line(EdgeAxis::Horizontal, at, 0), false));
+    }
     let mut grid = TileGrid::new(7, 7);
     grid.set_blocked(0, 0, true);
-    for edge in &edges {
+    for edge in edges.iter().filter(|edge| edge.in_bounds(7, 7)) {
         let [a, b] = edge.cells();
         grid.set_edge_blocked(a, b, true);
     }
@@ -86,13 +90,21 @@ fn window_invalid_third_line_is_atomic() {
 fn window_fit_commits_whole_span_once_and_same_model_is_noop() {
     let mut sim = house();
     let placed = window(WindowModel::Craftsman);
+    let other_edges: Vec<_> = sim
+        .world()
+        .resource::<SavedLayout>()
+        .edges()
+        .iter()
+        .copied()
+        .filter(|edge| !placed.lines().contains(&line(edge.axis, edge.x, edge.y)))
+        .collect();
     fit(&mut sim, placed);
     assert_eq!(revision(&sim), 1);
     assert_eq!(
         sim.world().resource::<SavedLayout>().window_placements(),
         [placed]
     );
-    assert!(sim.world().resource::<SavedLayout>().edges().is_empty());
+    assert_eq!(sim.world().resource::<SavedLayout>().edges(), other_edges);
     for segment in placed.lines() {
         assert_eq!(
             sim.world().resource::<SavedLayout>().state_of(segment),
@@ -233,7 +245,7 @@ fn window_room_crossing_is_atomic_and_unrelated_room_preserves_model() {
 }
 
 #[test]
-fn window_rear_shell_is_bounded_and_removal_restores_implicit_shell() {
+fn perimeter_windows_can_be_opened_or_removed_to_restore_the_whole_wall_span() {
     for axis in [EdgeAxis::Vertical, EdgeAxis::Horizontal] {
         let mut sim = house();
         let start = if axis == EdgeAxis::Vertical {
@@ -253,6 +265,17 @@ fn window_rear_shell_is_bounded_and_removal_restores_implicit_shell() {
         );
         assert!(!grid.is_walkable(-1, 1));
         assert!(!grid.is_walkable(1, -1));
+        assert_eq!(
+            apply_window_edit(sim.world_mut(), WindowEdit::Remove(placed.lines()[2])).reason,
+            None
+        );
+        for segment in placed.lines() {
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().state_of(segment),
+                WallState::Wall
+            );
+        }
+        fit(&mut sim, placed);
         super::super::walls::commit(
             sim.world_mut(),
             super::super::walls::WallEdit {
@@ -268,7 +291,7 @@ fn window_rear_shell_is_bounded_and_removal_restores_implicit_shell() {
                 .last_wall_result
                 .unwrap()
                 .reason,
-            Some(PlacementRefusal::OutOfBounds)
+            None
         );
         assert_eq!(
             apply_window_edit(sim.world_mut(), WindowEdit::Remove(placed.lines()[2])).reason,
@@ -283,12 +306,11 @@ fn window_rear_shell_is_bounded_and_removal_restores_implicit_shell() {
             grid_view(sim.world().resource::<TileGrid>()),
             grid_view(&grid)
         );
-        assert!(sim
-            .world()
-            .resource::<SavedLayout>()
-            .edges()
-            .iter()
-            .all(|e| e.x > 0));
+        let layout = sim.world().resource::<SavedLayout>();
+        assert_eq!(layout.state_of(start), WallState::Open);
+        for segment in placed.lines() {
+            assert_eq!(layout.state_of(segment), WallState::Open);
+        }
         let invalid = WindowPlacement {
             line: if axis == EdgeAxis::Vertical {
                 line(axis, 0, 6)
@@ -327,7 +349,9 @@ fn wide_windows_fit_walls_on_the_lot_south_and_east_edges_and_survive_a_save() {
         }
         assert_eq!(grid_view(sim.world().resource::<TileGrid>()), grid);
         let mut reader = Sim::new_from_shipped_lot();
-        reader.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+        reader
+            .load_current_v19_view(sim.current_v19_view())
+            .unwrap();
         assert_eq!(
             reader.world().resource::<SavedLayout>().window_placements(),
             [placed]
@@ -387,7 +411,7 @@ fn window_new_commands_drain_in_order_and_capture_model() {
 }
 
 #[test]
-fn window_replacement_cannot_consume_another_owner_and_front_door_is_protected() {
+fn window_replacement_preserves_other_owners_and_can_replace_a_starting_entrance() {
     let mut sim = house();
     fit(&mut sim, window(WindowModel::Cottage));
     fit(
@@ -407,17 +431,28 @@ fn window_replacement_cannot_consume_another_owner_and_front_door_is_protected()
         Some(PlacementRefusal::WindowRequiresWall)
     );
     assert_eq!(sim.save_snapshot_v5(), before);
-    let front = crate::portals::front_door_lines(sim.world());
-    let &(x, y) = front.first().expect("fixture front door");
+    let (x, y) = (6, 3);
+    super::super::walls::commit(
+        sim.world_mut(),
+        super::super::walls::WallEdit {
+            axis: EdgeAxis::Vertical,
+            x,
+            y,
+            state: WallState::Wall,
+        },
+    );
     let placed = WindowPlacement {
         line: line(EdgeAxis::Vertical, x, y),
         model: WindowModel::Sash,
     };
     assert_eq!(
         apply_window_edit(sim.world_mut(), WindowEdit::Fit(placed)).reason,
-        Some(PlacementRefusal::BlockedDoor)
+        None
     );
-    assert_eq!(sim.save_snapshot_v5(), before);
+    assert_eq!(
+        sim.world().resource::<SavedLayout>().state_of(placed.line),
+        WallState::Window
+    );
 }
 
 #[test]
@@ -581,8 +616,10 @@ fn grid_view(grid: &TileGrid) -> Vec<(bool, bool, bool)> {
 }
 
 #[test]
-fn window_loader_refuses_front_door_without_employed_sims() {
+fn historical_window_reader_rejects_an_obstructed_authored_portal() {
     let mut sim = house();
+    sim.world_mut()
+        .remove_resource::<crate::world_geometry::WorldSurfaces>();
     let mut snapshot = sim.save_snapshot_v5();
     assert!(snapshot.world.entities.iter().all(|e| !e.agent));
     let &(x, y) = crate::portals::front_door_lines(sim.world())
@@ -754,10 +791,10 @@ fn window_typed_restore_preserves_identity_and_rear_grid() {
             model: WindowModel::SteelGrid,
         },
     );
-    let saved = sim.save_snapshot_v5();
+    let saved = sim.current_v5_view();
     let hash = sim.world_hash();
-    sim.load_snapshot_v5(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v5(), saved);
+    sim.load_current_v5_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v5_view(), saved);
     assert_eq!(sim.world_hash(), hash);
 }
 

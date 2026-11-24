@@ -87,11 +87,9 @@ fn shifted() -> (Sim, Vec<(SimId, Entity)>) {
     (sim, people)
 }
 
-/// [WS-determinism] item 3: a world in which everyone holds the standard
-/// shift and the shift stream is undrawn hashes exactly as before issue
-/// 296's hash section existed. The pinned value is the hash the code
-/// computed before the section was added, for the shipped household run to
-/// Monday 10:00 under the career content from before shifts.
+/// [WS-determinism] item 3: standard shifts with an undrawn shift stream add
+/// no bytes to the careers hash. Compare with the pre-shift careers encoding
+/// directly; the separate world pin also observes current geometry and care.
 #[test]
 fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -109,6 +107,29 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
         .records
         .values()
         .all(|record| record.shift == 0));
+    let careers = sim.world().resource::<Careers>();
+    let mut legacy = terri_core::FnvHasher::default();
+    legacy.write_bytes(b"careers-v1");
+    careers.hash_into(&mut legacy);
+    let mut jobs: Vec<_> = household(&mut sim)
+        .into_iter()
+        .filter_map(|(id, entity)| {
+            sim.world().get::<Career>(entity).map(|job| (id.0, job.0))
+        })
+        .collect();
+    jobs.sort_unstable();
+    legacy.write_u64(jobs.len() as u64);
+    for (id, job) in jobs {
+        legacy.write_u64(u64::from(id));
+        legacy.write_u64(u64::from(job));
+    }
+    let mut current = terri_core::FnvHasher::default();
+    crate::careers::hash(sim.world(), &mut current);
+    assert_eq!(
+        current.finish(),
+        legacy.finish(),
+        "standard shifts and an undrawn stream add no careers hash bytes"
+    );
     // Issue 344's fade: no lift is fading at this tick, so the fade adds
     // nothing to the hash.
     assert!(sim
@@ -129,50 +150,11 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// with the sleeping Bill among its candidates, the same draw picks another
 /// action, and Monday morning differs from then on. Re-measured on that
 /// branch the same two ways; both runs gave this value.
-/// Issue 298 then moved it from 1877760251232896320: pay is 1.5 times what
-/// it was, a new household starts with $400, and the household bills record
-/// joins the hash once a day is counted. With the old wages, no night
-/// premium, no starting funds and the bills system and its hash off, the
-/// branch gave 1877760251232896320 again after merging 053ee52d3, so the
-/// shift section still adds nothing here.
-/// Issue 344 (presence never lowers mood) left it unchanged: Bill's mood is
-/// higher from tick index 410 (about 06:50 on Monday) once presence stops
-/// lowering it, but mood is not hashed, and the first choice that goes
-/// differently is at tick index 718 (about 12:00 on Monday), after this
-/// test's Monday 10:00 stopping point at 600 ticks, so the hash is equal at
-/// every tick of this run. Measured on the tree that combines both changes
-/// with the old presence rule restored behind a temporary switch and then
-/// removed; the combined tree still gives the value above.
-/// Issue 315 then moved it from 3704503324967516506, which main at 54cf96b46
-/// gave with the wages, the bills and the presence rule above, on purpose:
-/// every base need drain rate is three quarters of what it was, so needs
-/// cross their thresholds at different ticks and the household's choices
-/// differ from the first morning. The simulation code is unchanged. Measured
-/// on the tree that merges main at 54cf96b46 into the drain change, read
-/// from the failing assertion and then confirmed by a passing run.
-/// Issue 315's fill change then moved it from 16044876517331188252, which the
-/// drain change gave on the tree merged with main at 54cf96b46, on purpose: a
-/// toilet, shower or bath now lasts until its need is full and its authored
-/// rates were raised, so every use of them in the household's days is shorter
-/// or longer than before and the choices and draws that follow differ. The
-/// simulation code is unchanged. Measured on the tree that merges the drain
-/// change at f9b33b2ea into the fill change, read from the failing assertion.
-/// Issue 344's fade (the lift from liked furniture fades after a person
-/// leaves it) left it unchanged: no lift is fading at tick 600, which the
-/// test asserts, so the fade adds no block to the hash, and the hash being
-/// equal shows no choice before then went differently. Measured on the tree
-/// that merges main at a56f9beb0 into the fade change.
-/// Issue 355 (needs affect mood over time) then moved it from
-/// 10091986056830211033 on purpose: mood now comes from a balance that
-/// empty needs lower and needs above 80 raise each minute, instead of the
-/// old low, critical and all-needs-met moodlets, so the mood that choices
-/// read differs and the balance joins the hash. With the old moodlets
-/// restored, the balance not accruing and its hash block skipped behind a
-/// temporary switch, later removed, the tree merged with main at c219def9e
-/// gave 10091986056830211033 again. With only the hash block skipped it
-/// gave 7377914247010464820, so the choices also moved, not only the hash.
-/// Read from the failing assertion.
-const STANDARD_ONLY_HASH: u64 = 12636516644133506029;
+/// Explicit world state and current care rules move the whole-world hash.
+/// The prior branch measured this on 2026-10-25; the test separately requires the careers
+/// hash to equal its pre-shift encoding, so a new world pin cannot hide shift bytes.
+/// With gradual need mood, the V28 replay reaches this digest and still passes that encoding check.
+const STANDARD_ONLY_HASH: u64 = 13043348246484619481;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.
@@ -551,7 +533,7 @@ fn a_build_transaction_keeps_the_held_shift() {
     assert!(before.iter().any(|shift| *shift != 0));
     sim.begin_build().expect("build starts");
     assert_eq!(
-        sim.save_snapshot_v21().shifts.held.len(),
+        sim.save_snapshot_v28().previous.legacy.legacy.legacy.shifts.held.len(),
         before.iter().filter(|s| **s != 0).count()
     );
     sim.cancel_build().expect("cancel restores the baseline");
@@ -604,19 +586,19 @@ fn late_worker_with_a_deferred_departure() -> Sim {
 #[test]
 fn a_deferred_departure_on_a_held_shift_survives_a_save() {
     let sim = late_worker_with_a_deferred_departure();
-    let saved = sim.save_snapshot_v21();
+    let saved = sim.save_snapshot_v28();
     let mut loaded = Sim::new_from_shipped_lot();
-    assert_eq!(loaded.load_snapshot_v21(saved.clone()), Ok(()));
-    assert_eq!(loaded.save_snapshot_v21(), saved);
+    assert_eq!(loaded.load_snapshot_v28(saved.clone()), Ok(()));
+    assert_eq!(loaded.save_snapshot_v28(), saved);
 }
 
 #[test]
 fn a_deferred_departure_on_a_held_shift_survives_build_mode() {
     let mut sim = late_worker_with_a_deferred_departure();
-    let before = sim.save_snapshot_v21();
+    let before = sim.save_snapshot_v28();
     sim.begin_build().expect("build starts");
     sim.cancel_build().expect("cancel restores the baseline");
-    assert_eq!(sim.save_snapshot_v21(), before);
+    assert_eq!(sim.save_snapshot_v28(), before);
 }
 
 /// The owner's ruling of 2026-10-23: the day of a shift change is part of
@@ -653,9 +635,9 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         Some(None),
         "the change applies at home"
     );
-    let saved = sim.save_snapshot_v21();
+    let saved = sim.save_snapshot_v28();
     assert_eq!(
-        saved.shifts.changed_today,
+        saved.previous.legacy.legacy.legacy.shifts.changed_today,
         vec![terri_core::save_v21::SavedShiftChange {
             sim: id.0,
             day: 0,
@@ -664,24 +646,24 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         "the schedule held when the day began runs for the rest of it"
     );
     let mut loaded = Sim::new_from_shipped_lot();
-    assert_eq!(loaded.load_snapshot_v21(saved.clone()), Ok(()));
+    assert_eq!(loaded.load_snapshot_v28(saved.clone()), Ok(()));
     assert_eq!(loaded.world_hash(), sim.world_hash());
-    assert_eq!(loaded.save_snapshot_v21(), saved);
+    assert_eq!(loaded.save_snapshot_v28(), saved);
 
     let mut unknown = saved.clone();
-    unknown.shifts.changed_today[0].from = "no_such_shift".to_string();
+    unknown.previous.legacy.legacy.legacy.shifts.changed_today[0].from = "no_such_shift".to_string();
     assert_eq!(
-        Sim::new_from_shipped_lot().load_snapshot_v21(unknown),
+        Sim::new_from_shipped_lot().load_snapshot_v28(unknown),
         Err(crate::SaveError::InvalidValue),
         "a shift the level does not list refuses to load"
     );
 
     let mut other_day = saved.clone();
-    other_day.shifts.changed_today[0].day = 1;
+    other_day.previous.legacy.legacy.legacy.shifts.changed_today[0].day = 1;
     let mut refused = Sim::new_from_shipped_lot();
     let untouched = refused.world_hash();
     assert_eq!(
-        refused.load_snapshot_v21(other_day),
+        refused.load_snapshot_v28(other_day),
         Err(crate::SaveError::InvalidValue)
     );
     assert_eq!(
@@ -693,7 +675,7 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     // The change is what made the hash move: the same world with the day
     // forgotten hashes as a world without a change today would.
     let mut forgotten = Sim::new_from_shipped_lot();
-    forgotten.load_snapshot_v21(saved).expect("loads");
+    forgotten.load_snapshot_v28(saved).expect("loads");
     forgotten
         .world_mut()
         .resource_mut::<Careers>()
@@ -706,5 +688,5 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     for _ in 0..1440 {
         sim.tick();
     }
-    assert!(sim.save_snapshot_v21().shifts.changed_today.is_empty());
+    assert!(sim.save_snapshot_v28().previous.legacy.legacy.legacy.shifts.changed_today.is_empty());
 }

@@ -1,15 +1,6 @@
-//! Where the content lot stands inside the owned land - land expansion,
-//! issue 254 (`docs/specs/2026-10-17-land-expansion.md`, rule 3).
-//!
-//! The content describes one lot: a house in its north-west corner, a front
-//! door, a yard east and south of the house. Bought land can lie west or
-//! north of that lot, so the content's coordinates no longer start at the
-//! grid's origin. The frame records where they start, and everything that
-//! reads a content coordinate (the house rectangle, the front door and its
-//! landing, the street exit) reads it through here. A world with no frame
-//! (a test lot, or an old save whose grid is not the content lot's size)
-//! keeps the older rule: the whole grid is house and the content's
-//! coordinates are the grid's.
+//! Initial content coordinates and purchased-land accounting.
+//! Current movement, surfaces and doors use explicit saved geometry. The frame
+//! retains the content origin for migration, land accounting and initial framing.
 use bevy_ecs::prelude::*;
 use terri_core::layout::{EdgeAxis, WallEdge, WallLine};
 use terri_core::TileGrid;
@@ -138,7 +129,7 @@ pub fn house_or_grid(world: &World) -> HouseRect {
     })
 }
 
-/// The content's front door tile where it now stands.
+/// Historical entrance metadata shifted by bought land. Current routes use saved boundaries.
 pub fn front_door(world: &World) -> Option<(u32, u32)> {
     if (crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>())
         && frame(world).is_none()
@@ -154,7 +145,7 @@ pub fn front_door(world: &World) -> Option<(u32, u32)> {
         .map(|(x, y)| (x + ox, y + oy))
 }
 
-/// The content's portals where they now stand.
+/// Historical portal metadata shifted by bought land, not current placed doors.
 pub fn portals(world: &World) -> Vec<terri_data::CompiledPortal> {
     if (crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>())
         && frame(world).is_none()
@@ -181,13 +172,13 @@ pub fn shift_portal(
     moved
 }
 
-/// The front door matched to its portal, where it now stands.
+/// The historical entrance matched to its portal in the saved frame.
 pub fn front_portal(world: &World) -> Option<terri_data::CompiledPortal> {
     let door = front_door(world)?;
     portals(world).into_iter().find(|p| p.position == door)
 }
 
-/// The street's exit: the grid's last column on the front door's row, when
+/// Historical street exit: the grid's last column on the authored entrance row, when
 /// a yard lies beyond the door ([OS-street]).
 pub fn street_exit(world: &World) -> Option<(u32, u32)> {
     let width = world.resource::<TileGrid>().width() as u32;

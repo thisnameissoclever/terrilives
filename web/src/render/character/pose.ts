@@ -1,8 +1,11 @@
+import type {PoolPlayback} from './pool-contact-types.js';
+import {requirePoolPose,PoolContactNotReadyError} from './pool-contact-sample.js';
 import type { Bundle, Geometry } from './bundle.js';
 import { add, boneFrame, inverseAffine, length, multiply, solveLimb, sub, transform, type Vec3 } from './math.js';
 import { type ShapeParameters } from './shape.js';
 import { hasBook, isTransition } from './motion.js';
 import {solveInteraction} from './interaction-pose.js';
+import {fitPool} from './pool-fit.js';
 import type {PoseDiagnostics} from './contact-types.js';
 import {configuredJointSetup} from './pose-joints.js';
 import {fitBike} from './bike-fit.js';
@@ -31,7 +34,12 @@ function skinInto(out: Float32Array<ArrayBuffer>, a: readonly number[], b: reado
 }
 
 /** Production pose sampling never constructs a contact fit. */
-export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1):Float32Array<ArrayBuffer> {
+export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1,poolContact?:PoolPlayback):Float32Array<ArrayBuffer> {
+  if(bundle.clipMetadata?.[action]?.contacts.policy==='pool'){
+    if(!geometry)throw new PoolContactNotReadyError();
+    if(audit){audit.contacts=[];audit.assemblies={};}
+    return requirePoolPose(poolContact,geometry,a,top,action,frame);
+  }
   if(action==='bed_sleep'||action==='bunk_sleep'){
     if(!Number.isFinite(frame)||frame<0)throw new Error('Unknown character pose');
     if(audit){audit.contacts=[];audit.assemblies={};}
@@ -55,6 +63,7 @@ function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: stri
   const bones = bundle.bones, index = (name: string) => {
     const found = bones.findIndex(b => b.name === name); if (found < 0) throw new Error(`Missing bone ${name}`); return found;
   };
+  if(clip?.contacts.policy==='pool')return fitPool(bundle,a,top,source,rest,matrices,action,frame,audit);
   if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,inverse,matrices,audit,geometry,bikeFit,seatFit});
   const result = new Float32Array(bones.length * 16);
   const positions = matrices.map(m=>[m[12],m[13],m[14]] as [number,number,number]);

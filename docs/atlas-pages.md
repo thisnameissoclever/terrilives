@@ -28,6 +28,11 @@ The deterministic shelf allocator preserves record order and never rotates
 images. Every padded rectangle must fit its selected page. Oversized input
 fails explicitly; do not lower density to conceal a capacity failure.
 
+The four rectangular pool facings occupy a final source page. Keeping their
+placement after the existing pages preserves every earlier sprite index and
+texture rectangle. Architecture drawing IDs still begin after the complete
+sprite catalogue.
+
 Use `atlas_pixels.AtlasPages` for source-pixel verification. Select a page
 from the sprite record before cropping. The reader also supports historical
 single-image catalogues and an injected byte reader for Git revisions. Keep
@@ -143,8 +148,27 @@ zeros and GitHub Pages does not compress binary files, so
 `architecture-<sha256>.r16f.gz` and `architecture-<sha256>.r8.gz`. The depth
 file goes from about 12.4 MB to 0.27 MB, and the role file from about 6.2 MB
 to 0.09 MB. Startup always loads the depth file. The role file loads only for
-a floor finish that is not baked into the color texture; every covering in
-the current catalogue is baked, so players do not download it today.
+a floor finish that is not baked into the color texture. Outdoor patio uses
+this path; Boards, Tiles and Carpet use the accepted baked pixels.
+
+Changing a covering retains the sprite renderer, historical atlas, architecture
+depth, joint resources and static buffers. Only missing finish patterns are
+downloaded and decoded. Identical content URLs and dimensions share a texture;
+the bounded pattern cache and pipeline variants remain available for reselection.
+The 128 MiB architecture budget includes retained textures, preparing candidates
+and resources waiting for submitted GPU work to finish before destruction.
+
+A baked-only startup allocates one architecture color layer and a one-texel roles
+texture. The first unbaked finish promotes color to two layers by copying the
+accepted pixels on the GPU, then uploads carrier and roles once. The original
+color/roles textures retire after submitted readers finish. This avoids reserving
+the extra color layer at every startup. Later finish changes replace the small
+finish table and matching bindings while the visible scene remains usable.
+
+Finish preparation completes before the requested floor edit enters the simulation.
+Local Retry preserves that intent, unless the selection or world has changed.
+Whole-save loading and device recovery keep their scene loading surfaces. Device
+recovery explicitly rebuilds base resources for the replacement device.
 
 Unlike the coverage file, these names hold the SHA-256 of the unpacked bytes,
 which the reviewed manifest already records as `ARCHITECTURE.hashes`, so a

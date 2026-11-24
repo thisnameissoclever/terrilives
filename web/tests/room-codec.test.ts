@@ -3,14 +3,15 @@ import { decodeBuildReview, decodeRoomSummary, decodeRoomUnit, encodeRoomChoices
 const wide = { session: 9007199254740993n, revision: 9007199254740995n, preparation: 18446744073709551615n };
 const witness = new Uint8Array([
     1, 0, 129, 128, 128, 128, 128, 128, 128, 16, 131, 128, 128, 128, 128, 128, 128, 16,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 0, 1, 0, 0, 1, 79, 0, 0, 0, 0, 0, 0, 0,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 0, 1, 0, 0, 1, 79, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
 ]);
 it('decodes the independent native literal without rounding unequal wide token fields', () => {
     expect(decodeBuildReview(witness, { width: 1, height: 1 })).toEqual({
         ok: true, value: {
             token: wide, groups: [], rooms: [
                 { id: 0, anchor: null, name: 'O', previousName: null, previousArea: 0, area: 0, outside: true },
-            ], retiredNames: [], duties: { duties: [], replannedPeople: [], unavailablePeople: [] }
+            ], retiredNames: [], access: { regions: [], blockedTargets: [] }, duties: { duties: [], replannedPeople: [], unavailablePeople: [] }
         }
     });
 });
@@ -24,7 +25,7 @@ it('rejects final review areas that exceed the lot capacity', () => {
         1, 0, 1, 2, 3, 0, 2,
         0, 0, 1, 79, 0, 0, 1,
         1, 1, 0, 0, 1, 65, 0, 0, 1,
-        0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
     ]);
     expect(() => decodeBuildReview(overCapacity, { width: 1, height: 1 })).toThrow(RoomWireError);
 });
@@ -33,7 +34,7 @@ it('accepts zero-area Outside and permits cells absent from room membership', ()
         1, 0, 1, 2, 3, 0, 2,
         0, 0, 1, 79, 1, 1, 79, 1, 0,
         1, 1, 0, 0, 1, 65, 0, 0, 1,
-        0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
     ]);
     for (const context of [{ width: 1, height: 1 }, { width: 2, height: 1 }]) {
         const decoded = decodeBuildReview(enclosedCell, context);
@@ -75,14 +76,14 @@ it('keeps every chore and duty tag distinct and accepts owner zero', () => {
     for (let chore = 0; chore < 6; chore++)
         for (const kind of [0, 2, 3, 4]) {
             const previous = kind === 2 || kind === 3 ? null : { kind: chore, target: 0 }, owner = kind === 3 ? null : 0;
-            const bytes = new Uint8Array([...prefix, 1, chore, 0, ...(previous ? [1, chore, 0] : [0]), ...(owner === null ? [0] : [1, 0]), kind, 0, 0]);
+            const bytes = new Uint8Array([...prefix, 1, chore, 0, ...(previous ? [1, chore, 0] : [0]), ...(owner === null ? [0] : [1, 0]), kind, 0, 0, 0, 0]);
             const decoded = decodeBuildReview(bytes, { width: 1, height: 1 });
             expect(decoded.ok).toBe(true);
             if (decoded.ok)
                 expect(decoded.value.duties.duties).toEqual([{ key: { kind: chore, target: 0 }, previous, owner, kind }]);
         }
     expect(() => decodeBuildReview(new Uint8Array([...prefix, 1, 6, 0, 0, 0, 0, 0, 0]), { width: 1, height: 1 })).toThrow(RoomWireError);
-    const reassigned = decodeBuildReview(new Uint8Array([...prefix, 1, 2, 0, 1, 2, 1, 1, 0, 1, 0, 0]), { width: 1, height: 1 });
+    const reassigned = decodeBuildReview(new Uint8Array([...prefix, 1, 2, 0, 1, 2, 1, 1, 0, 1, 0, 0, 0, 0]), { width: 1, height: 1 });
     expect(reassigned.ok && reassigned.value.duties.duties[0].kind).toBe(1);
     for (const invalid of [[...prefix, 1, 0, 0, 0, 1, 0, 0, 0, 0], [...prefix, 1, 0, 0, 1, 0, 0, 0, 2, 0, 0]])
         expect(() => decodeBuildReview(new Uint8Array(invalid), { width: 1, height: 1 })).toThrow(RoomWireError);
@@ -103,7 +104,8 @@ it('accepts the admin panel native failures and nothing past them (issue 312)', 
     expect(decodeRoomUnit(new Uint8Array([1, 1, 16, 0]))).toEqual({ ok: false, error: { code: 16, detail: null } });
     // Build code 17: refused because admin edits left a world that would not reload; it names nothing.
     expect(decodeRoomUnit(new Uint8Array([1, 1, 17, 0]))).toEqual({ ok: false, error: { code: 17, detail: null } });
-    for (const bytes of [[1, 1, 16, 1, 1], [1, 1, 17, 1, 1], [1, 1, 18, 0], [1, 1, 10, 1, 0], [1, 1, 10, 0]])
+    expect(decodeRoomUnit(new Uint8Array([1, 1, 18, 0]))).toEqual({ ok: false, error: { code: 18, detail: null } });
+    for (const bytes of [[1, 1, 16, 1, 1], [1, 1, 17, 1, 1], [1, 1, 18, 1, 1], [1, 1, 19, 0], [1, 1, 10, 1, 0], [1, 1, 10, 0]])
         expect(() => decodeRoomUnit(new Uint8Array(bytes))).toThrow(RoomWireError);
 });
 it('checks each group kind and rejects impossible group relationships', () => {
@@ -114,7 +116,7 @@ it('checks each group kind and rejects impossible group relationships', () => {
         { kind: 3, old: [1, 1], anchors: [0], rooms: [1, 0, 0, 1, 79, 0, 0, 2], retired: [1, 1, 1, 65] },
     ];
     for (const c of cases) {
-        const bytes = new Uint8Array([1, 0, 1, 2, 3, 1, c.kind, ...c.old, ...c.anchors, 1, 0, 0, 1, 0, 1, 0, ...c.rooms, ...c.retired, 0, 0, 0]);
+        const bytes = new Uint8Array([1, 0, 1, 2, 3, 1, c.kind, ...c.old, ...c.anchors, 1, 0, 0, 1, 0, 1, 0, ...c.rooms, ...c.retired, 0, 0, 0, 0, 0]);
         const decoded = decodeBuildReview(bytes, { width: 2, height: 1 });
         expect(decoded.ok).toBe(true);
         if (decoded.ok)
@@ -123,4 +125,11 @@ it('checks each group kind and rejects impossible group relationships', () => {
         wrong[6] = 4;
         expect(() => decodeBuildReview(wrong, { width: 2, height: 1 })).toThrow(RoomWireError);
     }
+});
+
+
+it('carries external access, separated people and blocked object footprints explicitly', () => {
+  const bytes = new Uint8Array([...witness.slice(0,-2),1,1,0,0,1,0,1,7,1,1,2,1,9,1,1,1]);
+  const decoded = decodeBuildReview(bytes,{width:3,height:3});
+  expect(decoded.ok && decoded.value.access).toEqual({regions:[{tiles:[[0,0]],people:[0],targets:[7],externalAccess:true,unreachableBy:[2]}],blockedTargets:[{target:9,tiles:[[1,1]]}]});
 });

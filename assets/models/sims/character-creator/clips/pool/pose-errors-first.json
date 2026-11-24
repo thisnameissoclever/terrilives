@@ -1,0 +1,457 @@
+[
+  {
+    "clip": "pool_enter",
+    "sample": 21,
+    "error": "AssertionError((0.5045736519663232, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_enter",
+    "sample": 22,
+    "error": "AssertionError((0.5159023292740886, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_enter",
+    "sample": 23,
+    "error": "AssertionError((0.5352353018913574, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_enter",
+    "sample": 24,
+    "error": "AssertionError((0.5644944517803467, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_enter",
+    "sample": 25,
+    "error": "AssertionError((0.5822185626579293, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_enter",
+    "sample": 26,
+    "error": "AssertionError((0.5918062481987708, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_enter",
+    "sample": 36,
+    "error": "AssertionError((0.05588175583269984, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_0",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_1",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_2",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_3",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_4",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_5",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_6",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_7",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_8",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_9",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_10",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 7,
+    "error": "AssertionError((0.06583247291737297, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 8,
+    "error": "AssertionError((0.054635926232608094, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 17,
+    "error": "AssertionError((0.5861744403595495, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 18,
+    "error": "AssertionError((0.5758613721624393, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 19,
+    "error": "AssertionError((0.5441011656281756, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 20,
+    "error": "AssertionError((0.5191514773361139, 0.49899378418922424))"
+  },
+  {
+    "clip": "pool_exit_11",
+    "sample": 21,
+    "error": "AssertionError((0.5059829732598035, 0.49899378418922424))"
+  }
+]

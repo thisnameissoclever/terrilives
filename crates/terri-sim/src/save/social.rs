@@ -773,10 +773,10 @@ mod tests {
             (7, "subject:trains"),
             "a subject saves as the generic code and its tag"
         );
-        let saved = source.save_snapshot_v27();
+        let saved = source.save_snapshot_v30();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v27(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v27(), saved);
+        restored.load_snapshot_v30(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v30(), saved);
         let topic = topic_of(&restored);
         assert_eq!((topic.code, topic.tag.as_str()), (7, "subject:trains"),);
         assert_eq!(
@@ -803,10 +803,10 @@ mod tests {
     #[test]
     fn missing_subject_loads_as_unknown_subject() {
         let (source, _) = subject_chat("subject:left-the-game", (0.5, 0.2));
-        let saved = source.save_snapshot_v27();
+        let saved = source.save_snapshot_v30();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v27(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v27(), saved);
+        restored.load_snapshot_v30(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v30(), saved);
         let topic = topic_of(&restored);
         assert_eq!(topic.tag, "subject:left-the-game", "the saved tag is kept");
         let row = &terri_data::pack().topics[usize::from(topic.row)];

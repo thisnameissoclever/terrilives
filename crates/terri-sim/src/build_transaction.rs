@@ -10,8 +10,12 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV27,
+    SaveSnapshotV28,
 };
+
+fn saved_rooms(snapshot: &SaveSnapshotV28) -> &SavedRooms {
+    &snapshot.room_world_v16().rooms
+}
 
 #[cfg(test)]
 mod cases;
@@ -52,6 +56,7 @@ pub enum BuildCommitError {
     Validation(SaveError),
     StaleToken,
     CommandNotAllowed,
+    AccessAcknowledgmentRequired,
     /// [WB-beds] in `docs/specs/2026-10-18-wages-and-bills.md`: the batch
     /// would leave a bed outside every room, one that stood inside a room or
     /// was bought or moved in this session. `object` is the bed's entity
@@ -142,6 +147,7 @@ pub struct BuildReview {
     pub rooms: Vec<BuildRoomReview>,
     pub retired_names: Vec<(RoomId, String)>,
     pub duties: DutyChangeReport,
+    pub access: crate::world_geometry::AccessReport,
 }
 #[derive(Resource, Default)]
 pub(crate) struct BuildEpoch(u64);
@@ -159,12 +165,15 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV27,
+    draft: SaveSnapshotV28,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV27,
+    baseline: SaveSnapshotV28,
+    // The draft room map can move into a larger grid before land is confirmed.
+    rent_tiles: Option<(u32, u32)>,
+    pool_contacts_required: bool,
     request_runtime: crate::social_episode::requests::runtime::Runtime,
     journal: Vec<BuildJournalEntry>,
     names: BTreeMap<RoomSelection, String>,
@@ -176,12 +185,16 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV27,
+        baseline: SaveSnapshotV28,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
+        pool_contacts_required: bool,
+        rent_tiles: Option<(u32, u32)>,
     ) -> Self {
         Self {
             baseline,
+            rent_tiles,
+            pool_contacts_required,
             request_runtime,
             session,
             journal: vec![],
@@ -192,6 +205,10 @@ impl BuildTransaction {
             last_error: None,
         }
     }
+    pub(crate) fn confirmed_rent_tiles(&self) -> Option<(u32, u32)> {
+        self.rent_tiles
+    }
+
     fn invalidate(&mut self) -> Result<(), BuildCommitError> {
         self.revision = self
             .revision
@@ -245,26 +262,25 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV27> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV28> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
 }
-fn snapshot_rooms(snapshot: &SaveSnapshotV27) -> &SavedRooms {
-    &snapshot
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .rooms
-}
 
 impl Sim {
+    pub fn pool_contacts_required(&self) -> bool {
+        self.world.get_resource::<BuildTransaction>().map_or_else(
+            || crate::pool::contacts_required(&self.world),
+            |build| build.pool_contacts_required,
+        )
+    }
+
+    pub fn build_pool_contacts_required(&self, token: BuildToken) -> Result<bool, BuildCommitError> {
+        self.prepared_build(token)
+            .map(|build| crate::pool::contacts_required(&build.candidate.world))
+    }
+
     pub fn build_active(&self) -> bool {
         self.world.contains_resource::<BuildTransaction>()
     }
@@ -279,12 +295,12 @@ impl Sim {
             .iter()
             .any(ordinary::construction)
             || build.names.iter().any(|(selection, name)| match selection {
-                RoomSelection::Outside => *name != snapshot_rooms(&build.baseline).outside_name,
-                RoomSelection::Room(id) => snapshot_rooms(&build.baseline)
+                RoomSelection::Outside => *name != saved_rooms(&build.baseline).outside_name,
+                RoomSelection::Room(id) => saved_rooms(&build.baseline)
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v27::capture(self))
+            || !same_authored(&build.baseline, &save::v28::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -341,8 +357,8 @@ impl Sim {
                 return Err(error);
             }
         }
-        let baseline = save::v27::capture(self);
-        if let Err(error) = save::v27::restore(
+        let baseline = save::v28::capture(self);
+        if let Err(error) = save::v28::restore_current(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -356,8 +372,15 @@ impl Sim {
         self.world.insert_resource(BuildEpoch(epoch));
         self.world.remove_resource::<ordinary::NativeFeedback>();
         let request_runtime = crate::social_episode::requests::runtime::capture(&self.world);
-        self.world
-            .insert_resource(BuildTransaction::new(baseline, request_runtime, session));
+        let pool_contacts_required = crate::pool::contacts_required(&self.world);
+        let rent_tiles = crate::rooms::rent_tiles(&self.world);
+        self.world.insert_resource(BuildTransaction::new(
+            baseline,
+            request_runtime,
+            session,
+            pool_contacts_required,
+            rent_tiles,
+        ));
         Ok(())
     }
     pub fn stage_room_name(
@@ -372,7 +395,7 @@ impl Sim {
             .get_resource_mut::<BuildTransaction>()
             .ok_or(BuildCommitError::NotActive)?;
         if let RoomSelection::Room(id) = selection {
-            if snapshot_rooms(&b.baseline)
+            if saved_rooms(&b.baseline)
                 .record(id)
                 .is_none_or(|r| r.anchor.is_none())
             {
@@ -398,7 +421,7 @@ impl Sim {
             map,
             self.world.resource::<SavedRooms>(),
             map,
-            snapshot_rooms(&b.baseline),
+            saved_rooms(&b.baseline),
         );
         for row in &mut rows {
             if let Some(name) = b.names.get(&row.selection) {
@@ -424,8 +447,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v27::restore(
-                    save::v27::capture(candidate),
+                save::v28::restore_current(
+                    save::v28::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -476,7 +499,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v27::restore(
+        let mut candidate = save::v28::restore_current(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -503,13 +526,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v27::capture(self);
-        if save::v27::capture(&candidate) != draft {
+        let draft = save::v28::capture(self);
+        if save::v28::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v27::restore(
+            candidate = save::v28::restore_current(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -547,7 +570,7 @@ impl Sim {
             return Err(BuildCommitError::BedOutside { object });
         }
         let proposal = match_rooms(&context.map, &topology, offset);
-        let mut saved = snapshot_rooms(&b.baseline).clone();
+        let mut saved = saved_rooms(&b.baseline).clone();
         for (selection, name) in &b.names {
             match selection {
                 RoomSelection::Outside => saved.outside_name = name.clone(),
@@ -572,7 +595,7 @@ impl Sim {
             &resolved.map,
             &resolved.saved,
             &context.map,
-            snapshot_rooms(&b.baseline),
+            saved_rooms(&b.baseline),
         );
         let retired_names = resolved
             .retired_ids
@@ -600,6 +623,7 @@ impl Sim {
             rooms,
             retired_names,
             duties,
+            access: crate::world_geometry::access_report(&candidate.world),
         };
         let projected = project(&review)?;
         let mut b = self.world.resource_mut::<BuildTransaction>();
@@ -626,7 +650,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v27::capture(self) != prepared.draft {
+        if save::v28::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -692,9 +716,31 @@ impl Sim {
             .collect())
     }
     pub fn commit_build(&mut self, token: BuildToken) -> Result<(), BuildCommitError> {
+        self.commit_build_reviewed(token, false)
+    }
+    pub fn commit_build_with_access_ack(
+        &mut self,
+        token: BuildToken,
+    ) -> Result<(), BuildCommitError> {
+        self.commit_build_reviewed(token, true)
+    }
+    fn commit_build_reviewed(
+        &mut self,
+        token: BuildToken,
+        acknowledged: bool,
+    ) -> Result<(), BuildCommitError> {
         self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
+        }
+        if !acknowledged
+            && self
+                .prepared_build(token)?
+                .review
+                .access
+                .requires_acknowledgment()
+        {
+            return Err(BuildCommitError::AccessAcknowledgmentRequired);
         }
         self.prepared_build(token)?;
         next_epoch(&self.world).map_err(|_| BuildCommitError::CounterExhausted)?;
@@ -705,7 +751,9 @@ impl Sim {
         // shell may have drained records since; installing that copy would
         // hand them over a second time.
         ordinary::runtime::carry_activity_log(&self.world, &mut prepared.candidate.world);
-        let baseline = save::v27::capture(&prepared.candidate);
+        let baseline = save::v28::capture(&prepared.candidate);
+        let pool_contacts_required = crate::pool::contacts_required(&prepared.candidate.world);
+        let rent_tiles = crate::rooms::rent_tiles(&prepared.candidate.world);
         let request_runtime =
             crate::social_episode::requests::runtime::capture(&prepared.candidate.world);
         match ordinary::runtime::install(self, *prepared.candidate) {
@@ -714,6 +762,8 @@ impl Sim {
                     baseline,
                     request_runtime,
                     session,
+                    pool_contacts_required,
+                    rent_tiles,
                 ));
                 self.sync_render_buffer_after_commands();
                 Ok(())
@@ -745,10 +795,10 @@ impl Sim {
     /// untouched.
     pub(crate) fn restore_session_baseline(
         &self,
-        baseline: SaveSnapshotV27,
+        baseline: SaveSnapshotV28,
         request_runtime: &crate::social_episode::requests::runtime::Runtime,
     ) -> Result<Sim, SaveError> {
-        let mut restored = save::v27::restore(
+        let mut restored = save::v28::restore_current(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -797,7 +847,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v27::restore(
+            save::v28::restore_current(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -840,6 +890,7 @@ fn draft_entity(draft: &World, candidate: &World, entity: Entity) -> Option<u32>
 }
 
 pub(crate) fn final_maintenance(world: &mut World) {
+    crate::world_geometry::revalidate_routes(world);
     crate::reading::reconcile(world);
     crate::targeted_cleanup::prune(world);
     crate::seating::maintain(world);
@@ -870,12 +921,12 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV27, b: &SaveSnapshotV27) -> bool {
-    // Compare the authored fields through the schema-twenty envelope.
-    let (a, b) = (
-        &a.legacy.legacy.legacy.legacy.legacy,
-        &b.legacy.legacy.legacy.legacy.legacy,
-    );
+fn same_authored(a: &SaveSnapshotV28, b: &SaveSnapshotV28) -> bool {
+    if a.surfaces != b.surfaces {
+        return false;
+    }
+    // Held shifts are runtime state; compare the historical world envelope.
+    let (a, b) = (a.gameplay_v20(), b.gameplay_v20());
     let a = &a.legacy.legacy.legacy.legacy;
     let b = &b.legacy.legacy.legacy.legacy;
     let av = &a.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;

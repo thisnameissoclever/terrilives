@@ -7,7 +7,6 @@ export class BuilderControls {
   private readonly selector: HTMLSelectElement;
   private readonly name: HTMLElement;
   private readonly facing: HTMLElement;
-  private readonly status: HTMLElement;
   private readonly saleNote: HTMLElement;
   private readonly colour: HTMLSelectElement;
   private readonly keyboardHelp: HTMLElement;
@@ -25,7 +24,6 @@ export class BuilderControls {
     this.selector = required('builder-object');
     this.name = required('builder-name');
     this.facing = required('builder-facing');
-    this.status = required('builder-status');
     this.saleNote = required('builder-sale-note');
     this.colour = required('builder-colour');
     // [RC-ui]: the colourways are content, so the list is built once.
@@ -92,8 +90,6 @@ export class BuilderControls {
     // A chosen object that would not sell says why, as the rotation note does.
     this.saleNote.hidden = builder.saleRefusal === null;
     this.saleNote.textContent = builder.saleRefusal === null ? '' : `Cannot sell: ${builder.saleRefusal}`;
-    this.status.textContent = builder.status;
-    this.status.setAttribute('data-valid', String(builder.preview?.valid ?? true));
     const explanation = this.document.querySelector<HTMLElement>('#builder-rotation-note');
     if (explanation) {
       explanation.hidden = builder.selected === null || builder.canRotate;

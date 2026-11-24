@@ -74,6 +74,14 @@ it('allows Review submission after preparation without requiring a visible previ
   expect(fixed.get('[data-next]')!.disabled).toBe(true);
 });
 
+it('shows character-resource preparation immediately and clears the spinner on completion or failure',()=>{
+  const {view,fixed}=viewFixture(); Reflect.set(view,'appearanceReady',false); view.render();
+  expect(fixed.get('.creator-status')!.attributes['data-pending']).toBe('true');
+  Reflect.set(view,'appearanceReady',true);view.render(); expect(fixed.get('.creator-status')!.attributes['data-pending']).toBeUndefined();
+  Reflect.set(view,'appearanceReady',false);Reflect.set(view,'previewError','Resource unavailable');view.render();
+  expect(fixed.get('.creator-status')!.attributes['data-pending']).toBeUndefined();
+});
+
 it('uses the seven approved pages and preserves independent disclosure state per page',()=>{
   expect(creatorPages.map(([,label])=>label)).toEqual(['Identity','Appearance','Personality','Needs & habits','Interests & skills','Household','Review']);
   const {view,editor}=viewFixture({...catalog,activities:[{object:'bookshelf',action:'read',label:'Read',tags:['reading']}]});view.render();

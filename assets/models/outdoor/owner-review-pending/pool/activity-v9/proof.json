@@ -1,0 +1,131 @@
+{
+  "state": "complete",
+  "object": "pool",
+  "inputs": {
+    "outdoor/render_pool_activity_v5.py": "325bb96bb6e5b7d1000515adaf85a3c21a22886bae8c0b84e3dc73ef418c0427",
+    "outdoor/export_pool_fixture_v5.py": "bceea0618cb2fee1520fff3962ead50d7a0df306d0155a0153ae2931f262336e",
+    "outdoor/pool_activity_model_v5.py": "fb800918a2d5b88a31c44bd29e8639cc7fa0fe1345e6b92baa0908bf884a4719",
+    "outdoor/pool_activity_layout_v5.py": "ec7b8e47da99ffe94762195d69e51187a0ecbf20dbe857175289671be157f435",
+    "outdoor/pool_activity_model_v4.py": "ceee2b7da9cd6f3925badf0375f993cb9278ce8967c635a3ad7ee0b617ad0be9",
+    "outdoor/pool_activity_layout_v4.py": "328036d76e5ba5a259e4b18cb344e2bbd20a9b4ee9329a06006bd80400361723",
+    "outdoor/pool_activity_rail_v4.py": "cacaa1f1a6e64f57889edcf1f9b2c53d84edc9cf8de538178bca09387f3f20a9",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "outdoor/export_pool_fixture_v9.py": "cd5a76e7dd8f5b3417d58732ebd2fb89c6ab341b55c86faa5e0408824fd9dda1",
+    "outdoor/pool_activity_layout_v9.py": "cd97a08ca38cfd670ef0d3abc39da4f60c11e58fe5594d50f26e517ff05d1bf0",
+    "outdoor/pool_activity_model_v9.py": "94ebca65dad8c4a7b940679682c319976496c932921363fc6ca0187f138fb6cc",
+    "outdoor/pool_activity_layout_v8.py": "7c16da55542a6bb37516eca1d616926465c60272e47549d46b7eb6b968fc20ca",
+    "outdoor/pool_activity_model_v8.py": "4f8d6b3e23873f24bb6d85cf60ac7f706164c3b603ac45d5625afeba54ea8b7c",
+    "outdoor/pool_activity_layout_v7.py": "0cd4c35fa8f5906c04256e3115947c213e88329f345fc83322728cdd2538542a"
+  },
+  "blender_version": "4.5.16 LTS",
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Pool basin floor",
+    "Pool inside ladder tread 1",
+    "Pool inside ladder tread 2",
+    "Pool inside ladder tread 3",
+    "Pool ladder crest landing",
+    "Pool ladder rail 1",
+    "Pool ladder rail 1 authoring path",
+    "Pool ladder rail 2",
+    "Pool ladder rail 2 authoring path",
+    "Pool ladder stringer 1 1",
+    "Pool ladder stringer 1 1 upper",
+    "Pool ladder stringer 2 1",
+    "Pool ladder stringer 2 1 upper",
+    "Pool outside ladder tread 1",
+    "Pool outside ladder tread 2",
+    "Pool outside ladder tread 3",
+    "Pool stone coping",
+    "Pool wall",
+    "Pool wall trim band 1",
+    "Pool wall trim band 2",
+    "Pool wall trim band 3",
+    "Pool wall trim band 4",
+    "Pool wall trim band 5",
+    "Pool water surface"
+  ],
+  "model_sha256": "5fffb18ec639acb97e8b28d4a0c84d16458e080376a08a5b36a95cb1702fb69f",
+  "fixture_sha256": "c5ab0a6e90bdc1d2b428b0905fbc70b7d18e0dc049f0da9d48a868ea1c84bb59",
+  "model_checks": {
+    "footprint": [
+      3,
+      2
+    ],
+    "water_z": 0.82,
+    "rail_centers_x": [
+      -0.8399999737739563,
+      -0.1599999964237213
+    ]
+  },
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "5a4ab0587e9c576bdc6b407426da588eb50b5247bb42bc8acaad72809ea34aa0"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "8f757100919d8d70bd171881f41fa32c36fb47544d2161652638332725efbaf9"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "307fdb25c1ed53ae1cfd9b8a795942bcf775437c0c373af4f2a283e13d3d7bbf"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "5298c6cc2281bb70020ab32164423f8f98389307955b465112342d40ac5104fa"
+    }
+  ]
+}

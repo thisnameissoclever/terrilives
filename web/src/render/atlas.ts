@@ -28,7 +28,7 @@ export const ATLAS_HEIGHT = 2048;
 export const ATLAS_CONTENT_SHA256 = 'd7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9';
 /** Content-addressed public pathname; Pages ignores query strings in its cache key. */
 export const ATLAS_FILE_NAME = 'atlas-d7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9.png';
-export const ATLAS_PAGE_FILES: readonly string[] = ["atlas-d7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9.png", "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png", "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png", "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png", "atlas-47a7cda58edad50d058cabf38bf0b98d7d15cf85d789f2445fb483631a36f725.png", "atlas-98f0a3065d3dd4cef344d4fafb3c02d79babdcd752826b78e545ebd30c74b8cf.png", "atlas-738f7fe337c28efeed9e77833f7da2d0df2cdf3d0321c63e058f282716360793.png", "atlas-2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d.png", "atlas-ccc3a47fcebf25c9920b91efdbb72be345586d3425c0331df220cbb61b3fcb42.png", "atlas-962e7555dd6a890c24af82e8e656047bf98e0a21ef1cf62cf4d0ecacceb909c3.png", "atlas-245ab62ba664c477aed5791c222f9d272108c7ae6bc8fcabf5de74c1a04b05d5.png", "atlas-0f448969266ad359dfbc7f059f962a7ad434a1ae1e64f350d1caab3778570b7f.png", "atlas-7d78d73c89e5152a096b1b0c2b0008114804983ef88f9134abd3d0e23ec23ac9.png", "atlas-12f681b6123b6eb9403f72650dc240a6694ffac2fc82f91a2c50595e9d44c6b9.png", "atlas-7ecad620b2e27c9bddb3d990fcb839863076b9f694b9a3854c60496f67f79797.png", "atlas-3fecdc82deaec3299971f68507cc06865caa6f354d5a72941f7c0b7101b82c33.png", "atlas-7ac48ff985fcd66f283b7385e35b60443fe1910543e76241dfe49b6f8a571f56.png", "atlas-c58516c813f4d2ba5d47d176c6895ff4d6128efe54083bd374ef5b4aa84ad30c.png", "atlas-ca1b84626dadad573408347c1b7414cce6ec2efb363d424dd41bcf9ef6d146be.png", "atlas-37089cba88bd6c69e6c751eb2cd71bea92157e1514150b2fdb63178002e2b5b6.png", "atlas-962c2537022e466b56f032fdedfd6292b4da46bd94efa74a4cf719dddb31baed.png", "atlas-2d740e94910cc40801848a082cb7d3c0bbe8f2089d3e01d32051285cc6beb8de.png", "atlas-6e6e80ee0dc0d332d7ff9b7032a3f2bbbfe3f4e04fd8e97cd40ce16747552fd9.png", "atlas-bfe42156778ce42b5c0be63047a44f8f0a0aec49ace7884301bb848c5a2dcff7.png", "atlas-2f6a6c559f3071707a8820dabe377705e0bc19055132929a888086852288a482.png", "atlas-8a8e1551653e25167e87c6459edc0a7ed4978db4144e5ff8443352673a18d689.png", "atlas-5614d3037df66346a6c4b867f27256d33a88a5a15df2fdab2a421367dd1b892c.png", "atlas-ba13dd135a8215251b36273ab8505724144056c7c243fed4403cba3c1d5863dc.png", "atlas-43d482de5de6aa3f79f4ef19b9a782f552b2fc79889d9d3b63f3c0349097a732.png", "atlas-8d459a0b158e6b61bf968d1f697796feb5e8b80f569285b95e5c872fd2390ab8.png", "atlas-53ee52d50c9b4e63d04b14cdc6f7ffec73d461f21a7484381a2312a19bb57977.png", "atlas-3bbbb69e5481cdbf8319fc88fc637aca137a542ef6193a3152805d4b6b58144e.png", "atlas-52f17f002c9991902d85bd000efa96aebe53fba22a5fe0f1d4f3b12d1a78ab19.png", "atlas-b16f564da1a8dfcf13d7967347798d4729fb282083535219c33e12f5cd486cc4.png", "atlas-8b23da9eab1fbecf639b7946d84904a4503014c406b41bfab03273cf395005d1.png", "atlas-c50b2aa784feda77d30919d11169257eae702b79ef25db3f5c97e63b77a6268b.png", "atlas-19d677eb91bc11cbc4c43894719df06a43c2238b688c74959016f14493bb33b7.png", "atlas-c6e5e5958a7a5bc202135daa3b19deb47ef72293c9a2e9587c6cfe0aba25c039.png", "atlas-b9d017a35f86f5f5942c66783e53ef3e65f308b01bc586ec4f1ba28a12d9574e.png", "atlas-6ad58c9226041b030e25d7db8bab07a422af2aab3033f01911117e63ead76947.png", "atlas-bfdcc66fe0f1b026b32107ba2d0d72b1ff8698152dfea01fee4fc0f48b239882.png", "atlas-76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a.png"];
+export const ATLAS_PAGE_FILES: readonly string[] = ["atlas-d7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9.png", "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png", "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png", "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png", "atlas-47a7cda58edad50d058cabf38bf0b98d7d15cf85d789f2445fb483631a36f725.png", "atlas-98f0a3065d3dd4cef344d4fafb3c02d79babdcd752826b78e545ebd30c74b8cf.png", "atlas-559f7263d2c67e371fce5a64dcb62ba1b88c2019169a231b67af4078ddf5cc06.png", "atlas-2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d.png", "atlas-ccc3a47fcebf25c9920b91efdbb72be345586d3425c0331df220cbb61b3fcb42.png", "atlas-962e7555dd6a890c24af82e8e656047bf98e0a21ef1cf62cf4d0ecacceb909c3.png", "atlas-245ab62ba664c477aed5791c222f9d272108c7ae6bc8fcabf5de74c1a04b05d5.png", "atlas-0f448969266ad359dfbc7f059f962a7ad434a1ae1e64f350d1caab3778570b7f.png", "atlas-7d78d73c89e5152a096b1b0c2b0008114804983ef88f9134abd3d0e23ec23ac9.png", "atlas-12f681b6123b6eb9403f72650dc240a6694ffac2fc82f91a2c50595e9d44c6b9.png", "atlas-7ecad620b2e27c9bddb3d990fcb839863076b9f694b9a3854c60496f67f79797.png", "atlas-3fecdc82deaec3299971f68507cc06865caa6f354d5a72941f7c0b7101b82c33.png", "atlas-7ac48ff985fcd66f283b7385e35b60443fe1910543e76241dfe49b6f8a571f56.png", "atlas-c58516c813f4d2ba5d47d176c6895ff4d6128efe54083bd374ef5b4aa84ad30c.png", "atlas-ca1b84626dadad573408347c1b7414cce6ec2efb363d424dd41bcf9ef6d146be.png", "atlas-37089cba88bd6c69e6c751eb2cd71bea92157e1514150b2fdb63178002e2b5b6.png", "atlas-962c2537022e466b56f032fdedfd6292b4da46bd94efa74a4cf719dddb31baed.png", "atlas-2d740e94910cc40801848a082cb7d3c0bbe8f2089d3e01d32051285cc6beb8de.png", "atlas-6e6e80ee0dc0d332d7ff9b7032a3f2bbbfe3f4e04fd8e97cd40ce16747552fd9.png", "atlas-bfe42156778ce42b5c0be63047a44f8f0a0aec49ace7884301bb848c5a2dcff7.png", "atlas-2f6a6c559f3071707a8820dabe377705e0bc19055132929a888086852288a482.png", "atlas-8a8e1551653e25167e87c6459edc0a7ed4978db4144e5ff8443352673a18d689.png", "atlas-5614d3037df66346a6c4b867f27256d33a88a5a15df2fdab2a421367dd1b892c.png", "atlas-ba13dd135a8215251b36273ab8505724144056c7c243fed4403cba3c1d5863dc.png", "atlas-43d482de5de6aa3f79f4ef19b9a782f552b2fc79889d9d3b63f3c0349097a732.png", "atlas-8d459a0b158e6b61bf968d1f697796feb5e8b80f569285b95e5c872fd2390ab8.png", "atlas-53ee52d50c9b4e63d04b14cdc6f7ffec73d461f21a7484381a2312a19bb57977.png", "atlas-3bbbb69e5481cdbf8319fc88fc637aca137a542ef6193a3152805d4b6b58144e.png", "atlas-52f17f002c9991902d85bd000efa96aebe53fba22a5fe0f1d4f3b12d1a78ab19.png", "atlas-b16f564da1a8dfcf13d7967347798d4729fb282083535219c33e12f5cd486cc4.png", "atlas-8b23da9eab1fbecf639b7946d84904a4503014c406b41bfab03273cf395005d1.png", "atlas-c50b2aa784feda77d30919d11169257eae702b79ef25db3f5c97e63b77a6268b.png", "atlas-19d677eb91bc11cbc4c43894719df06a43c2238b688c74959016f14493bb33b7.png", "atlas-c6e5e5958a7a5bc202135daa3b19deb47ef72293c9a2e9587c6cfe0aba25c039.png", "atlas-b9d017a35f86f5f5942c66783e53ef3e65f308b01bc586ec4f1ba28a12d9574e.png", "atlas-6ad58c9226041b030e25d7db8bab07a422af2aab3033f01911117e63ead76947.png", "atlas-bfdcc66fe0f1b026b32107ba2d0d72b1ff8698152dfea01fee4fc0f48b239882.png", "atlas-76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a.png", "atlas-f087bfcaa6535f3bdb7270a98dbdab277c066a65347a02bb976d0ee825f1cd35.png"];
 export const BED_LAYER_TRIMS: Readonly<Record<number, readonly [number, number]>> = {
   "2454": [
     55.5,
@@ -105300,6 +105300,10 @@ export const SPRITES: readonly AtlasSprite[] = [
   atlasSprite({ name: 'offlinePatioUmbrellaNW', x: 321, y: 1412, w: 320, h: 352, pixel_density: 2, page: 6 }),
   atlasSprite({ name: 'offlinePatioUmbrellaSW', x: 642, y: 1412, w: 320, h: 352, pixel_density: 2, page: 6 }),
   atlasSprite({ name: 'offlinePatioUmbrellaNE', x: 963, y: 1412, w: 320, h: 352, pixel_density: 2, page: 6 }),
+  atlasSprite({ name: 'offlinePoolRectangular', x: 0, y: 0, w: 320, h: 352, pixel_density: 2, page: 42 }),
+  atlasSprite({ name: 'offlinePoolRectangularNW', x: 321, y: 0, w: 320, h: 352, pixel_density: 2, page: 42 }),
+  atlasSprite({ name: 'offlinePoolRectangularSW', x: 642, y: 0, w: 320, h: 352, pixel_density: 2, page: 42 }),
+  atlasSprite({ name: 'offlinePoolRectangularNE', x: 963, y: 0, w: 320, h: 352, pixel_density: 2, page: 42 }),
 ];
 
 /** Registered pixel anchors; omitted legacy records remain bottom-centred. */
@@ -135691,6 +135695,10 @@ export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>>
   30936: [80.00000953674316, 144.00043869018555],
   30937: [80.00000953674316, 144.00043869018555],
   30938: [80.00000953674316, 144.00043869018555],
+  30939: [80.00000953674316, 144.00043869018555],
+  30940: [80.00000953674316, 144.00043869018555],
+  30941: [80.00000953674316, 144.00043869018555],
+  30942: [80.00000953674316, 144.00043869018555],
 };
 
 /** Actual opaque top and gripping point in logical image coordinates. */
@@ -207508,28 +207516,28 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
     132.5
   ],
   "30927": [
-    17.0,
-    70.0,
+    19.5,
+    45.0,
     143.0,
     164.0
   ],
   "30928": [
     17.0,
-    70.0,
-    143.0,
-    164.0
+    33.5,
+    140.5,
+    152.5
   ],
   "30929": [
     17.0,
-    70.0,
-    143.0,
+    24.0,
+    125.5,
     164.0
   ],
   "30930": [
-    17.0,
-    70.0,
+    34.5,
+    50.5,
     143.0,
-    164.0
+    160.5
   ],
   "30931": [
     40.0,
@@ -207578,6 +207586,30 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
     32.5,
     114.0,
     130.5
+  ],
+  "30939": [
+    3.5,
+    34.5,
+    159.0,
+    174.5
+  ],
+  "30940": [
+    1.0,
+    40.0,
+    156.5,
+    163.0
+  ],
+  "30941": [
+    1.0,
+    13.5,
+    141.5,
+    174.5
+  ],
+  "30942": [
+    18.5,
+    40.0,
+    159.0,
+    171.0
   ]
 };
 /** Indices of premultiplied visibility contributions composed in one fragment. */
