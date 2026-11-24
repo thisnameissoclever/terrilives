@@ -1,33 +1,81 @@
 use super::*;
 
-fn assert_current_retains_exact_published_v16(current: &[u8], published: &[u8]) {
+#[derive(Clone, Copy)]
+enum FixtureGeometry {
+    FramedHouse,
+    SparseBlank10x8,
+}
+
+fn expected_v14_projection(
+    mut source: terri_core::SaveSnapshotV14,
+    geometry: FixtureGeometry,
+    adopted: bool,
+) -> terri_core::SaveSnapshotV14 {
+    let world = &mut source.legacy.legacy.legacy.legacy.legacy.legacy.world;
+    assert_eq!(world.content_fingerprint, 0x5111_16ef_ac94_ae24);
+    world.content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
+    match geometry {
+        FixtureGeometry::FramedHouse => current_test_snapshot::materialized_v14(source),
+        FixtureGeometry::SparseBlank10x8 => {
+            use terri_core::layout::{EdgeAxis, SavedLayout};
+            assert_eq!(source.legacy.lot_frame, None);
+            let five = &mut source.legacy.legacy.legacy.legacy.legacy.legacy;
+            assert_eq!((five.world.grid_width, five.world.grid_height), (10, 8));
+            assert_eq!(five.layout, SavedLayout::EdgeWallsV1 { edges: vec![] });
+            // Fresh current blank geometry is empty. Only historical adoption
+            // makes this old fixture's implicit north/west shell explicit.
+            if adopted {
+                five.layout = current_test_snapshot::materialized_shell(&five.layout, 0, 0, 10, 8);
+                assert_eq!(five.layout.edges().len(), 18);
+                assert!(five.layout.edges().iter().all(|edge| !edge.doorway
+                    && match edge.axis {
+                        EdgeAxis::Vertical => edge.x == 0 && edge.y < 8,
+                        EdgeAxis::Horizontal => edge.y == 0 && edge.x < 10,
+                    }));
+                assert!(five.layout.window_placements().is_empty());
+            }
+            source
+        }
+    }
+}
+
+fn assert_current_retains_exact_v16_fixture(
+    current: &[u8],
+    published: &[u8],
+    geometry: FixtureGeometry,
+) {
     assert_eq!(&published[..8], SAVE_MAGIC);
     assert_eq!(&published[8..10], &16u16.to_le_bytes());
     let (historical, tail) =
         postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
     assert!(tail.is_empty());
     assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
-    let snapshot = decode_current(current)
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy
-        .legacy;
-    assert_eq!(snapshot.legacy, historical);
+    let mut snapshot = decode_current(current).room_world_v16().clone();
+    let old = &historical.legacy.legacy;
+    assert_eq!(
+        snapshot.legacy.legacy,
+        expected_v14_projection(old.clone(), geometry, false)
+    );
+    snapshot.legacy.legacy = old.clone();
+    assert_eq!(snapshot, historical);
     let mut projected = SAVE_MAGIC.to_vec();
     projected.extend(16u16.to_le_bytes());
-    projected.extend(postcard::to_allocvec(&snapshot.legacy).unwrap());
+    projected.extend(postcard::to_allocvec(&snapshot).unwrap());
     assert_eq!(
         projected, published,
-        "the complete frozen payload remains unchanged"
+        "the geometry and catalogue projection reproduces the frozen payload"
     );
     let mut migrated = SimHandle::from_lot();
     assert!(migrated.load_bytes(published));
     let migrated_bytes = migrated.save_bytes();
-    let _ = decode_current(&migrated_bytes);
+    let adopted = decode_current(&migrated_bytes);
+    let mut expected_adopted = historical.clone();
+    expected_adopted.legacy.legacy = expected_v14_projection(old.clone(), geometry, true);
+    assert_eq!(
+        adopted.room_world_v16(),
+        &expected_adopted,
+        "public legacy adoption preserves the payload with the reviewed geometry and catalogue changes"
+    );
     let mut resumed = SimHandle::from_lot();
     assert!(resumed.load_bytes(&migrated_bytes));
     assert_eq!(resumed.save_bytes(), migrated_bytes);
@@ -92,12 +140,14 @@ fn room_transport_wide_token_literal_is_not_rounded() {
         }],
         retired_names: vec![],
         duties: Default::default(),
+        access: Default::default(),
     };
     assert_eq!(
         super::browser_rooms::review_response(Ok(review)),
         [
             1, 0, 129, 128, 128, 128, 128, 128, 128, 16, 131, 128, 128, 128, 128, 128, 128, 16,
             255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 0, 1, 0, 0, 1, 79, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
         ]
     );
 }
@@ -279,9 +329,10 @@ fn room_transport_current_person_fixture_has_real_work_and_distinct_identity() {
     assert_eq!(person.index_u32(), 1);
     assert_eq!(handle.sim.world().get::<SimId>(person).unwrap().0, 0);
     let baseline = handle.save_bytes();
-    assert_current_retains_exact_published_v16(
+    assert_current_retains_exact_v16_fixture(
         &baseline,
         include_bytes!("../tests/fixtures/room-transport-v16/sparse-person-active.sav"),
+        FixtureGeometry::SparseBlank10x8,
     );
     assert_eq!(handle.begin_build(), [1, 0]);
     assert_eq!(handle.save_bytes(), baseline);
@@ -298,9 +349,10 @@ fn room_transport_selection_and_predecessors_follow_both_land_offsets() {
         .world_mut()
         .insert_resource(terri_core::Funds::from_dollars(100000));
     let baseline = handle.save_bytes();
-    assert_current_retains_exact_published_v16(
+    assert_current_retains_exact_v16_fixture(
         &baseline,
         include_bytes!("../tests/fixtures/room-transport-v16/funded-fresh.sav"),
+        FixtureGeometry::FramedHouse,
     );
     let original = handle
         .sim

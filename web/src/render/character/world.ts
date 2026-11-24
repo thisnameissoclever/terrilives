@@ -1,10 +1,10 @@
 import type {SimBridge} from '../../bridge.js';
-import {screenX,screenY,layeredDepth,LAYER_SIM} from '../iso.js';
+import {screenX,screenY,layeredDepth,LAYER_PROP,LAYER_SIM} from '../iso.js';
 import type {SceneTarget} from '../scene-target.js';
 import {sampleLight,type TileLighting} from '../lighting.js';
 import {sampleShade,type SkyExposure} from '../sky.js';
 import type {Ambient} from '../daylight.js';
-import {loadCreatorRig,loadCreatorGeometry,creatorClips} from './creator-assets.js';
+import {loadBaseWorldRigs,creatorClips} from './creator-assets.js';
 import type {Geometry} from './bundle.js';
 import {bodySelectionKey} from './prepared-body.js';
 import type {CharacterRig} from './clip-runtime.js';
@@ -17,11 +17,18 @@ import type {Vec3} from './math.js';
 import {WORLD_CHARACTER_FRAME} from './camera.js';
 import type {SceneHit} from '../scene-picks.js';
 import type {CharacterContactRoster} from './contact-admission.js';
+import type {CharacterPreparationMode} from './character-preparation-service.js';
 import type {CharacterAppearanceV1} from '../../character/schema.js';
 import {ShowerSteam} from './shower-steam.js';
 import {showerSteamEnvelopes,showerSteamCabin} from './steam-envelope.js';
+import {bathToySelector} from './bath-motion.js';
+import {PoolRipples} from './pool-ripples.js';
+import {collectPoolWaterContacts,PoolLandingRipples,type PoolWaterFootprint} from './pool-water-contact.js';
+import {poolContactFixture,poolContactTakeoffPhase,poolWaterCutout} from './pool-contact-release.js';
+import {poolWaterBounds} from './pool-water-retarget.js';
 
-interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1}
+type WorldContacts=Pick<CharacterContactRoster,'require'> & Partial<Pick<CharacterContactRoster,'mode'>>;
+interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1;contactMode?:CharacterPreparationMode}
 let nextResourceId=1;
 export interface CharacterSceneView {originX:number;originY:number;scale:number;width:number;height:number;gridSize:number;ambient:Ambient;skyShade:number;lighting:TileLighting|null;sky:SkyExposure;fixtureDepthBase:number}
 export type CharacterHit=SceneHit;
@@ -39,24 +46,25 @@ export class CharacterWorld {
   private currentSource:SimBridge|null=null;
   private currentView:CharacterSceneView|null=null;
   private readonly steam:ShowerSteam;
+  private readonly poolLanding=new PoolLandingRipples();
+  private poolRipples:PoolRipples|null=null;
+  private poolFootprint:PoolWaterFootprint|null=null;
+  private rectangularPoolFootprint:PoolWaterFootprint|null=null;
   private constructor(private readonly device:GPUDevice,private readonly format:GPUTextureFormat,
-    private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:Pick<CharacterContactRoster,'require'>){
+    private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:WorldContacts){
     this.plan=new CharacterScenePlan(action=>{
       const geometry=geometries.get(action);if(!geometry)throw new Error('Configured character clip is unavailable: '+action);
       return geometry.manifest.actions[action].length;
     },()=>{if(this.currentSource&&this.currentView)this.prepare(this.currentSource,this.currentView);});
     this.steam=new ShowerSteam(device);
   }
-  static async create(device:GPUDevice,format:GPUTextureFormat,sceneTarget:()=>SceneTarget,contacts?:Pick<CharacterContactRoster,'require'>):Promise<CharacterWorld>{
-    const base=await loadCreatorGeometry(),baseRig=await loadCreatorRig('idle'),geometries=new Map<string,CharacterRig>();
-    for(const action of Object.keys(base.manifest.actions))geometries.set(action,baseRig);
-    const families=new Map<string,string>();for(const [name,clip] of Object.entries(creatorClips.clips))families.set(clip.family,name);
-    for(const [family,example] of families){const geometry=await loadCreatorRig(example);for(const [name,clip] of Object.entries(creatorClips.clips))if(clip.family===family)geometries.set(name,geometry);}
+  static async create(device:GPUDevice,format:GPUTextureFormat,sceneTarget:()=>SceneTarget,contacts?:WorldContacts):Promise<CharacterWorld>{
+    const geometries=await loadBaseWorldRigs();
     return new CharacterWorld(device,format,geometries,sceneTarget,contacts);
   }
   private destroyActor(actor:ActorResources):void {actor.renderer.destroy();}
-  reset():void {this.generation++;for(const actor of this.actors.values())this.destroyActor(actor);this.actors.clear();for(const cover of this.covers.values())cover.destroy();this.covers.clear();this.fixtureRevision=-1;this.displayed.length=0;this.plan.reset();this.steam.begin();}
-  destroy():void {if(this.closed)return;this.closed=true;this.reset();this.steam.destroy();}
+  reset():void {this.generation++;for(const actor of this.actors.values())this.destroyActor(actor);this.actors.clear();for(const cover of this.covers.values())cover.destroy();this.covers.clear();this.fixtureRevision=-1;this.displayed.length=0;this.plan.reset();this.steam.begin();this.poolRipples?.begin();this.poolLanding.clear();}
+  destroy():void {if(this.closed)return;this.closed=true;this.reset();this.steam.destroy();this.poolRipples?.destroy();}
   prepareFixtures(source:SimBridge):void {
     const revision=source.lotRevision();if(revision===this.fixtureRevision)return;
     const ids=Array.from(source.ids()),kinds=Array.from(source.kinds()),active=new Set<number>(),frame=WORLD_CHARACTER_FRAME;
@@ -74,18 +82,22 @@ export class CharacterWorld {
 
   prepare(source:SimBridge,view:CharacterSceneView):void {
     if(this.closed)throw new Error('Character world renderer is closed.');
+    const contactMode=this.contacts?.mode;
     for(const actor of this.plan.actors){
       const clip=creatorClips.clips[actor.action.clip],sample=clip?clip.samples[clipSample(clip.samples.length,actor.action.sample,clip.playback).index]:undefined;
-      const context={wear:['bath','shower'].includes(actor.action.clip)?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
-        fixture:'none',eyes_closed:sample?.eyesClosed??actor.action.clip==='sleep',clip:actor.action.clip,grip:actor.action.clip==='mop'?'mop' as const:'relaxed' as const,includeFixture:false,stockMask:actor.stockMask,heldSlot:actor.action.heldSlot};
+      const context={wear:['bath','shower'].includes(actor.action.clip)||actor.action.clip.startsWith('pool_')?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
+        swimwear:actor.action.clip.startsWith('pool_')?(actor.appearance.presentation==='feminine'?'two_piece' as const:'trunks' as const):'none' as const,
+        fixture:'none',eyes_closed:sample?.eyesClosed??actor.action.clip==='sleep',clip:actor.action.clip,grip:actor.action.clip==='mop'?'mop' as const:'relaxed' as const,includeFixture:false,includeActivityWater:actor.action.clip==='bath',bathToy:actor.action.clip==='bath'?bathToySelector(actor.bathToy??0):'none' as const,stockMask:actor.stockMask,heldSlot:actor.action.heldSlot};
       const rig=this.geometries.get(actor.action.clip)!;let resources=this.actors.get(actor.entity);
       if(!resources||resources.renderer.selectionKey!==bodySelectionKey(actor.appearance)){
         if(resources)this.destroyActor(resources);
         const frame=WORLD_CHARACTER_FRAME,renderer=new PreparedCharacter(this.device,rig,actor.appearance,context,frame.size,frame.size,{zoom:frame.zoom,groundFraction:frame.groundFraction});
         resources={geometry:renderer.geometry,renderer,resourceId:nextResourceId++};this.actors.set(actor.entity,resources);
       }else resources.renderer.select(rig,actor.appearance,context);
-      // The scene plan replaces appearance records only after the admitted native hash changes.
-      if(resources.appearance!==actor.appearance){resources.renderer.setContacts(this.contacts?.require(actor.entity,actor.appearance));resources.appearance=actor.appearance;}
+      if(resources.appearance!==actor.appearance||resources.contactMode!==contactMode){
+        resources.renderer.setContacts(this.contacts?.require(actor.entity,actor.appearance));
+        resources.appearance=actor.appearance;resources.contactMode=contactMode;
+      }
       resources.geometry=resources.renderer.geometry;
     }
     for(const actor of this.plan.actors)if(actor.includeFixture&&['bed_sleep','bunk_sleep'].includes(actor.action.clip)){
@@ -96,6 +108,17 @@ export class CharacterWorld {
       cover.update(contributions);
     }
     const active=new Set<number>();this.displayed.length=0;this.steam.begin();
+    const poolActive=this.plan.actors.some(actor=>actor.action.clip.startsWith('pool_'));
+    if(poolActive){
+      this.poolRipples??=new PoolRipples(this.device);
+      if(!this.poolFootprint){
+        const {low,high,surface}=poolWaterBounds(poolContactFixture());
+        this.poolFootprint={minimum:[low[0],low[1]],maximum:[high[0],high[1]],height:surface,cutout:poolWaterCutout()};
+        this.rectangularPoolFootprint={minimum:[low[0],low[1]-1],maximum:[high[0],high[1]],height:surface};
+      }
+    }
+    this.poolRipples?.begin();
+    this.poolLanding.begin(poolActive?source.clockTick():0);
     const colourways=source.colourways(),shifts=source.colourwayShifts();
     for(const actor of this.plan.actors){
       active.add(actor.entity);const resources=this.actors.get(actor.entity)!,{renderer}=resources;
@@ -105,13 +128,15 @@ export class CharacterWorld {
       const light=view.ambient.slice(0,3).map(value=>value*(1-view.skyShade*shade)*(1-emissive)+emissive) as unknown as Vec3;
       const depth=layeredDepth(actor.x,actor.y,view.gridSize,LAYER_SIM);
       const includeCover=cover!==null;
+      const includeActivityFixture=includeCover||actor.action.clip==='bath';
       const colourway=actor.fixtureRow>=0?colourways[actor.fixtureRow]:0;
-      const fixtureColourway:Vec3=colourway>0&&3*colourway+2<shifts.length
+      // The bath attachment is water; the ordinary tub sprite owns its colourway.
+      const fixtureColourway:Vec3=actor.action.clip!=='bath'&&colourway>0&&3*colourway+2<shifts.length
         ?[shifts[3*colourway],shifts[3*colourway+1]-1,shifts[3*colourway+2]]:[0,0,0];
       renderer.prepareScene(actor.action.clip,actor.action.sample,actor.angle,actor.token,
         {width:view.width,height:view.height,x:screenX(actor.x,actor.y,view.originX,view.scale),y:screenY(actor.x,actor.y,view.originY,view.scale),
          scale:view.scale,depth,step:depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),light},
-        {offset:actor.offset,includeFixture:includeCover,fixtureToken:includeCover?actor.fixtureRow+1:0,fixtureColourway});
+        {offset:actor.offset,includeFixture:includeActivityFixture,fixtureToken:includeActivityFixture?actor.fixtureRow+1:0,fixtureColourway});
       const anchors=renderer.renderer.anchors(actor.angle,actor.offset);
       if(actor.action.clip==='shower'){
         const body=renderer.renderer,mesh=body.resources;
@@ -120,13 +145,33 @@ export class CharacterWorld {
           depth,depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),actor.action.sample/creatorClips.clips.shower.samples.length*Math.PI*2,light,
           showerSteamCabin(body.geometry,body.poseMatrices),actor.angle);
       }
+      if(actor.fixtureEntity!==null&&actor.action.clip.startsWith('pool_')){
+        const body=renderer.renderer;
+        const water=(actor.fixtureModel==='pool_rectangular'?this.rectangularPoolFootprint:this.poolFootprint)!;
+        const {ripples,touchdown}=collectPoolWaterContacts(body.geometry,body.resources.deformed,body.poseMatrices,water,actor.offset);
+        const depth=layeredDepth(actor.x,actor.y,view.gridSize,LAYER_PROP);
+        const frame={
+          x:screenX(actor.x,actor.y,view.originX,view.scale),y:screenY(actor.x,actor.y,view.originY,view.scale),
+          scale:view.scale,depth,depthStep:depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_PROP),
+          owner:actor.fixtureRow+1,angle:actor.angle,water,light,phase:actor.action.sample*.54,
+        };
+        for(const ripple of ripples)this.poolRipples!.add(ripple,frame);
+        const takeoff=poolContactTakeoffPhase();
+        const forwardEntry=takeoff!==null&&actor.action.clip==='pool_enter'&&source.poolPhases()?.[actor.row]===1
+          &&actor.action.sample/(body.geometry.manifest.actions.pool_enter.length-1)>=takeoff;
+        const impact=this.poolLanding.observe(actor.entity,actor.fixtureEntity,forwardEntry,touchdown);
+        if(impact)this.poolRipples!.add(impact,frame,true);
+      }
       actor.head=[actor.x+anchors.head[0],actor.y-anchors.head[1],anchors.head[2]];actor.feet=[actor.x+anchors.feet[0],actor.y-anchors.feet[1],anchors.feet[2]];
       actor.hand=[actor.x+anchors.hand[0],actor.y-anchors.hand[1],anchors.hand[2]];
       this.displayed.push({actor,resources});
     }
+    this.poolLanding.end();
     for(const [entity,resources] of this.actors)if(!active.has(entity)){this.destroyActor(resources);this.actors.delete(entity);}
   }
   draw=(pass:GPURenderPassEncoder):void=>{for(const {resources} of this.displayed)resources.renderer.drawScene(pass);};
+  private drawRipples=(encoder:GPUCommandEncoder,target:SceneTarget):void=>{this.poolRipples?.draw(encoder,target);};
+  get waterSurfaceDraw(){return this.poolRipples?.active?this.drawRipples:undefined;}
   drawEffects=(encoder:GPUCommandEncoder,target:SceneTarget):void=>{this.steam.draw(encoder,target);};
   async pick(x:number,y:number):Promise<CharacterHit|null|undefined>{
     const generation=this.generation,source=this.currentSource;
@@ -150,7 +195,7 @@ export class CharacterWorld {
     }
   }
   diagnostics(){
-    const geometries=new Set<object>();let bufferBytes=this.steam.allocatedBufferBytes,textureBytes=0;
+    const geometries=new Set<object>();let bufferBytes=this.steam.allocatedBufferBytes+(this.poolRipples?.allocatedBufferBytes??0),textureBytes=0;
     for(const {resources} of this.displayed){bufferBytes+=resources.renderer.allocatedPrivateBufferBytes;textureBytes+=resources.renderer.renderer.allocatedTextureBytes;
       for(const resource of resources.renderer.sharedResourceAllocations)if(!geometries.has(resource.identity)){geometries.add(resource.identity);bufferBytes+=resource.bytes;}}
     for(const cover of this.covers.values()){

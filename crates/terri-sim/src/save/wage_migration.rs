@@ -61,8 +61,9 @@ pub(crate) fn migrate_attendance(
     world: &World,
     attendance: &mut SavedAttendance,
     careers: &SavedCareers,
-) {
+) -> Vec<(u32, u64, u32)> {
     let pack = world.resource::<Content>().0;
+    let mut migrated_bases = Vec::new();
     for shift in attendance.shifts.iter_mut().filter(|shift| !shift.settled) {
         let Some(job) = pack.careers.get(shift.career as usize) else {
             continue;
@@ -82,8 +83,10 @@ pub(crate) fn migrate_attendance(
             .and_then(|dollars| migrated(dollars, job));
         if let Some(pay) = record.or(own) {
             shift.pay_cents = i64::from(pay) * Funds::CENTS_PER_DOLLAR;
+            migrated_bases.push((shift.sim, shift.start_tick, pay));
         }
     }
+    migrated_bases
 }
 
 #[cfg(test)]

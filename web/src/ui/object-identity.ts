@@ -5,7 +5,9 @@ export interface ObjectDetails {
 }
 
 /** Native disclosure keeps the model and type readable with mouse, keyboard, or touch. */
-export function createObjectIdentity(doc: Document, type: string, text: ObjectDetails): {
+let identitySequence = 0;
+export function createObjectIdentity(doc: Document, type: string, text: ObjectDetails,
+  options: {descriptionHost?: HTMLElement; onToggle?(): void} = {}): {
   element: HTMLElement;
   dispose: () => void;
 } {
@@ -28,11 +30,19 @@ export function createObjectIdentity(doc: Document, type: string, text: ObjectDe
   const description = doc.createElement('p');
   description.className = 'object-description';
   description.textContent = text.description;
-  details.append(summary, description);
+  details.append(summary);
+  if (options.descriptionHost) {
+    description.id = `object-description-${++identitySequence}`;
+    summary.setAttribute('aria-controls', description.id);
+    options.descriptionHost.append(description);
+    options.descriptionHost.hidden = true;
+  } else details.append(description);
 
   const toggle = (event: MouseEvent) => {
     event.preventDefault();
     details.open = !details.open;
+    if (options.descriptionHost) options.descriptionHost.hidden = !details.open;
+    options.onToggle?.();
   };
   // Enter and Space activate the native summary through the same click event.
   summary.addEventListener('click', toggle);

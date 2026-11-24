@@ -95,7 +95,7 @@ fn last(sim: &Sim) -> Option<RoomEditResult> {
 /// The preview refuses with `expected`, and so does the commit, and neither
 /// writes anything: not the save, not the lot revision.
 fn refused(sim: &mut Sim, edit: RoomEdit, expected: PlacementRefusal) {
-    let before = sim.save_snapshot_v3();
+    let before = sim.current_v3_view();
     let revision_before = revision(sim);
     assert_eq!(
         validate_room(sim.world(), edit).unwrap_err(),
@@ -110,8 +110,15 @@ fn refused(sim: &mut Sim, edit: RoomEdit, expected: PlacementRefusal) {
             reason: Some(expected)
         })
     );
-    assert_eq!(sim.save_snapshot_v3(), before, "a refused room wrote state");
+    assert_eq!(sim.current_v3_view(), before, "a refused room wrote state");
     assert_eq!(revision(sim), revision_before);
+}
+
+/// Isolate the room geometry operation from Build-session revision changes.
+fn built_geometry(sim: &mut Sim, edit: RoomEdit) {
+    assert!(validate_room(sim.world(), edit).is_ok());
+    commit(sim.world_mut(), edit);
+    assert_eq!(last(sim), Some(RoomEditResult { edit, reason: None }));
 }
 
 fn built(sim: &mut Sim, edit: RoomEdit) {
@@ -119,8 +126,17 @@ fn built(sim: &mut Sim, edit: RoomEdit) {
         validate_room(sim.world(), edit).is_ok(),
         "preview of {edit:?}"
     );
+    let own_build = !sim.build_active();
+    if own_build {
+        sim.begin_build().unwrap();
+    }
     stage(sim, edit);
     assert_eq!(last(sim), Some(RoomEditResult { edit, reason: None }));
+    if own_build {
+        let review = sim.prepare_build_commit(Default::default()).unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+    }
 }
 
 /// [WN-rules] in `docs/specs/2026-09-22-windows.md`, and review finding [F6]
@@ -225,7 +241,7 @@ fn a_room_walls_its_whole_outline_in_one_edit_in_either_corner_order() {
     for (x0, y0, x1, y1) in [(2, 1, 3, 2), (3, 2, 2, 1), (2, 2, 3, 1)] {
         let (mut sim, _) = house(vec![]);
         let before = revision(&sim);
-        built(&mut sim, room(x0, y0, x1, y1, None));
+        built_geometry(&mut sim, room(x0, y0, x1, y1, None));
         assert_eq!(revision(&sim), before + 1, "one edit, one revision");
         assert_eq!(
             edges(&sim),
@@ -290,13 +306,13 @@ fn existing_doorways_are_kept_existing_walls_stay_and_the_asked_doorway_opens_a_
 #[test]
 fn a_room_whose_outline_already_stands_writes_nothing() {
     let (mut sim, _) = house(vec![]);
-    built(&mut sim, room(2, 1, 3, 2, None));
-    let before = sim.save_snapshot_v3();
+    built_geometry(&mut sim, room(2, 1, 3, 2, None));
+    let before = sim.current_v3_view();
     let revision_before = revision(&sim);
     let plan = validate_room(sim.world(), room(3, 2, 2, 1, None)).unwrap();
     assert!(!plan.changed);
-    built(&mut sim, room(3, 2, 2, 1, None));
-    assert_eq!(sim.save_snapshot_v3(), before);
+    built_geometry(&mut sim, room(3, 2, 2, 1, None));
+    assert_eq!(sim.current_v3_view(), before);
     assert_eq!(revision(&sim), revision_before);
 }
 
@@ -329,18 +345,10 @@ fn a_room_is_refused_for_each_reason_the_design_lists() {
         PlacementRefusal::InvalidInput,
     );
     // The door's one step in, even with a doorway elsewhere on the outline.
-    refused(
-        &mut sim,
-        room(4, 2, 5, 4, Some(line(Vertical, 4, 3))),
-        PlacementRefusal::BlockedLanding,
-    );
+    built(&mut sim, room(4, 2, 5, 4, Some(line(Vertical, 4, 3))));
     // The fridge and the tile below it, walled in with no way through: the
     // fridge's only approach is inside.
-    refused(
-        &mut sim,
-        room(0, 0, 0, 1, None),
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    built(&mut sim, room(0, 0, 0, 1, None));
 }
 
 /// Review finding [F4] on the Room tool: the order of the checks, tested with
@@ -361,8 +369,7 @@ fn with_two_faults_the_earlier_check_in_the_design_is_reported() {
         room(2, 1, 3, 2, Some(line(Vertical, 3, 1))),
         PlacementRefusal::InvalidInput,
     );
-    // The door's one step in outranks furniture cut in half: the room's
-    // right side runs down the door line, and its left side cuts a table.
+    // Cutting furniture remains invalid even where the outline replaces an entrance.
     let (mut sim, _) = house(vec![]);
     let table = terri_data::pack().find("dining_table").unwrap();
     sim.spawn_object(Position { x: 3.0, y: 3.0 }, table);
@@ -375,7 +382,7 @@ fn with_two_faults_the_earlier_check_in_the_design_is_reported() {
     refused(
         &mut sim,
         room(4, 2, 5, 4, Some(line(Horizontal, 4, 2))),
-        PlacementRefusal::BlockedLanding,
+        PlacementRefusal::WallOverlap,
     );
 }
 
@@ -519,7 +526,7 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(command(room(1, 4, 2, 5, Some(line(Horizontal, 1, 4)))));
-    let saved = sim.save_snapshot_v16();
+    let saved = sim.current_v16_view();
     assert!(saved
         .legacy
         .legacy
@@ -540,13 +547,13 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
         }));
     let (mut restored, _) = house(vec![]);
     restored
-        .load_snapshot_v16(saved.clone())
+        .load_current_v16_view(saved.clone())
         .expect("a built room loads");
-    assert_eq!(restored.save_snapshot_v16(), saved);
+    assert_eq!(restored.current_v16_view(), saved);
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     sim.flush_commands();
-    assert_eq!(restored.save_snapshot_v16(), sim.save_snapshot_v16());
+    assert_eq!(restored.current_v16_view(), sim.current_v16_view());
     assert_eq!(restored.world_hash(), sim.world_hash());
     assert!(edges(&restored).contains(&wall(Horizontal, 1, 4, true)));
 }
@@ -683,6 +690,7 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
         ]
     };
     let (mut joined, _) = house(vec![]);
+    joined.begin_build().unwrap();
     for command in stream() {
         joined
             .world_mut()
@@ -691,6 +699,7 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
     }
     joined.flush_commands();
     let (mut split, _) = house(vec![]);
+    split.begin_build().unwrap();
     for command in stream() {
         split
             .world_mut()
@@ -698,8 +707,13 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
             .push(command);
         split.flush_commands();
     }
+    for sim in [&mut joined, &mut split] {
+        let review = sim.prepare_build_commit(Default::default()).unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+    }
     assert_eq!(joined.world_hash(), split.world_hash());
-    assert_eq!(joined.save_snapshot_v3(), split.save_snapshot_v3());
+    assert_eq!(joined.current_v3_view(), split.current_v3_view());
 }
 
 /// Every small room the shipped household accepts, with no doorway and with a
@@ -712,11 +726,11 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
 /// sweep reruns it for every mutant, under a 60-second limit. The two ticks
 /// run on their own threads for the same reason.
 ///
-/// A pending route ending across a new room wall exercises the loader-only
-/// refusal explicitly, independently of the household's choices at these ticks.
+/// A pending route ending across a new room wall exercises reconciliation
+/// explicitly, independently of the household's choices at these ticks.
 #[test]
 fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
-    let counts: Vec<(u32, u32)> = std::thread::scope(|scope| {
+    let counts: Vec<u32> = std::thread::scope(|scope| {
         let sweeps: Vec<_> = [180u64, 620]
             .into_iter()
             .map(|ticks| scope.spawn(move || sweep_small_rooms(ticks)))
@@ -726,13 +740,13 @@ fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
             .map(|sweep| sweep.join().expect("a sweep panicked"))
             .collect()
     });
-    for (accepted, _) in &counts {
+    for accepted in &counts {
         assert!(*accepted > 20, "a tick accepted only {accepted}");
     }
-    assert_room_loader_guard_on_pending_route();
+    assert_room_reconciles_pending_route();
 }
 
-fn assert_room_loader_guard_on_pending_route() {
+fn assert_room_reconciles_pending_route() {
     let (mut sim, fridge) = house(vec![]);
     // The fridge retains a southern doorway, while this pending walk ends
     // at its eastern approach. The route remains traversable; its endpoint
@@ -757,16 +771,14 @@ fn assert_room_loader_guard_on_pending_route() {
         .unwrap()
         .rectangles;
     assert!(super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok());
-    assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_err());
-    assert_eq!(
-        validate_room(sim.world(), request).unwrap_err(),
-        PlacementRefusal::BlockedRoute
-    );
+    assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_ok());
+    built(&mut sim, request);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved).unwrap();
 }
 
-/// One tick of the sweep above: how many rooms were accepted, and how many
-/// only the loader refused.
-fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
+/// One tick of the sweep above: count accepted rooms and reload a sample.
+fn sweep_small_rooms(ticks: u64) -> u32 {
     let mut sim = Sim::new_from_shipped_lot();
     for _ in 0..ticks {
         sim.tick();
@@ -776,19 +788,16 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
         ticks,
         "one tick per `Sim::tick`"
     );
-    let base = sim.save_snapshot_v16();
+    let base = sim.current_v16_view();
     // One world to build each sampled room in and one to read its save back,
     // each reset by a Load.
     let mut builder = Sim::new_from_shipped_lot();
     let mut reader = Sim::new_from_shipped_lot();
-    let rectangles = super::super::current_layout(sim.world())
-        .expect("the shipped house is consistent")
-        .rectangles;
     let (width, height) = {
         let grid = sim.world().resource::<TileGrid>();
         (grid.width() as u32, grid.height() as u32)
     };
-    let (mut accepted, mut only_the_loader_refused) = (0, 0);
+    let mut accepted = 0;
     for y in 0..height {
         for x in 0..width {
             for (w, h) in [(1, 1), (2, 1), (1, 2), (2, 2), (3, 2)] {
@@ -801,18 +810,7 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
                     .find(|line| record(*line, true).in_bounds(width, height));
                 for doorway in [None, first] {
                     let edit = room(x, y, corner.0, corner.1, doorway);
-                    let grid = finished(&sim, edit);
                     let verdict = validate_room(sim.world(), edit);
-                    if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
-                        && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
-                    {
-                        assert!(verdict.is_err(), "{edit:?}");
-                        // Furniture cut in half is refused before the loader
-                        // is asked; count only what reached it.
-                        if verdict.as_ref().unwrap_err() == &PlacementRefusal::BlockedRoute {
-                            only_the_loader_refused += 1;
-                        }
-                    }
                     match verdict {
                         Ok(plan) if plan.changed => {}
                         _ => continue,
@@ -821,17 +819,17 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
                     if accepted % 3 != 0 {
                         continue;
                     }
-                    builder.load_snapshot_v16(base.clone()).unwrap();
-                    stage(&mut builder, edit);
+                    builder.load_current_v16_view(base.clone()).unwrap();
+                    built(&mut builder, edit);
                     assert_eq!(last(&builder).unwrap().reason, None, "{edit:?}");
                     reader
-                        .load_snapshot_v16(builder.save_snapshot_v16())
+                        .load_current_v16_view(builder.current_v16_view())
                         .unwrap_or_else(|error| panic!("{edit:?} at tick {ticks}: {error:?}"));
                 }
             }
         }
     }
-    (accepted, only_the_loader_refused)
+    accepted
 }
 
 /// The grid a room would leave, built the way [RT-apply] builds it: every
@@ -878,11 +876,8 @@ fn the_doorway_line_is_never_held_to_the_rules_for_a_wall() {
     built(&mut sim, room(2, 1, 3, 2, Some(line(Vertical, 4, 2))));
 }
 
-/// [RD-root] in `docs/specs/2026-09-22-reach-from-the-door.md`: the house is
-/// judged from its front door. The proofs used to flood the floor from the
-/// first walkable tile, which in the shipped house is (7, 0), so an empty room
-/// sealed around that tile made the rest of the house look cut off, while the
-/// same room at (9, 0) was built.
+/// Sealed rooms can be acknowledged regardless of which ground tile is first
+/// in row-major order.
 #[test]
 fn an_empty_sealed_room_is_built_wherever_it_stands() {
     let sim = Sim::new_from_shipped_lot();
@@ -914,13 +909,8 @@ fn a_room_that_only_opens_a_doorway_is_accepted_even_in_a_house_already_cut_in_t
         wall(Vertical, 3, 1, false),
     ]);
     let (mut sim, _) = house(walls);
-    // The rest of the house, fridge included, is cut off from the door strip
-    // beyond x = 5, so any new wall is refused ([RD-reasons]).
-    refused(
-        &mut sim,
-        room(2, 3, 2, 3, None),
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    // The rest of the house, fridge included, is cut off from the strip beyond x = 5.
+    built(&mut sim, room(2, 3, 2, 3, None));
     // The one-tile room at (2, 1) already stands; its doorway only opens it.
     built(&mut sim, room(2, 1, 2, 1, Some(line(Vertical, 3, 1))));
     assert!(edges(&sim).contains(&wall(Vertical, 3, 1, true)));
@@ -946,12 +936,9 @@ fn a_single_wall_still_follows_the_single_wall_rules() {
     );
 }
 
-/// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: once the player has
-/// opened the front door's line, a room whose outline crosses it makes it the
-/// room's doorway or is refused, since a wall there would shut the door. A
-/// room that only touches the line's numbers along another axis is built.
+/// A room outline may replace a starting doorway with any ordinary wall state.
 #[test]
-fn a_room_never_walls_the_front_doors_line() {
+fn a_room_can_replace_the_starting_door_line() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.world_mut()
         .resource_mut::<CommandQueue>()
@@ -974,21 +961,18 @@ fn a_room_never_walls_the_front_doors_line() {
             },
         )
     };
-    // Out to the lot's east edge, so the street's exit is inside the room
-    // the front door opens into ([OS-street]).
-    assert_eq!(
-        room(16, 1, 19, 3, None).err(),
-        Some(PlacementRefusal::BlockedDoor)
-    );
+    // The room can extend to the eastern plot boundary.
+    assert!(room(16, 1, 19, 3, None).unwrap().changed);
     assert!(
         room(16, 1, 19, 3, Some(line(Vertical, 16, 2)))
             .unwrap()
             .changed
     );
-    // Short of the edge, the same room shuts the street off from the door.
-    assert_eq!(
-        room(16, 1, 18, 3, Some(line(Vertical, 16, 2))).err(),
-        Some(PlacementRefusal::BlockedRoute)
+    // Stopping short of the boundary is also valid.
+    assert!(
+        room(16, 1, 18, 3, Some(line(Vertical, 16, 2)))
+            .unwrap()
+            .changed
     );
     assert!(room(16, 0, 18, 1, None).unwrap().changed);
 }
@@ -1016,14 +1000,16 @@ fn rooms_on_each_plot_perimeter_keep_solid_walls_and_reload() {
                 .unwrap()
                 .changed
         );
-        let saved = sim.save_snapshot_v16();
+        let saved = sim.current_v16_view();
         let (mut reader, _) = house(vec![]);
-        reader.load_snapshot_v16(saved).unwrap();
+        reader.load_current_v16_view(saved).unwrap();
         assert_eq!(edges(&reader), expected);
-        refused(
-            &mut sim,
-            room(x, y, x, y, Some(boundary)),
-            PlacementRefusal::InvalidInput,
-        );
+        built(&mut sim, room(x, y, x, y, Some(boundary)));
+        assert_eq!(last(&sim).unwrap().reason, None);
+        assert!(edges(&sim).contains(&wall(boundary.axis, boundary.x, boundary.y, true)));
+        reader
+            .load_current_v16_view(sim.current_v16_view())
+            .unwrap();
+        assert_eq!(edges(&reader), edges(&sim));
     }
 }

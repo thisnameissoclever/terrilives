@@ -26,7 +26,7 @@ fn the_current_save_restores_named_and_unnamed_actors_exactly() {
     set_balance(&mut sim, 0, MAX_UNITS);
     set_balance(&mut sim, 1, 0);
 
-    let snapshot = sim.save_snapshot_v27();
+    let snapshot = sim.save_snapshot_v28();
     assert_eq!(
         snapshot.need_mood,
         vec![
@@ -45,9 +45,9 @@ fn the_current_save_restores_named_and_unnamed_actors_exactly() {
         ]
     );
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v27(snapshot.clone()).unwrap();
+    restored.load_snapshot_v28(snapshot.clone()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
-    assert_eq!(restored.save_snapshot_v27(), snapshot);
+    assert_eq!(restored.save_snapshot_v28(), snapshot);
 }
 
 #[test]
@@ -56,12 +56,12 @@ fn build_rollback_and_ordinary_purchases_preserve_the_balance() {
     set_balance(&mut sim, 0, -243);
     set_balance(&mut sim, 2, 179);
     sim.world_mut().resource_mut::<Funds>().0 = 1_000_000;
-    let baseline = sim.save_snapshot_v27();
+    let baseline = sim.save_snapshot_v28();
     sim.begin_build().unwrap();
-    assert_eq!(sim.save_snapshot_v27(), baseline);
+    assert_eq!(sim.save_snapshot_v28(), baseline);
     sim.cancel_build().unwrap();
     sim.end_build().unwrap();
-    assert_eq!(sim.save_snapshot_v27(), baseline);
+    assert_eq!(sim.save_snapshot_v28(), baseline);
 
     let funds = sim.world().resource::<Funds>().0;
     let lamp = terri_data::pack().find("floor_lamp").unwrap();
@@ -75,7 +75,7 @@ fn build_rollback_and_ordinary_purchases_preserve_the_balance() {
         });
     sim.flush_commands();
     assert!(sim.world().resource::<Funds>().0 < funds);
-    assert_eq!(sim.save_snapshot_v27().need_mood, baseline.need_mood);
+    assert_eq!(sim.save_snapshot_v28().need_mood, baseline.need_mood);
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn confirming_a_build_edit_keeps_the_live_need_balance() {
     let mut sim = Sim::new_from_shipped_lot();
     set_balance(&mut sim, 0, 4_521);
     sim.world_mut().resource_mut::<Funds>().0 = 1_000_000;
-    let baseline = sim.save_snapshot_v27();
+    let baseline = sim.save_snapshot_v28();
     sim.begin_build().unwrap();
     let lamp = terri_data::pack().find("floor_lamp").unwrap();
     sim.world_mut()
@@ -96,9 +96,9 @@ fn confirming_a_build_edit_keeps_the_live_need_balance() {
         });
     sim.flush_commands();
     let review = sim.prepare_build_commit(Default::default()).unwrap();
-    assert_eq!(sim.save_snapshot_v27(), baseline);
+    assert_eq!(sim.save_snapshot_v28(), baseline);
     sim.commit_build(review.token).unwrap();
-    let saved = sim.save_snapshot_v27();
-    assert_ne!(saved.legacy, baseline.legacy);
+    let saved = sim.save_snapshot_v28();
+    assert_ne!(saved.editable, baseline.editable);
     assert_eq!(saved.need_mood, baseline.need_mood);
 }

@@ -9,6 +9,7 @@
 import { landReason, type LandQuote, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { logWarning } from '../diagnostics/log.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 
 type LandSource = Pick<SimBridge, 'landQuote' | 'buyLand' | 'lastLandResult' | 'lotRevision'>;
 
@@ -93,6 +94,8 @@ export class LandTool {
   confirming = false;
   private sent: { side: Side; quote: LandQuote } | null = null;
   private revision: number;
+  private receipt: OperationFeedback | null = null;
+  get resultFeedback(): OperationFeedback | null { return this.receipt; }
 
   constructor(private readonly source: LandSource, private width: number,
     private height: number, private readonly hooks: { changed(): void }) {
@@ -149,6 +152,7 @@ export class LandTool {
   choose(side: number): void {
     if (!this.active || this.pending || this.blocked || this.confirming) return;
     if (!SIDES.includes(side as Side)) return;
+    this.receipt = null;
     this.side = side as Side;
     this.status = this.describe();
     this.hooks.changed();
@@ -178,6 +182,8 @@ export class LandTool {
   requestBuy(): void {
     if (!this.active || this.pending || this.blocked || this.side === null || this.confirming) return;
     if (this.chosenQuote() === null) return;
+    this.receipt = null;
+    this.status = this.describe();
     this.confirming = true;
     this.hooks.changed();
   }
@@ -252,6 +258,7 @@ export class LandTool {
         this.status = result.reason === 0
           ? `Bought ${sent.quote.area} squares ${SIDE_PLACES[sent.side]} for ${dollars(dollarsUp(result.chargedCents))}.`
           : landReason(result.reason);
+        this.receipt = result.reason === 0 ? operationFeedback('land', 'success', SIDE_NAMES[sent.side], this.status) : null;
         if (result.reason !== 0) logWarning('Land', 'Land purchase refused.', { ...result, reason: this.status, code: result.reason });
         this.hooks.changed();
         return;
@@ -304,6 +311,7 @@ export class LandTool {
   }
 
   private clear(): void {
+    this.receipt = null;
     this.side = null;
     this.confirming = false;
     this.status = CHOOSE_STRIP;

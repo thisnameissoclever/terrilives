@@ -356,10 +356,10 @@ fn a_save_taken_mid_session_holds_the_edits_and_no_session() {
     sim.admin_apply(funds(123_456)).unwrap();
     sim.admin_apply(satisfaction(first, 91.25)).unwrap();
     let snapshot = sim
-        .try_save_snapshot_v27()
+        .try_save_snapshot_v28()
         .expect("nothing admin is queued");
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v27(snapshot).expect("the save loads");
+    loaded.load_snapshot_v28(snapshot).expect("the save loads");
     assert!(!loaded.admin_active());
     assert_eq!(loaded.admin_undo_depth(), 0);
     assert_eq!(cents(&loaded), cents(&sim));
@@ -507,13 +507,13 @@ fn a_failed_rebuild_breaks_the_session_and_refuses_edits_undo_and_saves() {
     assert_eq!(sim.world_hash(), hash);
     assert_eq!(cents(&sim), money);
     assert_eq!(
-        sim.try_save_snapshot_v27().err(),
+        sim.try_save_snapshot_v28().err(),
         Some(crate::SaveError::AdminSessionBroken),
         "no save is written while the panel is open"
     );
     sim.end_admin();
     assert_eq!(
-        sim.try_save_snapshot_v27().err(),
+        sim.try_save_snapshot_v28().err(),
         Some(crate::SaveError::AdminSessionBroken),
         "nor once it closes, since the world would not load"
     );
@@ -546,7 +546,7 @@ fn build_mode_refuses_to_open_on_a_broken_world() {
     assert_eq!(sim.world_hash(), hash, "a refusal changes nothing");
     assert!(sim.admin_broken(), "the mark is still there");
     assert_eq!(
-        sim.try_save_snapshot_v27().err(),
+        sim.try_save_snapshot_v28().err(),
         Some(crate::SaveError::AdminSessionBroken),
         "saving stays refused until a load replaces the world"
     );

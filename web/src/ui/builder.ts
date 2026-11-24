@@ -1,4 +1,5 @@
 import type { PlacementPreview, SimBridge } from '../bridge.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 import type { OverlayPauseController } from './overlay-pause.js';
 import { furnitureLabel } from './furniture-label.js';
 import { logWarning } from '../diagnostics/log.js';
@@ -28,6 +29,13 @@ export class FurnitureBuilder {
   objects: readonly BuilderObject[] = [];
   name = '';
   status = '';
+  private outcome: OperationFeedback | null = null;
+  get feedback(): OperationFeedback | null {
+    if (this.pending) return operationFeedback('place', 'pending', this.name || 'Furniture', 'Applying furniture change...');
+    if (this.outcome) return this.outcome;
+    return this.preview && !this.preview.valid ? operationFeedback('place', 'failure', this.name || 'Furniture',
+      this.preview.reason ?? 'This placement is unavailable.', 'move') : null;
+  }
   pending = false;
   blocked = false;
   /** What selling the chosen object would pay back, or null when it would not sell. */
@@ -182,6 +190,7 @@ export class FurnitureBuilder {
     this.pending = this.source.placeObject(this.selected, x, y, facing);
     this.placing = this.pending;
     this.status = this.pending ? 'Placing furniture…' : 'The placement could not be queued.';
+    if (!this.pending) this.outcome = operationFeedback('place', 'failure', this.name, this.status);
     this.hooks.changed();
     return this.pending;
   }
@@ -198,6 +207,7 @@ export class FurnitureBuilder {
     this.pending = this.source.sellObject(this.selected);
     if (this.pending) this.selling = this.selected;
     this.status = this.pending ? 'Selling…' : 'The sale could not be sent.';
+    if (!this.pending) this.outcome = operationFeedback('sell', 'failure', this.name, this.status);
     this.hooks.changed();
     return this.pending;
   }
@@ -223,6 +233,7 @@ export class FurnitureBuilder {
       this.recolouringTo = colourway;
     }
     this.status = this.pending ? 'Recolouring…' : 'The colour change could not be sent.';
+    if (!this.pending) this.outcome = operationFeedback('recolour', 'failure', this.name, this.status);
     this.hooks.changed();
     return this.pending;
   }
@@ -265,6 +276,7 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${name || 'Furniture'} sold.`;
+        this.outcome = operationFeedback('sell', result.reason === null ? 'success' : 'failure', name || 'Furniture', this.status);
         if (result.reason !== null) logWarning('Furniture', 'Sale refused.', { ...result });
         saleStatus = this.status;
         this.hooks.changed();
@@ -292,6 +304,8 @@ export class FurnitureBuilder {
         this.pending = false;
         this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
         this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
+        this.outcome = result.reason === null ? null
+          : operationFeedback('recolour', 'failure', this.name, this.status);
         if (result.reason !== null) logWarning('Furniture', 'Colour change refused.', { ...result });
         const next = this.nextColourway;
         this.nextColourway = null;
@@ -311,6 +325,8 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? 'Furniture placed.';
+        this.outcome = result.reason === null ? null
+          : operationFeedback('place', 'failure', 'Furniture', this.status, 'move');
         if (result.reason !== null) logWarning('Furniture', 'Move refused.', { ...result });
         if (next !== null) {
           this.selectNow(next);
@@ -343,6 +359,7 @@ export class FurnitureBuilder {
   }
 
   private query(x: number, y: number, facing: number): void {
+    this.outcome = null;
     if (this.selected === null) return;
     const preview = this.source.placementPreview(this.selected, x, y, facing);
     // Invalid unsigned coordinates still need the resolved art for the red
@@ -364,6 +381,7 @@ export class FurnitureBuilder {
   }
 
   private clearSelection(): void {
+    this.outcome = null;
     this.colourway = null;
     this.saleValue = null;
     this.saleRefusal = null;

@@ -53,7 +53,7 @@ pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV17 {
 pub(crate) fn restore(
     mut snapshot: SaveSnapshotV17,
     content: &'static terri_data::ContentPack,
-    portals: super::Carried,
+    mut portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     normalize_action_rows(&mut snapshot, content)?;
     // Attendance can keep a weekly review pending while its worker is home.
@@ -66,6 +66,8 @@ pub(crate) fn restore(
     let requests = snapshot.legacy.legacy.conversation_requests;
     let mut careers = snapshot.legacy.legacy.legacy.careers;
     let migrate = portals.wage_migration;
+    let pre_registered_shifts = portals.pre_registered_shifts;
+    let manual_work_trips = portals.manual_work_trips.take();
     let mut candidate = super::v13::restore(
         snapshot.legacy.legacy.legacy.legacy,
         content,
@@ -77,15 +79,21 @@ pub(crate) fn restore(
         },
     )?;
     let mut attendance = snapshot.attendance;
-    if migrate {
-        // Issue 298: pay saved before the raise, raised before the current
-        // ranges judge it; an open shift follows its person's raised pay.
+    let migrated_bases = if migrate {
+        // Keep the exact base of a shift whose pay the wage migration changed.
         super::wage_migration::migrate_careers(candidate.world(), &mut careers);
-        super::wage_migration::migrate_attendance(candidate.world(), &mut attendance, &careers);
-    }
-    attendance::validate_saved(candidate.world(), &attendance)?;
+        super::wage_migration::migrate_attendance(candidate.world(), &mut attendance, &careers)
+    } else {
+        Vec::new()
+    };
+    attendance::validate_saved(candidate.world(), &attendance, pre_registered_shifts)?;
     attendance::restore(candidate.world_mut(), attendance);
-    crate::careers::validate_saved(candidate.world(), &careers)?;
+    attendance::remember_migrated_base_pay(candidate.world_mut(), migrated_bases);
+    let current_reviews = manual_work_trips.is_some();
+    if let Some(rows) = manual_work_trips {
+        attendance::restore_manual_work_trips(candidate.world_mut(), rows)?;
+    }
+    crate::careers::validate_saved(candidate.world(), &careers, current_reviews)?;
     crate::careers::install_saved(candidate.world_mut(), careers);
     crate::recipe_actions::restore_activity(candidate.world_mut(), snapshot.background_recipes)?;
     let mut system_owners = std::collections::BTreeSet::new();

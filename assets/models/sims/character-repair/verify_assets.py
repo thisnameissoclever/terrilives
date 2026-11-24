@@ -7,6 +7,7 @@ import tomllib
 
 import numpy as np
 from PIL import Image
+from fixture_depth_encoding import decode_fixture_depth
 
 BASE=Path(__file__).resolve().parent
 ROOT=BASE.parents[3]
@@ -142,11 +143,12 @@ def main():
             pixels=atlas_pages[page_index][source['y']:source['y']+source['h'],source['x']:source['x']+source['w']]
             depth=crop(pages,row)
             assert np.array_equal(depth[:,:,3]>0,pixels[:,:,3]>0),row['name']
-            values=(depth[:,:,0].astype(np.uint16)*256+depth[:,:,1])/65535*4-2
+            depth_range=row.get('depthRange',2)
+            values=decode_fixture_depth(depth,depth_range)
             covered=pixels[:,:,3]>0
             assert np.ptp(values[covered])>.0001,row['name']
-            assert abs(values[covered].min()-row['minSum'])<=4/65535
-            assert abs(values[covered].max()-row['maxSum'])<=4/65535
+            assert abs(values[covered].min()-row['minSum'])<=2*depth_range/65535
+            assert abs(values[covered].max()-row['maxSum'])<=2*depth_range/65535
             assert int(covered.sum())==row['coveredPixels']
         checks.append(dict(bundle=bundle,sprites=len(manifest['sprites']),pages=len(pages),coverage='all-nonzero-alpha-exact',sourceHashes='unchanged'))
     folder=BASE/'shelf-depth'

@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { ARCHITECTURE } from '../src/render/architecture-data.js';
-import { closeArchitectureAtlas, loadArchitectureAtlas, validateArchitectureDevice, type ArchitectureAtlas } from '../src/render/architecture-atlas.js';
+import { closeArchitectureAtlas, loadArchitectureAtlas, loadArchitectureFinishInputs, validateArchitectureDevice, type ArchitectureAtlas } from '../src/render/architecture-atlas.js';
+import { prepareArchitectureFinishes } from '../src/render/architecture-finishes.js';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
@@ -10,6 +11,39 @@ import {spriteBindGroupLayoutEntries} from '../src/render/sprite-pipelines.js';
 const limits = { maxTextureDimension2D: 8192, maxTextureArrayLayers: 256,
   maxSampledTexturesPerShaderStage: 16, maxStorageBuffersPerShaderStage: 8, maxStorageBufferBindingSize: 128 * 1024 * 1024 } as GPUDevice['limits'];
 afterEach(() => vi.unstubAllGlobals());
+
+it('loads only missing finish inputs and closes each bitmap after its upload completes', async () => {
+  const active = prepareArchitectureFinishes(['floor.outdoor-patio'], limits), fetched: string[] = [], order: string[] = [];
+  vi.stubGlobal('location', { href: 'http://proof.invalid/' });
+  vi.stubGlobal('fetch', vi.fn(async (url: URL) => {
+    fetched.push(url.pathname); return new Response(url.pathname.endsWith('.r8.gz')
+      ? new Uint8Array(ARCHITECTURE.width * ARCHITECTURE.height) : new Uint8Array(url.pathname.includes('-pattern-') ? 2 : 1));
+  }));
+  vi.stubGlobal('createImageBitmap', vi.fn(async (blob: Blob) => {
+    const name = blob.size === 2 ? 'tiles' : 'carrier'; order.push('decode ' + name);
+    return { width: name === 'tiles' ? 256 : ARCHITECTURE.width, height: name === 'tiles' ? 256 : ARCHITECTURE.height,
+      close: () => order.push('close ' + name) };
+  }));
+  const consume = async (input: { kind: string; key?: string }) => { order.push('upload ' + (input.key ?? input.kind)); await Promise.resolve(); };
+  await loadArchitectureFinishInputs(active, ['tiles'], true, consume, { baseUrl: '/' });
+  expect(fetched).toEqual([`/${ARCHITECTURE.resources.carrier}`, `/${ARCHITECTURE.resources.roles}`, `/${ARCHITECTURE.patterns.tiles.url}`]);
+  expect(order).toEqual(['decode carrier', 'upload carrier', 'close carrier', 'upload roles', 'decode tiles', 'upload tiles', 'close tiles']);
+  fetched.length = 0;
+  await loadArchitectureFinishInputs(active, [], false, consume, { baseUrl: '/' });
+  expect(fetched).toEqual([]);
+});
+
+it('closes a finish bitmap when upload fails and rejects incorrect pattern dimensions', async () => {
+  const active = prepareArchitectureFinishes(['floor.outdoor-patio'], limits), close = vi.fn();
+  vi.stubGlobal('location', { href: 'http://proof.invalid/' });
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array(2))));
+  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 256, height: 256, close })));
+  await expect(loadArchitectureFinishInputs(active, ['tiles'], false, async () => { throw Error('upload failed'); }, { baseUrl: '/' })).rejects.toThrow('upload failed');
+  expect(close).toHaveBeenCalledOnce();
+  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 255, height: 256, close })));
+  await expect(loadArchitectureFinishInputs(active, ['tiles'], false, async () => {}, { baseUrl: '/' })).rejects.toThrow(/dimensions/);
+  expect(close).toHaveBeenCalledTimes(2);
+});
 
 it('checks direct caller texture, array, sampling and storage limits before GPU allocation', () => {
   const atlas = { color: { width: 2048, height: 3037 }, carrier: { width: 2048, height: 3037 },

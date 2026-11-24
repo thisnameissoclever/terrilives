@@ -23,6 +23,9 @@ import {createSleepContactInput} from '../src/render/character/sleep-contact-pre
 import {compileSleepContact} from '../src/render/character/sleep-contact-compile.js';
 import {requireSleepingCoverContribution} from '../src/render/character/sleep-contact-sample.js';
 import {PreparedSleepingCover} from '../src/render/character/prepared-sleeping-cover.js';
+import {poolContactAppearanceKey} from '../src/render/character/pool-contact-identity.js';
+import * as poolSampling from '../src/render/character/pool-contact-sample.js';
+import type {CharacterPreparation} from '../src/render/character/character-preparation-service.js';
 import * as sleepingFit from '../src/render/character/sleep-fit.js';
 import {CharacterWorld} from '../src/render/character/world.js';
 import type {SimBridge} from '../src/bridge.js';
@@ -40,6 +43,21 @@ const families=Object.keys(library.sources);
 const rigs=families.map(family=>{
   const parts=JSON.parse(readFileSync(new URL('clips/'+family+'/parts.json',directory),'utf8')) as ClipParts;
   return {family,parts,extra:parts.geometry?readGeometry(parts.geometry,'clips/'+family):null};
+});
+
+it('selects occupied bath water without drawing a second tub or retaining it after bathing',()=>{
+  const family=rigs.find(row=>row.family==='bath')!;
+  const rig=prepareClipFamily(base,family.extra,family.parts,library,'bath');
+  const appearance=defaultAppearance(),body=new PreparedBody(base,appearance);
+  const context={wear:'bare' as const,prop:'none',fixture:'none',eyes_closed:false,clip:'bath',includeFixture:false};
+  const dry=body.select(rig,appearance,context);
+  expect(dry.extra).toBeNull();
+  const wet=body.select(rig,appearance,{...context,includeActivityWater:true});
+  expect(wet.extra?.description.parts.map(part=>part.name)).toEqual(['Creator clip bath Bath opaque water surface']);
+  expect(wet.extra?.description.parts.every(part=>part.region===12)).toBe(true);
+  expect(body.select(rig,appearance,{...context,clip:'idle',includeActivityWater:true}).extra).toBeNull();
+  expect(body.select(rig,appearance,context).extra).toBeNull();
+  expect(wet.body.description.parts.map(part=>part.name)).toEqual(dry.body.description.parts.map(part=>part.name));
 });
 
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
@@ -285,4 +303,29 @@ it.each(rigs)('preserves exact configured poses and contact diagnostics for ever
       }
     }
   }
+});
+
+
+it('binds pool contacts on idle entry and physical edits using the actual selected body and garments',()=>{
+  const gpu=recordingDevice(),appearance=defaultAppearance(),rig={base,manifest:base.manifest,supplemental:null,family:''};
+  const idle:AppearanceContext={wear:'clothed',prop:'none',fixture:'none',eyes_closed:false,includeFixture:false,clip:'idle'};
+  const actor=new PreparedCharacter(gpu.device,rig,appearance,idle,256,256);
+  const family=rigs.find(row=>row.family==='pool')!,pool=prepareClipFamily(base,family.extra,family.parts,library,'pool');
+  const context:AppearanceContext={...idle,wear:'bare',clip:'pool_enter',swimwear:'trunks'};
+  const bind=vi.spyOn(poolSampling,'bindPoolContacts').mockImplementation(()=>{}),artifact={key:'pool-test',appearanceKey:poolContactAppearanceKey(appearance)} as CharacterPreparation['pool'];
+  try{
+    actor.setContacts({pool:artifact} as CharacterPreparation);expect(bind).not.toHaveBeenCalled();
+    actor.select(pool,appearance,context);
+    const mesh=actor.renderer.resources,call=bind.mock.calls[0];
+    expect(call[0]).toBe(artifact);expect(call[1]).toBe(actor.geometry);expect(call[2]).toBe(mesh.shape);expect(call[3]).toBe(mesh.top);
+    expect(call[4]).toHaveLength(1);expect(call[4][0].description.parts.some(part=>/trunks/i.test(part.name))).toBe(true);expect(Object.isFrozen(call[5])).toBe(true);
+    actor.select(pool,appearance,context);expect(bind).toHaveBeenCalledTimes(1);
+    const edited=structuredClone(appearance);edited.body.height=99;
+    actor.select(pool,edited,context);expect(bind).toHaveBeenCalledTimes(1);
+    actor.setContacts({pool:{key:'pool-edited',appearanceKey:poolContactAppearanceKey(edited)}} as CharacterPreparation);
+    expect(bind).toHaveBeenCalledTimes(2);expect(bind.mock.calls[1][2].height).toBe(99);
+    const next={key:'pool-replacement',appearanceKey:poolContactAppearanceKey(edited)} as CharacterPreparation['pool'];mesh.lastPoseKey='pool_enter:0';mesh.lastMatrices=new Float32Array(272);
+    actor.setContacts({pool:next} as CharacterPreparation);expect(bind).toHaveBeenCalledTimes(3);expect(mesh.poolContact).toBe(next);expect(mesh.lastPoseKey).toBe('');expect(mesh.lastMatrices).toBeNull();
+    actor.select(rig,edited,idle);actor.select(pool,edited,context);expect(bind).toHaveBeenCalledTimes(3);
+  }finally{actor.destroy();}
 });

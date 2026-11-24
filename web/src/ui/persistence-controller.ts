@@ -1,5 +1,7 @@
 import type { SaveStore } from '../storage/save-store.js';
 import { isSupportedSavePrefix, saveSchemaVersion } from '../storage/save-header.js';
+import { PendingIndicator } from './operation-feedback.js';
+import {copyOriginalError,diagnosticMessage,requireDiagnosticKeys,restoreErrorDetails,serializeErrorDetails} from '../diagnostics/error-details.js';
 
 export interface PersistableSim {
   saveBytes(): Uint8Array;
@@ -16,6 +18,14 @@ export interface SaveStatusTarget {
 
 export type StartupRestore = 'loaded' | 'new' | 'invalid' | 'unavailable';
 type PersistenceOperation = 'save' | 'load' | 'clear' | 'export' | 'import';
+
+export interface PersistenceFeedbackEvent {
+  readonly operation: PersistenceOperation | 'restore';
+  readonly state: 'pending' | 'success' | 'failure';
+  readonly automatic: boolean;
+  readonly savingPaused: boolean;
+  readonly message: string;
+}
 
 export interface PersistenceControlState {
   readonly saveDisabled: boolean;
@@ -105,6 +115,8 @@ function unloadableReason(bytes: Uint8Array, fallback: string): string {
     : fallback;
 }
 
+const IMPORT_FAILURE = 'Could not open that save. Use Report bug in Options.';
+
 type SlotLoad =
   | { readonly kind: 'none' | 'loaded' | 'recovered' }
   | { readonly kind: 'unloadable'; readonly bytes: Uint8Array };
@@ -126,6 +138,8 @@ export class PersistenceController {
   /** The protected slot's bytes, when known, so Export can deliver them within the click. */
   private protectedBytes: Uint8Array | null = null;
   private activeOperation: PersistenceOperation | null = null;
+  private automaticOperation = false;
+  private readonly pendingIndicator: PendingIndicator;
 
   constructor(
     private readonly store: SaveStore,
@@ -133,7 +147,12 @@ export class PersistenceController {
     private readonly status: SaveStatusTarget,
     private readonly reportError: (error: unknown) => void = () => {},
     private readonly loadPrepared:(bytes:Uint8Array)=>boolean|Promise<boolean>=bytes=>this.sim.loadBytes(bytes),
-  ) {}
+    private readonly presentFeedback?: (event: PersistenceFeedbackEvent) => void,
+  ) { this.pendingIndicator = new PendingIndicator(status); }
+
+  preparingSwimming(): void {
+    if (this.activeOperation === 'load' || this.activeOperation === 'import') this.show('Preparing swimming', 'pending');
+  }
 
   async restoreAtStartup(): Promise<StartupRestore> {
     try {
@@ -155,16 +174,25 @@ export class PersistenceController {
       this.show(slot.kind === 'recovered' ? RECOVERED_MESSAGE : 'Saved game loaded');
       return 'loaded';
     } catch (error: unknown) {
-      this.reportError(error);
+      this.reportFailure(error, 'load');
       this.protectSavedGame();
       return 'unavailable';
     }
   }
 
   async save(message = 'Game saved'): Promise<boolean> {
+    return this.saveWithContext(message, false);
+  }
+
+  /** Background persistence carries its provenance independently of its message. */
+  async saveAutomatically(): Promise<boolean> {
+    return this.saveWithContext('Autosaved', true);
+  }
+
+  private async saveWithContext(message: string, automatic: boolean): Promise<boolean> {
     if (this.savingPaused) return false;
-    if (!this.beginOperation('save')) return false;
-    this.show('Saving');
+    if (!this.beginOperation('save', automatic)) return false;
+    this.show('Saving', 'pending');
     try {
       const savedDay = this.currentDay();
       const bytes = this.sim.saveBytes();
@@ -176,8 +204,8 @@ export class PersistenceController {
       this.show(message);
       return true;
     } catch (error: unknown) {
-      this.reportError(error);
-      this.show('Save failed. The game is still running.', true);
+      this.reportFailure(error, 'save');
+      this.show('Save failed. Try again.', 'failure');
       return false;
     } finally {
       this.finishOperation('save');
@@ -186,13 +214,13 @@ export class PersistenceController {
 
   async load(): Promise<boolean> {
     if (!this.beginOperation('load')) return false;
-    this.show('Loading');
+    this.show('Loading', 'pending');
     try {
       const slot = await this.loadFromSlot();
       if (slot.kind === 'none') {
         this.savedGameAvailable = false;
         if (this.savingPaused) this.protectSavedGame();
-        else this.show('No saved game found', true);
+        else this.show('No saved game found', 'failure');
         return false;
       }
       if (slot.kind === 'unloadable') {
@@ -206,7 +234,7 @@ export class PersistenceController {
       this.show(slot.kind === 'recovered' ? RECOVERED_MESSAGE : 'Saved game loaded');
       return true;
     } catch (error: unknown) {
-      this.reportError(error);
+      this.reportFailure(error, 'load');
       this.protectSavedGame();
       return false;
     } finally {
@@ -216,20 +244,21 @@ export class PersistenceController {
 
   async clear(): Promise<boolean> {
     if (!this.beginOperation('clear')) return false;
-    this.show('Starting new game');
+    this.show('Starting new game', 'pending');
     try {
       await this.store.clear();
       this.savedGameAvailable = false;
       this.resumeSaving();
       this.armAutosave();
+      if (this.presentFeedback) this.show('');
       return true;
     } catch (error: unknown) {
-      this.reportError(error);
+      this.reportFailure(error, 'clear');
       this.show(
         this.savingPaused
-          ? 'Could not remove the saved game. Saved data kept. Saving paused.'
-          : 'Could not remove the saved game.',
-        true,
+          ? 'Could not remove the saved game. Saving paused. Try New game again.'
+          : 'Could not remove the saved game. Try New game again.',
+        'failure',
       );
       return false;
     } finally {
@@ -273,11 +302,11 @@ export class PersistenceController {
    */
   acceptImportFile(prefix: Uint8Array): boolean {
     if (saveSchemaVersion(prefix) === null) {
-      this.keepCurrentGame('That file is not a Natural Causes save.');
+      this.showImportFailure('That file is not a Natural Causes save.');
       return false;
     }
     if (!slotAcceptsCurrentWrite(prefix)) {
-      this.keepCurrentGame(unloadableReason(prefix, 'Import failed.'));
+      this.showImportFailure(unloadableReason(prefix, IMPORT_FAILURE));
       return false;
     }
     if (this.savingPaused && this.protectedBytes !== null && !slotAcceptsCurrentWrite(this.protectedBytes)) {
@@ -290,7 +319,7 @@ export class PersistenceController {
   /** The browser could not read the chosen file. */
   importFileUnreadable(error: unknown): void {
     this.reportError(error);
-    this.keepCurrentGame('Could not read that file.');
+    this.showImportFailure('Could not read that file. Choose it again.');
   }
 
   /**
@@ -300,7 +329,7 @@ export class PersistenceController {
    */
   async importSave(bytes: Uint8Array): Promise<boolean> {
     if (!this.beginOperation('import')) return false;
-    this.show('Importing');
+    this.show('Importing', 'pending');
     try {
       // A protected slot the worker will not overwrite would leave the
       // imported world running with saving still paused, and New game would
@@ -311,7 +340,7 @@ export class PersistenceController {
           stored = this.protectedBytes ?? await this.store.load();
         } catch (error: unknown) {
           this.reportError(error);
-          this.keepCurrentGame('Could not check the saved data in this browser.');
+          this.showImportFailure('Could not check the saved data in this browser.');
           return false;
         }
         if (stored !== null && !slotAcceptsCurrentWrite(stored)) {
@@ -326,13 +355,16 @@ export class PersistenceController {
         this.reportError(error);
       }
       if (!loaded) {
-        this.keepCurrentGame(
+        this.showImportFailure(
           saveSchemaVersion(bytes) === null
             ? 'That file is not a Natural Causes save.'
-            : unloadableReason(bytes, 'Import failed.'),
+            : unloadableReason(bytes, IMPORT_FAILURE),
         );
         return false;
       }
+      // The confirmed file now owns the running world. Slot replacement was
+      // checked above; a failed write must still allow exporting and retrying it.
+      this.resumeSaving();
       this.armAutosave();
       const importedDay = this.currentDay();
       try {
@@ -343,12 +375,7 @@ export class PersistenceController {
         this.show('Imported game loaded and saved');
       } catch (error: unknown) {
         this.reportError(error);
-        this.show(
-          this.savingPaused
-            ? 'Imported game loaded. Saved data kept. Saving paused.'
-            : 'Imported game loaded, but saving failed. Use Save to try again.',
-          true,
-        );
+        this.show('Imported game loaded, but saving failed. Use Save to try again.', 'failure');
       }
       return true;
     } finally {
@@ -364,7 +391,7 @@ export class PersistenceController {
     // Advance before starting the asynchronous write so sixty frames cannot
     // queue sixty copies of the same day.
     this.autosaveDay = day;
-    void this.save('Autosaved');
+    void this.saveWithContext('Autosaved', true);
   }
 
   close(): void {
@@ -441,12 +468,12 @@ export class PersistenceController {
   }
 
   /** Ends a rejected import or file choice, keeping the paused-saving note visible. */
-  private keepCurrentGame(reason: string): void {
-    this.showKeepingPausedNote(`${reason} Current game kept.`, true);
+  private showImportFailure(reason: string): void {
+    this.showKeepingPausedNote(reason, true);
   }
 
   private refuseUnreplaceableSlot(): void {
-    this.keepCurrentGame(
+    this.showImportFailure(
       'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again.',
     );
   }
@@ -454,11 +481,11 @@ export class PersistenceController {
   /** While saving is paused, every message keeps saying so, since Save stays disabled. */
   private showKeepingPausedNote(message: string, error = false): void {
     if (!this.savingPaused) {
-      this.show(message, error);
+      this.show(message, error ? 'failure' : 'success');
       return;
     }
     const sentence = message.endsWith('.') ? message : `${message}.`;
-    this.show(`${sentence} Saving paused.`, true);
+    this.show(`${sentence} Saving paused.`, 'failure');
   }
 
   private protectSavedGame(bytes?: Uint8Array): void {
@@ -469,9 +496,34 @@ export class PersistenceController {
     this.protectedBytes = kept ?? null;
     const reason = kept ? unloadableReason(kept, 'Load failed.') : 'Load failed.';
     this.show(
-      `${reason} Current game and saved data kept. Saving paused. Retry Load or confirm New game to resume saving.`,
-      true,
+      `${reason} Saving paused. Retry Load or confirm New game to resume saving.`,
+      'failure',
     );
+  }
+
+  private reportFailure(value: unknown, operation: PersistenceOperation): void {
+    const fallback = 'Save/load operation failed.';
+    let error: Error;
+    if (value instanceof Error) error = Object.isExtensible(value) ? value : copyOriginalError(value, fallback);
+    else {
+      const details = serializeErrorDetails(value);
+      error = new Error(diagnosticMessage(details, fallback));
+      Object.defineProperty(error, 'stack', { value: undefined, writable: true, configurable: true });
+      Object.assign(error, { thrownValue: restoreErrorDetails(details, fallback), errorDetails: details });
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(error, 'persistence'), context: unknown = descriptor?.value;
+    let matches = false;
+    try {
+      requireDiagnosticKeys(context, ['operation', 'requestId'], 'Invalid persistence context.');
+      const operationMatches = context.operation === operation
+        || (operation === 'load' && (context.operation === 'previous' || context.operation === 'restore'));
+      matches = operationMatches && (context.requestId === undefined || Number.isSafeInteger(context.requestId) && (context.requestId as number) > 0);
+    } catch { /* A local failure may have no storage-worker context. */ }
+    if (!matches) {
+      if (descriptor && !descriptor.configurable) error = copyOriginalError(error, fallback);
+      Object.defineProperty(error, 'persistence', { value: { operation }, writable: true, configurable: true, enumerable: true });
+    }
+    this.reportError(error);
   }
 
   private currentDay(): number {
@@ -480,19 +532,30 @@ export class PersistenceController {
     return Math.floor(this.sim.clockTick() / dayTicks);
   }
 
-  private beginOperation(operation: PersistenceOperation): boolean {
+  private beginOperation(operation: PersistenceOperation, automatic = false): boolean {
     if (this.activeOperation !== null) return false;
     this.activeOperation = operation;
+    this.automaticOperation = automatic;
+    if (!this.presentFeedback) this.pendingIndicator.start();
     return true;
   }
 
   private finishOperation(operation: PersistenceOperation): void {
-    if (this.activeOperation === operation) this.activeOperation = null;
+    if (this.activeOperation === operation) {
+      this.activeOperation = null;
+      this.automaticOperation = false;
+      if (!this.presentFeedback) this.pendingIndicator.stop();
+    }
   }
 
-  private show(message: string, error = false): void {
+  private show(message: string, state: PersistenceFeedbackEvent['state'] = 'success'): void {
+    if (this.presentFeedback) {
+      this.presentFeedback({ operation: this.activeOperation ?? 'restore', state,
+        automatic: this.automaticOperation, savingPaused: this.savingPaused, message });
+      return;
+    }
     this.status.textContent = message;
-    if (error) this.status.setAttribute('data-kind', 'error');
+    if (state === 'failure') this.status.setAttribute('data-kind', 'error');
     else this.status.removeAttribute('data-kind');
   }
 }

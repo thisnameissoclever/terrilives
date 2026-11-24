@@ -1,5 +1,6 @@
 /* Shared action alignment; descriptions and form labels retain their reading alignment. */
 .hud-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 10px; text-align: center; white-space: normal; overflow-wrap: anywhere; min-width: 0; }
+.hud-button[hidden] { display: none !important; }
 dialog { box-sizing: border-box; overflow-wrap: anywhere; }
 dialog menu > * { min-width: 0; }
 #housemate-personality, #housemate-traits-field { min-width: 0; }
@@ -7,6 +8,25 @@ dialog menu > * { min-width: 0; }
 #sim-sheet-header nav { min-width: 0; }
 .builder-row { flex-wrap: wrap; }
 .builder-row:empty { display: none; }
+/* Keep selection guidance available to assistive technology; visible outcomes sit with the action. */
+#buy-status, #wall-status, #window-status, #room-status, #floor-status {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.catalogue-filter-row[data-catalogue-open='false'] { display: none; }
+.context-feedback { box-sizing: border-box; flex: 1 0 100%; margin: 4px 0 0; padding: 8px 10px; color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge); border-radius: 5px; font-size: 13px; overflow-wrap: anywhere; }
+.context-feedback[data-state='failure'] { color: var(--hud-danger); border-color: var(--hud-danger); }
+.context-feedback[hidden] { display: none !important; }
+[data-pending='true']::before, [data-state='pending']:not([data-surface='scene'])::before {
+  content: ''; display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -2px;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: operation-spin 0.8s linear infinite;
+}
+@keyframes operation-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { [data-pending='true']::before, [data-state='pending']:not([data-surface='scene'])::before { animation: none; border-right-color: currentColor; border-style: dotted; } }
+/* Size content under each owner's width cap before placement; old offsets must not shrink it. */
+#command-feedback[data-surface='scene'], #floor-scene-status { width: max-content; }
+#command-feedback[data-surface='scene'] { position: fixed; left: 50%; bottom: max(90px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; box-sizing: border-box; max-width: min(420px, calc(100vw - 32px)); padding: 10px 14px; border: 1px solid var(--hud-edge); border-radius: 6px; background: var(--hud-bg); color: var(--hud-text); font-size: 14px; overflow-wrap: anywhere; pointer-events: none; }
+#command-feedback[data-surface='scene'][data-kind='error'] { color: var(--hud-danger); border-color: var(--hud-danger); }
+#command-feedback[data-anchored='true'] { bottom: auto; }
 .builder-tool [hidden] { display: none !important; }
 body[data-building='true'] #hud { width: 304px; }
 body[data-building='true'] #builder-desktop { overflow: visible; max-height: none; }
@@ -57,8 +77,8 @@ body[data-building='true'] #build-camera { display: flex; }
 #placement-actions .context-left button, #placement-actions .context-right button { min-width: 44px; width: 44px; border-radius: 50%; }
 #placement-actions .context-left svg, #placement-actions .context-right svg { width: 24px; height: 24px; }
 #placement-actions .context-left span, #placement-actions .context-right span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-#placement-actions .context-bottom { left: 36px; right: 36px; bottom: 0; display: flex; justify-content: center; gap: 8px; }
-#placement-actions .context-bottom button { flex: 1 1 0; flex-direction: row; }
+#placement-actions .context-bottom { left: 36px; right: 36px; bottom: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+#placement-actions .context-bottom button { flex: 1 1 auto; min-width: min-content; flex-direction: row; overflow-wrap: normal; word-break: normal; }
 #placement-actions[data-compact='true'] { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 6px; align-content: start; overflow-y: auto; }
 #placement-actions[data-compact='true'] > div { position: static; transform: none; }
 #placement-actions[data-compact='true'] .context-top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; }
@@ -67,7 +87,7 @@ body[data-building='true'] #build-camera { display: flex; }
 #placement-actions[data-compact='true'] .context-left { grid-column: 1; grid-row: 2; }
 #placement-actions[data-compact='true'] .context-right { grid-column: 3; grid-row: 2; }
 #placement-actions[data-compact='true'] .context-bottom { grid-column: 2; grid-row: 2; flex-wrap: wrap; }
-#placement-actions[data-compact='true'] .context-bottom button { flex: 1 1 70px; }
+#placement-actions[data-compact='true'] .context-bottom button { flex: 1 1 70px; min-width: min-content; }
 @media (max-width: 700px), (max-height: 480px) {
   body[data-building='true'] #hud { width: min(304px, calc(100vw - 136px)); }
   body[data-building='true'] #household-summary { display: block; }
@@ -161,6 +181,7 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 #room-name, #room-review input, #room-review select { scroll-margin-block: var(--room-focus-clearance); }
 #room-name-status:empty, #room-review-status:empty { display: none; }
 #room-name-status, #room-review-status { overflow-wrap: anywhere; }
+#room-review-status:not(:empty):not([data-pending='true']) { color: var(--hud-danger); border-left: 3px solid var(--hud-danger); padding-left: 8px; }
 #room-review { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 #room-review[hidden] { display: none; }
 #room-review-heading { flex: none; margin: 0; font-size: 16px; }
@@ -194,7 +215,7 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 }
 
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
-#build-batch-status:empty, #builder-status:empty, #buy-status:empty, #floor-status:empty,
+#build-batch-status:empty, #buy-status:empty, #floor-status:empty,
 #land-status:empty, #land-touch-help:empty, #room-status:empty { display: none; }
 #build-zoom-out svg { display: block; margin: auto; }
 /* A refusal must not read like routine status: danger colour and a rule
@@ -212,3 +233,17 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
    tall and a ring reaches 4 pixels outside its control. */
 body[data-building='true'] #builder-controls { padding-bottom: 0; scroll-padding-bottom: 80px; }
 body[data-building='true'] #build-batch-actions { padding-bottom: 20px; margin-inline: -12px; padding-inline: 12px; }
+@media (min-width: 701px) and (min-height: 481px) {
+  /* Reserve the actual summary and navigation heights before shrinking the drawer. */
+  body[data-building='true'] #hud {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - max(8px, env(safe-area-inset-top)) - max(8px, env(safe-area-inset-bottom)));
+  }
+  body[data-building='true'] #household-summary,
+  body[data-building='true'] #world-player-guide,
+  body[data-building='true'] #options { flex: none; }
+  body[data-building='true'] #world-actions,
+  body[data-building='true'] #builder-desktop { display: flex; flex-direction: column; min-height: 0; flex: 0 1 auto; }
+  body[data-building='true'] #builder-controls { min-height: 0; max-height: none; }
+}

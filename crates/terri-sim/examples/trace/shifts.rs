@@ -23,13 +23,10 @@ pub struct Flags {
     /// Issue 309: replace `work_lateness_limit_ticks` before the first tick;
     /// 0 leaves on time, as before the issue.
     pub lateness_limit: Option<u32>,
-    /// Issue 309: replace `work_bladder_relief_threshold`; 0 is no relief
-    /// at work, as before the issue.
-    pub work_relief_threshold: Option<f32>,
 }
 
 /// Splits `--night-worker`, `--careers-seed <n>`, `--pre-shift-careers`,
-/// `--lateness-limit <ticks>` and `--work-relief-threshold <level>` from the
+/// `--lateness-limit <ticks>` from the
 /// positional arguments, which keep their order.
 pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
     let mut flags = Flags {
@@ -37,7 +34,6 @@ pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
         careers_seed: None,
         pre_shift_careers: false,
         lateness_limit: None,
-        work_relief_threshold: None,
     };
     let mut positional = Vec::new();
     let mut args = args.peekable();
@@ -50,13 +46,6 @@ pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
                     args.next()
                         .and_then(|value| value.parse().ok())
                         .expect("--lateness-limit takes a whole number of ticks"),
-                );
-            }
-            "--work-relief-threshold" => {
-                flags.work_relief_threshold = Some(
-                    args.next()
-                        .and_then(|value| value.parse().ok())
-                        .expect("--work-relief-threshold takes a number"),
                 );
             }
             "--careers-seed" => {
@@ -88,20 +77,14 @@ pub fn prepare(sim: &mut Sim, flags: &Flags) {
         pack.tuning.shift_sleep_offset_night = 0;
         pack.tuning.career_search_temperature = 0.0;
         pack.tuning.work_lateness_limit_ticks = 0;
-        pack.tuning.work_bladder_relief_threshold = 0.0;
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
     }
-    if flags.lateness_limit.is_some() || flags.work_relief_threshold.is_some() {
+    if let Some(limit) = flags.lateness_limit {
         let mut pack = sim.world().resource::<Content>().0.clone();
-        if let Some(limit) = flags.lateness_limit {
             pack.tuning.work_lateness_limit_ticks = limit;
             pack.tuning.work_lateness_ramp_ticks =
                 pack.tuning.work_lateness_ramp_ticks.min(limit.max(1));
-        }
-        if let Some(threshold) = flags.work_relief_threshold {
-            pack.tuning.work_bladder_relief_threshold = threshold;
-        }
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
     }

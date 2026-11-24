@@ -2,12 +2,12 @@
 export const ATLAS_STORAGE = {
   "version": 1,
   "virtualSize": 2048,
-  "virtualLayers": 55,
+  "virtualLayers": 56,
   "tileSize": 8,
   "border": 1,
   "physicalSize": 2048,
   "tilesPerRow": 204,
-  "uniqueTiles": 868085,
+  "uniqueTiles": 877007,
   "originalAtlasPages": [
     "atlas-d7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9.png",
     "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
@@ -15,42 +15,43 @@ export const ATLAS_STORAGE = {
     "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
     "atlas-47a7cda58edad50d058cabf38bf0b98d7d15cf85d789f2445fb483631a36f725.png",
     "atlas-98f0a3065d3dd4cef344d4fafb3c02d79babdcd752826b78e545ebd30c74b8cf.png",
-    "atlas-738f7fe337c28efeed9e77833f7da2d0df2cdf3d0321c63e058f282716360793.png",
+    "atlas-559f7263d2c67e371fce5a64dcb62ba1b88c2019169a231b67af4078ddf5cc06.png",
     "atlas-2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d.png",
-    "atlas-749df6a34d0f8edc0dceeb1f35e91e5f04da1b1a969969d3163668a1d0704f91.png",
-    "atlas-08fd6b28cc1a88ff55ba38ce4efe4035e5d2a350b920b43a979b84f926363b2e.png",
-    "atlas-5a4954a6bf45e0d7bbd3d2e52852b8acbd3591542d3ecf46a8f415cd9c6f865e.png",
-    "atlas-47cd69fdba6ec43637e1eef9faa61536000f2fcd332f50f71cc1a7d30dbf6187.png",
-    "atlas-5ac06bf2bbc98a5b3f68af5e602495aebe18249ef5d080c3adf1f576a90b5af2.png",
-    "atlas-c02b0fbeb39f846f18ef32a91f2b1cf4e4d39f214387e10f8d0c235776f4e1ac.png",
-    "atlas-dbddb7ecdaed0691e2c73f335c7d4cdbff3a89199158486dc5c85867fccad680.png",
-    "atlas-f5280f7d244e9eabffbff8e3340358315cfbb35866744be4396010faba88f186.png",
-    "atlas-5a586aae4aba7f9140d539379a2faa7945845372f2cbc162f564f34afa5e2675.png",
-    "atlas-17da1553f2b92cc54de336cb708d4de390aa20ee35b44f49fde85f0a34651a26.png",
-    "atlas-aa51f996f54b448e24ba35d99646a811815ff96ef221ddf53a9bd2ab6f24189f.png",
-    "atlas-11b3f860c13f57a3c767693c0a003631c92e2db31a15123b17873ba7badc1ec3.png",
-    "atlas-13ff827217ea408bb5024310074e2276fc9544b4210ac049b1a67a096b0595b0.png",
-    "atlas-c72fa7b7747edb861ddabde137bd6237e437a3542612cf589d1fc0fe07c9a815.png",
-    "atlas-6e68c44c20afa2a9fe7b58b498bc1c88bda8e2dcc9146d676c3355bb907bdb10.png",
-    "atlas-3534f95aa04a38ee3ccf645f388a016497a6f54636b9adb3506f05d92d67adf9.png",
-    "atlas-b9f04e40303db270072f473405b8c029f1b8bb4ffc563b42ec1515bc291206b6.png",
-    "atlas-5845e03f10e666ee7159c4d35d9178067a51eba7c717ad6349614bea8a93aa91.png",
-    "atlas-9b49aedcbda431d653f30f8bb7f4c2186d985db45f1d1cb6e03cdd998aadde3c.png",
+    "atlas-ccc3a47fcebf25c9920b91efdbb72be345586d3425c0331df220cbb61b3fcb42.png",
+    "atlas-962e7555dd6a890c24af82e8e656047bf98e0a21ef1cf62cf4d0ecacceb909c3.png",
+    "atlas-245ab62ba664c477aed5791c222f9d272108c7ae6bc8fcabf5de74c1a04b05d5.png",
+    "atlas-0f448969266ad359dfbc7f059f962a7ad434a1ae1e64f350d1caab3778570b7f.png",
+    "atlas-7d78d73c89e5152a096b1b0c2b0008114804983ef88f9134abd3d0e23ec23ac9.png",
+    "atlas-12f681b6123b6eb9403f72650dc240a6694ffac2fc82f91a2c50595e9d44c6b9.png",
+    "atlas-7ecad620b2e27c9bddb3d990fcb839863076b9f694b9a3854c60496f67f79797.png",
+    "atlas-3fecdc82deaec3299971f68507cc06865caa6f354d5a72941f7c0b7101b82c33.png",
+    "atlas-7ac48ff985fcd66f283b7385e35b60443fe1910543e76241dfe49b6f8a571f56.png",
+    "atlas-c58516c813f4d2ba5d47d176c6895ff4d6128efe54083bd374ef5b4aa84ad30c.png",
+    "atlas-ca1b84626dadad573408347c1b7414cce6ec2efb363d424dd41bcf9ef6d146be.png",
+    "atlas-37089cba88bd6c69e6c751eb2cd71bea92157e1514150b2fdb63178002e2b5b6.png",
+    "atlas-962c2537022e466b56f032fdedfd6292b4da46bd94efa74a4cf719dddb31baed.png",
+    "atlas-2d740e94910cc40801848a082cb7d3c0bbe8f2089d3e01d32051285cc6beb8de.png",
+    "atlas-6e6e80ee0dc0d332d7ff9b7032a3f2bbbfe3f4e04fd8e97cd40ce16747552fd9.png",
+    "atlas-bfe42156778ce42b5c0be63047a44f8f0a0aec49ace7884301bb848c5a2dcff7.png",
+    "atlas-2f6a6c559f3071707a8820dabe377705e0bc19055132929a888086852288a482.png",
+    "atlas-8a8e1551653e25167e87c6459edc0a7ed4978db4144e5ff8443352673a18d689.png",
+    "atlas-5614d3037df66346a6c4b867f27256d33a88a5a15df2fdab2a421367dd1b892c.png",
     "atlas-ba13dd135a8215251b36273ab8505724144056c7c243fed4403cba3c1d5863dc.png",
     "atlas-43d482de5de6aa3f79f4ef19b9a782f552b2fc79889d9d3b63f3c0349097a732.png",
     "atlas-8d459a0b158e6b61bf968d1f697796feb5e8b80f569285b95e5c872fd2390ab8.png",
-    "atlas-d1a1edf5e11e9683a19005a38c1b3f69a395d77601f07a5e25e39d4942c60d4f.png",
-    "atlas-fa4ca17bec646868f23d6119bfb6b9418483b3336b0b24044e583eb54b7fc9b3.png",
-    "atlas-8a3d9b25978f3382d4c66b17a6b82b45f6a6c176e9ff41d157cf9270c01afb97.png",
-    "atlas-c83f4b8b131d961c07ddc9528a21dbf807167d329a65a9743352a0eee1b99075.png",
+    "atlas-53ee52d50c9b4e63d04b14cdc6f7ffec73d461f21a7484381a2312a19bb57977.png",
+    "atlas-3bbbb69e5481cdbf8319fc88fc637aca137a542ef6193a3152805d4b6b58144e.png",
+    "atlas-52f17f002c9991902d85bd000efa96aebe53fba22a5fe0f1d4f3b12d1a78ab19.png",
+    "atlas-b16f564da1a8dfcf13d7967347798d4729fb282083535219c33e12f5cd486cc4.png",
     "atlas-8b23da9eab1fbecf639b7946d84904a4503014c406b41bfab03273cf395005d1.png",
-    "atlas-ff5370060ffd2eae21a989863890d0e4af3a9c52eedb8a87849f773c0cda27e7.png",
-    "atlas-6aea7c7f7001854319dbd78159eed061b66612eea80b1860259f6c67d27eef99.png",
-    "atlas-dab325d37835dbef600694d1ac637bd7e957f644d261f1a735455079649ee6cd.png",
-    "atlas-56a0315322b85439730edc16a01bfcabe4cc82899b5c962cadd685b2184307f3.png",
-    "atlas-0d15b3a8a811e502aef90000427d65814b59a7883d2a17106a8362dfdd9e7189.png",
-    "atlas-a28c7f575716a699c8b1c09214390dc93d13339c84c01c07f5b1370645caa038.png",
-    "atlas-76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a.png"
+    "atlas-c50b2aa784feda77d30919d11169257eae702b79ef25db3f5c97e63b77a6268b.png",
+    "atlas-19d677eb91bc11cbc4c43894719df06a43c2238b688c74959016f14493bb33b7.png",
+    "atlas-c6e5e5958a7a5bc202135daa3b19deb47ef72293c9a2e9587c6cfe0aba25c039.png",
+    "atlas-b9d017a35f86f5f5942c66783e53ef3e65f308b01bc586ec4f1ba28a12d9574e.png",
+    "atlas-6ad58c9226041b030e25d7db8bab07a422af2aab3033f01911117e63ead76947.png",
+    "atlas-bfdcc66fe0f1b026b32107ba2d0d72b1ff8698152dfea01fee4fc0f48b239882.png",
+    "atlas-76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a.png",
+    "atlas-4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c.png"
   ],
   "companions": [
     {
@@ -76,10 +77,10 @@ export const ATLAS_STORAGE = {
     },
     {
       "folder": "outdoor-depth",
-      "path": "depth-9074c82396ead70e7be2a3e0864e659374eb67360567f77f7582beb30323fd69.rgba",
+      "path": "depth-f2f68d141ab08fd5c449e56220ae9086d84f38fdca1033542e837fe40884205e.rgba",
       "width": 2048,
       "height": 2048,
-      "sha256": "9074c82396ead70e7be2a3e0864e659374eb67360567f77f7582beb30323fd69"
+      "sha256": "f2f68d141ab08fd5c449e56220ae9086d84f38fdca1033542e837fe40884205e"
     },
     {
       "folder": "shelf-depth",
@@ -176,10 +177,10 @@ export const ATLAS_STORAGE = {
       "sha256": "98f0a3065d3dd4cef344d4fafb3c02d79babdcd752826b78e545ebd30c74b8cf"
     },
     {
-      "file": "web/public/atlas-738f7fe337c28efeed9e77833f7da2d0df2cdf3d0321c63e058f282716360793.png",
+      "file": "web/public/atlas-559f7263d2c67e371fce5a64dcb62ba1b88c2019169a231b67af4078ddf5cc06.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "738f7fe337c28efeed9e77833f7da2d0df2cdf3d0321c63e058f282716360793"
+      "sha256": "559f7263d2c67e371fce5a64dcb62ba1b88c2019169a231b67af4078ddf5cc06"
     },
     {
       "file": "web/public/atlas-2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d.png",
@@ -188,118 +189,118 @@ export const ATLAS_STORAGE = {
       "sha256": "2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d"
     },
     {
-      "file": "web/public/atlas-749df6a34d0f8edc0dceeb1f35e91e5f04da1b1a969969d3163668a1d0704f91.png",
+      "file": "web/public/atlas-ccc3a47fcebf25c9920b91efdbb72be345586d3425c0331df220cbb61b3fcb42.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "749df6a34d0f8edc0dceeb1f35e91e5f04da1b1a969969d3163668a1d0704f91"
+      "sha256": "ccc3a47fcebf25c9920b91efdbb72be345586d3425c0331df220cbb61b3fcb42"
     },
     {
-      "file": "web/public/atlas-08fd6b28cc1a88ff55ba38ce4efe4035e5d2a350b920b43a979b84f926363b2e.png",
+      "file": "web/public/atlas-962e7555dd6a890c24af82e8e656047bf98e0a21ef1cf62cf4d0ecacceb909c3.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "08fd6b28cc1a88ff55ba38ce4efe4035e5d2a350b920b43a979b84f926363b2e"
+      "sha256": "962e7555dd6a890c24af82e8e656047bf98e0a21ef1cf62cf4d0ecacceb909c3"
     },
     {
-      "file": "web/public/atlas-5a4954a6bf45e0d7bbd3d2e52852b8acbd3591542d3ecf46a8f415cd9c6f865e.png",
+      "file": "web/public/atlas-245ab62ba664c477aed5791c222f9d272108c7ae6bc8fcabf5de74c1a04b05d5.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "5a4954a6bf45e0d7bbd3d2e52852b8acbd3591542d3ecf46a8f415cd9c6f865e"
+      "sha256": "245ab62ba664c477aed5791c222f9d272108c7ae6bc8fcabf5de74c1a04b05d5"
     },
     {
-      "file": "web/public/atlas-47cd69fdba6ec43637e1eef9faa61536000f2fcd332f50f71cc1a7d30dbf6187.png",
+      "file": "web/public/atlas-0f448969266ad359dfbc7f059f962a7ad434a1ae1e64f350d1caab3778570b7f.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "47cd69fdba6ec43637e1eef9faa61536000f2fcd332f50f71cc1a7d30dbf6187"
+      "sha256": "0f448969266ad359dfbc7f059f962a7ad434a1ae1e64f350d1caab3778570b7f"
     },
     {
-      "file": "web/public/atlas-5ac06bf2bbc98a5b3f68af5e602495aebe18249ef5d080c3adf1f576a90b5af2.png",
+      "file": "web/public/atlas-7d78d73c89e5152a096b1b0c2b0008114804983ef88f9134abd3d0e23ec23ac9.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "5ac06bf2bbc98a5b3f68af5e602495aebe18249ef5d080c3adf1f576a90b5af2"
+      "sha256": "7d78d73c89e5152a096b1b0c2b0008114804983ef88f9134abd3d0e23ec23ac9"
     },
     {
-      "file": "web/public/atlas-c02b0fbeb39f846f18ef32a91f2b1cf4e4d39f214387e10f8d0c235776f4e1ac.png",
+      "file": "web/public/atlas-12f681b6123b6eb9403f72650dc240a6694ffac2fc82f91a2c50595e9d44c6b9.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "c02b0fbeb39f846f18ef32a91f2b1cf4e4d39f214387e10f8d0c235776f4e1ac"
+      "sha256": "12f681b6123b6eb9403f72650dc240a6694ffac2fc82f91a2c50595e9d44c6b9"
     },
     {
-      "file": "web/public/atlas-dbddb7ecdaed0691e2c73f335c7d4cdbff3a89199158486dc5c85867fccad680.png",
+      "file": "web/public/atlas-7ecad620b2e27c9bddb3d990fcb839863076b9f694b9a3854c60496f67f79797.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "dbddb7ecdaed0691e2c73f335c7d4cdbff3a89199158486dc5c85867fccad680"
+      "sha256": "7ecad620b2e27c9bddb3d990fcb839863076b9f694b9a3854c60496f67f79797"
     },
     {
-      "file": "web/public/atlas-f5280f7d244e9eabffbff8e3340358315cfbb35866744be4396010faba88f186.png",
+      "file": "web/public/atlas-3fecdc82deaec3299971f68507cc06865caa6f354d5a72941f7c0b7101b82c33.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "f5280f7d244e9eabffbff8e3340358315cfbb35866744be4396010faba88f186"
+      "sha256": "3fecdc82deaec3299971f68507cc06865caa6f354d5a72941f7c0b7101b82c33"
     },
     {
-      "file": "web/public/atlas-5a586aae4aba7f9140d539379a2faa7945845372f2cbc162f564f34afa5e2675.png",
+      "file": "web/public/atlas-7ac48ff985fcd66f283b7385e35b60443fe1910543e76241dfe49b6f8a571f56.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "5a586aae4aba7f9140d539379a2faa7945845372f2cbc162f564f34afa5e2675"
+      "sha256": "7ac48ff985fcd66f283b7385e35b60443fe1910543e76241dfe49b6f8a571f56"
     },
     {
-      "file": "web/public/atlas-17da1553f2b92cc54de336cb708d4de390aa20ee35b44f49fde85f0a34651a26.png",
+      "file": "web/public/atlas-c58516c813f4d2ba5d47d176c6895ff4d6128efe54083bd374ef5b4aa84ad30c.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "17da1553f2b92cc54de336cb708d4de390aa20ee35b44f49fde85f0a34651a26"
+      "sha256": "c58516c813f4d2ba5d47d176c6895ff4d6128efe54083bd374ef5b4aa84ad30c"
     },
     {
-      "file": "web/public/atlas-aa51f996f54b448e24ba35d99646a811815ff96ef221ddf53a9bd2ab6f24189f.png",
+      "file": "web/public/atlas-ca1b84626dadad573408347c1b7414cce6ec2efb363d424dd41bcf9ef6d146be.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "aa51f996f54b448e24ba35d99646a811815ff96ef221ddf53a9bd2ab6f24189f"
+      "sha256": "ca1b84626dadad573408347c1b7414cce6ec2efb363d424dd41bcf9ef6d146be"
     },
     {
-      "file": "web/public/atlas-11b3f860c13f57a3c767693c0a003631c92e2db31a15123b17873ba7badc1ec3.png",
+      "file": "web/public/atlas-37089cba88bd6c69e6c751eb2cd71bea92157e1514150b2fdb63178002e2b5b6.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "11b3f860c13f57a3c767693c0a003631c92e2db31a15123b17873ba7badc1ec3"
+      "sha256": "37089cba88bd6c69e6c751eb2cd71bea92157e1514150b2fdb63178002e2b5b6"
     },
     {
-      "file": "web/public/atlas-13ff827217ea408bb5024310074e2276fc9544b4210ac049b1a67a096b0595b0.png",
+      "file": "web/public/atlas-962c2537022e466b56f032fdedfd6292b4da46bd94efa74a4cf719dddb31baed.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "13ff827217ea408bb5024310074e2276fc9544b4210ac049b1a67a096b0595b0"
+      "sha256": "962c2537022e466b56f032fdedfd6292b4da46bd94efa74a4cf719dddb31baed"
     },
     {
-      "file": "web/public/atlas-c72fa7b7747edb861ddabde137bd6237e437a3542612cf589d1fc0fe07c9a815.png",
+      "file": "web/public/atlas-2d740e94910cc40801848a082cb7d3c0bbe8f2089d3e01d32051285cc6beb8de.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "c72fa7b7747edb861ddabde137bd6237e437a3542612cf589d1fc0fe07c9a815"
+      "sha256": "2d740e94910cc40801848a082cb7d3c0bbe8f2089d3e01d32051285cc6beb8de"
     },
     {
-      "file": "web/public/atlas-6e68c44c20afa2a9fe7b58b498bc1c88bda8e2dcc9146d676c3355bb907bdb10.png",
+      "file": "web/public/atlas-6e6e80ee0dc0d332d7ff9b7032a3f2bbbfe3f4e04fd8e97cd40ce16747552fd9.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "6e68c44c20afa2a9fe7b58b498bc1c88bda8e2dcc9146d676c3355bb907bdb10"
+      "sha256": "6e6e80ee0dc0d332d7ff9b7032a3f2bbbfe3f4e04fd8e97cd40ce16747552fd9"
     },
     {
-      "file": "web/public/atlas-3534f95aa04a38ee3ccf645f388a016497a6f54636b9adb3506f05d92d67adf9.png",
+      "file": "web/public/atlas-bfe42156778ce42b5c0be63047a44f8f0a0aec49ace7884301bb848c5a2dcff7.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "3534f95aa04a38ee3ccf645f388a016497a6f54636b9adb3506f05d92d67adf9"
+      "sha256": "bfe42156778ce42b5c0be63047a44f8f0a0aec49ace7884301bb848c5a2dcff7"
     },
     {
-      "file": "web/public/atlas-b9f04e40303db270072f473405b8c029f1b8bb4ffc563b42ec1515bc291206b6.png",
+      "file": "web/public/atlas-2f6a6c559f3071707a8820dabe377705e0bc19055132929a888086852288a482.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "b9f04e40303db270072f473405b8c029f1b8bb4ffc563b42ec1515bc291206b6"
+      "sha256": "2f6a6c559f3071707a8820dabe377705e0bc19055132929a888086852288a482"
     },
     {
-      "file": "web/public/atlas-5845e03f10e666ee7159c4d35d9178067a51eba7c717ad6349614bea8a93aa91.png",
+      "file": "web/public/atlas-8a8e1551653e25167e87c6459edc0a7ed4978db4144e5ff8443352673a18d689.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "5845e03f10e666ee7159c4d35d9178067a51eba7c717ad6349614bea8a93aa91"
+      "sha256": "8a8e1551653e25167e87c6459edc0a7ed4978db4144e5ff8443352673a18d689"
     },
     {
-      "file": "web/public/atlas-9b49aedcbda431d653f30f8bb7f4c2186d985db45f1d1cb6e03cdd998aadde3c.png",
+      "file": "web/public/atlas-5614d3037df66346a6c4b867f27256d33a88a5a15df2fdab2a421367dd1b892c.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "9b49aedcbda431d653f30f8bb7f4c2186d985db45f1d1cb6e03cdd998aadde3c"
+      "sha256": "5614d3037df66346a6c4b867f27256d33a88a5a15df2fdab2a421367dd1b892c"
     },
     {
       "file": "web/public/atlas-ba13dd135a8215251b36273ab8505724144056c7c243fed4403cba3c1d5863dc.png",
@@ -320,28 +321,28 @@ export const ATLAS_STORAGE = {
       "sha256": "8d459a0b158e6b61bf968d1f697796feb5e8b80f569285b95e5c872fd2390ab8"
     },
     {
-      "file": "web/public/atlas-d1a1edf5e11e9683a19005a38c1b3f69a395d77601f07a5e25e39d4942c60d4f.png",
+      "file": "web/public/atlas-53ee52d50c9b4e63d04b14cdc6f7ffec73d461f21a7484381a2312a19bb57977.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "d1a1edf5e11e9683a19005a38c1b3f69a395d77601f07a5e25e39d4942c60d4f"
+      "sha256": "53ee52d50c9b4e63d04b14cdc6f7ffec73d461f21a7484381a2312a19bb57977"
     },
     {
-      "file": "web/public/atlas-fa4ca17bec646868f23d6119bfb6b9418483b3336b0b24044e583eb54b7fc9b3.png",
+      "file": "web/public/atlas-3bbbb69e5481cdbf8319fc88fc637aca137a542ef6193a3152805d4b6b58144e.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "fa4ca17bec646868f23d6119bfb6b9418483b3336b0b24044e583eb54b7fc9b3"
+      "sha256": "3bbbb69e5481cdbf8319fc88fc637aca137a542ef6193a3152805d4b6b58144e"
     },
     {
-      "file": "web/public/atlas-8a3d9b25978f3382d4c66b17a6b82b45f6a6c176e9ff41d157cf9270c01afb97.png",
+      "file": "web/public/atlas-52f17f002c9991902d85bd000efa96aebe53fba22a5fe0f1d4f3b12d1a78ab19.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "8a3d9b25978f3382d4c66b17a6b82b45f6a6c176e9ff41d157cf9270c01afb97"
+      "sha256": "52f17f002c9991902d85bd000efa96aebe53fba22a5fe0f1d4f3b12d1a78ab19"
     },
     {
-      "file": "web/public/atlas-c83f4b8b131d961c07ddc9528a21dbf807167d329a65a9743352a0eee1b99075.png",
+      "file": "web/public/atlas-b16f564da1a8dfcf13d7967347798d4729fb282083535219c33e12f5cd486cc4.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "c83f4b8b131d961c07ddc9528a21dbf807167d329a65a9743352a0eee1b99075"
+      "sha256": "b16f564da1a8dfcf13d7967347798d4729fb282083535219c33e12f5cd486cc4"
     },
     {
       "file": "web/public/atlas-8b23da9eab1fbecf639b7946d84904a4503014c406b41bfab03273cf395005d1.png",
@@ -350,46 +351,52 @@ export const ATLAS_STORAGE = {
       "sha256": "8b23da9eab1fbecf639b7946d84904a4503014c406b41bfab03273cf395005d1"
     },
     {
-      "file": "web/public/atlas-ff5370060ffd2eae21a989863890d0e4af3a9c52eedb8a87849f773c0cda27e7.png",
+      "file": "web/public/atlas-c50b2aa784feda77d30919d11169257eae702b79ef25db3f5c97e63b77a6268b.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "ff5370060ffd2eae21a989863890d0e4af3a9c52eedb8a87849f773c0cda27e7"
+      "sha256": "c50b2aa784feda77d30919d11169257eae702b79ef25db3f5c97e63b77a6268b"
     },
     {
-      "file": "web/public/atlas-6aea7c7f7001854319dbd78159eed061b66612eea80b1860259f6c67d27eef99.png",
+      "file": "web/public/atlas-19d677eb91bc11cbc4c43894719df06a43c2238b688c74959016f14493bb33b7.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "6aea7c7f7001854319dbd78159eed061b66612eea80b1860259f6c67d27eef99"
+      "sha256": "19d677eb91bc11cbc4c43894719df06a43c2238b688c74959016f14493bb33b7"
     },
     {
-      "file": "web/public/atlas-dab325d37835dbef600694d1ac637bd7e957f644d261f1a735455079649ee6cd.png",
+      "file": "web/public/atlas-c6e5e5958a7a5bc202135daa3b19deb47ef72293c9a2e9587c6cfe0aba25c039.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "dab325d37835dbef600694d1ac637bd7e957f644d261f1a735455079649ee6cd"
+      "sha256": "c6e5e5958a7a5bc202135daa3b19deb47ef72293c9a2e9587c6cfe0aba25c039"
     },
     {
-      "file": "web/public/atlas-56a0315322b85439730edc16a01bfcabe4cc82899b5c962cadd685b2184307f3.png",
+      "file": "web/public/atlas-b9d017a35f86f5f5942c66783e53ef3e65f308b01bc586ec4f1ba28a12d9574e.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "56a0315322b85439730edc16a01bfcabe4cc82899b5c962cadd685b2184307f3"
+      "sha256": "b9d017a35f86f5f5942c66783e53ef3e65f308b01bc586ec4f1ba28a12d9574e"
     },
     {
-      "file": "web/public/atlas-0d15b3a8a811e502aef90000427d65814b59a7883d2a17106a8362dfdd9e7189.png",
+      "file": "web/public/atlas-6ad58c9226041b030e25d7db8bab07a422af2aab3033f01911117e63ead76947.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "0d15b3a8a811e502aef90000427d65814b59a7883d2a17106a8362dfdd9e7189"
+      "sha256": "6ad58c9226041b030e25d7db8bab07a422af2aab3033f01911117e63ead76947"
     },
     {
-      "file": "web/public/atlas-a28c7f575716a699c8b1c09214390dc93d13339c84c01c07f5b1370645caa038.png",
+      "file": "web/public/atlas-bfdcc66fe0f1b026b32107ba2d0d72b1ff8698152dfea01fee4fc0f48b239882.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "a28c7f575716a699c8b1c09214390dc93d13339c84c01c07f5b1370645caa038"
+      "sha256": "bfdcc66fe0f1b026b32107ba2d0d72b1ff8698152dfea01fee4fc0f48b239882"
     },
     {
       "file": "web/public/atlas-76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a.png",
       "width": 2048,
       "height": 2048,
       "sha256": "76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a"
+    },
+    {
+      "file": "web/public/atlas-4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c.png",
+      "width": 2048,
+      "height": 2048,
+      "sha256": "4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c"
     },
     {
       "file": "web/public/grime/household-stains.png",
@@ -416,10 +423,10 @@ export const ATLAS_STORAGE = {
       "sha256": "09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012"
     },
     {
-      "file": "assets/models/sims/character-repair/outdoor-depth/depth-9074c82396ead70e7be2a3e0864e659374eb67360567f77f7582beb30323fd69.rgba",
+      "file": "assets/models/sims/character-repair/outdoor-depth/depth-f2f68d141ab08fd5c449e56220ae9086d84f38fdca1033542e837fe40884205e.rgba",
       "width": 2048,
       "height": 2048,
-      "sha256": "9074c82396ead70e7be2a3e0864e659374eb67360567f77f7582beb30323fd69"
+      "sha256": "f2f68d141ab08fd5c449e56220ae9086d84f38fdca1033542e837fe40884205e"
     },
     {
       "file": "assets/models/sims/character-repair/shelf-depth/depth-537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0.rgba",
@@ -480,91 +487,95 @@ export const ATLAS_STORAGE = {
       "sha256": "6d707e6736cf5fa866d2f08ce9617aa0b267397265124c1defd3848ee25f0d8d"
     },
     {
-      "file": "atlas-storage/page-a790dad6c61f7c6d7aa7d0c610fa342b48d067faa3d13c99a5bda73d3feb9e9c.png",
-      "sha256": "a790dad6c61f7c6d7aa7d0c610fa342b48d067faa3d13c99a5bda73d3feb9e9c"
+      "file": "atlas-storage/page-9153f2fcd59f3786409e0e1217399effc93daa5a91a9f9016f620d1ff61a421a.png",
+      "sha256": "9153f2fcd59f3786409e0e1217399effc93daa5a91a9f9016f620d1ff61a421a"
     },
     {
-      "file": "atlas-storage/page-b8a8ff64fe99f14ebf4443b81e97a6159c7861e5be8d1fc1bf60695de39d2390.png",
-      "sha256": "b8a8ff64fe99f14ebf4443b81e97a6159c7861e5be8d1fc1bf60695de39d2390"
+      "file": "atlas-storage/page-dd854787cfb12e89f69130375942c46428105842d6782ab5fa27b3758d61e524.png",
+      "sha256": "dd854787cfb12e89f69130375942c46428105842d6782ab5fa27b3758d61e524"
     },
     {
-      "file": "atlas-storage/page-fb4c3a8108dfe0462a57ade3a2412ba908a7af33293b3e80796ab29bb7e8a345.png",
-      "sha256": "fb4c3a8108dfe0462a57ade3a2412ba908a7af33293b3e80796ab29bb7e8a345"
+      "file": "atlas-storage/page-06af80664adf57e4181b65b5935b131f7b2a6f7d989ef390d76119e4de9ac288.png",
+      "sha256": "06af80664adf57e4181b65b5935b131f7b2a6f7d989ef390d76119e4de9ac288"
     },
     {
-      "file": "atlas-storage/page-5452c349a2108eb363a3a5581e0db474be22d8f40b3bb28cf07a1e9e04515fb3.png",
-      "sha256": "5452c349a2108eb363a3a5581e0db474be22d8f40b3bb28cf07a1e9e04515fb3"
+      "file": "atlas-storage/page-a881463a59dc50f2a0cc010da907850c70ea2db08a1a60635e0dd6c5ccb089a8.png",
+      "sha256": "a881463a59dc50f2a0cc010da907850c70ea2db08a1a60635e0dd6c5ccb089a8"
     },
     {
-      "file": "atlas-storage/page-139b2688f97e46344c6de5b4db372d9d8a8524d067728569f5394ee8c713f1ee.png",
-      "sha256": "139b2688f97e46344c6de5b4db372d9d8a8524d067728569f5394ee8c713f1ee"
+      "file": "atlas-storage/page-c7196de24b879c16852d8484c90d12edf4fa404e465dbc0593e23a55c7b4c4c6.png",
+      "sha256": "c7196de24b879c16852d8484c90d12edf4fa404e465dbc0593e23a55c7b4c4c6"
     },
     {
-      "file": "atlas-storage/page-e6450d2a99b43fe6c65af68962ac624b3df6025d228c871ac3a7d3575e546c87.png",
-      "sha256": "e6450d2a99b43fe6c65af68962ac624b3df6025d228c871ac3a7d3575e546c87"
+      "file": "atlas-storage/page-08346097c570238a669acdf1d77496d6da753306593d7c81aff5e4c059f4e0e6.png",
+      "sha256": "08346097c570238a669acdf1d77496d6da753306593d7c81aff5e4c059f4e0e6"
     },
     {
-      "file": "atlas-storage/page-0ac9b13f74adba76a83c34acf88b359a4f122283fb227638c029f217e5d9c6c4.png",
-      "sha256": "0ac9b13f74adba76a83c34acf88b359a4f122283fb227638c029f217e5d9c6c4"
+      "file": "atlas-storage/page-fbdee099a3a55bccd2fb86e566bc0353e2b518754b82ce94383d1903107342a5.png",
+      "sha256": "fbdee099a3a55bccd2fb86e566bc0353e2b518754b82ce94383d1903107342a5"
     },
     {
-      "file": "atlas-storage/page-797f555c2159775022ccf062932a1d331a88c3a4139df1a6836eaf6a28a6f09c.png",
-      "sha256": "797f555c2159775022ccf062932a1d331a88c3a4139df1a6836eaf6a28a6f09c"
+      "file": "atlas-storage/page-003d923f8a3d1851e6b0244a8a387a6fd95a0737b1d71011b73c12635576f31f.png",
+      "sha256": "003d923f8a3d1851e6b0244a8a387a6fd95a0737b1d71011b73c12635576f31f"
     },
     {
-      "file": "atlas-storage/page-fc17f781e01653379909dc8bd717b03d636aa8469e672985897d86be9ab4353d.png",
-      "sha256": "fc17f781e01653379909dc8bd717b03d636aa8469e672985897d86be9ab4353d"
+      "file": "atlas-storage/page-f3bfb21cfcc1d3b3b2ba235677a194078f6a29e1dc786ab7de0c56cae1947a50.png",
+      "sha256": "f3bfb21cfcc1d3b3b2ba235677a194078f6a29e1dc786ab7de0c56cae1947a50"
     },
     {
-      "file": "atlas-storage/page-9a001694b88ae35fc23377e3e3640dec15d16a3039c33c379ad1b80727441555.png",
-      "sha256": "9a001694b88ae35fc23377e3e3640dec15d16a3039c33c379ad1b80727441555"
+      "file": "atlas-storage/page-03f9cca52d81103424378d81bd1505d68224f3d1ceab808128c269ff7bbbbede.png",
+      "sha256": "03f9cca52d81103424378d81bd1505d68224f3d1ceab808128c269ff7bbbbede"
     },
     {
-      "file": "atlas-storage/page-99d86f5d5283da1f0fb53728e266d43997f4e9bcb5eeb1677e892ac991a595ef.png",
-      "sha256": "99d86f5d5283da1f0fb53728e266d43997f4e9bcb5eeb1677e892ac991a595ef"
+      "file": "atlas-storage/page-cfebffdb34e06caa2deaf39b32d1a6a6113d87b3793b38dc4bdf62732d197a87.png",
+      "sha256": "cfebffdb34e06caa2deaf39b32d1a6a6113d87b3793b38dc4bdf62732d197a87"
     },
     {
-      "file": "atlas-storage/page-7fa91d35f73a58f3ad095ba79cffeda7e34103b9e13ae60c2f5bf15b91461ee0.png",
-      "sha256": "7fa91d35f73a58f3ad095ba79cffeda7e34103b9e13ae60c2f5bf15b91461ee0"
+      "file": "atlas-storage/page-810c5e3bd457e37ece08c0b4dc7ac712d9692f97c157fd8a660fa399ab2e9cb7.png",
+      "sha256": "810c5e3bd457e37ece08c0b4dc7ac712d9692f97c157fd8a660fa399ab2e9cb7"
     },
     {
-      "file": "atlas-storage/page-d9a83c984f4b8157420ac22d1c9e8186dc740fda927627077f33b65edcf8574f.png",
-      "sha256": "d9a83c984f4b8157420ac22d1c9e8186dc740fda927627077f33b65edcf8574f"
+      "file": "atlas-storage/page-eab930c591f23beef2f62d01cd941d0034d75ee94baf7495808ef0204a8d5ea5.png",
+      "sha256": "eab930c591f23beef2f62d01cd941d0034d75ee94baf7495808ef0204a8d5ea5"
     },
     {
-      "file": "atlas-storage/page-06ff37682ce1f591220c622c0fb713481566731685800fa5c7dcf7b18a70c3b0.png",
-      "sha256": "06ff37682ce1f591220c622c0fb713481566731685800fa5c7dcf7b18a70c3b0"
+      "file": "atlas-storage/page-1cfef865d2369e47041876ac5b7f2bd85334260a7721e0d3586b0a85d13174bb.png",
+      "sha256": "1cfef865d2369e47041876ac5b7f2bd85334260a7721e0d3586b0a85d13174bb"
     },
     {
-      "file": "atlas-storage/page-fedbc0c2ff7ac59f1419312e9b02f844f085d7f8f0ee5b645925456fae82e53c.png",
-      "sha256": "fedbc0c2ff7ac59f1419312e9b02f844f085d7f8f0ee5b645925456fae82e53c"
+      "file": "atlas-storage/page-beae751e54acb3076c341d699591ebe6f26600b8f15e1f7a6a3abd3b35ab028c.png",
+      "sha256": "beae751e54acb3076c341d699591ebe6f26600b8f15e1f7a6a3abd3b35ab028c"
     },
     {
-      "file": "atlas-storage/page-b95b599d99cc690b4ebb5f6961d6eb0da9bd2b5b727f0588f0d2f01a23671862.png",
-      "sha256": "b95b599d99cc690b4ebb5f6961d6eb0da9bd2b5b727f0588f0d2f01a23671862"
+      "file": "atlas-storage/page-a5d13ef7e2d99577a2787dfedc72b54100be3ba95da9e2e600838bfd43717936.png",
+      "sha256": "a5d13ef7e2d99577a2787dfedc72b54100be3ba95da9e2e600838bfd43717936"
     },
     {
-      "file": "atlas-storage/page-fd249f3169c41b92dd6fe6e932224b135be0a72819a85519cb878cfcac89502e.png",
-      "sha256": "fd249f3169c41b92dd6fe6e932224b135be0a72819a85519cb878cfcac89502e"
+      "file": "atlas-storage/page-6d7ea95535ff11915731b89efee84b5e3ff08aae1d18602319213fafc65b438b.png",
+      "sha256": "6d7ea95535ff11915731b89efee84b5e3ff08aae1d18602319213fafc65b438b"
     },
     {
-      "file": "atlas-storage/page-6e9c9dcb4d7deb7a0bdaac992009ca816d8d98e38bc6071f986bfeef54e5f2eb.png",
-      "sha256": "6e9c9dcb4d7deb7a0bdaac992009ca816d8d98e38bc6071f986bfeef54e5f2eb"
+      "file": "atlas-storage/page-78bc1eff41fee7cc2e644e35c514142e7041eb50f36b97767894b94b00c1c9b7.png",
+      "sha256": "78bc1eff41fee7cc2e644e35c514142e7041eb50f36b97767894b94b00c1c9b7"
     },
     {
-      "file": "atlas-storage/page-cdd465ca73fd4e771aca9c547b8b2129c74ac829bd32729064c2e3035d0189f3.png",
-      "sha256": "cdd465ca73fd4e771aca9c547b8b2129c74ac829bd32729064c2e3035d0189f3"
+      "file": "atlas-storage/page-6dc1e9b3782398bfe55753f2293e493291dd583d6afb9873ea38ef33494899c3.png",
+      "sha256": "6dc1e9b3782398bfe55753f2293e493291dd583d6afb9873ea38ef33494899c3"
+    },
+    {
+      "file": "atlas-storage/page-3b6cb2c8684af12b55551be6af9e3593fa18b1f947aae217f77aceded6ad1387.png",
+      "sha256": "3b6cb2c8684af12b55551be6af9e3593fa18b1f947aae217f77aceded6ad1387"
     }
   ],
   "lookup": {
-    "file": "atlas-storage/lookup-d74919cc516589b1431ebc3d746608da495acad8704d270412bce34e4254e465.bin.gz",
-    "length": 14417924,
-    "sha256": "8c78bcb2e3eb5c2c4d23cae06e814a31e6fc5cd003fcd2c1e0a943b3c3c7503c"
+    "file": "atlas-storage/lookup-d5bbdb4f409f514d2e04207c6e0f98794a99a7ed9ba416c64e96fb3c8fbda66d.bin.gz",
+    "length": 14680068,
+    "sha256": "e547949129c09b73925485f19e3b9c0aa8faf72fc7d393857078cc74554c67c9"
   },
   "coverage": {
-    "file": "atlas-storage/coverage-b9f9713e70189a3870bd7900ffd1d82231c445aed8fa772a99892ab99b329815.bin.gz",
+    "file": "atlas-storage/coverage-d1a2a7687b209b0d8d56e3dbbfd949acd589030a58053fcef0385e00c157a54c.bin.gz",
     "length": 4326985,
-    "sha256": "06e96093f384ab0bafeb46d0e6a8582d63110eaabef9176a330df3931152fcda",
+    "sha256": "bdab41cd60977489137aaa0db223c1569650bb5f1a7fd147f046293655ef2cb9",
     "bodies": [
       {
         "sprite": 368,
@@ -12629,480 +12640,480 @@ export const ATLAS_STORAGE = {
       {
         "sprite": 1961,
         "opaque": [
-          3864528,
+          3887568,
           2752
         ],
         "partialPixels": [
-          3867280,
+          3890320,
           1668
         ],
         "partialAlpha": [
-          3873952,
+          3896992,
           1668
         ]
       },
       {
         "sprite": 1962,
         "opaque": [
-          3875620,
+          3898660,
           2752
         ],
         "partialPixels": [
-          3878372,
+          3901412,
           1681
         ],
         "partialAlpha": [
-          3885096,
+          3908136,
           1681
         ]
       },
       {
         "sprite": 1963,
         "opaque": [
-          3886780,
+          3909820,
           2752
         ],
         "partialPixels": [
-          3889532,
+          3912572,
           1685
         ],
         "partialAlpha": [
-          3896272,
+          3919312,
           1685
         ]
       },
       {
         "sprite": 1964,
         "opaque": [
-          3897960,
+          3921000,
           2752
         ],
         "partialPixels": [
-          3900712,
+          3923752,
           1624
         ],
         "partialAlpha": [
-          3907208,
+          3930248,
           1624
         ]
       },
       {
         "sprite": 1965,
         "opaque": [
-          3908832,
+          3931872,
           2752
         ],
         "partialPixels": [
-          3911584,
+          3934624,
           1612
         ],
         "partialAlpha": [
-          3918032,
+          3941072,
           1612
         ]
       },
       {
         "sprite": 1966,
         "opaque": [
-          3919644,
+          3942684,
           2752
         ],
         "partialPixels": [
-          3922396,
+          3945436,
           1627
         ],
         "partialAlpha": [
-          3928904,
+          3951944,
           1627
         ]
       },
       {
         "sprite": 1967,
         "opaque": [
-          3930532,
+          3953572,
           2752
         ],
         "partialPixels": [
-          3933284,
+          3956324,
           1697
         ],
         "partialAlpha": [
-          3940072,
+          3963112,
           1697
         ]
       },
       {
         "sprite": 1968,
         "opaque": [
-          3941772,
+          3964812,
           2752
         ],
         "partialPixels": [
-          3944524,
+          3967564,
           1683
         ],
         "partialAlpha": [
-          3951256,
+          3974296,
           1683
         ]
       },
       {
         "sprite": 1969,
         "opaque": [
-          3952940,
+          3975980,
           2752
         ],
         "partialPixels": [
-          3955692,
+          3978732,
           1438
         ],
         "partialAlpha": [
-          3961444,
+          3984484,
           1438
         ]
       },
       {
         "sprite": 1970,
         "opaque": [
-          3962884,
+          3985924,
           2752
         ],
         "partialPixels": [
-          3965636,
+          3988676,
           1432
         ],
         "partialAlpha": [
-          3971364,
+          3994404,
           1432
         ]
       },
       {
         "sprite": 1971,
         "opaque": [
-          3972796,
+          3995836,
           2752
         ],
         "partialPixels": [
-          3975548,
+          3998588,
           1477
         ],
         "partialAlpha": [
-          3981456,
+          4004496,
           1477
         ]
       },
       {
         "sprite": 1972,
         "opaque": [
-          3982936,
+          4005976,
           2752
         ],
         "partialPixels": [
-          3985688,
+          4008728,
           1441
         ],
         "partialAlpha": [
-          3991452,
+          4014492,
           1441
         ]
       },
       {
         "sprite": 1973,
         "opaque": [
-          3992896,
+          4015936,
           2752
         ],
         "partialPixels": [
-          3995648,
+          4018688,
           1411
         ],
         "partialAlpha": [
-          4001292,
+          4024332,
           1411
         ]
       },
       {
         "sprite": 1974,
         "opaque": [
-          4002704,
+          4025744,
           2752
         ],
         "partialPixels": [
-          4005456,
+          4028496,
           1427
         ],
         "partialAlpha": [
-          4011164,
+          4034204,
           1427
         ]
       },
       {
         "sprite": 1975,
         "opaque": [
-          4012592,
+          4035632,
           2752
         ],
         "partialPixels": [
-          4015344,
+          4038384,
           1482
         ],
         "partialAlpha": [
-          4021272,
+          4044312,
           1482
         ]
       },
       {
         "sprite": 1976,
         "opaque": [
-          4022756,
+          4045796,
           2752
         ],
         "partialPixels": [
-          4025508,
+          4048548,
           1419
         ],
         "partialAlpha": [
-          4031184,
+          4054224,
           1419
         ]
       },
       {
         "sprite": 1977,
         "opaque": [
-          4032604,
+          4055644,
           2752
         ],
         "partialPixels": [
-          4035356,
+          4058396,
           1710
         ],
         "partialAlpha": [
-          4042196,
+          4065236,
           1710
         ]
       },
       {
         "sprite": 1978,
         "opaque": [
-          4043908,
+          4066948,
           2752
         ],
         "partialPixels": [
-          4046660,
+          4069700,
           1680
         ],
         "partialAlpha": [
-          4053380,
+          4076420,
           1680
         ]
       },
       {
         "sprite": 1979,
         "opaque": [
-          4055060,
+          4078100,
           2752
         ],
         "partialPixels": [
-          4057812,
+          4080852,
           1692
         ],
         "partialAlpha": [
-          4064580,
+          4087620,
           1692
         ]
       },
       {
         "sprite": 1980,
         "opaque": [
-          4066272,
+          4089312,
           2752
         ],
         "partialPixels": [
-          4069024,
+          4092064,
           1694
         ],
         "partialAlpha": [
-          4075800,
+          4098840,
           1694
         ]
       },
       {
         "sprite": 1981,
         "opaque": [
-          4077496,
+          4100536,
           2752
         ],
         "partialPixels": [
-          4080248,
+          4103288,
           1703
         ],
         "partialAlpha": [
-          4087060,
+          4110100,
           1703
         ]
       },
       {
         "sprite": 1982,
         "opaque": [
-          4088764,
+          4111804,
           2752
         ],
         "partialPixels": [
-          4091516,
+          4114556,
           1711
         ],
         "partialAlpha": [
-          4098360,
+          4121400,
           1711
         ]
       },
       {
         "sprite": 1983,
         "opaque": [
-          4100072,
+          4123112,
           2752
         ],
         "partialPixels": [
-          4102824,
+          4125864,
           1716
         ],
         "partialAlpha": [
-          4109688,
+          4132728,
           1716
         ]
       },
       {
         "sprite": 1984,
         "opaque": [
-          4111404,
+          4134444,
           2752
         ],
         "partialPixels": [
-          4114156,
+          4137196,
           1697
         ],
         "partialAlpha": [
-          4120944,
+          4143984,
           1697
         ]
       },
       {
         "sprite": 1985,
         "opaque": [
-          4122644,
+          4145684,
           2752
         ],
         "partialPixels": [
-          4125396,
+          4148436,
           1432
         ],
         "partialAlpha": [
-          4131124,
+          4154164,
           1432
         ]
       },
       {
         "sprite": 1986,
         "opaque": [
-          4132556,
+          4155596,
           2752
         ],
         "partialPixels": [
-          4135308,
+          4158348,
           1428
         ],
         "partialAlpha": [
-          4141020,
+          4164060,
           1428
         ]
       },
       {
         "sprite": 1987,
         "opaque": [
-          4142448,
+          4165488,
           2752
         ],
         "partialPixels": [
-          4145200,
+          4168240,
           1437
         ],
         "partialAlpha": [
-          4150948,
+          4173988,
           1437
         ]
       },
       {
         "sprite": 1988,
         "opaque": [
-          4152388,
+          4175428,
           2752
         ],
         "partialPixels": [
-          4155140,
+          4178180,
           1433
         ],
         "partialAlpha": [
-          4160872,
+          4183912,
           1433
         ]
       },
       {
         "sprite": 1989,
         "opaque": [
-          4162308,
+          4185348,
           2752
         ],
         "partialPixels": [
-          4165060,
+          4188100,
           1430
         ],
         "partialAlpha": [
-          4170780,
+          4193820,
           1430
         ]
       },
       {
         "sprite": 1990,
         "opaque": [
-          4172212,
+          4195252,
           2752
         ],
         "partialPixels": [
-          4174964,
+          4198004,
           1425
         ],
         "partialAlpha": [
-          4180664,
+          4203704,
           1425
         ]
       },
       {
         "sprite": 1991,
         "opaque": [
-          4182092,
+          4205132,
           2752
         ],
         "partialPixels": [
-          4184844,
+          4207884,
           1436
         ],
         "partialAlpha": [
-          4190588,
+          4213628,
           1436
         ]
       },
       {
         "sprite": 1992,
         "opaque": [
-          4192024,
+          4215064,
           2752
         ],
         "partialPixels": [
-          4194776,
+          4217816,
           1422
         ],
         "partialAlpha": [
-          4200464,
+          4223504,
           1422
         ]
       },
@@ -14309,480 +14320,480 @@ export const ATLAS_STORAGE = {
       {
         "sprite": 2073,
         "opaque": [
-          3864528,
+          3887568,
           2752
         ],
         "partialPixels": [
-          3867280,
+          3890320,
           1668
         ],
         "partialAlpha": [
-          3873952,
+          3896992,
           1668
         ]
       },
       {
         "sprite": 2074,
         "opaque": [
-          3875620,
+          3898660,
           2752
         ],
         "partialPixels": [
-          3878372,
+          3901412,
           1681
         ],
         "partialAlpha": [
-          3885096,
+          3908136,
           1681
         ]
       },
       {
         "sprite": 2075,
         "opaque": [
-          3886780,
+          3909820,
           2752
         ],
         "partialPixels": [
-          3889532,
+          3912572,
           1685
         ],
         "partialAlpha": [
-          3896272,
+          3919312,
           1685
         ]
       },
       {
         "sprite": 2076,
         "opaque": [
-          3897960,
+          3921000,
           2752
         ],
         "partialPixels": [
-          3900712,
+          3923752,
           1624
         ],
         "partialAlpha": [
-          3907208,
+          3930248,
           1624
         ]
       },
       {
         "sprite": 2077,
         "opaque": [
-          3908832,
+          3931872,
           2752
         ],
         "partialPixels": [
-          3911584,
+          3934624,
           1612
         ],
         "partialAlpha": [
-          3918032,
+          3941072,
           1612
         ]
       },
       {
         "sprite": 2078,
         "opaque": [
-          3919644,
+          3942684,
           2752
         ],
         "partialPixels": [
-          3922396,
+          3945436,
           1627
         ],
         "partialAlpha": [
-          3928904,
+          3951944,
           1627
         ]
       },
       {
         "sprite": 2079,
         "opaque": [
-          3930532,
+          3953572,
           2752
         ],
         "partialPixels": [
-          3933284,
+          3956324,
           1697
         ],
         "partialAlpha": [
-          3940072,
+          3963112,
           1697
         ]
       },
       {
         "sprite": 2080,
         "opaque": [
-          3941772,
+          3964812,
           2752
         ],
         "partialPixels": [
-          3944524,
+          3967564,
           1683
         ],
         "partialAlpha": [
-          3951256,
+          3974296,
           1683
         ]
       },
       {
         "sprite": 2081,
         "opaque": [
-          3952940,
+          3975980,
           2752
         ],
         "partialPixels": [
-          3955692,
+          3978732,
           1438
         ],
         "partialAlpha": [
-          3961444,
+          3984484,
           1438
         ]
       },
       {
         "sprite": 2082,
         "opaque": [
-          3962884,
+          3985924,
           2752
         ],
         "partialPixels": [
-          3965636,
+          3988676,
           1432
         ],
         "partialAlpha": [
-          3971364,
+          3994404,
           1432
         ]
       },
       {
         "sprite": 2083,
         "opaque": [
-          3972796,
+          3995836,
           2752
         ],
         "partialPixels": [
-          3975548,
+          3998588,
           1477
         ],
         "partialAlpha": [
-          3981456,
+          4004496,
           1477
         ]
       },
       {
         "sprite": 2084,
         "opaque": [
-          3982936,
+          4005976,
           2752
         ],
         "partialPixels": [
-          3985688,
+          4008728,
           1441
         ],
         "partialAlpha": [
-          3991452,
+          4014492,
           1441
         ]
       },
       {
         "sprite": 2085,
         "opaque": [
-          3992896,
+          4015936,
           2752
         ],
         "partialPixels": [
-          3995648,
+          4018688,
           1411
         ],
         "partialAlpha": [
-          4001292,
+          4024332,
           1411
         ]
       },
       {
         "sprite": 2086,
         "opaque": [
-          4002704,
+          4025744,
           2752
         ],
         "partialPixels": [
-          4005456,
+          4028496,
           1427
         ],
         "partialAlpha": [
-          4011164,
+          4034204,
           1427
         ]
       },
       {
         "sprite": 2087,
         "opaque": [
-          4012592,
+          4035632,
           2752
         ],
         "partialPixels": [
-          4015344,
+          4038384,
           1482
         ],
         "partialAlpha": [
-          4021272,
+          4044312,
           1482
         ]
       },
       {
         "sprite": 2088,
         "opaque": [
-          4022756,
+          4045796,
           2752
         ],
         "partialPixels": [
-          4025508,
+          4048548,
           1419
         ],
         "partialAlpha": [
-          4031184,
+          4054224,
           1419
         ]
       },
       {
         "sprite": 2089,
         "opaque": [
-          4032604,
+          4055644,
           2752
         ],
         "partialPixels": [
-          4035356,
+          4058396,
           1710
         ],
         "partialAlpha": [
-          4042196,
+          4065236,
           1710
         ]
       },
       {
         "sprite": 2090,
         "opaque": [
-          4043908,
+          4066948,
           2752
         ],
         "partialPixels": [
-          4046660,
+          4069700,
           1680
         ],
         "partialAlpha": [
-          4053380,
+          4076420,
           1680
         ]
       },
       {
         "sprite": 2091,
         "opaque": [
-          4055060,
+          4078100,
           2752
         ],
         "partialPixels": [
-          4057812,
+          4080852,
           1692
         ],
         "partialAlpha": [
-          4064580,
+          4087620,
           1692
         ]
       },
       {
         "sprite": 2092,
         "opaque": [
-          4066272,
+          4089312,
           2752
         ],
         "partialPixels": [
-          4069024,
+          4092064,
           1694
         ],
         "partialAlpha": [
-          4075800,
+          4098840,
           1694
         ]
       },
       {
         "sprite": 2093,
         "opaque": [
-          4077496,
+          4100536,
           2752
         ],
         "partialPixels": [
-          4080248,
+          4103288,
           1703
         ],
         "partialAlpha": [
-          4087060,
+          4110100,
           1703
         ]
       },
       {
         "sprite": 2094,
         "opaque": [
-          4088764,
+          4111804,
           2752
         ],
         "partialPixels": [
-          4091516,
+          4114556,
           1711
         ],
         "partialAlpha": [
-          4098360,
+          4121400,
           1711
         ]
       },
       {
         "sprite": 2095,
         "opaque": [
-          4100072,
+          4123112,
           2752
         ],
         "partialPixels": [
-          4102824,
+          4125864,
           1716
         ],
         "partialAlpha": [
-          4109688,
+          4132728,
           1716
         ]
       },
       {
         "sprite": 2096,
         "opaque": [
-          4111404,
+          4134444,
           2752
         ],
         "partialPixels": [
-          4114156,
+          4137196,
           1697
         ],
         "partialAlpha": [
-          4120944,
+          4143984,
           1697
         ]
       },
       {
         "sprite": 2097,
         "opaque": [
-          4122644,
+          4145684,
           2752
         ],
         "partialPixels": [
-          4125396,
+          4148436,
           1432
         ],
         "partialAlpha": [
-          4131124,
+          4154164,
           1432
         ]
       },
       {
         "sprite": 2098,
         "opaque": [
-          4132556,
+          4155596,
           2752
         ],
         "partialPixels": [
-          4135308,
+          4158348,
           1428
         ],
         "partialAlpha": [
-          4141020,
+          4164060,
           1428
         ]
       },
       {
         "sprite": 2099,
         "opaque": [
-          4142448,
+          4165488,
           2752
         ],
         "partialPixels": [
-          4145200,
+          4168240,
           1437
         ],
         "partialAlpha": [
-          4150948,
+          4173988,
           1437
         ]
       },
       {
         "sprite": 2100,
         "opaque": [
-          4152388,
+          4175428,
           2752
         ],
         "partialPixels": [
-          4155140,
+          4178180,
           1433
         ],
         "partialAlpha": [
-          4160872,
+          4183912,
           1433
         ]
       },
       {
         "sprite": 2101,
         "opaque": [
-          4162308,
+          4185348,
           2752
         ],
         "partialPixels": [
-          4165060,
+          4188100,
           1430
         ],
         "partialAlpha": [
-          4170780,
+          4193820,
           1430
         ]
       },
       {
         "sprite": 2102,
         "opaque": [
-          4172212,
+          4195252,
           2752
         ],
         "partialPixels": [
-          4174964,
+          4198004,
           1425
         ],
         "partialAlpha": [
-          4180664,
+          4203704,
           1425
         ]
       },
       {
         "sprite": 2103,
         "opaque": [
-          4182092,
+          4205132,
           2752
         ],
         "partialPixels": [
-          4184844,
+          4207884,
           1436
         ],
         "partialAlpha": [
-          4190588,
+          4213628,
           1436
         ]
       },
       {
         "sprite": 2104,
         "opaque": [
-          4192024,
+          4215064,
           2752
         ],
         "partialPixels": [
-          4194776,
+          4217816,
           1422
         ],
         "partialAlpha": [
-          4200464,
+          4223504,
           1422
         ]
       },
@@ -15989,480 +16000,480 @@ export const ATLAS_STORAGE = {
       {
         "sprite": 2185,
         "opaque": [
-          3864528,
+          3887568,
           2752
         ],
         "partialPixels": [
-          3867280,
+          3890320,
           1668
         ],
         "partialAlpha": [
-          3873952,
+          3896992,
           1668
         ]
       },
       {
         "sprite": 2186,
         "opaque": [
-          3875620,
+          3898660,
           2752
         ],
         "partialPixels": [
-          3878372,
+          3901412,
           1681
         ],
         "partialAlpha": [
-          3885096,
+          3908136,
           1681
         ]
       },
       {
         "sprite": 2187,
         "opaque": [
-          3886780,
+          3909820,
           2752
         ],
         "partialPixels": [
-          3889532,
+          3912572,
           1685
         ],
         "partialAlpha": [
-          3896272,
+          3919312,
           1685
         ]
       },
       {
         "sprite": 2188,
         "opaque": [
-          3897960,
+          3921000,
           2752
         ],
         "partialPixels": [
-          3900712,
+          3923752,
           1624
         ],
         "partialAlpha": [
-          3907208,
+          3930248,
           1624
         ]
       },
       {
         "sprite": 2189,
         "opaque": [
-          3908832,
+          3931872,
           2752
         ],
         "partialPixels": [
-          3911584,
+          3934624,
           1612
         ],
         "partialAlpha": [
-          3918032,
+          3941072,
           1612
         ]
       },
       {
         "sprite": 2190,
         "opaque": [
-          3919644,
+          3942684,
           2752
         ],
         "partialPixels": [
-          3922396,
+          3945436,
           1627
         ],
         "partialAlpha": [
-          3928904,
+          3951944,
           1627
         ]
       },
       {
         "sprite": 2191,
         "opaque": [
-          3930532,
+          3953572,
           2752
         ],
         "partialPixels": [
-          3933284,
+          3956324,
           1697
         ],
         "partialAlpha": [
-          3940072,
+          3963112,
           1697
         ]
       },
       {
         "sprite": 2192,
         "opaque": [
-          3941772,
+          3964812,
           2752
         ],
         "partialPixels": [
-          3944524,
+          3967564,
           1683
         ],
         "partialAlpha": [
-          3951256,
+          3974296,
           1683
         ]
       },
       {
         "sprite": 2193,
         "opaque": [
-          3952940,
+          3975980,
           2752
         ],
         "partialPixels": [
-          3955692,
+          3978732,
           1438
         ],
         "partialAlpha": [
-          3961444,
+          3984484,
           1438
         ]
       },
       {
         "sprite": 2194,
         "opaque": [
-          3962884,
+          3985924,
           2752
         ],
         "partialPixels": [
-          3965636,
+          3988676,
           1432
         ],
         "partialAlpha": [
-          3971364,
+          3994404,
           1432
         ]
       },
       {
         "sprite": 2195,
         "opaque": [
-          3972796,
+          3995836,
           2752
         ],
         "partialPixels": [
-          3975548,
+          3998588,
           1477
         ],
         "partialAlpha": [
-          3981456,
+          4004496,
           1477
         ]
       },
       {
         "sprite": 2196,
         "opaque": [
-          3982936,
+          4005976,
           2752
         ],
         "partialPixels": [
-          3985688,
+          4008728,
           1441
         ],
         "partialAlpha": [
-          3991452,
+          4014492,
           1441
         ]
       },
       {
         "sprite": 2197,
         "opaque": [
-          3992896,
+          4015936,
           2752
         ],
         "partialPixels": [
-          3995648,
+          4018688,
           1411
         ],
         "partialAlpha": [
-          4001292,
+          4024332,
           1411
         ]
       },
       {
         "sprite": 2198,
         "opaque": [
-          4002704,
+          4025744,
           2752
         ],
         "partialPixels": [
-          4005456,
+          4028496,
           1427
         ],
         "partialAlpha": [
-          4011164,
+          4034204,
           1427
         ]
       },
       {
         "sprite": 2199,
         "opaque": [
-          4012592,
+          4035632,
           2752
         ],
         "partialPixels": [
-          4015344,
+          4038384,
           1482
         ],
         "partialAlpha": [
-          4021272,
+          4044312,
           1482
         ]
       },
       {
         "sprite": 2200,
         "opaque": [
-          4022756,
+          4045796,
           2752
         ],
         "partialPixels": [
-          4025508,
+          4048548,
           1419
         ],
         "partialAlpha": [
-          4031184,
+          4054224,
           1419
         ]
       },
       {
         "sprite": 2201,
         "opaque": [
-          4032604,
+          4055644,
           2752
         ],
         "partialPixels": [
-          4035356,
+          4058396,
           1710
         ],
         "partialAlpha": [
-          4042196,
+          4065236,
           1710
         ]
       },
       {
         "sprite": 2202,
         "opaque": [
-          4043908,
+          4066948,
           2752
         ],
         "partialPixels": [
-          4046660,
+          4069700,
           1680
         ],
         "partialAlpha": [
-          4053380,
+          4076420,
           1680
         ]
       },
       {
         "sprite": 2203,
         "opaque": [
-          4055060,
+          4078100,
           2752
         ],
         "partialPixels": [
-          4057812,
+          4080852,
           1692
         ],
         "partialAlpha": [
-          4064580,
+          4087620,
           1692
         ]
       },
       {
         "sprite": 2204,
         "opaque": [
-          4066272,
+          4089312,
           2752
         ],
         "partialPixels": [
-          4069024,
+          4092064,
           1694
         ],
         "partialAlpha": [
-          4075800,
+          4098840,
           1694
         ]
       },
       {
         "sprite": 2205,
         "opaque": [
-          4077496,
+          4100536,
           2752
         ],
         "partialPixels": [
-          4080248,
+          4103288,
           1703
         ],
         "partialAlpha": [
-          4087060,
+          4110100,
           1703
         ]
       },
       {
         "sprite": 2206,
         "opaque": [
-          4088764,
+          4111804,
           2752
         ],
         "partialPixels": [
-          4091516,
+          4114556,
           1711
         ],
         "partialAlpha": [
-          4098360,
+          4121400,
           1711
         ]
       },
       {
         "sprite": 2207,
         "opaque": [
-          4100072,
+          4123112,
           2752
         ],
         "partialPixels": [
-          4102824,
+          4125864,
           1716
         ],
         "partialAlpha": [
-          4109688,
+          4132728,
           1716
         ]
       },
       {
         "sprite": 2208,
         "opaque": [
-          4111404,
+          4134444,
           2752
         ],
         "partialPixels": [
-          4114156,
+          4137196,
           1697
         ],
         "partialAlpha": [
-          4120944,
+          4143984,
           1697
         ]
       },
       {
         "sprite": 2209,
         "opaque": [
-          4122644,
+          4145684,
           2752
         ],
         "partialPixels": [
-          4125396,
+          4148436,
           1432
         ],
         "partialAlpha": [
-          4131124,
+          4154164,
           1432
         ]
       },
       {
         "sprite": 2210,
         "opaque": [
-          4132556,
+          4155596,
           2752
         ],
         "partialPixels": [
-          4135308,
+          4158348,
           1428
         ],
         "partialAlpha": [
-          4141020,
+          4164060,
           1428
         ]
       },
       {
         "sprite": 2211,
         "opaque": [
-          4142448,
+          4165488,
           2752
         ],
         "partialPixels": [
-          4145200,
+          4168240,
           1437
         ],
         "partialAlpha": [
-          4150948,
+          4173988,
           1437
         ]
       },
       {
         "sprite": 2212,
         "opaque": [
-          4152388,
+          4175428,
           2752
         ],
         "partialPixels": [
-          4155140,
+          4178180,
           1433
         ],
         "partialAlpha": [
-          4160872,
+          4183912,
           1433
         ]
       },
       {
         "sprite": 2213,
         "opaque": [
-          4162308,
+          4185348,
           2752
         ],
         "partialPixels": [
-          4165060,
+          4188100,
           1430
         ],
         "partialAlpha": [
-          4170780,
+          4193820,
           1430
         ]
       },
       {
         "sprite": 2214,
         "opaque": [
-          4172212,
+          4195252,
           2752
         ],
         "partialPixels": [
-          4174964,
+          4198004,
           1425
         ],
         "partialAlpha": [
-          4180664,
+          4203704,
           1425
         ]
       },
       {
         "sprite": 2215,
         "opaque": [
-          4182092,
+          4205132,
           2752
         ],
         "partialPixels": [
-          4184844,
+          4207884,
           1436
         ],
         "partialAlpha": [
-          4190588,
+          4213628,
           1436
         ]
       },
       {
         "sprite": 2216,
         "opaque": [
-          4192024,
+          4215064,
           2752
         ],
         "partialPixels": [
-          4194776,
+          4217816,
           1422
         ],
         "partialAlpha": [
-          4200464,
+          4223504,
           1422
         ]
       },
@@ -22019,84 +22030,84 @@ export const ATLAS_STORAGE = {
       {
         "sprite": 1540,
         "alpha": [
-          4201888,
+          3864528,
           2304
         ]
       },
       {
         "sprite": 1541,
         "alpha": [
-          4204192,
+          3866832,
           2304
         ]
       },
       {
         "sprite": 1542,
         "alpha": [
-          4204192,
+          3866832,
           2304
         ]
       },
       {
         "sprite": 1543,
         "alpha": [
-          4201888,
+          3864528,
           2304
         ]
       },
       {
         "sprite": 1544,
         "alpha": [
-          4206496,
+          3869136,
           2304
         ]
       },
       {
         "sprite": 1545,
         "alpha": [
-          4208800,
+          3871440,
           2304
         ]
       },
       {
         "sprite": 1546,
         "alpha": [
-          4211104,
+          3873744,
           2304
         ]
       },
       {
         "sprite": 1547,
         "alpha": [
-          4213408,
+          3876048,
           2304
         ]
       },
       {
         "sprite": 1548,
         "alpha": [
-          4215712,
+          3878352,
           2304
         ]
       },
       {
         "sprite": 1549,
         "alpha": [
-          4218016,
+          3880656,
           2304
         ]
       },
       {
         "sprite": 1550,
         "alpha": [
-          4220320,
+          3882960,
           2304
         ]
       },
       {
         "sprite": 1551,
         "alpha": [
-          4222624,
+          3885264,
           2304
         ]
       }
@@ -22351,22 +22362,6 @@ export const ATLAS_STORAGE = {
         "bottomPixels": 41.5
       },
       {
-        "sprite": 30939,
-        "bottomPixels": 41.5
-      },
-      {
-        "sprite": 30940,
-        "bottomPixels": 41.5
-      },
-      {
-        "sprite": 30941,
-        "bottomPixels": 41.5
-      },
-      {
-        "sprite": 30942,
-        "bottomPixels": 41.5
-      },
-      {
         "sprite": 30943,
         "bottomPixels": 41.5
       },
@@ -22428,6 +22423,22 @@ export const ATLAS_STORAGE = {
       },
       {
         "sprite": 30958,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30959,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30960,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30961,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30962,
         "bottomPixels": 41.5
       }
     ]

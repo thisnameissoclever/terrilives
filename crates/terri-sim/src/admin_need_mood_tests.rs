@@ -3,7 +3,7 @@
 //! No edit writes a person's need mood balance. A need edit changes only
 //! what accrues on later ticks, as refilling a need in play does. These
 //! tests prove that every edit that writes a need keeps the balance, saves
-//! at schema 27 and reloads with the same hash, and that Undo restores the
+//! at schema 28 and reloads with the same hash, and that Undo restores the
 //! balance with the rest of the world. A schema 24 baseline would drop it,
 //! so the rebuilt world would not match the hash recorded at open.
 use crate::admin_test_support::*;
@@ -54,7 +54,7 @@ fn need_changes(sim: u32) -> Vec<Vec<AdminEdit>> {
 }
 
 #[test]
-fn need_edits_keep_each_balance_and_survive_a_schema_27_save() {
+fn need_edits_keep_each_balance_and_survive_a_schema_28_save() {
     let (mut sim, ids) = with_balances();
     let held = balances(&sim, &ids);
     assert!(held.iter().all(Option::is_some), "every person holds one");
@@ -64,10 +64,10 @@ fn need_edits_keep_each_balance_and_survive_a_schema_27_save() {
         assert_eq!(sim.admin_apply(change(edits.clone())), Ok(depth + 1));
         assert_ne!(sim.world_hash(), before, "{edits:?} moves the hash");
         assert_eq!(balances(&sim, &ids), held, "{edits:?} keeps every balance");
-        let snapshot = sim.try_save_snapshot_v27().expect("saves");
+        let snapshot = sim.try_save_snapshot_v28().expect("saves");
         assert_eq!(snapshot.need_mood.len(), ids.len(), "{edits:?}");
         let mut loaded = Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v27(snapshot).expect("the save loads");
+        loaded.load_snapshot_v28(snapshot).expect("the save loads");
         assert_eq!(loaded.world_hash(), sim.world_hash(), "{edits:?}");
         assert_eq!(balances(&loaded, &ids), held, "{edits:?}");
     }
@@ -104,10 +104,10 @@ fn an_emptied_need_charges_the_balance_after_the_panel_closes() {
         value: 0.0,
     }]))
     .expect("applies");
-    let snapshot = live.try_save_snapshot_v27().expect("saves");
+    let snapshot = live.try_save_snapshot_v28().expect("saves");
     live.end_admin();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v27(snapshot).expect("loads");
+    loaded.load_snapshot_v28(snapshot).expect("loads");
     let start = balances(&live, &[first])[0].expect("a balance").0;
     let loss = live
         .world()

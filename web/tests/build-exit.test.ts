@@ -139,7 +139,7 @@ const REFUSED = 'Move the furniture somewhere it fits, or choose Cancel beside i
 const ROLLBACK_FAILED = 'Changes could not be cancelled. Build mode remains open.';
 
 /** Build mode wired as main.ts wires it, for the Furniture and Buy tools. */
-function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) => Promise<boolean>) {
+function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) => Promise<boolean>, cancelPending?: () => boolean) {
   const sim = new SimBridge(handle, memory);
   const doc = new FakeDocument();
   const element = (id: string, made: FakeElement = new FakeElement(doc)) => {
@@ -184,6 +184,7 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
     restored: () => { builder.resetAfterLoad(); buy.resetAfterLoad(handle.lot_width(), handle.lot_height()); },
   });
   const exit = new BuildExit(doc as unknown as Document, {
+    cancelPending,
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(draft()),
     confirm: () => {
       clock.time += work.ms;
@@ -227,6 +228,52 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
 }
 
 describe('the footer', () => {
+  it('keeps the draft when a long preparation is canceled by a double-click', async () => {
+    let finish!: (adopted: boolean) => void;
+    const pending = new Promise<boolean>(resolve => { finish = resolve; });
+    const f = fixture(undefined, undefined, () => { finish(false); return true; });
+    try {
+      f.enterWithMove();
+      const before = f.sim.saveBytes();
+      const confirm = vi.spyOn(f.session, 'confirm').mockReturnValue(pending);
+      f.doc.click(f.confirmButton, 1);
+      expect(confirm).toHaveBeenCalledOnce();
+      f.clock.time += 10_000;
+      expect(f.doc.click(f.cancelButton, 1)).toBe(true);
+      await vi.waitFor(() => expect(f.exit.resolving).toBe(false));
+      expect(f.doc.click(f.cancelButton, 2)).toBe(false);
+      expect(f.builder.active).toBe(true);
+      expect(f.sim.buildDirty()).toBe(true);
+      expect(f.sim.saveBytes()).toEqual(before);
+    } finally { f.handle.free(); }
+  });
+  it.each(['Enter', ' '])('leaves fresh %s disclosure activation to the native default after its held-key guard', key => {
+    const f = fixture();
+    try {
+      f.enterWithMove(); f.doc.click(f.confirmButton, 0);
+      const saved = f.sim.saveBytes();
+      const summary = new FakeElement(f.doc);
+      let open = false;
+      summary.within.add('summary'); summary.defaultAction = () => {open = !open;};
+      summary.focus();
+      expect(f.doc.keydown(summary, key)).toBe(false);
+      f.doc.click(summary, 0);
+      expect(open).toBe(true); expect(f.doc.activeElement).toBe(summary);
+      expect(f.builder.active).toBe(false); expect(f.gameClicks).toBe(0);
+      expect(f.sim.saveBytes()).toEqual(saved);
+    } finally {f.handle.free();}
+  });
+  it('drops the rest of a double-click while asynchronous native review is open', async () => {
+    let finish: ((adopted: boolean) => void) | undefined;
+    const f = fixture(new SimHandle(10, 8), () => new Promise<boolean>(resolve => { finish = resolve; }));
+    const nextAction = new FakeElement(f.doc), activated = vi.fn(); nextAction.addEventListener('click', activated);
+    try {
+      f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 }); f.sim.flushCommands(); f.builder.enter();
+      for (let y = 1; y <= 5; y++) { f.sim.setWallEdge(0, 4, y, 1); f.sim.flushCommands(); }
+      f.doc.click(f.confirmButton, 1); expect(f.exit.resolving).toBe(true);
+      expect(f.doc.click(nextAction, 2)).toBe(false); expect(activated).not.toHaveBeenCalled();
+    } finally { finish?.(false); await vi.waitFor(() => expect(f.exit.resolving).toBe(false)); f.handle.free(); }
+  });
   it.each(['exit', 'land'])('guards native held Enter across %s opening and a deliberate Keep focus restoration', destination => {
     const f = fixture();
     try {
@@ -303,7 +350,7 @@ describe('the footer', () => {
       f.enterWithMove();
       const moved = f.sim.saveBytes();
       // A second move to a place furniture cannot go: Confirm must not drop it.
-      f.builder.select(22); f.builder.moveTo(15, 2);
+      f.builder.select(22); f.builder.moveTo(-1, 2);
       expect(f.builder.preview?.valid).toBe(false);
       f.confirmButton.click();
       expect(f.builder.active).toBe(true);
@@ -349,6 +396,7 @@ it.each(['adopt', 'back', 'dismiss', 'load'] as const)('defers explicit exit unt
       expect(f.session.loadBytes(saved)).toBe(true); f.exit.dismiss(); controller.reset();
     } else {
       if (action === 'dismiss') f.exit.dismiss();
+      expect(await controller.confirm()).toBe(false); expect(controller.accessActive).toBe(true);
       expect(await controller.confirm()).toBe(true);
     }
     expect(await operation).toBe(action === 'adopt');
@@ -456,7 +504,7 @@ describe('leaving another way while changes are pending', () => {
     const f = fixture();
     try {
       f.builder.enter();
-      f.builder.select(15); f.builder.moveTo(15, 2);
+      f.builder.select(15); f.builder.moveTo(-1, 2);
       expect(f.builder.preview?.valid).toBe(false);
       expect(f.session.hasChanges()).toBe(false);
       f.clickExit();
@@ -534,7 +582,9 @@ describe('leaving with nothing pending', () => {
       expect([f.builder.active, f.dialog.open]).toEqual([false, false]);
       // A move the game refused changed nothing either.
       f.builder.enter();
-      expect(f.sim.placeObject(15, 15, 2, f.sim.objectFacing(15)!)).toBe(true);
+      const outside = f.handle.lot_width();
+      expect(f.sim.placementPreview(15, outside, 2, f.sim.objectFacing(15)!).valid).toBe(false);
+      expect(f.sim.placeObject(15, outside, 2, f.sim.objectFacing(15)!)).toBe(true);
       f.sim.flushCommands();
       expect(f.sim.lastPlacementResult()?.reason).not.toBeNull();
       f.clickExit();
@@ -1073,7 +1123,7 @@ describe('the page', () => {
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');
     expect(MAIN_TS).not.toContain('cancelBuildBatch');
     expect(MAIN_TS).toContain('roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange)');
-    expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);buildExit\.dismiss\(\);/);
+    expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);preparedBuildCommit\.cancel\(\);buildExit\.dismiss\(\);/);
   });
 
   it('main.ts source: a discard resets the Land tool as a Load does, inside restoreBuildPresentation', () => {

@@ -59,27 +59,31 @@ export function composeSkeletonPose(bones:readonly Bone[],rest:readonly number[]
   return composeFromLocals(bones,parentLocals(bones,rest,rest.map(inverseAffine)),basis);
 }
 
+/** A configured hierarchy for the pool compiler and its runtime binding. */
+export function configuredRestSetup(bundle:Bundle,a:ShapeParameters,top:number){
+  const bones=bundle.bones;
+  const heads=bones.map(b=>shapePoint(b.head,region(b.name),a,top));
+  const tails=bones.map(b=>shapePoint(b.tail,b.name.startsWith('shin')?6:region(b.name),a,top));
+  const rest=bones.map((b,i)=>boneFrame(heads[i],tails[i],b.rest));
+  return {heads,tails,rest,inverse:rest.map(inverseAffine)};
+}
+
 /**
  * The configured skeleton's rest joints depend only on the bundle, the body
  * shape and the anatomical top, never on the animation frame. They are
  * computed once per shape and frozen, so a solver that tried to edit them
  * would throw instead of corrupting the next frame.
  */
-type Point=[number,number,number];
-interface RestSetup {shape:ShapeParameters;top:number;heads:Point[];tails:Point[];rest:number[][];inverse:number[][];locals:readonly Float64Array<ArrayBuffer>[]}
+type RestSetup=ReturnType<typeof configuredRestSetup>&{shape:ShapeParameters;top:number;locals:readonly Float64Array<ArrayBuffer>[]};
 const restSetups=new WeakMap<Bundle,WeakMap<ShapeParameters,RestSetup>>();
 const frozenRows=<T extends number[]>(rows:T[]):T[]=>Object.freeze(rows.map(row=>Object.freeze(row))) as unknown as T[];
 
 function restSetup(bundle:Bundle,a:ShapeParameters,top:number):RestSetup {
   let shapes=restSetups.get(bundle);if(!shapes){shapes=new WeakMap();restSetups.set(bundle,shapes);}
   const saved=shapes.get(a);if(saved&&saved.top===top&&sameShape(saved.shape,a))return saved;
-  const bones=bundle.bones;
-  const heads=bones.map(b=>shapePoint(b.head,region(b.name),a,top));
-  const tails=bones.map(b=>shapePoint(b.tail,b.name.startsWith('shin')?6:region(b.name),a,top));
-  const rest=bones.map((b,i)=>boneFrame(heads[i],tails[i],b.rest));
-  const inverse=rest.map(inverseAffine);
+  const {heads,tails,rest,inverse}=configuredRestSetup(bundle,a,top);
   const setup:RestSetup={shape:snapshotShape(a),top,heads:frozenRows(heads),tails:frozenRows(tails),rest:frozenRows(rest),inverse:frozenRows(inverse),
-    locals:parentLocals(bones,rest,inverse)};
+    locals:parentLocals(bundle.bones,rest,inverse)};
   shapes.set(a,setup);return setup;
 }
 

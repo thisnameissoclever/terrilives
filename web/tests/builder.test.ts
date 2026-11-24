@@ -1,3 +1,4 @@
+import {CURRENT_SAVE_VERSION} from '../src/storage/save-header.js';
 import { furnitureLabel } from '../src/ui/furniture-label.js';
 import { beforeAll, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -12,6 +13,13 @@ import { spriteIndex } from '../src/render/atlas.js';
 import { FLOATS_PER_INSTANCE as STRIDE } from '../src/render/instances.js';
 
 let memory: WebAssembly.Memory;
+
+it('reports native furniture placement refusal independently of selection status text', () => {
+  const { handle, builder } = fixture();
+  try { builder.enter(); builder.select(15); builder.moveTo(-1, -1); builder.status = 'Unrelated translation';
+    expect(builder.feedback).toMatchObject({ operation: 'place', state: 'failure', message: builder.preview?.reason });
+  } finally { handle.free(); }
+});
 beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
@@ -218,9 +226,9 @@ it('deselects an unchanged placement after Confirm without changing its position
 
 it('keeps invalid previews visible and handles refusal after a previously valid preview', () => {
   const { handle, source, builder } = fixture();
-  builder.enter(); builder.select(15); builder.moveTo(15, 2);
+  builder.enter(); builder.select(15); builder.moveTo(-1, 2);
   expect(builder.preview?.valid).toBe(false);
-  expect(builder.status).toMatch(/door/);
+  expect(builder.status).toMatch(/whole tile/);
   expect(builder.confirm()).toBe(false);
   builder.moveTo(-1, 0);
   expect(builder.preview).toMatchObject({ x: -1, y: 0, width: 1, depth: 1, valid: false });
@@ -423,7 +431,7 @@ it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   expect(source.lastSaleResult()).toMatchObject({ object: 22, payout: 0 });
   expect(source.takeBuildError()).toEqual({ ok: true, value: null });
   const saved = source.saveBytes();
-  expect([...saved.slice(8, 10)]).toEqual([27, 0]);
+  expect([...saved.slice(8, 10)]).toEqual([CURRENT_SAVE_VERSION, 0]);
   expect(restored.load_bytes(saved)).toBe(true);
   expect(restored.save_bytes()).toEqual(saved);
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])

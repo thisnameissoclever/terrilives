@@ -1,9 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
-import { OrderDiagnostics, formatOrderHistory } from '../src/ui/player-orders.js';
+import { OrderDiagnostics, formatOrderHistory, orderFailureMessage } from '../src/ui/player-orders.js';
 import { WorkOrderConfirmation, formatWorkConflict } from '../src/ui/work-order-confirmation.js';
 
 const event = (sequence: string, phase = 'failed', actor = 7) => ({ sequence, tick: '20', actor, counterpart: 9, orderId: '9007199254740993', action: 'Chat', phase, reason: phase === 'failed' ? 'Target removed' : null, blockingState: null });
 describe('order diagnostics', () => {
+  it('uses the native media cause while preserving the complete raw warning and history',()=>{
+    const warn=vi.fn(),status={textContent:'',setAttribute:vi.fn()},diagnostics=new OrderDiagnostics(status,warn);
+    const failed={...event('1'),action:'Watch TV',reason:'original detailed native failure',failureCause:'no-reachable-media-position'};
+    const source={orderEventsSince:()=>({events:[failed],nextCursor:'1',expired:false}),simName:()=> 'Terri'};
+    diagnostics.update(0,source);diagnostics.update(1,source);
+    expect(status.textContent).toBe("Terri can't reach a spot to use this item.");
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain('original detailed native failure');
+    expect(warn.mock.calls[0][1]).toBe(failed);
+    expect(diagnostics.history(7)).toContain('original detailed native failure');
+    expect(diagnostics.copyHistory(7)).toContain('no-reachable-media-position');
+    expect(orderFailureMessage({...failed,reason:'changed technical prose'},'Terri')).toBe(status.textContent);
+    expect(orderFailureMessage({...failed,failureCause:'future-cause',reason:'No reachable media position'},'Terri'))
+      .toBe('Terri: Watch TV failed.');
+    expect(orderFailureMessage({...failed,failureCause:undefined},'Terri')).not.toBe(status.textContent);
+  });
   it('clears old-world history and bubbles before entity indices can be reused after Load', () => {
     const diagnostics = new OrderDiagnostics({textContent:'',setAttribute:vi.fn()},vi.fn());
     const source = {orderEventsSince:()=>({events:[event('11')],nextCursor:'11',expired:false}),simName:()=> 'Old housemate'};

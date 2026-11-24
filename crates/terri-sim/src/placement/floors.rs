@@ -1,10 +1,11 @@
 //! Floor coverings: what the player has laid on each tile - [FL-command] in
 //! `docs/specs/2026-09-22-floors.md`.
 //!
-//! The thinnest lot edit there is. A covering changes how a tile is drawn and
-//! nothing else: no barrier, no route, no reservation, so none of the proofs
-//! a wall or a sofa is held to apply. What is checked is that the tile is on
-//! the lot and the covering is one the content has.
+//! Coverings and base surfaces determine appearance, cleaning eligibility and
+//! arrival destinations. Remove clears the covering and changes an indoor base
+//! surface to grass; existing grass and street bases remain. Floor edits create
+//! no physical barrier or reservation, so they do not need wall or furniture
+//! placement proofs. Validation checks the lot bounds and covering identifier.
 
 use super::{LotEditState, PlacementRefusal};
 use bevy_ecs::prelude::*;
@@ -46,7 +47,7 @@ pub(crate) fn commit(world: &mut World, edit: FloorEdit) {
     let reason = validate_floor_edit(world, edit).err();
     if reason.is_none() {
         let mut floors = world.get_resource_mut::<SavedFloors>();
-        let changed = match floors.as_mut() {
+        let mut changed = match floors.as_mut() {
             Some(floors) => floors.set(edit.x, edit.y, edit.covering),
             None => {
                 let mut fresh = SavedFloors::default();
@@ -55,6 +56,17 @@ pub(crate) fn commit(world: &mut World, edit: FloorEdit) {
                 changed
             }
         };
+        if edit.covering == 0 {
+            if let Some(mut surfaces) =
+                world.get_resource_mut::<crate::world_geometry::WorldSurfaces>()
+            {
+                let index = (edit.y * surfaces.width + edit.x) as usize;
+                if surfaces.tiles[index] == 0 {
+                    surfaces.tiles[index] = 1;
+                    changed = true;
+                }
+            }
+        }
         if changed {
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);

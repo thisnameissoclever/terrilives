@@ -8,11 +8,13 @@ use terri_sim::presence_fade::PresenceFade;
 const NOON: &[u8] = include_bytes!("../tests/fixtures/presence-v22/new-game-day-one-noon.sav");
 const EVENING: &[u8] =
     include_bytes!("../tests/fixtures/presence-v22/new-game-two-days-evening.sav");
+const PUBLISHED_V23: &[u8] = include_bytes!("../tests/fixtures/published-v23/day-two.sav");
 
 /// Main's schema-22 saves, which have no place for a fading lift, load
-/// with none and retain the original schema-22 payload inside the current save.
+/// with none, preserve bills and shifts in the current envelope, load again
+/// without change and go on identically.
 #[test]
-fn main_schema_twenty_two_saves_load_with_no_fade() {
+fn main_schema_twenty_two_saves_load_with_no_fade_and_save_current() {
     for (name, bytes) in [("noon", NOON), ("evening", EVENING)] {
         assert_eq!(&bytes[8..10], &22u16.to_le_bytes(), "{name}");
         let (original, tail) =
@@ -30,16 +32,17 @@ fn main_schema_twenty_two_saves_load_with_no_fade() {
             "{name}: an older save has nothing fading"
         );
         let current = migrated.save_bytes();
+        assert_eq!(&current[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes(), "{name}");
+        let saved = decode_current(&current);
+        assert!(saved.previous.career_inputs.is_empty(), "{name}");
+        assert!(saved.previous.legacy.presence_fade.is_empty(), "{name}");
+        assert_eq!(saved.previous.legacy.legacy.bills, original.bills, "{name}");
+        assert_eq!(saved.previous.legacy.legacy.legacy.shifts, original.legacy.shifts, "{name}");
         assert_eq!(
-            &current[8..10],
-            &SAVE_SCHEMA_VERSION.to_le_bytes(),
+            saved.previous.legacy.legacy.legacy.queued_shift_commands,
+            original.legacy.queued_shift_commands,
             "{name}"
         );
-        let saved = decode_current(&current).legacy;
-        assert!(saved.career_inputs.is_empty(), "{name}");
-        let saved = saved.legacy;
-        assert!(saved.presence_fade.is_empty(), "{name}");
-        assert_eq!(saved.legacy, original, "{name}: the schema-22 part is kept");
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");
@@ -54,6 +57,70 @@ fn main_schema_twenty_two_saves_load_with_no_fade() {
             );
         }
         assert_eq!(migrated.save_bytes(), resumed.save_bytes(), "{name}");
+    }
+}
+
+#[test]
+fn authentic_published_twenty_two_keeps_open_shift_pay_and_refuses_pre_bill_pay() {
+    let mut original = postcard::from_bytes::<SaveSnapshotV22>(&NOON[SAVE_HEADER_BYTES..]).unwrap();
+    let attendance = &mut original.legacy.legacy.legacy.legacy.legacy.attendance;
+    let open = attendance.shifts.iter_mut().find(|shift| shift.sim == 0 && !shift.settled).unwrap();
+    assert_eq!(open.pay_cents, 18_000);
+    assert!(open.worked_ticks > 0);
+    let mut handle = SimHandle::from_lot();
+    assert!(handle.load_bytes(NOON));
+    let current = handle.save_bytes();
+    let migrated = decode_current(&current);
+    let restored = &migrated.gameplay_v20().legacy.legacy.legacy.attendance;
+    assert_eq!(restored.shifts.iter().find(|shift| shift.sim == 0), Some(&*open));
+    assert!(handle.load_bytes(&current));
+    assert_eq!(handle.save_bytes(), current);
+
+    open.pay_cents = 12_000;
+    let mut bad = NOON[..SAVE_HEADER_BYTES].to_vec();
+    bad.extend(postcard::to_allocvec(&original).unwrap());
+    assert!(!handle.load_bytes(&bad));
+    assert_eq!(handle.save_bytes(), current);
+}
+
+#[test]
+fn authentic_published_twenty_three_keeps_bills_wages_and_fade() {
+    assert_eq!(&PUBLISHED_V23[..SAVE_MAGIC.len()], SAVE_MAGIC);
+    assert_eq!(&PUBLISHED_V23[8..10], &23u16.to_le_bytes());
+    let payload = &PUBLISHED_V23[SAVE_HEADER_BYTES..];
+    let (original, tail) = postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload).unwrap();
+    assert!(tail.is_empty());
+    assert_eq!(postcard::to_allocvec(&original).unwrap(), payload);
+    assert_eq!(original.legacy.bills.last_counted_day, Some(1));
+    assert_eq!(original.legacy.bills.month_days, 2);
+    assert_eq!(original.presence_fade.len(), 1);
+    let fade = &original.presence_fade[0];
+    assert_eq!((fade.sim, fade.kind.as_str(), fade.end_tick), (1, "aquarium", 1457));
+
+    let mut handle = SimHandle::from_lot();
+    assert!(handle.load_bytes(PUBLISHED_V23));
+    assert_eq!(handle.sim_tick(), 1441);
+    let current = handle.save_bytes();
+    let snapshot = decode_current(&current);
+    assert_eq!(snapshot.previous.legacy.legacy.bills, original.legacy.bills);
+    assert_eq!(snapshot.previous.legacy.presence_fade, original.presence_fade);
+    let before = &original.legacy.legacy;
+    let after = &snapshot.previous.legacy.legacy.legacy;
+    assert_eq!(after.shifts, before.shifts);
+    assert_eq!(after.queued_shift_commands, before.queued_shift_commands);
+    let before = &before.legacy.legacy.legacy.legacy;
+    let after = &after.legacy.legacy.legacy.legacy;
+    assert_eq!(after.attendance, before.attendance);
+    let before = &before.legacy.legacy.legacy.careers;
+    let after = &after.legacy.legacy.legacy.careers;
+    assert!(!before.records.is_empty());
+    assert_eq!(after, before);
+    assert!(handle.load_bytes(&current));
+    assert_eq!(handle.save_bytes(), current);
+
+    for bad in [PUBLISHED_V23[..PUBLISHED_V23.len() - 1].to_vec(), [PUBLISHED_V23, &[0]].concat()] {
+        assert!(!handle.load_bytes(&bad));
+        assert_eq!(handle.save_bytes(), current);
     }
 }
 
@@ -74,8 +141,7 @@ fn current_schema_carries_the_fades_and_refuses_bad_rows() {
     assert_eq!(&bytes[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes());
     let saved = decode_current(&bytes);
     let rows: Vec<(u32, &str, u64)> = saved
-        .legacy
-        .legacy
+        .previous.legacy
         .presence_fade
         .iter()
         .map(|row| (row.sim, row.kind.as_str(), row.end_tick))
@@ -111,7 +177,7 @@ fn current_schema_carries_the_fades_and_refuses_bad_rows() {
         |rows| rows.push(rows[0].clone()),
     ] {
         let mut bad = saved.clone();
-        edit(&mut bad.legacy.legacy.presence_fade);
+        edit(&mut bad.previous.legacy.presence_fade);
         let mut payload = SAVE_MAGIC.to_vec();
         payload.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
         payload.extend(postcard::to_allocvec(&bad).unwrap());
@@ -170,8 +236,7 @@ fn a_fade_in_a_game_made_save_survives_a_reload_and_runs_out_identically() {
     assert!(end > saved_at + 1, "the row is aging, with time left");
     let bytes = original.save_bytes();
     assert!(decode_current(&bytes)
-        .legacy
-        .legacy
+        .previous.legacy
         .presence_fade
         .iter()
         .any(|row| row.sim == person.0 && row.end_tick == end));

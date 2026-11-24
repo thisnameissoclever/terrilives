@@ -2,7 +2,7 @@
 
 ## Find the controls {#overview}
 
-The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top left and the [Log](#log) button at the top right; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. A phone uses a compact dock, with the needs inside Sim details, then Overview. Expand or Collapse changes how much of the dock is shown.
+The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top left and the [Log](#log) button at the top right; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. On a phone, a selected person's needs are inside Sim details, then Overview. The separate down-chevron collapses the dock; the up-chevron expands it.
 
 The paths below use the actual button and panel names. Desktop uses clicks and right-clicks; phone uses taps and long-presses. Scroll inside a panel when its content extends beyond the screen.
 
@@ -10,13 +10,17 @@ The paths below use the actual button and panel names. Desktop uses clicks and r
 
 ## Household and the selected person {#household}
 
-Desktop: choose a name under Household in the bottom dock. Phone: use the Household name buttons along the bottom; Expand reveals more of the dock if collapsed. Selecting a person changes the name, current activity, mood, satisfaction and all Sim details to that person's information.
+Desktop: choose a name under Household in the bottom dock. Phone: use the Household name buttons along the bottom; expand the dock with the up-chevron if needed. Selecting a person changes the name, current activity, mood, satisfaction and all Sim details to that person's information.
 
-Edit sits beside the selected name. It opens that person's character draft. It is unavailable without a selected living person. A warning near a household name helps you spot a person who needs attention without assuming the selected person is the only one in trouble.
+Edit sits beside the selected name and opens that person's character draft. It is hidden without a selected person. Critical needs appear beside the current activity and remain visible when the dock is collapsed. A warning near a household name helps you spot another person who needs attention.
+
+Click or tap empty floor to clear the selection. Hollow mood, life-satisfaction and need tracks mean no person is selected. On a phone, expand the dock to see the empty need tracks. Sim details and Queue require a selected person; Chores remains available for the household.
 
 If the activity beside the selected name is clipped, hover over it, focus it with the keyboard, or click or tap it to read the full text. Escape or a press outside closes the popup. Reading it does not issue an order.
 
 :::illustration household
+
+:::illustration dock-no-selection
 
 ## Clock, speed and camera {#clock-and-speed}
 
@@ -32,7 +36,7 @@ The Bills panel shows Funds, the amount to keep aside and whether Funds cover it
 
 ### Player guide link {#player-guide}
 
-Choose Player guide directly below Build and Options. The link remains available during Build. The guide opens in another tab. The game keeps running in the background, so use Pause first if you want the household to wait. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
+Choose Player guide directly below Build and Options. The link remains available during Build. The guide opens in another tab. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
 
 :::illustration guide-shortcut
 
@@ -68,9 +72,11 @@ The dock's mood meter describes the present. Its Life satisfaction meter describ
 
 ## Queue and orders {#activity-and-orders}
 
-Choose Queue in the dock, or Sim details, then Queue. Queue mode appends new instructions when enabled. Clear orders cancels the selected person's current player-directed commitment and all waiting orders. The preview shows as many waiting actions as fit; it does not truncate the actual queue.
+Choose Queue in the dock, or Sim details, then Queue. Queue new orders appends new instructions when enabled. Clear orders cancels the selected person's current player-directed commitment and all waiting orders. The preview shows as many waiting actions as fit; it does not truncate the actual queue.
 
-On desktop, Ctrl or Cmd while issuing an action also appends it. With Queue mode off, new instructions go first while earlier waiting ones remain. Doing in Overview identifies the current stage; an order such as Cook dinner can contain several stages. See [order priority](home-and-controls/#orders).
+With no player orders, Clear orders is disabled. To change the current activity, give that person a new instruction.
+
+On desktop, Ctrl or Cmd while issuing an action also appends it. With Queue new orders off, new instructions go first while earlier waiting ones remain. Doing in Overview identifies the current stage; an order such as Cook dinner can contain several stages. See [order priority](home-and-controls/#orders).
 
 :::illustration sim-queue
 
@@ -118,13 +124,13 @@ The facts grid lists Shift, Pay, Pay range at this level, This week, Last review
 
 The Go to work box tells you when the selected person's next shift starts or started, and its button sends them to work now. The button is available from {{number:tuning.go_to_work_window_ticks}} game minutes before the shift starts until the shift ends. The person stops what they are doing and leaves, even with low needs, and a sleeper gets up. A housemate who is reading puts their book down where they stand instead of carrying it back first. Anything queued for them is cancelled.
 
-Leaving early is on time. The time before the shift starts is not paid, and it counts as no missed work. Leaving after the shift has started counts the minutes between the start and their arrival as missed work, as lateness does anywhere else.
+Arriving early is on time. The time before the shift starts is not paid, and it counts as no missed work. Arriving after the shift has started counts the minutes between the start and arrival as missed work.
 
 The button is unavailable, with a note saying why, when the shift is further away than that, when the person is already at work, on the way to work or on the way home, and when they have no shift in the next seven days. If the person has no way out of the house to work, the command is refused with a message. See [work and pay](the-world/#careers).
 
 ### Score inputs {#score-inputs}
 
-Score inputs lists what went into the last shift's score. Fit and Trait fit run from -1 to 1. Social capacity shows the person's capacity beside what the job needs. Skill mastery is neutral at 50%. Mood on the last shift reads No shift yet until they have worked. Each row says Helps, Hurts or No effect, so you can see which inputs are pulling a score up or down.
+Score inputs shows current Fit, Trait fit, Social capacity and Skill mastery, plus mood from the last scored shift. Fit runs from -1 to 1; Trait fit is one part of Fit. Social capacity shows the person's capacity beside what the job needs. Skill mastery is neutral at 50%. Mood on the last shift reads No shift yet until a shift has been scored. Rows with a value say Helps, Hurts or No effect, so you can see which inputs are pulling a score up or down.
 
 Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. Shift lists By chance first and then each shift the path's first level offers, with its days, hours and chance of being drawn; leave By chance to let the hire draw one, or pick a shift to hold it. For an employed person with more than one shift to choose from, Shift schedule shows their shift; choose another and select Change shift. Their old shift is still worked that day if it has not started yet, and the new shift, like a newly assigned job, starts on a day after the day their last shift ended; after a night shift that ends in the morning, that can be two days after the change. Changing shift resets the good weeks counted toward the next promotion. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
 
@@ -140,9 +146,13 @@ Scroll to Reviews for the graph of actual events. Hover over a week, or tap it o
 
 The information button beside the job title opens the review window. The same button is beside the Career row in Overview. Opening the window pauses the game, and the window says so. Closing it with Close, Escape or a click outside it resumes the game at the speed you had chosen before. If the game was already paused, it stays paused, and the window says that too.
 
-The window shows the weekly review score for each week on record, with the level the person held that week. Filters chooses which score inputs appear as their own lines. Skill mastery, Mood on shifts, Missed work and Fit are on at first, and Trait fit and Social capacity are off. On the score graph you can hide the Good and poor lines and the Promotions and other events. A Key explains the point colors and event markers. Pay per shift is listed separately, under Also show, because pay does not affect the score. Show chooses Last 4 weeks, Last 12 weeks or All weeks, and a summary beside it gives the average and the number of good and poor weeks.
+The window shows each recorded week's review score, with contributing job titles when those details are available. Filters chooses which score inputs appear as their own lines. Skill mastery, Mood on shifts, Missed work and Fit are on at first, and Trait fit and Social capacity are off. On the score graph you can hide the Good and poor lines and the Promotions and other events. A Key explains the point colors and event markers. Pay per shift is listed separately, under Also show, because pay does not affect the score. Show chooses Last 4 weeks, Last 12 weeks or All weeks, and a summary beside it gives the average and the number of good and poor weeks.
 
-Hover over a week, or move through the weeks with Left, Right, Home and End, to see that week's score, its kind and the inputs behind it. On a phone, tap a week to open its details, and use Filters to open the filter list. A week with no recorded inputs reads not recorded. Each person keeps the last {{number:tuning.career_input_history_weeks}} reviewed weeks of score inputs.
+Hover over a week, or move through the weeks with Left, Right, Home and End, to see that week's score, its kind and the inputs behind it. On a phone, tap a week to open its details, and use Filters to open the filter list. A week with no recorded inputs reads not recorded. The current job record keeps up to {{number:tuning.career_input_history_weeks}} weeks with recorded inputs. Assigning a career starts a fresh record; quitting or dismissal removes it. An automatic career change preserves it.
+
+For a week spanning jobs or pay rates, the details list the jobs and the base-pay range. The pay line uses the salary held immediately before the review; night premiums and deductions are separate. Some older saves lack the original base-pay detail.
+
+Fit, Trait fit, Social capacity, Skill mastery, Mood on shifts and the jobs' social demands are averaged across scored shifts. Missed work adds up the missed minutes.
 
 ## Chores {#chores}
 
@@ -164,11 +174,13 @@ Desktop: right-click a placed object or another person. Phone: long-press the ta
 
 Actions surround the object. More actions opens the next page; Back returns. Close, Escape or an outside press dismisses the menu. Sim-dependent actions need a selected person.
 
-The object's type is primary and its model name secondary. Activate the name for its optional description. Scroll inside a longer description to read the rest.
+On a crowded screen, the menu uses a row that scrolls sideways. Use its scrollbar, swipe the row, or press Tab to reveal each control. Close stays beside the row.
+
+The object's type is primary and its model name secondary. Click or tap the object's name, or focus it and press Enter or Space, to read its description. Activate the name again to close it. The surrounding menu shows a separate description bubble; the compact row shows the description inside that row. Scroll within a longer description to read the rest.
 
 :::illustration object-description
 
-Enter build mode selects that exact object in Furniture, including objects without ordinary Sim actions. Bookcases offer automatic reading and book commerce. The Nothing action cancels selected-person orders; it is not the menu's Close control.
+Enter build mode selects that exact object in Furniture, including objects without ordinary Sim actions. Bookcases offer automatic reading and book commerce. Clear orders appears when the selected person has a player-directed commitment or waiting orders to cancel. Autonomous activity can continue after cancellation. Close dismisses the menu.
 
 Person menus offer Chat and Fight.
 
@@ -192,7 +204,9 @@ Choose Build, then Buy. Use the catalogue's visible filters to find a type and m
 
 :::illustration build-buy
 
-The catalogue can scroll while the placement controls remain available. Scroll the Buy panel for Colour and other product details. An item must still satisfy placement rules. A purchased decoration does not gain a use action just because it costs money. See [furniture](home-and-controls/#furniture).
+The catalog can scroll while the placement controls remain available. Back to catalog returns from the purchase preview to the product list, keeping its filters and position. Scroll the Buy panel for product options. An item must still satisfy placement rules. A purchased decoration does not gain a use action just because it costs money. See [furniture](home-and-controls/#furniture).
+
+:::illustration buy-details
 
 ## Walls and Windows {#walls}
 
@@ -206,9 +220,13 @@ The status explains refusals. A window must fit entirely within a solid wall. Wi
 
 ## Floors {#floors}
 
-Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm at the bottom keeps the batch and exits Build.
+Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it to apply that covering within the draft. Remove clears the covering and replaces an underlying indoor floor with grass; underlying grass and street stay unchanged. Selecting a tile alone does not apply a covering. Confirm at the bottom keeps the batch and exits Build.
+
+Missing materials show a spinner beside the floor actions while the edit waits. If loading fails, choose **Retry** or another covering. Retry continues the waiting edit if the selected tiles and draft still match. Changing either, choosing another covering, leaving Floors or loading another household cancels the waiting edit. With no tile selected, material recovery appears in the game view and leaves the floor unchanged.
 
 :::illustration floor-actions
+
+:::illustration floor-retry
 
 ## Rooms {#rooms}
 
@@ -229,13 +247,13 @@ Choose Behind the house, Left side or Right side and inspect dimensions, price a
 
 ## Options {#options}
 
-Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, Export save, Import save, New game, Report bug, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab. Pause first if you want the household to wait while you read.
+Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, Export save, Import save, New game, Report bug, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab.
 
 Report bug opens an email draft to Tim with the game version, recorded error and newest logs that fit. Review the draft and describe the problem before sending it. To copy or download the larger retained report, open [Startup report](https://natural-causes.life/startup-report.html) in the same browser. See [loading failures](start-here/#loading-failure).
 
 Light: auto follows the clock; Light: flat removes the changing light cycle. Sound mutes all sound. Effects changes the overall effects mix; Voices adjusts conversations within that mix. Opening Options does not pause the household. Escape, Close Options or a press outside closes it.
 
-Queue mode and Clear orders are in the selected person's Queue panel, not in Options. Automatic job search belongs to each person's Career panel. See [Options and accessibility](home-and-controls/#options).
+Queue new orders and Clear orders are in the selected person's Queue panel, not in Options. Automatic job search belongs to each person's Career panel. See [Options and accessibility](home-and-controls/#options).
 
 :::illustration options
 

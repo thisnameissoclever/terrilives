@@ -524,34 +524,20 @@ impl CompiledObject {
     /// Rotated perimeter offsets. An unauthored single place uses legacy adjacency.
     pub fn sleep_approaches_at(&self, ordinal: u8, facing: Facing) -> Option<Vec<(i32, i32)>> {
         let place = self.sleep_places.get(ordinal as usize)?;
-        let width = self.footprint.width as i32;
-        let depth = self.footprint.depth as i32;
-        let turn = self.relative_turn(facing);
         Some(
             place
                 .approaches
                 .iter()
-                .map(|&(x, y)| match turn {
-                    Facing::SouthEast => (x, y),
-                    Facing::SouthWest => (depth - 1 - y, x),
-                    Facing::NorthWest => (width - 1 - x, depth - 1 - y),
-                    Facing::NorthEast => (y, width - 1 - x),
-                })
+                .map(|&offset| self.footprint_offset_at(offset, facing))
                 .collect(),
         )
     }
 
     /// Authored shelf contacts rotate from the base-facing footprint.
     pub fn shelf_approaches_at(&self, facing: Facing) -> Vec<(i32, i32)> {
-        let (width, depth) = (self.footprint.width as i32, self.footprint.depth as i32);
         self.shelf_access
             .iter()
-            .map(|&(x, y)| match self.relative_turn(facing) {
-                Facing::SouthEast => (x, y),
-                Facing::SouthWest => (depth - 1 - y, x),
-                Facing::NorthWest => (width - 1 - x, depth - 1 - y),
-                Facing::NorthEast => (y, width - 1 - x),
-            })
+            .map(|&offset| self.footprint_offset_at(offset, facing))
             .collect()
     }
 
@@ -576,18 +562,24 @@ impl CompiledObject {
 
     pub fn seat_approaches_at(&self, ordinal: usize, facing: Facing) -> Option<Vec<(i32, i32)>> {
         let seat = self.seats.get(ordinal)?;
-        let (width, depth) = (self.footprint.width as i32, self.footprint.depth as i32);
         Some(
             seat.approaches
                 .iter()
-                .map(|&(x, y)| match self.relative_turn(facing) {
-                    Facing::SouthEast => (x, y),
-                    Facing::SouthWest => (depth - 1 - y, x),
-                    Facing::NorthWest => (width - 1 - x, depth - 1 - y),
-                    Facing::NorthEast => (y, width - 1 - x),
-                })
+                .map(|&offset| self.footprint_offset_at(offset, facing))
                 .collect(),
         )
+    }
+
+    /// Rotate an offset from the base footprint's origin to the turned footprint's origin.
+    /// The point may be outside the footprint, as it is for an approach tile.
+    pub fn footprint_offset_at(&self, (x, y): (i32, i32), facing: Facing) -> (i32, i32) {
+        let (width, depth) = (self.footprint.width as i32, self.footprint.depth as i32);
+        match self.relative_turn(facing) {
+            Facing::SouthEast => (x, y),
+            Facing::SouthWest => (depth - 1 - y, x),
+            Facing::NorthWest => (width - 1 - x, depth - 1 - y),
+            Facing::NorthEast => (y, width - 1 - x),
+        }
     }
 
     /// Primary identification for controls and accessible labels.
@@ -1255,8 +1247,7 @@ pub struct Tuning {
     /// The largest share of a late housemate's choices that relieve the
     /// need they are late for, strictly below 1.
     pub work_lateness_remedy_share: f32,
-    /// A housemate at work is relieved of Bladder below this level. 0 is no
-    /// relief.
+    /// Historical Bladder threshold retained for published content pack compatibility.
     pub work_bladder_relief_threshold: f32,
     /// How many mood points the lift from liked furniture loses per game
     /// hour once the person has left it, above 0 ([OA-presence] in
@@ -2077,13 +2068,14 @@ impl ContentPack {
         &self.objects[id.0 as usize]
     }
 
-    /// Every object for sale, in pack order, with its price: the catalogue
-    /// the Buy tool lists ([BM-shell]). One filter for every boundary export
-    /// that lists it, so their rows cannot drift apart.
+    /// The Buy tool's offers in pack order ([BM-shell]). The square pool keeps
+    /// its price for purchases already queued in a save and for resale.
     pub fn catalogue(&self) -> impl Iterator<Item = (ObjectDefId, &CompiledObject, u32)> + '_ {
+        let has_rectangular_pool = self.find("pool_rectangular").is_some();
         self.objects
             .iter()
             .enumerate()
+            .filter(move |(_, object)| !has_rectangular_pool || object.id != "pool")
             .filter_map(|(index, object)| Some((ObjectDefId(index as u32), object, object.price?)))
     }
 

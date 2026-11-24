@@ -113,6 +113,21 @@ pub struct RenderBuffer {
     pub visual_actions: Vec<u32>,
     /// Derived timed-chore phase in thousandths; zero for inactive rows.
     pub chore_progress: Vec<u32>,
+    /// Native pool phase: 0 inactive/approach, 1 entry, 2 paddle, 3 exit, 4 reversed entry.
+    pub pool_phases: Vec<u32>,
+    pub pool_elapsed: Vec<u32>,
+    pub pool_exit_origins: Vec<u32>,
+    /// Previous native pool projection, advanced with the position interpolation pair.
+    pub prev_pool_phases: Vec<u32>,
+    pub prev_pool_elapsed: Vec<u32>,
+    pub prev_pool_exit_origins: Vec<u32>,
+    pub prev_pool_targets: Vec<u32>,
+    /// Stable toy identity and elapsed native bath time; zero means inactive.
+    pub bath_toys: Vec<u32>,
+    pub bath_elapsed: Vec<u32>,
+    pub prev_bath_toys: Vec<u32>,
+    pub prev_bath_elapsed: Vec<u32>,
+    pub prev_bath_targets: Vec<u32>,
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
@@ -279,6 +294,7 @@ pub mod activity {
     pub const MOPPING: u32 = 24;
     pub const WIPING: u32 = 25;
     pub const EMPTYING_BIN: u32 = 26;
+    pub const SWIMMING: u32 = 27;
 }
 
 /// Presentation body-action codes. Kept as `u32` so JavaScript can view the
@@ -322,6 +338,7 @@ pub mod visual_action {
     /// the tile in front of its door. The web selects the drawn sample from
     /// the step's progress in `chore_progress`, not from a looping clock.
     pub const FETCH: u32 = 22;
+    pub const SWIM: u32 = 23;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -1314,7 +1331,7 @@ mod tests {
             .id();
         sim.sync_render_buffer();
         neutral_instincts(&mut sim);
-        let snapshot = sim.save_snapshot_v5();
+        let snapshot = sim.save_snapshot_v28();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer_after_commands();
@@ -1327,12 +1344,12 @@ mod tests {
             ((position.x, position.y), (position.x, position.y)),
             "a paused metadata refresh has no position delta from which Web could infer facing"
         );
-        assert_eq!(sim.save_snapshot_v5(), snapshot);
+        assert_eq!(sim.save_snapshot_v28(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot_v5(snapshot.clone())
+            .load_snapshot_v28(snapshot.clone())
             .expect("walking current save state is valid");
         assert_eq!(
             projection_of(restored.render_buffer(), agent),
@@ -1343,7 +1360,7 @@ mod tests {
             ((position.x, position.y), (position.x, position.y)),
             "Load reseeds both samples, so the path-derived facing is the only directional signal"
         );
-        assert_eq!(restored.save_snapshot_v5(), snapshot);
+        assert_eq!(restored.save_snapshot_v28(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 
@@ -3971,20 +3988,20 @@ mod tests {
     fn conversation_identity_survives_save_without_mutating_world_or_rng() {
         let mut sim = conversation_projection_fixture();
         let (initiator, partner) = spawn_projection_conversation(&mut sim, (101, 3), 4.0);
-        let saved = sim.save_snapshot_v5();
+        let saved = sim.save_snapshot_v28();
         let hash = sim.world_hash();
         let rng = sim.world().resource::<terri_core::SimRng>().clone();
         sim.sync_render_buffer();
         sim.sync_render_buffer_after_commands();
-        assert_eq!(sim.save_snapshot_v5(), saved);
+        assert_eq!(sim.save_snapshot_v28(), saved);
         assert_eq!(sim.world_hash(), hash);
         assert_eq!(*sim.world().resource::<terri_core::SimRng>(), rng);
 
         let mut loaded = conversation_projection_fixture();
         loaded
-            .load_snapshot_v5(saved.clone())
+            .load_snapshot_v28(saved.clone())
             .expect("the voiced conversation is valid save state");
-        assert_eq!(loaded.save_snapshot_v5(), saved);
+        assert_eq!(loaded.save_snapshot_v28(), saved);
         assert_eq!(loaded.world_hash(), hash);
         assert_eq!(*loaded.world().resource::<terri_core::SimRng>(), rng);
         assert_eq!(

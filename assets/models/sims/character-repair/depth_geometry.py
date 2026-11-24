@@ -7,6 +7,7 @@ import numpy as np
 from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
+from fixture_depth_encoding import encode_fixture_depth
 
 
 def digest(path):
@@ -56,7 +57,8 @@ def source_coverage(objects, width, height):
     return coverage
 
 
-def sample(objects, width, height, coverage, *, canvas=None, crop=(0, 0), max_edge_distance=math.sqrt(.5) + 1e-5):
+def sample(objects, width, height, coverage, *, canvas=None, crop=(0, 0),
+           max_edge_distance=math.sqrt(.5) + 1e-5, depth_range=2):
     """Trace center rays; source outline texels inherit their closest authored edge."""
     scene = bpy.context.scene
     camera = scene.camera
@@ -101,13 +103,7 @@ def sample(objects, width, height, coverage, *, canvas=None, crop=(0, 0), max_ed
     if max_distance > max_edge_distance:
         raise ValueError(f'Published coverage is not registered to source geometry: {max_distance:.9f} > {max_edge_distance:.9f}')
     valid = values[coverage]
-    if not len(valid) or not np.isfinite(valid).all() or valid.min() < -2 or valid.max() > 2:
-        raise ValueError('Physical source depth exceeds the signed [-2, 2] contract')
-    encoded = np.rint((np.nan_to_num(values) + 2) / 4 * 65535).astype(np.uint16)
-    rgba = np.zeros((height, width, 4), dtype=np.uint8)
-    rgba[:, :, 0] = encoded >> 8
-    rgba[:, :, 1] = encoded & 255
-    rgba[:, :, 3] = coverage.astype(np.uint8) * 255
+    rgba = encode_fixture_depth(values, coverage, depth_range)
     proof = dict(opaquePixels=int(coverage.sum()), outlineSamples=outline_count,
                  maxOutlineDistancePixels=max_distance, minSum=float(valid.min()), maxSum=float(valid.max()),
                  vertices=len(vertices), triangles=len(triangles))

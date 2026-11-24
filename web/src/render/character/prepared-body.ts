@@ -5,7 +5,7 @@ import {compactGeometry,selectParts,type AppearanceContext} from './variants.js'
 import type {CharacterBodyVariant} from './body-variants.js';
 import {authoredOutline} from './authored-surfaces.js';
 
-const contextual=new Set(['wear','prop','fixture','eyes_closed','clip','grip']);
+const contextual=new Set(['wear','prop','fixture','eyes_closed','clip','grip','swimwear']);
 const relaxedHands=new Set(['Relaxed palm','Relaxed palm.001','Resting thumb','Resting thumb.001']);
 const context:AppearanceContext={wear:'clothed',prop:'none',fixture:'none',eyes_closed:false};
 export interface SupplementalDraw {owner:CharacterBodyVariant|null;name:string;start:number;count:number;outline:boolean}

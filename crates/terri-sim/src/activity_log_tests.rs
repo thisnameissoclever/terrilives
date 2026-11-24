@@ -525,16 +525,10 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// from 0xfa65_449b_54d0_bb84 to 0x7d8f_c646_2384_8e1f, because the shipped
 /// household settles scored shifts in two days; nothing else moved (checked by
 /// turning the block off). Read from the failing assertion.
-/// Accumulated mood from needs then moved the fold from 0x7d8f_c646_2384_8e1f.
-/// Each person's balance enters the hash and contributes to the mood read
-/// by settled shifts and other systems. Measured with the log off on the
-/// combined Career tab and need mood build.
-/// Conversation subjects then moved it from 0x6bc5_5246_1d3d_2532. The shipped
-/// household finishes chats in these two days, and a chat can now be about a
-/// subject, which changes the topic draw and so every draw after it. Measured
-/// from the failing assertion; the same run with the subject rows removed from
-/// the pack gives 0x6bc5_5246_1d3d_2532 again, so nothing else moved it.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xdd17_7701_f3ed_9662;
+/// Editable world and water branch before the Career merge measured `0xfe8f_2322_891c_e5d0`.
+/// Conversation subjects change the subsequent random draws. Both work settings
+/// produce this same two-day fold with the editable household and subject rows.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x88a4_d29e_ee60_b5ca;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -583,17 +577,14 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xdd17_7701_f3ed_9662;
 /// weekly score inputs join the world hash once a shift settles): with that
 /// block's call in `Sim::hash` switched off, this branch gives the old value
 /// again. Measured in a release build from the failing assertion.
-/// Accumulated mood from needs moved this from 0x9bba_4ce9_923d_44e4.
-/// Measured from the same log-off run as the two-day fold.
-/// Conversation subjects then moved it from 0xee9d_be3f_687c_dc5c, for the
-/// reason given for the two-day fold, measured in a release build from the
-/// failing assertion. With the subject rows removed from the pack, the old
-/// value is reproduced.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xba68_ba67_7b9c_743f;
+/// Editable world and water branch before the Career merge measured `0xc65b_1bd5_e41a_f993`.
+/// The twenty-day release replay with conversation subjects produced this fold.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa764_0b3b_6516_e115;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
-/// (0x6bc5_5246_1d3d_2532, from 0x7d8f_c646_2384_8e1f before accumulated
+/// (0x4f63_7602_7d22_7932 in V28, 0x6bc5_5246_1d3d_2532 with V27's need
+/// mood, and 0x7d8f_c646_2384_8e1f before accumulated
 /// mood from needs and 0xfa65_449b_54d0_bb84 before the career inputs block;
 /// main's value before issue 344's fade was
 /// 0x6ed5_8e35_ffc8_2f8d). That shows that switching the two knobs off
@@ -622,7 +613,7 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0xdab1_9ade_0680_79df);
+    assert_eq!(fold_without_the_work_knobs(20), 0xf3ae_9319_a9b5_9cb8);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

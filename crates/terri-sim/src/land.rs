@@ -208,6 +208,23 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     let new_width = old_width + grow_x;
     let new_height = old_height + grow_y;
 
+    if let Some(old) = world
+        .get_resource::<crate::world_geometry::WorldSurfaces>()
+        .cloned()
+    {
+        let mut tiles = vec![1; (new_width * new_height) as usize];
+        for y in 0..old.height {
+            for x in 0..old.width {
+                tiles[((y + dy) * new_width + x + dx) as usize] =
+                    old.tiles[(y * old.width + x) as usize];
+            }
+        }
+        world.insert_resource(crate::world_geometry::WorldSurfaces {
+            width: new_width,
+            height: new_height,
+            tiles,
+        });
+    }
     // The grid: every blocked tile and every barrier, moved.
     let old_grid = world.resource::<TileGrid>().clone();
     let mut grid = TileGrid::new(new_width as usize, new_height as usize);
@@ -228,7 +245,8 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     frame.origin = (frame.origin.0 + dx, frame.origin.1 + dy);
     world.insert_resource(frame);
     world.insert_resource(grid);
-    if let Some(house) = lot_frame::house(world) {
+    if let Some(house) = lot_frame::house(world).filter(|_| !crate::world_geometry::current(world))
+    {
         lot_frame::block_shell(&mut world.resource_mut::<TileGrid>(), house);
     }
 
@@ -274,8 +292,8 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     // loader apply it; a purchase must leave the grid they would build.
     {
         let (width, height) = (new_width, new_height);
-        let house = lot_frame::house_or_grid(world);
-        let framed = lot_frame::house(world);
+        let house = crate::world_geometry::historical_house(world);
+        let framed = lot_frame::house(world).filter(|_| !crate::world_geometry::current(world));
         let mut grid = world.resource_mut::<TileGrid>();
         for edge in moved.edges() {
             if edge.in_bounds(width, height) {
@@ -731,8 +749,7 @@ mod tests {
                     _ => assert_eq!(after.key.target, before.key.target),
                 }
             }
-            // Lot edits find the layout they expect, and the shell's lines,
-            // now inside the grid, still refuse a doorway.
+            // Moved starting walls obey the same doorway rules as new walls.
             assert!(crate::placement::current_layout(sim.world()).is_ok());
             let shell = if dx > 0 {
                 WallEdit {
@@ -749,12 +766,8 @@ mod tests {
                     state: WallState::Doorway,
                 }
             };
-            assert!(matches!(
-                validate_wall_edit(sim.world(), shell),
-                Err(crate::placement::PlacementRefusal::OutOfBounds)
-            ));
-            // The Room tool refuses a shell line on a room's outline as its
-            // doorway: the room's north-west corner is the house's.
+            assert!(validate_wall_edit(sim.world(), shell).is_ok());
+            // Room geometry accepts the old rear line; ordinary occupancy may still refuse it.
             let room = RoomEdit {
                 x0: dx,
                 y0: dy,
@@ -774,7 +787,7 @@ mod tests {
                     }
                 }),
             };
-            assert!(matches!(
+            assert!(!matches!(
                 validate_room(sim.world(), room),
                 Err(crate::placement::PlacementRefusal::InvalidInput)
             ));
@@ -919,7 +932,7 @@ mod tests {
     /// The walk home from work ends on the landing where it now stands:
     /// once land lies behind the house, the content landing is a room.
     #[test]
-    fn the_walk_home_from_work_ends_on_the_moved_landing() {
+    fn the_walk_home_from_work_reaches_the_nearest_moved_floor() {
         let mut sim = rich();
         buy(sim.world_mut(), Side::Rear).unwrap();
         let portal =
@@ -932,7 +945,7 @@ mod tests {
             let mut commuters = sim.world_mut().query::<(&terri_core::Commuting, &Path)>();
             for (commuting, path) in commuters.iter(sim.world()) {
                 if matches!(commuting, terri_core::Commuting::Inbound) {
-                    assert_eq!(path.steps.last().copied(), Some(landing));
+                    assert_eq!(path.steps.last().copied(), Some((landing.0, landing.1 - 1)));
                     walked_home = true;
                 }
             }

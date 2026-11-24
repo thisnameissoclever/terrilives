@@ -10,6 +10,32 @@ function fixture() {
   return {handle,bridge};
 }
 describe('player-order bridge codecs',()=>{
+  it('reads optional native causes by exact full-width sequence with a bound frozen receiver',()=>{
+    const {handle}=fixture();
+    let receiver: unknown;
+    const cause=vi.fn(function(this:unknown,sequence:string){receiver=this;return sequence==='9007199254740993'?'no-reachable-media-position':'';});
+    const enhanced=Object.freeze({...handle,order_failure_cause:cause});
+    const bridge=new SimBridge(enhanced as unknown as ConstructorParameters<typeof SimBridge>[0],new WebAssembly.Memory({initial:1}));
+    expect(bridge.orderEventsSince('0').events[0].failureCause).toBe('no-reachable-media-position');
+    expect(receiver).toBe(enhanced);
+    expect(cause).toHaveBeenCalledExactlyOnceWith('9007199254740993');
+    cause.mockClear();
+    handle.order_events_since.mockReturnValue(['9007199254740993','0']);
+    expect(bridge.orderEventsSince('9007199254740993').events).toEqual([]);
+    expect(cause).not.toHaveBeenCalled();
+    handle.order_events_since.mockReturnValue(['9007199254740994','0','9007199254740994','20','7','','2','Chat','completed','','']);
+    bridge.orderEventsSince('9007199254740993');
+    expect(cause).not.toHaveBeenCalled();
+  });
+
+  it('retains unknown native cause codes without changing the raw event protocol',()=>{
+    const {handle}=fixture();
+    const enhanced=Object.freeze({...handle,order_failure_cause:()=> 'future-cause'});
+    const bridge=new SimBridge(enhanced as unknown as ConstructorParameters<typeof SimBridge>[0],new WebAssembly.Memory({initial:1}));
+    const event=bridge.orderEventsSince('0').events[0];
+    expect(event.failureCause).toBe('future-cause');
+    expect(event.reason).toBe('Target removed');
+  });
   it('preserves full-width simulation time rather than crashing diagnostic reads',()=>{
     const {bridge,handle}=fixture();
     handle.order_events_since.mockReturnValue(['1','0','1','18446744073709551614','7','','2','Chat','accepted','','']);

@@ -1,26 +1,25 @@
-//! Test views retain the full current envelope, schema twenty-seven, for
-//! equality and restoration.
+//! Test views retain the full current envelope for equality and restoration.
 use crate::{SaveError, Sim};
 use terri_core::{
-    SaveSnapshotV10, SaveSnapshotV17, SaveSnapshotV19, SaveSnapshotV27, SaveSnapshotV5,
-    SaveSnapshotV6,
+    SaveSnapshotV10, SaveSnapshotV16, SaveSnapshotV17, SaveSnapshotV19, SaveSnapshotV28,
+    SaveSnapshotV5, SaveSnapshotV6,
 };
 
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {
         #[derive(Clone, Debug, PartialEq)]
-        pub(crate) struct $view(pub SaveSnapshotV27);
+        pub(crate) struct $view(pub SaveSnapshotV28);
         impl std::ops::Deref for $view {
             type Target = $payload;
-            fn deref(&self) -> &Self::Target { &self.0.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy.$($field).+ }
+            fn deref(&self) -> &Self::Target { &self.0.gameplay_v20().legacy.legacy.legacy.$($field).+ }
         }
         impl std::ops::DerefMut for $view {
-            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy.$($field).+ }
+            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.gameplay_v20_mut().legacy.legacy.legacy.$($field).+ }
         }
         impl Sim {
-            pub(crate) fn $capture(&self) -> $view { $view(self.save_snapshot_v27()) }
+            pub(crate) fn $capture(&self) -> $view { $view(self.save_snapshot_v30()) }
             pub(crate) fn $load(&mut self, snapshot: $view) -> Result<(), SaveError> {
-                self.load_snapshot_v27(snapshot.0)
+                self.load_snapshot_v30(snapshot.0)
             }
         }
     };
@@ -56,69 +55,82 @@ current_view!(
 );
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct CurrentV17View(pub SaveSnapshotV27);
+pub(crate) struct CurrentV17View(pub SaveSnapshotV28);
 impl std::ops::Deref for CurrentV17View {
     type Target = SaveSnapshotV17;
     fn deref(&self) -> &Self::Target {
-        &self
-            .0
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
+        &self.0.gameplay_v20().legacy.legacy.legacy
     }
 }
 impl std::ops::DerefMut for CurrentV17View {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self
-            .0
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
-            .legacy
+        &mut self.0.gameplay_v20_mut().legacy.legacy.legacy
     }
 }
 impl Sim {
     pub(crate) fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v27())
+        CurrentV17View(self.save_snapshot_v30())
     }
     pub(crate) fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), SaveError> {
-        self.load_snapshot_v27(snapshot.0)
+        self.load_snapshot_v30(snapshot.0)
     }
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct CurrentV19View(pub SaveSnapshotV27);
+pub(crate) struct CurrentV19View(pub SaveSnapshotV28);
 impl std::ops::Deref for CurrentV19View {
     type Target = SaveSnapshotV19;
     fn deref(&self) -> &Self::Target {
-        &self.0.legacy.legacy.legacy.legacy.legacy.legacy
+        &self.0.gameplay_v20().legacy
     }
 }
 impl std::ops::DerefMut for CurrentV19View {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0.legacy.legacy.legacy.legacy.legacy.legacy
+        &mut self.0.gameplay_v20_mut().legacy
     }
 }
 impl Sim {
     pub(crate) fn current_v19_view(&self) -> CurrentV19View {
-        CurrentV19View(self.save_snapshot_v27())
+        CurrentV19View(self.save_snapshot_v30())
     }
     pub(crate) fn load_current_v19_view(
         &mut self,
         snapshot: CurrentV19View,
     ) -> Result<(), SaveError> {
-        self.load_snapshot_v27(snapshot.0)
+        self.load_snapshot_v30(snapshot.0)
+    }
+}
+
+current_view!(
+    CurrentV16View,
+    SaveSnapshotV16,
+    current_v16_view,
+    load_current_v16_view,
+    legacy
+);
+
+// V3 and V4 fields are flat fields of V5, not embedded records. These views
+// expose that common field set while retaining every current envelope field.
+impl Sim {
+    pub(crate) fn current_v3_view(&self) -> CurrentV5View {
+        self.current_v5_view()
+    }
+    pub(crate) fn load_current_v3_view(
+        &mut self,
+        snapshot: CurrentV5View,
+    ) -> Result<(), SaveError> {
+        self.load_current_v5_view(snapshot)
+    }
+    pub(crate) fn current_v4_view(&self) -> CurrentV5View {
+        self.current_v5_view()
+    }
+    pub(crate) fn load_current_v4_view(
+        &mut self,
+        snapshot: CurrentV5View,
+    ) -> Result<(), SaveError> {
+        self.load_current_v5_view(snapshot)
     }
 }

@@ -27,8 +27,33 @@ fn pave(sim: &mut Sim, value: u8) {
 }
 fn confirm(sim: &mut Sim) -> BuildReview {
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
-    sim.commit_build(review.token).unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
     review
+}
+
+#[test]
+fn first_pool_requires_contacts_only_for_the_prepared_candidate_until_confirmed() {
+    let mut sim = Sim::new_with_lot(9, 9);
+    sim.world_mut().insert_resource(terri_core::Funds::from_dollars(10_000));
+    assert!(!sim.pool_contacts_required());
+    sim.begin_build().unwrap();
+    let before = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    assert_eq!(sim.build_pool_contacts_required(before.token), Ok(false));
+
+    let pack = sim.world().resource::<Content>().0;
+    let definition = pack.find("pool_rectangular").unwrap();
+    issue(&mut sim, SimCommand::BuyObject {
+        definition: definition.0, x: 4, y: 4, facing: pack.object(definition).base_facing,
+    });
+    assert!(!sim.pool_contacts_required());
+    assert_eq!(sim.build_pool_contacts_required(before.token), Err(BuildCommitError::StaleToken));
+    let with_pool = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    assert_eq!(sim.build_pool_contacts_required(with_pool.token), Ok(true));
+    assert!(!sim.pool_contacts_required());
+    sim.commit_build_with_access_ack(with_pool.token).unwrap();
+    assert!(sim.pool_contacts_required());
+    sim.cancel_build().unwrap();
+    assert!(sim.pool_contacts_required());
 }
 fn wall_refusal(
     sim: &mut Sim,
@@ -195,7 +220,7 @@ fn build_opens_with_someone_walking_past_a_window_to_furniture_behind_it() {
 /// The Room tool drawn over an already walled pocket adds no wall, only the
 /// doorway; it is held to the same rule as an opened single line.
 #[test]
-fn a_room_doorway_into_a_sealed_pocket_beside_furniture_is_refused() {
+fn a_room_doorway_into_a_sealed_pocket_requires_access_review() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
@@ -216,15 +241,14 @@ fn a_room_doorway_into_a_sealed_pocket_beside_furniture_is_refused() {
         .as_ref()
         .unwrap()
         .reason;
-    if reason.is_none() {
-        let confirm = sim.prepare_build_commit(RoomChoices::default()).map(|_| ());
-        panic!("the room doorway at {x}, {y} was accepted, and Confirm gives {confirm:?}");
-    }
+    assert_eq!(reason, None);
+    let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    assert!(!review.access.regions.is_empty());
     assert_eq!(
-        reason,
-        Some(crate::placement::PlacementRefusal::InaccessibleInteraction)
+        sim.commit_build(review.token),
+        Err(BuildCommitError::AccessAcknowledgmentRequired)
     );
-    confirm(&mut sim);
+    sim.commit_build_with_access_ack(review.token).unwrap();
 }
 
 /// A doorway between furniture and a sealed pocket of floor makes the pocket
@@ -232,26 +256,25 @@ fn a_room_doorway_into_a_sealed_pocket_beside_furniture_is_refused() {
 /// loader refuses that, so the doorway must be refused when it is made, not
 /// at Confirm, where it left Build mode unable to confirm anything.
 #[test]
-fn a_doorway_into_a_sealed_pocket_beside_furniture_is_refused_before_confirm() {
+fn a_doorway_into_a_sealed_pocket_requires_access_review() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
     let refusal = wall_refusal(&mut sim, axis, x, y, WallState::Doorway);
-    if refusal.is_none() {
-        let confirm = sim.prepare_build_commit(RoomChoices::default()).map(|_| ());
-        panic!("the doorway at {x}, {y} was accepted, and Confirm gives {confirm:?}");
-    }
+    assert_eq!(refusal, None);
+    let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    assert!(!review.access.regions.is_empty());
     assert_eq!(
-        refusal,
-        Some(crate::placement::PlacementRefusal::InaccessibleInteraction)
+        sim.commit_build(review.token),
+        Err(BuildCommitError::AccessAcknowledgmentRequired)
     );
-    confirm(&mut sim);
+    sim.commit_build_with_access_ack(review.token).unwrap();
 }
 
 /// A house that will not load names the rule it breaks, not only the kind of
 /// error, so the page can say what is in the way.
 #[test]
-fn build_entry_names_the_rule_a_house_that_will_not_load_breaks() {
+fn approved_inaccessible_house_can_reenter_build_and_be_saved() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
@@ -274,17 +297,15 @@ fn build_entry_names_the_rule_a_house_that_will_not_load_breaks() {
     sim.world_mut()
         .resource_mut::<terri_core::TileGrid>()
         .set_edge_blocked(a, b, false);
-    assert_eq!(
-        sim.begin_build(),
-        Err(BuildCommitError::Validation(SaveError::InvalidGrid))
-    );
-    assert_eq!(
-        sim.build_diagnosis(),
-        Some(ValidationProblem::LotUsability(
-            crate::placement::PlacementRefusal::InaccessibleInteraction
-        ))
-    );
-    assert!(!sim.build_active());
+    sim.begin_build().unwrap();
+    assert_eq!(sim.build_diagnosis(), None);
+    let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    assert!(!review.access.regions.is_empty());
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 
 /// Every wall, doorway, opening, window and room the tools accept must
@@ -443,7 +464,7 @@ fn accepted_architecture_edits_always_confirm() {
                     sim.build_diagnosis()
                 ),
                 Ok(review) if next(5) == 0 => {
-                    sim.commit_build(review.token).unwrap();
+                    sim.commit_build_with_access_ack(review.token).unwrap();
                     sim.end_build().unwrap();
                     for _ in 0..(50 + next(1500)) {
                         sim.tick();
@@ -574,7 +595,7 @@ fn failed_review_projection_preserves_existing_preparation_and_runtime() {
         pending_names
     );
     assert_eq!(sim.validate_build_token(review.token), Ok(()));
-    sim.commit_build(review.token).unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
 }
 
 #[test]
@@ -904,6 +925,7 @@ fn ordinary_construction_allocator_failure_is_atomic_and_reported() {
     let before = sim.save_snapshot_v16();
     let revision = sim.rooms_revision();
     sim.load_snapshot_v16(before.clone()).unwrap();
+    let before = sim.save_snapshot_v16();
     let revision = sim.rooms_revision().max(revision);
     issue(
         &mut sim,
@@ -1262,7 +1284,7 @@ fn view_revision_tracks_names_edits_and_adoption_without_failed_operation_churn(
     assert_eq!(sim.rooms_revision(), previous);
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     assert_eq!(sim.rooms_revision(), previous);
-    sim.commit_build(review.token).unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
     assert!(sim.rooms_revision() > previous);
     previous = sim.rooms_revision();
     sim.cancel_build().unwrap();
@@ -1320,7 +1342,10 @@ fn prepared_predecessors_preserve_sparse_overlap_and_refusal_atomicity() {
             );
         }
     };
+    sim.begin_build().unwrap();
     wall(&mut sim, 4, WallState::Wall);
+    confirm(&mut sim);
+    sim.end_build().unwrap();
     let old = sim.world.resource::<RoomMap>().clone();
     let a = match old.selection_at((1, 1)).unwrap() {
         RoomSelection::Room(id) => id,

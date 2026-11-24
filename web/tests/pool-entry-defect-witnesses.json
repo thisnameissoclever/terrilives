@@ -1,0 +1,151 @@
+{
+  "sourceSha256": "2c83f810bafa7030725ae24cb4929a412e2122665cb26ad82ec364e3e700e9e8",
+  "provenance": "Retained coupled-v2 observations; post-stop source snapshot is separate from test-time identity.",
+  "records": [
+    {
+      "phase": 0.2,
+      "violations": [
+        {
+          "surface": "Pool outside ladder tread 2",
+          "point": [
+            -0.5951649598253981,
+            1.084526237808507,
+            0.3758316868387176
+          ],
+          "signedClearance": -0.0004738003384656686,
+          "bodyVertex": null,
+          "bodyTriangle": 11534,
+          "surfaceTriangle": 7,
+          "part": "Creator bare leg L"
+        }
+      ]
+    },
+    {
+      "phase": 0.5,
+      "violations": [
+        {
+          "surface": "Pool ladder rail 1",
+          "point": [
+            -0.6718904416434729,
+            0.7724740733983153,
+            1.2307914580258421
+          ],
+          "signedClearance": -8.568014264177035e-07,
+          "bodyVertex": null,
+          "bodyTriangle": 66288,
+          "surfaceTriangle": 763,
+          "part": "Relaxed palm"
+        },
+        {
+          "surface": "Pool ladder rail 2",
+          "point": [
+            -0.32810961326664806,
+            0.7724742170294456,
+            1.230791455198799
+          ],
+          "signedClearance": -8.736777355549908e-07,
+          "bodyVertex": null,
+          "bodyTriangle": 67094,
+          "surfaceTriangle": 754,
+          "part": "Relaxed palm.001"
+        }
+      ]
+    },
+    {
+      "phase": 0.6,
+      "violations": [
+        {
+          "surface": "Pool ladder rail 1",
+          "point": [
+            -0.678344190120697,
+            0.814753532409668,
+            1.2768741846084595
+          ],
+          "signedClearance": -0.006767743975859971,
+          "bodyVertex": 4797,
+          "bodyTriangle": null,
+          "surfaceTriangle": 911,
+          "part": "Creator bare hips"
+        },
+        {
+          "surface": "Pool ladder rail 2",
+          "point": [
+            -0.3216557502746582,
+            0.814753532409668,
+            1.2768741846084595
+          ],
+          "signedClearance": -0.006767719913926253,
+          "bodyVertex": 4669,
+          "bodyTriangle": null,
+          "surfaceTriangle": 915,
+          "part": "Creator bare hips"
+        },
+        {
+          "surface": "Pool ladder rail 2",
+          "point": [
+            -0.32592689990997314,
+            0.7268514633178711,
+            1.0138665437698364
+          ],
+          "signedClearance": -0.006714931922270712,
+          "bodyVertex": 6542,
+          "bodyTriangle": null,
+          "surfaceTriangle": 471,
+          "part": "Creator bare leg L"
+        },
+        {
+          "surface": "Pool ladder rail 1",
+          "point": [
+            -0.6756467819213867,
+            0.7820385098457336,
+            1.2386966943740845
+          ],
+          "signedClearance": -0.0064585112511120965,
+          "bodyVertex": 10730,
+          "bodyTriangle": null,
+          "surfaceTriangle": 762,
+          "part": "Creator bare torso"
+        },
+        {
+          "surface": "Pool ladder rail 2",
+          "point": [
+            -0.3243532180786133,
+            0.7820385098457336,
+            1.2386966943740845
+          ],
+          "signedClearance": -0.006458499371634795,
+          "bodyVertex": 10505,
+          "bodyTriangle": null,
+          "surfaceTriangle": 754,
+          "part": "Creator bare torso"
+        },
+        {
+          "surface": "Pool ladder rail 1",
+          "point": [
+            -0.6811991333961487,
+            0.7667679190635681,
+            1.1762088537216187
+          ],
+          "signedClearance": -0.00607698326925348,
+          "bodyVertex": 279,
+          "bodyTriangle": null,
+          "surfaceTriangle": 689,
+          "part": "Creator pool two_piece waist"
+        },
+        {
+          "surface": "Pool ladder rail 2",
+          "point": [
+            -0.31880077719688416,
+            0.7667679190635681,
+            1.1762088537216187
+          ],
+          "signedClearance": -0.00607698326925348,
+          "bodyVertex": 439,
+          "bodyTriangle": null,
+          "surfaceTriangle": 689,
+          "part": "Creator pool two_piece waist"
+        }
+      ]
+    }
+  ]
+}

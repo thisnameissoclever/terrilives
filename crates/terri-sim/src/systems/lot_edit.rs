@@ -75,6 +75,18 @@ pub fn drain_commands(world: &mut World) {
                 );
                 continue;
             }
+            if let SimCommand::TalkTo { agent, target, .. }
+                | SimCommand::TalkToFirst { agent, target, .. } = &command
+            {
+                world.insert_resource(crate::player_actions::ConfirmedRecipientOrder {
+                    agent: *agent,
+                    target: *target,
+                });
+                world.resource_mut::<CommandQueue>().push(command);
+                flush_ordinary(world);
+                world.remove_resource::<crate::player_actions::ConfirmedRecipientOrder>();
+                continue;
+            }
             command
         } else {
             command

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "owners": {
+    "pool-swimwear": {
+      "outline": true,
+      "parts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ]
+    }
+  }
+}

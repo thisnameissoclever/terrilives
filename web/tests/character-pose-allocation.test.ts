@@ -104,8 +104,10 @@ describe('the rewritten math matches the originals bit for bit',()=>{
   });
 });
 
-describe('the configured pose is unchanged',()=>{
-  const clips=[...Object.keys(manifest.actions),...Object.keys(library.clips)];
+describe('the existing configured poses are unchanged',()=>{
+  // Bath legs and toy contact changed intentionally. Bath and pool motion have their own physical tests.
+  const clips=[...Object.keys(manifest.actions),...Object.keys(library.clips)].filter(clip=>
+    clip!=='bath'&&library.clips[clip]?.contacts.policy!=='pool');
   const bodies=appearances();
   it.each(clips)('poses %s exactly as before for every body corner and phase',clip=>{
     let poses=0;
@@ -124,7 +126,7 @@ describe('the configured pose is unchanged',()=>{
   },60000);
 
   it('poses the production path without contact artifacts exactly as before',()=>{
-    for(const clip of ['walk','talk','bath','shower','cook_v2','mop','sofa_recline','fetch_3','book_walk'])for(const appearance of bodies.slice(0,3)){
+    for(const clip of ['walk','talk','shower','cook_v2','mop','sofa_recline','fetch_3','book_walk'])for(const appearance of bodies.slice(0,3)){
       const {geometry,shape,top}=clipSubject(clip,appearance);
       for(const frame of framesOf(clip))expect(bytes(configuredPose(geometry.manifest,shape,clip,frame,top,undefined,geometry)))
         .toEqual(bytes(originalPose(geometry.manifest,shape,clip,frame,top,undefined,geometry)));

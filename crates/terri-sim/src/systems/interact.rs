@@ -233,6 +233,10 @@ pub fn tick_interactions(
         // an advert naming a need rustc does not know, and it rejects a
         // zero duration, so the division below cannot be by zero.
         let act = &content.0.object(eating.object).interactions[eating.interaction as usize];
+        // The pool's native episode owns its three clocks and swim-only effects.
+        if crate::pool::is_swimming(act) {
+            continue;
+        }
         if act.book_reading {
             commands.queue(move |world: &mut World| {
                 if !crate::reading::request_return(world, entity) {

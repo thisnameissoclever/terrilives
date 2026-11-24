@@ -11,6 +11,9 @@ import type {BikeContactArtifactV1} from './bike-contact-types.js';
 import type {CharacterPreparation} from './character-preparation-service.js';
 import type {PreparedSleepingCover} from './prepared-sleeping-cover.js';
 import {bindSeatContacts} from './seat-contact-sample.js';
+import {bindPoolContacts} from './pool-contact-sample.js';
+import {poolContactAppearanceKey} from './pool-contact-identity.js';
+import {poolContactFixture,poolContactTakeoffPhase} from './pool-contact-release.js';
 
 type Placement=Parameters<CharacterRenderer['prepareScene']>[4];
 type SceneOptions=Parameters<CharacterRenderer['prepareScene']>[5];
@@ -37,16 +40,9 @@ export class PreparedCharacter {
   private closed=false;
   readonly metrics={bodyCompactions:1,bodyShapeChanges:0,attachmentChanges:0};
   private shapeKey='';
-  /**
-   * The arguments of the last completed `select`. The world selects every
-   * actor on every frame; repeating it with the same rig, the same appearance
-   * record and an equal context changes nothing, so it returns at once rather
-   * than re-serialising and re-validating the appearance for each renderer.
-   * Methods that change what a selection installs clear it. The match is by
-   * object identity, so an appearance record must be treated as immutable: an
-   * edit made in place to the record last passed here is not seen. Callers
-   * change an appearance by passing a new record.
-   */
+  private poolSelection=false;
+  private poolBinding:{artifact:CharacterPreparation['pool'];selection:PreparedSelection;shapeKey:string;manifest:Geometry['manifest'];parts:Geometry['description']['parts'];garmentManifest:Geometry['manifest'];garmentParts:Geometry['description']['parts']}|undefined;
+  /** An unchanged selection can reuse its attachments. Appearance edits pass a new record. */
   private selected:{rig:CharacterRig;appearance:CharacterAppearanceV1;context:AppearanceContext}|null=null;
   constructor(private readonly device:GPUDevice,rig:CharacterRig,appearance:CharacterAppearanceV1,context:AppearanceContext,
     width:number,height:number,framing:{zoom?:number;groundFraction?:number}={}){
@@ -74,22 +70,38 @@ export class PreparedCharacter {
     this.selected=null;mesh.bikeContact=contact;mesh.lastPoseKey='';mesh.lastMatrices=null;
   }
   setContacts(contact:CharacterPreparation|undefined):void {
-    this.setBikeContact(contact?.bike);const mesh=this.renderer.resources;if(mesh.sleepContact===contact?.sleep&&mesh.seatContact===contact?.seat)return;
-    this.selected=null;mesh.sleepContact=contact?.sleep;mesh.seatContact=contact?.seat;mesh.lastPoseKey='';mesh.lastMatrices=null;
-    bindSeatContacts(mesh.seatContact,this.geometry,mesh.shape,mesh.top);
+    this.setBikeContact(contact?.bike);const mesh=this.renderer.resources;
+    if(mesh.sleepContact===contact?.sleep&&mesh.seatContact===contact?.seat&&mesh.poolContact===contact?.pool)return;
+    this.selected=null;
+    mesh.sleepContact=contact?.sleep;mesh.seatContact=contact?.seat;mesh.poolContact=contact?.pool;mesh.lastPoseKey='';mesh.lastMatrices=null;
+    bindSeatContacts(mesh.seatContact,this.geometry,mesh.shape,mesh.top);this.bindPoolSelection();
   }
+  private bindPoolSelection(awaitingCurrentContact=false):void {
+    const mesh=this.renderer.resources,artifact=mesh.poolContact;
+    if(!this.poolSelection||!artifact)return;
+    // World selection changes before its newly admitted contacts are installed in this same frame.
+    if(awaitingCurrentContact&&artifact.appearanceKey!==poolContactAppearanceKey(this.appearance))return;
+    const saved=this.poolBinding;
+    if(saved?.artifact===artifact&&saved.selection===this.current&&saved.shapeKey===this.shapeKey
+      &&saved.manifest===this.current.body.manifest&&saved.parts===this.current.body.description.parts
+      &&saved.garmentManifest===this.current.extra?.manifest&&saved.garmentParts===this.current.extra?.description.parts)return;
+    if(!this.current.extra||this.current.variants.length)throw new Error('Pool motion requires its selected body and temporary garments.');
+    bindPoolContacts(artifact,this.current.body,mesh.shape,mesh.top,[this.current.extra],poolContactFixture(),poolContactTakeoffPhase());
+    this.poolBinding={artifact,selection:this.current,shapeKey:this.shapeKey,manifest:this.current.body.manifest,parts:this.current.body.description.parts,garmentManifest:this.current.extra.manifest,garmentParts:this.current.extra.description.parts};
+  }
+
   select(rig:CharacterRig,appearance:CharacterAppearanceV1,context:AppearanceContext):void {
     if(this.closed)throw new Error('Prepared character is closed.');
     const last=this.selected;
     if(last&&last.rig===rig&&last.appearance===appearance&&sameContext(last.context,context)){
-      // A borrowed cover is one renderer shared by every actor on that fixture, and each actor's selection used to
-      // leave it showing that actor's appearance. Repeat that for the few sleepers so the last selection still wins.
+      // A shared sleeping cover displays the appearance of the last actor selected for that fixture.
       if(this.borrowedCover)for(const view of this.views)view.cover?.setCharacterAppearance(appearance);
       return;
     }
     this.selected=null;
     if(this.selectionKey!==bodySelectionKey(appearance))throw new Error('Prepared character style changed.');
     this.appearance=appearance;this.current=this.prepared.select(rig,appearance,context);
+    this.poolSelection=rig.manifest.clipMetadata?.[context.clip??'']?.contacts.policy==='pool';
     if(this.current.variants.some(variant=>!this.views[0].variants.has(variant)))throw new Error('Character body variant was not prepared with this person.');
     const shapeKey=JSON.stringify([appearance.presentation,appearance.body,appearance.face]);
     const changingShape=shapeKey!==this.shapeKey;
@@ -98,6 +110,7 @@ export class PreparedCharacter {
     this.replaceAttachment('extra',this.current.extra);
     for(const view of this.views)for(const renderer of renderers(view))renderer.setCharacterAppearance(appearance);
     const mesh=this.renderer.resources;if(!changingShape)bindSeatContacts(mesh.seatContact,this.geometry,mesh.shape,mesh.top);
+    this.bindPoolSelection(true);
     this.selected={rig,appearance,context:{...context}};
   }
   setCover(cover:Geometry|null):void {this.replaceAttachment('cover',cover);}

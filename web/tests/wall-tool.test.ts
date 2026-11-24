@@ -74,6 +74,14 @@ function tool(width = 7, height = 5) {
   return { source, walls, changes: () => changes };
 }
 
+it('reports a native physical conflict separately from routine wall selection prose', () => {
+  const { source, walls } = tool(); walls.enter(); source.refusals[WALL] = 8;
+  walls.choose({ axis: 0, x: 2, y: 2 }); walls.status = 'Unrelated translation';
+  expect(walls.feedback).toMatchObject({ operation: 'wall', state: 'failure', message: wallReason(8) });
+  source.refusals[WALL] = 0; walls.choose({ axis: 0, x: 3, y: 2 });
+  expect(walls.feedback).toBeNull(); walls.apply(WALL); expect(walls.feedback?.state).toBe('pending');
+});
+
 describe('nearestLine', () => {
   it('picks the nearer of the nearest vertical and horizontal line', () => {
     // Tile (2, 1) spans 1.5..2.5 by 0.5..1.5. Its left edge is x = 1.5.
@@ -167,7 +175,7 @@ describe('WallTool', () => {
     source.refusals = [0, 12, 0, 12];
     walls.enter();
     walls.choosePoint(1.6, 1.0);
-    expect(walls.status).toBe('No wall on this line. A wall there would cut off the front door.');
+    expect(walls.status).toBe('No wall on this line. A wall there would block access to a doorway.');
     expect(([OPEN, WALL, DOORWAY] as const).map((state) => walls.canApply(state))).toEqual([false, false, true]);
     // [WB-mark]: the line itself is marked, in the refused tint.
     expect(walls.highlight()).toEqual({ tiles: [], valid: false,
@@ -560,9 +568,9 @@ describe('the Walls tool on real wasm', () => {
     expect(wallReason(99)).toBe('That change is not possible.');
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(bridge.wallEditPreview(0, 0, 1, WALL)).toEqual({
-      valid: false,
-      reason: 'The outside wall cannot be changed here.',
-      code: 5,
+      valid: true,
+      reason: null,
+      code: 0,
     });
     expect(bridge.wallEditPreview(7, 0, 1, WALL).reason).toBe('Choose a line between two floor tiles.');
   });
@@ -730,7 +738,7 @@ describe('WallToolControls', () => {
     walls.choosePoint(1.6, 1.0);
     view.render();
     expect(element('wall-status').textContent).toBe(walls.status);
-    expect(walls.status).toMatch(/cut off the front door/);
+    expect(walls.status).toMatch(/block access to a doorway/);
   });
 
   it('keeps the optional shortcuts available on desktop and phone', () => {

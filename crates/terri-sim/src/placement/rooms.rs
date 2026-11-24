@@ -113,10 +113,14 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     );
     // The house's shell is never a doorway, at the grid's edge or inside
     // the grid once bought land lies beyond it (land expansion, rule 4).
-    let house = crate::lot_frame::house_or_grid(world);
+    let house = crate::world_geometry::historical_house(world);
     if edit.doorway.is_some_and(|door| {
         !lines.contains(&door)
-            || !record(door, true).in_bounds(width, height)
+            || !(if crate::world_geometry::current(world) {
+                record(door, true).physical_in_bounds(width, height)
+            } else {
+                record(door, true).in_bounds(width, height)
+            })
             || house.is_rear(door)
     }) {
         return Err(InvalidInput);
@@ -146,8 +150,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         // edge, and the grid is left to the shell rule.
         let interior = edge.in_bounds(width, height) && !house.is_rear(line);
         let [a, b] = edge.cells();
-        // [OS-door] first: a line the front door stands on can never be a
-        // window today, but the guard must not depend on that staying true.
+        // Historical [OS-door] guard. Current worlds have no protected line.
         if !doorway && line.axis == EdgeAxis::Vertical && front.contains(&(line.x, line.y)) {
             return Err(BlockedDoor);
         }
@@ -162,10 +165,12 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
                 super::windows::restore_solid(
                     &mut next,
                     &remaining,
-                    crate::lot_frame::house_or_grid(world),
+                    crate::world_geometry::historical_house(world),
                 );
                 next.push(record(line, true));
-                grid.set_edge_blocked(a, b, false);
+                if interior {
+                    grid.set_edge_blocked(a, b, false);
+                }
                 changed = true;
             }
             continue;
@@ -176,12 +181,13 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         {
             Some(index) if doorway && !next[index].doorway => {
                 next[index].doorway = true;
-                grid.set_edge_blocked(a, b, false);
+                if interior {
+                    grid.set_edge_blocked(a, b, false);
+                }
                 changed = true;
             }
             Some(_) => {}
-            // [OS-door]: an open front-door line is the room's doorway or
-            // is refused, since a wall there would shut the door.
+            // Historical [OS-door] guard; current front is empty.
             None if !doorway
                 && line.axis == EdgeAxis::Vertical
                 && front.contains(&(line.x, line.y)) =>
@@ -212,7 +218,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         &candidate,
         width,
         height,
-        crate::lot_frame::house_or_grid(world),
+        crate::world_geometry::historical_house(world),
     )?;
     // New walls meet every wall rule. An outline that adds none can still open
     // a doorway onto furniture from a sealed pocket, held to the rule an

@@ -112,6 +112,15 @@ strength ratio and lightness difference. Unchanged settings preserve the accepte
 art exactly; content adjustments still change its appearance. Preserve saved
 covering identities, content tuning and the historical sprite color path.
 
+Changing a finish retains the renderer, accepted base textures, shared depth,
+sprite registration and static support buffers. Prepare only missing finish
+resources and required pipeline variants before staging the native edit. Publish
+the prepared resources atomically; a failed optional choice leaves ready finishes
+available. Retry resumes only the still-current selection and draft. Device loss
+uses explicit renderer recovery and cancels a waiting edit. Retire resources only
+after their submitted GPU work has completed. Report requested allocation
+estimates separately from measured physical driver residency.
+
 The initial checkpoint used wall height 2.0, thickness 0.12 and baseboard height
 0.14 world units. Match the existing 32-by-21 half-tile projection and 38-pixel
 vertical unit. Standard glazing starts approximately 0.65 units above the floor
@@ -170,8 +179,9 @@ Fit windows into a straight solid wall run. A replacement may consume the
 selected existing window and adjoining solid wall, but never another window or
 a doorway. When a shorter model replaces a wider one, restore uncovered parts
 to solid wall. Refuse corners, T/cross junctions within the aperture, overlaps,
-out-of-bounds spans, front-door conflicts and edits that fail the existing
-furniture/Sim/accessibility proofs. Validate the complete proposed layout once;
+out-of-bounds spans, doorway conflicts and edits that fail physical furniture or
+Sim constraints. Review valid inaccessible ground through the current Build
+confirmation flow. Validate the complete proposed layout once;
 either apply it and increment the lot revision once, or change nothing.
 
 Offer explicit **Remove window**, which restores solid wall, and the existing
@@ -182,12 +192,12 @@ the complete change. A Room edit intersecting part of a wide window is refused
 with a literal message asking the player to remove that window first. A Room
 edit covering its entire span may replace it atomically.
 
-Support windows in the current implicit north/west rear shell at X=0 or Y=0,
-as well as editable interior and yard-facing house walls. Rear apertures replace
-the shell geometry on their span. They do not turn an out-of-lot coordinate into
-a walkable tile or authorize deleting the rear shell. Keep general wall-edge
-bounds strict; add explicit window-boundary validation for this case. Removal
-restores the implicit shell. Do not add arbitrary lot expansion or rear doors.
+Current worlds support windows in saved solid wall runs on either axis, including
+all four perimeter sides. Removing a window restores solid wall over its span.
+Original rear walls are ordinary editable geometry after historical adoption;
+their original position grants no protection. Frozen readers retain their own
+implicit-shell validation. A perimeter opening does not create walkable ground
+beyond the owned grid; Land remains the separate ground-expansion operation.
 
 ## Saves and commands
 
@@ -226,9 +236,11 @@ window exposes a wider part of its room. A window between two dark internal
 rooms remains dark. When one room has an exterior source, daylight may pass
 through an internal window using the existing per-tile attenuation.
 
-Seed the in-bounds cell next to a rear-shell aperture from virtual outdoor sky;
-there is no physical off-lot floor tile to flood from. The other exterior walls
-continue to receive daylight from the yard. Opaque shell segments block it.
+Seed the in-bounds cell next to a perimeter aperture from virtual outdoor sky;
+there is no physical off-lot floor tile to flood from. Current exterior ground
+and enclosure follow saved geometry. Solid walls and windows enclose ground for
+that classification, while window apertures transmit the daylight field. See
+[OS-daylight] in `2026-09-22-the-outside.md` for current and historical fallbacks.
 
 Multiply the resulting exposure by the existing `sunStrength(ambient)` curve.
 The window contribution is exactly zero at night, with dawn/dusk fading. No
@@ -254,19 +266,18 @@ The lighting field is presentation-only and cannot change the world hash.
 Implementation tasks and commands are in
 [the implementation plan](../superpowers/plans/2026-10-01-windows-walls-floors.md).
 
-## Current evidence
+## Planning baseline evidence
 
-The inspected planning baseline is `fd75b9c2a9a43e5b49ac6467041cc49324339da3`.
-`web/src/render/instances.ts` implements the current blue window tint;
-`web/src/render/edge-walls.ts` supplies its borrowed wall panel.
-`assets/sprites/gen/objects.py::floor` draws the crossed-diamond floor, and
-`web/src/render/tiles.ts` uses it for every covering.
+The inspected planning baseline was `fd75b9c2a9a43e5b49ac6467041cc49324339da3`.
+At that revision, `web/src/render/instances.ts` implemented the blue window tint;
+`web/src/render/edge-walls.ts` supplied its borrowed wall panel.
+`assets/sprites/gen/objects.py::floor` drew the crossed-diamond floor, and
+`web/src/render/tiles.ts` used it for every covering.
 
 Read the current window, floor and cutaway specs together with
 `assets/models/kitchen/README.md`, `assets/models/bathroom/README.md` and
-`docs/testing-protocol.md`. The shipped-art summary in `docs/TECH_STACK.md` is
-stale: it says all visible sprites are produced by the old Python/Pillow drawing
-code despite the integrated Blender exports. Correct it with implementation.
+`docs/testing-protocol.md`. `docs/TECH_STACK.md` describes the current combination
+of generated artwork and reviewed offline Blender assets.
 
 ## Combined renderer contract, 2026-10-02
 
@@ -277,11 +288,13 @@ all released door/dining modes, nonfinite values, fractions and out-of-range slo
 
 Bindings 9 and 10 hold the covered-bed and dining support tables. Architecture
 patterns start at binding 11. The combined vertex stage needs four storage buffers;
-the fragment stage needs two. Four shared sampled textures leave at most twelve
-active pattern textures on the portable sixteen-texture device, with the actual
-device limit checked before upload. Beds and dining reuse the historical atlas;
-they do not consume additional sampled textures. The complete published historical
-table now has 2,445 records; the 472 architecture records follow it in a separate
+the fragment stage needs two. Five shared sampled textures (historical atlas,
+architecture depth, architecture color, roles and joint alpha) leave eleven active
+pattern textures on the portable sixteen-texture device. The source ceiling is
+twelve patterns on a device reporting at least seventeen sampled textures; actual
+device limits are checked before fetching or upload. Beds and dining reuse the
+historical atlas. The complete published historical table has 30,939 records;
+the 472 architecture records follow it in a separate
 texture set. The original 1,700-record pixel digest remains unchanged.
 
 Floors selects a tile before a contextual covering action applies it. Its dock

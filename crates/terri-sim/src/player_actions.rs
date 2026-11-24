@@ -33,9 +33,60 @@ pub struct ActionQueueRow {
 }
 #[derive(Resource, Default, Clone)]
 pub struct ActionDiagnostics {
-    records: VecDeque<ActionEvent>,
+    records: VecDeque<RecordedActionEvent>,
     sequence: u64,
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OrderFailureCause {
+    NoReachableMediaPosition,
+}
+
+impl OrderFailureCause {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::NoReachableMediaPosition => "no-reachable-media-position",
+        }
+    }
+}
+
+#[derive(Clone)]
+struct RecordedActionEvent {
+    event: ActionEvent,
+    failure_cause: Option<OrderFailureCause>,
+}
+
+impl ActionDiagnostics {
+    fn lookup_failure_cause(
+        &self,
+        sequence: u64,
+        mut inspected: impl FnMut(),
+    ) -> Option<OrderFailureCause> {
+        let first = self.records.front()?.event.sequence;
+        let last = self.records.back()?.event.sequence;
+        if sequence == 0
+            || first == 0
+            || first > last
+            || last > self.sequence
+            || sequence < first
+            || sequence > last
+        {
+            return None;
+        }
+        let index = self
+            .records
+            .binary_search_by_key(&sequence, |record| {
+                inspected();
+                record.event.sequence
+            })
+            .ok()?;
+        self.records[index].failure_cause
+    }
+}
+
+#[cfg(test)]
+#[path = "player_action_failure_tests.rs"]
+mod failure_cause_tests;
 #[derive(Clone)]
 pub(crate) struct OrderState {
     pub entry: QueuedOrder,
@@ -144,21 +195,35 @@ fn counterpart(state: &OrderState) -> Option<u32> {
 }
 
 fn emit(world: &mut World, actor: Entity, state: &OrderState, phase: &str, reason: Option<&str>) {
+    emit_with_cause(world, actor, state, phase, reason, None);
+}
+
+fn emit_with_cause(
+    world: &mut World,
+    actor: Entity,
+    state: &OrderState,
+    phase: &str,
+    reason: Option<&str>,
+    failure_cause: Option<OrderFailureCause>,
+) {
     let tick = world.resource::<SimClock>().tick;
     let counterpart = counterpart(state);
     let mut diagnostics = world.get_resource_or_insert_with(ActionDiagnostics::default);
     diagnostics.sequence += 1;
     let sequence = diagnostics.sequence;
-    diagnostics.records.push_back(ActionEvent {
-        sequence,
-        tick,
-        actor: actor.index_u32(),
-        counterpart,
-        order_id: state.entry.id,
-        action: state.label.clone(),
-        phase: phase.into(),
-        reason: reason.map(str::to_owned),
-        blocking_state: (phase == "waiting").then(|| "Recipient or resource busy".into()),
+    diagnostics.records.push_back(RecordedActionEvent {
+        event: ActionEvent {
+            sequence,
+            tick,
+            actor: actor.index_u32(),
+            counterpart,
+            order_id: state.entry.id,
+            action: state.label.clone(),
+            phase: phase.into(),
+            reason: reason.map(str::to_owned),
+            blocking_state: (phase == "waiting").then(|| "Recipient or resource busy".into()),
+        },
+        failure_cause,
     });
     if diagnostics.records.len() > 2048 {
         diagnostics.records.pop_front();
@@ -198,11 +263,35 @@ fn record_acceptance(world: &mut World, actor: Entity, entry: QueuedOrder) -> bo
     true
 }
 
+#[derive(Resource)]
+pub(crate) struct ConfirmedRecipientOrder {
+    pub agent: u32,
+    pub target: u32,
+}
+
 /// Called at command acceptance, including paused command batches.
 pub(crate) fn accept(world: &mut World, actor: Entity, entry: QueuedOrder) {
-    if record_acceptance(world, actor, entry) {
-        crate::attendance::interrupt_for_order(world, actor);
+    let intent = entry.intent;
+    if accept_for_actor(world, actor, entry)
+        && intent.object != actor
+        && intent.cleanup.is_none()
+        && intent.chore.is_none()
+        && world.get::<Agent>(intent.object).is_some()
+        && crate::attendance::manual_work_trip(world, intent.object)
+        && world.get_resource::<ConfirmedRecipientOrder>().is_some_and(|proof| {
+            proof.agent == actor.index_u32() && proof.target == intent.object.index_u32()
+        })
+    {
+        crate::attendance::interrupt_for_order(world, intent.object);
     }
+}
+
+fn accept_for_actor(world: &mut World, actor: Entity, entry: QueuedOrder) -> bool {
+    if !record_acceptance(world, actor, entry) {
+        return false;
+    }
+    crate::attendance::interrupt_for_order(world, actor);
+    true
 }
 
 /// An invalid action consumes its identity without becoming work or recalling its owner.
@@ -391,6 +480,17 @@ pub(crate) fn terminal(
     phase: &str,
     reason: Option<&str>,
 ) {
+    terminal_with_cause(world, actor, id, phase, reason, None);
+}
+
+pub(crate) fn terminal_with_cause(
+    world: &mut World,
+    actor: Entity,
+    id: u64,
+    phase: &str,
+    reason: Option<&str>,
+    failure_cause: Option<OrderFailureCause>,
+) {
     if phase != "completed" {
         crate::social_episode::release_order(world, actor, id);
     }
@@ -406,7 +506,7 @@ pub(crate) fn terminal(
         .get_resource_mut::<PlayerActions>()
         .and_then(|mut s| s.orders.remove(&(actor, id)));
     if let Some(state) = state {
-        emit(world, actor, &state, phase, reason);
+        emit_with_cause(world, actor, &state, phase, reason, failure_cause);
         if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
             queue.remove_order(id);
         }
@@ -529,21 +629,27 @@ pub(crate) fn cancel_all(world: &mut World, actor: Entity, reason: &str) {
         terminal(world, actor, id, "canceled", Some(reason));
     }
 }
-pub(crate) fn has_player_work(world: &World, actor: Entity) -> bool {
+pub(crate) fn has_own_player_work(world: &World, actor: Entity) -> bool {
     world
         .get::<IntentQueue>(actor)
         .is_some_and(|q| !q.is_empty())
+        || world
+            .get_resource::<PlayerActions>()
+            .is_some_and(|actions| actions.orders.range((actor, 0)..=(actor, u64::MAX)).next().is_some())
+}
+
+pub(crate) fn has_player_work(world: &World, actor: Entity) -> bool {
+    has_own_player_work(world, actor)
         || world.get_resource::<PlayerActions>().is_some_and(|s| {
             s.orders.iter().any(|((owner, id), state)| {
-                *owner == actor
-                    || (state.entry.intent.object == actor
-                        && state.entry.intent.chore.is_none()
-                        && state.entry.intent.cleanup.is_none()
-                        && world.get::<Agent>(*owner).is_some()
-                        && (state.active
-                            || world.get::<IntentQueue>(*owner).is_some_and(|q| {
-                                q.entries().first().is_some_and(|entry| entry.id == *id)
-                            })))
+                state.entry.intent.object == actor
+                    && state.entry.intent.chore.is_none()
+                    && state.entry.intent.cleanup.is_none()
+                    && world.get::<Agent>(*owner).is_some()
+                    && (state.active
+                        || world.get::<IntentQueue>(*owner).is_some_and(|q| {
+                            q.entries().first().is_some_and(|entry| entry.id == *id)
+                        }))
             })
         })
 }
@@ -563,16 +669,19 @@ pub(crate) fn reject_submission(world: &mut World, actor: u32, reason: &str) {
     let mut d = world.get_resource_or_insert_with(ActionDiagnostics::default);
     d.sequence += 1;
     let sequence = d.sequence;
-    d.records.push_back(ActionEvent {
-        sequence,
-        tick,
-        actor,
-        counterpart: None,
-        order_id: u64::MAX,
-        action: "Order submission".into(),
-        phase: "rejected".into(),
-        reason: Some(reason.into()),
-        blocking_state: None,
+    d.records.push_back(RecordedActionEvent {
+        event: ActionEvent {
+            sequence,
+            tick,
+            actor,
+            counterpart: None,
+            order_id: u64::MAX,
+            action: "Order submission".into(),
+            phase: "rejected".into(),
+            reason: Some(reason.into()),
+            blocking_state: None,
+        },
+        failure_cause: None,
     });
     if d.records.len() > 2048 {
         d.records.pop_front();
@@ -1262,7 +1371,7 @@ pub(crate) fn observe(world: &mut World) {
             .get_resource::<crate::fights::Fights>()
             .is_some_and(|f| f.owns_order(actor, entry.id))
         {
-            accept(world, actor, entry);
+            accept_for_actor(world, actor, entry);
         }
     }
     world.get_resource_or_insert_with(PlayerActions::default);
@@ -1300,6 +1409,7 @@ pub(crate) fn observe(world: &mut World) {
                 || world
                     .get::<IntentQueue>(actor)
                     .is_some_and(|q| q.entries().first().is_some_and(|entry| entry.id == id)))
+            && !crate::attendance::manual_work_trip(world, intent.object)
             && (world.get::<terri_core::AtWork>(intent.object).is_some()
                 || world.get::<terri_core::Commuting>(intent.object)
                     == Some(&terri_core::Commuting::Outbound))
@@ -1330,6 +1440,12 @@ pub(crate) fn observe(world: &mut World) {
 }
 
 impl crate::Sim {
+    pub fn action_failure_cause(&self, sequence: u64) -> Option<OrderFailureCause> {
+        self.world
+            .get_resource::<ActionDiagnostics>()?
+            .lookup_failure_cause(sequence, || {})
+    }
+
     pub fn action_events_since(&self, cursor: u64) -> ActionEventBatch {
         let Some(d) = self.world.get_resource::<ActionDiagnostics>() else {
             return ActionEventBatch {
@@ -1342,12 +1458,12 @@ impl crate::Sim {
             events: d
                 .records
                 .iter()
-                .filter(|e| e.sequence > cursor)
-                .cloned()
+                .filter(|record| record.event.sequence > cursor)
+                .map(|record| record.event.clone())
                 .collect(),
             next_cursor: d.sequence,
             expired: d.records.front().map_or(cursor < d.sequence, |e| {
-                cursor.saturating_add(1) < e.sequence
+                cursor.saturating_add(1) < e.event.sequence
             }),
         }
     }

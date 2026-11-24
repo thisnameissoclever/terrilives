@@ -12,7 +12,7 @@ export interface ProductionClip {
 export interface ClipLibrary { version: 1; sources: Record<string, { path: string; sha256: string; parts: string; virtualBones: string[] }>; clips: Record<string, ProductionClip> }
 export interface ClipParts {
   version: 1; geometry: MeshDescription | null; materials: Material[]; virtualBones: string[];
-  parts: { name: string; source: string; owner: 'body' | 'fixture' | 'prop'; clips: string[]; weighted: boolean;stockSlot?:number|null }[];
+  parts: { name: string; source: string; owner: 'body' | 'fixture' | 'prop'; clips: string[]; weighted: boolean;stockSlot?:number|null;conditions?:MeshDescription['parts'][number]['conditions'] }[];
 }
 
 function joined<T extends Float32Array<ArrayBuffer> | Uint32Array<ArrayBuffer>>(a: T, b: T): T {
@@ -51,7 +51,8 @@ export function prepareClipFamily(base: Geometry, supplemental: Geometry | null,
   const extraParts=supplemental.description.parts.map(part=>{
     const definition=parts.parts.find(row=>row.name===part.name);
     if(!definition)throw new Error(`Unknown clip mesh: ${part.name}`);
-    return {...part,stockSlot:definition.stockSlot??undefined,conditions:[{clip:definition.clips}]};
+    const activityAttachment=family==='bath'&&definition.source==='Bath opaque water surface'?'bath_water' as const:undefined;
+    return {...part,activityAttachment,stockSlot:definition.stockSlot??undefined,conditions:(definition.conditions??[{}]).map(condition=>({...condition,clip:definition.clips}))};
   });
   return {base,manifest,family,supplemental:{...supplemental,manifest,vertices,description:{...supplemental.description,parts:extraParts}}};
 }
@@ -78,7 +79,8 @@ export function combineClipFamily(base: Geometry, supplemental: Geometry | null,
   const extraParts = supplemental.description.parts.map(part => {
     const definition = parts.parts.find(row => row.name === part.name);
     if (!definition) throw new Error(`Unknown clip mesh: ${part.name}`);
-    return { ...part,stockSlot:definition.stockSlot??undefined,start: part.start + base.description.indexCount, conditions: [{ clip: definition.clips }] };
+    const activityAttachment=family==='bath'&&definition.source==='Bath opaque water surface'?'bath_water' as const:undefined;
+    return { ...part,activityAttachment,stockSlot:definition.stockSlot??undefined,start: part.start + base.description.indexCount, conditions: (definition.conditions??[{}]).map(condition=>({...condition,clip:definition.clips})) };
   });
   const relaxedHands = new Set(['Relaxed palm','Relaxed palm.001','Resting thumb','Resting thumb.001']);
   const baseParts = base.description.parts.map(part => family === 'cleaning' && relaxedHands.has(part.name)

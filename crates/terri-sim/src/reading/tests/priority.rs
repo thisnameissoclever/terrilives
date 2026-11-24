@@ -95,10 +95,12 @@ fn cross_case_journey_round_trips_under_current_contract() {
             .title_id,
         title
     );
-    let snapshot = sim.save_snapshot_v6();
-    assert!(sim.load_snapshot_v7(snapshot.clone()).is_err());
-    sim.load_snapshot_v6(snapshot.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), snapshot);
+    let snapshot = sim.save_snapshot_v28();
+    let historical = sim.save_snapshot_v6();
+    assert!(sim.load_snapshot_v7(historical).is_err());
+    assert_eq!(sim.save_snapshot_v28(), snapshot);
+    sim.load_snapshot_v28(snapshot.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), snapshot);
 }
 
 #[test]

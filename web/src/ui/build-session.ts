@@ -1,6 +1,7 @@
 import type { PersistableSim } from './persistence-controller.js';
 import type { SimBridge } from '../bridge.js';
-import type { BuildReview, RoomFailure } from '../rooms/codec.js';
+import type { BuildReview, RoomFailure, RoomResult } from '../rooms/codec.js';
+import type { BuildCommitAttempt } from './prepared-build-commit.js';
 import { BED_OUTSIDE, bedName, confirmFailure, enterFailure, failureDetails, failureWhat, type BuildFailureReport } from '../rooms/failure.js';
 import { logError, logWarning } from '../diagnostics/log.js';
 
@@ -17,6 +18,7 @@ export interface BuildSessionHooks {
   review?(review: BuildReview): Promise<boolean>;
   needsReview?(): boolean;
   replaced?(reason: 'load' | 'cancel' | 'end'): void;
+  commit?: BuildCommitAttempt;
 }
 
 /** The paused world is a draft; persistent storage only sees the last confirmed world. */
@@ -32,6 +34,7 @@ export class BuildSession implements PersistableSim {
   clockTick(): number { return this.source.clockTick(); }
   dayTicks(): number { return this.source.dayTicks(); }
   saveBytes(): Uint8Array { return this.source.saveBytes(); }
+  settlesQueuedOnLoad(): boolean { return this.active; }
 
   /**
    * Native semantic dirtiness includes authored edits and normalized names.
@@ -65,7 +68,7 @@ export class BuildSession implements PersistableSim {
       if (!this.settle() || !this.hooks.prepare() || !this.settle()) { this.confirming = false; return false; }
       const prepared = this.source.prepareBuildCommit();
       if (!prepared.ok) { this.refuse('The changes could not be prepared.', prepared.error); this.confirming = false; return false; }
-      if (prepared.value.groups.length || this.hooks.needsReview?.()) {
+      if (prepared.value.groups.length || prepared.value.access.regions.length || prepared.value.access.blockedTargets.length || this.hooks.needsReview?.()) {
         if (!this.hooks.review) { this.error = 'Review the room changes before confirming.'; this.confirming = false; return false; }
         return this.hooks.review(prepared.value).catch(error => {
           this.error = error instanceof Error ? error.message : 'The room review could not be opened.';
@@ -73,15 +76,29 @@ export class BuildSession implements PersistableSim {
           return false;
         }).finally(() => { this.confirming = false; });
       }
-      const committed = this.source.commitBuild(prepared.value.token);
-      if (committed.ok) this.error = ''; else this.refuse('The changes could not be committed.', committed.error);
+      const adopt = () => this.source.commitBuild(prepared.value.token);
+      const committed = this.hooks.commit?.(prepared.value.token, adopt) ?? adopt();
+      if (committed instanceof Promise) {
+        return committed.then(result => this.receiveCommit(result), error => {
+          this.error = 'Swimming could not be prepared. Try Confirm again.';
+          logError('Build', 'Preparing swimming for this layout failed.', { error });
+          return false;
+        }).finally(() => { this.confirming = false; });
+      }
       this.confirming = false;
-      return committed.ok;
+      return this.receiveCommit(committed);
     } catch (error) {
-      this.error = 'The changes could not be confirmed because of an unexpected error. Try Confirm again, or choose Cancel to undo the pending changes.';
+      this.error = 'The changes could not be confirmed. See Console for details.';
       logError('Build', 'Confirm failed unexpectedly.', { error });
       this.confirming = false; return false;
     }
+  }
+
+  private receiveCommit(result: RoomResult<void> | null): boolean {
+    if (!result) { this.reviewWasCancelled = true; return false; }
+    if (result.ok) this.error = '';
+    else this.refuse('The changes could not be committed.', result.error);
+    return result.ok;
   }
 
   cancel(): boolean {
@@ -116,7 +133,7 @@ export class BuildSession implements PersistableSim {
   }
 
   private keepFailure(message: string, error: RoomFailure): void {
-    this.error = `${failureWhat(error)} The pending changes were kept and Build mode stays open.`;
+    this.error = failureWhat(error);
     logError('Build', message, failureDetails(error));
   }
 

@@ -21,6 +21,18 @@ const base = { width: 10, height: 10, house: [6, 6] as const,
 const limits = { maxSampledTexturesPerShaderStage: 16, maxTextureDimension2D: 8192,
   maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 128 * 1024 * 1024 };
 
+it('shares one pattern binding for content-identical resource aliases while retaining distinct finish palettes', () => {
+  const catalogue: FinishCatalogue = { patterns: {
+    a: { role: 'floor', resource: 'first', period: [4, 4] }, b: { role: 'floor', resource: 'alias', period: [4, 4] } },
+    palettes: { light: { multiply: [1, 1, 1] }, dark: { multiply: [.5, .5, .5] } },
+    finishes: { a: { patternKey: 'a', paletteKey: 'light' }, b: { patternKey: 'b', paletteKey: 'dark' } }, coverings: {} };
+  const resource = { url: 'same-content-hash.png', width: 256, height: 256 };
+  const active = prepareArchitectureFinishes(['b', 'a'], limits, catalogue, { first: resource, alias: resource });
+  expect(active.resources).toEqual(['alias']); expect(active.table[0]).toBe(0); expect(active.table[8]).toBe(0);
+  expect(active.table[4]).toBe(.5); expect(active.table[12]).toBe(1);
+  expect(active.residentBytes).toBe(ARCHITECTURE.width * ARCHITECTURE.height * 11 + 256 * 256 * 4);
+});
+
 describe('authored wall geometry', () => {
   it('uses every model at its own span in every real direction and height', () => {
     let forms = 0;

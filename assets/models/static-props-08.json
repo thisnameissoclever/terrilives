@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "objects": [
+  {
+   "name": "offlinePoolRectangular",
+   "directory": "outdoor/owner-review-pending/pool/activity-v9",
+   "proof_sha256": "0dc138a456b28ced5a0e387dc4455a10b90d79aee8daa4b60510ea636f05fad5",
+   "review_status": "accepted-independent-review"
+  }
+ ]
+}

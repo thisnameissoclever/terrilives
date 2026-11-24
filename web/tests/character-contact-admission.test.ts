@@ -10,6 +10,39 @@ import init,{SimHandle} from '../src/wasm/terri_wasm.js';
 import {SimBridge} from '../src/bridge.js';
 import {BuildSession} from '../src/ui/build-session.js';
 
+it('keeps the live base owner during a pending or canceled first-pool upgrade',async()=>{
+  const service=new AdmissionTestService(),roster=new CharacterContactRoster(service),appearance=defaultAppearance(),rows=[{entity:1,appearance}];
+  try{
+    const initial=roster.prepareCurrent(rows,'base');service.finish(appearance,'base');await initial;
+    const base=roster.require(1,appearance),adopt=()=>{throw new Error('Unready adoption ran.');};
+    const staged=roster.stage(rows,undefined,{current:'pool-required'});
+    expect(roster.mode).toBe('base');expect(base.pool).toBeUndefined();expect(roster.require(1,appearance)).toBe(base);
+    expect(()=>staged.commit(adopt)).toThrow('Character contacts are not ready.');
+    staged.release();await expect(staged.ready).rejects.toMatchObject({name:'AbortError'});
+    expect(roster.mode).toBe('base');expect(roster.require(1,appearance)).toBe(base);
+    expect(()=>roster.afterCommands(rows,'pool-required')).toThrow('Character appearance was not admitted.');
+    const retry=roster.stage(rows,undefined,{current:'pool-required'});service.finish(appearance,'pool-required');await retry.ready;
+    expect(roster.require(1,appearance)).toBe(base);
+    expect(retry.commit()).toBe(true);retry.release();
+    expect(roster.mode).toBe('pool-required');expect(roster.require(1,appearance).pool).toBeDefined();
+    expect(()=>roster.require(1,appearance,'base')).toThrow('Character contacts are not ready.');
+  }finally{roster.dispose();}
+});
+
+it('pins the exact post-command mode even when the appearance stays the same',async()=>{
+  const service=new AdmissionTestService(),roster=new CharacterContactRoster(service),appearance=defaultAppearance(),rows=[{entity:1,appearance}];
+  try{
+    const pending=roster.stage(rows,rows,{current:'base',afterCommands:'pool-required'});
+    service.finish(appearance,'base');
+    expect(()=>pending.commit()).toThrow('Character contacts are not ready.');
+    service.finish(appearance,'pool-required');await pending.ready;
+    expect(pending.commit()).toBe(true);pending.release();
+    expect(roster.mode).toBe('base');expect(roster.require(1,appearance).pool).toBeUndefined();expect(roster.diagnostics().queued).toBe(1);
+    roster.afterCommands(rows,'pool-required');
+    expect(roster.mode).toBe('pool-required');expect(roster.require(1,appearance).pool).toBeDefined();expect(roster.diagnostics().queued).toBe(0);
+  }finally{roster.dispose();}
+});
+
 it('adopts a prepared load through the build session so cancellation keeps the loaded household',async()=>{
   const main=readFileSync(new URL('../src/main.ts',import.meta.url),'utf8');
   expect(main).toMatch(/loadPreparedCharacterState\(bytes,\s*buildSession,/);

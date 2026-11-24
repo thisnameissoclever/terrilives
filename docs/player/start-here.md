@@ -7,7 +7,7 @@ Natural Causes is a household life sim. Your housemates choose activities for th
 1. Choose a name in the Household row at the bottom of the game to select that person. On desktop, their needs appear in the dock. On a phone, open Sim details to see the needs in Overview.
 2. Pause with the speed controls while you look around. Drag the house to move the camera; use the zoom buttons, mouse wheel or a pinch to change the view.
 3. Find a low [need](needs/#overview). Hunger needs food, Energy needs sleep, Hygiene needs bathing, and Bladder needs a toilet. Click or tap a suitable object to give its default action. Right-click or long-press it to choose a particular action.
-4. Open [Queue](ui-elements/#activity-and-orders) to see your instructions. Queue mode starts on, so a new order joins the end. Turn it off when the next action should start first.
+4. Open [Queue](ui-elements/#activity-and-orders) to see your instructions. Queue new orders starts on, so a new order joins the end. Turn it off when the next action should start first.
 5. Resume and watch the whole activity. Walking to a fridge and cooking do not relieve Hunger; eating the food does. Other benefits often arrive during use.
 6. Open Options, then Save when you want to keep this household. The game also autosaves at the start of a new game day. Load and New game ask before replacing progress.
 

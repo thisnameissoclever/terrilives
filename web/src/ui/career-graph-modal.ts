@@ -96,6 +96,26 @@ function symmetric(values: readonly number[]): Scale {
   return { min: -widest, max: widest, top: `+${unit(widest)}`, bottom: `-${unit(widest)}` };
 }
 
+function knownPay(row: CareerInputWeek): number[] {
+  return row.sources === undefined ? [row.pay] : row.sources.flatMap(source => source.basePay === null ? [] : [source.basePay]);
+}
+
+function payText(row: CareerInputWeek): string {
+  if (row.sources === undefined) return `$${row.pay}`;
+  const values = knownPay(row);
+  const unknown = values.length !== row.sources.length;
+  if (values.length === 0) return `Shift base pay unrecorded (pay at review: $${row.pay})`;
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const range = low === high ? `$${low}` : `$${low} - $${high}`;
+  if (unknown) return `Recorded base pay ${range} (some unrecorded; pay at review: $${row.pay})`;
+  return low === high && low === row.pay ? range : `${range} (pay at review: $${row.pay})`;
+}
+
+function mixedRoles(row: CareerInputWeek): boolean {
+  return new Set(row.sources?.map(source => `${source.path}:${source.level}`)).size > 1;
+}
+
 const SERIES: readonly Series[] = [
   { id: 'mastery', name: 'Skill mastery', pick: row => row.mastery, text: row => percent(row.mastery),
     scale: () => ({ min: 0, max: 1, top: '100%', bottom: '0%' }) },
@@ -113,11 +133,11 @@ const SERIES: readonly Series[] = [
   { id: 'trait', name: 'Trait fit', zero: true, pick: row => row.traitFit, text: row => signedTwoDecimals(row.traitFit),
     scale: rows => symmetric(rows.map(row => row.traitFit)) },
   { id: 'social', name: 'Social capacity', pick: row => row.socialCapacity,
-    text: row => `${percent(row.socialCapacity)} (job needs ${percent(row.socialDemand)})`,
+    text: row => `${percent(row.socialCapacity)} (${mixedRoles(row) ? 'average job demand' : 'job needs'} ${percent(row.socialDemand)})`,
     scale: () => ({ min: 0, max: 1, top: '100%', bottom: '0%' }) },
-  { id: 'pay', name: 'Pay per shift', pick: row => row.pay, text: row => `$${row.pay} per shift`,
+  { id: 'pay', name: 'Pay per shift', pick: row => row.pay, text: row => row.sources === undefined ? `$${row.pay} per shift` : `${payText(row)} per shift`,
     scale: rows => {
-      const values = rows.map(row => row.pay);
+      const values = rows.flatMap(row => [row.pay, ...knownPay(row)]);
       let low = Math.min(...values);
       let high = Math.max(...values);
       if (low === high) { const pad = Math.max(1, Math.round(low * 0.1)); low -= pad; high += pad; }
@@ -392,7 +412,9 @@ export class CareerReviewWindow {
     const byWeek = new Map(inputs.map(row => [row.week, row]));
     this.rows = withEventTitles(weeks, inputs, titleOf, title).map(week => {
       const row = byWeek.get(week.week) ?? null;
-      return { week, inputs: row, title: row === null ? null : titleOf(row.path, row.level) };
+      const workedTitles = row?.sources?.map(source => titleOf(source.path, source.level)).filter((name): name is string => name !== null);
+      const title = workedTitles === undefined ? (row === null ? null : titleOf(row.path, row.level)) : [...new Set(workedTitles)].join(', ');
+      return { week, inputs: row, title };
     });
     this.thresholds = { poor: report.poorThreshold, good: report.goodThreshold };
     const dayTicks = this.source.dayTicks();
@@ -962,6 +984,7 @@ export class CareerReviewWindow {
     if (inputs !== null) {
       const missed = Math.round(inputs.missedMinutes);
       const pairs: readonly (readonly [string, string])[] = [
+        ...(inputs.sources === undefined || row.title === null ? [] : [[mixedRoles(inputs) ? 'Jobs' : 'Job', row.title] as const]),
         ['Shifts worked', `${inputs.attended} of ${inputs.shifts}`],
         ['Missed work', `${missed} ${plural(missed, 'minute', 'minutes')}`],
         ['Skill mastery', percent(inputs.mastery)],
@@ -970,7 +993,7 @@ export class CareerReviewWindow {
         // Every input whose row is switched on, as its row would say it.
         ...SCORE_INPUTS.filter(id => (id === 'trait' || id === 'social') && this.filters[id])
           .map(id => { const series = SERIES.find(candidate => candidate.id === id)!; return [series.name, series.text(inputs)] as const; }),
-        ['Pay per shift', `$${inputs.pay}`],
+        ['Pay per shift', payText(inputs)],
       ];
       for (const [name, value] of pairs) {
         const term = html(this.doc, 'dt');

@@ -64,6 +64,7 @@ export interface DutyChange {
 }
 export interface BuildReview {
     token: BuildToken;
+    access: { regions: { tiles: Point[]; people: number[]; targets: number[]; externalAccess: boolean; unreachableBy: number[] }[]; blockedTargets: {target:number; tiles:Point[]}[] };
     groups: ReviewGroup[];
     rooms: ReviewRoom[];
     retiredNames: {
@@ -108,12 +109,7 @@ function point(r: PostcardReader, c: RoomContext): Point { const p: Point = [r.n
 function list<T>(r: PostcardReader, max: number, min: number, read: () => T): T[] { const count = r.count(min); check(count <= max); return Array.from({ length: count }, read); }
 function failure(r: PostcardReader): RoomFailure {
     const code = r.byte(), detail = r.option(() => r.uint(64));
-    // 16 is Build refused because the admin panel's session is open, and 17
-    // because admin edits left a world that would not reload (issue 312);
-    // neither names anything.
-    check(code >= 1 && code <= 17);
-    // 15 is a bed a Confirm would leave outside, named by its entity index
-    // (issue 298, [WB-beds]).
+    check(code >= 1 && code <= 18);
     check((code === 7 || code === 8 || code === 10 || code === 15) === (detail !== null));
     if (code === 7)
         check(detail! >= 1n && detail! <= 13n);
@@ -138,6 +134,7 @@ function packet<T>(bytes: Uint8Array, read: (r: PostcardReader) => T): RoomResul
     }
 }
 export function decodeRoomUnit(bytes: Uint8Array): RoomResult<void> { return packet(bytes, () => undefined); }
+export function decodeRoomBoolean(bytes: Uint8Array): RoomResult<boolean> { return packet(bytes, r => { const value = r.byte(); check(value <= 1); return value === 1; }); }
 export function decodeBuildError(bytes: Uint8Array): RoomResult<RoomFailure | null> { return packet(bytes, r => r.option(() => failure(r))); }
 function summary(r: PostcardReader, c: RoomContext): RoomSummary { const id = r.number(), anchor = r.option(() => point(r, c)), label = name(r.text()), area = r.number(); check((id === 0) === (anchor === null)); check(area <= dimensions(c) && (id === 0 || area > 0)); return { id, anchor, name: label, area, outside: id === 0 }; }
 function roomRelations(rooms: readonly RoomSummary[]): void { unique(rooms, r => r.id); unique(rooms.filter(r => r.anchor !== null), r => pointKey(r.anchor!)); check(rooms.filter(r => r.outside).length === 1); }
@@ -182,7 +179,17 @@ export function decodeBuildReview(bytes: Uint8Array, context: RoomContext): Room
         const people = () => { const rows = list(r, MAX_ENTITIES, 1, () => r.number()); check(rows.every(id => id < MAX_ENTITIES)); unique(rows, id => id); return rows; };
         const replannedPeople = people(), unavailablePeople = people();
         check(replannedPeople.every(id => !unavailablePeople.includes(id)));
-        return { token, groups, rooms, retiredNames, duties: { duties, replannedPeople, unavailablePeople } };
+        const regions = list(r, cells, 3, () => {
+            const tiles = list(r, cells, 2, () => point(r, context));
+            check(tiles.length > 0); unique(tiles, pointKey);
+            const occupants=people(),targets=people(),external=r.byte();check(external<=1);
+            const unreachableBy=people();check(unreachableBy.every(id=>!occupants.includes(id)));
+            return { tiles, people: occupants, targets, externalAccess: external===1, unreachableBy };
+        });
+        unique(regions.flatMap(region => region.tiles), pointKey);
+        const blockedTargets=list(r,MAX_ENTITIES,2,()=>{const target=r.number();check(target<MAX_ENTITIES);const tiles=list(r,cells,2,()=>point(r,context));unique(tiles,pointKey);return {target,tiles};});
+        unique(blockedTargets,row=>row.target);
+        return { token, groups, rooms, retiredNames, duties: { duties, replannedPeople, unavailablePeople }, access: { regions, blockedTargets } };
     });
 }
 class Writer {

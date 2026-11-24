@@ -1,0 +1,146 @@
+{
+  "version": 4,
+  "status": "Unshipped held-body sparse .3-to-.4 source candidate. Acceptance belongs to immutable nominal, source and consumer receipts.",
+  "reference": {
+    "predecessorSourceSha256": "c9664ef44bcebcbfc84c0bee37401727a7626358215e08a8f4d6246f836e1e4a",
+    "predecessorActualReceiptSha256": "68fcb0e591f45bbac9315cbcdd5c03a6adb82d6974f60e1a7366fcfcd48d00f8",
+    "fullSourceAncestorSha256": "31fe895dad1b562c9d9cfe921aaa29dc30c283443287f093ae6d6b219c4716b5",
+    "publishedV2AncestorSha256": "3b8b072a7d8e1ffb18171b5bccb85707b8e2ec2a80578860f9be0087e9d17102",
+    "sourceRigSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "phase": 0.3,
+    "requestId": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "skinSha256": "0c5d257450089c530c4ce810f3b58d3c814cc86baf52cba14ac1280f784f6085"
+  },
+  "ownership": {
+    "unchangedInheritedIndex": 8,
+    "preservedV3Indices": [
+      9,
+      10,
+      11,
+      12
+    ],
+    "proposedV4Indices": [
+      13,
+      14,
+      15,
+      16
+    ],
+    "preservedSourcePhases": [
+      0.2,
+      0.225,
+      0.25,
+      0.275,
+      0.3
+    ],
+    "proposedPhases": [
+      0.325,
+      0.35,
+      0.375,
+      0.4
+    ],
+    "preservation": "The authenticated five-record predecessor remains untouched, including original nominal programs, goals, pre-control programs, channels and serialized samples. Actual .3 is the separate literal nominal boundary."
+  },
+  "controls": {
+    "pelvisDisplacementMetres": [
+      0,
+      0,
+      0
+    ],
+    "pelvis": "Hold actual .3 position and orientation through its literal genuine pre-control basis.",
+    "trunkWorld": "Hold the actual .3 WORLD matrix; do not reapply a nominal pitch.",
+    "headLocal": "Hold actual .3 pre-control local preference.",
+    "leftFoot": "Use actual per-phase required tread3 support/release, unchanged front patch and actual .3 target/orientation.",
+    "rightFoot": "Use the declared release/retraction/lift/arrival trajectory with actual per-phase policy. Required arrival uses the exact complete-foot constructor and original configured-rest orientation input.",
+    "hands": "Preserve each actual .3 rail parameter, raw orientation and active vertex independently; use each actual phase source context.",
+    "elbows": "Actual .3 pole in the spine frame, transformed by the held trunk.",
+    "root": "Retain the already placed genuine .3 pre-control input; no additional displacement or placement override.",
+    "perPhase": [
+      {
+        "phase": 0.3,
+        "pelvisDisplacementMetres": [
+          0,
+          0,
+          0
+        ],
+        "rightRetraction": 0,
+        "rightAltitude": "departure"
+      },
+      {
+        "phase": 0.325,
+        "pelvisDisplacementMetres": [
+          0,
+          0,
+          0
+        ],
+        "rightRetraction": 1,
+        "rightAltitude": "retraction"
+      },
+      {
+        "phase": 0.35,
+        "pelvisDisplacementMetres": [
+          0,
+          0,
+          0
+        ],
+        "rightRetraction": 1,
+        "rightAltitude": "aboveArrival"
+      },
+      {
+        "phase": 0.375,
+        "pelvisDisplacementMetres": [
+          0,
+          0,
+          0
+        ],
+        "rightRetraction": 1,
+        "rightAltitude": "aboveArrival"
+      },
+      {
+        "phase": 0.4,
+        "pelvisDisplacementMetres": [
+          0,
+          0,
+          0
+        ],
+        "rightRetraction": 0,
+        "rightAltitude": "arrival"
+      }
+    ]
+  },
+  "proposedTrajectory": {
+    "status": "Declared sparse construction. Source, support and motion acceptance require separate immutable observations.",
+    "phases": [
+      0.3,
+      0.325,
+      0.35,
+      0.375,
+      0.4
+    ],
+    "retraction": [
+      0,
+      1,
+      1,
+      1,
+      0
+    ],
+    "altitude": [
+      "departure",
+      "tread2-to-tread3-corridor-midpoint",
+      "above-arrival",
+      "above-arrival",
+      "arrival"
+    ],
+    "pelvisDisplacementAtEveryPhase": [
+      0,
+      0,
+      0
+    ],
+    "interpolation": "Proposed sparse smoothstep; runtime interval evaluator needs separate observation."
+  },
+  "admission": "Existing four-control program, source0 leg construction and complete default feminine body/two-piece evaluator. Use actual per-phase required/free/release/approach policy. No new solver, allowance, geometry change or expanded search."
+}

@@ -162,15 +162,16 @@ export class MoodPanel {
   }
 
   update(nowMs: number, force = false): boolean {
+    const selected = this.source.selectedIndex();
     if (
       !force &&
+      selected === this.selected &&
       this.lastRenderMs !== null &&
       nowMs - this.lastRenderMs < this.refreshMs
     ) {
       return false;
     }
 
-    const selected = this.source.selectedIndex();
     if (selected !== this.selected) this.surface.dismissHelp?.();
     this.selected = selected;
     this.surface.render(moodPanelState(this.source, selected));
@@ -211,7 +212,10 @@ function resetOverallMeter(
 ): void {
   setTextIfChanged(overallLabel, '');
   overallMeter.dataset.tone = 'neutral';
-  overallMeter.setAttribute('aria-valuenow', '0');
+  overallMeter.removeAttribute('aria-valuenow');
+  overallMeter.dataset.empty = 'true';
+  marker.hidden = true;
+  marker.style.width = '0%';
   overallMeter.setAttribute('aria-valuetext', 'Mood unavailable');
   marker.style.left = `${NEUTRAL_PERCENT}%`;
 }
@@ -251,14 +255,15 @@ export function createMoodPanelSurface(
     render(state: MoodPanelState): void {
       if (state.kind !== 'ready') {
         clearRows();
-        empty.hidden = false;
+        empty.hidden = state.kind === 'unselected';
         setTextIfChanged(empty,
           state.kind === 'unselected'
-            ? 'Select a person to see their mood.'
+            ? ''
             : 'Mood unavailable');
-        content.hidden = true;
+        content.hidden = state.kind === 'unavailable';
         list.hidden = true;
         resetOverallMeter(overallLabel, overallMeter, marker);
+        overallMeter.setAttribute('aria-valuetext', state.kind === 'unselected' ? 'No person selected' : 'Mood unavailable');
         return;
       }
 
@@ -267,9 +272,12 @@ export function createMoodPanelSurface(
       content.hidden = false;
       setTextIfChanged(overallLabel, view.overall.label);
       overallMeter.dataset.tone = view.overall.tone;
+      overallMeter.dataset.empty = 'false';
+      marker.hidden = false;
       overallMeter.setAttribute('aria-valuenow', String(roundToTenth(view.overall.score)));
       overallMeter.setAttribute('aria-valuetext', view.overall.label);
       marker.style.left = `${view.overall.percent}%`;
+      marker.style.width = `${view.overall.percent}%`;
 
       noMoodlets.remove();
       const liveKeys = new Set(view.moodlets.map((moodlet) => moodlet.key));

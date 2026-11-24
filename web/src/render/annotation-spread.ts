@@ -1,159 +1,235 @@
 /**
  * Keeps activity symbols and conversation bubbles readable on a crowded
  * screen (issue 360). After the frame is built, two bubbles that overlap move
- * apart sideways, and a bubble an on-screen control covers makes the
- * smallest move, sideways, up or down, that clears it. No bubble moves
- * further than its own width from where it was drawn, so it stays readable
- * as its person's; one that cannot clear within that stays where it is.
+ * apart sideways, and a bubble an on-screen control or another bubble covers
+ * makes the smallest move, sideways, up or down, that clears it. No bubble
+ * moves further than its own width from where it was drawn, so it stays
+ * readable as its person's; one that cannot clear within that stays where it
+ * is, partly covered.
+ *
+ * Runs every frame, so it allocates nothing once its buffers have grown to
+ * the largest household seen ([D11]).
  */
 
 import {SPRITES} from './atlas.js';
 import {FLOATS_PER_INSTANCE, OFFSET_SCREEN_X, OFFSET_SCREEN_Y, OFFSET_SPRITE} from './instances.js';
 import {TILE_HALF_HEIGHT} from './iso.js';
 
-/** A screen rectangle in canvas pixels. */
-export interface ScreenRect {
-  readonly left: number;
-  readonly top: number;
-  readonly width: number;
-  readonly height: number;
+/**
+ * On-screen controls in canvas pixels: `count` rectangles packed as left,
+ * top, width, height in `rects`.
+ */
+export interface ControlRects {
+  readonly rects: Float64Array;
+  readonly count: number;
 }
 
-/** Space left between two bubbles, or a bubble and a control, in canvas pixels. */
-const GAP = 4;
+/** Space left between two bubbles, or a bubble and a control, in CSS pixels. */
+const GAP_CSS = 4;
 /** Passes of pairwise separation; three settle any group a household can form. */
 const PASSES = 3;
-
 /**
- * One annotation's drawn box: centred on x, hanging `height` up from its
- * drawn bottom at y. The renderer draws a sprite's bottom half a tile below
- * its instance position, `drop` here.
+ * Two people whose heads are closer than this share of a bubble's width keep
+ * the order their rows have, so bubbles do not swap sides as people pass.
  */
-interface Box {
-  index: number; x: number; y: number; half: number; height: number; drop: number;
-  /** Where the frame drew it, over its person's head. */
-  readonly x0: number; readonly y0: number;
-}
+const LEVEL_SHARE = 0.5;
 
-function boxOf(instances: Float32Array, index: number, scale: number): Box {
-  const base = index * FLOATS_PER_INSTANCE;
-  const sprite = SPRITES[instances[base + OFFSET_SPRITE]];
-  const density = sprite?.pixel_density ?? 1;
-  const drop = TILE_HALF_HEIGHT * scale;
-  const x = instances[base + OFFSET_SCREEN_X];
-  const y = instances[base + OFFSET_SCREEN_Y] + drop;
-  return {
-    index, x, y, x0: x, y0: y,
-    half: ((sprite?.w ?? 0) / density) * scale / 2,
-    height: ((sprite?.h ?? 0) / density) * scale,
-    drop,
-  };
-}
+const NO_CONTROLS: ControlRects = {rects: new Float64Array(0), count: 0};
 
-/** How far a box may move in all from where it was drawn: its own width. */
-function reach(box: Box): number {
-  return box.half * 2;
-}
+export class AnnotationSpread {
+  private capacity = 0;
+  private x = new Float64Array(0);
+  private y = new Float64Array(0);
+  private x0 = new Float64Array(0);
+  private y0 = new Float64Array(0);
+  private half = new Float64Array(0);
+  private height = new Float64Array(0);
+  private order = new Int32Array(0);
+  private count = 0;
+  private gap = GAP_CSS;
+  private viewWidth = 0;
+  private viewHeight = 0;
+  private controls = NO_CONTROLS;
 
-/**
- * Brings a box on screen, but never beyond its reach of where it was drawn:
- * a bubble over someone well off screen stays off screen with them.
- */
-function tethered(box: Box, viewWidth: number): void {
-  onScreen(box, viewWidth);
-  box.x = Math.min(box.x0 + reach(box), Math.max(box.x0 - reach(box), box.x));
-}
-
-/** Whether a box at (x, y) and a rectangle come within GAP of each other. */
-function touches(box: Box, x: number, y: number, rect: ScreenRect): boolean {
-  return x - box.half < rect.left + rect.width + GAP && x + box.half > rect.left - GAP
-    && y - box.height < rect.top + rect.height + GAP && y > rect.top - GAP;
-}
-
-/** Keeps a box wholly on screen sideways, so one over a person at the edge is not cut off. */
-function onScreen(box: Box, viewWidth: number): void {
-  if (box.half * 2 <= viewWidth) box.x = Math.min(viewWidth - box.half, Math.max(box.half, box.x));
-}
-
-/**
- * Pushes horizontally overlapping pairs apart, each moving half the overlap.
- * After every pass each box is held within its reach and on screen, so a box
- * held at the edge pushes its neighbour the rest of the way on the next
- * pass. Where the reach runs out, the pair keeps some overlap rather than
- * drift away from its people.
- */
-function separate(boxes: Box[], viewWidth: number): void {
-  for (const box of boxes) tethered(box, viewWidth);
-  for (let pass = 0; pass < PASSES; pass++) {
-    boxes.sort((a, b) => a.x - b.x || a.index - b.index);
-    for (let i = 1; i < boxes.length; i++) {
-      for (let j = 0; j < i; j++) {
-        const left = boxes[j], right = boxes[i];
-        if (left.y - left.height >= right.y + GAP || right.y - right.height >= left.y + GAP) continue;
-        const needed = left.half + right.half + GAP - (right.x - left.x);
-        if (needed <= 0) continue;
-        // Each takes half, unless the screen edge stops it; then the other takes the rest.
-        const leftRoom = Math.max(0, left.x - left.half);
-        const rightRoom = Math.max(0, viewWidth - right.half - right.x);
-        const leftShare = Math.min(leftRoom, Math.max(needed / 2, needed - rightRoom));
-        left.x -= leftShare;
-        right.x += Math.min(rightRoom, needed - leftShare);
-      }
+  /**
+   * Rewrites the screen position of the annotations in `start` to
+   * `start + count`. The view is the canvas's size in pixels, and
+   * `pixelRatio` is canvas pixels per CSS pixel.
+   */
+  spread(instances: Float32Array, start: number, count: number, scale: number,
+    controls: ControlRects, viewWidth: number, viewHeight: number, pixelRatio = 1): void {
+    if (count === 0) return;
+    this.grow(count);
+    this.count = count;
+    this.gap = GAP_CSS * pixelRatio;
+    this.viewWidth = viewWidth;
+    this.viewHeight = viewHeight;
+    this.controls = controls;
+    const drop = TILE_HALF_HEIGHT * scale;
+    for (let i = 0; i < count; i++) {
+      const base = (start + i) * FLOATS_PER_INSTANCE;
+      const sprite = SPRITES[instances[base + OFFSET_SPRITE]];
+      const density = sprite?.pixel_density ?? 1;
+      this.x[i] = this.x0[i] = instances[base + OFFSET_SCREEN_X];
+      // The renderer draws a sprite's bottom half a tile below its position.
+      this.y[i] = this.y0[i] = instances[base + OFFSET_SCREEN_Y] + drop;
+      this.half[i] = ((sprite?.w ?? 0) / density) * scale / 2;
+      this.height[i] = ((sprite?.h ?? 0) / density) * scale;
     }
-    for (const box of boxes) tethered(box, viewWidth);
-  }
-}
-
-/** Moves a covered box to the nearest clear place within its reach, if there is one. */
-function clear(box: Box, obstacles: readonly ScreenRect[], viewWidth: number, viewHeight: number): void {
-  const fits = (x: number, y: number) => x - box.half >= 0 && x + box.half <= viewWidth
-    && y - box.height >= 0 && y <= viewHeight
-    && obstacles.every(rect => rect.width <= 0 || rect.height <= 0 || !touches(box, x, y, rect));
-  if (fits(box.x, box.y)) return;
-  let bestX = box.x, bestY = box.y, best = Infinity;
-  for (const rect of obstacles) {
-    if (!touches(box, box.x, box.y, rect)) continue;
-    const moves: [number, number][] = [
-      [rect.left - box.half - GAP, box.y],
-      [rect.left + rect.width + box.half + GAP, box.y],
-      [box.x, rect.top - GAP],
-      [box.x, rect.top + rect.height + box.height + GAP],
-    ];
-    for (const [x, y] of moves) {
-      const distance = Math.hypot(x - box.x, y - box.y);
-      const fromHead = Math.hypot(x - box.x0, y - box.y0);
-      if (fromHead <= reach(box) && distance < best && fits(x, y)) {
-        best = distance;
-        bestX = x;
-        bestY = y;
-      }
+    this.sortByHead();
+    this.separate();
+    for (let k = 0; k < count; k++) this.clear(this.order[k]);
+    for (let i = 0; i < count; i++) {
+      const base = (start + i) * FLOATS_PER_INSTANCE;
+      instances[base + OFFSET_SCREEN_X] = this.x[i];
+      instances[base + OFFSET_SCREEN_Y] = this.y[i] - drop;
     }
   }
-  box.x = bestX;
-  box.y = bestY;
-}
 
-/**
- * Rewrites the screen position of the annotations in `start` to
- * `start + count`. `controls` are the on-screen controls in canvas pixels;
- * the view is the canvas's size in pixels.
- */
-export function spreadAnnotations(instances: Float32Array, start: number, count: number, scale: number,
-  controls: readonly ScreenRect[], viewWidth: number, viewHeight: number): void {
-  if (count === 0) return;
-  const boxes: Box[] = [];
-  for (let i = start; i < start + count; i++) boxes.push(boxOf(instances, i, scale));
-  separate(boxes, viewWidth);
-  // A bubble moved clear of a control must not land on one already placed,
-  // so each placed bubble becomes an obstacle for the next.
-  boxes.sort((a, b) => a.x - b.x || a.index - b.index);
-  const obstacles: ScreenRect[] = [...controls];
-  for (const box of boxes) {
-    clear(box, obstacles, viewWidth, viewHeight);
-    obstacles.push({left: box.x - box.half, top: box.y - box.height, width: box.half * 2, height: box.height});
+  private grow(count: number): void {
+    if (count <= this.capacity) return;
+    const size = Math.max(count, this.capacity * 2, 8);
+    this.capacity = size;
+    this.x = new Float64Array(size);
+    this.y = new Float64Array(size);
+    this.x0 = new Float64Array(size);
+    this.y0 = new Float64Array(size);
+    this.half = new Float64Array(size);
+    this.height = new Float64Array(size);
+    this.order = new Int32Array(size);
   }
-  for (const box of boxes) {
-    instances[box.index * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X] = box.x;
-    instances[box.index * FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y] = box.y - box.drop;
+
+  /** Whether box `a` goes left of box `b`: by head position, by row when the heads are level. */
+  private leftOf(a: number, b: number): boolean {
+    const d = this.x0[a] - this.x0[b];
+    const level = LEVEL_SHARE * Math.min(this.half[a], this.half[b]) * 2;
+    return Math.abs(d) < level ? a < b : d < 0;
+  }
+
+  /** Orders boxes left to right by where their people are, with insertion sort: no comparator closure. */
+  private sortByHead(): void {
+    for (let i = 0; i < this.count; i++) {
+      const box = this.order[i] = i;
+      let j = i;
+      while (j > 0 && this.leftOf(box, this.order[j - 1])) {
+        this.order[j] = this.order[j - 1];
+        j--;
+      }
+      this.order[j] = box;
+    }
+  }
+
+  private reach(i: number): number {
+    return this.half[i] * 2;
+  }
+
+  /**
+   * Brings a box wholly on screen when its person's head is on screen, but
+   * never beyond its reach; a bubble over someone off screen stays with them.
+   */
+  private tether(i: number): void {
+    const half = this.half[i], x0 = this.x0[i];
+    if (x0 >= 0 && x0 <= this.viewWidth && half * 2 <= this.viewWidth) {
+      this.x[i] = Math.min(this.viewWidth - half, Math.max(half, this.x[i]));
+    }
+    this.x[i] = Math.min(x0 + this.reach(i), Math.max(x0 - this.reach(i), this.x[i]));
+  }
+
+  private rowsMeet(a: number, b: number): boolean {
+    return this.y[a] - this.height[a] < this.y[b] + this.gap && this.y[b] - this.height[b] < this.y[a] + this.gap;
+  }
+
+  /**
+   * Pushes horizontally overlapping pairs apart in their fixed left-to-right
+   * order. Each takes half the push unless the screen edge stops it, when the
+   * other takes the rest; then each is held within its reach.
+   */
+  private separate(): void {
+    const n = this.count;
+    for (let i = 0; i < n; i++) this.tether(i);
+    for (let pass = 0; pass < PASSES; pass++) {
+      for (let r = 1; r < n; r++) {
+        for (let l = 0; l < r; l++) {
+          const left = this.order[l], right = this.order[r];
+          if (!this.rowsMeet(left, right)) continue;
+          const needed = this.half[left] + this.half[right] + this.gap - (this.x[right] - this.x[left]);
+          if (needed <= 0) continue;
+          const leftRoom = Math.max(0, this.x[left] - this.half[left]);
+          const rightRoom = Math.max(0, this.viewWidth - this.half[right] - this.x[right]);
+          const leftShare = Math.min(leftRoom, Math.max(needed / 2, needed - rightRoom));
+          this.x[left] -= leftShare;
+          this.x[right] += Math.min(rightRoom, needed - leftShare);
+        }
+      }
+      for (let i = 0; i < n; i++) this.tether(i);
+    }
+  }
+
+  /** Whether box `i` at (x, y) comes within the gap of the rectangle. */
+  private meets(i: number, x: number, y: number, left: number, top: number, width: number, height: number): boolean {
+    const gap = this.gap;
+    return x - this.half[i] < left + width + gap && x + this.half[i] > left - gap
+      && y - this.height[i] < top + height + gap && y > top - gap;
+  }
+
+  /** Whether box `i` fits at (x, y): on screen, clear of every control and every other box. */
+  private fits(i: number, x: number, y: number): boolean {
+    if (x - this.half[i] < 0 || x + this.half[i] > this.viewWidth || y - this.height[i] < 0 || y > this.viewHeight) {
+      return false;
+    }
+    const rects = this.controls.rects;
+    for (let c = 0; c < this.controls.count; c++) {
+      const w = rects[c * 4 + 2], h = rects[c * 4 + 3];
+      if (w > 0 && h > 0 && this.meets(i, x, y, rects[c * 4], rects[c * 4 + 1], w, h)) return false;
+    }
+    for (let o = 0; o < this.count; o++) {
+      if (o === i) continue;
+      if (this.meets(i, x, y, this.x[o] - this.half[o], this.y[o] - this.height[o], this.half[o] * 2, this.height[o])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private best = 0;
+  private bestX = 0;
+  private bestY = 0;
+
+  /** Considers one candidate place for box `i`, keeping the nearest that fits within its reach. */
+  private consider(i: number, x: number, y: number): void {
+    if (Math.hypot(x - this.x0[i], y - this.y0[i]) > this.reach(i)) return;
+    const distance = Math.hypot(x - this.x[i], y - this.y[i]);
+    if (distance < this.best && this.fits(i, x, y)) {
+      this.best = distance;
+      this.bestX = x;
+      this.bestY = y;
+    }
+  }
+
+  /** The four places beside a rectangle that clear it, for box `i`. */
+  private considerAround(i: number, left: number, top: number, width: number, height: number): void {
+    if (!this.meets(i, this.x[i], this.y[i], left, top, width, height)) return;
+    const gap = this.gap;
+    this.consider(i, left - this.half[i] - gap, this.y[i]);
+    this.consider(i, left + width + this.half[i] + gap, this.y[i]);
+    this.consider(i, this.x[i], top - gap);
+    this.consider(i, this.x[i], top + height + this.height[i] + gap);
+  }
+
+  /** Moves a covered box to the nearest clear place within its reach, if there is one. */
+  private clear(i: number): void {
+    if (this.fits(i, this.x[i], this.y[i])) return;
+    this.best = Infinity;
+    this.bestX = this.x[i];
+    this.bestY = this.y[i];
+    const rects = this.controls.rects;
+    for (let c = 0; c < this.controls.count; c++) {
+      this.considerAround(i, rects[c * 4], rects[c * 4 + 1], rects[c * 4 + 2], rects[c * 4 + 3]);
+    }
+    for (let o = 0; o < this.count; o++) {
+      if (o !== i) this.considerAround(i, this.x[o] - this.half[o], this.y[o] - this.height[o], this.half[o] * 2, this.height[o]);
+    }
+    this.x[i] = this.bestX;
+    this.y[i] = this.bestY;
   }
 }

@@ -6,11 +6,11 @@ This is [B-walls-in-build] in `docs/FEATURES.md`, asked for by the owner on 2026
 
 ## [WB-draw] What is drawn, and when
 
-While the Walls or Room tool is in use, every wall and doorway on the lot's edge list is drawn, including the front walls that play cuts away. How tall they stand is [WB-height]. Leaving those tools restores one-third-height interior and front walls, with local fading behind Sims. The two rear walls stay tall. The Furniture and Buy tools keep the short view, since furniture is placed inside the rooms. The yard's edge gains no implied wall.
+While the Walls or Room tool is in use, every wall and doorway on the lot's edge list is drawn, including the front walls that play cuts away. How tall they stand is [WB-height]. Leaving those tools restores one-third-height interior and front walls, with local fading behind Sims. Rear outlines stay tall according to the current saved wall and window geometry. The Furniture and Buy tools keep the short view, since furniture is placed inside the rooms. The yard's edge gains no implied wall. Current worlds draw their saved boundaries directly; removing an original wall does not reconstruct an implicit house shell.
 
 ## [WB-height] Low and full-height walls
 
-Asked for by the owner on 2026-10-19: full-height front walls hid the tiles being edited. The Walls and Room tools draw interior and front walls low by default, at the one-third height play uses. The lines the Walls tool has chosen, a window's whole span included, stand full height so the player sees the wall being edited. Each panel offers Low and Full height buttons, and T switches between them; Full draws every wall at full height and opacity, as the tools did before. The choice lasts for the session and applies to both tools. The two rear walls stay tall either way.
+Asked for by the owner on 2026-10-19: full-height front walls hid the tiles being edited. The Walls and Room tools draw interior and front walls low by default, at the one-third height play uses. The lines the Walls tool has chosen, a window's whole span included, stand full height so the player sees the wall being edited. Each panel offers Low and Full height buttons, and T switches between them; Full draws every wall at full height and opacity, as the tools did before. The choice lasts for the session and applies to both tools. Rear outlines stay tall either way, derived from the current layout.
 
 ## [WB-pick] Choosing the wall under the pointer
 
@@ -22,9 +22,9 @@ With a mouse, the line a click would choose is marked with a fainter bar before 
 
 The chosen line, run or window span is marked on the line itself: a rounded bar on the floor, drawn by the floor-marker pipeline of [PM-marker], blue where a wall may stand and coral where one may not, one bar per stretch of like validity. The chosen walls' own panels take the same blue or coral tint and stay legible at night. The Room, Floors and Land tools keep their per-tile rings.
 
-The front door draws its own frame on its line, so that line's empty doorway panel is left out, as a hinged interior door's is; the shell reads the line from the boundary's `front_door_lines`.
+Each hinged door draws its own frame, so the shell omits the empty doorway panel on that same line. Both wall axes use the current derived hinged-door lists. Current worlds have no separate starting-door frame or privileged doorway line.
 
-Only the drawing changes. Sims and light already read the edge list, not the drawn panels, so nothing a sim does and no light changes when the walls appear. The yard's floor keeps its look, which follows the house's size separately. The static floor and wall block is rebuilt when the choice changes, not on every click in the tool.
+Wall height changes presentation. Sims and light read the saved edge list, so raising a wall for inspection does not change its collision or lighting authority. Current floor appearance reads saved base surfaces and coverings. The static floor and wall block is rebuilt when the view choice changes, not on every click in the tool.
 
 ## [WB-evidence] Evidence
 

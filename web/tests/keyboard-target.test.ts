@@ -44,11 +44,11 @@ describe('keyboard targets', () => {
     expect(targets.filter(t => t.entity === 7).map(t => t.kind)).toEqual(['object', 'dishes', 'dishes']);
     const picker = new KeyboardTargetController(dirty, { hidden: true, textContent: '' });
     picker.cycle(1); picker.cycle(1); picker.cycle(1);
-    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Clean up', action: { kind: 'clean', surface: 7, dishes: null } }, { label: 'Enter build mode' }, { label: 'Nothing' }] } });
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Clean up', action: { kind: 'clean', surface: 7, dishes: null } }, { label: 'Enter build mode' }, { label: 'Clear orders' }] } });
     picker.cycle(1);
-    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Do dishes', action: { kind: 'clean', surface: 7, dishes: [10, 11] } }, { label: 'Nothing' }] } });
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Do dishes', action: { kind: 'clean', surface: 7, dishes: [10, 11] } }, { label: 'Clear orders' }] } });
     picker.cycle(1);
-    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ action: { kind: 'clean', dishes: [12] } }, { label: 'Nothing' }] } });
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ action: { kind: 'clean', dishes: [12] } }, { label: 'Clear orders' }] } });
   });
   it('opens descriptions for decorative objects without inventing actions', () => {
     const details = { modelName: 'Home Wash', description: 'Decorative washing machine.' };

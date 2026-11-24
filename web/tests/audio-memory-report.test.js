@@ -146,14 +146,20 @@ test.each([-1, 1])('equivalent endpoint HUD states reject node, document and lis
 function memoryHudFixture() {
   const nodes = new Map();
   const add = (selector, textContent = '', hidden = false) => {
-    nodes.set(selector, { textContent, hidden, childNodes: textContent ? [{}] : [], title: '', dataset: {} });
+    nodes.set(selector, { textContent, hidden, childNodes: textContent ? [{}] : [], title: '', dataset: {},
+      style: {}, attributes: {}, getAttribute(name) { return this.attributes[name] ?? null; } });
   };
   add('#needs-caption', 'Select a person');
   nodes.get('#needs-caption').title = 'Select a person';
-  add('#needs-empty', 'Select a person to see what they need.');
-  add('#needs-content', '', true);
+  add('#needs-empty', '', true);
+  add('#needs-content');
   add('#satisfaction-value', 'unavailable');
-  add('#activity-value', 'Nothing selected');
+  add('#satisfaction-summary');
+  nodes.get('#satisfaction-summary').dataset.empty = 'true';
+  add('#satisfaction-label');
+  add('#satisfaction-meter', '', true);
+  nodes.get('#satisfaction-meter').value = 0;
+  add('#activity-value');
   add('#career-row', '', true);
   add('#career-value');
   add('#orders-row', '', true);
@@ -165,13 +171,23 @@ function memoryHudFixture() {
   add('#traits-block', '', true);
   add('#trait-list', '', true);
   add('#traits-empty', 'No traits.');
-  add('#mood-content', '', true);
-  add('#mood-empty', 'Select a person to see their mood.');
+  add('#mood-content');
+  add('#mood-empty', '', true);
   add('#moodlet-list', '', true);
   add('#mood-label');
+  add('#mood-meter');
+  nodes.get('#mood-meter').dataset.empty = 'true';
+  add('#mood-marker', '', true);
+  nodes.get('#mood-marker').style.width = '0%';
   add('#household-roster-members');
-  add('#dock-activity', 'Nothing selected');
+  add('#dock-activity');
   nodes.get('#dock-activity').dataset.urgent = 'false';
+  add('#dock-critical');
+  add('#sim-dock-body');
+  add('#sim-dock-collapse');
+  nodes.get('#sim-dock-collapse').attributes = {
+    'aria-expanded': 'true', 'aria-label': 'Collapse Sim dock',
+  };
   add('#dock-traits-empty', 'Select a person to see their traits.');
   add('#queue-empty', 'No actions queued.');
   add('#personal-details');
@@ -181,13 +197,20 @@ function memoryHudFixture() {
   add('#affinities-block');
   nodes.get('#affinities-block').open = false;
   const warnings = Array.from({ length: 7 }, () => ({ childNodes: [] }));
+  const needValues = Array.from({ length: 7 }, () => ({ childNodes: [] }));
+  const needMeters = Array.from({ length: 7 }, () => ({
+    style: { width: '0%' }, attributes: { 'data-state': 'empty', 'aria-valuetext': 'No person selected' },
+    getAttribute(name) { return this.attributes[name] ?? null; },
+  }));
   const members = Array.from({ length: 3 }, () => ({ pressed: 'false', getAttribute() { return this.pressed; } }));
   const fixture = {
-    nodes, warnings, members, selected: null,
+    nodes, warnings, needValues, needMeters, members, selected: null,
     document: {
       querySelector: selector => nodes.get(selector) ?? null,
       querySelectorAll: selector => {
         if (selector === '#needs-content .need-state') return warnings;
+        if (selector === '#needs-content .need-value') return needValues;
+        if (selector === '#needs-content [role="meter"]') return needMeters;
         if (selector === '#household-roster-members .household-member') return members;
         throw new Error(`Unexpected selector: ${selector}`);
       },
@@ -213,9 +236,14 @@ function oldSubsetReady(fixture) {
 const staleProjectionCases = [
   ['needs-caption', node => { node.textContent = 'Tim'; }],
   ['needs-caption title', node => { node.title = 'Tim'; }],
-  ['needs-empty', node => { node.hidden = true; }],
-  ['needs-content', node => { node.hidden = false; }],
+  ['needs-empty', node => { node.hidden = false; }],
+  ['needs-empty text', node => { node.textContent = 'Select a person to see what they need.'; }],
+  ['needs-content', node => { node.hidden = true; }],
   ['satisfaction-value', node => { node.textContent = '12.3'; }],
+  ['satisfaction-summary', node => { node.dataset.empty = 'false'; }],
+  ['satisfaction-label', node => { node.textContent = 'Content'; }],
+  ['satisfaction-meter visibility', node => { node.hidden = false; }],
+  ['satisfaction-meter value', node => { node.value = 12.3; }],
   ['activity-value', node => { node.textContent = 'Sitting'; }],
   ['career-row', node => { node.hidden = false; }],
   ['career-value', node => { node.textContent = 'Office clerk'; node.childNodes = [{}]; }],
@@ -232,13 +260,22 @@ const staleProjectionCases = [
   ['trait-list children', node => { node.childNodes = [{}]; }],
   ['traits-empty', node => { node.hidden = true; }],
   ['traits-empty text', node => { node.textContent = 'Traits unavailable'; }],
-  ['mood-content', node => { node.hidden = false; }],
-  ['mood-empty visibility', node => { node.hidden = true; }],
+  ['mood-content', node => { node.hidden = true; }],
+  ['mood-empty visibility', node => { node.hidden = false; }],
   ['mood-empty text', node => { node.textContent = 'Mood unavailable'; }],
   ['moodlet-list', node => { node.hidden = false; }],
   ['mood-label', node => { node.textContent = 'Low'; node.childNodes = [{}]; }],
+  ['mood-meter state', node => { node.dataset.empty = 'false'; }],
+  ['mood-meter value', node => { node.attributes['aria-valuenow'] = '12'; }],
+  ['mood-marker visibility', node => { node.hidden = false; }],
+  ['mood-marker width', node => { node.style.width = '25%'; }],
   ['dock-activity text', node => { node.textContent = 'Sitting / Low'; }],
   ['dock-activity urgent', node => { node.dataset.urgent = 'true'; }],
+  ['dock-critical', node => { node.textContent = 'Critical: Hunger'; }],
+  ['sim-dock-collapse text', node => { node.textContent = 'Collapse'; }],
+  ['sim-dock-collapse expanded', node => { node.attributes['aria-expanded'] = 'false'; }],
+  ['sim-dock-collapse label', node => { node.attributes['aria-label'] = 'Expand Sim dock'; }],
+  ['sim-dock-body', node => { node.hidden = true; }],
   ['dock-traits-empty', node => { node.hidden = true; }],
   ['queue-empty', node => { node.hidden = true; }],
   ['personal-details', node => { node.open = true; }],
@@ -287,6 +324,23 @@ test('memory normalization rejects selected or missing roster buttons and unclea
     const row = memoryHudFixture();
     row.nodes.get(selector).childNodes.push({});
     expect(normalized(row)).toBe(false);
+  }
+});
+
+test('memory normalization rejects incomplete or selected need-meter projections', () => {
+  for (const change of [
+    fixture => { fixture.needMeters.pop(); },
+    fixture => { fixture.needValues.pop(); },
+    fixture => { fixture.needValues[0].childNodes.push({}); },
+    fixture => { fixture.needMeters[0].style.width = '25%'; },
+    fixture => { fixture.needMeters[0].attributes['data-state'] = 'steady'; },
+    fixture => { fixture.needMeters[0].attributes['aria-valuenow'] = '0'; },
+    fixture => { fixture.needMeters[0].attributes['aria-valuetext'] = '0% full, critical'; },
+  ]) {
+    const fixture = memoryHudFixture();
+    change(fixture);
+    expect(oldSubsetReady(fixture)).toBe(true);
+    expect(normalized(fixture)).toBe(false);
   }
 });
 

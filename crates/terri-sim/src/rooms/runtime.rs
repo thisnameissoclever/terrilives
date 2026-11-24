@@ -101,29 +101,36 @@ impl CleaningArea {
     }
 }
 
-/// Whether column `x` of the confirmed room map is the street: the grid's
-/// last column when the front door faces it, where commutes end. It is no
-/// one's floor, so neither cleaning nor rent counts it.
-fn is_street_column(world: &World, map: &RoomMap, x: u32) -> bool {
-    crate::lot_frame::street_exit(world).is_some() && x + 1 == map.topology.width
+/// Historical layouts infer a street next to the edge their entrance faces.
+fn is_legacy_street_column(world: &World, map: &RoomMap, x: u32) -> bool {
+    !crate::world_geometry::current(world)
+        && crate::lot_frame::street_exit(world).is_some()
+        && x + 1 == map.topology.width
 }
 
 /// The rent tiles of the confirmed layout, `(indoor, outdoor)` - [WB-rent]
 /// in `docs/specs/2026-10-18-wages-and-bills.md`: a tile inside an
-/// enclosed room is indoor, a floor tile outside every room is outdoor
-/// unless it is the street, and a tile that is not floor counts as
-/// neither. Walls, doorways, windows and furniture change nothing, because
-/// they do not change the topology. `None` without a room map.
+/// enclosed room is indoor. Outside a room, rent excludes saved street
+/// terrain. A historical layout may infer its street column instead.
+/// The map and terrain both come from the confirmed lot during Build.
 pub fn rent_tiles(world: &World) -> Option<(u32, u32)> {
+    if let Some(build) = world.get_resource::<crate::build_transaction::BuildTransaction>() {
+        return build.confirmed_rent_tiles();
+    }
     let map = world.get_resource::<RoomMap>()?;
     let width = map.topology.width.max(1);
+    let surfaces = world.get_resource::<crate::world_geometry::WorldSurfaces>();
     let mut indoor = 0;
     let mut outdoor = 0;
     for (index, cell) in map.topology.cells.iter().enumerate() {
         match cell {
             TopologyCell::Enclosed(_) => indoor += 1,
-            TopologyCell::Outside if !is_street_column(world, map, index as u32 % width) => {
-                outdoor += 1
+            TopologyCell::Outside => {
+                let street = surfaces.map_or_else(
+                    || is_legacy_street_column(world, map, index as u32 % width),
+                    |s| s.tiles.get(index) == Some(&2),
+                );
+                outdoor += u32::from(!street);
             }
             _ => {}
         }
@@ -137,14 +144,19 @@ pub fn cleaning_area_at(world: &World, tile: (i32, i32)) -> Option<CleaningArea>
     let y = u32::try_from(tile.1).ok()?;
     let map = world.get_resource::<RoomMap>()?;
     let selection = map.selection_at((x, y))?;
-    if is_street_column(world, map, x) {
+    if is_legacy_street_column(world, map, x) {
         return None;
     }
     let covering = world
         .get_resource::<terri_core::layout::SavedFloors>()
         .map_or(0, |floors| floors.covering(x, y));
     let cleanable = match covering {
-        0 => crate::lot_frame::house_or_grid(world).contains(x, y),
+        0 => world
+            .get_resource::<crate::world_geometry::WorldSurfaces>()
+            .map_or_else(
+                || crate::lot_frame::house_or_grid(world).contains(x, y),
+                |s| s.tiles[(y * s.width + x) as usize] == 0,
+            ),
         1..=4 => true,
         _ => false,
     };

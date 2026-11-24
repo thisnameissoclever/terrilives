@@ -7,13 +7,174 @@ mod priority;
 mod shelf_contact;
 
 #[test]
-fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
-    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+fn build_replans_an_owned_fetch_contact_without_replacing_the_book_or_seat() {
+    use terri_core::layout::{EdgeAxis, WallState};
+    let (mut sim, person, shelf, seat, title) = fixture("armchair");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let model = sim.world().get::<SmartObject>(shelf).unwrap().0;
+    pack.objects[model.0 as usize].shelf_access = vec![(-1, 0), (0, -1)];
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
     block_furniture(&mut sim);
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, person, seat, &title, false);
+    sim.tick();
+    until(&mut sim, person, ReadingStage::Fetch);
+    let before = sim.world().get::<ReadingJourney>(person).unwrap().clone();
+    assert_eq!(before.transfer_contact, Some((2, 3)));
+    let library = sim.world().resource::<BookLibrary>().state().clone();
+    let claim = sim
+        .world()
+        .get::<crate::seating::PhysicalClaim>(person)
+        .cloned();
+    let target = sim.world().get::<Target>(person).copied();
+    sim.begin_build().unwrap();
+    issue(
+        &mut sim,
+        SimCommand::SetWallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 3,
+            y: 3,
+            state: WallState::Wall,
+        },
+    );
+    sim.flush_commands();
+    assert!(legal_shelf_contact(
+        sim.world(),
+        sim.world().resource::<TileGrid>(),
+        shelf,
+        (3, 2)
+    ));
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    let mut expected = before;
+    expected.transfer_contact = Some((3, 2));
+    assert_eq!(sim.world().get::<ReadingJourney>(person), Some(&expected));
+    assert_eq!(
+        sim.world().get::<crate::seating::PhysicalClaim>(person),
+        claim.as_ref()
+    );
+    assert_eq!(sim.world().get::<Target>(person), target.as_ref());
+    assert_eq!(sim.world().resource::<BookLibrary>().state(), &library);
+    assert_eq!(
+        sim.world().get::<Path>(person).unwrap().steps.last(),
+        Some(&(3, 2))
+    );
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
+}
+
+#[test]
+fn build_keeps_a_carried_book_waiting_when_its_return_contact_is_blocked() {
+    use terri_core::layout::{EdgeAxis, WallState};
+    let (mut sim, person, shelf, seat, title) = fixture("armchair");
+    block_furniture(&mut sim);
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, person, seat, &title, false);
+    sim.tick();
+    until(&mut sim, person, ReadingStage::Read);
+    request_return(sim.world_mut(), person);
+    let before = sim.world().get::<ReadingJourney>(person).unwrap().clone();
+    assert_eq!(before.stage, ReadingStage::Return);
+    let contact = before.transfer_contact.unwrap();
+    assert_eq!(contact, (4, 3));
+    let location = sim
+        .world()
+        .resource::<BookLibrary>()
+        .copy(before.copy)
+        .unwrap()
+        .location;
+    sim.begin_build().unwrap();
+    issue(
+        &mut sim,
+        SimCommand::SetWallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 4,
+            y: 3,
+            state: WallState::Wall,
+        },
+    );
+    sim.flush_commands();
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .expect("an impossible future return is retained as waiting, not an invalid path");
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    let after = sim.world().get::<ReadingJourney>(person).unwrap();
+    assert_eq!(after.stage, ReadingStage::WaitingReturn);
+    assert_eq!(after.copy, before.copy);
+    assert_eq!(after.shelf, shelf);
+    assert!(sim.world().get::<Path>(person).is_none());
+    assert_eq!(
+        sim.world()
+            .resource::<BookLibrary>()
+            .copy(before.copy)
+            .unwrap()
+            .location,
+        location
+    );
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
+}
+
+#[test]
+fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
+    shelf_move_with_optional_pool(false);
+}
+
+#[test]
+fn pool_continuation_survives_active_shelf_move_and_build_commit() {
+    shelf_move_with_optional_pool(true);
+}
+
+fn shelf_move_with_optional_pool(with_pool: bool) {
+    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    let swimmer = with_pool.then(|| {
+        let pool = sim.spawn_object(
+            Position { x: 12., y: 8. },
+            terri_data::pack().find("pool").unwrap(),
+        );
+        let actor = sim.spawn_agent(Position { x: 11., y: 8. }, 80.);
+        issue(
+            &mut sim,
+            SimCommand::UseObjectFirst {
+                agent: actor.index_u32(),
+                object: pool.index_u32(),
+                interaction: 0,
+            },
+        );
+        actor
+    });
+    block_furniture(&mut sim);
+    if let Some(swimmer) = swimmer {
+        for _ in 0..50 {
+            sim.tick();
+            if sim
+                .world()
+                .get::<crate::pool::PoolEpisode>(swimmer)
+                .is_some_and(|e| e.phase == 1)
+            {
+                break;
+            }
+        }
+        assert_eq!(
+            sim.world()
+                .get::<crate::pool::PoolEpisode>(swimmer)
+                .unwrap()
+                .phase,
+            1
+        );
+    }
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     sim.tick();
     until(&mut sim, p, ReadingStage::Fetch);
+    let pool_before = crate::pool::capture(sim.world());
     sim.begin_build().unwrap();
     issue(
         &mut sim,
@@ -62,6 +223,7 @@ fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
         .prepare_build_commit(crate::rooms::RoomChoices::default())
         .unwrap();
     sim.commit_build(review.token).unwrap();
+    assert_eq!(crate::pool::capture(sim.world()), pool_before);
     assert_eq!(
         sim.world()
             .get::<ReadingJourney>(p)
@@ -72,6 +234,9 @@ fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
     let saved = sim.current_v19_view();
     sim.load_current_v19_view(saved.clone()).unwrap();
     assert_eq!(sim.current_v19_view(), saved);
+    let saved = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v28(), saved);
 }
 
 #[test]
@@ -758,25 +923,26 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         assert_eq!(sim.current_v10_view(), saved);
         assert_eq!(sim.world_hash(), hash);
         // Keep the frozen reader's malformed-state contract separate from
-        // current order ownership, which the full V17 envelope carries.
+        // current order ownership and geometry in the complete current envelope.
         let frozen = sim.save_snapshot_v10();
         let pack = sim.world().resource::<Content>().0;
         let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
         historical.load_snapshot_v10(frozen.clone()).unwrap();
+        let adopted = historical.save_snapshot_v28();
         let historical_hash = historical.world_hash();
         let mut bad = frozen.clone();
         bad.legacy.reading[0].copy = BookCopyId(999);
         assert!(historical.load_snapshot_v10(bad).is_err());
-        assert_eq!(historical.save_snapshot_v10(), frozen);
+        assert_eq!(historical.save_snapshot_v28(), adopted);
         assert_eq!(historical.world_hash(), historical_hash);
         let mut unearned = frozen.clone();
         unearned.legacy.reading[0].earned_satisfaction = 10.0;
         assert!(historical.load_snapshot_v10(unearned).is_err());
-        assert_eq!(historical.save_snapshot_v10(), frozen);
+        assert_eq!(historical.save_snapshot_v28(), adopted);
         let mut bad = frozen.clone();
         bad.legacy.reading.clear();
         assert!(historical.load_snapshot_v10(bad).is_err());
-        assert_eq!(historical.save_snapshot_v10(), frozen);
+        assert_eq!(historical.save_snapshot_v28(), adopted);
         assert_eq!(sim.current_v10_view(), saved);
         assert_eq!(sim.world_hash(), hash);
         for fault in 0..3 {
@@ -2938,7 +3104,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v27::restore(
+    let mut returning = crate::save::v28::restore_current(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

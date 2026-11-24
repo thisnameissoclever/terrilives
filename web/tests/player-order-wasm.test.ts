@@ -3,9 +3,40 @@ import {beforeAll,expect,it,vi} from 'vitest';
 import init,{SimHandle} from '../src/wasm/terri_wasm.js';
 import {SimBridge} from '../src/bridge.js';
 import {WorkOrderConfirmation,type WorkConflict} from '../src/ui/work-order-confirmation.js';
+import {orderFailureMessage} from '../src/ui/player-orders.js';
 
 let memory:WebAssembly.Memory;
 beforeAll(async()=>{memory=(await init({module_or_path:readFileSync('src/wasm/terri_wasm_bg.wasm')})).memory;});
+
+it('uses the native blocked-radio cause for player feedback and preserves the older event record',()=>{
+  // The native typed-media test emits this save after its first failed order.
+  // Load clears session diagnostics, so each run issues a fresh order.
+  const saved=readFileSync(new URL('./fixtures/blocked-radio-v24.bin',import.meta.url));
+  const issue=(exposeCause:boolean)=>{
+    const handle=new SimHandle(1,1);
+    try {
+      if(!exposeCause)Object.defineProperty(handle,'order_failure_cause',{value:undefined});
+      const bridge=new SimBridge(handle,memory);
+      expect(bridge.loadBytes(saved)).toBe(true);
+      const ids=Array.from(bridge.ids()),kinds=bridge.kinds();
+      const actor=ids.find((_,row)=>kinds[row]===0);
+      const radio=ids.find((entity,row)=>kinds[row]!==0&&bridge.objectModel(entity)?.id==='radio');
+      if(actor===undefined||radio===undefined)throw new Error('The blocked-radio fixture requires an actor and a radio.');
+      expect(bridge.useObjectFirst(actor,radio,0)).toBe(true);
+      bridge.flushCommands();
+      bridge.tick();
+      const failed=bridge.orderEventsSince('0').events.find(event=>event.actor===actor&&event.phase==='failed');
+      if(!failed)throw new Error('The blocked-radio order must fail through the native planner.');
+      return {failed,raw:handle.order_events_since('0')};
+    } finally {handle.free();}
+  };
+  const current=issue(true),olderBridge=issue(false);
+  expect(current.raw).toEqual(olderBridge.raw);
+  expect(current.failed).toMatchObject({action:'Listen to the radio: Radio',reason:'No reachable media position',failureCause:'no-reachable-media-position'});
+  expect(orderFailureMessage(current.failed,'Alex')).toBe("Alex can't reach a spot to use this item.");
+  expect(olderBridge.failed.failureCause).toBeUndefined();
+  expect(orderFailureMessage(olderBridge.failed,'Alex')).toContain('No reachable media position');
+});
 
 it('fails an invalid future action immediately and preserves a loadable queue with exact order identities',()=>{
   const handle=SimHandle.from_lot(),bridge=new SimBridge(handle,memory);

@@ -143,6 +143,12 @@ fn valid_move(sim: &Sim, object: u32, facing: Facing) -> (u32, u32) {
 }
 
 fn fixture() -> (Sim, u32) {
+    fixture_with_geometry(false)
+}
+fn historical_fixture() -> (Sim, u32) {
+    fixture_with_geometry(true)
+}
+fn fixture_with_geometry(historical: bool) -> (Sim, u32) {
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
@@ -154,7 +160,11 @@ fn fixture() -> (Sim, u32) {
     pack.portals[0].position = (6, 3);
     pack.portals[0].inward = (5, 3);
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+    let mut sim = if historical {
+        Sim::new_from_historical_lot_and_content(&pack.lot, Content(pack))
+    } else {
+        Sim::new_from_lot_and_content(&pack.lot, Content(pack))
+    };
     let id = pack.find("fridge").unwrap();
     let entity = sim.spawn_object(Position { x: 0.0, y: 0.0 }, id);
     sim.world_mut()
@@ -222,19 +232,22 @@ fn a_lot_edit_is_held_only_to_the_grid_checks_its_own_loader_runs() {
         facing: pack.objects[chair as usize].base_facing,
     };
 
-    let (mut cells, fridge) = fixture();
+    let (mut cells, fridge) = historical_fixture();
     assert!(matches!(
         cells.world().resource::<SavedLayout>(),
         SavedLayout::LegacyCells { .. }
     ));
     walker(&mut cells, fridge);
-    let (mut reader, _) = fixture();
+    let (mut reader, _) = historical_fixture();
     reader
         .load_snapshot_v3(cells.save_snapshot_v3())
         .expect("the cell-wall loader accepts the walk");
     assert!(validate_purchase(cells.world(), purchase).is_ok());
 
     let (mut edges, fridge) = edge_fixture(vec![]);
+    edges
+        .world_mut()
+        .remove_resource::<crate::world_geometry::WorldSurfaces>();
     walker(&mut edges, fridge);
     assert_eq!(
         validate_purchase(edges.world(), purchase).unwrap_err(),
@@ -284,9 +297,11 @@ fn placement_legacy_cells_own_walls_and_unknown_ownership_refuses() {
     sim.world_mut()
         .resource_mut::<TileGrid>()
         .set_blocked(2, 2, true);
+    sim.world_mut()
+        .remove_resource::<crate::world_geometry::WorldSurfaces>();
     let f = facing(&sim, object);
     refusal(&mut sim, object, (2, 2), f, PlacementRefusal::WallOverlap);
-    place(&mut sim, object, (3, 0), f);
+    commit(sim.world_mut(), object, (3, 0), f);
     assert_eq!(
         sim.world()
             .resource::<LotEditState>()
@@ -312,11 +327,17 @@ fn placement_invalid_saved_edges_refuse_without_panicking() {
     use terri_core::layout::SavedLayout;
     let (mut sim, object) = edge_fixture(vec![]);
     let f = facing(&sim, object);
-    for edges in [
-        vec![terri_core::layout::WallEdge {
+    sim.world_mut().insert_resource(SavedLayout::EdgeWallsV1 {
+        edges: vec![terri_core::layout::WallEdge {
             doorway: true,
             ..vertical(0, 1)
         }],
+    });
+    assert!(
+        validate_placement(sim.world(), object, (1, 0), f).is_ok(),
+        "a current perimeter doorway is valid"
+    );
+    for edges in [
         vec![terri_core::layout::WallEdge {
             doorway: true,
             ..vertical(8, 1)
@@ -423,7 +444,7 @@ fn placement_remaining_continuous_route_cannot_cross_a_solid_edge() {
 }
 
 #[test]
-fn placement_requires_usable_approaches_in_one_edge_connected_component() {
+fn placement_reports_access_separately_from_physical_overlap() {
     use terri_core::layout::{EdgeAxis, WallEdge};
     let (mut sim, object) = edge_fixture(vec![
         vertical(4, 1),
@@ -442,13 +463,12 @@ fn placement_requires_usable_approaches_in_one_edge_connected_component() {
         },
     ]);
     let f = facing(&sim, object);
-    refusal(
-        &mut sim,
-        object,
-        (4, 1),
-        f,
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    assert!(validate_placement(sim.world(), object, (4, 1), f).is_ok());
+    let report = reviewed_place(&mut sim, object, (4, 1), f);
+    assert!(report
+        .blocked_targets
+        .iter()
+        .any(|target| target.target == object));
     let (mut sim, object) = edge_fixture((0..7).map(|y| vertical(3, y)).collect());
     sim.spawn_object(
         Position { x: 4.0, y: 4.0 },
@@ -457,20 +477,19 @@ fn placement_requires_usable_approaches_in_one_edge_connected_component() {
     sim.world_mut()
         .resource_mut::<TileGrid>()
         .set_blocked(4, 4, true);
-    refusal(
-        &mut sim,
-        object,
-        (1, 0),
-        f,
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    assert!(validate_placement(sim.world(), object, (1, 0), f).is_ok());
     sim.world_mut().spawn((Agent, Position { x: 4.0, y: 4.0 }));
     refusal(&mut sim, object, (1, 0), f, PlacementRefusal::SimOverlap);
     // A sim the wall at x = 3 cuts off from the front door is found before
     // the furniture on its side ([RD-reasons]).
     let (mut sim, object) = edge_fixture((0..7).map(|y| vertical(3, y)).collect());
     sim.world_mut().spawn((Agent, Position { x: 2.0, y: 4.0 }));
-    refusal(&mut sim, object, (1, 0), f, PlacementRefusal::BlockedRoute);
+    assert!(validate_placement(sim.world(), object, (1, 0), f).is_ok());
+    let report = reviewed_place(&mut sim, object, (1, 0), f);
+    assert!(report
+        .regions
+        .iter()
+        .any(|region| region.external_access && !region.unreachable_by.is_empty()));
 }
 
 #[test]
@@ -660,8 +679,8 @@ fn refusal(
 }
 
 #[test]
-fn placement_refuses_wall_and_furniture_without_writes() {
-    let (mut sim, object) = fixture();
+fn historical_cell_wall_and_furniture_overlap_refuse_without_writes() {
+    let (mut sim, object) = historical_fixture();
     let f = facing(&sim, object);
     refusal(&mut sim, object, (3, 0), f, PlacementRefusal::WallOverlap);
     let other = sim.spawn_object(
@@ -722,7 +741,12 @@ fn placement_refuses_unknown_bounds_direction_in_use_sim_and_path() {
             cursor: 0,
         },
     ));
-    refusal(&mut sim, object, (1, 0), f, PlacementRefusal::BlockedRoute);
+    assert!(validate_placement(sim.world(), object, (1, 0), f).is_ok());
+    reviewed_place(&mut sim, object, (1, 0), f);
+    assert!(
+        sim.world().get::<Path>(person).is_none(),
+        "the obsolete wander route is reconsidered"
+    );
     let mut pack = sim.world().resource::<Content>().0.clone();
     let id = sim.world().get::<SmartObject>(entity).unwrap().0;
     pack.objects[id.0 as usize].facing_sprites.0[Facing::NorthEast.code() as usize] = None;
@@ -738,24 +762,21 @@ fn placement_refuses_unknown_bounds_direction_in_use_sim_and_path() {
 }
 
 #[test]
-fn placement_refuses_disconnected_approaches_door_and_landing() {
-    let (mut sim, object) = fixture();
-    let f = facing(&sim, object);
-    refusal(
-        &mut sim,
-        object,
-        (3, 3),
-        f,
-        PlacementRefusal::InaccessibleInteraction,
-    );
-    refusal(&mut sim, object, (6, 3), f, PlacementRefusal::BlockedDoor);
-    refusal(
-        &mut sim,
-        object,
-        (5, 3),
-        f,
-        PlacementRefusal::BlockedLanding,
-    );
+fn starting_door_coordinates_have_no_placement_privilege() {
+    for origin in [(3, 3), (6, 3), (5, 3)] {
+        let (mut sim, object) = fixture();
+        let f = facing(&sim, object);
+        assert!(validate_placement(sim.world(), object, origin, f).is_ok());
+        reviewed_place(&mut sim, object, origin, f);
+        let entity = object_definition(sim.world(), object).unwrap().0;
+        assert_eq!(
+            sim.world().get::<Position>(entity),
+            Some(&Position {
+                x: origin.0 as f32,
+                y: origin.1 as f32
+            })
+        );
+    }
 }
 
 #[test]
@@ -776,11 +797,16 @@ fn placement_refuses_unowned_grid_and_accepts_authored_wall_provenance() {
 }
 
 #[test]
-fn placement_commits_atomically_preserves_identity_queues_and_wall_cells() {
+fn placement_commits_atomically_preserves_identity_queues_and_saved_wall_edges() {
     let (mut sim, object) = fixture();
     let f = facing(&sim, object);
     let (entity, definition, _) = object_definition(sim.world(), object).unwrap();
     let before = sim.save_snapshot();
+    let barriers = sim
+        .world()
+        .resource::<TileGrid>()
+        .blocked_edges()
+        .collect::<Vec<_>>();
     let plan = validate_placement(sim.world(), object, (1, 0), f).unwrap();
     assert_eq!(
         (plan.origin, plan.facing, plan.footprint),
@@ -798,12 +824,13 @@ fn placement_commits_atomically_preserves_identity_queues_and_wall_cells() {
     assert_eq!(sim.world().resource::<LotEditState>().revision, 1);
     assert!(sim.world().resource::<TileGrid>().is_walkable(0, 0));
     assert!(!sim.world().resource::<TileGrid>().is_walkable(1, 0));
-    for &(x, y) in &sim.world().resource::<Content>().0.lot.walls {
-        assert!(!sim
-            .world()
+    assert_eq!(
+        sim.world()
             .resource::<TileGrid>()
-            .is_walkable(x as i32, y as i32));
-    }
+            .blocked_edges()
+            .collect::<Vec<_>>(),
+        barriers
+    );
     assert_eq!(sim.save_snapshot().rng, before.rng);
     let after = sim.save_snapshot();
     place(&mut sim, object, (1, 0), f);
@@ -1241,7 +1268,7 @@ fn placement_preserves_clear_remaining_routes_with_repeated_waypoints() {
 }
 
 #[test]
-fn placement_keeps_returning_worker_on_door_landing_without_second_pay() {
+fn placement_keeps_returning_worker_on_current_floor_without_second_pay() {
     use terri_core::{AtWork, Career, Commuting};
     let mut sim = Sim::new_from_shipped_lot();
     let object = sim
@@ -1286,6 +1313,28 @@ fn placement_keeps_returning_worker_on_door_landing_without_second_pay() {
     assert!(arrived);
     assert_eq!(
         sim.world().get::<Position>(worker),
-        Some(&Position { x: 15.0, y: 3.0 })
+        Some(&Position { x: 15.0, y: 2.0 })
     );
+}
+
+fn reviewed_place(
+    sim: &mut Sim,
+    object: u32,
+    origin: (u32, u32),
+    facing: Facing,
+) -> crate::world_geometry::AccessReport {
+    sim.begin_build().unwrap();
+    place(sim, object, origin, facing);
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    if review.access.requires_acknowledgment() {
+        assert_eq!(
+            sim.commit_build(review.token),
+            Err(crate::build_transaction::BuildCommitError::AccessAcknowledgmentRequired)
+        );
+    }
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+    review.access
 }

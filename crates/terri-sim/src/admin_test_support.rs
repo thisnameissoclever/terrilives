@@ -65,11 +65,11 @@ pub(crate) fn refused(sim: &mut Sim, edit: AdminEdit, reason: crate::admin::Admi
 /// hash after the load equals the hash before.
 pub(crate) fn assert_survives_save(sim: &Sim, what: &str) {
     let snapshot = sim
-        .try_save_snapshot_v27()
+        .try_save_snapshot_v28()
         .unwrap_or_else(|error| panic!("{what}: nothing admin is queued ({error:?})"));
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
-        .load_snapshot_v27(snapshot)
+        .load_snapshot_v28(snapshot)
         .unwrap_or_else(|error| panic!("{what}: the save loads ({error:?})"));
     assert_eq!(
         loaded.world_hash(),

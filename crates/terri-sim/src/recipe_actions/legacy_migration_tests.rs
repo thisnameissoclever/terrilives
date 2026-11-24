@@ -106,7 +106,35 @@ fn mixed_legacy_recipe_and_projection_actor_keep_their_distinct_contracts() {
     let before = source.save_snapshot_v5();
     let mut loaded = Sim::new_with_lot(12, 8);
     loaded.load_snapshot_v5(before.clone()).unwrap();
-    assert_eq!(*loaded.current_v5_view(), before);
+    let mut expected = before.clone();
+    let adopted_layout = loaded.current_v5_view().layout.clone();
+    assert_eq!(
+        before.layout,
+        terri_core::layout::SavedLayout::LegacyCells { walls: vec![] }
+    );
+    assert_eq!((before.world.grid_width, before.world.grid_height), (12, 8));
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    let edges = (0..8)
+        .map(|y| WallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 0,
+            y,
+            doorway: false,
+        })
+        .chain((0..12).map(|x| WallEdge {
+            axis: EdgeAxis::Horizontal,
+            x,
+            y: 0,
+            doorway: false,
+        }))
+        .collect();
+    assert_eq!(
+        adopted_layout,
+        SavedLayout::EdgeWallsV1 { edges },
+        "the recorded empty-cell fixture gains exactly its 20 north/west edges"
+    );
+    expected.layout = adopted_layout;
+    assert_eq!(*loaded.current_v5_view(), expected);
     assert!(loaded.world().get::<terri_core::Needs>(skeleton).is_none());
     assert!(
         loaded.world().get::<Origin>(skeleton).is_none(),

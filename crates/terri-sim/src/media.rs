@@ -533,6 +533,16 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
 }
 
 pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
+    lease_valid(world, lease, true)
+}
+
+/// The same owner, seat and sight-line rules without requiring the actor's old
+/// path to end at a proposed replacement approach.
+pub(crate) fn valid_lease_geometry(world: &World, lease: &SavedDiner) -> bool {
+    lease_valid(world, lease, false)
+}
+
+fn lease_valid(world: &World, lease: &SavedDiner, check_path: bool) -> bool {
     let Some(person) = crate::dining::entity(world, lease.person) else {
         return false;
     };
@@ -646,6 +656,9 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
         || !grid.segment_can_cross(point, origin)
     {
         return false;
+    }
+    if !check_path {
+        return true;
     }
     let Some(position) = world.get::<Position>(person) else {
         return false;
@@ -838,6 +851,35 @@ pub(crate) fn valid_standing_contact(
         && grid.segment_can_cross(point, origin)
 }
 
+/// Replanning keeps a standing viewer within the ordinary viewing cone and
+/// respects the same exclusive endpoint ownership as initial admission.
+pub(crate) fn standing_approaches(
+    world: &World,
+    person: Entity,
+    station: Entity,
+) -> Vec<(i32, i32)> {
+    let Some(position) = world.get::<Position>(station) else {
+        return vec![];
+    };
+    let (x, y) = (position.x.round() as i32, position.y.round() as i32);
+    (-7i32..=7)
+        .flat_map(|dx| {
+            (-7i32..=7).filter_map(move |dy| Some((x.checked_add(dx)?, y.checked_add(dy)?)))
+        })
+        .filter(|&endpoint| {
+            valid_standing_contact(world, person.index_u32(), station.index_u32(), endpoint)
+                && crate::seating::endpoint_available(
+                    world,
+                    crate::seating::EndpointUse {
+                        owner: person,
+                        endpoint,
+                        kind: crate::seating::UseKind::MediaEndpoint,
+                    },
+                )
+        })
+        .collect()
+}
+
 /// Viewers of `device` other than `except` who hold no seat.
 fn standing_viewers(world: &mut World, device: Entity, except: Entity) -> usize {
     let viewers: Vec<_> = world
@@ -993,7 +1035,7 @@ pub(crate) fn maintain(world: &mut World) {
             .access
             .route
             .path(grid, from)
-            .and_then(|p| grid.anchor_path((position.x, position.y), p))
+            .and_then(|p| next.access.route.bind_path(grid, (position.x, position.y), p))
         else {
             cancel(world, person, target);
             continue;

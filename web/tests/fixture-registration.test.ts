@@ -122,3 +122,28 @@ it('registers the actual household without changing native state, contacts, or s
     expect(fixtureRegistration(sim)).toBe(result);
   }finally{handle.free();}
 });
+
+
+it('does not invent kitchen constraints after the starting shell is removed',()=>{
+  const historical={...source(spriteIndex('offlineCounterSW'),[],[0,0]),houseSize:()=>[4,4] as const};
+  expect([...fixtureRegistration(historical).offsets].some(value=>value!==0)).toBe(true);
+  const current={...historical,worldSurfaces:()=>new Uint8Array(16)};
+  expect([...fixtureRegistration(current).offsets]).toEqual([0,0]);
+  const wall={...current,wallEdges:()=>new Uint32Array([0,0,0,0])};
+  const window={...current,windowLines:()=>new Uint32Array([0,0,0])};
+  expect([...fixtureRegistration(wall).offsets].some(value=>value!==0)).toBe(true);
+  expect([...fixtureRegistration(window).offsets]).toEqual([...fixtureRegistration(wall).offsets]);
+});
+
+it('copies geometry once per lot revision across repeated furniture and contact lookups',()=>{
+  let revision=1,surfaceReads=0,edgeReads=0,windowReads=0;
+  const current={...source(spriteIndex('offlineCounterSW'),[]),lotRevision:()=>revision,
+    worldSurfaces:()=>{surfaceReads++;return new Uint8Array(16);},
+    wallEdges:()=>{edgeReads++;return new Uint32Array();},
+    windowLines:()=>{windowReads++;return new Uint32Array();}};
+  for(let i=0;i<100;i++)fixtureRegistration(current);
+  expect([surfaceReads,edgeReads,windowReads]).toEqual([1,1,1]);
+  revision++;
+  fixtureRegistration(current);
+  expect([surfaceReads,edgeReads,windowReads]).toEqual([2,2,2]);
+});

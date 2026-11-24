@@ -11,6 +11,7 @@ import { lineMarks, type TileHighlight } from '../render/placement-preview.js';
 import type { WindowTool } from './window-tool.js';
 import { EDITS_PER_FRAME } from './command-batch.js';
 import { logWarning } from '../diagnostics/log.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 
 export const OPEN = 0;
 export const WALL = 1;
@@ -128,6 +129,14 @@ export class WallTool {
   line: WallLine | null = null;
   current: WallStateCode = OPEN;
   status = CHOOSE_LINE;
+  private outcome: OperationFeedback | null = null;
+  get feedback(): OperationFeedback | null {
+    if (this.windows?.active) return this.windows.feedback;
+    if (this.pending !== null) return operationFeedback('wall', 'pending', 'Walls', 'Applying wall change...');
+    if (this.outcome) return this.outcome;
+    const refused = this.runPreviews.find(previews => !previews[WALL].valid)?.[WALL] ?? this.previews?.[WALL];
+    return refused && !refused.valid ? operationFeedback('wall', 'failure', 'Walls', refused.reason ?? 'That change is not possible.', 'edit') : null;
+  }
   pending: WallStateCode | null = null;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
@@ -319,6 +328,7 @@ export class WallTool {
     } else {
       this.waiting = [];
       this.status = NOT_SENT;
+      this.outcome = operationFeedback('wall', 'failure', 'Walls', NOT_SENT);
     }
     this.hooks.changed();
   }
@@ -398,6 +408,9 @@ export class WallTool {
         }
         this.refresh();
         this.status = this.isRun ? this.runOutcome(done, sent) : result.reason ?? DONE[done];
+        const edges = this.source.wallEdges() ?? [], windows = this.source.windowLines();
+        const incomplete = this.isRun && sent.some(line => stateOf(edges, line, windows) !== done);
+        this.outcome = operationFeedback('wall', result.reason || incomplete ? 'failure' : 'success', 'Walls', this.status, result.reason || incomplete ? 'edit' : undefined);
         if (result.reason) logWarning('Walls', 'Wall edit refused.', { ...result });
         this.hooks.changed();
         return;
@@ -466,6 +479,7 @@ export class WallTool {
   }
 
   private clear(): void {
+    this.outcome = null;
     this.line = null;
     this.end = null;
     this.extendable = false;
@@ -508,6 +522,7 @@ export class WallTool {
   }
 
   private refresh(): void {
+    this.outcome = null;
     const line = this.line;
     if (line === null) return;
     // A legacy house has no edge list; every preview then refuses it.

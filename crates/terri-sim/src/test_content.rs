@@ -617,7 +617,7 @@ pub(crate) fn enclose(sim: &mut Sim) {
 /// Assert complete current admission without changing the live fixture.
 pub(crate) fn assert_current_admission(sim: &Sim) {
     let before = sim.current_v19_view();
-    let restored = crate::save::v27::restore(
+    let restored = crate::save::v28::restore_current(
         before.0.clone(),
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
@@ -625,6 +625,26 @@ pub(crate) fn assert_current_admission(sim: &Sim) {
     .expect("fixture must admit its complete current snapshot");
     assert_eq!(restored.current_v19_view(), before);
     assert_eq!(restored.world_hash(), sim.world_hash());
+}
+
+/// Exercise a construction command with the same explicit review lifecycle as
+/// the player. Test layouts may deliberately make an object inaccessible.
+pub(crate) fn reviewed_command(sim: &mut Sim, command: terri_core::SimCommand) {
+    sim.begin_build().expect("coherent construction fixture");
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(command);
+    sim.flush_commands();
+    assert_eq!(
+        sim.take_build_error(),
+        None,
+        "construction command must be valid"
+    );
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .expect("reviewable construction fixture");
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
 }
 
 /// `bills` with every charge at zero, so no bill is ever issued ([WB-bills]

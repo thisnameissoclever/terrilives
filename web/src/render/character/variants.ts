@@ -1,16 +1,22 @@
 import { validateAppearance, type CharacterAppearanceV1 } from '../../character/schema.js';
 import type { Geometry, MeshPart } from './bundle.js';
+import type {BathToy} from './bath-motion.js';
 
 export interface AppearanceContext {
   wear: 'clothed' | 'bare'; prop: string; fixture: string; eyes_closed: boolean;
   clip?: string; grip?: 'relaxed' | 'mop';
   stockMask?:number;heldSlot?:number;includeFixture?:boolean;
+  includeActivityWater?:boolean;
+  bathToy?:BathToy;
+  swimwear?:'none'|'trunks'|'two_piece';
 }
 const defaults: Record<string, string | boolean> = {
   hairstyle: 'curl', bald: false, facial_hair: 'none', freckles: false, scar: 'none', top: 'overshirt',
   sleeves: 'rolled', bottoms: 'trousers', footwear: 'loafers', glasses: false, glasses_style: 'round',
   earrings: 'none', wear: 'clothed', prop: 'none', fixture: 'none', eyes_closed: false,
   clip: 'idle', grip: 'relaxed',
+  swimwear:'none',
+  bathToy:'none',
 };
 const cache = new WeakMap<Geometry, Map<string, Geometry>>();
 type SelectorValue=string|number|boolean;
@@ -49,7 +55,7 @@ export function selectParts(source: Geometry, appearance: CharacterAppearanceV1,
   }
   const selected = program.parts.filter(({part,clauses}) =>
     (!clauses.length || clauses.some(clause => clause.every(([key, values]) => ignore.has(key)||values.has(selectors[key]))))
-    && (context.includeFixture!==false||part.region!==10&&part.region!==12)
+    && (context.includeFixture!==false||part.region!==10&&part.region!==12||context.includeActivityWater===true&&part.activityAttachment==='bath_water')
     && (part.stockSlot===undefined||context.stockMask===undefined||part.stockSlot===context.heldSlot||!!(context.stockMask&(1<<part.stockSlot)))
     // Legacy freckle spheres are replaced by a continuously varying skin mask.
     && part.densityThreshold === undefined).map(entry=>entry.part);

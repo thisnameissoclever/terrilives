@@ -1,8 +1,128 @@
 //! Strict current-envelope readers and typed field views for boundary tests.
 use super::*;
 
-/// Independent Data-tool measurements bind a481's 30-model catalogue and 513's
-/// 33-model catalogue, with and without Patio. See the yard-integration evidence.
+/// Reviewed 4x4 tail-codec and 10x10 recline fixtures record no wall cells.
+/// Their historical shell consists only of the north and west boundaries.
+pub(crate) fn empty_cell_fixture_shell(
+    source: &terri_core::layout::SavedLayout,
+    width: u32,
+    height: u32,
+) -> terri_core::layout::SavedLayout {
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    assert_eq!(
+        source,
+        &SavedLayout::LegacyCells { walls: vec![] },
+        "empty-cell fixture contract requires its exact recorded layout variant"
+    );
+    let expected_count = match (width, height) {
+        (4, 4) => 8,
+        (10, 10) => 20,
+        dimensions => panic!("unreviewed empty-cell fixture dimensions: {dimensions:?}"),
+    };
+    let edges: Vec<_> = (0..height)
+        .map(|y| WallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 0,
+            y,
+            doorway: false,
+        })
+        .chain((0..width).map(|x| WallEdge {
+            axis: EdgeAxis::Horizontal,
+            x,
+            y: 0,
+            doorway: false,
+        }))
+        .collect();
+    assert_eq!(edges.len(), expected_count);
+    assert!(edges.iter().all(|edge| !edge.doorway
+        && match edge.axis {
+            EdgeAxis::Vertical => edge.x == 0,
+            EdgeAxis::Horizontal => edge.y == 0,
+        }));
+    SavedLayout::EdgeWallsV1 { edges }
+}
+
+/// Public adoption makes only the historical north/west shell explicit here.
+/// Source fixture bytes and all original edge/window records remain controls.
+pub(crate) fn assert_materialized_shell(
+    actual: &terri_core::layout::SavedLayout,
+    original: &terri_core::layout::SavedLayout,
+    width: u32,
+    height: u32,
+) {
+    let expected = materialized_shell(original, 0, 0, width, height);
+    let mut got = actual.edges().to_vec();
+    got.sort_by_key(|edge| (edge.axis, edge.x, edge.y, edge.doorway));
+    assert_eq!(got, expected.edges());
+    assert_eq!(actual.window_placements(), original.window_placements());
+}
+
+pub(crate) fn materialized_shell(
+    original: &terri_core::layout::SavedLayout,
+    ox: u32,
+    oy: u32,
+    width: u32,
+    height: u32,
+) -> terri_core::layout::SavedLayout {
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge, WallLine};
+    assert!(
+        original.has_edges(),
+        "this expected delta applies only to historical edge layouts"
+    );
+    let mut expected = original.edges().to_vec();
+    for line in (oy..oy + height)
+        .map(|y| WallLine {
+            axis: EdgeAxis::Vertical,
+            x: ox,
+            y,
+        })
+        .chain((ox..ox + width).map(|x| WallLine {
+            axis: EdgeAxis::Horizontal,
+            x,
+            y: oy,
+        }))
+    {
+        if original.window_at(line).is_none()
+            && !expected
+                .iter()
+                .any(|edge| edge.axis == line.axis && edge.x == line.x && edge.y == line.y)
+        {
+            expected.push(WallEdge {
+                axis: line.axis,
+                x: line.x,
+                y: line.y,
+                doorway: false,
+            });
+        }
+    }
+    expected.sort_by_key(|edge| (edge.axis, edge.x, edge.y, edge.doorway));
+    let mut result = original.clone();
+    match &mut result {
+        SavedLayout::EdgeWallsV1 { edges }
+        | SavedLayout::EdgeWallsV2 { edges, .. }
+        | SavedLayout::EdgeWallsV3 { edges, .. } => *edges = expected,
+        _ => unreachable!("the helper accepts edge layouts only"),
+    }
+    result
+}
+
+/// Apply the independently specified shell delta to a published V14 projection.
+/// The frame records bought-land offsets; these fixtures all retain the 16x12 house.
+pub(crate) fn materialized_v14(
+    mut source: terri_core::SaveSnapshotV14,
+) -> terri_core::SaveSnapshotV14 {
+    let frame = source
+        .legacy
+        .lot_frame
+        .expect("authentic house fixture has its saved frame");
+    let layout = &mut source.legacy.legacy.legacy.legacy.legacy.legacy.layout;
+    *layout = materialized_shell(layout, frame.origin_x, frame.origin_y, 16, 12);
+    source
+}
+
+/// Fingerprint measured from the compiled catalogue with the rectangular pool.
+pub(crate) const CURRENT_CATALOGUE_FINGERPRINT: u64 = 0xf7e3_a71d_c98e_ff9d;
+
 /// This projection can change only the global metadata field, never saved state.
 pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut u64) {
     assert_eq!(
@@ -10,80 +130,36 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
         "authenticated V14/V15 catalogue"
     );
     assert_eq!(
-        *captured, 5841475410324663844,
-        "independently measured current catalogue"
+        *captured,
+        CURRENT_CATALOGUE_FINGERPRINT,
+        "current catalogue"
     );
     *captured = source;
 }
 
 /// Decode the complete current envelope without projecting away saved state.
-pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV27 {
+pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV28 {
     assert_eq!(&bytes[..SAVE_MAGIC.len()], SAVE_MAGIC);
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &27u16.to_le_bytes()
+        &terri_core::SAVE_SCHEMA_VERSION.to_le_bytes()
     );
     let (snapshot, remaining) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV27>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(remaining.is_empty());
     snapshot
 }
-/// The current envelope around a schema-twenty one, as a schema-twenty
-/// load leaves it: every shift standard, the shift stream undrawn (issue
-/// 296, [WS-save]) and the bills pristine (issue 298, [WB-save]).
-pub(crate) fn current_from_v20(legacy: terri_core::SaveSnapshotV20) -> terri_core::SaveSnapshotV27 {
-    current_from_v21(terri_core::SaveSnapshotV21 {
-        legacy,
-        shifts: terri_core::save_v21::SavedShifts {
-            rng: terri_core::SimRng::from_seed(terri_sim::shifts::SHIFTS_SEED),
-            draws: 0,
-            held: Vec::new(),
-            changed_today: Vec::new(),
-        },
-        queued_shift_commands: Vec::new(),
-    })
-}
-/// The current envelope around a schema-twenty-one one, as a schema-twenty-
-/// one load leaves it: the bills pristine (issue 298, [WB-save]).
-pub(crate) fn current_from_v21(legacy: terri_core::SaveSnapshotV21) -> terri_core::SaveSnapshotV27 {
-    current_from_v22(terri_core::SaveSnapshotV22 {
-        legacy,
-        bills: Default::default(),
-    })
-}
-/// The current envelope around a schema-twenty-two one, as a schema-twenty-
-/// two load leaves it: no lift from liked furniture fading (issue 344,
-/// [OA-presence]).
-pub(crate) fn current_from_v22(legacy: terri_core::SaveSnapshotV22) -> terri_core::SaveSnapshotV27 {
-    current_from_v23(terri_core::SaveSnapshotV23 {
-        legacy,
-        presence_fade: Vec::new(),
-    })
-}
-
-/// The current envelope around a schema-twenty-three save.
-pub(crate) fn current_from_v23(legacy: terri_core::SaveSnapshotV23) -> terri_core::SaveSnapshotV27 {
-    terri_core::SaveSnapshotV27 {
-        legacy: terri_core::SaveSnapshotV24 {
-            legacy,
-            career_inputs: Vec::new(),
-            queued_work_commands: Vec::new(),
-            replaced_shifts: Vec::new(),
-        },
-        need_mood: Vec::new(),
-    }
-}
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {
         #[derive(Clone, Debug, PartialEq)]
-        pub(crate) struct $view(pub terri_core::SaveSnapshotV27);
+        pub(crate) struct $view(pub terri_core::SaveSnapshotV28);
         impl std::ops::Deref for $view {
             type Target = $payload;
-            fn deref(&self) -> &Self::Target { &self.0.legacy.legacy.legacy.legacy.legacy.legacy.$($field).+ }
+            fn deref(&self) -> &Self::Target { &self.0.gameplay_v20().legacy.$($field).+ }
         }
         impl std::ops::DerefMut for $view {
-            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.legacy.legacy.legacy.legacy.legacy.$($field).+ }
+            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.gameplay_v20_mut().legacy.$($field).+ }
         }
     };
 }
@@ -140,24 +216,24 @@ pub(crate) trait CurrentSnapshotViews {
 }
 impl CurrentSnapshotViews for Sim {
     fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v27())
+        CurrentV17View(self.save_snapshot_v30())
     }
     fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v27(snapshot.0)
+        self.load_snapshot_v30(snapshot.0)
     }
     fn current_v5_view(&self) -> CurrentV5View {
-        CurrentV5View(self.save_snapshot_v27())
+        CurrentV5View(self.save_snapshot_v30())
     }
     fn current_v6_view(&self) -> CurrentV6View {
-        CurrentV6View(self.save_snapshot_v27())
+        CurrentV6View(self.save_snapshot_v30())
     }
     fn load_current_v6_view(
         &mut self,
         snapshot: CurrentV6View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v27(snapshot.0)
+        self.load_snapshot_v30(snapshot.0)
     }
 }

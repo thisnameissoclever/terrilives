@@ -16,6 +16,7 @@ fn error(error: BuildCommitError) -> Failure {
     match error {
         NotActive => (1, None),
         AlreadyActive => (2, None),
+        AccessAcknowledgmentRequired => (18, None),
         AllocationFailed => ALLOCATION,
         CounterExhausted => (4, None),
         InvalidRoom => (5, None),
@@ -352,6 +353,32 @@ fn write_review(w: &mut Writer, review: &BuildReview) -> Wire<()> {
             w.uint(*person as u64)?;
         }
     }
+    w.count(review.access.regions.len())?;
+    for region in &review.access.regions {
+        w.count(region.tiles.len())?;
+        for tile in &region.tiles {
+            w.point(*tile)?;
+        }
+        for entities in [&region.people, &region.targets] {
+            w.count(entities.len())?;
+            for entity in entities {
+                w.uint(*entity as u64)?;
+            }
+        }
+        w.byte(u8::from(region.external_access))?;
+        w.count(region.unreachable_by.len())?;
+        for person in &region.unreachable_by {
+            w.uint(*person as u64)?;
+        }
+    }
+    w.count(review.access.blocked_targets.len())?;
+    for target in &review.access.blocked_targets {
+        w.uint(target.target as u64)?;
+        w.count(target.tiles.len())?;
+        for tile in &target.tiles {
+            w.point(*tile)?;
+        }
+    }
     Ok(())
 }
 fn encode_review(review: &BuildReview) -> Result<Vec<u8>, BuildCommitError> {
@@ -452,6 +479,26 @@ impl SimHandle {
     }
     pub fn commit_build(&mut self, session: u64, revision: u64, preparation: u64) -> Vec<u8> {
         unit(self.sim.commit_build(token(session, revision, preparation)))
+    }
+    pub fn pool_contacts_required(&self) -> bool {
+        self.sim.pool_contacts_required()
+    }
+    pub fn build_pool_contacts_required(&self, session: u64, revision: u64, preparation: u64) -> Vec<u8> {
+        response(|w| {
+            let required = self.sim.build_pool_contacts_required(token(session, revision, preparation)).map_err(error)?;
+            w.byte(u8::from(required))
+        })
+    }
+    pub fn commit_build_with_access_ack(
+        &mut self,
+        session: u64,
+        revision: u64,
+        preparation: u64,
+    ) -> Vec<u8> {
+        unit(
+            self.sim
+                .commit_build_with_access_ack(token(session, revision, preparation)),
+        )
     }
     pub fn room_summaries(&self) -> Vec<u8> {
         response(|w| {
@@ -640,6 +687,7 @@ mod tests {
             rooms: vec![],
             retired_names: vec![],
             duties: Default::default(),
+            access: Default::default(),
         };
         for kind in [Split, Merge, Repartition, LostEnclosure] {
             review.groups.push(BuildGroupReview {
@@ -668,7 +716,7 @@ mod tests {
             [
                 1, 0, 1, 2, 3, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0,
                 5, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 2, 0, 0, 0, 1, 0, 3, 0, 0, 0,
-                1, 0, 4, 0, 0,
+                1, 0, 4, 0, 0, 0, 0,
             ]
         );
     }

@@ -1,0 +1,224 @@
+{
+  "build": {
+    "wasmSHA": "d2e8c3216f80323290a286894b30c899235907a94fe3d45c6d2182b631aa224a",
+    "indexSHA": "39e5a8d235839fe5fae5e58e0edba6afc8a20a7ef1ac9fafc350255bc508224b",
+    "routeSHA": "5e038c2a8eb510781a31332314721bf3cf2373e1e651c0e1013904abaaee3e16"
+  },
+  "viewport": [
+    1280,
+    720
+  ],
+  "stressSims": 0,
+  "tests": {
+    "f0-feminine-short-slim": {
+      "visitedPhases": [
+        1,
+        4,
+        0
+      ],
+      "saveLoads": [
+        {
+          "key": "reload",
+          "before": {
+            "elapsed": 8,
+            "hash": "8733775962362665234",
+            "origin": 0,
+            "phase": 4,
+            "tick": 13
+          },
+          "after": {
+            "elapsed": 8,
+            "hash": "8733775962362665234",
+            "origin": 0,
+            "phase": 4,
+            "tick": 13
+          }
+        }
+      ],
+      "ended": {
+        "key": "phase-0-0",
+        "elapsed": 0,
+        "hash": "12108335646666606178",
+        "origin": 0,
+        "phase": 0,
+        "tick": 21
+      },
+      "errors": []
+    },
+    "f1-feminine-mixed-interior": {
+      "visitedPhases": [
+        1,
+        3,
+        0
+      ],
+      "saveLoads": [
+        {
+          "key": "reload",
+          "before": {
+            "elapsed": 15,
+            "hash": "10990288050391257876",
+            "origin": 0,
+            "phase": 1,
+            "tick": 36
+          },
+          "after": {
+            "elapsed": 15,
+            "hash": "10990288050391257876",
+            "origin": 0,
+            "phase": 1,
+            "tick": 36
+          }
+        }
+      ],
+      "ended": {
+        "key": "phase-0-0",
+        "elapsed": 0,
+        "hash": "6597118553641555447",
+        "origin": 0,
+        "phase": 0,
+        "tick": 81
+      },
+      "errors": []
+    },
+    "f2-feminine-tall-broad": {
+      "visitedPhases": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "saveLoads": [
+        {
+          "key": "reload",
+          "before": {
+            "elapsed": 13,
+            "hash": "9545321634347415313",
+            "origin": 0,
+            "phase": 2,
+            "tick": 38
+          },
+          "after": {
+            "elapsed": 13,
+            "hash": "9545321634347415313",
+            "origin": 0,
+            "phase": 2,
+            "tick": 38
+          }
+        },
+        {
+          "key": "reload",
+          "before": {
+            "elapsed": 22,
+            "hash": "11508209370022530228",
+            "origin": 13,
+            "phase": 3,
+            "tick": 60
+          },
+          "after": {
+            "elapsed": 22,
+            "hash": "11508209370022530228",
+            "origin": 13,
+            "phase": 3,
+            "tick": 60
+          }
+        }
+      ],
+      "ended": {
+        "key": "phase-0-0",
+        "elapsed": 0,
+        "hash": "13717024499818261111",
+        "origin": 0,
+        "phase": 0,
+        "tick": 78
+      },
+      "errors": []
+    },
+    "f3-masculine-short-broad": {
+      "visitedPhases": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "saveLoads": [],
+      "ended": {
+        "key": "phase-0-0",
+        "elapsed": 0,
+        "hash": "14960048585577313408",
+        "origin": 0,
+        "phase": 0,
+        "tick": 141
+      },
+      "errors": []
+    }
+  },
+  "interpolatedPlayback": {
+    "default-masculine": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "feminine-short-slim": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "feminine-tall-broad": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "masculine-short-broad": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "masculine-tall-slim": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "default-feminine": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "feminine-mixed-interior": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    },
+    "masculine-tall-broad": {
+      "renderedFrames": 1870,
+      "exceptions": 0
+    }
+  },
+  "finalBath": {
+    "bathResult": [
+      {
+        "elapsed": 12,
+        "hash": "10694744994592109259",
+        "tick": 16,
+        "toy": 3
+      },
+      {
+        "elapsed": 12,
+        "hash": "10694744994592109259",
+        "tick": 16,
+        "toy": 3
+      },
+      {
+        "elapsed": 0,
+        "hash": "11408574808582656025",
+        "tick": 16,
+        "toy": 0
+      },
+      {
+        "elapsed": 25,
+        "hash": "13744919000250836592",
+        "tick": 29,
+        "toy": 3
+      },
+      {
+        "elapsed": 0,
+        "hash": "10281737167691560989",
+        "tick": 43,
+        "toy": 0
+      }
+    ],
+    "errors": []
+  }
+}

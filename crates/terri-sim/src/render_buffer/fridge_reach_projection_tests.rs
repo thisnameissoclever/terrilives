@@ -85,10 +85,17 @@ fn both_fridge_steps_project_the_reach_in_every_facing_without_changing_saves() 
             sim.sync_render_buffer();
             assert_eq!(
                 projection_of(sim.render_buffer(), user),
-                (visual_action::FETCH, direction, activity::GETTING_INGREDIENTS),
+                (
+                    visual_action::FETCH,
+                    direction,
+                    activity::GETTING_INGREDIENTS
+                ),
                 "{recipe} {turn:?}"
             );
-            assert_eq!(displayed_position_of(sim.render_buffer(), user), (front, front));
+            assert_eq!(
+                displayed_position_of(sim.render_buffer(), user),
+                (front, front)
+            );
             let row = row_of(&sim, user);
             assert_eq!(
                 sim.render_buffer().interaction_targets[row],
@@ -124,9 +131,15 @@ fn reach_progress_rises_through_every_sample_for_any_sampled_length() {
                 .remaining_ticks = remaining;
             sim.sync_render_buffer();
             let row = row_of(&sim, user);
-            assert_eq!(sim.render_buffer().visual_actions[row], visual_action::FETCH);
+            assert_eq!(
+                sim.render_buffer().visual_actions[row],
+                visual_action::FETCH
+            );
             let progress = sim.render_buffer().chore_progress[row];
-            assert!(progress >= previous && progress < 1000, "{total}: {progress}");
+            assert!(
+                progress >= previous && progress < 1000,
+                "{total}: {progress}"
+            );
             previous = progress;
             // The web's fetchFrame rule over eight samples.
             let sample = (progress * 8 / 1000).min(7);
@@ -141,23 +154,58 @@ fn reach_progress_rises_through_every_sample_for_any_sampled_length() {
 #[test]
 fn a_loaded_reach_resumes_halfway_and_the_save_is_unchanged() {
     let mut sim = Sim::new_with_lot(48, 48);
-    let (user, _) = fetching(
-        &mut sim,
+    // A current saved procedure needs an executable actor and its actual origin.
+    // The other projection probes deliberately retain their skeletal actors.
+    let pack = sim.world().resource::<Content>().0;
+    let model = pack.find("fridge").unwrap();
+    let at = Position { x: 20., y: 20. };
+    let fridge = sim.spawn_object(at, model);
+    apply_object_placement(
+        sim.world_mut(),
+        fridge,
+        pack.object(model),
+        at,
         Facing::SouthWest,
-        (20.0, 21.0),
-        "prepare_snack",
-        9,
-        20,
     );
-    let save = sim.save_snapshot_v5();
+    let user = sim.spawn_agent(Position { x: 20., y: 21. }, 100.);
+    let row = pack
+        .object(model)
+        .interactions
+        .iter()
+        .position(|action| action.id == "grab_snack")
+        .unwrap() as u32;
+    let recipe = chain(&sim, "prepare_snack");
+    assert_eq!(
+        pack.object(model).interactions[row as usize]
+            .recipe
+            .as_ref()
+            .unwrap()
+            .steps[0],
+        20
+    );
+    sim.world_mut().entity_mut(user).insert((
+        crate::recipe_actions::begin(pack, model, row, recipe as usize, fridge),
+        StepWork {
+            remaining_ticks: 10,
+        },
+        StepWorkTotal { ticks: 20 },
+        Target {
+            object: fridge,
+            interaction: CHAIN_STEP,
+        },
+    ));
+    sim.world_mut()
+        .entity_mut(fridge)
+        .insert(terri_core::Reserved);
+    let save = sim.save_snapshot_v28();
     let hash = sim.world_hash();
     let mut loaded = Sim::new_with_lot(1, 1);
-    loaded.load_snapshot_v5(save.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v5(), save);
+    loaded.load_snapshot_v28(save.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v28(), save);
     assert_eq!(loaded.world_hash(), hash);
     assert_eq!(
         loaded.world().get::<StepWorkTotal>(user),
-        Some(&StepWorkTotal { ticks: 18 })
+        Some(&StepWorkTotal { ticks: 20 })
     );
     loaded.sync_render_buffer();
     assert_eq!(
@@ -185,7 +233,10 @@ fn cancelled_misplaced_or_wrong_station_reaches_keep_the_standing_pose() {
     );
     sim.sync_render_buffer();
     let row = row_of(&sim, user);
-    assert_eq!(sim.render_buffer().visual_actions[row], visual_action::FETCH);
+    assert_eq!(
+        sim.render_buffer().visual_actions[row],
+        visual_action::FETCH
+    );
     assert_eq!(sim.render_buffer().chore_progress[row], 333);
 
     // A body beside the fridge rather than in front of its door.
@@ -194,7 +245,10 @@ fn cancelled_misplaced_or_wrong_station_reaches_keep_the_standing_pose() {
         .insert(Position { x: 20.0, y: 21.0 });
     sim.sync_render_buffer();
     let row = row_of(&sim, user);
-    assert_ne!(sim.render_buffer().visual_actions[row], visual_action::FETCH);
+    assert_ne!(
+        sim.render_buffer().visual_actions[row],
+        visual_action::FETCH
+    );
     assert_eq!(sim.render_buffer().chore_progress[row], 0);
     assert_eq!(
         displayed_position_of(sim.render_buffer(), user),
@@ -209,17 +263,26 @@ fn cancelled_misplaced_or_wrong_station_reaches_keep_the_standing_pose() {
         .resource_mut::<terri_core::TileGrid>()
         .set_blocked(21, 20, true);
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::FETCH);
+    assert_ne!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::FETCH
+    );
     sim.world_mut()
         .resource_mut::<terri_core::TileGrid>()
         .set_blocked(21, 20, false);
     sim.sync_render_buffer();
-    assert_eq!(projection_of(sim.render_buffer(), user).0, visual_action::FETCH);
+    assert_eq!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::FETCH
+    );
 
     // A later step of the same chain is not a fetch.
     sim.world_mut().get_mut::<ChainState>(user).unwrap().step = 1;
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::FETCH);
+    assert_ne!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::FETCH
+    );
     sim.world_mut().get_mut::<ChainState>(user).unwrap().step = 0;
 
     // Cancellation removes the step work and with it the reach.
@@ -229,7 +292,10 @@ fn cancelled_misplaced_or_wrong_station_reaches_keep_the_standing_pose() {
         .remove::<StepWorkTotal>();
     sim.sync_render_buffer();
     let row = row_of(&sim, user);
-    assert_ne!(sim.render_buffer().visual_actions[row], visual_action::FETCH);
+    assert_ne!(
+        sim.render_buffer().visual_actions[row],
+        visual_action::FETCH
+    );
     assert_eq!(sim.render_buffer().chore_progress[row], 0);
 }
 
@@ -290,7 +356,12 @@ fn all_fridge_facings_route_the_fetch_to_the_door_front_or_fall_back_beside_it()
         let mut schedule = Schedule::default();
         schedule.add_systems(crate::systems::chain::advance_chains);
         schedule.run(sim.world_mut());
-        sim.world().get::<Path>(person).unwrap().steps.last().copied()
+        sim.world()
+            .get::<Path>(person)
+            .unwrap()
+            .steps
+            .last()
+            .copied()
     };
     for (turn, front, _) in FRONTS {
         // FRONTS places the fridge at (20, 20); this one stands at (10, 10).
@@ -300,15 +371,19 @@ fn all_fridge_facings_route_the_fetch_to_the_door_front_or_fall_back_beside_it()
             .insert(ObjectFacing(turn));
         assert_eq!(route(&mut sim), Some(expected), "{turn:?}");
         // A blocked door front leaves the fridge usable from another side.
-        sim.world_mut()
-            .resource_mut::<TileGrid>()
-            .set_blocked(expected.0 as usize, expected.1 as usize, true);
+        sim.world_mut().resource_mut::<TileGrid>().set_blocked(
+            expected.0 as usize,
+            expected.1 as usize,
+            true,
+        );
         let beside = route(&mut sim).unwrap();
         assert_ne!(beside, expected);
         assert_eq!((beside.0 - 10).abs() + (beside.1 - 10).abs(), 1, "{turn:?}");
-        sim.world_mut()
-            .resource_mut::<TileGrid>()
-            .set_blocked(expected.0 as usize, expected.1 as usize, false);
+        sim.world_mut().resource_mut::<TileGrid>().set_blocked(
+            expected.0 as usize,
+            expected.1 as usize,
+            false,
+        );
     }
 }
 
@@ -353,7 +428,11 @@ fn shipped_snack() -> (Sim, bevy_ecs::entity::Entity, bevy_ecs::entity::Entity) 
 /// Ticks until the fetch step ends, asserting on every tick of the step that
 /// the remaining work falls by one, the body stands on the door front and
 /// the reach is projected with rising progress. Returns the ticks the step ran.
-fn finish_fetch(sim: &mut Sim, person: bevy_ecs::entity::Entity, fridge: bevy_ecs::entity::Entity) -> u32 {
+fn finish_fetch(
+    sim: &mut Sim,
+    person: bevy_ecs::entity::Entity,
+    fridge: bevy_ecs::entity::Entity,
+) -> u32 {
     let mut previous: Option<(u32, u32)> = None;
     let mut ticks = 0;
     for _ in 0..400 {
@@ -363,14 +442,21 @@ fn finish_fetch(sim: &mut Sim, person: bevy_ecs::entity::Entity, fridge: bevy_ec
         if state.is_some_and(|step| step >= 1) {
             break;
         }
-        if let Some(work) = sim.world().get::<StepWork>(person).map(|w| w.remaining_ticks) {
+        if let Some(work) = sim
+            .world()
+            .get::<StepWork>(person)
+            .map(|w| w.remaining_ticks)
+        {
             let row = row_of(sim, person);
             let buffer = sim.render_buffer();
             assert_eq!(
                 (buffer.visual_actions[row], buffer.interaction_targets[row]),
                 (visual_action::FETCH, fridge.index_u32())
             );
-            assert_eq!(*sim.world().get::<Position>(person).unwrap(), Position { x: 0.0, y: 1.0 });
+            assert_eq!(
+                *sim.world().get::<Position>(person).unwrap(),
+                Position { x: 0.0, y: 1.0 }
+            );
             let progress = buffer.chore_progress[row];
             if let Some((last_work, last_progress)) = previous {
                 assert_eq!(work + 1, last_work, "the step must count down every tick");
@@ -381,7 +467,10 @@ fn finish_fetch(sim: &mut Sim, person: bevy_ecs::entity::Entity, fridge: bevy_ec
         }
         sim.tick();
     }
-    assert_eq!(sim.world().get::<ChainState>(person).map(|c| c.step), Some(1));
+    assert_eq!(
+        sim.world().get::<ChainState>(person).map(|c| c.step),
+        Some(1)
+    );
     ticks
 }
 
@@ -399,7 +488,10 @@ fn shipped_fridge_reach_survives_loads_before_and_during_the_step() {
     for during in [false, true] {
         let (mut sim, person, fridge) = shipped_snack();
         for _ in 0..400 {
-            let working = sim.world().get::<StepWork>(person).map(|w| w.remaining_ticks);
+            let working = sim
+                .world()
+                .get::<StepWork>(person)
+                .map(|w| w.remaining_ticks);
             if (!during && sim.world().get::<terri_core::Path>(person).is_some())
                 || (during && working.is_some_and(|w| w < 8))
             {
@@ -414,7 +506,10 @@ fn shipped_fridge_reach_survives_loads_before_and_during_the_step() {
         if during {
             loaded.sync_render_buffer();
             let row = row_of(&loaded, person);
-            assert_eq!(loaded.render_buffer().visual_actions[row], visual_action::FETCH);
+            assert_eq!(
+                loaded.render_buffer().visual_actions[row],
+                visual_action::FETCH
+            );
             assert_eq!(loaded.render_buffer().chore_progress[row], 500);
         }
         let ticks = finish_fetch(&mut loaded, person, fridge);

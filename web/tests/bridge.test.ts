@@ -116,7 +116,8 @@ describe('SimBridge', () => {
     expect(catalogue).toHaveLength(33);
     // Issue 250: the yard furniture is sold under its own room and placed nowhere at the start.
     const yard = catalogue.filter(item => item.model?.rooms.includes('yard'));
-    expect(yard.map(item => item.name)).toEqual(['Pool', 'Pool lounger', 'Patio umbrella']);
+    expect(yard.map(item => item.name)).toEqual(['Pool lounger', 'Patio umbrella', 'Pool']);
+    expect(yard.find(item => item.name === 'Pool')?.model?.id).toBe('pool_rectangular');
     const placedModels = ids.map(id => bridge.objectModel(id)?.id).filter(id => id !== undefined);
     expect(placedModels.length).toBeGreaterThan(0);
     expect(placedModels.filter(id => yard.some(item => item.model?.id === id))).toEqual([]);
@@ -353,13 +354,13 @@ describe('SimBridge', () => {
     expect(sprites[1]).not.toBe(sprites[2]);
   });
 
-  it('reports all 62 shipped wall edges with six explicit doorway flags', () => {
+  it('reports all 90 ordinary starting wall edges with six explicit doorway flags', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
     expect(Array.from(bridge.wallTiles())).toEqual([]);
     const packed = bridge.wallEdges();
     expect(packed).toBeDefined();
-    expect(packed).toHaveLength((34 + 28) * 4);
+    expect(packed).toHaveLength((34 + 28 + 28) * 4);
     const expected: number[] = [];
     for (let y = 0; y < 6; y++) expected.push(0, 8, y, Number(y === 2));
     for (let x = 0; x < 16; x++) expected.push(1, x, 6, Number(x === 3 || x === 13));
@@ -369,7 +370,11 @@ describe('SimBridge', () => {
     // ([OS-walls]).
     for (let y = 0; y < 12; y++) expected.push(0, 16, y, Number(y === 2));
     for (let x = 0; x < 16; x++) expected.push(1, x, 12, 0);
-    expect(Array.from(packed!)).toEqual(expected);
+    for (let y=0;y<12;y++) expected.push(0,0,y,0);
+    for (let x=0;x<16;x++) expected.push(1,x,0,0);
+    const rows=Array.from({length:expected.length/4},(_,index)=>expected.slice(index*4,index*4+4));
+    rows.sort((a,b)=>a[0]-b[0]||a[1]-b[1]||a[2]-b[2]);
+    expect(Array.from(packed!)).toEqual(rows.flat());
     const doors: string[] = [];
     let solids = 0;
     for (let offset = 0; offset < packed!.length; offset += 4) {
@@ -377,8 +382,8 @@ describe('SimBridge', () => {
       if (doorway === 1) doors.push(`${axis},${x},${y}`);
       else solids++;
     }
-    expect(solids).toBe(29 + 27);
-    expect(doors).toEqual(['0,8,2', '1,3,6', '1,13,6', '0,6,9', '0,12,8', '0,16,2']);
+    expect(solids).toBe(29 + 27 + 28);
+    expect(doors).toEqual(['0,6,9','0,8,2','0,12,8','0,16,2','1,3,6','1,13,6']);
   });
 
   // [OS-yard]: the house and the yard's look cross the boundary from content.
@@ -422,7 +427,7 @@ describe('SimBridge', () => {
 
   it('keeps edge-layout spawn validation and accepted saves intact in release WASM', () => {
     const edge = new SimBridge(SimHandle.from_lot(), wasmMemory);
-    expect(edge.wallEdges()).toHaveLength((34 + 28) * 4);
+    expect(edge.wallEdges()).toHaveLength((34 + 28 + 28) * 4);
     const before = edge.saveBytes();
     const count = edge.count;
     // (20, 16) is just past the yard's far corner, off the lot.
@@ -947,7 +952,7 @@ describe('SimBridge', () => {
     const bytes = original.saveBytes();
     expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0]);
     const expectedEdges = original.wallEdges()!.slice();
-    expect(expectedEdges).toHaveLength((34 + 28) * 4);
+    expect(expectedEdges).toHaveLength((34 + 28 + 28) * 4);
 
     const resumed = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(resumed.loadBytes(bytes)).toBe(true);
@@ -970,7 +975,7 @@ describe('SimBridge', () => {
     expect(Array.from(edgeBytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0]);
     expect(blank.wallEdges()).toEqual(new Uint32Array());
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
-    expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
+    expect(restored.wallEdges()).toHaveLength((34 + 28 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
     expect(restored.wallEdges()).toEqual(new Uint32Array());
     expect(restored.wallTiles()).toEqual(new Uint32Array());
@@ -994,7 +999,7 @@ describe('SimBridge', () => {
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
-    expect(edges).toHaveLength((34 + 28) * 4);
+    expect(edges).toHaveLength((34 + 28 + 28) * 4);
     for (const bytes of invalid) {
       expect(live.loadBytes(bytes)).toBe(false);
       expect(live.saveBytes()).toEqual(before);
@@ -1458,14 +1463,14 @@ describe('SimBridge', () => {
     // Current grievance memory begins at tick 5. Its additional argument
     // eligibility draw at tick 63 changes later choices without starting a
     // fight. Measured independently on native and rebuilt release WASM.
-    // Issue 315 cut every base need drain rate to three quarters of what it
-    // was, a behavior change in this scenario (previously 4733362429942472337).
-    // Measured on native first; this twin confirms it on rebuilt release WASM.
-    // After 100 ticks all eight people carry 1200 units of accumulated need mood.
-    // Conversation subjects (issue 275) change which topics the chats in this
-    // scenario draw, a behavior change (previously 10536286167581425162n).
-    // Measured on native first; this twin confirms it on rebuilt release WASM.
-    expect(bridge.worldHash()).toBe(1841635519881759335n);
+    // V21 hashes saved base surfaces and commute direction. The independent
+    // native and release WASM measurements agree on this encoding change.
+    // Main's three-quarter need drain changes the scenario's need levels.
+    // Independently measured on native and rebuilt release WebAssembly on
+    // 2026-11-20 after integrating that balance with saved world surfaces.
+    // The subject a Sim picks changes later random draws. Native and release
+    // WebAssembly both produced this digest with the combined household rules.
+    expect(bridge.worldHash()).toBe(17435874788369320558n);
   });
 
   // ---- Player commands -------------------------------------------------

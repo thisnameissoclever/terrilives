@@ -1,13 +1,17 @@
 //! The Career tab's score inputs and a queued Go to work extend schema
 //! twenty-three into schema twenty-four: issues 311 and 317
 //! (`docs/specs/2026-11-19-career-tab.md`, [CT-save]).
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, VecDeque};
 
 use super::SaveError;
-use crate::careers::{Careers, Record, ShiftInputs, WeekInputs};
+use crate::careers::{Careers, Record, ShiftInputs, ShiftSource, WeekInputs};
 use crate::{Content, Sim};
 use terri_core::save_v24::{
     SavedCareerInputs, SavedQueuedWorkCommand, SavedShiftInputs, SavedWeekInputs,
+};
+use terri_core::save_v26::{
+    SavedCareerInputSources, SavedShiftSourceOverride, SavedSourcedCurrentInputs,
+    SavedSourcedWeekInputs,
 };
 use terri_core::{CommandQueue, SaveSnapshotV24, SimCommand, SimId};
 use terri_data::{CompiledCareer, ContentPack, Tuning};
@@ -89,12 +93,48 @@ fn rows(world: &bevy_ecs::world::World) -> Vec<SavedCareerInputs> {
                 .filter(|(_, record)| holds_inputs(record))
                 .map(|(sim, record)| SavedCareerInputs {
                     sim: sim.0,
-                    current: record.shift_inputs.iter().map(saved_shift).collect(),
+                    current: if record.current_input_sources.is_empty() {
+                        record.shift_inputs.iter().map(saved_shift).collect()
+                    } else {
+                        Vec::new()
+                    },
                     last_shift: record.last_shift.as_ref().map(saved_shift),
-                    weeks: record.input_weeks.iter().map(saved_week).collect(),
+                    weeks: record.input_weeks.iter()
+                        .filter(|week| !record.reviewed_input_sources.contains_key(&week.week))
+                        .map(saved_week)
+                        .collect(),
                 })
                 .collect()
         })
+}
+
+fn source_rows(sources: &BTreeMap<u32, ShiftSource>) -> Vec<SavedShiftSourceOverride> {
+    sources.iter().map(|(&input_index, source)| SavedShiftSourceOverride {
+        input_index,
+        career: source.career,
+        base_pay: source.base_pay,
+    }).collect()
+}
+
+pub(crate) fn capture_sources(world: &bevy_ecs::world::World) -> Vec<SavedCareerInputSources> {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return Vec::new();
+    };
+    careers.records.iter().filter_map(|(sim, record)| {
+        let current = (!record.current_input_sources.is_empty()).then(|| SavedSourcedCurrentInputs {
+            inputs: record.shift_inputs.iter().map(saved_shift).collect(),
+            sources: source_rows(&record.current_input_sources),
+        });
+        let weeks: Vec<_> = record.input_weeks.iter().filter_map(|week| {
+            let sources = record.reviewed_input_sources.get(&week.week)?;
+            Some(SavedSourcedWeekInputs { inputs: saved_week(week), sources: source_rows(sources) })
+        }).collect();
+        (current.is_some() || !weeks.is_empty()).then_some(SavedCareerInputSources {
+            sim: sim.0,
+            current,
+            weeks,
+        })
+    }).collect()
 }
 
 /// Each queued Go to work with its position in the whole command queue.
@@ -170,14 +210,7 @@ impl Bounds {
         }
     }
 
-    /// The range of the sum of `count` values each inside `self`, summed in
-    /// order in `f32`.
-    fn sum_of(self, count: u32) -> Self {
-        Self {
-            low: repeated_sum(self.low, count),
-            high: repeated_sum(self.high, count),
-        }
-    }
+
 }
 
 fn repeated_sum(value: f32, count: u32) -> f32 {
@@ -255,88 +288,165 @@ impl ShiftBounds {
     }
 }
 
-/// [CT-save-load] item 4: a reviewed week names a known career row, holds
-/// from one to [`MAX_SHIFTS_IN_A_WEEK`] shifts with no more attended, pay
-/// inside the row's range, and means and a sum that values inside the
-/// row's ranges can make.
-fn valid_week(pack: &ContentPack, week: &SavedWeekInputs) -> bool {
-    let Some(row) = pack.careers.get(week.career as usize) else {
+fn valid_sources(
+    pack: &ContentPack,
+    rows: &[SavedShiftSourceOverride],
+    count: usize,
+    default: ShiftSource,
+) -> Result<BTreeMap<u32, ShiftSource>, SaveError> {
+    if rows.is_empty() || rows.len() > count
+        || rows.windows(2).any(|pair| pair[0].input_index >= pair[1].input_index)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    rows.iter().map(|row| {
+        let source = ShiftSource { career: row.career, base_pay: row.base_pay };
+        let job = pack.careers.get(source.career as usize).ok_or(SaveError::InvalidValue)?;
+        if row.input_index as usize >= count
+            || source == default
+            || source.base_pay.is_some_and(|pay| !(job.pay..=job.pay_max).contains(&pay))
+        {
+            return Err(SaveError::InvalidValue);
+        }
+        Ok((row.input_index, source))
+    }).collect()
+}
+
+/// Compare means and sums using the source for each shift and the same
+/// ordered f32 accumulation used by review.
+fn valid_week(
+    pack: &ContentPack,
+    week: &SavedWeekInputs,
+    sources: &BTreeMap<u32, ShiftSource>,
+) -> bool {
+    let Some(job) = pack.careers.get(week.career as usize) else {
         return false;
     };
     if !(1..=MAX_SHIFTS_IN_A_WEEK).contains(&week.shifts)
         || week.attended > week.shifts
-        || !(row.pay..=row.pay_max).contains(&week.pay)
+        || !(job.pay..=job.pay_max).contains(&week.pay)
     {
         return false;
     }
-    let shift = ShiftBounds::of(row);
     let count = week.shifts;
+    let mut trait_min = 0.0_f32;
+    let mut trait_max = 0.0_f32;
+    let mut missed_max = 0.0_f32;
+    for index in 0..count {
+        let source_job = sources.get(&index).map_or(job, |source| &pack.careers[source.career as usize]);
+        let bounds = ShiftBounds::of(source_job);
+        trait_min += bounds.trait_fit.low;
+        trait_max += bounds.trait_fit.high;
+        missed_max += bounds.missed_minutes.high;
+    }
+    let trait_bounds = Bounds { low: trait_min / count as f32, high: trait_max / count as f32 };
     Bounds::SIGNED_UNIT.mean_of(count).holds(week.fit)
         && Bounds::SIGNED_UNIT.mean_of(count).holds(week.mood)
         && Bounds::UNIT.mean_of(count).holds(week.social_capacity)
         && Bounds::UNIT.mean_of(count).holds(week.mastery)
-        && shift.trait_fit.mean_of(count).holds(week.trait_fit)
-        && shift
-            .missed_minutes
-            .sum_of(count)
-            .holds(week.missed_minutes)
+        && trait_bounds.holds(week.trait_fit)
+        && (Bounds { low: 0.0, high: missed_max }).holds(week.missed_minutes)
 }
 
-/// Validates every row against the careers the older envelope restored
-/// and returns each person's inputs, the weeks trimmed to the newest
-/// `career_input_history_weeks` ([CT-save-load]).
 fn validated(
     world: &bevy_ecs::world::World,
     rows: &[SavedCareerInputs],
+    sourced: &[SavedCareerInputSources],
     pack: &ContentPack,
-    tuning: &Tuning,
 ) -> Result<Vec<(SimId, Record)>, SaveError> {
     use SaveError::InvalidValue;
+    if rows.len() > super::MAX_LIST_ENTRIES
+        || sourced.len() > super::MAX_LIST_ENTRIES
+        || rows.windows(2).any(|pair| pair[0].sim >= pair[1].sim)
+        || sourced.windows(2).any(|pair| pair[0].sim >= pair[1].sim)
+    {
+        return Err(InvalidValue);
+    }
+    let mut by_sim: BTreeMap<_, _> = rows.iter().map(|row| (row.sim, (Some(row), None))).collect();
+    for row in sourced {
+        if row.current.is_none() && row.weeks.is_empty() {
+            return Err(InvalidValue);
+        }
+        by_sim.entry(row.sim).or_default().1 = Some(row);
+    }
+    if by_sim.len() > super::MAX_LIST_ENTRIES {
+        return Err(InvalidValue);
+    }
+
     let careers = world.resource::<Careers>();
-    let any = ShiftBounds::any(pack);
-    let mut installed = Vec::with_capacity(rows.len());
-    for row in rows {
-        let id = SimId(row.sim);
-        // Item 1: a career record to hold the inputs.
+    let all_jobs = ShiftBounds::any(pack);
+    let mut installed = Vec::with_capacity(by_sim.len());
+    for (person, (ordinary, sourced)) in by_sim {
+        let id = SimId(person);
         let record = careers.record(id).ok_or(InvalidValue)?;
-        let entity = crate::edit::living_entity(world, row.sim).ok_or(InvalidValue)?;
-        let job = crate::careers::job_of(world, pack, entity).ok_or(InvalidValue)?;
-        let current = ShiftBounds::of(job);
-        // Item 2: no more current inputs than the week's scores.
-        if row.current.len() > record.shifts.len()
-            || !row.current.iter().all(|inputs| current.hold(inputs))
-            || !row
-                .last_shift
-                .as_ref()
-                .is_none_or(|inputs| any.hold(inputs))
-        {
-            return Err(InvalidValue);
-        }
-        // Item 3: reviewed weeks, ascending, at most the knob's maximum.
-        if row.weeks.len() > Tuning::MAX_CAREER_INPUT_HISTORY_WEEKS as usize
-            || row
-                .weeks
-                .windows(2)
-                .any(|pair| pair[0].week >= pair[1].week)
-            || !row.weeks.iter().all(|week| {
-                record
-                    .history
-                    .iter()
-                    .any(|reviewed| reviewed.week == week.week)
-                    && valid_week(pack, week)
+        let entity = crate::edit::living_entity(world, person).ok_or(InvalidValue)?;
+        let career = world.get::<terri_core::Career>(entity).ok_or(InvalidValue)?.0;
+        let job = pack.careers.get(career as usize).ok_or(InvalidValue)?;
+        let default = ShiftSource { career, base_pay: Some(record.pay) };
+
+        let ordinary_current = ordinary.map_or(&[][..], |row| row.current.as_slice());
+        let (current, current_sources) = if let Some(row) = sourced.and_then(|row| row.current.as_ref()) {
+            if !ordinary_current.is_empty() || row.inputs.len() > record.shifts.len() {
+                return Err(InvalidValue);
+            }
+            (row.inputs.as_slice(), valid_sources(pack, &row.sources, row.inputs.len(), default)?)
+        } else {
+            (ordinary_current, BTreeMap::new())
+        };
+        let default_bounds = ShiftBounds::of(job);
+        let last = ordinary.and_then(|row| row.last_shift.as_ref());
+        if current.len() > record.shifts.len()
+            || !current.iter().enumerate().all(|(index, inputs)| {
+                current_sources.get(&(index as u32)).map_or_else(
+                    || default_bounds.hold(inputs),
+                    |source| ShiftBounds::of(&pack.careers[source.career as usize]).hold(inputs),
+                )
             })
+            || !last.is_none_or(|inputs| all_jobs.hold(inputs))
         {
             return Err(InvalidValue);
         }
-        let keep = tuning.career_input_history_weeks as usize;
-        let skip = row.weeks.len().saturating_sub(keep);
+
+        let ordinary_weeks = ordinary.map_or(&[][..], |row| row.weeks.as_slice());
+        let sourced_weeks = sourced.map_or(&[][..], |row| row.weeks.as_slice());
+        let count = ordinary_weeks.len().saturating_add(sourced_weeks.len());
+        if count > Tuning::MAX_CAREER_INPUT_HISTORY_WEEKS as usize
+            || ordinary_weeks.windows(2).any(|pair| pair[0].week >= pair[1].week)
+            || sourced_weeks.windows(2).any(|pair| pair[0].inputs.week >= pair[1].inputs.week)
+        {
+            return Err(InvalidValue);
+        }
+        let mut weeks: BTreeMap<_, _> = ordinary_weeks.iter()
+            .map(|row| (row.week, (row, BTreeMap::new())))
+            .collect();
+        for row in sourced_weeks {
+            let inputs = &row.inputs;
+            let default = ShiftSource { career: inputs.career, base_pay: Some(inputs.pay) };
+            let sources = valid_sources(pack, &row.sources, inputs.shifts as usize, default)?;
+            if weeks.insert(inputs.week, (inputs, sources)).is_some() {
+                return Err(InvalidValue);
+            }
+        }
+        if !weeks.values().all(|(row, sources)| {
+            record.history.binary_search_by_key(&row.week, |week| week.week).is_ok()
+                && valid_week(pack, row, sources)
+        }) {
+            return Err(InvalidValue);
+        }
+
+        let keep = pack.tuning.career_input_history_weeks as usize;
         let mut record = record.clone();
-        record.shift_inputs = row.current.iter().map(live_shift).collect();
-        record.last_shift = row.last_shift.as_ref().map(live_shift);
-        record.input_weeks = row.weeks[skip..]
-            .iter()
-            .map(live_week)
-            .collect::<VecDeque<_>>();
+        record.shift_inputs = current.iter().map(live_shift).collect();
+        record.current_input_sources = current_sources;
+        record.last_shift = last.map(live_shift);
+        record.input_weeks = VecDeque::new();
+        record.reviewed_input_sources = BTreeMap::new();
+        for (week, (row, sources)) in weeks.into_iter().skip(count.saturating_sub(keep)) {
+            record.input_weeks.push_back(live_week(row));
+            if !sources.is_empty() {
+                record.reviewed_input_sources.insert(week, sources);
+            }
+        }
         installed.push((id, record));
     }
     Ok(installed)
@@ -346,7 +456,7 @@ fn validated(
 /// the rows a save would write for them.
 pub(crate) fn validate_live_inputs(world: &bevy_ecs::world::World) -> Result<(), SaveError> {
     let pack = world.resource::<Content>().0;
-    validated(world, &rows(world), pack, &pack.tuning).map(|_| ())
+    validated(world, &rows(world), &capture_sources(world), pack).map(|_| ())
 }
 
 /// The schema-twenty-three part restores first, so each row can be checked
@@ -361,15 +471,19 @@ pub(crate) fn restore(
     content: &'static ContentPack,
     carried: super::Carried,
 ) -> Result<Sim, SaveError> {
-    let rows = snapshot.career_inputs;
-    if rows.len() > super::MAX_LIST_ENTRIES
-        || rows.windows(2).any(|pair| pair[0].sim >= pair[1].sim)
-    {
-        return Err(SaveError::InvalidValue);
-    }
+    restore_with_sources(snapshot, content, carried, Vec::new())
+}
+
+pub(crate) fn restore_with_sources(
+    snapshot: SaveSnapshotV24,
+    content: &'static ContentPack,
+    mut carried: super::Carried,
+    sourced: Vec<SavedCareerInputSources>,
+) -> Result<Sim, SaveError> {
+    carried.pre_registered_shifts = true;
     let mut candidate = super::v23::restore(snapshot.legacy, content, carried)?;
     let pack = candidate.world().resource::<Content>().0;
-    let records = validated(candidate.world(), &rows, pack, &pack.tuning)?;
+    let records = validated(candidate.world(), &snapshot.career_inputs, &sourced, pack)?;
     crate::attendance::validate_replaced(candidate.world(), &snapshot.replaced_shifts)?;
     crate::attendance::restore_replaced(candidate.world_mut(), snapshot.replaced_shifts);
     {

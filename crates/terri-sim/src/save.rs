@@ -58,10 +58,14 @@ pub(crate) struct Carried {
     pub actor_references: ActorReferences,
     /// Selected only by the outer schema-twenty reader.
     pub current_fight_topics: bool,
-    /// Selected only by the loaders of schemas fourteen to twenty-one, whose
-    /// pay predates issue 298's raise ([`wage_migration`]). Every other
-    /// restore, a schema-twenty-two save and every build transaction's own
-    /// baseline among them, leaves pay as saved.
+    /// Only the Career envelope can represent a shift registered before its start.
+    pub pre_registered_shifts: bool,
+    pub manual_work_trips: Option<Vec<(u32, u64)>>,
+    pub surfaces: Option<terri_core::WorldSurfaces>,
+    pub commutes: Option<Vec<(u32, u8)>>,
+    pub pools: Option<Vec<terri_core::save_editable_v22::SavedPoolEpisode>>,
+    pub baths: Option<Vec<terri_core::save_editable_v23::SavedBathEpisode>>,
+    /// Apply the historical pay increase when this producer predates bills.
     pub wage_migration: bool,
 }
 
@@ -76,6 +80,12 @@ impl Carried {
             room_mode: crate::rooms::RoomReferenceMode::Legacy,
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
+            pre_registered_shifts: false,
+            manual_work_trips: None,
+            surfaces: None,
+            commutes: None,
+            pools: None,
+            baths: None,
             wage_migration: false,
         }
     }
@@ -106,6 +116,13 @@ impl Carried {
                 .unwrap_or_default(),
             actor_references: ActorReferences::Household,
             current_fight_topics: false,
+            pre_registered_shifts: false,
+            manual_work_trips: None,
+            surfaces: world.get_resource::<terri_core::WorldSurfaces>().cloned(),
+            commutes: crate::world_geometry::current(world)
+                .then(|| ordinary_world::commutes(world)),
+            pools: Some(crate::pool::capture(world)),
+            baths: Some(crate::bath::capture(world)),
             wage_migration: false,
         }
     }
@@ -126,7 +143,12 @@ mod bathtub;
 mod bathtub_tests;
 pub(crate) mod books_migration;
 pub(super) mod chronotype;
+pub(crate) mod editable_v21;
+pub(crate) mod editable_v22;
+pub(crate) mod editable_v23;
+pub(crate) mod editable_v24;
 mod meal_migration;
+pub(crate) mod ordinary_world;
 pub(super) mod self_preservation;
 pub(super) mod skills;
 pub(super) mod sleeping_places;
@@ -147,9 +169,14 @@ pub(crate) mod v21;
 pub(crate) mod v22;
 pub(crate) mod v23;
 pub(crate) mod v24;
+pub(crate) mod v25;
+pub(crate) mod v26;
 pub(crate) mod v27;
+pub(crate) mod v28;
 #[cfg(test)]
 mod v3_tests;
+#[cfg(test)]
+pub(crate) use v3_tests::assert_materialized_rear_shell;
 pub(crate) mod v6;
 #[cfg(test)]
 mod v6_tests;
@@ -693,6 +720,11 @@ pub(crate) fn restore_with_facings(
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
+    sim.world
+        .remove_resource::<crate::world_geometry::WorldSurfaces>();
+    if let Some(surfaces) = active_portals.surfaces {
+        sim.world.insert_resource(surfaces);
+    }
     sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
     sim.world.remove_resource::<crate::rooms::RoomMap>();
     sim.world
@@ -782,6 +814,16 @@ pub(crate) fn restore_with_facings(
             migrate_legacy_household_names,
             facings.get(&saved.index).copied(),
         )?;
+    }
+
+    if let Some(commutes) = active_portals.commutes {
+        ordinary_world::restore_commutes(&mut sim.world, commutes)?;
+    }
+    if let Some(pools) = active_portals.pools {
+        crate::pool::restore_physical(&mut sim.world, pools)?;
+    }
+    if let Some(baths) = active_portals.baths {
+        crate::bath::restore(&mut sim.world, baths)?;
     }
 
     // Sleep pressure, after every entity exists so an index can be
@@ -1464,13 +1506,32 @@ pub(crate) fn candidate_grid_loads(
     world: &bevy_ecs::world::World,
     grid: &TileGrid,
 ) -> Result<(), LoadProblem> {
+    let live = world.resource::<TileGrid>();
+    let changed = grid.width() != live.width()
+        || grid.height() != live.height()
+        || !grid.blocked_edges().eq(live.blocked_edges())
+        || (0..grid.height()).any(|y| {
+            (0..grid.width()).any(|x| {
+                grid.is_walkable(x as i32, y as i32) != live.is_walkable(x as i32, y as i32)
+            })
+        });
+    if crate::world_geometry::current(world) && changed {
+        // A pure preview still proves its source. A private draft began from a
+        // validated baseline and may carry routes awaiting final reconciliation.
+        if !crate::build_transaction::deferred(world) {
+            candidate_grid_loads(world, live)?;
+        }
+        return Ok(());
+    }
     let content = world.resource::<Content>().0;
     let snapshot = capture_world(world);
     v6::validate_live_books(world).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::seating::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::reading::persistence::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
-    validate_portal_returns(&snapshot, grid, content, crate::lot_frame::origin(world))
-        .map_err(|_| LoadProblem::PortalReturn)?;
+    if !crate::world_geometry::current(world) {
+        validate_portal_returns(&snapshot, grid, content, crate::lot_frame::origin(world))
+            .map_err(|_| LoadProblem::PortalReturn)?;
+    }
     // Every edge layout, not one named version: a house with a window is
     // still an edge house, and naming the version here is what let review
     // finding [F1] on PR 126 skip this whole check for a glazed house.
@@ -2439,11 +2500,11 @@ mod tests {
     #[test]
     fn a_rich_snapshot_restores_every_saved_field_exactly() {
         let snapshot = rich_snapshot();
-        let mut restored = Sim::new_from_shipped_lot();
-        restored
-            .load_snapshot(snapshot.clone())
+        // Exercise the frozen codec before current-world adoption reconciles
+        // deliberately contradictory activity fields in this exhaustive record.
+        let restored = restore_legacy(snapshot.clone(), terri_data::pack(), Carried::default())
             .expect("valid rich snapshot restores");
-        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
+        assert_eq!(restored.save_snapshot(), snapshot);
     }
 
     /// **Sparse means sparse**, and the capture side had no test at all.
@@ -3109,11 +3170,9 @@ mod tests {
             "fixture needs a real hole"
         );
 
-        let mut restored = Sim::new_from_shipped_lot();
-        restored
-            .load_snapshot(snapshot.clone())
+        let restored = restore_legacy(snapshot.clone(), terri_data::pack(), Carried::default())
             .expect("a sparse live-entity index space restores");
-        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
+        assert_eq!(restored.save_snapshot(), snapshot);
     }
 
     #[test]
@@ -3334,21 +3393,16 @@ mod tests {
         // both fridges' art from it. A V1 record carries no wall edges, so
         // the world hash, which sees walls since [WT-hash], is compared on the
         // V3 round trip the game now writes, beside the V1 record check.
-        let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-        historical
-            .load_snapshot(source.save_snapshot())
+        let mut historical = restore_legacy(source.save_snapshot(), pack, Carried::default())
             .expect("old fridge art saves load");
-        assert_eq!(
-            historical.save_snapshot(),
-            after_legacy_load_draws(before.clone())
-        );
+        assert_eq!(historical.save_snapshot(), before.clone());
         let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         restored
-            .load_snapshot_v5(source.save_snapshot_v5())
+            .load_snapshot_v26(source.save_snapshot_v26())
             .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
-        for (format, world) in [("V1", &mut historical), ("V3", &mut restored)] {
+        for (format, world) in [("V1", &mut historical), ("V26", &mut restored)] {
             world.sync_render_buffer();
             for original in &fridge_entities {
                 let buffer = world.render_buffer();
@@ -3594,45 +3648,14 @@ mod tests {
                 },
             ))
             .id();
-        // Deliberately the V1 path: the saved reader stands far from its
-        // chair to prove the render endpoint comes from the socket, and only
-        // the V1 loader accepts that. A V1 record carries no wall edges, so
-        // the restored house has none and the world hash, which sees walls
-        // since [WT-hash], differs by that layout. Legacy instinct migration
-        // and the affinity seed ([OA-values]) also advance RNG, so the
-        // reference explicitly adopts those draws before comparing
-        // continuation. Everything V1 carries is compared.
+        // This deliberately detached reader tests the frozen V1 presentation
+        // codec. Public adoption separately reconciles activity and geometry.
         let snapshot = source.save_snapshot();
-        let mut migrated_rng = snapshot.rng.clone();
-        let people: Vec<Entity> = snapshot
-            .entities
-            .iter()
-            .filter(|entity| entity.agent)
-            .map(|person| {
-                source
-                    .world()
-                    .entities()
-                    .resolve_from_index(EntityIndex::from_raw_u32(person.index).unwrap())
-            })
-            .collect();
-        for &entity in &people {
-            let instinct = 30 + migrated_rng.range(41) as u8;
-            source
-                .world_mut()
-                .entity_mut(entity)
-                .insert(terri_core::SelfPreservation(instinct));
-        }
-        for &entity in &people {
-            let values = crate::affinity::draw(&mut migrated_rng, pack, None);
-            source.world_mut().entity_mut(entity).insert(values);
-        }
-        source.world_mut().insert_resource(migrated_rng);
 
-        let mut restored = Sim::new_from_shipped_lot();
-        restored
-            .load_snapshot(snapshot.clone())
+        let mut restored = restore_legacy(snapshot.clone(), pack, Carried::default())
             .expect("active reading save restores");
-        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
+        restored.sync_render_buffer_after_commands();
+        assert_eq!(restored.save_snapshot(), snapshot);
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );

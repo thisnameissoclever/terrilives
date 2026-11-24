@@ -35,7 +35,7 @@ Capture the actual accepted game build in an isolated, muted browser. Record sou
 
 Crop the selected captures around the relevant controls, preserving enough context to locate them and read their labels. Keep each crop traceable to its source capture. Reuse a screenshot for colocated controls when it shows them clearly; add a location view only when the close-up leaves the control hard to find. Show the launch control as well as the opened panel where the access path needs both. Record unavailable and confirmation states where they change what the player can do. Select the states that explain the article instead of reproducing every captured variation.
 
-Explain responsive differences. Desktop needs can appear in the dock; phone needs are in Sim details. Test each path in the real game. Captures are evidence of their displayed state, not proof of unobserved actions. Refresh affected captures when controls, layout, behavior or assets change. Keep recordings and bulk capture sequences out of the repository. Close task-owned game pages and preview servers afterward.
+Explain responsive differences. Desktop needs can appear in the dock; a selected person's phone needs are in Sim details. With no person selected, the expanded phone dock shows hollow need tracks. Test each path in the real game. Captures are evidence of their displayed state, not proof of unobserved actions. Refresh affected captures when controls, layout, behavior or assets change. Keep recordings and bulk capture sequences out of the repository. Close task-owned game pages and preview servers afterward.
 
 ## Validation and publication
 

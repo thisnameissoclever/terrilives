@@ -24,19 +24,21 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
             "cold public nineteen admission at source tick {tick}"
         );
         let mut native_control = SimHandle::from_lot();
-        let view = super::current_test_snapshot::CurrentV5View(
-            super::current_test_snapshot::current_from_v20(terri_core::SaveSnapshotV20 {
-                legacy: published.clone(),
-                conflicts: Default::default(),
-            }),
-        );
+        let view = &published
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy;
         assert_eq!(
             view.world.content_fingerprint,
-            native_control
-                .sim
-                .current_v5_view()
-                .world
-                .content_fingerprint,
+            0x5111_16ef_ac94_ae24,
             "authentic fixture content shape"
         );
         native_control
@@ -48,9 +50,28 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
         assert_eq!(native_control.save_bytes(), migrated.save_bytes());
         assert_eq!(migrated.sim_tick(), tick);
         let current = migrated.sim.save_snapshot_v20();
+        let mut expected = published.clone();
+        let careers = &mut expected.legacy.legacy.legacy.legacy.legacy.careers;
+        for record in &mut careers.records {
+            record.pay = (record.pay * 3).div_ceil(2);
+        }
+        let five = &mut expected
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy;
+        five.layout = current_test_snapshot::materialized_shell(&five.layout, 0, 0, 16, 12);
+        five.world.content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
         assert_eq!(
-            current.legacy, published,
-            "published fields retain their exact state"
+            current.legacy, expected,
+            "migration materializes the rear shell, remaps content and raises pre-bill pay"
         );
         assert_eq!(current.conflicts.next_id, 1);
         assert!(current.conflicts.grievances.is_empty());
@@ -105,12 +126,8 @@ fn issue314_published_player_fight_requires_its_exact_execution_witness() {
         .expect("positive published fight control");
     let before = live.save_bytes();
     for corruption in 0..6 {
-        let mut view = super::current_test_snapshot::CurrentV17View(
-            super::current_test_snapshot::current_from_v20(terri_core::SaveSnapshotV20 {
-                legacy: published.clone(),
-                conflicts: Default::default(),
-            }),
-        );
+        let mut historical = published.clone();
+        let view = &mut historical.legacy.legacy;
         assert_eq!(view.social_executions.len(), 1);
         assert_eq!(view.legacy.legacy.conversation_requests.requests.len(), 1);
         match corruption {
@@ -129,9 +146,7 @@ fn issue314_published_player_fight_requires_its_exact_execution_witness() {
             _ => unreachable!(),
         }
         assert!(
-            live.sim
-                .load_snapshot_v19(view.0.legacy.legacy.legacy.legacy.legacy.legacy)
-                .is_err(),
+            live.sim.load_snapshot_v19(historical).is_err(),
             "corruption {corruption}"
         );
         assert_eq!(

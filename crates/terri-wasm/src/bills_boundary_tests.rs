@@ -248,7 +248,7 @@ fn bed_refusals_cross_the_boundary_with_their_codes() {
 }
 
 #[test]
-fn schema_twenty_two_round_trips_through_the_save_bytes() {
+fn current_bills_round_trip_through_the_save_bytes() {
     let mut handle = SimHandle::from_lot();
     for _ in 0..20 {
         handle.tick();

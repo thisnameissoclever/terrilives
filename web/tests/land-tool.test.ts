@@ -54,6 +54,27 @@ function tool(): { land: LandTool; source: FakeLand; renders: number } {
   return { land, source, get renders() { return state.renders; } };
 }
 
+it('publishes a separate receipt from the native land result and clears it for a new decision or world reset',()=>{
+  const {land,source}=tool();land.choose(0);land.requestBuy();land.confirmBuy();
+  source.result={side:0,reason:0,chargedCents:2_400_001};land.afterCommands();
+  land.status='Unrelated translation';
+  expect(land.resultFeedback).toMatchObject({operation:'land',state:'success',target:'Behind the house',message:'Bought 160 squares behind the house for $24,001.'});
+  land.choose(1);expect(land.resultFeedback).toBeNull();land.requestBuy();land.confirmBuy();
+  source.result={side:1,reason:0,chargedCents:3_000_000};land.afterCommands();expect(land.resultFeedback?.state).toBe('success');
+  land.resetAfterLoad(20,16);expect(land.resultFeedback).toBeNull();
+});
+
+it('keeps purchase receipts out of the sidebar while preserving quotes and local refusals',()=>{
+  const {land,source}=tool(),elements=new Map<string,FakeElement>();
+  const view=new LandToolControls(fakeDocument(elements) as never,land);
+  land.choose(0);view.render();expect(elements.get('land-status')!.textContent).toContain('$24,000');
+  land.requestBuy();land.confirmBuy();source.result={side:0,reason:0,chargedCents:2_400_000};land.afterCommands();view.render();
+  expect(elements.get('land-status')!.textContent).toBe('');
+  land.requestBuy();view.render();expect(elements.get('land-status')!.textContent).toContain('Behind the house:');land.cancelConfirmation();
+  land.choose(1);land.requestBuy();land.confirmBuy();source.result={side:1,reason:4,chargedCents:0};land.afterCommands();view.render();
+  expect(elements.get('land-status')!.textContent).toBe('There is not enough money for this land.');
+});
+
 describe('whole dollars', () => {
   it('rounds prices up and funds down, and never shows pennies', () => {
     expect(dollarsUp(3_000_000)).toBe(30_000);

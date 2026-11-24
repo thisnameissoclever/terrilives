@@ -53,8 +53,8 @@ fn materials_outside_and_dormant_dirt_round_trip_without_cleaning() {
         );
         assert_eq!(
             cleaning_area_at(sim.world(), (19, 13)),
-            None,
-            "street remains excluded"
+            Some(CleaningArea::Outside),
+            "the laid floor is cleanable regardless of its original terrain"
         );
         crate::chores::ensure(sim.world_mut());
         sim.world_mut()
@@ -63,10 +63,10 @@ fn materials_outside_and_dormant_dirt_round_trip_without_cleaning() {
             .push((13 * 20 + 17, 700));
         sim.world_mut().resource_mut::<SavedFloors>().set(17, 13, 0);
         assert_eq!(crate::chores::floor_at(sim.world(), 17, 13), None);
-        let saved = sim.save_snapshot_v16();
+        let saved = sim.save_snapshot_v28();
         let mut loaded = Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v16(saved.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v16(), saved);
+        loaded.load_snapshot_v28(saved.clone()).unwrap();
+        assert_eq!(loaded.save_snapshot_v28(), saved);
         assert_eq!(
             loaded
                 .world()

@@ -1,6 +1,76 @@
 import { expect, it } from 'vitest';
 import { actionPage, actionLayoutFits, chooseActionPlacement, layoutObjectActions, maximumActionSize } from '../src/ui/object-menu-layout.js';
 
+it.each([0, 6, 10, 16])('budgets a measured %spx scrollbar at the shortest rail boundary', scrollbar => {
+  const minimum = 44 + scrollbar;
+  const place = (height: number) => chooseActionPlacement({x: 210, y: 140}, Array.from({length: 4}, () => ({width: 136, height: 50})),
+    {width: 110, height: 44}, {width: 320, height: 568}, 50,
+    [{left: 8, top: 8, right: 190, bottom: 285.578125}, {left: 8, top: 301.578125 + height, right: 312, bottom: 560}],
+    150, {width: 304, height: 140}, scrollbar);
+  const accepted = place(minimum);
+  expect(accepted?.rail).toBe(true);
+  const viewport = menuLayout.layoutActionRail(accepted!.region, accepted!.railHintHeight).viewport;
+  expect(viewport.bottom - viewport.top - scrollbar).toBe(44);
+  expect(accepted!.railHintHeight).toBe(0);
+  expect(place(minimum - .125)).toBeNull();
+  const hinted = place(minimum + 14)!;
+  expect(hinted.railHintHeight).toBe(14);
+  expect(menuLayout.layoutActionRail(hinted.region, hinted.railHintHeight).viewport.bottom - hinted.region.top - scrollbar).toBe(44);
+});
+
+it('opens a scrolling rail in the exact occupied 320x568 Bookcase state', () => {
+  const viewport = {width: 320, height: 568};
+  const obstacles = [{left: 8, top: 8, right: 190, bottom: 285.578125},
+    {left: 8, top: 386.578125, right: 312, bottom: 560}];
+  const placed = chooseActionPlacement({x: 210, y: 140}, Array.from({length: 4}, () => ({width: 136, height: 50})),
+    {width: 110, height: 44}, viewport, 50, obstacles, 150, {width: 304, height: 140});
+  expect(placed).not.toBeNull();
+  expect(placed!.rail).toBe(true);
+  expect(placed!.region).toEqual({left: 8, top: 293.578125, right: 312, bottom: 378.578125});
+  expect(placed!.region.bottom - placed!.region.top).toBe(85);
+  expect(placed!.capacity).toBe(3);
+  const rail = menuLayout.layoutActionRail(placed!.region);
+  expect(rail.viewport).toEqual({left: 8, top: 293.578125, right: 260, bottom: 364.578125});
+  expect(rail.close).toEqual({x: 268, y: 307.078125});
+  expect(rail.close.y + 44).toBeLessThanOrEqual(rail.viewport.bottom);
+});
+
+it('places the separate description around measured actions and keeps long text scrollable on short screens', () => {
+  const obstacles = [{left: 8, top: 8, right: 180, bottom: 180}, {left: 8, top: 650, right: 382, bottom: 836},
+    {left: 200, top: 350, right: 336, bottom: 394}];
+  const viewport = {width: 390, height: 844};
+  const placement = menuLayout.descriptionPlacement({x: 250, y: 320}, {width: 300, height: 130}, viewport, obstacles)!;
+  expect(placement).not.toBeNull();
+  expect(placement.height).toBe(130);
+  for (const obstacle of obstacles) expect(placement.x + placement.width <= obstacle.left || placement.x >= obstacle.right
+    || placement.y + placement.height <= obstacle.top || placement.y >= obstacle.bottom).toBe(true);
+  const short = menuLayout.descriptionPlacement({x: 300, y: 220}, {width: 300, height: 500}, {width: 640, height: 400},
+    [{left: 8, top: 8, right: 180, bottom: 380}])!;
+  expect(short.height).toBeLessThan(500); expect(short.height).toBeGreaterThanOrEqual(44);
+  expect(short.y + short.height).toBeLessThanOrEqual(392);
+});
+
+it.each([{width: 1280, height: 900}, {width: 390, height: 844}, {width: 320, height: 568}, {width: 640, height: 400}])(
+  'keeps a separate description reachable beside the actual paginated menu in %s', viewport => {
+    const obstacles = [{left: 8, top: 8, right: 190, bottom: 180},
+      {left: 8, top: viewport.height - 140, right: viewport.width - 8, bottom: viewport.height - 8}];
+    const anchor = {x: viewport.width / 2, y: viewport.height / 2};
+    const sizes = Array.from({length: 6}, () => ({width: 136, height: 44}));
+    const placement = chooseActionPlacement(anchor, sizes, {width: 100, height: 44}, viewport, 50, obstacles, 150,
+      {width: Math.min(320, viewport.width - 16), height: 120})!;
+    expect(placement).not.toBeNull();
+    const page = actionPage(sizes.length, placement.capacity, 0);
+    const visible = [...page.indices.map(index => sizes[index]), ...(page.more ? [{width: 100, height: 44}] : [])];
+    const layout = layoutObjectActions(anchor, visible, viewport, placement.region.top, placement.region.bottom,
+      placement.identityHeight, placement.region.left, placement.region.right, 150);
+    const boxes = layout.positions.map((point, index) => ({left: point.x, top: point.y, right: point.x + visible[index].width, bottom: point.y + visible[index].height}));
+    boxes.push({left: layout.identity.x, top: layout.identity.y, right: layout.identity.x + 150, bottom: layout.identity.y + placement.identityHeight},
+      {left: layout.close.x, top: layout.close.y, right: layout.close.x + 44, bottom: layout.close.y + 44});
+    const description = menuLayout.descriptionPlacement({x: layout.identity.x + 75, y: layout.identity.y},
+      {width: Math.min(320, viewport.width - 16), height: 120}, viewport, [...obstacles, ...boxes]);
+    expect(description).not.toBeNull();
+  });
+
 it('allocates the real expanded-description width and keeps it separate from actions', () => {
   const identityWidth = 210;
   for (const count of [3,5]) for (const viewport of [{width:1440,height:960}, {width:390,height:844}, {width:320,height:568}]) {
@@ -123,3 +193,4 @@ it('uses a fitting circle before a closer compact column', () => {
   const layout=layoutObjectActions(anchor,Array.from({length:5},()=>size),viewport,r.top,r.bottom,placement.identityHeight,r.left,r.right);
   expect(layout.compact).toBe(false);
 });
+import * as menuLayout from '../src/ui/object-menu-layout.js';

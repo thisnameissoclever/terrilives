@@ -336,7 +336,7 @@ fn finish_restore(
     content: &ContentPack,
     seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
-    let house = crate::lot_frame::house_or_grid(&candidate.world);
+    let house = crate::world_geometry::historical_house(&candidate.world);
     let grid = candidate.world.resource_mut::<TileGrid>();
     apply_layout(grid.into_inner(), &layout, house)?;
     crate::media::validate_ownership(&candidate.world)?;
@@ -345,12 +345,14 @@ fn finish_restore(
     } else {
         crate::seating::migrate(&mut candidate.world)?;
     }
-    super::validate_portal_returns(
-        &super::capture(&candidate),
-        candidate.world.resource::<TileGrid>(),
-        content,
-        crate::lot_frame::origin(&candidate.world),
-    )?;
+    if !crate::world_geometry::current(&candidate.world) {
+        super::validate_portal_returns(
+            &super::capture(&candidate),
+            candidate.world.resource::<TileGrid>(),
+            content,
+            crate::lot_frame::origin(&candidate.world),
+        )?;
+    }
     if layout.has_edges() && seats.is_none() {
         validate_edge_world(
             &super::capture(&candidate),
@@ -407,7 +409,13 @@ pub(super) fn validate_edge_world(
         if !entity.agent {
             continue;
         }
-        if !grid.is_walkable(tile.0, tile.1) {
+        // Current office/waiting markers put the actor off the playable lot.
+        // Keep validating references, activities and paths below; only the
+        // retained hidden position is exempt from floor walkability.
+        let away = crate::world_geometry::current(world)
+            && entity.at_work_ticks.is_some()
+            && entity.path.is_none();
+        if !away && !grid.is_walkable(tile.0, tile.1) {
             return Err(SaveError::InvalidGrid);
         }
         let reader = crate::dining::entity(world, entity.index)
@@ -488,7 +496,7 @@ pub(super) fn validate_edge_world(
     Ok(())
 }
 
-fn dining_contact(
+pub(crate) fn dining_contact(
     world: &bevy_ecs::world::World,
     person: u32,
     station: u32,
@@ -647,7 +655,7 @@ mod tests {
     }
 
     #[test]
-    fn v2_load_preserves_the_callers_active_portal_scene() {
+    fn v2_adoption_derives_doors_from_saved_edges_without_an_active_scene() {
         let mut shipped = Sim::new_from_shipped_lot();
         let saved = shipped.save_snapshot_v2();
 
@@ -660,7 +668,7 @@ mod tests {
         let mut blank = Sim::new();
         blank.load_snapshot_v2(saved).unwrap();
         assert!(!blank.world().contains_resource::<ActivePortals>());
-        assert!(blank.portal_buffer().states.is_empty());
+        assert_eq!(blank.portal_buffer().states, shipped.portal_buffer().states);
     }
 
     #[test]
@@ -709,8 +717,8 @@ mod tests {
                 .get::<terri_core::Path>(worker)
                 .and_then(|path| path.steps.last())
                 .copied(),
-            Some((15, 3)),
-            "an open saved edge permits the authored return landing"
+            Some((0, 11)),
+            "after legacy validation, current return chooses the nearest accessible saved floor"
         );
     }
 
@@ -759,8 +767,8 @@ mod tests {
                 .get::<terri_core::Path>(worker)
                 .and_then(|path| path.steps.last())
                 .copied(),
-            Some((15, 3)),
-            "an open saved edge permits the worker's actual return segment"
+            Some((0, 11)),
+            "after legacy validation, current return can enter through any lot boundary"
         );
     }
 
@@ -820,7 +828,22 @@ mod tests {
             edges: vec![edge(2, false), edge(3, true)],
         };
         live.load_snapshot_v2(saved.clone()).unwrap();
-        assert_eq!(live.save_snapshot_v2(), saved);
+        assert_eq!(live.save_snapshot_v2().world, saved.world);
+        let loaded = live.world.resource::<SavedLayout>().edges();
+        assert!(saved
+            .layout
+            .edges()
+            .iter()
+            .all(|edge| loaded.contains(edge)));
+        assert_eq!(loaded.len(), saved.layout.edges().len() + 5 + 4);
+        assert!(loaded
+            .iter()
+            .filter(|edge| !saved.layout.edges().contains(edge))
+            .all(|edge| !edge.doorway
+                && match edge.axis {
+                    EdgeAxis::Vertical => edge.x == 0,
+                    EdgeAxis::Horizontal => edge.y == 0,
+                }));
         let grid = live.world.resource::<TileGrid>();
         assert!(!grid.can_step((1, 1), (2, 1)));
         assert!(!grid.can_step((2, 1), (1, 1)));
@@ -851,7 +874,7 @@ mod tests {
     }
 
     #[test]
-    fn custom_v1_collision_survives_v2_resave_without_inventing_architecture() {
+    fn custom_v1_collision_becomes_an_editable_cell_perimeter() {
         let mut custom = Sim::new_with_lot(3, 4);
         custom
             .world
@@ -860,19 +883,27 @@ mod tests {
         let old = custom.save_snapshot();
         let mut live = Sim::new_from_shipped_lot();
         live.load_snapshot(old.clone()).unwrap();
-        let v2 = live.save_snapshot_v2();
-        assert_eq!(v2.world, old);
-        assert_eq!(v2.layout, SavedLayout::LegacyAuthoredV1);
+        let current = live.save_snapshot_v28();
+        let mut expected = old;
+        expected.blocked_tiles[7] = false;
+        assert_eq!(live.save_snapshot(), expected);
+        let layout = live.world.resource::<SavedLayout>();
+        for (axis, x, y) in [
+            (EdgeAxis::Vertical, 1, 2),
+            (EdgeAxis::Vertical, 2, 2),
+            (EdgeAxis::Horizontal, 1, 2),
+            (EdgeAxis::Horizontal, 1, 3),
+        ] {
+            assert!(layout.edges().contains(&WallEdge {
+                axis,
+                x,
+                y,
+                doorway: false
+            }));
+        }
         let mut resumed = Sim::new();
-        resumed.load_snapshot_v2(v2.clone()).unwrap();
-        assert_eq!(resumed.save_snapshot_v2(), v2);
-        let current = resumed.save_snapshot_v16();
-        resumed.load_snapshot_v16(current.clone()).unwrap();
-        assert_eq!(resumed.save_snapshot_v16(), current);
-        assert_eq!(
-            resumed.world.resource::<SavedLayout>(),
-            &SavedLayout::LegacyAuthoredV1
-        );
+        resumed.load_snapshot_v28(current.clone()).unwrap();
+        assert_eq!(resumed.save_snapshot_v28(), current);
     }
 
     #[test]

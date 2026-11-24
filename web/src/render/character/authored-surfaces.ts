@@ -1,9 +1,10 @@
 import policy from '../../../../assets/models/sims/character-creator/surface-policy.json';
+import poolPolicy from '../../../../assets/models/sims/character-creator/pool-surface-policy-v1.json';
 
 export const CHARACTER_OUTLINE_WIDTH=.004;
 
 const outlines=new Map<string,boolean>();
-for(const owner of Object.values(policy.owners))for(const name of owner.parts){
+for(const owner of [...Object.values(policy.owners),...Object.values(poolPolicy.owners)])for(const name of owner.parts){
   if(outlines.has(name))throw new Error(`Duplicate outline ownership: ${name}`);
   outlines.set(name,owner.outline);
 }

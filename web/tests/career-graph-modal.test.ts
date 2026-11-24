@@ -465,6 +465,81 @@ describe('choosing a week in the window', () => {
       'Fit', '+0.40', 'Pay per shift', '$160']);
   });
 
+  it('shows worked jobs and base pay when the plotted salary differs', () => {
+    const source = new Source();
+    source.inputs[7] = { ...source.inputs[7], shifts: 3, attended: 3, socialDemand: 0.4, pay: 160,
+      sources: [{ path: 0, level: 0, basePay: 120 }, { path: 0, level: 1, basePay: 190 }, { path: 0, level: 1, basePay: 190 }] };
+    const h = build({ source });
+    h.open();
+    for (const id of ['social', 'pay']) { const box = h.q(`input[data-filter="${id}"]`); box.checked = true; box.dispatch('change'); }
+    over(h, 7);
+    const cells = h.q('.career-win-tip').querySelectorAll('dl dt, dl dd').map(node => node.textContent);
+    expect(cells).toContain('Jobs');
+    expect(cells).toContain('Office clerk, Senior clerk');
+    expect(cells).toContain('$120 - $190 (pay at review: $160)');
+    expect(cells).toContain('62% (average job demand 40%)');
+    expect(h.chart('pay').querySelector('.career-chart-value')?.textContent).toBe('Week 8: $120 - $190 (pay at review: $160) per shift');
+    expect(h.chart('pay').querySelectorAll('.career-tick').map(node => node.textContent)).toEqual(['$190', '$120']);
+    const selected = h.chart('pay').querySelector('.career-dot-selected')!;
+    expect(Number(selected.getAttribute('cy'))).toBeGreaterThan(4);
+    expect(Number(selected.getAttribute('cy'))).toBeLessThan(33);
+  });
+
+  it('identifies recorded and unrecorded shift base pay and keeps the review salary', () => {
+    const source = new Source();
+    source.inputs[7] = { ...source.inputs[7], shifts: 3, attended: 3, pay: 160,
+      sources: [{ path: 0, level: 0, basePay: null }, { path: 0, level: 1, basePay: 120 }, { path: 0, level: 1, basePay: 190 }] };
+    const h = build({ source });
+    h.open();
+    const pay = h.q('input[data-filter="pay"]'); pay.checked = true; pay.dispatch('change');
+    over(h, 7);
+    const cells = h.q('.career-win-tip').querySelectorAll('dl dt, dl dd').map(node => node.textContent);
+    expect(cells).toContain('Recorded base pay $120 - $190 (some unrecorded; pay at review: $160)');
+    expect(h.chart('pay').querySelectorAll('.career-tick').map(node => node.textContent)).toEqual(['$190', '$120']);
+    expect(h.chart('pay').querySelector('.career-chart-value')?.textContent).toBe('Week 8: Recorded base pay $120 - $190 (some unrecorded; pay at review: $160) per shift');
+  });
+
+  it('identifies a week with no recorded shift base pay', () => {
+    const source = new Source();
+    source.inputs[7] = { ...source.inputs[7], shifts: 1, attended: 1, pay: 160,
+      sources: [{ path: 0, level: 0, basePay: null }] };
+    const h = build({ source });
+    h.open();
+    const pay = h.q('input[data-filter="pay"]'); pay.checked = true; pay.dispatch('change');
+    over(h, 7);
+    const cells = h.q('.career-win-tip').querySelectorAll('dl dt, dl dd').map(node => node.textContent);
+    expect(cells).toContain('Shift base pay unrecorded (pay at review: $160)');
+    expect(h.chart('pay').querySelectorAll('.career-tick').map(node => node.textContent)).toEqual(['$175', '$140']);
+    expect(h.chart('pay').querySelector('.career-chart-value')?.textContent).toBe('Week 8: Shift base pay unrecorded (pay at review: $160) per shift');
+  });
+
+  it('keeps the review destination and collapses equal source pay', () => {
+    const source = new Source();
+    source.inputs[4] = { ...source.inputs[4], shifts: 1, attended: 1, pay: 140,
+      sources: [{ path: 0, level: 1, basePay: 140 }] };
+    const h = build({ source });
+    h.open();
+    over(h, 4);
+    expect(h.q('.career-win-tip .career-tip-event').textContent).toBe('Promoted to Senior clerk.');
+    const cells = h.q('.career-win-tip').querySelectorAll('dl dt, dl dd').map(node => node.textContent);
+    expect(cells).toContain('$140');
+  });
+
+  it('keeps a former job in selected facts when the graph label is hidden', () => {
+    const source = new Source();
+    source.inputs[7] = { ...source.inputs[7], shifts: 1, attended: 1, pay: 160,
+      sources: [{ path: 0, level: 0, basePay: 140 }] };
+    const h = build({ source, phone: true });
+    h.open();
+    const events = h.q('input[data-filter="events"]'); events.checked = false; events.dispatch('change');
+    over(h, 7, 'touch', 'click');
+    expect(h.all('.career-chart[data-chart="score"] .career-level')).toHaveLength(0);
+    const cells = h.q('.career-win-tip').querySelectorAll('dl dt, dl dd').map(node => node.textContent);
+    expect(cells).toContain('Job');
+    expect(cells).toContain('Office clerk');
+    expect(cells).toContain('$140 (pay at review: $160)');
+  });
+
   it('names the event and the title it led to', () => {
     const h = build();
     h.open();

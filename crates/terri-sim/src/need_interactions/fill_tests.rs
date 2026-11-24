@@ -805,15 +805,18 @@ fn a_starving_dirty_person_who_gets_little_from_showers_eats_first() {
 }
 
 #[test]
-fn the_shipped_content_fingerprint_is_the_one_main_had() {
-    // The fingerprint deliberately leaves out tuning numbers, advert deltas,
-    // durations and activities, so retuning the three fixtures' rates and
-    // adding a fill limit change neither it nor the saved action manifest.
-    assert_eq!(
-        terri_data::content_fingerprint(terri_data::pack()),
-        EXPECTED_CONTENT_FINGERPRINT
-    );
-}
+fn the_pool_action_and_rectangular_model_move_the_published_content_fingerprint() {
+    let shipped = terri_data::pack();
+    let mut before_pool = shipped.clone();
+    assert_eq!(before_pool.objects.pop().unwrap().id, "pool_rectangular");
+    assert_eq!(terri_data::content_fingerprint(&before_pool), 0x7229_9218_57a2_e3ae);
+    assert_ne!(terri_data::content_fingerprint(shipped), terri_data::content_fingerprint(&before_pool));
 
-/// Read from main at 053ee52d3, before the fill change.
-const EXPECTED_CONTENT_FINGERPRINT: u64 = 5841475410324663844;
+    // Keep the merged bathroom rates and fill tuning in the comparison.
+    // Removing the one new action restores main's action table digest.
+    let pool = before_pool.find("pool").unwrap();
+    let actions = &mut before_pool.objects[pool.0 as usize].interactions;
+    assert_eq!(actions.iter().map(|action| action.id.as_str()).collect::<Vec<_>>(), ["hop_in"]);
+    actions.clear();
+    assert_eq!(terri_data::content_fingerprint(&before_pool), 0x5111_16ef_ac94_ae24);
+}

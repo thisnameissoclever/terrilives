@@ -7,7 +7,7 @@ use crate::{need_mood, need_mood::NeedMood, player_actions::saved_actor, Sim};
 
 use super::SaveError;
 
-fn rows(world: &World) -> Vec<SavedNeedMood> {
+pub(super) fn rows(world: &World) -> Vec<SavedNeedMood> {
     need_mood::rows(world)
         .into_iter()
         .map(|(actor, units)| SavedNeedMood { actor, units })
@@ -21,18 +21,11 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV27 {
     }
 }
 
-pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV27 {
-    SaveSnapshotV27 {
-        legacy: super::v24::capture_without_commands(sim),
-        need_mood: rows(sim.world()),
-    }
-}
-
 /// The loader's checks on the rows alone: no more rows than entities,
 /// strictly ordered by actor, and every balance nonzero and within the
 /// ledger's bound. Shared with the admin panel's post-condition
 /// ([AP-cmd-post] in `docs/specs/2026-11-20-admin-panel.md`).
-fn validate_rows(rows: &[SavedNeedMood]) -> Result<(), SaveError> {
+pub(super) fn validate_rows(rows: &[SavedNeedMood]) -> Result<(), SaveError> {
     let limit = crate::need_mood::MAX_UNITS;
     if rows.len() > super::MAX_ENTITIES
         || rows.windows(2).any(|pair| pair[0].actor >= pair[1].actor)
@@ -84,14 +77,17 @@ pub(crate) fn restore(
 ) -> Result<Sim, SaveError> {
     let rows = snapshot.need_mood;
     validate_rows(&rows)?;
-
     let mut candidate = super::v24::restore(snapshot.legacy, content, carried)?;
-    let entities = resolve(candidate.world(), &rows)?;
-    let world = candidate.world_mut();
+    install(candidate.world_mut(), rows)?;
+    Ok(candidate)
+}
+
+pub(super) fn install(world: &mut World, rows: Vec<SavedNeedMood>) -> Result<(), SaveError> {
+    let entities = resolve(world, &rows)?;
     for (row, entity) in rows.iter().zip(entities) {
         world.entity_mut(entity).insert(NeedMood(row.units));
     }
-    Ok(candidate)
+    Ok(())
 }
 
 #[cfg(test)]

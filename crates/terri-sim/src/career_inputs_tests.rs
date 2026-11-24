@@ -102,12 +102,14 @@ fn score_into_week(sim: &mut Sim, actor: Entity, shifts: &[ShiftInputs]) {
     let career = sim.world().get::<Career>(actor).unwrap().0;
     let now = sim.world().resource::<SimClock>().tick;
     let week = week_of(now, DAY as u32);
+    let base_pay = record(sim, *sim.world().get::<SimId>(actor).unwrap()).pay;
+    let source = ShiftSource { career, base_pay: Some(base_pay) };
     for read in shifts {
         let score = shift_score(read.fit, read.mastery, read.mood);
         complete_attended_shift(
             sim.world_mut(),
             actor,
-            career,
+            source,
             0,
             1.0,
             Some((score, *read)),
@@ -259,7 +261,8 @@ fn a_promotions_row_carries_the_old_level_and_the_rows_stay() {
 #[test]
 fn a_forfeited_shift_gets_no_inputs_and_a_migrated_week_no_row() {
     let (mut sim, actor, id) = fixture(|_| {});
-    complete_attended_shift(sim.world_mut(), actor, 0, 0, 1.0, None, 0);
+    let source = ShiftSource { career: 0, base_pay: Some(record(&sim, id).pay) };
+    complete_attended_shift(sim.world_mut(), actor, source, 0, 1.0, None, 0);
     let held = record(&sim, id);
     assert!(held.shifts.is_empty() && held.shift_inputs.is_empty());
     assert_eq!(held.last_shift, None);
@@ -347,15 +350,15 @@ fn a_path_change_keeps_the_rows() {
     assert_eq!(held.input_weeks[0].career, 0, "and names the old row");
 }
 
-/// The fixture's world hash on the tree before [CT-save-hash] existed. The
-/// block writes nothing while no record holds inputs.
-const NO_INPUTS_HASH: u64 = 18140227346257973163;
-
-/// Item 5: a world with no inputs hashes as it did before the block.
+/// The Career block writes nothing while no record holds inputs.
 #[test]
-fn a_world_with_no_inputs_hashes_as_before() {
+fn career_hash_leaves_the_digest_unchanged_without_inputs() {
     let (sim, _, _) = fixture(|_| {});
-    assert_eq!(sim.world_hash(), NO_INPUTS_HASH);
+    let mut hash = terri_core::FnvHasher::default();
+    hash.write_bytes(b"world state before Career inputs");
+    let previous = hash.finish();
+    crate::careers::hash_inputs(sim.world(), &mut hash);
+    assert_eq!(hash.finish(), previous);
 }
 
 /// Item 5: a world with inputs hashes the block, and every stored field

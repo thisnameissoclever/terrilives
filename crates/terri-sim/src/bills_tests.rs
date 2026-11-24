@@ -153,6 +153,54 @@ fn the_shipped_lot_has_192_indoor_and_112_outdoor_rent_tiles() {
     assert_eq!(month_amounts(&full, &pack().bills)[RENT as usize], 25_520);
 }
 
+#[test]
+fn rent_excludes_saved_outdoor_street_terrain_wherever_it_lies() {
+    let mut sim = house();
+    let mut snapshot = sim.save_snapshot_v28();
+    let surfaces = &mut snapshot.surfaces;
+    for surface in &mut surfaces.tiles {
+        if *surface == 2 {
+            *surface = 1;
+        }
+    }
+    let width = surfaces.width as usize;
+    for x in 16..=18 {
+        surfaces.tiles[14 * width + x] = 2;
+    }
+    // The confirmed room still supplies indoor area over this base surface.
+    surfaces.tiles[width + 1] = 2;
+
+    sim.load_snapshot_v28(snapshot).unwrap();
+    assert_eq!(crate::rooms::rent_tiles(sim.world()), Some((192, 125)));
+}
+
+#[test]
+fn draft_land_growth_keeps_confirmed_rent_in_the_original_coordinate_frame() {
+    let mut sim = house();
+    sim.tick();
+    let accrued = bills(&sim).clone();
+    let original = crate::rooms::rent_tiles(sim.world()).unwrap();
+    let original_width = sim.world().resource::<terri_core::TileGrid>().width();
+    sim.world_mut().insert_resource(Funds(100_000_000));
+    sim.begin_build().unwrap();
+    sim.world_mut().resource_mut::<CommandQueue>().push(SimCommand::BuyLand { side: 0 });
+    sim.flush_commands();
+    let grid = sim.world().resource::<terri_core::TileGrid>();
+    assert!(grid.width() > original_width);
+    assert!(crate::lot_frame::origin(sim.world()).0 > 0);
+    let added = u32::try_from((grid.width() - original_width) * grid.height()).unwrap();
+    assert_eq!(crate::rooms::rent_tiles(sim.world()), Some(original));
+    assert_eq!(bills(&sim), &accrued);
+
+    let review = sim.prepare_build_commit(Default::default()).unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    let confirmed = Some((original.0, original.1 + added));
+    assert_eq!(crate::rooms::rent_tiles(sim.world()), confirmed);
+    sim.end_build().unwrap();
+    assert_eq!(crate::rooms::rent_tiles(sim.world()), confirmed);
+    assert_eq!(bills(&sim), &accrued);
+}
+
 /// [WB-rent]: one 4 by 4 room on the shipped lot is 16 indoor tiles and 288
 /// outdoor ones, rent $132.00; with no wall at all every one of the 304
 /// floor tiles off the street is outdoor, rent $120.80.

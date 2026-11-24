@@ -912,6 +912,8 @@
       }
       #time-controls label {
         display: inline-flex;
+        background: var(--hud-bg);
+        color: var(--hud-text);
         min-width: 44px;
         min-height: 44px;
         box-sizing: border-box;
@@ -1006,9 +1008,7 @@
         color: var(--hud-muted);
         font-size: 12px;
       }
-      /* An empty line takes no room, so the compact strip grows by one
-         line, the save status, rather than three. It stays rendered: a live
-         region taken out of the page may not be announced when it fills. */
+      /* Empty live regions keep no visible space while remaining available for announcements. */
       #command-feedback:empty,
       #keyboard-target:empty {
         min-height: 0;
@@ -1265,8 +1265,6 @@
       .builder-row > * { flex: 1; min-width: 0; }
       #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
       #builder-controls .hud-button:disabled { opacity: 0.5; cursor: default; }
-      #builder-status { color: var(--need-fill); }
-      #builder-status[data-valid='false'] { color: var(--hud-danger); }
       .builder-note { color: var(--hud-muted); font-size: 13px; }
       body[data-building='true'] #household-roster,
       body[data-building='true'] #needs-panel,
@@ -1386,6 +1384,10 @@
       #placement-actions[hidden] {
         display: none;
       }
+      /* The scene and its placement controls return together after GPU recovery. */
+      body:has(#graphics-recovery:not([hidden])) :is(#placement-actions, #floor-scene-status, #command-feedback) {
+        display: none !important;
+      }
       #placement-actions .hud-button {
         pointer-events: auto;
         min-height: 44px;
@@ -1442,14 +1444,27 @@
       .book-commerce { margin-top: 10px; }
       .book-commerce-actions { display: flex; gap: 6px; }
       .book-commerce-actions button { flex: 1; min-height: 44px; }
-      .radial-identity { position: fixed; width: 88px; text-align: center; pointer-events: auto; background: var(--hud-bg); }
-      .radial-identity:has(.object-identity[open]) { width: min(26ch, calc(100vw - 32px)); }
+      .radial-identity { position: fixed; width: max-content; min-width: 120px; max-width: min(240px, calc(100vw - 104px)); text-align: center; pointer-events: auto; background: var(--hud-bg); border: 1px solid var(--hud-edge); border-radius: 9px; box-sizing: border-box; }
       .radial-identity .object-identity { padding: 0; }
-      .radial-identity summary { display: flex; flex-direction: column; }
+      .radial-identity summary { display: flex; flex-direction: column; position: relative; justify-content: center; min-height: 44px; box-sizing: border-box; padding: 5px 30px 5px 12px; }
       .radial-identity .object-type { order: -1; }
       .radial-identity .object-model { justify-content: center; }
-      .radial-identity .object-description-arrow { display: none; }
-      .radial-identity .object-description { max-width: none; max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
+      .radial-identity .object-description-arrow { position: absolute; right: 6px; top: calc(50% - 10px); }
+      .radial-description { position: fixed; box-sizing: border-box; padding: 12px 15px; border: 1px solid var(--hud-edge); border-radius: 10px; background: var(--hud-bg); box-shadow: 0 4px 16px #0005; color: var(--hud-text); pointer-events: auto; overflow-y: auto; overscroll-behavior: contain; }
+      .radial-description[hidden] { display: none; }
+      .radial-description .object-description { max-width: none; margin: 0; }
+      .object-action-rail { position: absolute; display: flex; align-items: safe center; gap: 8px; overflow: auto; box-sizing: border-box; pointer-events: auto; overscroll-behavior: contain; touch-action: pan-x pan-y; scrollbar-width: thin; scrollbar-color: var(--hud-muted) var(--hud-edge); }
+      .object-action-rail > * { flex: 0 0 auto; }
+      #object-menu .object-action-rail[data-tight='true'] > .menu-entry { padding-block: 4px; }
+      #object-menu .object-action-rail[data-tight='true'] > .radial-identity:has(summary) { border: 0; }
+      #object-menu .object-action-rail[data-tight='true'] .radial-identity summary { border: 1px solid var(--hud-edge); border-radius: 9px; padding-block: 2px; }
+      .object-action-rail .radial-description { padding: 8px 12px; overscroll-behavior-x: auto; }
+      .object-action-rail::-webkit-scrollbar { width: 6px; height: 6px; }
+      .object-action-rail::-webkit-scrollbar-track { background: var(--hud-edge); }
+      .object-action-rail::-webkit-scrollbar-thumb { background: var(--hud-muted); border-radius: 3px; }
+      .object-action-scroll-hint { position: absolute; font: 10px/14px system-ui, sans-serif; color: var(--hud-text); text-align: center; background: var(--hud-bg); border-radius: 3px; pointer-events: none; }
+      .object-action-scroll-hint[data-compact='true'] { background: transparent; border-radius: 0; color: var(--hud-muted); overflow: hidden; }
+      .object-action-rail[hidden], .object-action-scroll-hint[hidden] { display: none !important; }
       .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: var(--action-background, transparent); color: var(--action-text, var(--hud-muted)); font: inherit; }
       #object-menu.object-menu-radial .menu-entry:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       #object-menu.object-menu-radial .menu-entry:disabled { opacity: .5; cursor: default; }
@@ -1537,6 +1552,35 @@
         font: 11px/1.5 Consolas, monospace;
         white-space: pre-wrap;
       }
+      #debug-panel { width: min(480px, calc(100vw - 16px)); padding: 0; border: 1px solid var(--hud-edge); }
+      #debug-panel summary { min-height: 44px; align-content: center; padding: 0 12px; font: 13px/1.4 system-ui, sans-serif; color: var(--hud-text); }
+      #debug-panel summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: -3px; }
+      #debug-report .diagnostic-funds { margin: 0; padding: 9px 12px; border-block: 1px solid var(--hud-edge); }
+      .diagnostic-person { border-bottom: 1px solid var(--hud-edge); }
+      .diagnostic-person > summary { display: list-item; }
+      .diagnostic-person > summary > strong { margin-left: 8px; }
+      .diagnostic-person > summary > span { float: right; color: var(--hud-muted); }
+      .diagnostic-identity { color: var(--hud-muted); margin: 0 12px 6px 28px; font-size: 12px; }
+      .diagnostic-section { margin-inline: 12px; border: 1px solid var(--hud-edge); border-radius: 3px; }
+      .diagnostic-section:last-child { margin-bottom: 12px; }
+      .diagnostic-section table { width: 100%; border-collapse: collapse; font: 11px/1.5 Consolas, monospace; }
+      .diagnostic-section :is(th, td) { padding: 3px 8px; border-top: 1px solid var(--hud-edge); overflow-wrap: anywhere; }
+      .diagnostic-section th { text-align: left; font-weight: normal; }
+      .diagnostic-section td { text-align: right; font-variant-numeric: tabular-nums; }
+      .diagnostic-empty { padding: 0 10px; color: var(--hud-muted); font-size: 12px; }
+      #order-history-details { border-top: 1px solid var(--hud-edge); }
+      #order-history-summary { float: right; color: var(--hud-muted); }
+      #order-history-controls { padding: 8px 12px; }
+      #order-history-person { min-height: 44px; min-width: 0; flex: 1; width: 140px; }
+      #order-history { margin: 0 10px 10px; max-height: 260px; }
+      #order-history-notice { padding-inline: 12px; color: var(--hud-muted); font-size: 12px; }
+      .order-history-record { border: 1px solid var(--hud-edge); border-radius: 4px; }
+      .order-history-record summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding-block: 8px !important; }
+      .order-history-record summary::before { content: '›'; }
+      .order-history-record[open] > summary::before { transform: rotate(90deg); }
+      .order-history-record summary > strong { flex: 1; overflow-wrap: anywhere; }
+      .order-history-record summary > span { color: var(--hud-muted); font-size: 11px; }
+      #debug-panel .order-history-record pre { padding: 8px; margin: 0; user-select: text; }
 
       #chores-dialog { max-width: min(720px, calc(100vw - 24px)); max-height: 85vh; overflow:auto; color:var(--hud-text); background:var(--hud-bg); border:1px solid var(--hud-edge); border-radius:8px; padding:20px; }
       #chores-dialog::backdrop {background:rgba(0,0,0,.6)}
@@ -1649,7 +1693,6 @@
         <!-- The status lines live here so every compact layout shows them:
              a live region inside a closed panel is not announced ([OF3]). -->
         <div id="hud-status">
-          <p id="save-status" role="status" aria-live="polite">Starting</p>
           <p id="command-feedback" role="status" aria-live="polite"></p>
           <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
         </div>
@@ -1723,6 +1766,7 @@
 
 
         <button id="new-game" class="hud-button" type="button">New game</button>
+        <p id="save-status" hidden></p>
         <a id="report-bug" class="hud-button" href="./startup-report.html" title="Email a bug report to Tim">Report bug</a>
         <button
           id="show-help"
@@ -1731,22 +1775,22 @@
           aria-controls="help-panel"
           aria-expanded="false"
         >Help</button>
-        <a id="show-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" aria-describedby="guide-time-note">Player guide<small id="guide-time-note" class="menu-secondary">Pause first to stop time</small></a>
+        <a id="show-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)">Player guide</a>
         <a id="show-changelog" class="hud-button" href="./changelog/" target="_blank"
           rel="noopener" aria-label="Changelog (opens in a new tab)">Changelog</a>
         </section>
       </div>
     </div></div>
-    <a id="world-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" title="Opens in a new tab. Pause first if you want the household to wait.">Player guide</a>
+    <a id="world-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" title="Opens in a new tab.">Player guide</a>
     </div>
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
-        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><button id="dock-activity" type="button"></button><span id="dock-critical"></span></div>
-        <button id="edit-housemate" class="hud-button" type="button" disabled>Edit</button>
+        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span class="dock-activity-line"><button id="dock-activity" type="button"></button><span id="dock-critical"></span></span></div>
+        <button id="edit-housemate" class="hud-button" type="button" hidden disabled>Edit</button>
         <div id="dock-wellbeing">
           <section id="mood-block" aria-label="Mood">
-            <p id="mood-empty">Select a person to see their mood.</p>
-            <div id="mood-content" hidden>
+            <p id="mood-empty" hidden></p>
+            <div id="mood-content">
               <div class="summary-row">
                 <span class="summary-label">Mood</span>
                 <strong id="mood-label" class="summary-value"></strong>
@@ -1757,28 +1801,28 @@
             </div>
           </section>
           <div id="dock-satisfaction">
-            <div id="satisfaction-summary" tabindex="0" role="group" aria-label="Life satisfaction unavailable">
+            <div id="satisfaction-summary" tabindex="0" role="group" aria-label="Life satisfaction: no person selected" data-empty="true">
             <div class="summary-row">
             <span class="summary-label">Life satisfaction</span>
-            <strong id="satisfaction-label" class="summary-value">Unavailable</strong>
+            <strong id="satisfaction-label" class="summary-value"></strong>
             </div>
-            <meter id="satisfaction-meter" min="0" max="100" low="40" high="80" optimum="100" value="0" aria-label="Life satisfaction" hidden></meter>
+            <span class="satisfaction-empty-track" aria-hidden="true"></span><meter id="satisfaction-meter" min="0" max="100" low="40" high="80" optimum="100" value="0" aria-label="Life satisfaction" hidden></meter>
             <span id="satisfaction-score" role="tooltip"><span id="satisfaction-value">unavailable</span> / 100</span>
             </div>
           </div>
         </div>
-        <button id="sim-details" class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-sheet" aria-expanded="false">Sim details</button>
+        <button id="sim-details" class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-sheet" aria-expanded="false" disabled title="Select a person">Sim details</button>
         <button id="chores-toggle" class="hud-button" type="button" aria-haspopup="dialog" aria-controls="chores-dialog">Chores</button>
-        <button id="dock-queue" class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-sheet" aria-expanded="false">Queue</button>
-        <button id="sim-dock-collapse" class="hud-button" type="button" aria-controls="sim-dock-body" aria-expanded="true">Collapse</button>
+        <button id="dock-queue" class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-sheet" aria-expanded="false" disabled title="Select a person">Queue</button>
+        <button id="sim-dock-collapse" class="hud-button" type="button" aria-controls="sim-dock-body" aria-expanded="true" aria-label="Collapse Sim dock"></button>
       </div>
       <p id="dock-alert" role="status" aria-live="polite"></p>
       <div id="sim-dock-body">
         <section id="household-roster" aria-label="Household"><div id="household-roster-members"></div></section>
         <div id="dock-needs">
           <section id="needs-panel" aria-label="Needs of the selected sim">
-            <p id="needs-empty">Select a person to see what they need.</p>
-            <div id="needs-content" hidden></div>
+            <p id="needs-empty" hidden></p>
+            <div id="needs-content"></div>
           </section>
         </div>
       </div>
@@ -1797,7 +1841,7 @@
           </div>
           <div class="summary-row">
             <span class="summary-label">Doing</span>
-            <span id="activity-value" class="summary-value">Nothing selected</span>
+            <span id="activity-value" class="summary-value"></span>
           </div>
           <div id="orders-row" class="summary-row" hidden>
             <span class="summary-label">Orders waiting</span>
@@ -1814,8 +1858,8 @@
           class="hud-button"
           type="button"
           aria-pressed="true"
-        >Queue mode</button><button data-action-intent="destructive" id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
-            <p id="queue-preview-note">All waiting orders remain queued, including those that do not fit in the preview.</p>
+          title="When on, new orders join the end. When off, new orders go first."
+        ><span class="queue-mode-check" aria-hidden="true"></span>Queue new orders</button><button data-action-intent="destructive" id="stop-orders" class="hud-button" type="button" disabled title="Stop the current player order and clear all waiting orders.">Clear orders</button></div>
             <p id="queue-empty" hidden>No actions queued.</p>
             <aside id="action-queue" aria-label="Selected person actions" hidden></aside>
           </section>
@@ -1864,7 +1908,6 @@
           <p id="builder-touch-help" class="builder-note builder-help" hidden>Select furniture, then a destination tile. Use the nearby buttons to turn or place it.</p>
         </div>
         <div class="builder-actions">
-          <p id="builder-status" role="status" aria-live="polite"></p>
 
 
           <p id="builder-sale-note" class="builder-note" hidden></p>
@@ -1985,8 +2028,8 @@
           <div id="room-review-scroll">
             <label for="room-review-group">Change</label><select id="room-review-group"></select>
             <div id="room-review-body"></div>
-            <p id="room-review-status" role="status" aria-live="polite"></p>
           </div>
+          <p id="room-review-status" role="status" aria-live="polite"></p>
           <div id="room-review-actions">
             <button id="room-review-back" class="hud-button" type="button" data-action-intent="negative">Back to build</button>
             <button id="room-review-confirm" class="hud-button" type="button" data-action-intent="affirmative">Confirm changes</button>
@@ -2093,14 +2136,15 @@
            wide ones. The summary is the whole collapsed footprint. -->
       <details id="debug-details">
         <summary>debug stats</summary>
-        <pre id="debug-report"></pre>
+        <div id="debug-report"></div>
+        <details id="order-history-details"><summary>Order history <span id="order-history-summary">All</span></summary>
         <div id="order-history-controls">
-          <label for="order-history-person">Order history</label>
-          <select id="order-history-person"><option value="selected">Selected person</option></select>
+          <label for="order-history-person">Person</label>
+          <select id="order-history-person"><option value="all">All</option></select>
           <button id="order-history-copy" type="button" class="hud-button">Copy</button>
           <span id="order-history-copy-status" role="status"></span>
         </div>
-        <pre id="order-history"></pre>
+        <p id="order-history-notice"></p><div id="order-history"></div></details>
       </details>
     </section>
     <div id="order-failure-bubbles" aria-hidden="true"></div>

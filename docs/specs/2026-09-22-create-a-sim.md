@@ -16,9 +16,9 @@ a death) needs the household to change during play first.
 * **A form in two pages** ([CS-pages]): a name and one of the three
   personalities, each described; then up to four traits from the trait
   library, each shown with its one sentence. Move in, Back, or Cancel.
-* **They arrive from the street.** The newcomer appears on the street's exit
-  ([OS-street] in `docs/specs/2026-09-22-the-outside.md`), walks in through
-  the front door, and is a household member like the others: in the roster,
+* **They arrive through the current layout.** The newcomer appears at a
+  reachable lot boundary and walks toward current floor surfaces
+  ([CS-arrival]), then is a household member like the others: in the roster,
   selectable, served by their own needs, with their traits in the panel.
 * **Saved with the game**, like everyone else.
 
@@ -37,9 +37,8 @@ whole before anything is written:
 * the personality exists;
 * there are at most `housemate_max_traits` traits (`content/tuning.toml`),
   each in the library and none twice;
-* there is a way in: open floor on the street's exit or the front door's
-  tile from which the tile inside the door can be reached ([CS-arrival]), or,
-  on a lot with no front door, any open tile.
+* there is a way in through the current traversable boundary and ground
+  ([CS-arrival]).
 
 Only then is a sim id issued and the sim spawned, by the same function that
 spawns the household from content: every need full, the personality's
@@ -66,14 +65,20 @@ With no enabled checkbox, focus goes to enabled Move in, otherwise Back.
 
 Each archetype in `content/personalities.toml` gains a `description`, one or two plain sentences read from its numbers, appended last to the compiled personality. The compile step refuses a blank one. Its verbs follow [TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`: the correspondent's desk weight of 1.7 is "Loves", the settled's desk weight of 0.45 is "hates". Personalities are in no save and not in the save digest, so the new field changes neither. The names stay the content ids in words ("The correspondent") until the owner names them ([T22]).
 
-## [CS-arrival] From the street, through the front door
+## [CS-arrival] Through the current lot boundary
 
-The newcomer is spawned on the street's exit when it is open floor the
-landing can be reached from, else on the front door's tile, and given a walk
-to the door's landing. The walk is an ordinary one: the newcomer's own needs
-may send it elsewhere as soon as it arrives, and from the street every way
-into the house is through a doorway. A lot with no front door spawns the
-newcomer on the first open tile, as a sim with nowhere to arrive from.
+Current worlds choose a traversable boundary tile and a shortest route to a
+current indoor base surface or supported floor covering. Ties use entry
+coordinates, then destination coordinates. If the lot has no such floor
+surfaces, open ground supplies the destinations. A missing boundary route
+refuses the move-in before issuing a person ID or changing the household.
+
+The arrival walk is ordinary navigation. Walls, doorways and openings use
+the current saved geometry; no starting door, landing or named entrance is
+required. The person's needs can choose another activity after arrival.
+Frozen historical worlds retain their original arrival rule until adoption
+into current explicit geometry. Their decoder does not grant a starting
+object special status in a current world.
 
 ## [CS-save] Nothing new to save
 

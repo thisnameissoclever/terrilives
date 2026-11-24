@@ -147,7 +147,7 @@ fn chronotype_hash_observes_offset_and_its_owner_without_ticking() {
 /// trimmed name, the personality's numbers, full needs, no job or hobbies,
 /// and each trait at its kind's starting state.
 #[test]
-fn a_housemate_moves_in_from_the_street() {
+fn a_housemate_moves_in_by_the_shortest_current_boundary_route() {
     let mut sim = Sim::new_from_shipped_lot();
     let content = sim.world().resource::<Content>().0;
     assert_eq!(household_size(sim.world()), 3);
@@ -172,9 +172,9 @@ fn a_housemate_moves_in_from_the_street() {
     assert_eq!(world.get::<SimId>(ann), Some(&SimId(3)));
     assert_eq!(
         *world.get::<Position>(ann).unwrap(),
-        Position { x: 19.0, y: 2.0 }
+        Position { x: 16.0, y: 0.0 }
     );
-    assert_eq!(world.get::<Path>(ann).unwrap().steps.last(), Some(&(15, 3)));
+    assert_eq!(world.get::<Path>(ann).unwrap().steps.last(), Some(&(15, 2)));
     assert_eq!(
         world.get::<terri_core::Personality>(ann).unwrap().drain,
         content.personalities[1].drain
@@ -287,7 +287,7 @@ fn the_household_holds_six_at_most() {
 /// [CS-arrival]: with furniture on the street's exit, the newcomer arrives on
 /// the front door's tile instead.
 #[test]
-fn a_housemate_arrives_by_the_door_when_the_exit_is_shut() {
+fn blocking_one_old_exit_keeps_other_boundary_arrivals_available() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.world_mut()
         .resource_mut::<TileGrid>()
@@ -296,9 +296,12 @@ fn a_housemate_arrives_by_the_door_when_the_exit_is_shut() {
     let ann = entity(&sim, result.sim.unwrap());
     assert_eq!(
         *sim.world().get::<Position>(ann).unwrap(),
-        Position { x: 15.0, y: 2.0 }
+        Position { x: 16.0, y: 0.0 }
     );
-    assert_eq!(sim.world().get::<Path>(ann).unwrap().steps, vec![(15, 3)]);
+    assert_eq!(
+        sim.world().get::<Path>(ann).unwrap().steps,
+        vec![(16, 1), (16, 2), (15, 2)]
+    );
 }
 
 /// [CS-save]: the newcomer saves and loads like anyone, and the loaded game
@@ -563,7 +566,7 @@ fn a_housemate_with_no_way_in_is_refused() {
 /// the newcomer appears on its first open tile, in row order, and stands
 /// there; with no open tile at all there is no way in.
 #[test]
-fn a_lot_with_no_front_door_takes_the_first_open_tile() {
+fn an_open_lot_uses_boundary_coordinate_ties() {
     let mut lot = terri_data::pack().lot.clone();
     lot.front_door = None;
     let content: &'static terri_data::ContentPack = Box::leak(Box::new(terri_data::ContentPack {
@@ -578,7 +581,7 @@ fn a_lot_with_no_front_door_takes_the_first_open_tile() {
     let ann = entity(&sim, result.sim.expect("moved in"));
     assert_eq!(
         *sim.world().get::<Position>(ann).unwrap(),
-        Position { x: 1.0, y: 0.0 }
+        Position { x: 0.0, y: 1.0 }
     );
     assert!(sim.world().get::<Path>(ann).is_none());
 

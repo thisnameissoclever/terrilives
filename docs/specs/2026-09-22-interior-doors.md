@@ -5,9 +5,9 @@ and horizontal-door extension below is implemented and owner-approved on 2026-10
 
 This is [WT-slice-interior-doors] in `docs/specs/2026-09-21-wall-tool.md` and
 the "doors" part of [B-builder] in `docs/FEATURES.md`. The Walls and Room tools
-make doorways. Doorways on both axes now receive hinged doors.
-The front door also swings open when
-someone leaves for work or comes home.
+make doorways. Current saved doorways on both axes receive hinged doors,
+including doorways on the lot perimeter. Every placed door follows the same
+crossing rules.
 
 ## What the player gets
 
@@ -18,25 +18,29 @@ someone leaves for work or comes home.
 
 ## What already exists, and is reused
 
-* **The front door's machinery.** Each frame `sync_portals` works out a door's
+* **The shared door projection.** Each frame `sync_portals` works out a door's
   state (closed, opening, open, closing) from where sims are and where they are
   walking. The renderer draws any number of portal rows, each a frame and a
   leaf, with reduced-motion leaves and depth offsets.
-* **The art.** The original front-door sprite identity selects the replacement
-  solid model. Four orientations each have a fixed casing and nine leaf poses.
-  The authored style remains the source for interior doors; custom portal art
-  retains its existing rendering path. See `assets/models/doors/README.md`.
+* **The art.** Catalogue metadata selects the authored solid model independently
+  of any starting door instance. Four orientations each have a fixed casing
+  and nine leaf poses. Historical custom portal art retains its compatibility
+  rendering path. See `assets/models/doors/README.md`.
 
 ## Decisions
 
 ### [DR-derived] A door is derived from a doorway, not saved
 
-Which lines hold doors follows from the saved walls: every doorway on either axis,
-on a lot whose front door has art that fits a vertical line, as the shipped
-lot's does. A lot with no front door, or a cell-wall house, has none. So a door
-adds nothing to the save or the save digest, and no save changes
-meaning. A door's state is presentation, rebuilt every frame from positions
-and walks that are already saved, exactly as the front door's is.
+Which lines hold doors follows from the current saved wall edges and available
+catalogue art. Removing a starting doorway removes its door. Recreating a
+doorway elsewhere produces an equivalent ordinary door. No saved door position
+is privileged, and a layout may use openings without any doors.
+
+The wall edge stores the doorway; its animated state is presentation rebuilt
+from saved positions and walks. Current worlds do not project a separate
+authored entrance row. Frozen historical formats retain their original decoder
+and projection rules until adoption into explicit current geometry; those
+rules do not restore a removed door in a current save.
 
 ### [DR-state] When a door opens
 
@@ -54,15 +58,16 @@ reads a sim's steps rather than its distance:
   away.
 
 When several sims ask different things of one door, open wins over opening,
-opening over closing, and closing over closed, as for the front door.
+opening over closing, and closing over closed.
 
 The swing is cut short in two cases. A walk does not keep the tile it set
 out from, so when a walk's first step is the one through the door, the door
 can snap open or shut without its ajar frame. And a walk that ends on the tile
 just past the door is removed on the next tick, so the door swings shut in
-one tick instead of over a whole step. In a 20,000-tick run of the shipped
-household the reviewer counted about 270 full swings, 8 snaps and 9 short
-closes. The swing is presentation; saving the start tile only to show it is
+one tick instead of over a whole step. In the original derived-door review's
+20,000-tick run, the reviewer counted about 270 full swings, 8 snaps and 9 short
+closes. Those are historical observations, not measurements of the current
+branch. The swing is presentation; saving the start tile only to show it is
 not worth a save change.
 
 The rule has no thresholds to tune: half a tile is where the tile centres
@@ -78,8 +83,8 @@ above; the leaf remains fully open while a Sim occupies the crossing.
 
 ### [DR-render] Where it is drawn
 
-A door is one more row in the portal buffer the front door already uses,
-after the front door's row, ordered vertical then horizontal. It stands on
+A current door is a row in the shared portal buffer, ordered vertical then
+horizontal with stable coordinates within each axis. It stands on
 the near tile's +X or +Y edge, with a half-tile depth offset. Separate vertical
 and horizontal doorway lists preserve the original boundary API. The shell
 omits each occupied doorway's empty panel in both full and cutaway geometry.
@@ -90,18 +95,16 @@ flush threshold is tagged as floor and stays below feet and upright geometry.
 No part of the doorway is assigned a single vertical plane. Colour and depth
 poses are selected together, preserving occlusion during every swing pose.
 
-A portal is lit like the wall it stands in, from the brighter of its own tile
-and the tile across its line, which each row carries in the portal buffer. For
-a door that is the room on each side. For the front door the far tile is off
-the lot, where the light field is always dark, so the front door is lit as
-before.
+A door is lit like its wall, from the brighter of its near tile and the tile
+across its line. Each row carries those coordinates in the portal buffer.
+At the lot perimeter, the far tile can be off the lot, where the light field
+is dark. That is a geometric consequence shared by all perimeter doors.
 
-Each loader synced the render buffer before it put the saved walls in, so a
-loaded house would have drawn its doorways doorless until the next tick. The
-three `Sim::load_snapshot` functions now rebuild the portal rows after the
-restored world replaces the running one.
+Load rebuilds door presentation after restoring the wall geometry so the first
+displayed frame reflects the loaded doorways. Removing or recreating a doorway
+does not depend on advancing simulation time to remove a stale entrance image.
 
-## Review record
+## Historical derived-door review record
 
 The fresh-context review of [DR-slice-derived] raised eight findings, all
 fixed in the same branch:
@@ -119,7 +122,7 @@ fixed in the same branch:
 * [F6]: the glossary, this spec and a bridge doc comment said things that
   were no longer true.
 * [F7]: the shipped-lot tests counted doors by asking the code under test.
-  They now assert three doors and four portal rows.
+  At that revision they were changed to assert three doors and four portal rows.
 * [F8]: the first rule built a list for each sim on every frame. The step
   rule reads the walk where it is stored.
 
@@ -144,5 +147,5 @@ by ten, now corrected.
 
 ## What this does not do
 
-Locks, doors that block anyone, or doors on the outside wall other than the
-front door.
+Locks and permission-based access are outside this interaction. A closed
+animated leaf does not block a traversable doorway.

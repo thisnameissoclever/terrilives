@@ -12,6 +12,10 @@ import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { BuildContextActions, contextModel, contextPosition, type ContextTools } from '../src/ui/placement-actions.js';
 import { shortcutGroups } from '../src/ui/shortcuts.js';
 import { clearBuildSelection } from '../src/ui/build-tools.js';
+import { FeedbackLifetime } from '../src/ui/operation-feedback.js';
+import { FloorFinishResources } from '../src/render/floor-finish-resources.js';
+import { activeFloorFinishKeys } from '../src/render/floor-materials.js';
+import { coveringOf } from '../src/ui/floor-tool.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -21,6 +25,7 @@ beforeAll(async () => {
 function fixture(singleFacing = false) {
   const handle = SimHandle.from_lot();
   const source = new SimBridge(handle, memory);
+  expect(source.beginBuild().ok).toBe(true);
   if (singleFacing) {
     const catalogue = source.catalogue();
     vi.spyOn(source, 'catalogue').mockReturnValue(catalogue.map((item, index) =>
@@ -37,6 +42,61 @@ function fixture(singleFacing = false) {
   furniture.enter();
   return { handle, source, ...tools, tools };
 }
+
+it('keeps the current occupied-placement reason beside disabled Buy before and after purchase success expires', () => {
+  const f = fixture(), clock = vi.spyOn(performance, 'now').mockReturnValue(0);
+  try {
+    const models = f.buy.items.filter(item => item.name === 'Trash can');
+    expect(models).toHaveLength(1); const item = models[0];
+    expect(item.price).toBe(15); expect(item.facings & (1 << item.baseFacing)).not.toBe(0);
+    const startingFunds = f.source.funds();
+    const sale = Array.from(f.source.ids()).map(id => ({ id, ...f.source.salePreview(id) }))
+      .filter(quote => quote.reason === null).sort((a,b) => b.payout - a.payout || a.id - b.id)[0];
+    expect(sale).toBeDefined();
+    expect(startingFunds + sale.payout).toBeGreaterThanOrEqual(2 * item.price);
+    expect(f.source.sellObject(sale.id)).toBe(true); f.source.flushCommands();
+    expect(f.source.lastSaleResult()).toMatchObject({ object: sale.id, reason: null, payout: sale.payout });
+    expect(f.source.funds()).toBe(startingFunds + sale.payout);
+    const funds = f.source.funds(); expect(funds).toBeGreaterThanOrEqual(2 * item.price);
+    f.buy.enter();
+    const tiles = Array.from({ length: f.handle.lot_width() * f.handle.lot_height() }, (_, index) =>
+      ({ x: index % f.handle.lot_width(), y: Math.floor(index / f.handle.lot_width()) }));
+    const candidate = tiles.map(({x,y}) => f.source.purchasePreview(item.definition, x, y, item.baseFacing)).find(preview => preview.valid)!;
+    const input = JSON.stringify({ funds, price: item.price, definition: item.definition, candidate });
+    expect(candidate, input).toMatchObject({ valid: true, reason: null, width: 1, depth: 1 });
+    f.buy.choose(item.definition); f.buy.moveTo(candidate.x, candidate.y);
+    expect(f.buy.preview, input).toMatchObject({ x: candidate.x, y: candidate.y, facing: candidate.facing, valid: true });
+    expect(f.buy.canBuy).toBe(true); f.buy.buy(); f.source.flushCommands(); f.buy.afterCommands();
+    const bought = f.source.lastPurchaseResult();
+    expect(bought, input).toMatchObject({ definition: item.definition, x: candidate.x, y: candidate.y, facing: candidate.facing, reason: null });
+    expect(bought?.object, input).not.toBeNull(); expect(bought?.object, input).toBeTypeOf('number');
+    expect(f.source.funds()).toBe(funds - item.price); expect(f.source.funds()).toBeGreaterThanOrEqual(item.price);
+    expect(f.buy.canBuy).toBe(false);
+    expect(f.source.purchasePreview(item.definition, candidate.x, candidate.y, candidate.facing), input)
+      .toMatchObject({ valid: false, reason: 'That position overlaps other furniture.' });
+    expect(f.buy.preview?.reason, input).toBe('That position overlaps other furniture.');
+    const displayed: ReturnType<typeof contextModel>[] = [];
+    const actions = new BuildContextActions(f.tools, { render: model => { displayed.push(model); }, place() {} }, () => ({ height: 32, offsetX: 0 }));
+    const camera = { scale: 1, originX: 640, originY: 100 };
+    actions.frame(camera, 1280, 720);
+    expect(displayed.at(-1)?.feedback, input).toMatchObject({ state: 'failure', message: 'That position overlaps other furniture.' });
+    const result = new FeedbackLifetime();
+    expect(result.read(f.buy.resultFeedback, 0)).toMatchObject({ state: 'success' });
+    clock.mockReturnValue(4001); actions.frame(camera, 1280, 720);
+    expect(result.read(f.buy.resultFeedback, 4001)).toBeNull();
+    expect(displayed.at(-1)?.feedback, input).toMatchObject({ state: 'failure', message: 'That position overlaps other furniture.' });
+    expect(displayed.at(-1)?.actions.find(action => action.id === 'confirm')?.enabled).toBe(false);
+  } finally { clock.mockRestore(); f.handle.free(); }
+});
+
+it('keeps the placement refusal with Buy and exposes the real catalogue return action', () => {
+  const f = fixture();
+  try { f.buy.enter(); f.buy.choose(f.buy.items[0].definition); f.buy.moveTo(-1, -1);
+    const model = contextModel(f.tools)!;
+    expect(model.feedback).toMatchObject({ state: 'failure', message: f.buy.preview!.reason });
+    expect(model.actions.find(action => action.id === 'choose')?.label).toBe('Back to catalog');
+  } finally { f.handle.free(); }
+});
 
 describe('context actions use the active controller', () => {
   it('shows nothing without a selection, outside Build, or while a dialog suspends it', () => {
@@ -246,8 +306,8 @@ it('unchanged frames neither render nor measure; camera, buffer and invalidation
     const art = vi.fn(() => ({ height: 40, offsetX: 3 }));
     const actions = new BuildContextActions(f.tools, surface, art);
     const camera = { scale: 1, originX: 400, originY: 60 };
-    actions.frame(camera, 800, 600);
-    for (let i = 0; i < 20; i++) actions.frame(camera, 800, 600);
+    expect(actions.frame(camera, 800, 600)).toBe(true);
+    for (let i = 0; i < 20; i++) expect(actions.frame(camera, 800, 600)).toBe(false);
     expect(surface.render).toHaveBeenCalledTimes(1); expect(surface.place).toHaveBeenCalledTimes(1); expect(art).toHaveBeenCalledTimes(1);
     camera.originX += 10; actions.frame(camera, 800, 600);
     expect(surface.render).toHaveBeenCalledTimes(1); expect(surface.place).toHaveBeenCalledTimes(2);
@@ -258,6 +318,59 @@ it('unchanged frames neither render nor measure; camera, buffer and invalidation
     expect(surface.render).toHaveBeenLastCalledWith(null);
     expect(surface.place).toHaveBeenCalledTimes(5);
   } finally { f.handle.free(); }
+});
+
+it('keeps selected-floor Retry actionable beside the tile without staging a floor command',()=>{
+  const f=fixture(),retry=vi.fn();
+  try{
+    const stage=vi.spyOn(f.source,'setFloor');
+    f.floors.enter();f.floors.choosePoint(1,1);f.floors.setResourceStatus('offline',true);
+    const model=contextModel({...f.tools,retryFloorResources:retry})!;
+    expect(model.feedback).toMatchObject({state:'failure',recovery:'retry'});
+    const action=model.actions.find(candidate=>candidate.id==='retry-floor')!;
+    expect(action.enabled).toBe(true);action.invoke();expect(retry).toHaveBeenCalledOnce();expect(stage).not.toHaveBeenCalled();
+    expect(model.actions.find(candidate=>candidate.id==='clear')?.enabled).toBe(true);
+  }finally{f.handle.free();}
+});
+
+it.each(['pending', 'failed'] as const)('can request ready Boards through its contextual action while optional Patio is %s', async phase => {
+  const f = fixture(), stage = vi.spyOn(f.source, 'setFloor');
+  const pending: { resolve(value: string): void; reject(error: Error): void }[] = [], disposed: string[] = [];
+  let resources!: FloorFinishResources<string>;
+  const floors = new FloorTool(f.source, 16, 12, { changed: () => {
+    resources.request(activeFloorFinishKeys(f.source.floorTiles(), floors.active ? floors.chosen : null));
+  } });
+  resources = new FloorFinishResources({ prepare: () => new Promise<string>((resolve, reject) => pending.push({ resolve, reject })),
+    publish() {}, dispose: value => { disposed.push(value); },
+    state: (ready, error) => floors.setResourceStatus(ready ? null : error ?? 'Loading floor materials.', error !== null) }, []);
+  const tools = { ...f.tools, floors, retryFloorResources: () => resources.retry() };
+  const action = (id: string) => contextModel(tools)!.actions.find(action => action.id === id)!;
+  try {
+    floors.enter(); floors.choosePoint(5, 4);
+    expect(f.source.floorEditPreview(5, 4, 1)).toBe(0);
+    const before = f.source.saveBytes(); action('floor-4').invoke();
+    expect(pending).toHaveLength(1); expect(stage).not.toHaveBeenCalled();
+    expect(f.source.saveBytes()).toEqual(before);
+    if (phase === 'failed') { pending[0].reject(new Error('Patio unavailable')); await Promise.resolve(); await Promise.resolve(); }
+    expect(action('floor-4').enabled).toBe(false);
+    if (phase === 'failed') expect(action('retry-floor').enabled).toBe(true);
+    expect(action('floor-1').enabled).toBe(true);
+    action('floor-1').invoke(); expect(stage).toHaveBeenCalledExactlyOnceWith(5, 4, 1);
+    expect(pending).toHaveLength(1);
+    f.source.flushCommands(); floors.afterCommands();
+    expect(coveringOf(f.source.floorTiles(), 5, 4)).toBe(1);
+    if (phase === 'pending') {
+      pending[0].resolve('obsolete Patio'); await Promise.resolve(); await Promise.resolve();
+      expect(disposed).toEqual(['obsolete Patio']);
+    }
+    expect(stage).toHaveBeenCalledTimes(1); expect(pending).toHaveLength(1);
+    expect(action('floor-1').enabled).toBe(false);
+    // A new request for the still-unprepared covering must wait for readiness too.
+    expect(action('floor-4').enabled).toBe(true); action('floor-4').invoke();
+    expect(pending).toHaveLength(2); expect(stage).toHaveBeenCalledTimes(1);
+    pending[1].resolve('ready Patio'); await Promise.resolve(); await Promise.resolve();
+    expect(stage).toHaveBeenLastCalledWith(5, 4, 4); expect(stage).toHaveBeenCalledTimes(2);
+  } finally { resources.destroy(); stage.mockRestore(); f.handle.free(); }
 });
 
 it.each([1440, 1280, 701, 700, 390, 320, 844])('bounds the complete controls at %ipx, respecting the sidebar or bottom dock', width => {
@@ -290,6 +403,15 @@ it('reports intrinsic row height when the available space cannot fit the control
     keepOut: { left: 0, gearLeft: 0, gearRight: 320, gearBottom: 70 } }, 180, 80);
   expect(at.compact).toBe(true);
   expect(at.height).toBe(266);
+});
+
+it.each([96, 152, 224])('keeps rotation targets below a %ipx action and refusal row', topHeight => {
+  const at = contextPosition(700, 350, 400, { width: 1280, bottom: 900,
+    keepOut: { left: 312, gearLeft: 1400, gearBottom: 0 } }, topHeight, 64);
+  expect(at.compact).toBe(false);
+  const rotationTop = at.rotationTop;
+  expect(rotationTop - 22).toBeGreaterThanOrEqual(20 + topHeight + 8);
+  expect(rotationTop + 22 + 8).toBeLessThanOrEqual(at.height - 64);
 });
 
 it('stacks every button above a selection that reaches the bottom of the screen', () => {

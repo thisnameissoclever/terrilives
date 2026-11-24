@@ -16,12 +16,13 @@
 //! facts, so the rule reads no new saved state and draws no random number.
 use super::*;
 
-/// What a person needs to be free of to tidy a floor book: they are an
-/// awake housemate at home with nothing under way. Sleeping is an
-/// interaction on a bed (`Eating`), so a sleeper is never free.
+/// Tidying requires a housemate identity for the book loan, a position
+/// for pickup, and an awake person at home with nothing under way.
 pub(super) fn free_to_tidy(world: &World, person: Entity, now: u64) -> bool {
     let entity = world.entity(person);
     entity.contains::<Agent>()
+        && entity.contains::<SimId>()
+        && entity.contains::<Position>()
         && !entity.contains::<Target>()
         && !entity.contains::<Eating>()
         && !entity.contains::<ReadingJourney>()

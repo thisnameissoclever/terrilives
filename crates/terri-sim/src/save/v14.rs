@@ -32,7 +32,7 @@ pub(crate) fn restore(
         // ranges judge it.
         super::wage_migration::migrate_careers(candidate.world(), &mut careers);
     }
-    crate::careers::validate_saved(candidate.world(), &careers)?;
+    crate::careers::validate_saved(candidate.world(), &careers, false)?;
     crate::careers::install_saved(candidate.world_mut(), careers);
     Ok(candidate)
 }

@@ -617,7 +617,13 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 24. The envelope preserves exact player-order and social-execution
+use version 30. Its V26 payload adds explicit ground surfaces, commute direction and pool and
+bath continuation to published V24, including Career inputs, bills and lingering furniture mood.
+It also records manual work-trip priority and the source jobs and base pay behind
+exceptional Career input rows. Historical base pay that cannot be recovered stays
+explicitly unrecorded; the recorded shift cents remain authoritative for payout.
+Native V24 snapshots are historical field views for inspection and compatible
+fixtures. Current persistence uses V30. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -630,8 +636,8 @@ and never apply that repair. All versions carry a content-compatibility digest i
 payload. It observes numeric meanings the
 snapshot cannot validate by authored string id, including interaction and
 flyout row order, social order, chain step structure, object station-role
-mappings, footprints, trait state kind, and the current-content front door a
-restored career still follows. Missing object, career, trait, chain, and
+mappings, footprints and trait state kind. Historical compatibility fingerprints
+also cover the authored entrance used by older career routing. Missing object, career, trait, chain, and
 carried-item ids are validated directly. Known fingerprints from the retired
 full-pack algorithm map only to the exact reviewed replacement shape; they do
 not bypass normal snapshot validation. The local, unpublished bed-assignment
@@ -679,7 +685,13 @@ V24 wraps the complete V23 payload with the Career tab's score inputs and every 
 
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
-V27 wraps V24 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V24 begin at zero. Private editable-world V24, V25 and V26 files belong to other development builds. Loading or importing one is refused, and the browser protects the original slot and allows its bytes to be exported.
+V30 retains the V29 payload and extends the separate climb out to 40 ticks. Loading an earlier exit validates its original countdown and maps elapsed time to the same fraction of the climb. Entry, supported retreat, and paddling retain their clocks.
+
+V29 uses the V28 payload layout and adds a pool phase for finishing an interrupted airborne entry. The V28 loader checks the saved countdown and ownership under the original rules before converting a late retreat into a landing and climb out. Build rollback and admin Undo use the current phase rules.
+
+V28 wraps the complete editable-world V26 record and adds the accumulated need mood from public V27. V28 brought pool and bath activity, work trips, and mood into the same rollback snapshot. The two predecessor records retain their distinct wire formats.
+
+V27 wraps V24 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V24 begin at zero. Private editable-world V24, V25 and V26 files belong to other development builds. The published V27 build protected those private saves from overwrite. The current loader recognizes them and preserves their editable-world state during migration.
 
 V22 wraps the complete V21 payload with the household bills: the last counted day, the open month's start and the month length it is counted under, the month's day, tile, use, daily-object and trip counts, the last month's usage, and every unpaid bill and the bills of the last issued month with their late fees and the terms each was issued under (its month length, days of grace, and daily late fee and cap), so a later change to the tuning never makes a save unloadable. Use and daily kinds are saved by id, so an unknown kind is dropped on load. Loading V21 or earlier starts the bills record empty and raises saved career pay and open shifts' pay to the new wages; settled shifts keep the pay they were settled at ([wages and bills](specs/2026-10-18-wages-and-bills.md)).
 
@@ -726,7 +738,7 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-24. The worker backs up a published V24 primary before the first V27 overwrite. The known private V24 fingerprint and reserved V25 and V26 headers protect development saves. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+29. The worker backs up a supported historical primary before the first V30 overwrite. Existing recovery files stay intact. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 Every current write first copies a non-empty, supported primary to
 `terri-save-1.previous.bin`, the last good copy, and a failed write restores the
@@ -763,7 +775,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The frozen V23 worker refuses V27. The current worker also refuses to overwrite private V24, V25 and V26 slots. The storage writer and load-status controller share the current
+Frozen V10 through V22 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions, the frozen V20 worker refuses a V21 primary, preserving held shifts, the frozen V21 worker refuses a V22 primary, preserving the bills, and the frozen V22 worker refuses a V23 primary, preserving the fading lifts. The frozen V23 worker refuses V27. The current worker recognizes both known V24 fingerprints and the private V25 and V26 formats. It protects an unrecognized V24 primary from replacement. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -905,6 +917,12 @@ player order.
 The WebAssembly exports `action_queue_rows_of` and `order_events_since` carry
 these records to `SimBridge.actionQueueRowsOf` and `orderEventsSince`. JavaScript
 keeps ticks, order IDs and cursors as decimal strings to preserve all 64 bits.
+Optional native failure causes share the diagnostics ring's exact event
+sequence and eviction. `order_failure_cause` adds a read-only lookup while the
+existing nine-string event records retain their shape and original reasons.
+The bridge binds this optional getter to its native handle and enriches failed
+events synchronously. Known causes provide concise scene feedback; complete
+records and original technical reasons stay in the console, history and Copy.
 The browser reads one incremental session stream, then filters its retained
 history by person for the debug panel and Copy. Failure warnings are emitted
 once per sequence. The squiggle expires after three seconds of animation-frame
@@ -1244,8 +1262,9 @@ Furniture preview and commit share `validate_placement`. It reconstructs the
 fixed architecture from `SavedLayout`, then proves the live occupancy and wall
 edges match that architecture plus every placed object. It does not infer walls
 from blocked cells or replace saved architecture with the current content lot.
-The candidate must preserve usable interaction approaches, continuous Sim routes,
-and the front door and return landing. Reserved or targeted furniture cannot move.
+Reserved or targeted furniture cannot move. Geometry must remain structurally
+valid. Build preparation reports unreachable ground, people and objects, and
+requires an acknowledgment tied to the exact draft before committing it.
 
 `PlaceObject` is an appended command variant. The single command drain validates
 again against the then-current world before replacing geometry atomically.
@@ -1258,17 +1277,12 @@ preserves pending placement commands as well as applied directions.
 ([WT-command] in `docs/specs/2026-09-21-wall-tool.md`). It makes one boundary
 between two tiles open, a wall or a doorway, and changes only the saved
 `EdgeWallsV1` list and the grid's edge barrier, so the save record does not
-change; the command enums gain an appended variant. `validate_wall_edit` and
-`validate_placement` share `current_layout` and `prove_lot_usable`, so a wall is
-held to every proof a furniture move is. Those proofs flood the floor from the
-front door's tile, or from the first walkable tile on a lot with no front door
-([RD-root] in `docs/specs/2026-09-22-reach-from-the-door.md`), so on a lot
-with a front door, floor that nobody and nothing needs may be sealed off. A
-wall must then pass the V3
-loader's own grid checks on the candidate (`save::candidate_grid_loads`), so an
-accepted wall can never leave a save that refuses to load. A legacy layout is
-refused rather than given a guessed edge list. The world hash includes the
-saved edges of every edge-wall world, sorted by line with their doorway flag.
+change; the command enums gain an appended variant. Current access review
+compares connected components with open perimeter tiles, on-lot Sims and usable
+object approaches. Confirming an access warning still requires the candidate to
+pass structural save validation. Historical layouts receive explicit edges
+during migration. The world hash includes the saved edges of every edge-wall
+world, sorted by line with their doorway flag.
 
 `BuyObject` is the third lot edit, appended after `SetWallEdge` ([BM-buy] in
 `docs/specs/2026-09-21-buy-mode.md`). It spawns one object at a validated
@@ -1289,34 +1303,20 @@ single-wall rules live in one function, `check_new_walls`, which a wall calls
 with one pair of tiles and a room with its whole outline; the usability proofs
 and the loader's checks run once, on the finished room.
 
-Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
-are presentation only. `portals::interior_door_lines` and
-`interior_horizontal_door_lines` derive them on both axes of an edge-wall house
-with the authored front-door style. `sync_portals` appends vertical then
-horizontal rows after the front door, deriving state and openness from saved
-positions and walks. Previous openness is retained only for interpolation and
-reset on load or a changed doorway list. Nothing is added to the save, digest
-or world hash. The shell selects one of nine model poses in four orientations.
+Current saves mark doorway edges; the renderer uses the shared door art at
+each marked edge. Removing the edge leaves an opening without a door.
+`sync_portals` derives the visible door state from Sim positions and
+paths; previous openness is retained for interpolation and reset on load or a
+changed doorway list. The shell selects one of nine model poses in four orientations.
 Paired surface-depth textures sort the solid leaf and joined casing per pixel;
 the flush threshold follows floor ordering. See `assets/models/doors/README.md`.
 
-The lot has a house and a yard ([OS-grow] in
-`docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
-size from the lot's north-west corner, and every other tile is yard: walkable
-floor to the simulation, drawn by the shell as the floor under the lot's
-`yard_look` colour shift with the current season's color change on top
-([SEA-yard] in `docs/specs/2026-10-17-seasons.md`). Neither is saved. The house's east and south walls are
-ordinary wall edges, and the front door stands on the east one, its line a
-doorway that `portals::front_door_lines` names from the content, never from the
-presentation-only portal rows: the front door swings for a sim walking through
-it as an interior door does, no interior door is derived on it, the Walls and
-Room tools never make it a wall, and every lot edit keeps the yard tile beyond
-it open floor the door reaches. A save whose grid is exactly
-the house, with edge walls, grows into the lot as it is adopted
-(`save::yard::grow`, [OS-migrate]): the grid takes the lot's size with every
-saved tile where it was, and the content's walls outside the house follow the
-saved ones. No coordinate moves, and the save digest does not cover the lot's
-size or walls, so every existing save still loads.
+`CompiledLot::house` and the authored layout initialize a new lot. Current saves
+carry the ground type of each tile, floor coverings and ordinary wall edges.
+Seasons tint the saved outdoor surfaces. Lot growth extends the current layout
+and preserves earlier edits. During legacy migration, `save::yard::grow`
+expands the old house-sized grid before the loader materializes saved surfaces
+and doorway edges. Current edits and routes use the resulting saved geometry.
 
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
@@ -1754,24 +1754,21 @@ connection; ghosts will be strictly additive.
 
 ## [D15] Careers and workplaces
 
-### Shipped rabbit-hole career
+### Current off-lot careers
 
-The alpha ships one content-defined rabbit-hole career. `Career(u32)` names a
-pack row containing label, shift start, duration, pay, energy cost, and
-satisfaction. At shift time, `Commuting` sends the sim to the street's exit,
-the lot's last column across the yard from the front door, or to the front
-door on a lot with no yard beyond it (`portals::street_exit`, [OS-street] in
-`docs/specs/2026-09-22-the-outside.md`); `AtWork { remaining_ticks }` keeps the
-off-lot countdown in deterministic world state; completion pays household
-Funds, applies the authored costs and reward, and returns the sim to the lot,
-walking home along a path to the door's landing. Which way a commuter is going
-is read from where its walk ends, so the street added no save field, and the
-exit is worked out from the content's door and the lot's width, so it added
-nothing to the save digest. The normal HUD exposes the career, activity,
-clock, and Funds.
+`Career(u32)` names the content row for a career level. Each employed person
+holds a scheduled shift. An outbound `Commuting` path uses the closest
+reachable open perimeter tile, with coordinate tie-breaking. `AtWork` keeps the
+person off the lot while attendance accounts for paid time. Hunger, Bladder and
+Social refill to 50 on arrival when Low or Critical, or on a work tick that
+would make them Critical. Return paths start at an open perimeter tile and end
+on eligible current flooring, or on open ground on a bare lot. A worker who
+cannot enter waits outside without another payment or work refill. V25 saves
+commute direction and the waiting state explicitly. Historical saves retain
+their original routing rules during decoding.
 
-The alpha does **not** contain workplace lot references, promotion ladders,
-skill requirements, coworker entities, or a shared `ShiftOutcome` interface.
+Careers have promotion ladders and performance requirements. Workplace lots
+and coworker entities remain planned.
 
 ### Planned simulated-workplace contract
 

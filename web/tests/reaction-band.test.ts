@@ -12,6 +12,9 @@ describe('reaction bands', () => {
     // 0.125 is exact in binary, so 12.5 is a true half.
     expect(preferenceHundredths(0.125)).toBe(13);
     expect(preferenceHundredths(-0.125)).toBe(-13);
+    // Single precision decides these: a double-precision product would give 19 and -19.
+    expect(preferenceHundredths(Math.fround(0.195))).toBe(20);
+    expect(preferenceHundredths(Math.fround(-0.195))).toBe(-20);
     expect(preferenceHundredths(0)).toBe(0);
     expect(preferenceHundredths(Number.NaN)).toBe(0);
   });

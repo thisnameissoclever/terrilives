@@ -25,20 +25,19 @@ describe('the failure text', () => {
   it('says what is in the way and what to do, never a bare code', () => {
     const text = confirmFailure(VALIDATION, { rule: 'lot_usability', refusal: 11 });
     expect(text).toBe("These changes can't be confirmed: some furniture would face a space nobody can reach. "
-      + 'Change the walls, doors or windows involved, or choose Cancel to undo all pending changes.');
+      + 'Adjust the affected layout.');
     for (const report of [{ rule: null }, { rule: 'edge_world' }, { rule: 'portal_return' }, { rule: 'seating' },
       { rule: 'reading' }, { rule: 'lot_usability', refusal: 99 }] as const) {
       const other = confirmFailure(VALIDATION, report);
       expect(other).toMatch(/^These changes can't be confirmed/);
-      expect(other).toMatch(/Cancel/);
-      expect(other).not.toMatch(/detail|validation|[\u2013\u2014]/i);
+      expect(other).not.toMatch(/front door|would not load|undo all pending/);
+      expect(other).not.toMatch(/detail:|validation|[\u2013\u2014]/i);
     }
   });
 
   it('tells the player Build mode could not open and what to try', () => {
-    expect(enterFailure(VALIDATION, { rule: null })).toBe("Build mode can't open because the house would not load as it stands. "
-      + 'Let the game run for a moment and try again. If it keeps happening, load an earlier save.');
-    expect(enterFailure({ code: 3, detail: null })).toBe('The game ran out of memory while checking the changes. Build mode stays closed.');
+    expect(enterFailure(VALIDATION, { rule: null })).toBe("Build mode can't open. See Console for details.");
+    expect(enterFailure({ code: 3, detail: null })).toBe('The game ran out of memory while checking the changes.');
     expect(enterFailure(VALIDATION, { rule: 'lot_usability', refusal: 11 })).toMatch(/: some furniture faces a space nobody can reach\./);
     for (const report of [{ rule: 'edge_world' }, { rule: 'portal_return' }, { rule: 'seating' }, { rule: 'reading' },
       { rule: 'lot_usability', refusal: 8 }, { rule: 'lot_usability', refusal: 9 }, { rule: 'lot_usability', refusal: 12 }] as const) {
@@ -91,7 +90,7 @@ describe('the console', () => {
     const session = new BuildSession(source as unknown as ConstructorParameters<typeof BuildSession>[0],
       { prepare: () => true, settled: () => true, restored() {} });
     expect(session.begin()).toBe(false);
-    expect(session.error).toBe('That action is not available in Build mode. Build mode stays closed.');
+    expect(session.error).toBe('That action is not available in Build mode.');
     expect(source.beginBuild).not.toHaveBeenCalled();
   });
 
@@ -202,7 +201,9 @@ describe('a bed left outside (issue 298, [WB-beds])', () => {
   it('reads the bed refusal with the bed it names and refuses it without one', () => {
     expect(decodeRoomUnit(Uint8Array.of(1, 1, 15, 1, 42))).toEqual({ ok: false, error: { code: 15, detail: 42n } });
     expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 15, 0))).toThrow(RoomWireError);
-    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 18, 0))).toThrow(RoomWireError);
+    expect(decodeRoomUnit(Uint8Array.of(1, 1, 18, 0))).toEqual({ ok: false, error: { code: 18, detail: null } });
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 18, 1, 42))).toThrow(RoomWireError);
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 19, 0))).toThrow(RoomWireError);
   });
 
   it('tells the player to move the bed into a room or cancel', () => {

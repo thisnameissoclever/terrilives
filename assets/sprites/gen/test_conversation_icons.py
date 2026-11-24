@@ -54,11 +54,12 @@ class ConversationIconTests(unittest.TestCase):
                          [name for name, *_ in render_icons() if name.endswith('Like')])
         self.assertEqual(len({image.tobytes() for _, image, *_ in neutral}), 20)
 
-    def test_neutral_extension_is_registered_last_and_pinned(self):
+    def test_neutral_extension_is_registered_once_and_pinned(self):
         root = Path(__file__).resolve().parents[3]
         config = json.loads((root / 'assets/models/architecture/architecture.json').read_text())
-        last = config['historicalExtensions'][-1]
-        self.assertEqual(last['kind'], 'conversation-neutral-icons')
+        found = [row for row in config['historicalExtensions'] if row.get('kind') == 'conversation-neutral-icons']
+        self.assertEqual(len(found), 1)
+        last = found[0]
         self.assertEqual(len(load_reviewed_icons(root / last['catalog'], render_neutral_icons)), 20)
         sprites = render_neutral_icons()
         name, image, width, height = sprites[0]

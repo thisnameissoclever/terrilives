@@ -89,6 +89,8 @@ fn table_retirement_public_v6_preserves_every_unrelated_field_and_order_identity
         // The manifest names today's social vocabulary, which has grown
         // since the fixture was written (Fight, issue 248).
         expected.actions.social = actual.actions.social.clone();
+        expected.legacy.layout =
+            crate::current_test_snapshot::materialized_shell(&expected.legacy.layout, 0, 0, 16, 12);
         assert_eq!(
             actual, expected,
             "only documented table references may change"

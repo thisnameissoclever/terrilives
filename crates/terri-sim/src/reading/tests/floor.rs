@@ -2,7 +2,7 @@
 //! (`docs/specs/2026-11-19-late-book-returns.md`). Owner ruling 2026-11-17:
 //! at the lateness limit a reader still returning a book drops it where they
 //! stand and leaves; housemates pick up floor books and shelve them on their
-//! own. Every test drives the real tick.
+//! own.
 use super::*;
 use terri_core::books::BookCopy;
 
@@ -449,6 +449,34 @@ fn floor_world() -> (Sim, Entity) {
         book.location = BookLocation::Lot { x: 15.0, y: 12.0 }
     });
     (sim, person)
+}
+
+#[test]
+fn floor_book_claims_require_a_position_and_a_housemate_identity() {
+    for remove_identity in [true, false] {
+        let (mut sim, person) = floor_world();
+        let book_tile = Position { x: 15.0, y: 12.0 };
+        let incomplete = idle_housemate(&mut sim, (book_tile.x, book_tile.y));
+        if remove_identity {
+            sim.world_mut().entity_mut(incomplete).remove::<SimId>();
+            let saved = sim.save_snapshot_v28();
+            sim.load_snapshot_v28(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v28(), saved);
+        } else {
+            sim.world_mut().entity_mut(incomplete).remove::<Position>();
+        }
+        sim.world_mut().entity_mut(person).insert(AtWork { remaining_ticks: 1 });
+        crate::reading::floor::claim(sim.world_mut());
+        crate::reading::floor::pick_up_arrivals(sim.world_mut());
+        assert!(on_the_floor(&copy(&sim)));
+        assert!(sim.world().get::<Path>(incomplete).is_none());
+        assert!(stage(&sim, incomplete).is_none());
+
+        sim.world_mut().entity_mut(person).remove::<AtWork>().insert(book_tile);
+        crate::reading::floor::pick_up_arrivals(sim.world_mut());
+        assert!(stage(&sim, person).is_some());
+        assert_eq!(copy(&sim).borrower, sim.world().get::<SimId>(person).copied());
+    }
 }
 
 /// Whether a world has reached the state a save is taken in.

@@ -3,6 +3,7 @@ import type { TileHighlight } from '../render/placement-preview.js';
 import { confirmFailure, failureDetails } from '../rooms/failure.js';
 import { logError } from '../diagnostics/log.js';
 import { RoomFailureLog, roomNameError, type RoomBridge } from './room-selection.js';
+import type { BuildCommitAttempt } from './prepared-build-commit.js';
 
 const key = (anchor: Point) => `${anchor[0]},${anchor[1]}`;
 const same = (a: Point | null, b: Point) => a !== null && a[0] === b[0] && a[1] === b[1];
@@ -12,6 +13,51 @@ export interface RoomReviewHooks {
   changed?(): void;
   completed?(adopted: boolean): void;
   refused?(): void;
+  commit?: BuildCommitAttempt;
+  cancelPending?(): boolean;
+  preparing?(): boolean;
+}
+
+const uniquePeople = (ids: readonly number[]): number[] => [...new Set(ids)].sort((a,b) => a - b);
+const areaCount = (count: number): string => `${count} highlighted ${count === 1 ? 'area' : 'areas'}`;
+
+/** Summarize native consequences without repeating an indistinguishable paragraph for each region. */
+function accessReviewSummary(access: BuildReview['access'], personName: (id: number) => string, objectName: (id: number) => string): string[] {
+  const lines: string[] = [];
+  const names = (ids: readonly number[]) => uniquePeople(ids).map(personName).join(', ');
+  const withoutExit = access.regions.filter(region => !region.externalAccess);
+  const empty = withoutExit.filter(region => region.people.length === 0);
+  if (empty.length) lines.push(empty.length === 1 && access.regions.length === 1
+    ? 'The highlighted area has no external access.' : `${areaCount(empty.length)} ${empty.length === 1 ? 'has' : 'have'} no external access.`);
+  const occupied = withoutExit.filter(region => region.people.length > 0);
+  if (occupied.length === 1) lines.push(`${names(occupied[0].people)} cannot reach outside from the highlighted area.`);
+  else if (occupied.length > 1) lines.push(`${areaCount(occupied.length)} contain people who cannot reach outside: ${names(occupied.flatMap(region => region.people))}.`);
+
+  const unreachable = new Map<string, { people: number[]; regions: BuildReview['access']['regions'] }>();
+  for (const region of access.regions) {
+    const people = uniquePeople(region.unreachableBy);
+    if (!people.length) continue;
+    const key = people.join(',');
+    const group = unreachable.get(key) ?? { people, regions: [] };
+    group.regions.push(region); unreachable.set(key, group);
+  }
+  for (const { people, regions } of unreachable.values()) {
+    const inside = uniquePeople(regions.flatMap(region => region.people));
+    const destination = regions.length === 1
+      ? `the highlighted area${inside.length ? ` containing ${names(inside)}` : ''}` : areaCount(regions.length);
+    const occupants = regions.length > 1 && inside.length ? ` ${inside.length === 1 ? 'Person' : 'People'} inside: ${names(inside)}.` : '';
+    lines.push(`${names(people)} cannot reach ${destination}.${occupants}`);
+  }
+
+  const targets = [...new Set(access.blockedTargets.map(row => row.target))];
+  if (targets.length === 1) lines.push(`${objectName(targets[0])} has no reachable approach.`);
+  else if (targets.length > 1) {
+    const counts = new Map<string, number>();
+    for (const target of targets) { const name = objectName(target); counts.set(name, (counts.get(name) ?? 0) + 1); }
+    const objects = [...counts].map(([name, count]) => count === 1 ? name : `${name} (${count})`).join(', ');
+    lines.push(`${targets.length} objects have no reachable approach: ${objects}.`);
+  }
+  return lines;
 }
 
 /** Local choices are distinct from the native, token-bound candidate shown to the player. */
@@ -21,6 +67,8 @@ export class RoomReviewController {
   group = 0;
   error = '';
   busy = false;
+  accessActive = false;
+  private accessTiles: readonly Point[] = [];
   private edited = false;
   private readonly choices = new Map<string, Choice>();
   private eligible = new Map<string, readonly number[]>();
@@ -39,7 +87,9 @@ export class RoomReviewController {
     const snapshot = this.source.roomSummaries();
     if (snapshot.ok) { this.formerNames = new Map(snapshot.value.rooms.map(room => [room.id, room.name])); this.formerRooms = new Map(snapshot.value.rooms.map(room => [room.id, room])); }
     this.active = true; this.edited = this.choices.size > 0; this.error = '';
-    this.install(review); this.hooks.changed?.();
+    this.install(review);
+    this.accessActive = !review.groups.length && !this.edited && this.hasAccess;
+    this.hooks.changed?.();
   }
   private install(review: BuildReview): void {
     const eligible = new Map<string, readonly number[]>();
@@ -49,6 +99,7 @@ export class RoomReviewController {
       eligible.set(key(room.anchor), result.value);
     }
     this.review = review; this.eligible = eligible;
+    this.accessTiles = [...review.access.regions.flatMap(region => region.tiles), ...review.access.blockedTargets.flatMap(target => target.tiles)];
     this.group = Math.min(this.group, Math.max(0, review.groups.length - 1));
     this.refreshHighlight();
     if (this.unavailableChoices.length) this.error = 'Some retained choices no longer match this layout. Review or remove those choices before confirming.';
@@ -80,10 +131,10 @@ export class RoomReviewController {
     if (!choice) { choice = { anchor }; this.choices.set(key(anchor), choice); }
     return choice;
   }
-  setName(anchor: Point, text: string): void { this.choice(anchor).name = text; this.edited = true; this.error = roomNameError(text) ?? ''; this.hooks.changed?.(); }
+  setName(anchor: Point, text: string): void { this.choice(anchor).name = text; this.edited = true; this.accessActive = false; this.error = roomNameError(text) ?? ''; this.hooks.changed?.(); }
   setInheritance(anchor: Point, id: number | null): void {
     if (id !== null && !this.predecessors(anchor).includes(id)) { this.error = 'That room cannot supply this identity.'; this.hooks.changed?.(); return; }
-    this.choice(anchor).inheritance = id; this.edited = true; this.error = ''; this.hooks.changed?.();
+    this.choice(anchor).inheritance = id; this.edited = true; this.accessActive = false; this.error = ''; this.hooks.changed?.();
   }
   selectGroup(index: number): void {
     if (!this.review || index < 0 || index >= this.review.groups.length) return;
@@ -101,19 +152,25 @@ export class RoomReviewController {
     }
     this.tiles = tiles;
   }
-  highlight(): TileHighlight | null { return this.active ? { tiles: this.tiles, valid: true } : null; }
+  get hasAccess(): boolean { return !!this.review && (this.review.access.regions.length > 0 || this.review.access.blockedTargets.length > 0); }
+  geometryChanged(): void { if (!this.active) { this.accessTiles = []; this.review = null; } }
+  highlight(): TileHighlight | null {
+    if (this.accessTiles.length && (!this.active || this.accessActive)) return { tiles: this.accessTiles, valid: false };
+    return this.active ? { tiles: this.tiles, valid: true } : null;
+  }
   opening(): Point | null {
     const opening = this.review?.groups[this.group]?.openings[0];
     return opening ? [opening.x - (opening.axis === 0 ? 0.5 : 0), opening.y - (opening.axis === 1 ? 0.5 : 0)] : null;
   }
   get needsUpdate(): boolean { return this.edited; }
+  get preparing(): boolean { return this.hooks.preparing?.() ?? false; }
   back(): void {
-    if (!this.active || this.busy) return;
+    if (!this.active || (this.busy && !this.hooks.cancelPending?.())) return;
     const result = this.source.discardBuildReview();
     if (!result.ok) { this.error = this.failures.report('The room review could not be closed.', result.error); this.hooks.refused?.(); this.hooks.changed?.(); return; }
     this.active = false; this.hooks.completed?.(false); this.hooks.changed?.();
   }
-  reset(): void { this.active = false; this.review = null; this.choices.clear(); this.eligible.clear(); this.error = ''; this.edited = false; this.hooks.completed?.(false); this.hooks.changed?.(); }
+  reset(): void { this.active = false; this.accessActive = false; this.accessTiles = []; this.review = null; this.choices.clear(); this.eligible.clear(); this.error = ''; this.edited = false; this.hooks.completed?.(false); this.hooks.changed?.(); }
   async confirm(): Promise<boolean> {
     if (!this.active || this.busy || !this.review) return false;
     if (this.unavailableChoices.length) { this.error = 'Remove or correct the unavailable retained choices first.'; this.hooks.refused?.(); this.hooks.changed?.(); return false; }
@@ -132,11 +189,22 @@ export class RoomReviewController {
         }
         const result = this.source.prepareBuildCommit({ ...choices, inheritance, names }, this.review.token);
         if (!result.ok) { this.refuseConfirm('The room choices could not be prepared.', result.error); return false; }
-        this.install(result.value); this.edited = false; this.error = 'Choices updated. Check the resulting names and duties, then Confirm changes.'; return false;
+        this.install(result.value); this.edited = false; this.error = ''; return false;
       }
-      const result = this.source.commitBuild(this.review.token);
+      if (this.hasAccess && !this.accessActive) { this.accessActive = true; this.error = ''; return false; }
+      if (this.accessActive && !this.source.commitBuildWithAccessAck) { this.error = 'Access review is unavailable. See Console for details.'; return false; }
+      const token = this.review.token, acknowledge = this.accessActive;
+      const adopt = () => acknowledge ? this.source.commitBuildWithAccessAck!(token) : this.source.commitBuild(token);
+      const attempt = this.hooks.commit?.(token, adopt) ?? adopt();
+      const result = attempt instanceof Promise ? await attempt.catch(error => {
+        logError('Build', 'Preparing swimming for this layout failed.', { error });
+        this.error = 'Swimming could not be prepared. Try Confirm again.';
+        this.hooks.refused?.();
+        return null;
+      }) : attempt;
+      if (!result) return false;
       if (!result.ok) { this.refuseConfirm('The reviewed changes could not be committed.', result.error); return false; }
-      this.active = false; this.choices.clear(); this.error = ''; this.hooks.completed?.(true); return true;
+      this.active = false; this.accessTiles = []; this.choices.clear(); this.error = ''; this.hooks.completed?.(true); return true;
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'The room review could not be read. Return to Build and try again.';
       logError('Rooms', 'The room review failed unexpectedly.', { error });
@@ -149,6 +217,7 @@ export class RoomReviewControls {
   private signature = '';
   private shown = false;
   private opener: HTMLElement | null = null;
+  private accessShown = false;
   constructor(private readonly document: Document, private readonly controller: RoomReviewController,
     private readonly showOpening: (point: Point) => void, private readonly ownerName: (id: number) => string,
     private readonly personName: (entity: number) => string, private readonly focusFallback: () => void,
@@ -156,6 +225,10 @@ export class RoomReviewControls {
     document.querySelector('#room-review-back')!.addEventListener('click', () => controller.back());
     document.querySelector('#room-review-confirm')!.addEventListener('click', () => { void controller.confirm(); });
     document.querySelector<HTMLSelectElement>('#room-review-group')!.addEventListener('change', event => controller.selectGroup(Number((event.target as HTMLSelectElement).value)));
+    document.querySelector('#room-review')!.addEventListener('keydown', event => {
+      const key = event as KeyboardEvent;
+      if (key.key === 'Escape') { key.preventDefault(); key.stopPropagation(); if (!key.repeat) controller.back(); }
+    });
   }
   render(): void {
     const doc = this.document, controller = this.controller;
@@ -169,13 +242,24 @@ export class RoomReviewControls {
     }
     if (!controller.active || !controller.review) return;
     const heading = doc.querySelector<HTMLElement>('#room-review-heading')!;
-    if (opening) heading.focus();
+    const accessOpening = controller.accessActive && (!this.accessShown || opening);
+    this.accessShown = controller.accessActive;
+    heading.textContent = controller.accessActive ? 'Review unreachable areas' : 'Review room changes';
+    const back = doc.querySelector<HTMLButtonElement>('#room-review-back')!;
+    back.textContent = controller.accessActive ? 'Return to build mode' : 'Back to build';
+    back.disabled = controller.busy && !controller.preparing;
+    if (accessOpening) back.focus(); else if (opening) heading.focus();
     const submit = doc.querySelector<HTMLButtonElement>('#room-review-confirm')!;
     if (controller.busy && doc.activeElement === submit) heading.focus();
-    submit.disabled = controller.busy; submit.textContent = controller.needsUpdate ? 'Update review' : 'Confirm changes';
-    doc.querySelector<HTMLElement>('#room-review-status')!.textContent = controller.error;
+    submit.disabled = controller.busy; submit.textContent = controller.accessActive ? 'Confirm' : controller.needsUpdate ? 'Update review' : controller.hasAccess ? 'Review access' : 'Confirm changes';
+    const status = doc.querySelector<HTMLElement>('#room-review-status')!;
+    status.textContent = controller.preparing ? 'Preparing swimming…' : controller.error;
+    status.dataset.pending = String(controller.preparing);
     const review = controller.review, selector = doc.querySelector<HTMLSelectElement>('#room-review-group')!;
-    const signature = `${review.token.session}/${review.token.revision}/${review.token.preparation}/${controller.group}`;
+    selector.hidden = controller.accessActive;
+    const selectorLabel = doc.querySelector<HTMLElement>('label[for="room-review-group"]');
+    if (selectorLabel) selectorLabel.hidden = controller.accessActive;
+    const signature = `${review.token.session}/${review.token.revision}/${review.token.preparation}/${controller.group}/${controller.accessActive}`;
     if (signature === this.signature) return;
     this.signature = signature;
     selector.replaceChildren();
@@ -184,6 +268,10 @@ export class RoomReviewControls {
     selector.value = String(controller.group);
     const body = doc.querySelector<HTMLElement>('#room-review-body')!; body.replaceChildren();
     const paragraph = (text: string) => { const p = doc.createElement('p'); p.textContent = text; body.append(p); };
+    if (controller.accessActive) {
+      accessReviewSummary(review.access, this.personName, this.objectName).forEach(paragraph);
+      return;
+    }
     const group = review.groups[controller.group] ?? { kind: -1, oldIds: [], finalAnchors: review.rooms.flatMap(room => room.anchor ? [room.anchor] : []) };
     paragraph(`Former rooms: ${group.oldIds.map(id => controller.oldName(id)).join(', ')}`);
     if (group.kind === 3) {

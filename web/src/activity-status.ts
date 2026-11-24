@@ -6,7 +6,7 @@ export interface ActivityStatus {
 }
 
 export function decodeActivityStatus(values: Uint32Array): ActivityStatus | null {
-  if (values.length !== 3 || values[0] > 8 || values[2] > 127) return null;
+  if (values.length !== 3 || values[0] > 9 || values[2] > 127) return null;
   return { code: values[0], partner: values[1] === 0xffffffff ? null : values[1], needs: values[2] };
 }
 
@@ -24,6 +24,7 @@ export function activityStatusLabel(status: ActivityStatus, partnerName: string,
     }
     case 7: return 'Pausing between walks';
     case 8: return 'Idle';
+    case 9: return 'Waiting outside: no route home';
     default: return null;
   }
 }

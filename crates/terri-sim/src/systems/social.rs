@@ -619,7 +619,9 @@ mod tests {
             .resource::<crate::relationship_dynamics::RelationshipContext>();
         assert!(crate::compatibility::between(&context.0[&first], &context.0[&second]) > 0.);
         let mut restored = Sim::new_with_lot(8, 8);
-        restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        restored
+            .load_current_v5_view(sim.current_v5_view())
+            .unwrap();
         assert_eq!(
             sim.world_hash(),
             restored.world_hash(),

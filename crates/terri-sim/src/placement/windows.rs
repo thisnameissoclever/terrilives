@@ -172,7 +172,7 @@ pub(crate) fn validate_restored_windows(world: &World) -> Result<(), PlacementRe
     {
         return Err(PlacementRefusal::BlockedDoor);
     }
-    let house = crate::lot_frame::house_or_grid(world);
+    let house = crate::world_geometry::historical_house(world);
     let (width, height) = (grid.width() as u32, grid.height() as u32);
     let walls: Vec<_> = lines
         .into_iter()
@@ -193,7 +193,7 @@ pub fn validate_window_edit(
         .ok_or(UnsupportedLayout)?;
     let current = current_layout(world)?;
     let live = world.resource::<TileGrid>();
-    let house = crate::lot_frame::house_or_grid(world);
+    let house = crate::world_geometry::historical_house(world);
     let clicked = match edit {
         WindowEdit::Fit(w) => w.line,
         WindowEdit::Remove(line) => line,

@@ -1,18 +1,20 @@
 import type {CharacterAppearanceV1} from '../../character/schema.js';
+import {awaitPreparation,preparationCancelled} from './preparation-abort.js';
+export {preparationCancelled} from './preparation-abort.js';
 
 export interface PreparationLease<A> {
   readonly owner:string;readonly generation:number;readonly appearanceKey:string;readonly ready:Promise<A>;release():void;
 }
 export interface PreparationWork<A> {
+  readonly signal:AbortSignal;
   inputPrepared():void;compiled():void;findReady(key:string):A|undefined;
 }
 export interface PreparationDefinition<A> {
   key(appearance:CharacterAppearanceV1):string;
   prepare(appearance:CharacterAppearanceV1,work:PreparationWork<A>):Promise<A>;
 }
-interface Entry<A> {key:string;appearance:CharacterAppearanceV1;definition:PreparationDefinition<A>;leases:Set<LeaseRecord<A>>;artifact?:A;failure?:unknown}
+interface Entry<A> {key:string;appearance:CharacterAppearanceV1;definition:PreparationDefinition<A>;leases:Set<LeaseRecord<A>>;abort:AbortController;abortScheduled?:boolean;artifact?:A;failure?:unknown}
 interface LeaseRecord<A> {lease:PreparationLease<A>;entry:Entry<A>;closed:boolean;resolve:(artifact:A)=>void;reject:(error:unknown)=>void}
-export const preparationCancelled=()=>{const error=new Error('Character preparation was superseded or released.');error.name='AbortError';return error;};
 
 /** Every resource shares one serial work queue; only current owners retain completed artifacts. */
 export class PreparationQueue<A extends {key:string}> {
@@ -28,7 +30,7 @@ export class PreparationQueue<A extends {key:string}> {
     const key=definition.key(appearance),previous=this.owners.get(owner);
     if(previous&&!previous.closed&&previous.entry.key===key&&previous.entry.failure===undefined)return previous.lease;
     let entry=this.entries.get(key);
-    if(!entry||entry.failure!==undefined){entry={key,appearance:structuredClone(appearance),definition,leases:new Set()};this.entries.set(key,entry);this.queue.push(entry);}
+    if(!entry||entry.failure!==undefined||entry.abort.signal.aborted){entry={key,appearance:structuredClone(appearance),definition,leases:new Set(),abort:new AbortController()};this.entries.set(key,entry);this.queue.push(entry);}
     let resolve!:(artifact:A)=>void,reject!:(error:unknown)=>void;
     const ready=new Promise<A>((yes,no)=>{resolve=yes;reject=no;});void ready.catch(()=>{});
     let record:LeaseRecord<A>;
@@ -43,6 +45,12 @@ export class PreparationQueue<A extends {key:string}> {
   private releaseRecord(row:LeaseRecord<A>):void {
     if(row.closed)return;row.closed=true;if(this.owners.get(row.lease.owner)===row)this.owners.delete(row.lease.owner);
     row.entry.leases.delete(row);row.reject(preparationCancelled());this.collect(row.entry);
+    const entry=row.entry;
+    if(!entry.leases.size&&this.active===entry&&!entry.abortScheduled){
+      entry.abortScheduled=true;
+      // Synchronous A-B-A edits can retain the same shared work before the turn ends.
+      queueMicrotask(()=>{entry.abortScheduled=false;if(this.active===entry&&!entry.leases.size)entry.abort.abort();});
+    }
   }
   private collect(entry:Entry<A>):void {
     if(entry.leases.size||this.active===entry)return;
@@ -60,10 +68,11 @@ export class PreparationQueue<A extends {key:string}> {
   }
   private async run(entry:Entry<A>):Promise<void> {
     try{
-      const artifact=await entry.definition.prepare(entry.appearance,{
-        inputPrepared:()=>{this.inputPreparations++;},compiled:()=>{if(this.disposed||!entry.leases.size)throw preparationCancelled();this.compilations++;},
+      const artifact=await awaitPreparation(entry.definition.prepare(entry.appearance,{
+        signal:entry.abort.signal,
+        inputPrepared:()=>{if(entry.abort.signal.aborted)throw preparationCancelled();this.inputPreparations++;},compiled:()=>{if(this.disposed||!entry.leases.size||entry.abort.signal.aborted)throw preparationCancelled();this.compilations++;},
         findReady:key=>{for(const other of this.entries.values())if(other!==entry&&other.artifact?.key===key)return other.artifact;return undefined;},
-      });
+      }),entry.abort.signal);
       if(this.disposed||!entry.leases.size){this.discardedResults++;return;}entry.artifact=artifact;
     }catch(error){
       if(this.disposed)return;
@@ -76,5 +85,5 @@ export class PreparationQueue<A extends {key:string}> {
   diagnostics(){let ready=0;for(const entry of this.entries.values())if(entry.artifact)ready++;
     return {owners:this.owners.size,entries:this.entries.size,queued:this.queue.length,inFlight:Number(!!this.active),ready,
       generations:this.generation,inputPreparations:this.inputPreparations,compilations:this.compilations,discardedResults:this.discardedResults,lastError:this.lastError,lastWorkerError:this.lastWorkerError,disposed:this.disposed};}
-  dispose():void {if(this.disposed)return;this.disposed=true;for(const row of this.owners.values())this.releaseRecord(row);this.active=undefined;this.queue.length=0;this.entries.clear();}
+  dispose():void {if(this.disposed)return;this.disposed=true;for(const row of this.owners.values())this.releaseRecord(row);for(const entry of this.entries.values())entry.abort.abort();this.active=undefined;this.queue.length=0;this.entries.clear();}
 }

@@ -4,9 +4,9 @@
 
 Choose a name under Household to select that person. Click or tap an object for its default action. Right-click, long-press or use the keyboard action menu to pick a particular action. For a conversation, select the speaker and open the other person's menu.
 
-Queue mode starts on. New instructions join the end of that person's waiting orders. Open Queue from the dock or Sim details to inspect them. On desktop, Ctrl or Cmd while clicking also appends an instruction.
+Queue new orders starts on. New instructions join the end of that person's waiting orders. Open Queue from the dock or Sim details to inspect them. On desktop, Ctrl or Cmd while clicking also appends an instruction.
 
-With Queue mode off, a new instruction goes first. It interrupts the current activity for that instruction while keeping earlier waiting orders after it. It does not empty the queue. Use Clear orders to cancel the current player-directed commitment and every waiting order; the object menu's Nothing action also clears orders. Closing a menu with Close, Escape or an outside press only dismisses it.
+With Queue new orders off, a new instruction goes first. It interrupts the current activity for that instruction while keeping earlier waiting orders after it. It does not empty the queue. Use **Clear orders** in Queue or the object menu to cancel the current player-directed commitment and every waiting order. The object menu shows Clear orders only when that person has player orders to cancel. Closing a menu with Close, Escape or an outside press only dismisses it.
 
 Your explicit instructions have priority over autonomous choices and critical needs. Ordinary need loss and death remain active. You can interrupt work or delay attendance with a player order; that can reduce pay and performance because shifts retain their scheduled ending time. Do not leave a long queue unattended when basic care is becoming urgent.
 
@@ -30,19 +30,31 @@ The household keeps running at the selected speed when you switch tabs or minimi
 
 ## Build, confirm and discard {#build}
 
-Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land. If Build cannot open, the status line under the world controls says why.
+Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land. If Build cannot open, a message in the game view explains the refusal.
 
 :::illustration build-furniture
 
-Edits form a draft. Confirm at the bottom keeps the current batch and exits Build. Cancel at the bottom discards the current batch and exits Build. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch. When Confirm cannot keep the batch, Build stays open and the status above it turns red and says what is in the way and what you can do.
+Edits form a draft. Confirm applies the current batch and exits Build after any required review. Cancel at the bottom discards the current batch and exits Build. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch. A confirmation failure appears beside Confirm; use its reported cause to correct the draft.
 
 Exit build, or Escape with nothing selected, leaves Build. With unconfirmed changes, it asks you to Confirm changes, Discard changes or Keep building. Read that choice before leaving: a furniture preview and a confirmed household change are different states. If Confirm changes is refused, the question opens again with the reason beside it, so you can still Discard changes or Keep building.
 
+### Review unreachable areas {#access-review}
+
+A layout can leave ground, objects or people unreachable. Choose **Confirm** to review the highlighted ground and the explanation in **Review unreachable areas**. If **Review room changes** opens first, finish your room choices, then choose **Review access**.
+
+Choose **Confirm** to accept the reviewed layout. Choose **Return to build mode**, or press Escape, to keep editing with the draft and highlight available. An edit requires a fresh review. Ordinary Save and autosave do not repeat this approval after the layout is confirmed.
+
+:::illustration build-access-review
+
+The first pool can take time to prepare for the household. While Build shows **Preparing swimming**, choose **Return to build mode** or press Escape to stop waiting and keep the draft.
+
 ## Furniture and buying {#furniture}
 
-In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. Placement can be refused when it blocks routes, conflicts with people or objects, or violates the object's rules; the status explains why.
+In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. You can move or sell furnishings that came with the house, just like ones you bought. A physical conflict or object restriction can refuse placement; the reason appears beside Place. Otherwise valid disconnected layouts use the [access review](#access-review).
 
 Buy lists items with prices and filters. Select an item, point at a destination, rotate as needed and choose Buy. The cost comes from household Funds. Unaffordable items are disabled. Room associations organize the store; they do not restrict where an object can be placed. Beds must stand inside a closed room: Buy and Place refuse a bed on the yard. In Build you may remove a wall or change a room around a bed while you work, but Confirm is refused while the change would leave a bed outside; move the bed into a room or choose Cancel. A bed already outdoors in an older saved game stays there and works.
+
+Choose **Back to catalog** beside the preview to return to the item cards. The filters, scroll position, highlighted card and other draft edits remain. Choose the card again to resume placement. A blocked Buy shows its current reason beside the button, separately from a completed purchase receipt.
 
 An object's type identifies what it is, while the model identifies the particular product. Activate its name to read its optional description. A store listing alone does not promise an activity. Some objects are decorative or have no use action; inspect available actions and the [activity reference](activities/#all-actions).
 
@@ -52,11 +64,13 @@ Bookcases also offer automatic [book buying and selling](activities/#reading). A
 
 Walls selects the edge between floor tiles. Click a wall to select it, or the floor near an edge; with a mouse, the edge a click would select is marked first. Select a second edge further along the same row to select every edge between them. Use the contextual controls to add a wall, doorway or window, or remove the selected boundaries. Windows stop people while letting daylight through. They are part of Walls, rather than a separate top-level tool. A wide window centres on the spot you click and slides along the wall to fit. Doors follow doorways and open for passing people.
 
-While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways; a doorway there opens onto nothing until you buy land beyond it.
+While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways. An open boundary segment can provide an arrival or departure route; walking within the game remains limited to owned ground.
 
-The game refuses edits that cut off required access or conflict with furniture, people or active use. Opening a line or making a doorway can be refused too, when it would leave furniture facing a space nobody can reach; make a way into that space first. A refused edit has not quietly succeeded; read its status. A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
+Original and player-built walls, doors and windows follow the same editing rules. Physical conflicts with furniture, people or ongoing use remain refusals. A valid edit that disconnects ground or blocks an object's approaches instead requires [access review](#access-review). A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
 
-Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering, or Remove to restore its original floor in the draft. Confirm at the bottom keeps the changes and exits Build. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
+Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering. Remove clears the covering and replaces any underlying indoor floor with grass. Underlying grass and street surfaces stay unchanged. Confirm applies the batch after any required review and exits Build. Covered outdoor ground can collect and be cleaned of grime; bare grass and street do not collect floor grime.
+
+An edit waits for any missing floor materials, then applies automatically. If loading fails, choose **Retry** to continue or select another covering. Retry continues the waiting edit if the selected tiles and draft still match. Changing either, choosing another covering, leaving Floors or loading another household cancels the waiting edit. Retry with no tile selected loads the material for later use; select a tile and choose its covering to apply it.
 
 ## Rooms and land {#rooms-and-land}
 
@@ -80,13 +94,13 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 ## Save, Load and New game {#saves}
 
-Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work and queued orders so the household can resume.
+Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work, accepted work trips, queued orders and career reviews, including pending reviews and recorded inputs, so the household can resume.
 
 Before each save replaces the one in your browser, the game keeps a copy of it. If the latest save cannot be read, for example because the tab closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
-Saves carry the effect that needs have accumulated on mood. An older published save starts with a neutral contribution. If this browser already holds an editable-world development save from version 24, 25 or 26, saving pauses to protect it. Export save downloads the original file for use in the build that created it. Choosing one of those files for Import leaves your current household in place.
+Saves carry the effect that needs have accumulated on mood. Older saves that predate this effect start with a neutral contribution. **Load** and **Import save** can resume households from the earlier editable-world builds, including versions 24, 25 and 26. If the game cannot open or recover the save already in this browser, saving pauses and **Export save** lets you download the original file.
 
 Choose **Load game** in the Load confirmation to restore the save. Choose **Start over** in the New game confirmation to delete the local save and begin again. **Keep playing** closes either confirmation without replacing the household.
 

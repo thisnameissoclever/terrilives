@@ -11,9 +11,9 @@ def policy_sha256():
     return hashlib.sha256(POLICY.read_bytes()).hexdigest()
 
 
-def owners():
+def owners(policy=POLICY):
     result = {}
-    for owner, group in json.loads(POLICY.read_text(encoding='utf-8'))['owners'].items():
+    for owner, group in json.loads(policy.read_text(encoding='utf-8'))['owners'].items():
         for name in group['parts']:
             if name in result:
                 raise ValueError(f'Duplicate outline ownership: {name}')
@@ -21,8 +21,8 @@ def owners():
     return result
 
 
-def annotate(parts):
-    policy = owners()
+def annotate(parts, policy_path=POLICY):
+    policy = owners(policy_path)
     for part in parts:
         if part['name'] not in policy:
             raise ValueError(f'Missing authored outline ownership: {part["name"]}')
@@ -30,14 +30,15 @@ def annotate(parts):
 
 
 def update_exported_metadata():
-    digest = policy_sha256()
     paths = [BASE / 'export' / 'manifest.json', *sorted((BASE / 'clips').glob('*/parts.json'))]
     for path in paths:
+        policy = BASE/'pool-surface-policy-v1.json' if path.parent.name == 'pool' else POLICY
+        digest = hashlib.sha256(policy.read_bytes()).hexdigest()
         data = json.loads(path.read_text(encoding='utf-8'))
         descriptions = [data['original'], data['runtime']] if 'original' in data else [data['geometry']]
         for description in descriptions:
             if description:
-                annotate(description['parts'])
+                annotate(description['parts'], policy)
         data['surfacePolicySha256'] = digest
         path.write_text(json.dumps(data, separators=(',', ':')), encoding='utf-8')
     return len(paths)

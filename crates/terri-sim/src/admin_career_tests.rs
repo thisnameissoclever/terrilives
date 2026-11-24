@@ -46,8 +46,8 @@ fn loaded_fixture(tune: impl Fn(&mut ContentPack)) -> (Sim, Entity, Vec<Entity>)
         tune(pack);
     });
     let id = id_of(&sim, actor);
-    let snapshot = sim.save_snapshot_v27();
-    sim.load_snapshot_v27(snapshot).expect("loads");
+    let snapshot = sim.save_snapshot_v28();
+    sim.load_snapshot_v28(snapshot).expect("loads");
     let actor = crate::edit::living_entity(sim.world(), id).expect("the worker");
     (sim, actor, objects)
 }
@@ -133,11 +133,11 @@ fn first_offered(pack: &ContentPack, row: u32) -> u32 {
 /// into a world of the same content and hashes as the live one.
 fn assert_survives_save_on_own_content(sim: &Sim, what: &str) {
     let snapshot = sim
-        .try_save_snapshot_v27()
+        .try_save_snapshot_v28()
         .unwrap_or_else(|error| panic!("{what}: nothing admin is queued ({error:?})"));
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack_of(sim)));
     loaded
-        .load_snapshot_v27(snapshot)
+        .load_snapshot_v28(snapshot)
         .unwrap_or_else(|error| panic!("{what}: the save loads ({error:?})"));
     assert_eq!(
         loaded.world_hash(),
@@ -1057,10 +1057,10 @@ fn a_career_edited_world_saved_and_reloaded_continues_identically() {
         live.admin_apply(change(vec![edit.clone()]))
             .expect("applies");
     }
-    let snapshot = live.try_save_snapshot_v27().expect("saves");
+    let snapshot = live.try_save_snapshot_v28().expect("saves");
     live.end_admin();
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack_of(&live)));
-    loaded.load_snapshot_v27(snapshot).expect("loads");
+    loaded.load_snapshot_v28(snapshot).expect("loads");
     assert_eq!(loaded.world_hash(), live.world_hash());
     for tick in 0..2 * day_ticks(&live) {
         live.tick();
@@ -1160,7 +1160,7 @@ fn undo_keeps_the_activity_log_of_a_never_undone_twin() {
 
 /// Issue 355 and [AP-cmd-post]: a job or shift change that settles a late
 /// shift drains Energy, a need the accumulated need mood reads. The settle
-/// leaves the balance as it was, the world saves at schema 27 and reloads
+/// leaves the balance as it was, the world saves at schema 28 and reloads
 /// with the same hash and balance, and Undo restores the world before the
 /// change exactly, balance included.
 #[test]
@@ -1191,7 +1191,7 @@ fn a_settling_job_or_shift_change_keeps_the_need_mood_through_save_and_undo() {
             sim.world().get::<NeedMood>(actor).copied()
         };
         assert_eq!(balance(&sim), Some(NeedMood(BALANCE)), "{edit:?}");
-        let snapshot = sim.try_save_snapshot_v27().expect("saves");
+        let snapshot = sim.try_save_snapshot_v28().expect("saves");
         assert_eq!(snapshot.need_mood.len(), 1, "{edit:?}: one balance saved");
         assert_eq!(snapshot.need_mood[0].units, BALANCE);
         assert_survives_save_on_own_content(&sim, &format!("{edit:?}"));

@@ -1,7 +1,8 @@
 # Land expansion
 
 Issue 254 defines this change. The outside spec (`2026-09-22-the-outside.md`)
-remains the owner of the yard, the street and the front door; the build
+describes outdoor presentation; the [access contract](2026-09-22-reach-from-the-door.md)
+defines current geometry and boundary travel. The build
 confirmation spec (`2026-10-13-build-confirmation.md`) remains the owner of
 the build-mode draft and its Confirm and Cancel.
 
@@ -24,8 +25,8 @@ prices rounded up, funds rounded down.
 
 ## Rules
 
-1. **Sides.** The street is the lot's east column, the one the front door
-   faces across the yard ([OS-street]). The rear is therefore the west side,
+1. **Sides.** The authored street runs along the lot's east column.
+   The rear is therefore the west side,
    and the two remaining sides are north and south. In the interface the
    three are named from the street looking at the house: Behind the house
    (west), Left side (south) and Right side (north). No expansion is offered
@@ -42,33 +43,27 @@ prices rounded up, funds rounded down.
    grid's blocked tiles and edge barriers, every entity's position, every
    path step, every wall edge, window and painted floor, every chore cell,
    patch and traffic count, room membership tiles and anchors, every diner's endpoint,
-   and the content-derived house and front door, including the landing the
-   walk home from work ends on. Stable room IDs, names and duty owners do not
+   and saved base surfaces. Stable room IDs, names and duty owners do not
    change because the coordinate frame moves. Outside remains one shared room.
    Historical room seeds are translated only under their frozen save semantics;
    current IDs are not tile indexes. The [room identity spec](2026-10-17-room-identities.md)
    owns matching and the final Confirm reconciliation.
    The world keeps a `LotFrame` resource, `{ origin: (x, y) }`, the tile where
-   the content lot's north-west corner now stands; the house rectangle is
-   `origin + content house size`, the front door and its landing are
-   `origin + content door`, and the street exit is still the last column on
-   the door's row. A world with no frame (test lots, and saves from before
-   this change whose grid is not the content lot's size) keeps its old rule:
-   the whole grid is house. A save whose grid is exactly the content lot's
-   size loads with origin (0, 0). The house's implicit north and west shell
-   blocks movement wherever bought land lies beyond it; a purchase, a lot
-   edit and a load each rebuild the movement grid through that one shell
-   rule, and a load reads the frame before it rebuilds anything. Records
+   the content lot's north-west corner now stands. The frame supports land
+   accounting, initial framing and historical conversion. Current movement,
+   surfaces, doors and room enclosure use explicit saved state. A purchase
+   translates existing walls and openings; it never reconstructs a removed
+   original shell or selects a required entrance. Historical readers retain
+   their frozen frame and shell interpretation before current adoption. Records
    keyed by a person or an object (traffic counts, surface and bin tasks,
    the grime board's legacy floor list) keep their ids; only the tiles
    among them move.
-4. **Yard.** New land is yard: walkable, painted with the yard shift, no
-   walls. The former lot edge becomes ordinary lines outside the house;
-   along the house the implicit shell stays the shell: a wall, doorway or
-   opening on it is refused as it was at the grid's edge, by the Walls tool
-   and the Room tool alike, and only glazing and restoring glass touch it. Explicit perimeter solids the player built
-   against the old edge stay as walls; the new edge is the implicit
-   perimeter, and a room against it still needs its far wall
+4. **Yard.** New land is walkable grass with no new walls. Existing base
+   surfaces move with the old lot. The former lot edge becomes ordinary
+   editable lines. Explicit perimeter solids remain walls; saved doorways
+   and openings remain traversable. An original wall can be removed or
+   replaced under the same rules as a player-built wall. The new lot edge
+   remains a movement limit, and a room against it still needs its far wall
    ([BC-perimeter] in the build confirmation spec).
 5. **Price.** Money is held in cents. With `A` the number of squares bought
    so far (excluding the original lot) and `N` the strip's area, a strip
@@ -107,7 +102,11 @@ prices rounded up, funds rounded down.
    draft frame. Room membership and chore consequences are reconciled only
    when the whole Build batch is confirmed. Saving during the draft writes
    the confirmed baseline.
-9. **Save.** Schema thirteen appends to the schema-twelve envelope: the lot
+9. **Save.** The current save envelope preserves the translated explicit
+   surfaces, architecture and commute state. Previously approved inaccessible
+   layouts remain loadable, subject to structural and reference validation.
+   Schema thirteen introduced the following historical fields, retained by
+   current envelopes: the lot
    frame origin, the purchased area, and funds in cents. The schema-one
    funds field keeps the whole dollars (rounded down) so every frozen reader
    still decodes; the cents field is authoritative when present. A
@@ -133,14 +132,13 @@ dollars. The price of furniture is unchanged; only its display rounds.
 ## Verification
 
 Simulation tests grow the shipped lot on each side and check the grid, the
-frame, the house, the front door, the street exit, every entity's position,
+frame, saved surfaces, every entity's position,
 every path, wall, window, floor, chore cell, room membership tile, anchor, patch and diner
 endpoint against the same world translated by hand, that records keyed by a
 person or an object keep their ids, that stable room IDs, names and duty owners
-survive translation, that the shell blocks between house and
-new land, that lot edits still find the layout they expect and that the
-Walls tool and the Room tool refuse a doorway on the shell, that the walk
-home from work ends on the moved landing, and that the moved world ticks
+survive translation, that saved walls still block between old and new land,
+that removed original walls remain absent, that lot edits can change those
+ordinary lines, that return travel uses the current boundary, and that the moved world ticks
 on without a panic;
 they check the left-then-rear geometry (10 by 26), the three pricing
 examples of the issue, the refusals, and that a quote changes nothing. Save
@@ -149,7 +147,7 @@ with the derived frame and dollars times 100, refuse a bad frame, and keep
 the digest across a round trip. A book test buys with cents against whole
 dollars. Browser tests cover the tool's outlines, the quote text,
 the two-step confirmation, the Cancel-only state, display rounding of prices
-and funds, and the shell lines the light field and the sky stop at once land
-lies beyond them; the played pass recorded in
+and funds, and the saved walls that constrain light and sky after expansion.
+The played pass recorded in
 `docs/evidence/2026-10-17-land-tool/` shows the build draft's Cancel
 restoring the old lot.

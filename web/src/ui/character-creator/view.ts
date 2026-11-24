@@ -9,6 +9,7 @@ import { unsupportedActivityRoutes } from '../../character/activity-categories.j
 import { readableNumber, reviewValue } from '../../character/presentation.js';
 import { CreatorClock } from './clock.js';
 import { previewAnimationTiming } from './animation-metadata.js';
+import {isPreparationCancelled} from '../../render/character/preparation-abort.js';
 
 export const creatorPages=[['identity','Identity'],['appearance','Appearance'],['personality','Personality'],
   ['needs','Needs & habits'],['interests','Interests & skills'],['household','Household'],['review','Review']] as const;
@@ -108,7 +109,11 @@ export class CreatorView {
     this.refreshAnimation();
   }
   private syncStatus():void {
-    this.element('.creator-status').textContent=this.session.pending?'Applying character changes.':this.session.error||this.previewError;
+    const loading=!this.appearanceReady&&!this.previewError&&!this.session.error;
+    const status=this.element('.creator-status');
+    status.textContent=this.session.pending?'Applying character changes.':this.session.error||this.previewError||(loading?'Loading character...':'');
+    if(this.session.pending||loading){status.setAttribute('data-pending','true');status.setAttribute('aria-busy','true');}
+    else {status.removeAttribute('data-pending');status.removeAttribute('aria-busy');}
     this.element<HTMLButtonElement>('[data-undo]').disabled=this.session.pending||!this.session.draft.canUndo;
     for(const selector of ['[data-global-random]','[data-reset]','[data-cancel]','[data-next]'])this.element<HTMLButtonElement>(selector).disabled=this.session.pending;
     if(this.page==='review'&&(!this.appearanceReady||this.previewError))this.element<HTMLButtonElement>('[data-next]').disabled=true;
@@ -125,7 +130,7 @@ export class CreatorView {
       if(this.destroyed||preparationGeneration!==this.preparationGeneration||this.appearanceReady)return;
       this.appearanceReady=true;this.syncStatus();
     },error=>{
-      if(this.destroyed||preparationGeneration!==this.preparationGeneration||error instanceof Error&&error.name==='AbortError')return;
+      if(this.destroyed||preparationGeneration!==this.preparationGeneration||isPreparationCancelled(error))return;
       this.appearanceReady=false;this.previewReady=false;this.previewError=error instanceof Error?error.message:String(error);this.queuedDraw=false;this.syncStatus();this.refreshAnimation();
     });
     const changed=appearanceChanged||key!==this.previewKey;
@@ -138,7 +143,7 @@ export class CreatorView {
     try{const drawn=await this.preview.draw(appearance,this.facing*Math.PI/2,this.action,this.frame,()=>this.frame);
       if(drawn){this.previewKey=key;this.previewReady=key===JSON.stringify([this.session.draft.value.appearance,this.facing,this.action]);}}
     catch(error){
-      if(preparationGeneration===this.preparationGeneration&&!(error instanceof Error&&error.name==='AbortError')&&key===JSON.stringify([this.session.draft.value.appearance,this.facing,this.action])){
+      if(preparationGeneration===this.preparationGeneration&&!isPreparationCancelled(error)&&key===JSON.stringify([this.session.draft.value.appearance,this.facing,this.action])){
         this.previewReady=false;
         this.queuedDraw=false;this.previewError=error instanceof Error?error.message:String(error);
       }}

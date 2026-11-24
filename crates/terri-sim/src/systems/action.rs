@@ -97,6 +97,7 @@ pub struct BedState<'w, 's> {
     reservations: Query<'w, 's, Entity, With<Reserved>>,
     identities: Query<'w, 's, &'static SimId>,
     served_orders: Query<'w, 's, &'static crate::player_actions::ServedOrder>,
+    pub(super) pools: Query<'w, 's, (Entity, &'static crate::pool::PoolEpisode)>,
     front_orders: Query<'w, 's, &'static crate::player_actions::FrontOrder>,
     talks: Query<'w, 's, &'static Socialising>,
     meal_orders: Query<'w, 's, &'static crate::player_actions::DirectedMealOrder>,
@@ -123,6 +124,13 @@ impl BedState<'_, '_> {
             self.reservations.iter(),
         );
         result.historical_endpoints(terri_data::is_pre_books_pack(self.content.0));
+        for (owner, episode) in self.pools.iter() {
+            result.claim_endpoint(crate::seating::EndpointUse {
+                owner,
+                endpoint: episode.approach,
+                kind: crate::seating::UseKind::Standing,
+            });
+        }
         for (owner, claim) in self.seat_claims.iter() {
             if let Ok(definition) = self.definitions.get(claim.furniture) {
                 if let Some(ordinal) = self
@@ -766,6 +774,14 @@ pub fn serve_intents(
         if journeys.contains(agent) {
             continue;
         }
+        if beds
+            .pools
+            .get(agent)
+            .is_ok_and(|(_, episode)| episode.phase != 0)
+        {
+            commands.queue(move |world: &mut World| crate::pool::before_orders(world, agent));
+            continue;
+        }
         // Incoming requests run after this activity, before ordinary queued
         // work. A fresh explicit front order is permitted to redirect first.
         if (beds.episodes.incoming.contains_key(&agent)
@@ -1267,12 +1283,15 @@ pub fn serve_intents(
             if plan.is_none() && media_requested {
                 if let Some(entry) = queue.entries().first().cloned() {
                     commands.queue(move |world: &mut World| {
-                        crate::player_actions::terminal(
+                        crate::player_actions::terminal_with_cause(
                             world,
                             agent,
                             entry.id,
                             "failed",
                             Some("No reachable media position"),
+                            Some(
+                                crate::player_actions::OrderFailureCause::NoReachableMediaPosition,
+                            ),
                         )
                     });
                 }
@@ -1366,11 +1385,11 @@ pub fn serve_intents(
             ));
             continue;
         };
-        let Some(steps) = reachable
-            .route
-            .path(&grid, from)
-            .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
-        else {
+        let Some(steps) = reachable.route.path(&grid, from).and_then(|steps| {
+            reachable
+                .route
+                .bind_path(&grid, (agent_pos.x, agent_pos.y), steps)
+        }) else {
             if let Some(entry) = queue.entries().first().cloned() {
                 commands.queue(move |world: &mut World| {
                     crate::player_actions::terminal(
@@ -2650,7 +2669,7 @@ pub fn select_action(
                 footprint,
             });
         let Some(steps) = reconstruct_winning_path(&grid, from, route)
-            .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
+            .and_then(|steps| route.bind_path(&grid, (agent_pos.x, agent_pos.y), steps))
         else {
             continue;
         };

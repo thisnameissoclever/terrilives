@@ -32,7 +32,7 @@ use crate::Content;
 pub const CHAIN_STEP: u32 = u32::MAX;
 
 /// The same physical contact and route rules serve admission and permanent failure checks.
-fn station_path(
+pub(crate) fn station_path(
     grid: &TileGrid,
     pack: &terri_data::ContentPack,
     step: &terri_data::CompiledChainStep,
