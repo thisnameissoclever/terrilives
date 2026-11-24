@@ -28,11 +28,6 @@ export interface ControlRects {
 const GAP_CSS = 4;
 /** Passes of pairwise separation; three settle any group a household can form. */
 const PASSES = 3;
-/**
- * Two people whose heads are closer than this share of a bubble's width keep
- * the order their rows have, so bubbles do not swap sides as people pass.
- */
-const LEVEL_SHARE = 0.5;
 
 const NO_CONTROLS: ControlRects = {rects: new Float64Array(0), count: 0};
 
@@ -99,11 +94,13 @@ export class AnnotationSpread {
     this.order = new Int32Array(size);
   }
 
-  /** Whether box `a` goes left of box `b`: by head position, by row when the heads are level. */
+  /**
+   * Whether box `a` goes left of box `b`: strictly by head position, by row
+   * only when the heads are exactly level, so the order is total and each
+   * bubble stays on its person's side.
+   */
   private leftOf(a: number, b: number): boolean {
-    const d = this.x0[a] - this.x0[b];
-    const level = LEVEL_SHARE * Math.min(this.half[a], this.half[b]) * 2;
-    return Math.abs(d) < level ? a < b : d < 0;
+    return this.x0[a] < this.x0[b] || (this.x0[a] === this.x0[b] && a < b);
   }
 
   /** Orders boxes left to right by where their people are, with insertion sort: no comparator closure. */
@@ -135,6 +132,21 @@ export class AnnotationSpread {
     this.x[i] = Math.min(x0 + this.reach(i), Math.max(x0 - this.reach(i), this.x[i]));
   }
 
+  /**
+   * How far box `i` may move in `direction` (-1 left, 1 right) before the
+   * screen edge stops it. A box over someone off screen may move further off
+   * without limit but not toward the screen at all, so separation never
+   * brings their bubble into view.
+   */
+  private room(i: number, direction: -1 | 1): number {
+    const x0 = this.x0[i];
+    const offLeft = x0 < 0, offRight = x0 > this.viewWidth;
+    if (offLeft || offRight) return (direction === 1) === offRight ? Infinity : 0;
+    return direction === -1
+      ? Math.max(0, this.x[i] - this.half[i])
+      : Math.max(0, this.viewWidth - this.half[i] - this.x[i]);
+  }
+
   private rowsMeet(a: number, b: number): boolean {
     return this.y[a] - this.height[a] < this.y[b] + this.gap && this.y[b] - this.height[b] < this.y[a] + this.gap;
   }
@@ -154,8 +166,8 @@ export class AnnotationSpread {
           if (!this.rowsMeet(left, right)) continue;
           const needed = this.half[left] + this.half[right] + this.gap - (this.x[right] - this.x[left]);
           if (needed <= 0) continue;
-          const leftRoom = Math.max(0, this.x[left] - this.half[left]);
-          const rightRoom = Math.max(0, this.viewWidth - this.half[right] - this.x[right]);
+          const leftRoom = this.room(left, -1);
+          const rightRoom = this.room(right, 1);
           const leftShare = Math.min(leftRoom, Math.max(needed / 2, needed - rightRoom));
           this.x[left] -= leftShare;
           this.x[right] += Math.min(rightRoom, needed - leftShare);

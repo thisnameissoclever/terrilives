@@ -110,13 +110,28 @@ describe('spreading bubbles (issue 360)', () => {
     for (let i = 0; i < 4; i++) expect(Math.abs(x(out, i) - 500)).toBeLessThanOrEqual(WIDTH + 1e-6);
   });
 
-  it('keeps the same sides while two people stand level and pass each other', () => {
-    const before = bubbles([400, 400], [401, 400]);
-    const after = bubbles([401, 400], [400, 400]);
-    spread(before);
-    spread(after);
-    expect(x(before, 0)).toBeLessThan(x(before, 1));
-    expect(x(after, 0)).toBeLessThan(x(after, 1));
+  it('keeps each bubble on its own person\'s side, however close the heads', () => {
+    // Three heads within a bubble's width, in reverse row order.
+    const out = bubbles([515.75, 400], [500, 400], [486.9, 400]);
+    spread(out);
+    expect(x(out, 2)).toBeLessThan(x(out, 1));
+    expect(x(out, 1)).toBeLessThan(x(out, 0));
+  });
+
+  it('breaks an exact tie between two heads by row', () => {
+    const out = bubbles([400, 400], [400, 400]);
+    spread(out);
+    expect(x(out, 0)).toBeLessThan(x(out, 1));
+  });
+
+  it('never pushes a bubble over someone off screen into view', () => {
+    // The off-screen person's bubble sorts left of the visible one at the edge.
+    const out = bubbles([VIEW - 10, 400], [VIEW + 5.25, 400]);
+    spread(out);
+    expect(x(out, 1) - WIDTH / 2).toBeGreaterThanOrEqual(VIEW + 5.25 - WIDTH / 2 - 1e-6);
+    const left = bubbles([VIEW + 5.25, 400], [VIEW - 10.5, 400]);
+    spread(left);
+    expect(x(left, 0)).toBeGreaterThanOrEqual(VIEW + 5.25);
   });
 
   it('ignores the range outside start and count', () => {

@@ -1,12 +1,13 @@
 import type {ControlRects} from '../render/annotation-spread.js';
 
 /**
- * The on-screen controls that can cover a bubble, the same set the
- * order-failure bubbles avoid: each block of the top-left panel, the Log
- * button, the Sim dock and sheet, and the debug panel. A hidden control
+ * The on-screen controls that can cover a bubble: each block of the
+ * top-left panel, the Log button and the open Log, the Options panel, the
+ * object menu, the Sim dock and sheet, and the debug panel. A hidden control
  * measures zero and covers nothing.
  */
-const SELECTORS = '#hud > *, #activity-log-toggle, #sim-dock, #sim-sheet, #debug-panel';
+const SELECTORS = '#hud > *, #activity-log-toggle, #activity-log, #options-panel, #object-menu, '
+  + '#sim-dock, #sim-sheet, #debug-panel';
 
 interface ClientRect { readonly left: number; readonly top: number; readonly width: number; readonly height: number }
 
@@ -33,8 +34,10 @@ export function toCanvasRects(rects: readonly ClientRect[], view: ClientRect, ca
 
 /**
  * The controls' rectangles in canvas pixels, measured again only after a
- * control or the window changes size, so the frame loop forces no layout and
- * allocates nothing on an ordinary frame.
+ * control changes size, style, class or visibility, the page's own
+ * attributes change (as when Build moves the top-left panel into its
+ * header), or the window or canvas changes size. The frame loop therefore
+ * forces no layout and allocates nothing on an ordinary frame.
  */
 export class BubbleControls {
   private elements: HTMLElement[] | null = null;
@@ -54,6 +57,13 @@ export class BubbleControls {
     if (view && 'ResizeObserver' in view) {
       const observer = new view.ResizeObserver(mark);
       for (const element of elements) observer.observe(element);
+    }
+    if (view && 'MutationObserver' in view) {
+      const moved = new view.MutationObserver(mark);
+      for (const element of elements) {
+        moved.observe(element, {attributes: true, attributeFilter: ['style', 'class', 'hidden']});
+      }
+      moved.observe(this.document.body, {attributes: true});
     }
     view?.addEventListener('resize', mark);
     this.result = {rects: new Float64Array(elements.length * 4), count: 0};
