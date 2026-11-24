@@ -55,7 +55,7 @@ export class CharacterContactRoster {
   private activeStage:ContactStage|null=null;
   private liveMode:CharacterPreparationMode='pool-required';
   private closed=false;
-  constructor(private readonly service:ContactService,private readonly pendingLimit=6){}
+  constructor(private readonly service:ContactService,private readonly pendingLimit=6,private readonly preparePoolRigs?:()=>Promise<void>){}
   get mode():CharacterPreparationMode{return this.liveMode;}
   private owner(entity:number):string{return this.scope+':live:'+entity;}
   require(entity:number,appearance:CharacterAppearanceV1,mode=this.liveMode):CharacterPreparation {
@@ -72,11 +72,14 @@ export class CharacterContactRoster {
       for(const {appearance} of group)appearances.set(characterPreparationKey(appearance,mode),{appearance,mode});
     if(new Set(future.map(row=>characterPreparationKey(row.appearance,futureMode))).size>this.pendingLimit)throw new Error('Too many queued character configurations.');
     const requested=[...appearances.values()],leases=requested.map(({appearance,mode},index)=>this.service.acquire(this.scope+':stage:'+generation+':'+index,appearance,mode));
+    let poolRigsReady=!this.preparePoolRigs||(currentMode!=='pool-required'&&futureMode!=='pool-required');
+    const poolRigs=poolRigsReady?undefined:this.preparePoolRigs!().then(()=>{poolRigsReady=true;});
     let released=false;
     const stage:ContactStage={
-      ready:Promise.all(leases.map(lease=>lease.ready)).then(()=>{}),
+      ready:Promise.all([poolRigs,...leases.map(lease=>lease.ready)]).then(()=>{}),
       commit:adopt=>{
         if(released||this.activeStage!==stage||this.closed)throw abortedContact();
+        if(!poolRigsReady)throw new Error('Pool character geometry must be ready before adopting this household.');
         for(const [index,{appearance,mode}] of requested.entries())this.service.require(leases[index].owner,appearance,mode);
         if(adopt&&!adopt())return false;
         this.replaceLive(current,currentMode);

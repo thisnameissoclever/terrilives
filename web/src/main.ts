@@ -64,6 +64,7 @@ import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { edgesWithShell } from './render/house-shell.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
+import {prepareWorldPoolRigs} from './render/character/creator-assets.js';
 import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.js';
 import {CharacterFrameMeasurement,type CharacterFrameReport} from './render/character/measurement.js';
 import {DeviceLifetime} from './render/character/device-lifetime.js';
@@ -431,7 +432,7 @@ async function main(): Promise<void> {
   const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
     .then(response => countAlongside(response, count => loading.bytes(count),
       () => loading.step('Starting the simulation'))) });
-  const characterContacts=sharedCharacterPreparation(),contactRoster=new CharacterContactRoster(characterContacts);
+  const characterContacts=sharedCharacterPreparation(),contactRoster=new CharacterContactRoster(characterContacts,undefined,prepareWorldPoolRigs);
   let graphicsClosed=false,graphicsGeneration=0;
 
   // The lot, its walls and all eight authored objects come out of

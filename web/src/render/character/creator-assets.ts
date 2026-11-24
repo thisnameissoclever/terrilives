@@ -44,6 +44,35 @@ export async function loadCreatorRig(action:string):Promise<CharacterRig>{
   if(!rig.manifest.actions[action])throw new Error(`No creator animation: ${action}`);return withBodyVariants(rig,variants);
 }
 
+// Worlds share CPU-side clip geometry, including a replacement world after GPU recovery.
+const worldRigs = new Map<string,CharacterRig>();
+let baseWorldRigs: Promise<ReadonlyMap<string,CharacterRig>> | undefined;
+
+async function registerWorldFamily(example: string): Promise<void> {
+  const rig = await loadCreatorRig(example);
+  for (const [action, clip] of Object.entries(creatorClips.clips)) {
+    if (clip.family === rig.family) worldRigs.set(action, rig);
+  }
+}
+
+export function loadBaseWorldRigs(): Promise<ReadonlyMap<string,CharacterRig>> {
+  return baseWorldRigs ??= (async () => {
+    const rig = await loadCreatorRig('idle');
+    for (const action of Object.keys(rig.base.manifest.actions)) worldRigs.set(action, rig);
+    const families = new Map<string,string>();
+    for (const [action, clip] of Object.entries(creatorClips.clips)) {
+      if (clip.family !== 'pool') families.set(clip.family, action);
+    }
+    for (const example of families.values()) await registerWorldFamily(example);
+    return worldRigs;
+  })().catch(error => { baseWorldRigs = undefined; throw error; });
+}
+
+/** Publish all pool clips together, before a pool household or Build change is adopted. */
+export async function prepareWorldPoolRigs(): Promise<void> {
+  if (!worldRigs.has('pool_enter')) await registerWorldFamily('pool_enter');
+}
+
 /** Contiguous geometry remains available for independent asset and physical proofs. */
 export async function loadCreatorClip(action:string):Promise<Geometry>{
   const family=creatorClips.clips[action]?.family;if(!family){const base=await loadCreatorGeometry();if(!base.manifest.actions[action])throw new Error(`No creator animation: ${action}`);return base;}

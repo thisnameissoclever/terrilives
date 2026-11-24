@@ -4,7 +4,7 @@ import type {SceneTarget} from '../scene-target.js';
 import {sampleLight,type TileLighting} from '../lighting.js';
 import {sampleShade,type SkyExposure} from '../sky.js';
 import type {Ambient} from '../daylight.js';
-import {loadCreatorRig,loadCreatorGeometry,creatorClips} from './creator-assets.js';
+import {loadBaseWorldRigs,creatorClips} from './creator-assets.js';
 import type {Geometry} from './bundle.js';
 import {bodySelectionKey} from './prepared-body.js';
 import type {CharacterRig} from './clip-runtime.js';
@@ -58,10 +58,7 @@ export class CharacterWorld {
     this.steam=new ShowerSteam(device);
   }
   static async create(device:GPUDevice,format:GPUTextureFormat,sceneTarget:()=>SceneTarget,contacts?:WorldContacts):Promise<CharacterWorld>{
-    const base=await loadCreatorGeometry(),baseRig=await loadCreatorRig('idle'),geometries=new Map<string,CharacterRig>();
-    for(const action of Object.keys(base.manifest.actions))geometries.set(action,baseRig);
-    const families=new Map<string,string>();for(const [name,clip] of Object.entries(creatorClips.clips))families.set(clip.family,name);
-    for(const [family,example] of families){const geometry=await loadCreatorRig(example);for(const [name,clip] of Object.entries(creatorClips.clips))if(clip.family===family)geometries.set(name,geometry);}
+    const geometries=await loadBaseWorldRigs();
     return new CharacterWorld(device,format,geometries,sceneTarget,contacts);
   }
   private destroyActor(actor:ActorResources):void {actor.renderer.destroy();}
