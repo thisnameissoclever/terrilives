@@ -10,6 +10,7 @@
  */
 
 import { topicRow, type TopicRow } from '../topic-table.js';
+import type { Reaction } from '../reaction-band.js';
 
 /** The toggle, the panel and its filters ([AL-panel]). */
 export const PANEL_WORDS = {
@@ -65,8 +66,7 @@ export function topicWord(table: readonly TopicRow[], value: number): string | n
   return row.label === '' ? null : row.label;
 }
 
-/** A chat reaction, chosen from the Likes and dislikes band edges. */
-export type Reaction = 'loves' | 'likes' | 'neutral' | 'dislikes' | 'hates';
+/** A chat reaction, chosen from the Likes and dislikes band edges by `reactionOf`. */
 export function reaction(name: string, kind: Reaction): string {
   switch (kind) {
     case 'loves': return `${name} loves it`;

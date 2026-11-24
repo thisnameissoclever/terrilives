@@ -21,6 +21,7 @@ import { ACTIVITY_LOG_CAPACITY, type ActivityLogStore } from './activity-log-sto
 import { PANEL_WORDS, SOMEONE_IN_SENTENCE, onlyNamed } from './activity-log-words.js';
 import type { HouseholdRosterSurface } from './household-roster.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
+import { bandsInHundredths } from '../reaction-band.js';
 
 /** Lines rendered at first, and added by each Show earlier entries. */
 export const ACTIVITY_LOG_WINDOW = 200;
@@ -230,8 +231,7 @@ export class ActivityLogPanel {
     if (!this.prepared) {
       this.context.labels = this.options.labels();
       this.context.topics = this.options.topics();
-      const { loves, likes } = this.options.bands();
-      this.context.bands = { loves: Math.round(loves * 100), likes: Math.round(likes * 100) };
+      this.context.bands = bandsInHundredths(this.options.bands());
       this.prepared = true;
     }
     this.options.view.reflectOpen(true);

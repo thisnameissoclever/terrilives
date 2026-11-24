@@ -17,6 +17,7 @@
 import { type ActivityLogStore, KIND, NONE, OTHER_PARTIAL, PARTIAL, highHalf, lowHalf } from './activity-log-store.js';
 import * as words from './activity-log-words.js';
 import type { TopicRow } from '../topic-table.js';
+import { reactionOf } from '../reaction-band.js';
 
 /** Filter bits. The first five match the record's trigger mask. */
 export const FILTER = {
@@ -381,12 +382,7 @@ class LineText {
   }
 
   private reaction(name: string, hundredths: number): string {
-    const { loves, likes } = this.context.bands;
-    const kind = hundredths >= loves ? 'loves'
-      : hundredths >= likes ? 'likes'
-        : hundredths <= -loves ? 'hates'
-          : hundredths <= -likes ? 'dislikes' : 'neutral';
-    return words.reaction(name, kind);
+    return words.reaction(name, reactionOf(hundredths, this.context.bands));
   }
 
   compose(store: ActivityLogStore, index: number, context: ComposeContext, line: LogLine): string {

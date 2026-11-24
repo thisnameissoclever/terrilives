@@ -1558,6 +1558,11 @@ def main():
         anchors[index] = prop_anchors[sprite[0]]
         densities[index] = prop_density[sprite[0]]
         bounds[index] = prop_bounds[sprite[0]]
+    # Issue 360's neutral conversation bubbles append after the outdoor
+    # furniture, so every earlier index keeps its place.
+    for sprite in conversation_icons.render_neutral_icons():
+        densities[len(sprites)] = 2
+        sprites.append(sprite)
     sync_generated_architecture(sprites, check=args.check)
     textured = [(index, sprite) for index, sprite in enumerate(sprites)
                 if index not in visible_layers and index not in shelf_data['positions']]

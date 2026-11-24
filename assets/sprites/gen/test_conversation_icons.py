@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 from PIL import Image
-from conversation_icons import conversation_image, render_icons, load_reviewed_icons
+from conversation_icons import (conversation_image, neutral_image, render_icons,
+                                render_neutral_icons, load_reviewed_icons)
 
 
 class ConversationIconTests(unittest.TestCase):
@@ -34,6 +35,36 @@ class ConversationIconTests(unittest.TestCase):
         self.assertEqual(len(sprites), 40)
         self.assertEqual(len({name for name, *_ in sprites}), 40)
         self.assertEqual(len({image.tobytes() for _, image, *_ in sprites}), 40)
+
+    def test_neutral_keeps_speech_and_topic_and_changes_only_the_reaction(self):
+        liked = conversation_image('read', True)
+        disliked = conversation_image('read', False)
+        neutral = neutral_image('read')
+        self.assertEqual(neutral.size, (84, 84))
+        speech, topic, reaction = (6, 12, 42, 48), (42, 12, 78, 48), (28, 48, 56, 76)
+        for box in (speech, topic):
+            self.assertEqual(neutral.crop(box).tobytes(), liked.crop(box).tobytes())
+        self.assertNotEqual(neutral.crop(reaction).tobytes(), liked.crop(reaction).tobytes())
+        self.assertNotEqual(neutral.crop(reaction).tobytes(), disliked.crop(reaction).tobytes())
+
+    def test_each_supported_topic_has_a_neutral_reaction(self):
+        neutral = render_neutral_icons()
+        self.assertEqual(len(neutral), 20)
+        self.assertEqual([name.replace('Neutral', 'Like') for name, *_ in neutral],
+                         [name for name, *_ in render_icons() if name.endswith('Like')])
+        self.assertEqual(len({image.tobytes() for _, image, *_ in neutral}), 20)
+
+    def test_neutral_extension_is_registered_last_and_pinned(self):
+        root = Path(__file__).resolve().parents[3]
+        config = json.loads((root / 'assets/models/architecture/architecture.json').read_text())
+        last = config['historicalExtensions'][-1]
+        self.assertEqual(last['kind'], 'conversation-neutral-icons')
+        self.assertEqual(len(load_reviewed_icons(root / last['catalog'], render_neutral_icons)), 20)
+        sprites = render_neutral_icons()
+        name, image, width, height = sprites[0]
+        image.putpixel((42, 42), (0, 0, 0, 255))
+        with self.assertRaisesRegex(ValueError, 'pixels changed'):
+            load_reviewed_icons(root / last['catalog'], lambda: [(name, image, width, height), *sprites[1:]])
 
     def test_reviewed_extension_is_registered_and_rejects_pixel_changes(self):
         from offline_architecture import load_historical_extensions

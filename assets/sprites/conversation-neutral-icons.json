@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "sprites": [
+    {
+      "name": "conversationEatNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "50ab315d9450a49b67ddbd634c673116c6bf932e13dfcbcb10212e6cfcc98d65"
+    },
+    {
+      "name": "conversationTalkNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "2f0b29e2a4e5a69c573a32cfa6c2b634a548a88604f3a5a403f28fab6592879f"
+    },
+    {
+      "name": "conversationSleepNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "6c5a5a63b2b2947706a1507f2b7835b0936b2aa8780b422053f6da5a8c528217"
+    },
+    {
+      "name": "conversationUseNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "65ca03d1d3448956b61631cec0b6a10b9a323e678519e23cae7bebae821ec9cb"
+    },
+    {
+      "name": "conversationReadingNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "adaeb3b2e2dda6befd1179eb42cd2f61eb27c35abb50fb8b8cdb28a11348b707"
+    },
+    {
+      "name": "conversationExerciseNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "dbefe200fea9e00189f1ae90a48aaa171542778a3cb0b1f94fb0eba621493142"
+    },
+    {
+      "name": "conversationWatchFishNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "12d57b8ca5b78215db869670057c7664c39d7ac0b7c0955f069232d5a45c3866"
+    },
+    {
+      "name": "conversationSittingNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "a16d8ab6dd4356bdfb0d9a98452515d1e334889a33e2b991e11987e0e7bfef4b"
+    },
+    {
+      "name": "conversationShowerNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "ba75dc2211f9295b8458dbabed88637e2ae03bd7b48775ba94b8509c22059ac2"
+    },
+    {
+      "name": "conversationToiletNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "0b8899046cb5e9b029487f7fd1cd14f1115bfef89cad69e078ce9f6f8dc85a04"
+    },
+    {
+      "name": "conversationTVNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "78dccf9db14c17896f65a142126e85077a06e6d61bcfd328be22263e2012dc8a"
+    },
+    {
+      "name": "conversationLyingDownNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "0fffc481f173d2f98df5f603b0f23639d32889babfcaf87c7c76f21786f0cbd5"
+    },
+    {
+      "name": "conversationWashHandsNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "639e3da4ad1715705b1e9c4858c6d7ee729a00844b6473f337222d63a33844e9"
+    },
+    {
+      "name": "conversationWashDishesNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "ffdb43f438047d15ee110f2ddf62f2f71245f192af5b41c3171f9e4b85417e9d"
+    },
+    {
+      "name": "conversationRadioNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "87dd0448977f14a324323331e118a87a85688131e232ef1730866454ac7eccb1"
+    },
+    {
+      "name": "conversationCorrespondenceNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "ffbe84d01764ba7e204aa5f8a7db871b8ed170820b4626b187b12002003b7d6b"
+    },
+    {
+      "name": "conversationBathNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "d70575c8a1e74a92216ad317a683fdae7a5b1560078d7fc6cb963fadaa4d426f"
+    },
+    {
+      "name": "conversationIngredientsNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "646576030c6c7c4445083c31f4c256e164de02bb8ca1753cf458936f91b987e0"
+    },
+    {
+      "name": "conversationPrepareFoodNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "7eb1815d4a1e0c3035859d84c08db0649bd009917e09868c84050d6d8f1d85f3"
+    },
+    {
+      "name": "conversationCookingNeutral",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "6fcd2d11f8e3ef1fb8069b3911af571101dd83e1b363a1687dea5651e42c34c3"
+    }
+  ]
+}
