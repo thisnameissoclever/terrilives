@@ -12,7 +12,7 @@
  * primitive for the one-time recovery backup.
  */
 
-import { CURRENT_SAVE_VERSION, isMatchingSavePrefix, isSupportedSavePrefix, saveSchemaVersion } from './save-header.js';
+import { CURRENT_SAVE_VERSION, isMatchingSavePrefix, isSupportedSavePrefix, saveSchemaVersion, saveWireFamily } from './save-header.js';
 import {serializeErrorDetails,diagnosticMessage,type ErrorDetails} from '../diagnostics/error-details.js';
 
 const SAVE_FILE = 'terri-save-1.bin';
@@ -252,18 +252,29 @@ async function preserveHistoricalBackup(
   }
   const previous = await read(root);
   if (previous === null || previous.byteLength === 0) return null;
-  const previousVersion = saveSchemaVersion(new Uint8Array(previous));
-  if (previousVersion === null || !isSupportedSavePrefix(new Uint8Array(previous))) {
+  const source = new Uint8Array(previous);
+  const previousVersion = saveSchemaVersion(source);
+  const sourceFamily = saveWireFamily(source);
+  if (previousVersion === null || sourceFamily === null) {
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');
   }
   if (previousVersion === CURRENT_SAVE_VERSION) return previous;
-  const backupFile = `terri-save-1.v${previousVersion}-backup.bin`;
-  const existingBackup = await read(root, backupFile);
-  if (existingBackup !== null) {
-    if (!isMatchingSavePrefix(new Uint8Array(existingBackup), new Uint8Array(previous))) {
+  let backupFile = `terri-save-1.v${previousVersion}-backup.bin`;
+  let existing = await read(root, backupFile);
+  if (existing !== null) {
+    const backup = new Uint8Array(existing);
+    if (isMatchingSavePrefix(backup, source)) return previous;
+    // Older workers shared this name across both V22 and V23 producers.
+    // Keep the first backup for each family, regardless of migration order.
+    if ((previousVersion === 22 || previousVersion === 23)
+        && saveSchemaVersion(backup) === previousVersion && saveWireFamily(backup) !== null) {
+      backupFile = `terri-save-1.v${previousVersion}-${sourceFamily}-backup.bin`;
+      existing = await read(root, backupFile);
+      if (existing !== null && isMatchingSavePrefix(new Uint8Array(existing), source)) return previous;
+    }
+    if (existing !== null) {
       throw new Error(`The existing V${previousVersion} recovery backup is unreadable. The saved game was not replaced.`);
     }
-    return previous;
   }
   try {
     await write(root, backupFile, previous);

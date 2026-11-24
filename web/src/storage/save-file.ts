@@ -8,8 +8,8 @@
 
 export const SAVE_FILE_EXTENSION = '.ncsave';
 
-/** Read the signature, version, and the nine fingerprint bytes needed to distinguish V24 saves. */
-export const SAVE_FILE_PREFIX_BYTES = 19;
+/** The ten-byte save header plus the longest postcard u64 fingerprint used by V22 through V24. */
+export const SAVE_FILE_PREFIX_BYTES = 20;
 
 /** A dated name, so several exports sort by day instead of overwriting. */
 export function saveFileName(date: Date): string {

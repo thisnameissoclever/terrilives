@@ -1,6 +1,6 @@
 # Conversation subjects, swimming and bath toys
 
-Housemates now chat about trains, bicycling, gardening, the weather and work, as well as the activities they enjoy.
+Housemates can swim, play with a toy in the bath, and chat about trains, gardening and work.
 
 ## New
 
@@ -21,3 +21,4 @@ Housemates now chat about trains, bicycling, gardening, the weather and work, as
 - At work, Hunger, Bladder and Social refill halfway when they would become Critical. A housemate arriving with any of those needs already Low or Critical gets the same relief.
 - Each need held at zero now costs 6 mood points per game hour, up from 5. Crossing into Critical causes no immediate mood drop.
 - Baths fill with water, and the bather plays with a rubber duck, toy boat or submarine. Saving during a bath keeps the toy and its place in the animation.
+- Import save can open older household files that the file picker previously rejected.

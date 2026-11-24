@@ -1,9 +1,9 @@
 const MAGIC = [84, 69, 82, 82, 73, 83, 65, 86] as const;
 export const CURRENT_SAVE_VERSION = 30;
 
-// Both V24 writers start their payload with a postcard-encoded content fingerprint.
-const CAREER_V24_FINGERPRINT = [164, 220, 210, 228, 250, 221, 197, 136, 81] as const;
-const EDITABLE_V24_FINGERPRINT = [174, 199, 139, 189, 133, 195, 228, 148, 114] as const;
+// These match the producer dispatch in SimHandle::load_bytes.
+const EDITABLE_FINGERPRINT = 0x7229_9218_57a2_e3aen;
+const CAREER_V24_FINGERPRINT = 0x5111_16ef_ac94_ae24n;
 
 export function isSupportedSaveVersion(version: number): boolean {
   return Number.isInteger(version) && version >= 1 && version <= CURRENT_SAVE_VERSION;
@@ -17,21 +17,36 @@ export function saveSchemaVersion(bytes: Uint8Array): number | null {
   return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(8, true);
 }
 
-export function isSupportedSavePrefix(bytes: Uint8Array): boolean {
-  const version = saveSchemaVersion(bytes);
-  return version !== null && isSupportedSaveVersion(version)
-    && (version !== 24 || saveV24Family(bytes) !== null);
+// Postcard encodes u64 values in groups of seven bits, least significant first.
+function contentFingerprint(bytes: Uint8Array): bigint | null {
+  let value = 0n;
+  for (let i = 0; i < 10 && 10 + i < bytes.length; i++) {
+    const byte = bytes[10 + i];
+    if (i === 9 && byte > 1) return null;
+    value |= BigInt(byte & 0x7f) << BigInt(i * 7);
+    if (byte < 0x80) return value;
+  }
+  return null;
 }
 
-function saveV24Family(bytes: Uint8Array): 'career' | 'editable' | null {
-  if (CAREER_V24_FINGERPRINT.every((byte, index) => bytes[10 + index] === byte)) return 'career';
-  if (EDITABLE_V24_FINGERPRINT.every((byte, index) => bytes[10 + index] === byte)) return 'editable';
-  return null;
+export function saveWireFamily(bytes: Uint8Array): 'editable' | 'published' | 'standard' | null {
+  const version = saveSchemaVersion(bytes);
+  if (version === null || !isSupportedSaveVersion(version)) return null;
+  if (version < 22 || version > 24) return 'standard';
+  const fingerprint = contentFingerprint(bytes);
+  if (fingerprint === null) return null;
+  if (fingerprint === EDITABLE_FINGERPRINT) return 'editable';
+  if (version === 24 && fingerprint !== CAREER_V24_FINGERPRINT) return null;
+  return 'published';
+}
+
+export function isSupportedSavePrefix(bytes: Uint8Array): boolean {
+  return saveWireFamily(bytes) !== null;
 }
 
 /** Checks that a retained backup belongs to the source save's wire format. */
 export function isMatchingSavePrefix(backup: Uint8Array, source: Uint8Array): boolean {
-  const version = saveSchemaVersion(source);
-  return isSupportedSavePrefix(backup) && saveSchemaVersion(backup) === version
-    && (version !== 24 || saveV24Family(backup) === saveV24Family(source));
+  const family = saveWireFamily(backup);
+  return family !== null && saveSchemaVersion(backup) === saveSchemaVersion(source)
+    && family === saveWireFamily(source);
 }

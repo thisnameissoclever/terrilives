@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { CURRENT_SAVE_VERSION } from '../src/storage/save-header.js';
-import { downloadSaveFile, readSaveFile, saveFileName } from '../src/storage/save-file.js';
+import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from '../src/storage/save-file.js';
 import type { SaveStore } from '../src/storage/save-store.js';
 import { PersistenceController, type PersistableSim } from '../src/ui/persistence-controller.js';
 
@@ -208,7 +208,7 @@ describe('Import save', () => {
     const loadPrepared = vi.fn(async () => true);
     const controller = new PersistenceController(backend, game, status(), vi.fn(), loadPrepared);
     const file = saveBytes(version, [...fingerprint]);
-    expect(controller.acceptImportFile(file.slice(0, 19))).toBe(true);
+    expect(controller.acceptImportFile(file.slice(0, SAVE_FILE_PREFIX_BYTES))).toBe(true);
     expect(await controller.importSave(file)).toBe(true);
     expect(loadPrepared).toHaveBeenCalledExactlyOnceWith(file);
     expect(backend.saves).toEqual([game.saveBytes()]);

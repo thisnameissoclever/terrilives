@@ -204,6 +204,66 @@ describe('save worker recovery backup', () => {
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
+  describe.each([
+    [22, 'presence-v22/new-game-day-one-noon.sav', 'pool-v22/pool-idle-approach.bin'],
+    [23, 'published-v23/day-two.sav', 'private-editable/bath-v23.sav'],
+  ] as const)('V%i recovery with both historical producers', (version, publishedPath, editablePath) => {
+    function fixture(path: string): Uint8Array {
+      return new Uint8Array(readFileSync(new URL(`../../crates/terri-wasm/tests/fixtures/${path}`, import.meta.url)));
+    }
+    const published = fixture(publishedPath);
+    const editable = fixture(editablePath);
+    const genericName = `terri-save-1.v${version}-backup.bin`;
+
+    it.each([
+      ['published', published, editable],
+      ['editable', editable, published],
+    ] as const)('retains the %s original after migration, rotation, clear and reentry', async (family, source, other) => {
+      const slot = await workerSlot(source);
+      const sibling = `terri-save-1.v${version}-${family}-backup.bin`;
+      slot.files.set(genericName, other);
+      expect(await slot.request('save')).toMatchObject({ ok: true });
+      expect(slot.events.indexOf(`close ${sibling}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
+      expect(await slot.request('save')).toMatchObject({ ok: true });
+      expect(slot.files.get('terri-save-1.previous.bin')).toEqual(current);
+      expect(await slot.request('clear')).toMatchObject({ ok: true });
+      slot.files.set(PRIMARY, source);
+      expect(await (await slot.connect())('save')).toMatchObject({ ok: true });
+      expect(slot.events.filter(event => event === `writable ${sibling}`)).toHaveLength(1);
+      expect(slot.files.get(sibling)).toEqual(source);
+      expect(slot.files.get(genericName)).toEqual(other);
+    });
+
+    it('refuses a conflicting sibling or an incomplete fingerprint without touching either backup', async () => {
+      const slot = await workerSlot(editable);
+      const sibling = `terri-save-1.v${version}-editable-backup.bin`;
+      slot.files.set(genericName, published);
+      for (const bad of [published, editable.slice(0, 17), new Uint8Array([...editable.slice(0, 10), ...Array(9).fill(255), 2])]) {
+        slot.files.set(sibling, bad);
+        expect(await slot.request('save')).toMatchObject({ ok: false });
+        expect(slot.files.get(sibling)).toEqual(bad);
+        expect(slot.files.get(PRIMARY)).toEqual(editable);
+        expect(slot.files.get(genericName)).toEqual(published);
+      }
+      expect(slot.events.some(event => event.startsWith('writable '))).toBe(false);
+    });
+
+    it('preserves the original and retries when the sibling write fails', async () => {
+      const slot = await workerSlot(editable);
+      const sibling = `terri-save-1.v${version}-editable-backup.bin`;
+      slot.files.set(genericName, published);
+      slot.fail.file = sibling;
+      slot.fail.phase = 'close';
+      expect(await slot.request('save')).toMatchObject({ ok: false, error: 'close failed' });
+      expect(slot.files.has(sibling)).toBe(false);
+      expect(slot.files.get(PRIMARY)).toEqual(editable);
+      slot.fail.file = '';
+      expect(await slot.request('save')).toMatchObject({ ok: true });
+      expect(slot.files.get(sibling)).toEqual(editable);
+      expect(slot.files.get(genericName)).toEqual(published);
+    });
+  });
+
   it.each([[v24, editableV24], [editableV24, v24]])(
     'preserves both V24 files when the recovery copy belongs to the other format',
     async (original, backup) => {

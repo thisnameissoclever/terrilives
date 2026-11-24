@@ -1255,8 +1255,7 @@ pub struct Tuning {
     /// The largest share of a late housemate's choices that relieve the
     /// need they are late for, strictly below 1.
     pub work_lateness_remedy_share: f32,
-    /// A housemate at work is relieved of Bladder below this level. 0 is no
-    /// relief.
+    /// Historical Bladder threshold retained for published content pack compatibility.
     pub work_bladder_relief_threshold: f32,
     /// How many mood points the lift from liked furniture loses per game
     /// hour once the person has left it, above 0 ([OA-presence] in

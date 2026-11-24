@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
+import { SAVE_FILE_PREFIX_BYTES } from '../src/storage/save-file.js';
+import { isSupportedSavePrefix } from '../src/storage/save-header.js';
 import { OptionsMenu, attachOptionsMenu } from '../src/ui/options-menu.js';
 import { restorePersistenceFocus } from '../src/ui/persistence-controller.js';
 
@@ -180,10 +182,19 @@ describe('the Options flyout in the page', () => {
     },
   );
 
-  it.each(['save-status', 'command-feedback', 'keyboard-target'])(
+  it('keeps the protection hint beside the save controls without announcing a failure twice', () => {
+    const hint = between('game-actions', 'sim-dock').match(/<p\b[^>]*\bid="save-status"[^>]*>/)?.[0];
+    expect(hint).toBeDefined();
+    expect(hint).toMatch(/\bhidden\b/);
+    expect(hint).not.toMatch(/aria-live=|role="(?:status|alert)"/);
+  });
+
+  it.each(['command-feedback', 'keyboard-target'])(
     'keeps the live region #%s in the always-shown household status',
     (id) => {
-      expect(between('household-summary', 'time-controls')).toContain(`id="${id}"`);
+      const region = between('household-summary', 'time-controls').match(new RegExp(`<p\\b[^>]*id="${id}"[^>]*>`))?.[0];
+      expect(region).toContain('role="status"');
+      expect(region).toContain('aria-live="polite"');
     },
   );
 
@@ -337,9 +348,9 @@ describe('the Options flyout wired into main.ts', () => {
   });
 
   describe('choosing a file for Import save', () => {
-    function chooser(accept: (prefix: Uint8Array) => boolean) {
+    function chooser(accept: (prefix: Uint8Array) => boolean, bytes = new Uint8Array(5_000_000)) {
       const reads: number[] = [];
-      const file = { size: 5_000_000, slice: (start: number, end: number) => ({ size: end - start }) };
+      const file = new Blob([bytes]);
       const input = { value: 'C:\fakepath\save.ncsave', files: [file] as unknown[] };
       const dialog = { open: false, showModal: vi.fn(() => { dialog.open = true; }) };
       const persistence = { acceptImportFile: vi.fn(accept), importFileUnreadable: vi.fn() };
@@ -355,10 +366,10 @@ describe('the Options flyout wired into main.ts', () => {
         persistence,
         readingImportFile: false,
         pendingImport: null as unknown,
-        SAVE_FILE_PREFIX_BYTES: 10,
-        readSaveFile: (blob: { size: number }) => new Promise<Uint8Array>((resolve) => {
+        SAVE_FILE_PREFIX_BYTES,
+        readSaveFile: (blob: Blob) => new Promise<Uint8Array>((resolve) => {
           reads.push(blob.size);
-          finishRead = () => resolve(new Uint8Array(blob.size === 10 ? 10 : 1));
+          finishRead = () => resolve(bytes.slice(0, blob.size));
         }),
         optionsMenu: { close: vi.fn() },
         menu: { close: vi.fn() },
@@ -378,7 +389,7 @@ describe('the Options flyout wired into main.ts', () => {
       fire();
       expect(input.value).toBe('');
       await settle();
-      expect(reads).toEqual([10]);
+      expect(reads).toEqual([SAVE_FILE_PREFIX_BYTES]);
       expect(persistence.acceptImportFile).toHaveBeenCalledTimes(1);
       expect(dialog.showModal).not.toHaveBeenCalled();
     });
@@ -388,10 +399,31 @@ describe('the Options flyout wired into main.ts', () => {
       fire();
       await settle();
       await settle();
-      expect(reads).toEqual([10, 5_000_000]);
+      expect(reads).toEqual([SAVE_FILE_PREFIX_BYTES, 5_000_000]);
       expect(dialog.showModal).toHaveBeenCalledTimes(1);
       expect(context.overlayPause.suspend).toHaveBeenCalledWith('import-save');
       expect(context.pendingImport).toBeInstanceOf(Uint8Array);
+    });
+
+    it('confirms a loadable V23 household with a ten-byte content fingerprint', async () => {
+      const original = readFileSync(new URL('../../crates/terri-wasm/tests/fixtures/published-v23/day-two.sav', import.meta.url));
+      // The original's nine-byte fingerprint is replaced with the pre-books content fingerprint.
+      const preBooks = [245, 241, 160, 207, 174, 142, 157, 188, 207, 1];
+      const bytes = new Uint8Array([...original.subarray(0, 10), ...preBooks, ...original.subarray(19)]);
+      const { context, dialog, fire, settle } = chooser(isSupportedSavePrefix, bytes);
+      fire();
+      await settle();
+      await settle();
+      expect(dialog.showModal).toHaveBeenCalledTimes(1);
+      expect(context.pendingImport).toEqual(bytes);
+      const { default: init, SimHandle } = await import('../src/wasm/terri_wasm.js');
+      await init({ module_or_path: readFileSync(new URL('../src/wasm/terri_wasm_bg.wasm', import.meta.url)) });
+      const game = SimHandle.from_lot();
+      try {
+        expect(game.load_bytes(bytes)).toBe(true);
+      } finally {
+        game.free();
+      }
     });
 
     it('ignores a second file while the first is waiting for confirmation', async () => {
@@ -402,7 +434,7 @@ describe('the Options flyout wired into main.ts', () => {
       const first = context.pendingImport;
       fire();
       await Promise.resolve();
-      expect(reads).toEqual([10, 5_000_000]);
+      expect(reads).toEqual([SAVE_FILE_PREFIX_BYTES, 5_000_000]);
       expect(dialog.showModal).toHaveBeenCalledTimes(1);
       expect(context.pendingImport).toBe(first);
     });
@@ -411,10 +443,10 @@ describe('the Options flyout wired into main.ts', () => {
       const { reads, fire, settle } = chooser(() => false);
       fire();
       fire();
-      expect(reads).toEqual([10]);
+      expect(reads).toEqual([SAVE_FILE_PREFIX_BYTES]);
       await settle();
       fire();
-      expect(reads).toEqual([10, 10]);
+      expect(reads).toEqual([SAVE_FILE_PREFIX_BYTES, SAVE_FILE_PREFIX_BYTES]);
     });
   });
 
