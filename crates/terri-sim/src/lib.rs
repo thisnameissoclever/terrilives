@@ -3625,8 +3625,8 @@ impl Sim {
                         )
                     })
                     .unwrap_or(render_buffer::activity::USING_OBJECT)
-            } else if chore_visual.is_some() {
-                chore_visual.unwrap().0.activity
+            } else if let Some(visual) = chore_visual.as_ref() {
+                visual.0.activity
             } else if path.is_some() {
                 render_buffer::activity::WALKING
             } else if reserved

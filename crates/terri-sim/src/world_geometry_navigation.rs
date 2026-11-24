@@ -36,14 +36,13 @@ pub(crate) fn home_targets(world: &World, grid: &TileGrid) -> Option<Vec<bool>> 
     Some(targets)
 }
 
+/// The winning entry tile and the path of tiles from it to the destination.
+type Route = ((i32, i32), Vec<(i32, i32)>);
+
 /// Roots are sorted by coordinates. Each breadth-first layer stays grouped by
 /// root, so the first claim of a tied cell belongs to the smaller entry. Winners
 /// are ranked by distance, then entry coordinates, then destination coordinates.
-fn search(
-    grid: &TileGrid,
-    roots: &[(i32, i32)],
-    targets: &[bool],
-) -> Option<((i32, i32), Vec<(i32, i32)>)> {
+fn search(grid: &TileGrid, roots: &[(i32, i32)], targets: &[bool]) -> Option<Route> {
     let width = grid.width();
     let index = |(x, y): (i32, i32)| y as usize * width + x as usize;
     let tile = |index: usize| ((index % width) as i32, (index / width) as i32);

@@ -37,8 +37,10 @@ fn main() {
         sim.flush_commands();
         assert_eq!(sim.world().get::<ObjectFacing>(tub).unwrap().0, facing);
         let actor = sim.spawn_agent(Position { x: 3., y: 4. }, 70.);
-        let mut appearance = CharacterAppearanceV1::default();
-        appearance.presentation = "feminine".into();
+        let appearance = CharacterAppearanceV1 {
+            presentation: "feminine".into(),
+            ..Default::default()
+        };
         sim.world_mut()
             .entity_mut(actor)
             .insert((appearance, SimName("Alex".into())));

@@ -2833,7 +2833,7 @@ impl SimHandle {
         }
         // Private editable-world producers used the same version tags as later
         // published releases. Their content fingerprint precedes every divergence.
-        let private_editable = matches!(version, 22 | 23 | 24)
+        let private_editable = matches!(version, 22..=24)
             && matches!(
                 postcard::take_from_bytes::<u64>(payload),
                 Ok((0x7229_9218_57a2_e3ae, _))

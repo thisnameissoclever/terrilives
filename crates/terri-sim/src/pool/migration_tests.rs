@@ -132,7 +132,7 @@ fn historical_all_facings_and_phases_preserve_progress_and_randomness() {
             assert_old_source(&source, &old);
             let before = source.world().get::<PoolEpisode>(actor).unwrap().clone();
             let point = *source.world().get::<Position>(actor).unwrap();
-            let needs = source.world().get::<Needs>(actor).unwrap().clone();
+            let needs = *source.world().get::<Needs>(actor).unwrap();
             let random = source.world().resource::<SimRng>().clone();
             let current = restored(&source, old).unwrap();
             let actor = source_entity(&current, actor.index_u32());

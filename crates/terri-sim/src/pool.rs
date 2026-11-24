@@ -116,7 +116,6 @@ pub(crate) fn request_exit(world: &mut World, actor: Entity) -> bool {
         _ => {}
     }
     let ticks = remaining(&episode);
-    drop(episode);
     if let Some(mut eating) = world.get_mut::<Eating>(actor) {
         eating.remaining_ticks = ticks;
     }

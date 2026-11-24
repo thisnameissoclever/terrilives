@@ -75,8 +75,10 @@ fn main() {
             .take(if two_people { 2 } else { 1 })
         {
             let actor = sim.spawn_agent(Position { x, y: 2. }, 70.);
-            let mut appearance = CharacterAppearanceV1::default();
-            appearance.presentation = presentation.into();
+            let mut appearance = CharacterAppearanceV1 {
+                presentation: presentation.into(),
+                ..Default::default()
+            };
             appearance.colors.shirt = [120, 35, 155];
             appearance.colors.trousers = [20, 70, 140];
             sim.world_mut().entity_mut(actor).insert((
@@ -177,8 +179,10 @@ fn main() {
                 Facing::NorthEast => (5., 3.),
             };
             let actor = sim.spawn_agent(Position { x, y }, 70.);
-            let mut appearance = CharacterAppearanceV1::default();
-            appearance.presentation = presentation.into();
+            let mut appearance = CharacterAppearanceV1 {
+                presentation: presentation.into(),
+                ..Default::default()
+            };
             appearance.body.height = height;
             appearance.body.build = build;
             appearance.body.shoulders = build;
@@ -301,8 +305,10 @@ fn main() {
         sim.flush_commands();
         assert_eq!(sim.world().get::<ObjectFacing>(tub).unwrap().0, facing);
         let actor = sim.spawn_agent(Position { x: 3., y: 4. }, 70.);
-        let mut appearance = CharacterAppearanceV1::default();
-        appearance.presentation = "feminine".into();
+        let appearance = CharacterAppearanceV1 {
+            presentation: "feminine".into(),
+            ..Default::default()
+        };
         sim.world_mut().entity_mut(actor).insert((
             appearance,
             SimName("Bath review".into()),

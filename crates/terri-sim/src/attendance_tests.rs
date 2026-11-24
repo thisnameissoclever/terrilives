@@ -586,7 +586,7 @@ fn ordinary_rollover_promotes_and_restores_the_exact_displaced_shift() {
     );
     assert_eq!(
         sim.save_snapshot_v28().previous.replaced_shifts,
-        [prior.clone()]
+        std::slice::from_ref(&prior)
     );
     hold(&mut sim, actor, object);
     until(&mut sim, "home before weekly rollover", 20, |s| {

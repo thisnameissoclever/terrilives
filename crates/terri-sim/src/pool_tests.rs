@@ -94,7 +94,7 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
         sim.world().get::<Eating>(actor).unwrap().remaining_ticks,
         120
     );
-    let initial = sim.world().get::<Needs>(actor).unwrap().clone();
+    let initial = *sim.world().get::<Needs>(actor).unwrap();
     for _ in 0..20 {
         pool::tick(sim.world_mut());
     }
@@ -106,7 +106,7 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
     for _ in 0..60 {
         pool::tick(sim.world_mut());
     }
-    let after = sim.world().get::<Needs>(actor).unwrap().clone();
+    let after = *sim.world().get::<Needs>(actor).unwrap();
     for (need, delta) in [
         (NeedId::Fun, 30.),
         (NeedId::Comfort, 10.),
@@ -197,7 +197,7 @@ fn pool_cancel_each_phase_keeps_pose_progress_and_physical_owner_but_clears_orde
         }
         assert!(sim.world().get::<Reserved>(object).is_some());
         assert!(!crate::player_actions::has_player_work(sim.world(), actor));
-        let levels = sim.world().get::<Needs>(actor).unwrap().clone();
+        let levels = *sim.world().get::<Needs>(actor).unwrap();
         let saved = sim.save_snapshot_v30();
         sim.load_snapshot_v30(saved.clone()).unwrap();
         assert_eq!(sim.save_snapshot_v30(), saved);
@@ -243,7 +243,7 @@ fn pool_cancel_at_takeoff_lands_before_exit_without_swim_rewards() {
         );
 
         order(&mut sim, actor, object);
-        let levels = sim.world().get::<Needs>(actor).unwrap().clone();
+        let levels = *sim.world().get::<Needs>(actor).unwrap();
         let queued = sim
             .world()
             .get::<terri_core::IntentQueue>(actor)

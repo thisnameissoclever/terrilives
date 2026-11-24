@@ -242,14 +242,14 @@ mod tests {
                 if occupied {
                     sim.world_mut()
                         .resource_mut::<TileGrid>()
-                        .set_blocked(x as usize, 1, true);
+                        .set_blocked(x, 1, true);
                 }
             }
             crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.set(0));
             validate(sim.world()).unwrap();
             let visits = crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.get());
             assert!(
-                visits <= count as usize * 2,
+                visits <= count * 2,
                 "{count} objects, occupied={occupied}: {visits} entity/model lookup visits"
             );
         }
