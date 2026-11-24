@@ -3474,6 +3474,7 @@ mod tests {
                 "patio_umbrella",
                 "pool",
                 "pool_lounger",
+                "pool_rectangular",
                 "potted_plant",
                 "radio",
                 "reading_chair",

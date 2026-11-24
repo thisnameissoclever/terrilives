@@ -82,7 +82,29 @@ fn authentic_private_v25_preserves_world_and_bath_continuation() {
     let mut source = SimHandle::from_lot();
     assert!(source.load_bytes(PRIVATE_BATH));
     let saved = decode_current(&source.save_bytes());
-    assert_eq!(saved.previous.legacy, original.previous);
+    // A save records the content it was written with, so the resave carries
+    // the current fingerprint, which moves whenever content changes. Every
+    // other field must survive unchanged.
+    let mut expected = original.previous.clone();
+    expected
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .world
+        .content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
+    assert_eq!(saved.previous.legacy, expected);
     assert!(saved.previous.career_inputs.is_empty());
     assert_eq!(saved.surfaces, original.surfaces);
     assert_eq!(saved.commutes, original.commutes);

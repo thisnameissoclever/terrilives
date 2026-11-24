@@ -143,28 +143,26 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     let encoded = postcard::to_allocvec(&pack).unwrap();
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/inherited-runtime.pack");
-    if std::env::var_os("TERRI_WRITE_RUNTIME_FIXTURE").is_some()
-        || std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some()
-    {
+    if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
+        // Issue 275 (richer topics) appended `topics` to `ContentPack`,
+        // after `need_mood`. This proof runs against the fixture as it was
+        // before that change (26165 bytes, SHA-256
+        // 70d260051d03996660fa88fb9ee0ca36b7b41e888f6bf53ee063adeb21da1870,
+        // main at b0aa7799c): restore that file first. Later content
+        // changes, such as the rectangular pool, regenerate the fixture
+        // with TERRI_WRITE_RUNTIME_FIXTURE and do not pass through it.
         let old_bytes = std::fs::read(&path).unwrap();
-        if old_bytes != encoded {
-            // Issue 275 (richer topics) appended `topics` to `ContentPack`,
-            // after `need_mood`. The proof always runs against the fixture
-            // as it was before (26165 bytes, SHA-256
-            // 70d260051d03996660fa88fb9ee0ca36b7b41e888f6bf53ee063adeb21da1870,
-            // main at b0aa7799c): restore that file before regenerating.
-            assert_eq!(
-                previous_without_topics(&pack),
-                old_bytes,
-                "only the field issue 275 appended may change the current fixture"
-            );
-            eprintln!(
-                "Topics fixture proof: leaving out the field issue 275 appended recovers every byte of the previous fixture"
-            );
-        }
-        if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
-            return;
-        }
+        assert_eq!(
+            previous_without_topics(&pack),
+            old_bytes,
+            "only the field issue 275 appended may change the fixture from before issue 275"
+        );
+        eprintln!(
+            "Topics fixture proof: leaving out the field issue 275 appended recovers every byte of the previous fixture"
+        );
+        return;
+    }
+    if std::env::var_os("TERRI_WRITE_RUNTIME_FIXTURE").is_some() {
         let staged = path.with_extension("pack.staged");
         std::fs::write(&staged, &encoded).unwrap();
         std::fs::rename(&staged, &path)

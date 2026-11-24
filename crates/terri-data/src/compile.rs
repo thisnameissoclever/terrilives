@@ -14445,6 +14445,7 @@ mod tests {
                 "bathtub",
                 "pool",
                 "pool_lounger",
+                "pool_rectangular",
             ],
             "these are the shipped multi-tile objects, in declaration order; \
              with every object 1x1 this test cannot distinguish a footprint \
