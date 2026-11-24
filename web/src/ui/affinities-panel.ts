@@ -1,4 +1,4 @@
-import type { AffinityWord } from '../bridge.js';
+import type { AffinityWord, SubjectWord } from '../bridge.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
 // The selected person's likes and dislikes in plain words - [OA-hud] in
@@ -6,7 +6,9 @@ import { setTextIfChanged } from './set-text-if-changed.js';
 //
 // A collapsed disclosure in the Overview sheet, after Skills. Every affinity
 // kind gets one row: its label with the first letter upper-cased, then the
-// word the simulation gives the person's value. The edges between the words
+// word the simulation gives the person's value. The subjects a person talks
+// about follow, read only, in the same words; a subject the person cannot
+// offer, such as Work without a job, has no row. The edges between the words
 // live in content/tuning.toml and are applied in Rust, so this view keeps no
 // thresholds of its own. Like Skills, a closed section does no periodic
 // reads; the forced updates at start, after Load and after an edit still read.
@@ -14,6 +16,7 @@ import { setTextIfChanged } from './set-text-if-changed.js';
 export interface AffinitiesPanelSource {
   selectedIndex(): number | null;
   affinityWordsOf(entity: number): AffinityWord[] | null;
+  subjectWordsOf(entity: number): SubjectWord[] | null;
 }
 
 export interface AffinityRow {
@@ -37,12 +40,22 @@ export function affinityRowLabel(label: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export function affinitiesPanelState(source: AffinitiesPanelSource, labels: readonly string[]): AffinitiesPanelState {
+export function affinitiesPanelState(
+  source: AffinitiesPanelSource,
+  labels: readonly string[],
+  subjectLabels: readonly string[],
+): AffinitiesPanelState {
   const selected = source.selectedIndex();
   if (selected === null) return { kind: 'unselected' };
   const words = source.affinityWordsOf(selected);
   if (words === null || words.length === 0 || words.length !== labels.length) return UNAVAILABLE;
-  return { kind: 'ready', rows: words.map((word, index) => ({ label: affinityRowLabel(labels[index]), word })) };
+  const subjects = source.subjectWordsOf(selected);
+  if (subjects === null || subjects.length !== subjectLabels.length) return UNAVAILABLE;
+  const rows: AffinityRow[] = words.map((word, index) => ({ label: affinityRowLabel(labels[index]), word }));
+  for (const [index, word] of subjects.entries()) {
+    if (word !== '') rows.push({ label: affinityRowLabel(subjectLabels[index]), word });
+  }
+  return { kind: 'ready', rows };
 }
 
 /** A closed disclosure does no periodic reads; opening or loading forces a fresh one. */
@@ -52,6 +65,7 @@ export class AffinitiesPanel {
   constructor(
     private readonly source: AffinitiesPanelSource,
     private readonly labels: readonly string[],
+    private readonly subjectLabels: readonly string[],
     private readonly surface: AffinitiesPanelSurface,
     private readonly refreshMs: number,
     private readonly active: () => boolean,
@@ -65,7 +79,7 @@ export class AffinitiesPanel {
     if (!force && (!this.active() || (this.lastRenderMs !== null && nowMs - this.lastRenderMs < this.refreshMs))) {
       return false;
     }
-    this.surface.render(affinitiesPanelState(this.source, this.labels));
+    this.surface.render(affinitiesPanelState(this.source, this.labels, this.subjectLabels));
     this.lastRenderMs = nowMs;
     return true;
   }
@@ -83,7 +97,9 @@ export function createAffinitiesPanelSurface(
   list: HTMLElement,
 ): AffinitiesPanelSurface {
   // Rows are keyed by position: the pack's kind order is the same for every
-  // person, so a row keeps its kind across a change of selection.
+  // person, so a row keeps its kind across a change of selection. A subject
+  // row a person does not have shifts the later rows up, and their text
+  // changes to match.
   const rows: HTMLElement[] = [];
 
   return {

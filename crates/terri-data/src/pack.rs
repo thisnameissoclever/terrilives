@@ -1806,6 +1806,11 @@ pub struct ContentPack {
     /// paths, the pack's last field until then.
     pub bills: BillsTuning,
     pub need_mood: NeedMoodTuning,
+    /// Conversation topics in content order ([RT-content] in
+    /// `docs/specs/2026-11-22-richer-topics.md`); a topic's row is its place
+    /// here. Saves hold a topic's code and tag, never a row, and the content
+    /// fingerprint does not read this. Appended at the pack tail.
+    pub topics: Vec<crate::topics::CompiledTopic>,
 }
 
 /// Rates in hundredths of a mood point per game hour. With sixty ticks
@@ -2522,6 +2527,7 @@ mod tests {
             career_paths: Vec::new(),
             bills: BillsTuning::shipped_without_usage(),
             need_mood: NeedMoodTuning::HISTORICAL,
+            topics: Vec::new(),
             circadian: None,
             sleep_tag: String::new(),
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],

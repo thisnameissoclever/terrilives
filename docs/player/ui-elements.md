@@ -106,7 +106,9 @@ Completed attempts add practice, including relevant failed attempts. Skills do n
 
 ## Likes and dislikes {#likes-and-dislikes}
 
-Open Sim details, Overview, then Likes and dislikes. These responses concern objects and surroundings. They are separate from the People panel's feelings about individuals.
+Open Sim details, Overview, then Likes and dislikes. The first rows concern objects and surroundings. They are separate from the People panel's feelings about individuals.
+
+After them come the subjects the person likes to talk about: Trains, Bicycling, Gardening, The weather and Work. Each reads from Loves to Hates, in the same words as the object rows. Work appears only for a housemate who has a job. Subjects shape what the person chooses to chat about, so a housemate who loves Trains brings them up more. You cannot change them. They decide only what a chat is about, and the usual rule for a disliked topic applies: a listener who dislikes the subject takes a small opinion penalty. See [conversations](relationships/#conversations).
 
 An object being present and another person actively using it can have different effects. See [mess and nuisance](relationships/#mess-and-nuisance).
 

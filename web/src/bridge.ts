@@ -1,6 +1,7 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { parseTopicTable, type TopicRow } from './topic-table.js';
 import type { WeatherTuning } from './render/weather.js';
 import type { ActionQueueRow, OrderEvent, OrderEventBatch } from './ui/player-orders.js';
 import type { WorkConflict } from './ui/work-order-confirmation.js';
@@ -67,6 +68,17 @@ const AFFINITY_WORDS: readonly string[] = ['Loves', 'Likes', 'Indifferent', 'Dis
 
 function isAffinityWord(word: string): word is AffinityWord {
   return AFFINITY_WORDS.includes(word);
+}
+
+/**
+ * What a subject reads as in the Likes and dislikes view: the same five words,
+ * or the empty string for a subject the person cannot offer, such as Work for
+ * someone without a job ([RT-shell] in docs/specs/2026-11-22-richer-topics.md).
+ */
+export type SubjectWord = AffinityWord | '';
+
+function isSubjectWord(word: string): word is SubjectWord {
+  return word === '' || isAffinityWord(word);
 }
 
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
@@ -1424,8 +1436,20 @@ export class SimBridge {
     );
   }
 
+  /**
+   * Each row's topic value: the topic table row plus one, with bit 16 set for
+   * an argument about an everyday activity, or 0 outside a conversation.
+   */
   conversationTopics(): Uint32Array {
     return new Uint32Array(this.memory.buffer, this.handle.conversation_topics_ptr(), this.count);
+  }
+
+  /**
+   * The conversation topic table: one row per topic in content order. Fixed
+   * by the content pack, so it crosses the boundary once per page.
+   */
+  conversationTopicTable(): readonly TopicRow[] {
+    return this.conversationTopicTableCache ??= parseTopicTable(this.handle.conversation_topic_table());
   }
 
   conversationPreferences(): Float32Array {
@@ -1565,6 +1589,8 @@ export class SimBridge {
   clearCompletionSounds(): void { this.handle.clear_completion_sounds(); }
 
   private activityLogLabelsCache: string[] | null = null;
+  private conversationTopicTableCache: TopicRow[] | null = null;
+  private activityLogTopicRowsCache: Uint32Array | null = null;
 
   /**
    * Moves every staged activity log record into `into`, a ring of
@@ -1601,6 +1627,15 @@ export class SimBridge {
    */
   activityLogLabels(): readonly string[] {
     return this.activityLogLabelsCache ??= this.handle.activity_log_labels().split('\n');
+  }
+
+  /**
+   * For each `activityLogLabels` entry, the topic value it names (the same
+   * value the topic column carries), or 0 for a label that is not a topic
+   * tag. Fixed by the content pack, so it crosses the boundary once per page.
+   */
+  activityLogTopicRows(): Uint32Array {
+    return this.activityLogTopicRowsCache ??= this.handle.activity_log_topic_rows();
   }
 
   /** Records lost to a full staging ring before a take. Diagnostic only. */
@@ -2650,6 +2685,25 @@ export class SimBridge {
   /** One label per affinity kind, in pack order. Read once, like skillLabels. */
   affinityLabels(): string[] {
     return this.handle.affinity_labels();
+  }
+
+  /**
+   * The word for each listed subject of the person at `entityIndex`, in
+   * content order, worded by the simulation from the same edges as
+   * affinityWordsOf. A subject the person cannot offer reads as the empty
+   * string. Null for anything that is not a living person and for a reading
+   * holding any other word. Read only; subjects are never saved or edited.
+   */
+  subjectWordsOf(entityIndex: number): SubjectWord[] | null {
+    if (!isU32(entityIndex)) return null;
+    const words = this.handle.subject_words_of(entityIndex);
+    if (words.length === 0 || !words.every(isSubjectWord)) return null;
+    return words;
+  }
+
+  /** One label per listed subject, in content order. Read once, like affinityLabels. */
+  subjectLabels(): string[] {
+    return this.handle.subject_labels();
   }
 
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */

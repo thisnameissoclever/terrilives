@@ -13,6 +13,10 @@ pub enum ContentError {
         context: String,
         reason: String,
     },
+    InvalidTopicContent {
+        context: String,
+        reason: String,
+    },
     InvalidHierarchy {
         context: String,
         reason: String,
@@ -1423,6 +1427,7 @@ impl fmt::Display for ContentError {
         match self {
             ContentError::InvalidHierarchy { context, reason } => write!(f, "{context}: {reason}"),
             ContentError::InvalidBookContent { context, reason } => write!(f, "{context}: {reason}"),
+            ContentError::InvalidTopicContent { context, reason } => write!(f, "{context}: {reason}"),
             ContentError::InvalidSleepPlaces { object, reason } => write!(
                 f, "object '{object}' has invalid sleep places: {reason}"
             ),

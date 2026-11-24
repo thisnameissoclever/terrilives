@@ -899,6 +899,7 @@ impl From<PublishedContentPack> for ContentPack {
             skills: old.skills,
             affinities: old.affinities,
             books: Vec::new(),
+            topics: Vec::new(),
             reading: None,
             career_paths,
             // Bills (issue 298): the shipped charges, and no usage, because
@@ -1081,6 +1082,7 @@ impl From<Published2fContentPack> for ContentPack {
             skills: old.skills,
             affinities: old.affinities,
             books: Vec::new(),
+            topics: Vec::new(),
             reading: None,
             career_paths,
             // Bills (issue 298): the shipped charges, and no usage, because

@@ -806,12 +806,13 @@ pub(crate) fn begin_topic(
                 })
             })
         {
-            return Some(crate::social_episode::Topic {
-                code: u32::from(context.topic_code),
-                tag: context.topic_tag,
-                initiator_preference: -1.,
-                listener_preference: -1.,
-            });
+            return Some(crate::social_episode::Topic::new(
+                world.resource::<crate::Content>().0,
+                u32::from(context.topic_code),
+                context.topic_tag,
+                -1.,
+                -1.,
+            ));
         }
         return None;
     }
@@ -880,12 +881,14 @@ pub(crate) fn begin_topic(
     let mut state = world.get_resource_mut::<crate::social_conflicts::State>()?;
     let context = state.fights.get_mut(&initiator)?;
     context.started_at = now;
-    Some(crate::social_episode::Topic {
-        code: u32::from(context.topic_code),
-        tag: context.topic_tag.clone(),
-        initiator_preference: -1.0,
-        listener_preference: -1.0,
-    })
+    let (code, tag) = (u32::from(context.topic_code), context.topic_tag.clone());
+    Some(crate::social_episode::Topic::new(
+        world.resource::<crate::Content>().0,
+        code,
+        tag,
+        -1.0,
+        -1.0,
+    ))
 }
 
 pub(crate) fn completed(world: &mut World, initiator: Entity, recipient: Entity) {
@@ -1785,6 +1788,18 @@ mod order_tests {
     use crate::{test_content, Sim};
     use terri_core::{CommandQueue, NeedId, Position, SimCommand, Target};
 
+    /// The render column's value for a fight reason's row: the row's place in
+    /// `content/topics.toml` plus one.
+    fn fight_row_value(reason: Option<Reason>) -> u32 {
+        let tag = Reason::tag(reason);
+        terri_data::pack()
+            .topics
+            .iter()
+            .position(|row| row.reason == tag)
+            .map(|at| at as u32 + 1)
+            .unwrap()
+    }
+
     fn household() -> (Sim, Entity, Entity, Entity) {
         let mut fight = test_content::interaction("fight", &[], 40);
         fight.tags = vec![FIGHT_TAG.into()];
@@ -1924,7 +1939,10 @@ mod order_tests {
             "the order names the fight"
         );
         let first_topic = crate::social_episode::bubble(sim.world(), a.index_u32());
-        assert!(first_topic.0 >= 33 && first_topic.1 == -1.0);
+        assert!(
+            first_topic.0 & terri_data::topics::RANDOM_FIGHT_BIT != 0 && first_topic.1 == -1.0,
+            "an argument over nothing in particular is a random fight about an everyday activity"
+        );
         assert_eq!(
             crate::social_episode::bubble(sim.world(), b.index_u32()),
             first_topic
@@ -2059,13 +2077,14 @@ mod order_tests {
             Some(fight),
             "the fight order is served within 2000 ticks"
         );
+        let chore_fight = (fight_row_value(Some(Reason::OtherChore)), -1.0);
         assert_eq!(
             crate::social_episode::bubble(sim.world(), a.index_u32()),
-            (Reason::code(Some(Reason::OtherChore)), -1.0)
+            chore_fight
         );
         assert_eq!(
             crate::social_episode::bubble(sim.world(), b.index_u32()),
-            (Reason::code(Some(Reason::OtherChore)), -1.0)
+            chore_fight
         );
         assert_eq!(
             sim.world()
@@ -2562,7 +2581,7 @@ mod order_tests {
         );
         assert_eq!(
             crate::social_episode::bubble(sim.world(), a.index_u32()),
-            (Reason::NONE_CODE, -1.)
+            (fight_row_value(None), -1.)
         );
         let saved = sim.save_snapshot_v28();
         assert!(saved.conflicts.fights[0].legacy && saved.conflicts.fights[0].grievance.is_none());

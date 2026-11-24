@@ -1,6 +1,7 @@
 import {indicatorAnchorY} from './render/indicator-coverage.js';
 import {cleaningFrame} from './render/cleaning-animation.js';
-import {conversationBubble, conversationTint} from './render/conversation-bubbles.js';
+import {conversationBubbles} from './render/conversation-bubbles.js';
+import type {TopicRow} from './topic-table.js';
 import type {CharacterScenePlan} from './render/character/scene-plan.js';
 import {fixtureSurfaceHeight,surfacePropDepthOffset} from './render/fixture-depth.js';
 import {fixtureRegistration} from './render/fixture-registration.js';
@@ -922,7 +923,10 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
+  /** Each row's topic value: the topic table row plus one, bit 16 for a random fight, 0 outside a chat. */
   conversationTopics?(): Uint32Array;
+  /** The conversation topic table, read once per page; without it no bubble is drawn. */
+  conversationTopicTable?(): readonly TopicRow[];
   conversationPreferences?(): Float32Array;
   /**
    * Presentation pose: 0 none, 1 talk, 2 eat, 3 seated read,
@@ -1135,6 +1139,7 @@ export function buildInstanceBatch(
   const sprites = source.sprites();
   const activities = source.activities();
   const conversationTopics = source.conversationTopics?.();
+  const topicBubbles = conversationBubbles(source.conversationTopicTable?.());
   const conversationPreferences = source.conversationPreferences?.();
   const visualActions = source.visualActions();
   const simIds = source.simIds?.();
@@ -1380,16 +1385,16 @@ export function buildInstanceBatch(
   for (let i = 0; i < count; i++) {
     const preference = conversationPreferences?.[i] ?? 0;
     const topic = conversationTopics?.[i] ?? 0;
-    const conversation = conversationBubble(activities[i], topic, preference);
+    const conversation = topicBubbles.bubble(activities[i], topic, preference);
     const sprite = kinds[i] === KIND_AGENT ? conversation ?? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
     const configured=dynamic?.actorAt(i);
     if(configured){const [x,y,z]=configured.head;
       writeInstance(scratch,slot++,screenX(x,y,originX,scale),indicatorAnchorY(sprite,screenY(x,y,originY,scale)-z*Math.sqrt(1166)*scale,scale),
         layeredDepth(x,y,gridSize,LAYER_FOREGROUND),sprite,
-        conversation===null?1:conversationTint(preference,0,topic),
-        conversation===null?1:conversationTint(preference,1,topic),
-        conversation===null?1:conversationTint(preference,2,topic));batch.owners[slot-1]=i+1;continue;}
+        conversation===null?1:topicBubbles.tint(preference,0,topic),
+        conversation===null?1:topicBubbles.tint(preference,1,topic),
+        conversation===null?1:topicBubbles.tint(preference,2,topic));batch.owners[slot-1]=i+1;continue;}
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)+fixtureOffsets[positionRow*2];
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)+fixtureOffsets[positionRow*2+1];
@@ -1437,9 +1442,9 @@ export function buildInstanceBatch(
         : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
       layeredDepth(bx, by, gridSize, LAYER_FOREGROUND),
       sprite,
-      conversation === null ? 1 : conversationTint(preference, 0, topic),
-      conversation === null ? 1 : conversationTint(preference, 1, topic),
-      conversation === null ? 1 : conversationTint(preference, 2, topic),
+      conversation === null ? 1 : topicBubbles.tint(preference, 0, topic),
+      conversation === null ? 1 : topicBubbles.tint(preference, 1, topic),
+      conversation === null ? 1 : topicBubbles.tint(preference, 2, topic),
     );
     batch.owners[slot-1]=i+1;
   }

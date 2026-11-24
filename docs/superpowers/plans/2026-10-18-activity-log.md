@@ -230,6 +230,8 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 ## Phase 2: richer topics
 
+Superseded on 2026-11-22: [the richer topics specification](../../specs/2026-11-22-richer-topics.md) records the owner's answers and replaces Tasks 14 to 19 below, which no longer match the code. They are kept for history.
+
 Phase 2 starts from merged phase 1 and merges separately. Tasks 14 and 15 change no behavior and can merge on their own; Tasks 16 to 18 wait for the owner's answers named in the global constraints.
 
 ## Task 14: Move topics into content

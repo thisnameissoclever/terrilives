@@ -8,6 +8,7 @@ mod autonomy_tuning;
 mod weather_tuning;
 pub use weather_tuning::WeatherTuning;
 pub mod books;
+pub mod topics;
 pub use autonomy_tuning::{AutonomyTuning, CreationInstinctBand};
 pub mod compile;
 #[cfg(test)]
@@ -3002,6 +3003,27 @@ mod tests {
             .all(|(legacy, _)| content_fingerprint_is_legacy(pack(), *legacy)));
         assert!(!content_fingerprint_matches(pack(), 0));
         assert!(!content_fingerprint_is_legacy(pack(), 0));
+    }
+
+    /// [RT-saves] 5: a restored topic carries both preferences, completion
+    /// reads only those, and a row resolves from the saved tag with a
+    /// fallback, so no restored state depends on topic content.
+    #[test]
+    fn topics_do_not_move_the_content_digest() {
+        let shipped = content_fingerprint(pack());
+        assert!(!pack().topics.is_empty());
+        let mut without = pack().clone();
+        without.topics.clear();
+        assert_eq!(content_fingerprint(&without), shipped);
+        let mut reworded = pack().clone();
+        for row in &mut reworded.topics {
+            row.label.push_str(" changed");
+            row.icon = "Talk".into();
+            row.code += 1;
+            row.tags.push("extra".into());
+        }
+        reworded.topics.reverse();
+        assert_eq!(content_fingerprint(&reworded), shipped);
     }
 
     #[test]

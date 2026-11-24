@@ -293,6 +293,8 @@ Under `?stress=N` every filler agent has a `SimId`, so each one stages its own r
 
 ## [AL-topics] Phase 2: richer conversation topics
 
+Superseded on 2026-11-22 by [the richer topics specification](2026-11-22-richer-topics.md), which records the owner's answers to [Q1], [Q2], [Q3] and [Q5] and describes the design against current code. The text below is the October proposal, kept for history.
+
 Today a topic is an activity tag. The initiator's preferences come from `compatibility::preferences`, a sorted map of tag to value built from personality dispositions, disposition traits and hobbies. `begin_topics` (`social_episode.rs`) offers every tag the initiator rates above zero, weights each by `mine * (1 + 4 * inclination * max(theirs, 0))`, and spends one `SimRng::next_f32` draw. With no candidate the topic is small talk. The initiator therefore always likes the topic; only the listener can dislike it, which turns their completion gain into a loss of `0.02 * preference`.
 
 ### Topic words and identity

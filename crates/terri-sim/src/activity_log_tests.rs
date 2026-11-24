@@ -526,8 +526,9 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// household settles scored shifts in two days; nothing else moved (checked by
 /// turning the block off). Read from the failing assertion.
 /// Editable world and water branch before the Career merge measured `0xfe8f_2322_891c_e5d0`.
-/// The V28 replay with gradual need mood measures the same fold with work knobs on and off.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4f63_7602_7d22_7932;
+/// Conversation subjects change the subsequent random draws. Both work settings
+/// produce this same two-day fold with the editable household and subject rows.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x88a4_d29e_ee60_b5ca;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -577,8 +578,8 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4f63_7602_7d22_7932;
 /// block's call in `Sim::hash` switched off, this branch gives the old value
 /// again. Measured in a release build from the failing assertion.
 /// Editable world and water branch before the Career merge measured `0xc65b_1bd5_e41a_f993`.
-/// Debug and optimized V28 runs with gradual need mood agree on this fold.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x604f_174b_65c1_0ea8;
+/// The twenty-day release replay with conversation subjects produced this fold.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa764_0b3b_6516_e115;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
@@ -605,11 +606,14 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 /// knobs-off run. Manual, like the pin above. Issues 311 and 317 moved it from
 /// 0xd56e_4229_4318_c6fd only through the `career-inputs-v1` hash block, as
 /// for the constant above. Accumulated mood from needs moved it again from
-/// 0x4010_87ef_b43d_dcac, measured with both work settings off.
+/// 0x4010_87ef_b43d_dcac, measured with both work settings off. Conversation
+/// subjects then moved it from 0xf3ba_92d7_8ed8_2f51, for the reason given for
+/// the two-day fold; with the subject rows removed from the pack the old value
+/// is reproduced. Measured in a release build from the failing assertion.
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0x93a8_add0_570b_a742);
+    assert_eq!(fold_without_the_work_knobs(20), 0xf3ae_9319_a9b5_9cb8);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game
@@ -1171,4 +1175,30 @@ fn two_outcomes_in_one_tick_keep_their_own_feelings() {
     };
     assert_eq!(parent_of(first_feeling), first);
     assert_eq!(parent_of(second_feeling), second);
+}
+
+/// [RT-R3] on the log side: a chat about a subject the content no longer has
+/// finishes with the `unknown-subject` label, so its line still says
+/// "something", while a tag the content never names stays unlabelled.
+#[test]
+fn a_subject_missing_from_content_logs_as_the_unknown_subject() {
+    let pack = terri_data::pack();
+    let labels = crate::activity_log::labels(pack);
+    let unknown = labels.index("subject:unknown-subject");
+    assert_ne!(unknown, crate::activity_log::NONE);
+    assert_eq!(labels.topic_index("subject:left-the-game"), unknown);
+    assert_eq!(
+        labels.topic_index("subject:trains"),
+        labels.index("subject:trains")
+    );
+    assert_ne!(labels.index("subject:trains"), unknown);
+    assert_eq!(labels.topic_index("never-named"), crate::activity_log::NONE);
+    let row = &pack.topics[(labels.topic_rows()[unknown as usize] & 0xffff) as usize - 1];
+    assert_eq!(
+        (row.id.as_str(), row.label.as_str()),
+        ("unknown-subject", "something")
+    );
+    let trains = &pack.topics
+        [(labels.topic_rows()[labels.index("subject:trains") as usize] & 0xffff) as usize - 1];
+    assert_eq!(trains.id, "trains");
 }

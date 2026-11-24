@@ -1467,7 +1467,9 @@ describe('SimBridge', () => {
     // Main's three-quarter need drain changes the scenario's need levels.
     // Independently measured on native and rebuilt release WebAssembly on
     // 2026-11-20 after integrating that balance with saved world surfaces.
-    expect(bridge.worldHash()).toBe(16523105578250608243n);
+    // The subject a Sim picks changes later random draws. Native and release
+    // WebAssembly both produced this digest with the combined household rules.
+    expect(bridge.worldHash()).toBe(17435874788369320558n);
   });
 
   // ---- Player commands -------------------------------------------------
