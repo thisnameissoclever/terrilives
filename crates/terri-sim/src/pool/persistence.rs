@@ -8,7 +8,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{AtWork, Commuting, Reserved, StepWork};
 
 #[derive(Clone, Copy)]
-enum Coordinates { HistoricalV22, Current }
+enum Coordinates {
+    HistoricalV22,
+    Current,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SavedPoolClock {
@@ -61,7 +64,10 @@ pub(crate) fn restore(
     Ok(())
 }
 
-pub(crate) fn restore_historical_v22(world: &mut World, rows: Vec<SavedPoolEpisode>) -> Result<(), SaveError> {
+pub(crate) fn restore_historical_v22(
+    world: &mut World,
+    rows: Vec<SavedPoolEpisode>,
+) -> Result<(), SaveError> {
     attach(world, rows)?;
     validate_physical(world, Coordinates::HistoricalV22, SavedPoolClock::Legacy)?;
     validate_orders(world)
@@ -143,7 +149,11 @@ fn phase_valid(e: &PoolEpisode, clock: SavedPoolClock) -> bool {
                 && (e.interrupted || e.exit_origin == SWIM_TICKS)
         }
         4 => {
-            let limit = if clock == SavedPoolClock::Legacy { ENTER_TICKS } else { TAKEOFF_TICK };
+            let limit = if clock == SavedPoolClock::Legacy {
+                ENTER_TICKS
+            } else {
+                TAKEOFF_TICK
+            };
             e.elapsed < limit && e.interrupted && e.exit_origin == 0
         }
         CANCELED_LANDING => {
@@ -156,7 +166,11 @@ fn phase_valid(e: &PoolEpisode, clock: SavedPoolClock) -> bool {
     }
 }
 
-fn validate_physical(world: &World, coordinates: Coordinates, clock: SavedPoolClock) -> Result<(), SaveError> {
+fn validate_physical(
+    world: &World,
+    coordinates: Coordinates,
+    clock: SavedPoolClock,
+) -> Result<(), SaveError> {
     let pack = world.resource::<Content>().0;
     let pools: BTreeSet<_> =
         world
@@ -221,7 +235,8 @@ fn validate_physical(world: &World, coordinates: Coordinates, clock: SavedPoolCl
                     || eating.is_none_or(|work| {
                         work.object != object.0
                             || work.interaction != target.interaction
-                            || Some(work.remaining_ticks) != countdown(e.phase, e.elapsed, clock.exit_ticks())
+                            || Some(work.remaining_ticks)
+                                != countdown(e.phase, e.elapsed, clock.exit_ticks())
                     })
                 {
                     return Err(SaveError::InvalidValue);

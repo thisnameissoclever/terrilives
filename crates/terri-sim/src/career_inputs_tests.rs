@@ -103,7 +103,10 @@ fn score_into_week(sim: &mut Sim, actor: Entity, shifts: &[ShiftInputs]) {
     let now = sim.world().resource::<SimClock>().tick;
     let week = week_of(now, DAY as u32);
     let base_pay = record(sim, *sim.world().get::<SimId>(actor).unwrap()).pay;
-    let source = ShiftSource { career, base_pay: Some(base_pay) };
+    let source = ShiftSource {
+        career,
+        base_pay: Some(base_pay),
+    };
     for read in shifts {
         let score = shift_score(read.fit, read.mastery, read.mood);
         complete_attended_shift(
@@ -261,7 +264,10 @@ fn a_promotions_row_carries_the_old_level_and_the_rows_stay() {
 #[test]
 fn a_forfeited_shift_gets_no_inputs_and_a_migrated_week_no_row() {
     let (mut sim, actor, id) = fixture(|_| {});
-    let source = ShiftSource { career: 0, base_pay: Some(record(&sim, id).pay) };
+    let source = ShiftSource {
+        career: 0,
+        base_pay: Some(record(&sim, id).pay),
+    };
     complete_attended_shift(sim.world_mut(), actor, source, 0, 1.0, None, 0);
     let held = record(&sim, id);
     assert!(held.shifts.is_empty() && held.shift_inputs.is_empty());

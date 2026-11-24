@@ -15,10 +15,15 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     // Restore its authored inputs before compiling the inheritance fixtures.
     tuning.need_mood.empty_loss_units = 500;
     let mut objects: ObjectsFile = toml::from_str(&source).unwrap();
-    let pool = objects.object_type.iter_mut().find(|kind| kind.id == "pool")
+    let pool = objects
+        .object_type
+        .iter_mut()
+        .find(|kind| kind.id == "pool")
         .expect("the inherited household fixture includes the pool");
     pool.action.retain(|action| action.id != "hop_in");
-    objects.action_template.retain(|template| template.id != "hop_in");
+    objects
+        .action_template
+        .retain(|template| template.id != "hop_in");
     let pack = terri_data::pack();
     let mut result = compile(
         toml::from_str(include_str!("../../../content/needs.toml")).unwrap(),

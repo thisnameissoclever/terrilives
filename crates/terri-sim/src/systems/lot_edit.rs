@@ -76,7 +76,7 @@ pub fn drain_commands(world: &mut World) {
                 continue;
             }
             if let SimCommand::TalkTo { agent, target, .. }
-                | SimCommand::TalkToFirst { agent, target, .. } = &command
+            | SimCommand::TalkToFirst { agent, target, .. } = &command
             {
                 world.insert_resource(crate::player_actions::ConfirmedRecipientOrder {
                     agent: *agent,

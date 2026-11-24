@@ -106,9 +106,15 @@ fn published_career_v24_saves_keep_the_whole_payload_and_start_need_mood_at_zero
         let current = migrated.save_bytes();
         let snapshot = decode_current(&current);
         assert_eq!(snapshot.previous.career_inputs, career.career_inputs);
-        assert_eq!(snapshot.previous.queued_work_commands, career.queued_work_commands);
+        assert_eq!(
+            snapshot.previous.queued_work_commands,
+            career.queued_work_commands
+        );
         assert_eq!(snapshot.previous.replaced_shifts, career.replaced_shifts);
-        assert_eq!(snapshot.previous.legacy.presence_fade, career.legacy.presence_fade);
+        assert_eq!(
+            snapshot.previous.legacy.presence_fade,
+            career.legacy.presence_fade
+        );
         assert!(snapshot.need_mood.is_empty());
 
         let mut resumed = SimHandle::from_lot();
@@ -133,7 +139,8 @@ fn wrong_save_envelopes_leave_the_live_world_unchanged() {
         let mut bytes = original.clone();
         bytes[8..10].copy_from_slice(&version.to_le_bytes());
         if version == 24 {
-            let (_, tail) = postcard::take_from_bytes::<u64>(&original[SAVE_HEADER_BYTES..]).unwrap();
+            let (_, tail) =
+                postcard::take_from_bytes::<u64>(&original[SAVE_HEADER_BYTES..]).unwrap();
             let end = original.len() - tail.len();
             let private_digest = postcard::to_allocvec(&0x7229_9218_57a2_e3ae_u64).unwrap();
             bytes.splice(SAVE_HEADER_BYTES..end, private_digest);
@@ -149,15 +156,15 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     use terri_core::{SaveSnapshotV26, SaveSnapshotV27};
 
     let mut live = SimHandle::from_lot();
-    assert!(live.load_bytes(include_bytes!("../tests/fixtures/private-editable/bath-v25.sav")));
+    assert!(live.load_bytes(include_bytes!(
+        "../tests/fixtures/private-editable/bath-v25.sav"
+    )));
     set_balance(&mut live, 0, 1_417);
     let current = live.save_bytes();
     let snapshot = decode_current(&current);
     assert_eq!(snapshot.baths.len(), 1);
-    let (editable, tail) = postcard::take_from_bytes::<SaveSnapshotV26>(
-        &current[SAVE_HEADER_BYTES..],
-    )
-    .unwrap();
+    let (editable, tail) =
+        postcard::take_from_bytes::<SaveSnapshotV26>(&current[SAVE_HEADER_BYTES..]).unwrap();
     assert_eq!(editable, snapshot.editable);
     assert_eq!(tail, postcard::to_allocvec(&snapshot.need_mood).unwrap());
 
@@ -182,8 +189,8 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     assert!(migrated.need_mood.is_empty());
 
     let published_career = include_bytes!("../tests/fixtures/published-v24/day-two.sav");
-    let (legacy, trailing) = postcard::take_from_bytes(&published_career[SAVE_HEADER_BYTES..])
-        .unwrap();
+    let (legacy, trailing) =
+        postcard::take_from_bytes(&published_career[SAVE_HEADER_BYTES..]).unwrap();
     assert!(trailing.is_empty());
     let published = SaveSnapshotV27 {
         legacy,

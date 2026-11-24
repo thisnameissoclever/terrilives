@@ -276,7 +276,10 @@ impl Sim {
         )
     }
 
-    pub fn build_pool_contacts_required(&self, token: BuildToken) -> Result<bool, BuildCommitError> {
+    pub fn build_pool_contacts_required(
+        &self,
+        token: BuildToken,
+    ) -> Result<bool, BuildCommitError> {
         self.prepared_build(token)
             .map(|build| crate::pool::contacts_required(&build.candidate.world))
     }

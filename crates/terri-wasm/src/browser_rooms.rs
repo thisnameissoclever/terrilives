@@ -483,9 +483,17 @@ impl SimHandle {
     pub fn pool_contacts_required(&self) -> bool {
         self.sim.pool_contacts_required()
     }
-    pub fn build_pool_contacts_required(&self, session: u64, revision: u64, preparation: u64) -> Vec<u8> {
+    pub fn build_pool_contacts_required(
+        &self,
+        session: u64,
+        revision: u64,
+        preparation: u64,
+    ) -> Vec<u8> {
         response(|w| {
-            let required = self.sim.build_pool_contacts_required(token(session, revision, preparation)).map_err(error)?;
+            let required = self
+                .sim
+                .build_pool_contacts_required(token(session, revision, preparation))
+                .map_err(error)?;
             w.byte(u8::from(required))
         })
     }

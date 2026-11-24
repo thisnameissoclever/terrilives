@@ -235,7 +235,9 @@ fn legacy_active_bath_selects_once_and_current_missing_rows_fail_transactionally
     let (mut sim, actor, _) = occupied_bath();
     let old = sim.try_save_snapshot_editable_world_v22().unwrap();
     let mut migrated = Sim::new_with_lot(12, 12);
-    migrated.load_snapshot_editable_world_v22(old.clone()).unwrap();
+    migrated
+        .load_snapshot_editable_world_v22(old.clone())
+        .unwrap();
     let adopted = migrated.save_snapshot_v28();
     assert_eq!(adopted.baths.len(), 1);
     assert_eq!(adopted.baths[0].elapsed, 0);

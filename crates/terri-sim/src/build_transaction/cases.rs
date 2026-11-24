@@ -34,7 +34,8 @@ fn confirm(sim: &mut Sim) -> BuildReview {
 #[test]
 fn first_pool_requires_contacts_only_for_the_prepared_candidate_until_confirmed() {
     let mut sim = Sim::new_with_lot(9, 9);
-    sim.world_mut().insert_resource(terri_core::Funds::from_dollars(10_000));
+    sim.world_mut()
+        .insert_resource(terri_core::Funds::from_dollars(10_000));
     assert!(!sim.pool_contacts_required());
     sim.begin_build().unwrap();
     let before = sim.prepare_build_commit(RoomChoices::default()).unwrap();
@@ -42,11 +43,20 @@ fn first_pool_requires_contacts_only_for_the_prepared_candidate_until_confirmed(
 
     let pack = sim.world().resource::<Content>().0;
     let definition = pack.find("pool_rectangular").unwrap();
-    issue(&mut sim, SimCommand::BuyObject {
-        definition: definition.0, x: 4, y: 4, facing: pack.object(definition).base_facing,
-    });
+    issue(
+        &mut sim,
+        SimCommand::BuyObject {
+            definition: definition.0,
+            x: 4,
+            y: 4,
+            facing: pack.object(definition).base_facing,
+        },
+    );
     assert!(!sim.pool_contacts_required());
-    assert_eq!(sim.build_pool_contacts_required(before.token), Err(BuildCommitError::StaleToken));
+    assert_eq!(
+        sim.build_pool_contacts_required(before.token),
+        Err(BuildCommitError::StaleToken)
+    );
     let with_pool = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     assert_eq!(sim.build_pool_contacts_required(with_pool.token), Ok(true));
     assert!(!sim.pool_contacts_required());

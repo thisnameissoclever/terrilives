@@ -191,8 +191,14 @@ pub struct ShiftSource {
 
 impl Record {
     fn record_shift_input(&mut self, career: u32, read: ShiftInputs, source: ShiftSource) {
-        if source != (ShiftSource { career, base_pay: Some(self.pay) }) {
-            self.current_input_sources.insert(self.shift_inputs.len() as u32, source);
+        if source
+            != (ShiftSource {
+                career,
+                base_pay: Some(self.pay),
+            })
+        {
+            self.current_input_sources
+                .insert(self.shift_inputs.len() as u32, source);
         }
         self.shift_inputs.push(read);
         self.last_shift = Some(read);
@@ -739,7 +745,10 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
         record.record_shift_input(
             current_career.expect("an employed worker kept their career record"),
             read,
-            ShiftSource { career: original_career, base_pay: Some(pay) },
+            ShiftSource {
+                career: original_career,
+                base_pay: Some(pay),
+            },
         );
         let target = 50.0 + 40.0 * fit;
         let step = tuning.career_satisfaction_rate;
@@ -789,7 +798,9 @@ pub(crate) fn complete_attended_shift(
             return;
         }
     }
-    let current_career = world.get::<Career>(worker).map_or(source.career, |career| career.0);
+    let current_career = world
+        .get::<Career>(worker)
+        .map_or(source.career, |career| career.0);
     let fit = fit(world, pack, job, worker);
     let miserable = {
         let mut careers = world.resource_mut::<Careers>();
@@ -1126,7 +1137,9 @@ fn review_person(
     let input_sources = std::mem::take(&mut record.current_input_sources);
     if let Some(row) = week_inputs(record, ended_week, world.get::<Career>(entity).map(|c| c.0)) {
         if !input_sources.is_empty() {
-            record.reviewed_input_sources.insert(row.week, input_sources);
+            record
+                .reviewed_input_sources
+                .insert(row.week, input_sources);
         }
         record.input_weeks.push_back(row);
         while record.input_weeks.len() > tuning.career_input_history_weeks as usize {
@@ -1804,7 +1817,11 @@ pub(crate) fn hash_input_sources(world: &World, hash: &mut FnvHasher) {
     }
     hash.write_bytes(b"career-input-sources-v1");
     hash.write_u64(count as u64);
-    for (sim, record) in careers.records.iter().filter(|(_, record)| exceptional(record)) {
+    for (sim, record) in careers
+        .records
+        .iter()
+        .filter(|(_, record)| exceptional(record))
+    {
         hash.write_u64(u64::from(sim.0));
         hash_source_rows(&record.current_input_sources, hash);
         hash.write_u64(record.reviewed_input_sources.len() as u64);
@@ -2280,11 +2297,14 @@ pub fn input_history(world: &World, entity: Entity) -> Vec<f32> {
             let social_demand = record.reviewed_input_sources.get(&week.week).map_or(
                 job.social_demand,
                 |sources| {
-                    (0..week.shifts).map(|index| {
-                        sources.get(&index).map_or(job.social_demand, |source| {
-                            pack.careers[source.career as usize].social_demand
+                    (0..week.shifts)
+                        .map(|index| {
+                            sources.get(&index).map_or(job.social_demand, |source| {
+                                pack.careers[source.career as usize].social_demand
+                            })
                         })
-                    }).sum::<f32>() / week.shifts as f32
+                        .sum::<f32>()
+                        / week.shifts as f32
                 },
             );
             Some([
@@ -2316,7 +2336,10 @@ pub fn input_sources(world: &World, entity: Entity) -> Vec<f64> {
     let Some(pack) = world.get_resource::<Content>().map(|content| content.0) else {
         return Vec::new();
     };
-    let Some(record) = world.get_resource::<Careers>().and_then(|careers| careers.record(*sim)) else {
+    let Some(record) = world
+        .get_resource::<Careers>()
+        .and_then(|careers| careers.record(*sim))
+    else {
         return Vec::new();
     };
     let mut output = Vec::new();
@@ -2324,11 +2347,19 @@ pub fn input_sources(world: &World, entity: Entity) -> Vec<f64> {
         let Some(sources) = record.reviewed_input_sources.get(&week.week) else {
             continue;
         };
-        let default = ShiftSource { career: week.career, base_pay: Some(week.pay) };
+        let default = ShiftSource {
+            career: week.career,
+            base_pay: Some(week.pay),
+        };
         for index in 0..week.shifts {
             let source = sources.get(&index).copied().unwrap_or(default);
             let job = &pack.careers[source.career as usize];
-            output.extend([week.week as f64, f64::from(job.path), f64::from(job.level), source.base_pay.map_or(-1.0, f64::from)]);
+            output.extend([
+                week.week as f64,
+                f64::from(job.path),
+                f64::from(job.level),
+                source.base_pay.map_or(-1.0, f64::from),
+            ]);
         }
     }
     output

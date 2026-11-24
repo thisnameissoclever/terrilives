@@ -130,8 +130,7 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
         "authenticated V14/V15 catalogue"
     );
     assert_eq!(
-        *captured,
-        CURRENT_CATALOGUE_FINGERPRINT,
+        *captured, CURRENT_CATALOGUE_FINGERPRINT,
         "current catalogue"
     );
     *captured = source;

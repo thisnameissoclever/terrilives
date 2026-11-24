@@ -82,9 +82,9 @@ pub fn prepare(sim: &mut Sim, flags: &Flags) {
     }
     if let Some(limit) = flags.lateness_limit {
         let mut pack = sim.world().resource::<Content>().0.clone();
-            pack.tuning.work_lateness_limit_ticks = limit;
-            pack.tuning.work_lateness_ramp_ticks =
-                pack.tuning.work_lateness_ramp_ticks.min(limit.max(1));
+        pack.tuning.work_lateness_limit_ticks = limit;
+        pack.tuning.work_lateness_ramp_ticks =
+            pack.tuning.work_lateness_ramp_ticks.min(limit.max(1));
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
     }

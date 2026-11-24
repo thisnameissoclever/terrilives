@@ -285,25 +285,55 @@ fn exceptional_career_week_sources_keep_pre_review_pay_and_report_weighted_deman
     reviewed.shifts = 3;
     reviewed.attended = 2;
     record.input_weeks.push_back(reviewed);
-    record.reviewed_input_sources.insert(expected_week, [(0, terri_sim::careers::ShiftSource {
-        career: 0,
-        base_pay: Some(previous.pay),
-    })].into());
+    record.reviewed_input_sources.insert(
+        expected_week,
+        [(
+            0,
+            terri_sim::careers::ShiftSource {
+                career: 0,
+                base_pay: Some(previous.pay),
+            },
+        )]
+        .into(),
+    );
 
     let row = handle.career_input_history(worker);
     assert_eq!(row.len(), 14);
-    assert_eq!(row[9], f64::from((previous.social_demand + current.social_demand + current.social_demand) / 3.0));
+    assert_eq!(
+        row[9],
+        f64::from((previous.social_demand + current.social_demand + current.social_demand) / 3.0)
+    );
     assert_eq!(row[13], f64::from(current.pay));
-    assert_eq!(handle.career_input_sources(worker), [
-        4.0, f64::from(previous.path), f64::from(previous.level), f64::from(previous.pay),
-        4.0, f64::from(current.path), f64::from(current.level), f64::from(current.pay),
-        4.0, f64::from(current.path), f64::from(current.level), f64::from(current.pay),
-    ]);
+    assert_eq!(
+        handle.career_input_sources(worker),
+        [
+            4.0,
+            f64::from(previous.path),
+            f64::from(previous.level),
+            f64::from(previous.pay),
+            4.0,
+            f64::from(current.path),
+            f64::from(current.level),
+            f64::from(current.pay),
+            4.0,
+            f64::from(current.path),
+            f64::from(current.level),
+            f64::from(current.pay),
+        ]
+    );
     assert!(handle.career_input_sources(u32::MAX).is_empty());
-    record_of(&mut handle, id).reviewed_input_sources.get_mut(&expected_week)
-        .unwrap().get_mut(&0).unwrap().base_pay = None;
+    record_of(&mut handle, id)
+        .reviewed_input_sources
+        .get_mut(&expected_week)
+        .unwrap()
+        .get_mut(&0)
+        .unwrap()
+        .base_pay = None;
     assert_eq!(handle.career_input_sources(worker)[3], -1.0);
-    assert_eq!(handle.career_input_history(worker)[13], f64::from(current.pay));
+    assert_eq!(
+        handle.career_input_history(worker)[13],
+        f64::from(current.pay)
+    );
 }
 
 /// [CT-web] item 4: the seven `ShiftInputs` numbers, `[fit, trait_fit,

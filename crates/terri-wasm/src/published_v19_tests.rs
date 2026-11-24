@@ -37,8 +37,7 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
             .legacy
             .legacy;
         assert_eq!(
-            view.world.content_fingerprint,
-            0x5111_16ef_ac94_ae24,
+            view.world.content_fingerprint, 0x5111_16ef_ac94_ae24,
             "authentic fixture content shape"
         );
         native_control

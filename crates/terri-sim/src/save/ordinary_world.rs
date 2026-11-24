@@ -88,7 +88,10 @@ pub(crate) enum CommuteEndpoints {
     DepartureAndHome,
 }
 
-pub(crate) fn validate_commutes(world: &World, endpoints: CommuteEndpoints) -> Result<(), SaveError> {
+pub(crate) fn validate_commutes(
+    world: &World,
+    endpoints: CommuteEndpoints,
+) -> Result<(), SaveError> {
     let Some(mut actors) = world.try_query::<EntityRef>() else {
         return Ok(());
     };
@@ -107,8 +110,10 @@ pub(crate) fn validate_commutes(world: &World, endpoints: CommuteEndpoints) -> R
         if *direction == Commuting::Outbound {
             let endpoint = crate::world_geometry::route_endpoint(*position, path)
                 .ok_or(SaveError::InvalidGrid)?;
-            if exits.get_or_insert_with(|| crate::world_geometry::boundary_tiles(world, grid))
-                .binary_search(&endpoint).is_err()
+            if exits
+                .get_or_insert_with(|| crate::world_geometry::boundary_tiles(world, grid))
+                .binary_search(&endpoint)
+                .is_err()
             {
                 return Err(SaveError::InvalidGrid);
             }
@@ -143,7 +148,9 @@ pub(crate) fn restore_commutes(world: &mut World, rows: Vec<(u32, u8)>) -> Resul
         }
         if direction == 2 {
             if world.get::<Commuting>(entity).is_some()
-                || world.get::<AtWork>(entity).is_none_or(|work| work.remaining_ticks != 1)
+                || world
+                    .get::<AtWork>(entity)
+                    .is_none_or(|work| work.remaining_ticks != 1)
                 || world.get::<Path>(entity).is_some()
             {
                 return Err(SaveError::InvalidValue);

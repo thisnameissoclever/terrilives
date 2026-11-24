@@ -2,24 +2,53 @@ use super::*;
 
 #[test]
 fn typed_media_cause_preserves_the_nine_string_wire_and_can_emit_a_game_fixture() {
-    use terri_core::{layout::{EdgeAxis, SavedLayout, WallEdge}, TileGrid};
+    use terri_core::{
+        layout::{EdgeAxis, SavedLayout, WallEdge},
+        TileGrid,
+    };
     let mut handle = SimHandle::new(8, 8);
     assert!(handle.spawn_object(4., 4., "radio"));
     handle.spawn_agent(3., 4., 50.);
-    let edges: Vec<_> = (0..8).map(|y| WallEdge { axis: EdgeAxis::Vertical, x: 5, y, doorway: false }).collect();
+    let edges: Vec<_> = (0..8)
+        .map(|y| WallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 5,
+            y,
+            doorway: false,
+        })
+        .collect();
     {
         let mut grid = handle.sim.world_mut().resource_mut::<TileGrid>();
-        for edge in &edges { let [a,b] = edge.cells(); grid.set_edge_blocked(a,b,true); }
+        for edge in &edges {
+            let [a, b] = edge.cells();
+            grid.set_edge_blocked(a, b, true);
+        }
     }
-    handle.sim.world_mut().insert_resource(SavedLayout::EdgeWallsV1 { edges });
-    assert!(handle.enqueue_command(&postcard::to_allocvec(&SimCommand::UseObjectFirst { agent: 1, object: 0, interaction: 0 }).unwrap()));
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    assert!(handle.enqueue_command(
+        &postcard::to_allocvec(&SimCommand::UseObjectFirst {
+            agent: 1,
+            object: 0,
+            interaction: 0
+        })
+        .unwrap()
+    ));
     handle.flush_commands();
     handle.tick();
     let raw = handle.order_events_since("0");
     assert_eq!((raw.len() - 2) % 9, 0);
-    let failed = raw[2..].chunks_exact(9).find(|row| row[6] == "failed").expect("actual media plan fails");
+    let failed = raw[2..]
+        .chunks_exact(9)
+        .find(|row| row[6] == "failed")
+        .expect("actual media plan fails");
     assert_eq!(failed[7], "No reachable media position");
-    assert_eq!(handle.order_failure_cause(&failed[0]), "no-reachable-media-position");
+    assert_eq!(
+        handle.order_failure_cause(&failed[0]),
+        "no-reachable-media-position"
+    );
     let saved = handle.save_bytes();
     for invalid in ["", "0", "-1", "+1", "1.5", "18446744073709551616"] {
         assert!(handle.order_failure_cause(invalid).is_empty());
@@ -32,10 +61,20 @@ fn typed_media_cause_preserves_the_nine_string_wire_and_can_emit_a_game_fixture(
     if let Ok(destination) = std::env::var("NC_ORDER_CAUSE_FIXTURE") {
         use std::io::Write;
         let path = std::path::PathBuf::from(destination);
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap();
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap();
         let parent = path.parent().unwrap().canonicalize().unwrap();
-        assert!(parent.starts_with(root.join(".superpowers")), "fixture output must stay in task scratch");
-        let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(parent.join(path.file_name().unwrap())).unwrap();
+        assert!(
+            parent.starts_with(root.join(".superpowers")),
+            "fixture output must stay in task scratch"
+        );
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(parent.join(path.file_name().unwrap()))
+            .unwrap();
         file.write_all(&saved).unwrap();
     }
 }

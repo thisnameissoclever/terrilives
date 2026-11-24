@@ -31,21 +31,39 @@ fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
         let mut migrated = SimHandle::from_lot();
         assert!(migrated.load_bytes(bytes), "{name}");
         let current = migrated.save_bytes();
-        assert_eq!(&current[8..10], &SAVE_SCHEMA_VERSION.to_le_bytes(), "{name}");
+        assert_eq!(
+            &current[8..10],
+            &SAVE_SCHEMA_VERSION.to_le_bytes(),
+            "{name}"
+        );
         let saved = decode_current(&current);
         assert!(saved.previous.career_inputs.is_empty(), "{name}");
         assert!(saved.previous.queued_work_commands.is_empty(), "{name}");
         assert!(saved.previous.replaced_shifts.is_empty(), "{name}");
-        assert_eq!(saved.previous.legacy.presence_fade, original.presence_fade, "{name}");
-        assert_eq!(saved.previous.legacy.legacy.bills, original.legacy.bills, "{name}");
-        assert_eq!(saved.previous.legacy.legacy.legacy.shifts, original.legacy.legacy.shifts, "{name}");
-        assert_eq!(saved.previous.legacy.legacy.legacy.queued_shift_commands,
-            original.legacy.legacy.queued_shift_commands, "{name}");
+        assert_eq!(
+            saved.previous.legacy.presence_fade, original.presence_fade,
+            "{name}"
+        );
+        assert_eq!(
+            saved.previous.legacy.legacy.bills, original.legacy.bills,
+            "{name}"
+        );
+        assert_eq!(
+            saved.previous.legacy.legacy.legacy.shifts, original.legacy.legacy.shifts,
+            "{name}"
+        );
+        assert_eq!(
+            saved.previous.legacy.legacy.legacy.queued_shift_commands,
+            original.legacy.legacy.queued_shift_commands,
+            "{name}"
+        );
         let before = &original.legacy.legacy.legacy.legacy.legacy.legacy;
         let after = &saved.gameplay_v20().legacy.legacy.legacy;
         assert_eq!(after.attendance, before.attendance, "{name}");
-        assert_eq!(after.legacy.legacy.legacy.careers,
-            before.legacy.legacy.legacy.careers, "{name}");
+        assert_eq!(
+            after.legacy.legacy.legacy.careers, before.legacy.legacy.legacy.careers,
+            "{name}"
+        );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");

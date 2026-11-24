@@ -39,7 +39,8 @@ fn authentic_published_v21_preserves_shifts_queues_and_current_continuation() {
             "{name}: exact held shift, stream and same-day ownership"
         );
         assert_eq!(
-            decoded.previous.legacy.legacy.legacy.queued_shift_commands, original.queued_shift_commands,
+            decoded.previous.legacy.legacy.legacy.queued_shift_commands,
+            original.queued_shift_commands,
             "{name}: exact mixed-queue positions"
         );
         assert_eq!(
@@ -115,10 +116,13 @@ fn combined_v25_preserves_activity_and_household_state_across_build() {
     use terri_core::{CommandQueue, Funds, SimClock, SimId};
     let mut source = SimHandle::new(20, 20);
     let lot = &source.sim.world().resource::<Content>().0.lot;
-    source.sim.world_mut().insert_resource(terri_sim::lot_frame::LotFrame {
-        origin: (0, 0),
-        purchased_area: 400 - lot.width * lot.height,
-    });
+    source
+        .sim
+        .world_mut()
+        .insert_resource(terri_sim::lot_frame::LotFrame {
+            origin: (0, 0),
+            purchased_area: 400 - lot.width * lot.height,
+        });
     source.sim.world_mut().insert_resource(Funds(100_000));
     assert!(source.spawn_object(4., 4., "pool"));
     source.spawn_agent(3., 5., 50.);
@@ -180,8 +184,13 @@ fn combined_v25_preserves_activity_and_household_state_across_build() {
         source.tick();
     }
     let now = source.sim.world().resource::<SimClock>().tick;
-    let plants = u32::try_from(pack.affinities.iter().position(|kind| kind.id == "plants").unwrap())
-        .unwrap();
+    let plants = u32::try_from(
+        pack.affinities
+            .iter()
+            .position(|kind| kind.id == "plants")
+            .unwrap(),
+    )
+    .unwrap();
     source
         .sim
         .world_mut()
@@ -200,13 +209,29 @@ fn combined_v25_preserves_activity_and_household_state_across_build() {
         "ordinary bath order reaches its activity"
     );
     assert_eq!(baseline.previous.legacy.legacy.legacy.shifts.held.len(), 1);
-    assert_eq!(baseline.previous.legacy.legacy.legacy.shifts.changed_today.len(), 1);
+    assert_eq!(
+        baseline
+            .previous
+            .legacy
+            .legacy
+            .legacy
+            .shifts
+            .changed_today
+            .len(),
+        1
+    );
     assert!(
         baseline.previous.legacy.legacy.legacy.shifts.draws > 0,
         "actual hire advances the independent shift stream"
     );
     assert_eq!(baseline.previous.legacy.presence_fade.len(), 1);
-    assert!(baseline.previous.legacy.legacy.bills.last_counted_day.is_some());
+    assert!(baseline
+        .previous
+        .legacy
+        .legacy
+        .bills
+        .last_counted_day
+        .is_some());
     assert_eq!(source.sim.current_v5_view().floors.covering(18, 18), 1);
     source.sim.begin_build().unwrap();
     issue(
@@ -244,9 +269,18 @@ fn combined_v25_preserves_activity_and_household_state_across_build() {
     assert_eq!(source.sim_tick(), now);
     let committed = source.save_bytes();
     let saved = decode_current(&committed);
-    assert_eq!(saved.previous.legacy.legacy.bills, baseline.previous.legacy.legacy.bills);
-    assert_eq!(saved.previous.legacy.presence_fade, baseline.previous.legacy.presence_fade);
-    assert_eq!(saved.previous.legacy.legacy.legacy.shifts, baseline.previous.legacy.legacy.legacy.shifts);
+    assert_eq!(
+        saved.previous.legacy.legacy.bills,
+        baseline.previous.legacy.legacy.bills
+    );
+    assert_eq!(
+        saved.previous.legacy.presence_fade,
+        baseline.previous.legacy.presence_fade
+    );
+    assert_eq!(
+        saved.previous.legacy.legacy.legacy.shifts,
+        baseline.previous.legacy.legacy.legacy.shifts
+    );
     assert_eq!(saved.pools, baseline.pools);
     assert_eq!(saved.baths, baseline.baths);
 

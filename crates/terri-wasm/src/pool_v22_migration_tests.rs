@@ -71,7 +71,9 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
                             legacy: terri_core::SaveSnapshotV21 {
                                 legacy: source.previous.previous.clone(),
                                 shifts: terri_core::save_v21::SavedShifts {
-                                    rng: terri_core::SimRng::from_seed(terri_sim::shifts::SHIFTS_SEED),
+                                    rng: terri_core::SimRng::from_seed(
+                                        terri_sim::shifts::SHIFTS_SEED,
+                                    ),
                                     draws: 0,
                                     held: vec![],
                                     changed_today: vec![],

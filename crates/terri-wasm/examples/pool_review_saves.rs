@@ -22,7 +22,10 @@ fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32)
     let (x, y) = facing.rotate_axis(-3, 1);
     let offset = ((x + 1) / 2, (y + 1) / 2);
     if let Some(episode) = episode {
-        assert_eq!(episode.approach, (position.x as i32 + offset.0, position.y as i32 + offset.1));
+        assert_eq!(
+            episode.approach,
+            (position.x as i32 + offset.0, position.y as i32 + offset.1)
+        );
     }
     format!("{{\"file\":\"{name}.bin\",\"actor\":{actor},\"pool\":{pool},\"hasEpisode\":{},\"phase\":{},\"elapsed\":{},\"exitOrigin\":{},\"facing\":{},\"poolOrigin\":[{},{}],\"approach\":[{},{}],\"bytes\":{}}}",
         episode.is_some(),episode.map_or(0,|e|e.phase),episode.map_or(0,|e|e.elapsed),episode.map_or(0,|e|e.exit_origin),facing.code(),
@@ -101,7 +104,15 @@ fn main() {
     }
     for facing in Facing::ALL {
         for (preset, presentation, height, build, torso, shirt, trousers) in [
-            ("neutral", "masculine", 50, 50, 50, [170, 30, 80], [20, 70, 140]),
+            (
+                "neutral",
+                "masculine",
+                50,
+                50,
+                50,
+                [170, 30, 80],
+                [20, 70, 140],
+            ),
             (
                 "short-wide",
                 "feminine",
@@ -182,11 +193,17 @@ fn main() {
             ));
             let prefix = format!("pool-f{}-{presentation}-{preset}", facing.code());
             if preset == "masculine-short-broad" {
-                sim.world_mut().resource_mut::<CommandQueue>().push(
-                    SimCommand::Select(Some(actor.index_u32())),
-                );
+                sim.world_mut()
+                    .resource_mut::<CommandQueue>()
+                    .push(SimCommand::Select(Some(actor.index_u32())));
                 sim.flush_commands();
-                receipts.push(write(&sim, &folder, &format!("{prefix}-idle"), actor.index_u32(), pool.index_u32()));
+                receipts.push(write(
+                    &sim,
+                    &folder,
+                    &format!("{prefix}-idle"),
+                    actor.index_u32(),
+                    pool.index_u32(),
+                ));
             }
             sim.world_mut()
                 .resource_mut::<CommandQueue>()

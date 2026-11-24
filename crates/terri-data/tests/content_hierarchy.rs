@@ -746,7 +746,9 @@ fn the_yard_catalogue_offers_the_rectangular_pool_and_retains_the_square_model()
 
     let pack = terri_data::pack();
     let legacy_id = pack.find("pool").expect("saved square pool model");
-    let replacement_id = pack.find("pool_rectangular").expect("rectangular pool model");
+    let replacement_id = pack
+        .find("pool_rectangular")
+        .expect("rectangular pool model");
     let legacy = pack.object(legacy_id);
     let replacement = pack.object(replacement_id);
     assert_eq!(legacy.price, Some(1200));
@@ -761,10 +763,16 @@ fn the_yard_catalogue_offers_the_rectangular_pool_and_retains_the_square_model()
         .collect();
     assert_eq!(offered, [replacement_id]);
     assert_eq!(replacement.base_facing, Facing::SouthEast);
-    for (facing, (width, depth)) in Facing::ALL.into_iter().zip([(3, 2), (2, 3), (3, 2), (2, 3)]) {
+    for (facing, (width, depth)) in Facing::ALL
+        .into_iter()
+        .zip([(3, 2), (2, 3), (3, 2), (2, 3)])
+    {
         assert!(replacement.supports(facing), "{facing:?}");
         assert_eq!(replacement.footprint_at(facing), Footprint { width, depth });
-        assert_eq!(legacy.footprint_at(facing), Footprint { width: 2, depth: 2 });
+        assert_eq!(
+            legacy.footprint_at(facing),
+            Footprint { width: 2, depth: 2 }
+        );
     }
 }
 

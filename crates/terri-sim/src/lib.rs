@@ -1738,7 +1738,10 @@ impl Sim {
     pub fn try_save_snapshot_v28(&self) -> Result<terri_core::SaveSnapshotV28, SaveError> {
         let mut snapshot = self.try_save_snapshot_v30()?;
         if !pool::legacy_exit_clock_is_exact(&snapshot.pools)
-            || snapshot.pools.iter().any(|episode| episode.phase == pool::CANCELED_LANDING)
+            || snapshot
+                .pools
+                .iter()
+                .any(|episode| episode.phase == pool::CANCELED_LANDING)
         {
             return Err(SaveError::InvalidValue);
         }

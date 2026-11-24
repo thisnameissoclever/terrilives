@@ -4,8 +4,8 @@ use bevy_ecs::prelude::*;
 use std::collections::BTreeMap;
 use terri_core::save_v17::{SavedAttendance, SavedScheduledShift, SavedShiftOutcome};
 use terri_core::{
-    Agent, AtWork, Career, Commuting, FnvHasher, Funds, NeedId, Needs, Path, Position, SimClock, Target,
-    SimId, TileGrid,
+    Agent, AtWork, Career, Commuting, FnvHasher, Funds, NeedId, Needs, Path, Position, SimClock,
+    SimId, Target, TileGrid,
 };
 
 #[derive(Resource, Clone, Debug, Default, PartialEq)]
@@ -389,7 +389,11 @@ fn close_open_shift(world: &mut World, actor: Entity, scoring: Scoring) {
 /// Remove a specific unused registration and restore the settled shift it displaced.
 pub(crate) fn remove_registration(world: &mut World, sim: SimId, start: u64) {
     let mut attendance = world.resource_mut::<Attendance>();
-    if attendance.shifts.get(&sim).is_none_or(|shift| shift.start_tick != start) {
+    if attendance
+        .shifts
+        .get(&sim)
+        .is_none_or(|shift| shift.start_tick != start)
+    {
         return;
     }
     attendance.shifts.remove(&sim);
@@ -403,7 +407,11 @@ fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
     end_manual_work_trip(world, actor);
     let shift = {
         let mut attendance = world.resource_mut::<Attendance>();
-        let Some(shift) = attendance.shifts.get_mut(&sim).filter(|shift| !shift.settled) else {
+        let Some(shift) = attendance
+            .shifts
+            .get_mut(&sim)
+            .filter(|shift| !shift.settled)
+        else {
             return;
         };
         shift.settled = true;
@@ -415,7 +423,10 @@ fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
         career: shift.career,
         base_pay: recorded_base_pay(world, actor, &shift),
     };
-    world.resource_mut::<Attendance>().open_base_pay.remove(&sim);
+    world
+        .resource_mut::<Attendance>()
+        .open_base_pay
+        .remove(&sim);
     let scheduled = shift.end_tick - shift.start_tick;
     let ratio = shift.worked_ticks as f32 / scheduled as f32;
     if let Some(mut needs) = world.get_mut::<Needs>(actor) {
@@ -555,7 +566,8 @@ pub(crate) fn start_tick(world: &mut World) {
         // shift's end. After the fight withdrawal and the player-work and
         // reading checks above, so those keep their priority.
         let open = world.resource::<Attendance>().shifts.get(&sim).cloned();
-        if !manual && open.is_some_and(|shift| crate::lateness::waits_for_needs(world, actor, &shift, now))
+        if !manual
+            && open.is_some_and(|shift| crate::lateness::waits_for_needs(world, actor, &shift, now))
         {
             continue;
         }
@@ -634,9 +646,19 @@ pub(crate) fn register_before_start(world: &mut World, actor: Entity, start: u64
         return;
     };
     // Keep the displaced settled shift until the registered shift starts.
-    let previous = register(world, &pack.careers[career as usize], sim, career, &shift, start);
+    let previous = register(
+        world,
+        &pack.careers[career as usize],
+        sim,
+        career,
+        &shift,
+        start,
+    );
     if let Some(previous) = previous.filter(|shift| shift.settled) {
-        world.resource_mut::<Attendance>().replaced.insert(sim, previous);
+        world
+            .resource_mut::<Attendance>()
+            .replaced
+            .insert(sim, previous);
     }
 }
 
@@ -682,7 +704,10 @@ pub(crate) fn depart_manually(world: &mut World, actor: Entity) {
     let start = open_shift(world, actor)
         .expect("Go to work requires an open shift")
         .start_tick;
-    world.resource_mut::<Attendance>().manual_trips.insert(sim, start);
+    world
+        .resource_mut::<Attendance>()
+        .manual_trips
+        .insert(sim, start);
     depart(world, actor);
 }
 
@@ -877,7 +902,8 @@ fn registered_pay_kinds(world: &World, actor: Entity, shift: &SavedScheduledShif
     let known = if start_day >= current_day {
         crate::shifts::shift_today(world, pack, actor, shift.start_tick)
     } else {
-        world.resource::<Careers>()
+        world
+            .resource::<Careers>()
             .shift_before_change(SimId(shift.sim), start_day, shift.career)
             .and_then(|index| job.shift(index as usize))
     };
@@ -888,7 +914,10 @@ fn registered_pay_kinds(world: &World, actor: Entity, shift: &SavedScheduledShif
     // Once a previous day's shift selection is absent, the schedule still
     // proves the possible pay modes. Several shift types can share hours.
     let mut kinds = [false, false];
-    for view in (0..job.shift_count()).filter_map(|index| job.shift(index)).filter(matches) {
+    for view in (0..job.shift_count())
+        .filter_map(|index| job.shift(index))
+        .filter(matches)
+    {
         kinds[usize::from(view.kind == terri_data::SHIFT_NIGHT)] = true;
     }
     kinds
@@ -912,7 +941,11 @@ fn base_matching_cents(
     (tuning.shift_pay_cents(low, kind) == pay_cents).then_some(low)
 }
 
-fn base_pay_candidates(world: &World, actor: Entity, shift: &SavedScheduledShift) -> [Option<u32>; 2] {
+fn base_pay_candidates(
+    world: &World,
+    actor: Entity,
+    shift: &SavedScheduledShift,
+) -> [Option<u32>; 2] {
     let pack = world.resource::<Content>().0;
     let job = &pack.careers[shift.career as usize];
     let [ordinary, night] = registered_pay_kinds(world, actor, shift);
@@ -937,42 +970,65 @@ fn unambiguous_base_pay(world: &World, actor: Entity, shift: &SavedScheduledShif
 }
 
 fn recorded_base_pay(world: &World, actor: Entity, shift: &SavedScheduledShift) -> Option<u32> {
-    world.resource::<Attendance>().open_base_pay.get(&SimId(shift.sim))
+    world
+        .resource::<Attendance>()
+        .open_base_pay
+        .get(&SimId(shift.sim))
         .filter(|(start, _)| *start == shift.start_tick)
-        .map_or_else(|| unambiguous_base_pay(world, actor, shift), |(_, base)| *base)
+        .map_or_else(
+            || unambiguous_base_pay(world, actor, shift),
+            |(_, base)| *base,
+        )
 }
 
 pub(crate) fn pin_historical_open_base_pay(world: &mut World) {
     let Some(attendance) = world.get_resource::<Attendance>() else {
         return;
     };
-    let inferred: Vec<_> = attendance.shifts.values().filter(|shift| !shift.settled)
+    let inferred: Vec<_> = attendance
+        .shifts
+        .values()
+        .filter(|shift| !shift.settled)
         .filter_map(|shift| {
             let actor = crate::edit::living_entity(world, shift.sim)?;
-            Some((SimId(shift.sim), (shift.start_tick, recorded_base_pay(world, actor, shift))))
-        }).collect();
+            Some((
+                SimId(shift.sim),
+                (shift.start_tick, recorded_base_pay(world, actor, shift)),
+            ))
+        })
+        .collect();
     world.resource_mut::<Attendance>().open_base_pay = inferred.into_iter().collect();
 }
 
 pub(crate) fn remember_migrated_base_pay(world: &mut World, rows: Vec<(u32, u64, u32)>) {
     world.resource_mut::<Attendance>().open_base_pay.extend(
-        rows.into_iter().map(|(sim, start, pay)| (SimId(sim), (start, Some(pay)))),
+        rows.into_iter()
+            .map(|(sim, start, pay)| (SimId(sim), (start, Some(pay)))),
     );
 }
 
-pub(crate) fn capture_open_base_pay(world: &World) -> Vec<terri_core::save_v26::SavedOpenShiftBasePay> {
+pub(crate) fn capture_open_base_pay(
+    world: &World,
+) -> Vec<terri_core::save_v26::SavedOpenShiftBasePay> {
     let Some(attendance) = world.get_resource::<Attendance>() else {
         return Vec::new();
     };
-    attendance.shifts.values().filter(|shift| !shift.settled).filter_map(|shift| {
-        let actor = crate::edit::living_entity(world, shift.sim)?;
-        let base_pay = recorded_base_pay(world, actor, shift);
-        (base_pay != Some(default_base_pay(world, shift))).then_some(terri_core::save_v26::SavedOpenShiftBasePay {
-            sim: shift.sim,
-            start_tick: shift.start_tick,
-            base_pay,
+    attendance
+        .shifts
+        .values()
+        .filter(|shift| !shift.settled)
+        .filter_map(|shift| {
+            let actor = crate::edit::living_entity(world, shift.sim)?;
+            let base_pay = recorded_base_pay(world, actor, shift);
+            (base_pay != Some(default_base_pay(world, shift))).then_some(
+                terri_core::save_v26::SavedOpenShiftBasePay {
+                    sim: shift.sim,
+                    start_tick: shift.start_tick,
+                    base_pay,
+                },
+            )
         })
-    }).collect()
+        .collect()
 }
 
 pub(crate) fn restore_open_base_pay(
@@ -992,9 +1048,13 @@ pub(crate) fn restore_open_base_pay(
         let candidates = base_pay_candidates(world, actor, shift);
         let base = if provided.peek().is_some_and(|row| row.sim == shift.sim) {
             let row = provided.next().expect("matched the current shift");
-            if row.start_tick != shift.start_tick || row.base_pay == Some(default)
-                || row.base_pay.is_some_and(|pay| !candidates.contains(&Some(pay)))
-                || (row.base_pay.is_none() && candidates.iter().filter(|pay| pay.is_some()).count() == 1)
+            if row.start_tick != shift.start_tick
+                || row.base_pay == Some(default)
+                || row
+                    .base_pay
+                    .is_some_and(|pay| !candidates.contains(&Some(pay)))
+                || (row.base_pay.is_none()
+                    && candidates.iter().filter(|pay| pay.is_some()).count() == 1)
             {
                 return Err(InvalidValue);
             }
@@ -1015,9 +1075,15 @@ pub(crate) fn restore_open_base_pay(
 }
 
 pub(crate) fn capture_manual_work_trips(world: &World) -> Vec<(u32, u64)> {
-    world.get_resource::<Attendance>().map_or_else(Vec::new, |attendance| {
-        attendance.manual_trips.iter().map(|(sim, start)| (sim.0, *start)).collect()
-    })
+    world
+        .get_resource::<Attendance>()
+        .map_or_else(Vec::new, |attendance| {
+            attendance
+                .manual_trips
+                .iter()
+                .map(|(sim, start)| (sim.0, *start))
+                .collect()
+        })
 }
 
 pub(crate) fn restore_manual_work_trips(
@@ -1032,19 +1098,23 @@ pub(crate) fn restore_manual_work_trips(
     for &(sim, start) in &rows {
         let actor = crate::edit::living_entity(world, sim).ok_or(InvalidValue)?;
         if world.get::<Position>(actor).is_none()
-            || open_shift(world, actor).is_none_or(|shift| shift.start_tick != start || shift.end_tick <= now)
+            || open_shift(world, actor)
+                .is_none_or(|shift| shift.start_tick != start || shift.end_tick <= now)
         {
             return Err(InvalidValue);
         }
     }
-    world.resource_mut::<Attendance>().manual_trips =
-        rows.into_iter().map(|(sim, start)| (SimId(sim), start)).collect();
+    world.resource_mut::<Attendance>().manual_trips = rows
+        .into_iter()
+        .map(|(sim, start)| (SimId(sim), start))
+        .collect();
     Ok(())
 }
 
 pub(crate) fn validate_manual_work_trip_activities(world: &World) -> Result<(), crate::SaveError> {
     for sim in world.resource::<Attendance>().manual_trips.keys() {
-        let actor = crate::edit::living_entity(world, sim.0).ok_or(crate::SaveError::InvalidValue)?;
+        let actor =
+            crate::edit::living_entity(world, sim.0).ok_or(crate::SaveError::InvalidValue)?;
         let pool = world.get::<crate::pool::PoolEpisode>(actor);
         let phase_valid = match (
             world.get::<Commuting>(actor),
@@ -1052,15 +1122,25 @@ pub(crate) fn validate_manual_work_trip_activities(world: &World) -> Result<(), 
             pool,
         ) {
             (Some(Commuting::Outbound), None, None) => true,
-            (None, Some(_), None) => world.get::<crate::world_geometry::WaitingToReturn>(actor).is_none(),
-            (None, None, Some(episode)) => episode.interrupted
-                && matches!(episode.phase, 3 | 4 | crate::pool::CANCELED_LANDING),
-            (None, None, None) => world.get::<Target>(actor).is_none() && world.get::<terri_core::Eating>(actor).is_none(),
+            (None, Some(_), None) => world
+                .get::<crate::world_geometry::WaitingToReturn>(actor)
+                .is_none(),
+            (None, None, Some(episode)) => {
+                episode.interrupted
+                    && matches!(episode.phase, 3 | 4 | crate::pool::CANCELED_LANDING)
+            }
+            (None, None, None) => {
+                world.get::<Target>(actor).is_none()
+                    && world.get::<terri_core::Eating>(actor).is_none()
+            }
             _ => false,
         };
-        let walking_on_lot = world.get::<Path>(actor).is_some()
-            && world.get::<Commuting>(actor).is_none();
-        if !phase_valid || walking_on_lot || crate::player_actions::has_own_player_work(world, actor) {
+        let walking_on_lot =
+            world.get::<Path>(actor).is_some() && world.get::<Commuting>(actor).is_none();
+        if !phase_valid
+            || walking_on_lot
+            || crate::player_actions::has_own_player_work(world, actor)
+        {
             return Err(crate::SaveError::InvalidValue);
         }
     }
@@ -1451,7 +1531,10 @@ mod tests {
         assert_eq!(sim.funds(), 3250);
         assert_eq!(sim.world().resource::<Attendance>().outcomes.len(), 1);
         assert!(sim.world().resource::<Careers>().record(SimId(1)).is_none());
-        assert_eq!(validate_saved(sim.world(), &to_saved(sim.world()), true), Ok(()));
+        assert_eq!(
+            validate_saved(sim.world(), &to_saved(sim.world()), true),
+            Ok(())
+        );
         time(&mut sim, 540);
         account_and_settle(sim.world_mut());
         assert_eq!(sim.funds(), 3250);

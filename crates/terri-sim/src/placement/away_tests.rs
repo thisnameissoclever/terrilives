@@ -22,12 +22,10 @@ fn worker(position: Position, waiting: bool) -> (Sim, Entity) {
         .expect("supported historical off-lot worker");
     sim.world_mut().entity_mut(actor).insert(position);
     if waiting {
-        sim.world_mut()
-            .entity_mut(actor)
-            .insert((
-                AtWork { remaining_ticks: 1 },
-                crate::world_geometry::WaitingToReturn,
-            ));
+        sim.world_mut().entity_mut(actor).insert((
+            AtWork { remaining_ticks: 1 },
+            crate::world_geometry::WaitingToReturn,
+        ));
     }
     let saved = sim.save_snapshot_v28();
     sim.load_snapshot_v28(saved.clone())

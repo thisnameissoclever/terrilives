@@ -65,9 +65,11 @@ fn bytes(snapshot: &CurrentV5View) -> Vec<u8> {
 fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
     let mut handle = exiting_pool();
     let actor = handle.sim.save_snapshot_v30().pools[0].actor;
-    handle.sim.world_mut().resource_mut::<CommandQueue>().push(
-        SimCommand::CancelIntents { agent: actor },
-    );
+    handle
+        .sim
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents { agent: actor });
     handle.sim.flush_commands();
     let original = handle.save_bytes();
     let mut legacy = handle.sim.current_v5_view();
@@ -76,20 +78,39 @@ fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
     episode.elapsed = 13;
     episode.exit_origin = 0;
     assert!(episode.interrupted);
-    legacy.world.entities.iter_mut().find(|row| row.index == actor)
-        .unwrap().eating.as_mut().unwrap().remaining_ticks = 13;
+    legacy
+        .world
+        .entities
+        .iter_mut()
+        .find(|row| row.index == actor)
+        .unwrap()
+        .eating
+        .as_mut()
+        .unwrap()
+        .remaining_ticks = 13;
 
     let mut old_bytes = bytes(&legacy);
-    assert!(!handle.load_bytes(&old_bytes), "current saves cannot reverse an airborne hop");
+    assert!(
+        !handle.load_bytes(&old_bytes),
+        "current saves cannot reverse an airborne hop"
+    );
     assert_eq!(handle.save_bytes(), original);
     old_bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&28u16.to_le_bytes());
     assert!(handle.load_bytes(&old_bytes));
     let migrated = handle.sim.current_v5_view();
     let episode = &migrated.0.pools[0];
-    assert_eq!((episode.phase, episode.elapsed, episode.exit_origin), (5, 13, 0));
+    assert_eq!(
+        (episode.phase, episode.elapsed, episode.exit_origin),
+        (5, 13, 0)
+    );
     assert!(episode.interrupted);
     assert_eq!(episode.approach, legacy.0.pools[0].approach);
-    let actor = migrated.world.entities.iter().find(|row| row.index == actor).unwrap();
+    let actor = migrated
+        .world
+        .entities
+        .iter()
+        .find(|row| row.index == actor)
+        .unwrap();
     assert_eq!(actor.eating.as_ref().unwrap().remaining_ticks, 47);
 
     let current = handle.save_bytes();
@@ -97,7 +118,10 @@ fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
     assert_eq!(handle.save_bytes(), current);
     let mut mislabeled = current.clone();
     mislabeled[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&28u16.to_le_bytes());
-    assert!(!handle.load_bytes(&mislabeled), "historical headers forbid the new phase");
+    assert!(
+        !handle.load_bytes(&mislabeled),
+        "historical headers forbid the new phase"
+    );
     assert_eq!(handle.save_bytes(), current);
 }
 
@@ -109,7 +133,10 @@ fn pool_codec_migrates_v29_exit_progress_and_rejects_crossed_clocks() {
     }
     let current = handle.save_bytes();
     let before = handle.sim.current_v5_view();
-    assert_eq!((before.0.pools[0].phase, before.0.pools[0].elapsed), (3, 18));
+    assert_eq!(
+        (before.0.pools[0].phase, before.0.pools[0].elapsed),
+        (3, 18)
+    );
     let old = handle.sim.save_snapshot_v29();
     assert_eq!((old.pools[0].phase, old.pools[0].elapsed), (3, 9));
     let mut historical = SAVE_MAGIC.to_vec();
@@ -121,7 +148,8 @@ fn pool_codec_migrates_v29_exit_progress_and_rejects_crossed_clocks() {
     let mut mislabeled = current.clone();
     mislabeled[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&29u16.to_le_bytes());
     assert!(!handle.load_bytes(&mislabeled));
-    historical[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
+    historical[SAVE_MAGIC.len()..SAVE_HEADER_BYTES]
+        .copy_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
     assert!(!handle.load_bytes(&historical));
     assert_eq!(handle.save_bytes(), current);
 }
@@ -585,7 +613,10 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
         reach(&mut handle, 2, 3);
         let active = handle.sim.current_v5_view();
         let position = active.world.entities[1].position.unwrap();
-        assert_eq!((position.x, position.y), (endpoint.0 as f32, endpoint.1 as f32));
+        assert_eq!(
+            (position.x, position.y),
+            (endpoint.0 as f32, endpoint.1 as f32)
+        );
         roundtrip_pool(&mut handle, "rectangular pool active swim");
     }
 }
@@ -605,9 +636,15 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
     assert_eq!(active.0.pools[0].approach, (3, 5));
     assert_eq!(active.0.pools[0].phase, 2);
     assert_eq!(active.0.pools[0].elapsed, 17);
-    assert_eq!(active.world.entities[0].smart_object.as_deref(), Some("pool"));
+    assert_eq!(
+        active.world.entities[0].smart_object.as_deref(),
+        Some("pool")
+    );
     assert!(active.world.entities[0].reserved);
-    assert_eq!(active.world.entities[1].intents, source.world.entities[1].intents);
+    assert_eq!(
+        active.world.entities[1].intents,
+        source.world.entities[1].intents
+    );
     assert_eq!(active.world.blocked_tiles, source.world.blocked_tiles);
     roundtrip_pool(&mut handle, "migrated square pool swim");
 }
@@ -634,7 +671,10 @@ fn an_explicit_square_pool_purchase_survives_the_catalogue_change() {
     assert_eq!(handle.funds_cents(), 0.);
 
     let active = handle.sim.current_v5_view();
-    assert_eq!(active.world.entities[0].smart_object.as_deref(), Some("pool"));
+    assert_eq!(
+        active.world.entities[0].smart_object.as_deref(),
+        Some("pool")
+    );
     let grid = handle.sim.world().resource::<terri_core::TileGrid>();
     for y in 4..6 {
         assert!(!grid.is_walkable(4, y));

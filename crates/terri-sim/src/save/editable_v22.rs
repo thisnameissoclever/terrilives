@@ -37,6 +37,10 @@ pub(crate) fn restore_current_layer(
 ) -> Result<Sim, SaveError> {
     carried.pools = None;
     let mut sim = super::editable_v21::restore(snapshot.previous, content, carried)?;
-    crate::pool::restore(sim.world_mut(), snapshot.pools, crate::pool::SavedPoolClock::Legacy)?;
+    crate::pool::restore(
+        sim.world_mut(),
+        snapshot.pools,
+        crate::pool::SavedPoolClock::Legacy,
+    )?;
     Ok(sim)
 }
