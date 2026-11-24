@@ -96,6 +96,7 @@ mod shyness;
 pub mod skills;
 mod social_company;
 pub mod social_episode;
+mod subjects;
 pub mod systems;
 mod targeted_cleanup;
 #[cfg(test)]
@@ -2733,6 +2734,26 @@ impl Sim {
         activity_log::labels(self.world.resource::<Content>().0).names()
     }
 
+    /// For each activity log label, the render value of the topic the label
+    /// names, or 0 for a label that is not a topic tag ([RT-identity] 4).
+    pub fn activity_log_topic_rows(&self) -> &[u32] {
+        activity_log::labels(self.world.resource::<Content>().0).topic_rows()
+    }
+
+    /// The topic table the shell reads once ([RT-identity] 3): one line per
+    /// row in row order, the kind, the icon and the label, tab separated. A
+    /// render column value of `n` names line `n - 1`, ignoring the random-fight
+    /// bit.
+    pub fn conversation_topic_table(&self) -> Vec<String> {
+        self.world
+            .resource::<Content>()
+            .0
+            .topics
+            .iter()
+            .map(|row| format!("{}\t{}\t{}", row.kind.name(), row.icon, row.label))
+            .collect()
+    }
+
     /// Records overwritten before anything drained them. Diagnostic only.
     pub fn activity_log_dropped(&self) -> u32 {
         self.world.resource::<activity_log::ActivityLog>().dropped()
@@ -3942,6 +3963,27 @@ impl Sim {
                 .map(|value| affinity::band(value, tuning))
                 .collect(),
         )
+    }
+
+    /// The word for each listed subject, in content order, for the Likes and
+    /// dislikes view: the same words and edges as [`Sim::affinity_words_of`]
+    /// ([RT-shell] in `docs/specs/2026-11-22-richer-topics.md`). A subject the
+    /// person cannot offer, such as Work for someone without a job, reads
+    /// as the empty string. `None` for anything that is not a living person.
+    pub fn subject_words_of(&self, index: u32) -> Option<Vec<&'static str>> {
+        let mut people = self.world.try_query::<(Entity, &terri_core::Agent)>()?;
+        let (person, _) = people
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)?;
+        Some(subjects::words_of(&self.world, person))
+    }
+
+    /// One label per listed subject, in content order - what
+    /// [`Sim::subject_words_of`]'s words resolve against.
+    pub fn subject_labels(&self) -> Vec<&'static str> {
+        subjects::listed_rows(self.world.resource::<Content>().0)
+            .map(|row| row.label.as_str())
+            .collect()
     }
 
     /// One label per affinity kind, in pack order - what
@@ -6745,6 +6787,8 @@ mod determinism_tests {
         // Restore the exact authored inputs changed by this balance pass.
         // The historical control receives them before public person creation.
         let mut pack = terri_data::pack().clone();
+        // Published main had no conversation subjects.
+        pack.topics = test_content::without_subjects(&pack.topics);
         pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
         pack.need_mood = terri_data::NeedMoodTuning::HISTORICAL;
         pack.tuning.relationship_gain_per_talk = 0.17;
@@ -7643,7 +7687,12 @@ mod determinism_tests {
         // The need mood ledger adds eight rows, each with +1200 units.
         // Appending those rows to 15287039064284998688 gives the new
         // native result below without any other change in this scenario.
-        const GOLDEN: u64 = 10536286167581425162;
+        // Conversation subjects (issue 275) add candidates to the topic draw,
+        // a BEHAVIOR change here: three chats complete within 100 ticks and
+        // several begin with a subject, so the draws pick different topics
+        // (previously 10536286167581425162). The digest encoding is unchanged.
+        // Measured on native and on rebuilt release WebAssembly: identical.
+        const GOLDEN: u64 = 1841635519881759335;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

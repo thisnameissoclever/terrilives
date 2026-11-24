@@ -1462,7 +1462,10 @@ describe('SimBridge', () => {
     // was, a behavior change in this scenario (previously 4733362429942472337).
     // Measured on native first; this twin confirms it on rebuilt release WASM.
     // After 100 ticks all eight people carry 1200 units of accumulated need mood.
-    expect(bridge.worldHash()).toBe(10536286167581425162n);
+    // Conversation subjects (issue 275) change which topics the chats in this
+    // scenario draw, a behavior change (previously 10536286167581425162n).
+    // Measured on native first; this twin confirms it on rebuilt release WASM.
+    expect(bridge.worldHash()).toBe(1841635519881759335n);
   });
 
   // ---- Player commands -------------------------------------------------

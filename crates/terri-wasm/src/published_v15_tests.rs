@@ -45,6 +45,9 @@ pub(super) fn pre_balance_content() -> terri_sim::Content {
     // Tested worlds receive historical inputs before their construction.
     let catalogue = Sim::new();
     let mut pack = catalogue.world().resource::<Content>().0.clone();
+    // Published main had no conversation subjects.
+    pack.topics
+        .retain(|row| row.kind.name() != "subject" || row.id == "unknown-subject");
     pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     pack.need_mood.high_gain_units = 0;
     pack.need_mood.empty_loss_units = 0;

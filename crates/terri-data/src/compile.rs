@@ -741,6 +741,7 @@ pub fn compile(
 
     Ok(ContentPack {
         books: Vec::new(),
+        topics: Vec::new(),
         reading,
         career_paths,
         decay_per_tick: decay,

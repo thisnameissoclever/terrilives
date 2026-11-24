@@ -51,12 +51,7 @@ fn conversation_balance_shared_interest_rewards_both_despite_unmet_needs() {
         .topics
         .insert(
             a,
-            Topic {
-                code: 1,
-                tag: "reading".into(),
-                initiator_preference: 0.5,
-                listener_preference: 0.5,
-            },
+            Topic::new(terri_data::pack(), 1, "reading".into(), 0.5, 0.5),
         );
     crate::systems::interpersonal::apply(sim.world_mut());
     sim.world_mut()

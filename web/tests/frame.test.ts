@@ -2099,6 +2099,9 @@ describe('buildInstances', () => {
   });
 });
 
+/** One topic row, so the topic value 1 draws the reading bubble. */
+const READING_TOPIC_TABLE = [{ kind: 'activity', icon: 'Reading', label: 'reading' }] as const;
+
 describe('activity indicator bubbles', () => {
   // The owner's requirement, as quads: a sim that is doing something
   // shows it. Walking, idle and off-lot work draw no bubble. Activity
@@ -2108,7 +2111,8 @@ describe('activity indicator bubbles', () => {
 
   it('shows the same topic with each participant\'s reaction and readable tint', () => {
     const talking = Object.assign(new FakeEntities(), {
-      conversationTopics: () => new Uint32Array([8, 8, 8]),
+      conversationTopics: () => new Uint32Array([1, 1, 1]),
+      conversationTopicTable: () => READING_TOPIC_TABLE,
       conversationPreferences: () => new Float32Array([1, -1, 0]),
     });
     talking.set([
@@ -2150,7 +2154,7 @@ describe('activity indicator bubbles', () => {
     });
     try {
       for(const page of new Set(SPRITES.filter(sprite=>sprite.name.startsWith('conversation')).map(sprite=>sprite.page??0)))loadIndicatorCoverage({} as ImageBitmap,page);
-      const talking=Object.assign(new FakeEntities(),{conversationTopics:()=>new Uint32Array([8]),conversationPreferences:()=>new Float32Array([-1])});
+      const talking=Object.assign(new FakeEntities(),{conversationTopics:()=>new Uint32Array([1]),conversationTopicTable:()=>READING_TOPIC_TABLE,conversationPreferences:()=>new Float32Array([-1])});
       talking.set([[1,1,1,1,KIND_AGENT,3,4]]);
       const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.replacedRows=new Uint8Array([1]);
       plan.actors.push({row:0,entity:100,sim:0,token:1,appearance:defaultAppearance(),x:1,y:1,angle:0,offset:[0,0,0],fixtureRow:-1,fixtureEntity:null,fixtureModel:null,

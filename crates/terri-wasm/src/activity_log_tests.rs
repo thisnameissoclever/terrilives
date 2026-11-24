@@ -121,3 +121,187 @@ fn reaction_bands_are_the_likes_and_dislikes_edges() {
         vec![tuning.affinity_band_loves, tuning.affinity_band_likes]
     );
 }
+
+#[test]
+fn conversation_topic_table_crosses_as_one_tab_separated_line_per_row() {
+    let handle = SimHandle::from_lot();
+    let rows = &handle.sim.world().resource::<terri_sim::Content>().0.topics;
+    let text = handle.conversation_topic_table();
+    let lines: Vec<&str> = text.split('\n').collect();
+    assert_eq!(lines.len(), rows.len());
+    for (line, row) in lines.iter().zip(rows) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(
+            fields,
+            [row.kind.name(), row.icon.as_str(), row.label.as_str()]
+        );
+    }
+    assert!(lines.iter().any(|line| line.starts_with("subject\t")));
+}
+
+#[test]
+fn activity_log_topic_rows_name_a_topic_value_for_each_label() {
+    let handle = SimHandle::from_lot();
+    let names = handle.sim.activity_log_labels();
+    let values = handle.activity_log_topic_rows();
+    assert_eq!(values.len(), names.len(), "one value per label");
+    let value_of = |label: &str| {
+        let at = names.iter().position(|name| name == label).unwrap();
+        values[at]
+    };
+    let rows = &handle.sim.world().resource::<terri_sim::Content>().0.topics;
+    let row_of = |value: u32| &rows[((value & 0xffff) - 1) as usize].id;
+    assert_eq!(row_of(value_of("reading")), "reading");
+    assert_eq!(row_of(value_of("food")), "eating");
+    assert_eq!(row_of(value_of("fight-privacy")), "fight-privacy");
+    let random = value_of("fight-random-12");
+    assert_eq!(row_of(random), "showers");
+    assert_eq!(
+        random & (1 << 16),
+        1 << 16,
+        "a random fight carries the fight bit"
+    );
+    assert_eq!(value_of("food") & (1 << 16), 0);
+    assert_eq!(value_of("cause:nuisance"), 0, "a cause is not a topic");
+    assert!(values.contains(&0));
+}
+
+/// One finished chat about a subject: what the log recorded and the topic
+/// value the render column carried while the two people talked.
+struct SubjectChat {
+    handle: SimHandle,
+    record: [u32; RECORD_WORDS],
+    drawn: u32,
+}
+
+/// Orders person 0 to chat with person 1 in worlds of different seeds until a
+/// chat finishes about a subject. The subject a chat draws depends on the
+/// seed, so one seed in a few is enough.
+fn first_subject_chat() -> SubjectChat {
+    for seed in 0..60 {
+        let mut handle = SimHandle::from_lot_with_seed(seed, 0);
+        let chat = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .social
+            .iter()
+            .position(|action| action.id == "chat")
+            .expect("the shipped pack has a chat") as u32;
+        let people: Vec<_> = handle
+            .sim
+            .world_mut()
+            .query::<(terri_core::Entity, &terri_core::SimId)>()
+            .iter(handle.sim.world())
+            .map(|(entity, id)| (id.0, entity.index_u32()))
+            .collect();
+        let find = |sim| people.iter().find(|(id, _)| *id == sim).unwrap().1;
+        let (speaker, listener) = (find(0), find(1));
+        handle
+            .sim
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::TalkTo {
+                agent: speaker,
+                target: listener,
+                interaction: chat,
+            });
+        let mut drawn = 0;
+        for _ in 0..400 {
+            handle.tick();
+            drawn = handle
+                .sim
+                .render_buffer()
+                .conversation_topics
+                .iter()
+                .copied()
+                .find(|&value| value != 0)
+                .unwrap_or(drawn);
+            let count = handle.activity_log_take();
+            let names = handle.sim.activity_log_labels();
+            for record in exported(&handle, count).chunks_exact(RECORD_WORDS) {
+                let topic = record[6] as usize;
+                if record[2] & 0xff == LogKind::ChatDone as u32
+                    && names
+                        .get(topic)
+                        .is_some_and(|name| name.starts_with("subject:"))
+                {
+                    let record = record.try_into().unwrap();
+                    return SubjectChat {
+                        handle,
+                        record,
+                        drawn,
+                    };
+                }
+            }
+        }
+    }
+    panic!("no chat in sixty worlds was about a subject");
+}
+
+#[test]
+fn a_subject_chat_crosses_the_activity_log_with_its_row() {
+    let chat = first_subject_chat();
+    let handle = &chat.handle;
+    let names = handle.sim.activity_log_labels();
+    let label = chat.record[6] as usize;
+    let id = names[label].strip_prefix("subject:").unwrap();
+    let rows = &handle.sim.world().resource::<Content>().0.topics;
+    // The log label resolves to the subject's own row, with its bubble value.
+    let value = handle.activity_log_topic_rows()[label];
+    let row = &rows[((value & 0xffff) - 1) as usize];
+    assert_eq!((row.id.as_str(), row.kind.name()), (id, "subject"));
+    assert_eq!(value & (1 << 16), 0, "a subject is not a random fight");
+    // The shell reads that row's word from the table the simulation sends.
+    let table = handle.conversation_topic_table();
+    let line = table
+        .split('\n')
+        .nth((value & 0xffff) as usize - 1)
+        .unwrap();
+    assert_eq!(line, format!("subject\t{}\t{}", row.icon, row.label));
+    assert!(!row.label.is_empty());
+    // The people's bubbles carried the same row while they talked.
+    assert_eq!(chat.drawn, value);
+    // The initiator liked the subject, so their reaction is positive.
+    let (initiator, _) = terri_sim::activity_log::unpack_pair(chat.record[8] as i32);
+    assert!(initiator > 0, "the speaker likes what they bring up");
+}
+
+#[test]
+fn subject_words_and_labels_cross_the_boundary_aligned() {
+    let handle = SimHandle::from_lot();
+    let labels = handle.subject_labels();
+    assert_eq!(
+        labels,
+        ["trains", "bicycling", "gardening", "the weather", "work"]
+    );
+    let mut employed = 0;
+    let people: Vec<u32> = handle
+        .sim
+        .world()
+        .try_query::<(terri_core::Entity, &terri_core::Agent)>()
+        .map(|mut q| {
+            q.iter(handle.sim.world())
+                .map(|(e, _)| e.index_u32())
+                .collect()
+        })
+        .unwrap_or_default();
+    assert!(!people.is_empty());
+    for person in people {
+        let words = handle.subject_words_of(person);
+        assert_eq!(words.len(), labels.len());
+        let known = ["Loves", "Likes", "Indifferent", "Dislikes", "Hates"];
+        // Only Work can read empty, and only without a job.
+        for (label, word) in labels.iter().zip(&words) {
+            if label != "work" {
+                assert!(known.contains(&word.as_str()), "{label}: {word}");
+            }
+        }
+        let has_job = !handle.career_of(person).is_empty();
+        assert_eq!(words[4].is_empty(), !has_job);
+        employed += usize::from(has_job);
+    }
+    assert!(employed > 0, "someone in the shipped household has a job");
+    assert!(handle.subject_words_of(u32::MAX).is_empty());
+}

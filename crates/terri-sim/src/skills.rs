@@ -168,8 +168,29 @@ pub fn skill_for_tag<'a>(pack: &'a ContentPack, tag: &str) -> Option<(u32, &'a C
 /// holds no practice, the same as a person with no entry for the skill.
 pub fn mastery_for_tag(skills: Option<&Skills>, pack: &ContentPack, tag: &str) -> Option<f32> {
     let (index, skill) = skill_for_tag(pack, tag)?;
+    Some(mastery_at(skills, pack, index, skill))
+}
+
+/// The mastery this person holds in the skill whose id is `id`, or `None`
+/// when the pack has no such skill ([RT-subjects] in
+/// `docs/specs/2026-11-22-richer-topics.md`).
+pub fn mastery_for_id(skills: Option<&Skills>, pack: &ContentPack, id: &str) -> Option<f32> {
+    let (index, skill) = pack
+        .skills
+        .iter()
+        .enumerate()
+        .find(|(_, skill)| skill.id == id)?;
+    Some(mastery_at(skills, pack, index as u32, skill))
+}
+
+fn mastery_at(
+    skills: Option<&Skills>,
+    pack: &ContentPack,
+    index: u32,
+    skill: &CompiledSkill,
+) -> f32 {
     let practice = skills.map_or(0.0, |skills| skills.practice(index));
-    Some(standing(&Ladder::from_tuning(&pack.tuning), skill.levels, practice).mastery)
+    standing(&Ladder::from_tuning(&pack.tuning), skill.levels, practice).mastery
 }
 
 /// One completed attempt's practice - [SK-learning]: every skill whose tag

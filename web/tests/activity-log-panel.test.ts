@@ -87,6 +87,7 @@ function setup() {
   const panel = new ActivityLogPanel({
     store, view, names,
     labels: () => { labelReads++; return LABELS; },
+    topics: () => ({ table: [], rows: [] }),
     bands: () => ({ loves: 0.6, likes: 0.2 }),
     dayTicks: 1_440,
     selected: () => selected,

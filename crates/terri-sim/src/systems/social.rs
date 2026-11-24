@@ -2635,12 +2635,13 @@ mod tests {
             .topics
             .insert(
                 first,
-                crate::social_episode::Topic {
-                    code: 8,
-                    tag: "reading".into(),
-                    initiator_preference: 0.8,
-                    listener_preference: listener,
-                },
+                crate::social_episode::Topic::new(
+                    terri_data::pack(),
+                    8,
+                    "reading".into(),
+                    0.8,
+                    listener,
+                ),
             );
         // The listener is nearly full, so their Social total stays far
         // under the initiator's: a record that swapped the two totals would

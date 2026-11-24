@@ -945,7 +945,7 @@ async function main(): Promise<void> {
   if (!affinitiesBlock || !affinitiesEmpty || !affinityList) {
     throw new Error('missing likes and dislikes markup');
   }
-  const affinitiesPanel = new AffinitiesPanel(sim, sim.affinityLabels(),
+  const affinitiesPanel = new AffinitiesPanel(sim, sim.affinityLabels(), sim.subjectLabels(),
     createAffinitiesPanelSurface(document, affinitiesBlock, affinitiesEmpty, affinityList), sim.needBarRefreshMs(),
     () => affinitiesBlock.open && !simOverview.hidden && !simSheet.hidden);
   affinitiesBlock.addEventListener('toggle', () => {
@@ -1083,6 +1083,7 @@ async function main(): Promise<void> {
     view: createActivityLogView(document, activityLogDom),
     names: activityLogNames,
     labels: () => sim.activityLogLabels(),
+    topics: () => ({ table: sim.conversationTopicTable(), rows: sim.activityLogTopicRows() }),
     bands: () => sim.activityLogReactionBands(),
     dayTicks: sim.dayTicks(),
     // The roster's own read, at the same cadence: no steady simIdOf call.

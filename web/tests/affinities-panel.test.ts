@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
-import { SimBridge, type AffinityWord } from '../src/bridge.js';
+import { SimBridge, type AffinityWord, type SubjectWord } from '../src/bridge.js';
 import { textWriteProbe } from './helpers/text-write-probe.js';
 import {
   AffinitiesPanel,
   affinitiesPanelState,
+  affinityRowLabel as affinityRowLabelOf,
   createAffinitiesPanelSurface,
   type AffinitiesPanelSource,
   type AffinitiesPanelState,
@@ -14,15 +15,20 @@ import {
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 const PANEL_TS = readFileSync(new URL('../src/ui/affinities-panel.ts', import.meta.url), 'utf8');
+const ADMIN_SOURCES_TS = readFileSync(new URL('../src/admin/admin-sources.ts', import.meta.url), 'utf8');
 
 const LABELS = ['plants', 'aquarium', 'television', 'radio'];
+const SUBJECT_LABELS = ['trains', 'the weather', 'work'];
 
 class Source implements AffinitiesPanelSource {
   selected: number | null = 7;
   value: AffinityWord[] | null = ['Loves', 'Likes', 'Indifferent', 'Hates'];
+  subjects: SubjectWord[] | null = ['Loves', 'Dislikes', 'Indifferent'];
   readonly asked: number[] = [];
+  readonly askedSubjects: number[] = [];
   selectedIndex(): number | null { return this.selected; }
   affinityWordsOf(entity: number): AffinityWord[] | null { this.asked.push(entity); return this.value; }
+  subjectWordsOf(entity: number): SubjectWord[] | null { this.askedSubjects.push(entity); return this.subjects; }
 }
 
 function ready(state: AffinitiesPanelState) {
@@ -34,22 +40,26 @@ describe('affinitiesPanelState', () => {
   it('says nobody is selected without asking the bridge', () => {
     const source = new Source();
     source.selected = null;
-    expect(affinitiesPanelState(source, LABELS)).toEqual({ kind: 'unselected' });
+    expect(affinitiesPanelState(source, LABELS, SUBJECT_LABELS)).toEqual({ kind: 'unselected' });
     expect(source.asked).toEqual([]);
   });
 
   it('gives one row per kind in order, the label capitalised and the word from the bridge', () => {
     const source = new Source();
-    expect(ready(affinitiesPanelState(source, LABELS))).toEqual([
+    expect(ready(affinitiesPanelState(source, LABELS, SUBJECT_LABELS))).toEqual([
       { label: 'Plants', word: 'Loves' },
       { label: 'Aquarium', word: 'Likes' },
       { label: 'Television', word: 'Indifferent' },
       { label: 'Radio', word: 'Hates' },
+      { label: 'Trains', word: 'Loves' },
+      { label: 'The weather', word: 'Dislikes' },
+      { label: 'Work', word: 'Indifferent' },
     ]);
     expect(source.asked).toEqual([7]);
+    expect(source.askedSubjects).toEqual([7]);
     source.value = ['Dislikes', 'Likes', 'Loves', 'Indifferent'];
-    expect(ready(affinitiesPanelState(source, LABELS)).map(row => row.word))
-      .toEqual(['Dislikes', 'Likes', 'Loves', 'Indifferent']);
+    expect(ready(affinitiesPanelState(source, LABELS, SUBJECT_LABELS)).map(row => row.word))
+      .toEqual(['Dislikes', 'Likes', 'Loves', 'Indifferent', 'Loves', 'Dislikes', 'Indifferent']);
   });
 
   it('is unavailable without a reading, with an empty one, or with one that does not match the labels', () => {
@@ -57,10 +67,38 @@ describe('affinitiesPanelState', () => {
     const words: AffinityWord[][] = [[], ['Likes', 'Likes', 'Likes'], ['Likes', 'Likes', 'Likes', 'Likes', 'Likes']];
     for (const value of [null, ...words]) {
       source.value = value;
-      expect(affinitiesPanelState(source, LABELS), JSON.stringify(value)).toEqual({ kind: 'unavailable' });
+      expect(affinitiesPanelState(source, LABELS, SUBJECT_LABELS), JSON.stringify(value)).toEqual({ kind: 'unavailable' });
     }
     source.value = [];
-    expect(affinitiesPanelState(source, [])).toEqual({ kind: 'unavailable' });
+    expect(affinitiesPanelState(source, [], SUBJECT_LABELS)).toEqual({ kind: 'unavailable' });
+  });
+
+  it('appends one read only row per subject after the affinity rows, in the same words', () => {
+    const source = new Source();
+    source.subjects = ['Hates', 'Likes', 'Loves'];
+    expect(ready(affinitiesPanelState(source, LABELS, SUBJECT_LABELS)).slice(4)).toEqual([
+      { label: 'Trains', word: 'Hates' },
+      { label: 'The weather', word: 'Likes' },
+      { label: 'Work', word: 'Loves' },
+    ]);
+  });
+
+  it('leaves out a subject the person cannot offer, such as Work without a job', () => {
+    const source = new Source();
+    source.subjects = ['Loves', 'Dislikes', ''];
+    const rows = ready(affinitiesPanelState(source, LABELS, SUBJECT_LABELS));
+    expect(rows).toHaveLength(6);
+    expect(rows.map(row => row.label)).not.toContain('Work');
+    source.subjects = ['', '', ''];
+    expect(ready(affinitiesPanelState(source, LABELS, SUBJECT_LABELS))).toHaveLength(4);
+  });
+
+  it('is unavailable when the subject reading is missing or does not match the subject labels', () => {
+    const source = new Source();
+    for (const value of [null, [], ['Likes', 'Likes'], ['Likes', 'Likes', 'Likes', 'Likes']] as (SubjectWord[] | null)[]) {
+      source.subjects = value;
+      expect(affinitiesPanelState(source, LABELS, SUBJECT_LABELS), JSON.stringify(value)).toEqual({ kind: 'unavailable' });
+    }
   });
 
   it('keeps no thresholds of its own: the words come from the simulation', () => {
@@ -74,7 +112,7 @@ describe('AffinitiesPanel', () => {
     const source = new Source();
     const rendered: AffinitiesPanelState[] = [];
     let active = false;
-    const panel = new AffinitiesPanel(source, LABELS, { render: state => rendered.push(state) }, 100, () => active);
+    const panel = new AffinitiesPanel(source, LABELS, SUBJECT_LABELS, { render: state => rendered.push(state) }, 100, () => active);
     expect(panel.update(0)).toBe(false);
     expect(source.asked).toEqual([]);
     active = true;
@@ -86,11 +124,12 @@ describe('AffinitiesPanel', () => {
     expect(panel.update(1000)).toBe(false);
     expect(panel.update(1001, true)).toBe(true);
     expect(source.asked).toEqual([7, 7, 7, 7]);
+    expect(source.askedSubjects).toEqual([7, 7, 7, 7]);
     expect(rendered).toHaveLength(4);
   });
 
   it.each([0, -1, NaN, Infinity])('refuses a refresh interval of %s', interval => {
-    expect(() => new AffinitiesPanel(new Source(), LABELS, { render() {} }, interval, () => true))
+    expect(() => new AffinitiesPanel(new Source(), LABELS, SUBJECT_LABELS, { render() {} }, interval, () => true))
       .toThrow('Likes and dislikes panel refresh interval must be a positive finite number');
   });
 });
@@ -139,34 +178,37 @@ describe('createAffinitiesPanelSurface', () => {
 
   it('draws one row per kind reading label and word', () => {
     const { block, empty, list, surface } = surfaceParts();
-    surface.render(affinitiesPanelState(new Source(), LABELS));
+    surface.render(affinitiesPanelState(new Source(), LABELS, SUBJECT_LABELS));
     expect([empty.hidden, list.hidden, block.dataset.state]).toEqual([true, false, 'ready']);
     expect(list.nodes.map(row => [row.tag, row.className, row.textContent])).toEqual([
       ['li', 'affinity-row', 'Plants: Loves'],
       ['li', 'affinity-row', 'Aquarium: Likes'],
       ['li', 'affinity-row', 'Television: Indifferent'],
       ['li', 'affinity-row', 'Radio: Hates'],
+      ['li', 'affinity-row', 'Trains: Loves'],
+      ['li', 'affinity-row', 'The weather: Dislikes'],
+      ['li', 'affinity-row', 'Work: Indifferent'],
     ]);
   });
 
   it('reuses rows, skips unchanged text, and drops rows once nobody is selected', () => {
     const { list, empty, surface, created } = surfaceParts();
     const source = new Source();
-    surface.render(affinitiesPanelState(source, LABELS));
+    surface.render(affinitiesPanelState(source, LABELS, SUBJECT_LABELS));
     const rows = [...list.nodes];
     const count = created();
     const leaves = [empty, ...rows];
     const probes = leaves.map(textWriteProbe);
-    for (let refresh = 0; refresh < 5; refresh += 1) surface.render(affinitiesPanelState(source, LABELS));
+    for (let refresh = 0; refresh < 5; refresh += 1) surface.render(affinitiesPanelState(source, LABELS, SUBJECT_LABELS));
     expect(probes.map(probe => probe.writes)).toEqual(leaves.map(() => 0));
     source.value = ['Loves', 'Likes', 'Hates', 'Hates'];
-    surface.render(affinitiesPanelState(source, LABELS));
+    surface.render(affinitiesPanelState(source, LABELS, SUBJECT_LABELS));
     expect(probes.reduce((sum, probe) => sum + probe.writes, 0)).toBe(1);
     expect(list.nodes).toEqual(rows);
     expect(created()).toBe(count);
     expect(list.nodes[2].textContent).toBe('Television: Hates');
     source.selected = null;
-    surface.render(affinitiesPanelState(source, LABELS));
+    surface.render(affinitiesPanelState(source, LABELS, SUBJECT_LABELS));
     expect(list.nodes).toHaveLength(0);
     expect(rows.every(row => row.parentElement === null)).toBe(true);
   });
@@ -225,10 +267,87 @@ describe('the bridge read of likes and dislikes', () => {
     expect(reads()).toBe(0);
   });
 
+  function fakeSubjects(words: string[]) {
+    let reads = 0;
+    const bridge = new SimBridge({
+      subject_words_of: () => { reads += 1; return [...words]; },
+      subject_labels: () => ['trains', 'work'],
+    } as unknown as SimHandle, memory);
+    return { bridge, reads: () => reads };
+  }
+
+  it('copies a subject reading, keeping the empty string for a hidden subject', () => {
+    const { bridge } = fakeSubjects(['Likes', '']);
+    expect(bridge.subjectWordsOf(7)).toEqual(['Likes', '']);
+    expect(bridge.subjectLabels()).toEqual(['trains', 'work']);
+  });
+
+  it.each([-1, 0.5, NaN, Infinity, 4294967296])('rejects invalid entity %s before reading subjects', entity => {
+    const { bridge, reads } = fakeSubjects(['Likes', 'Likes']);
+    expect(bridge.subjectWordsOf(entity)).toBeNull();
+    expect(reads()).toBe(0);
+  });
+
+  it('rejects an empty subject reading and one holding any other word', () => {
+    for (const words of [[], ['Likes', 'Adores'], ['likes', 'Likes'], ['Likes', ' ']]) {
+      expect(fakeSubjects(words).bridge.subjectWordsOf(7), JSON.stringify(words)).toBeNull();
+    }
+  });
+
   it('rejects an empty reading and one holding any other word', () => {
     for (const words of [[], ['Likes', 'Adores', 'Likes', 'Likes'], ['likes', 'Likes', 'Likes', 'Likes'],
       ['Likes', 'Likes', 'Likes', '']]) {
       expect(fake(words).bridge.affinityWordsOf(7), JSON.stringify(words)).toBeNull();
     }
+  });
+});
+
+describe('subject rows through release wasm', () => {
+  let memory: WebAssembly.Memory;
+  beforeAll(async () => {
+    memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
+  });
+
+  it('lists the five authored subjects, hides Work without a job, and never changes a save', () => {
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, memory);
+      // The labels read in sentences; the panel upper-cases the first letter.
+      expect(bridge.subjectLabels()).toEqual(['trains', 'bicycling', 'gardening', 'the weather', 'work']);
+      expect(bridge.subjectLabels().map(affinityRowLabelOf))
+        .toEqual(['Trains', 'Bicycling', 'Gardening', 'The weather', 'Work']);
+      const ids = Array.from(bridge.ids());
+      const kinds = bridge.kinds();
+      const people = ids.filter((_, index) => kinds[index] === 0);
+      expect(people.length).toBeGreaterThan(0);
+      const before = handle.save_bytes();
+      const hash = bridge.worldHash();
+      let employed = 0;
+      for (const person of people) {
+        const words = bridge.subjectWordsOf(person)!;
+        expect(words).toHaveLength(5);
+        expect(words.slice(0, 4).every(word => word !== '')).toBe(true);
+        const job = bridge.careerOf(person);
+        expect(words[4] === '', `${bridge.simName(person)} has job ${job}`).toBe(!job);
+        employed += job ? 1 : 0;
+        // The Likes and dislikes read and the subject read are separate lists.
+        expect(bridge.affinityWordsOf(person)).toHaveLength(4);
+      }
+      expect(employed).toBeGreaterThan(0);
+      const object = ids.find((_, index) => kinds[index] !== 0)!;
+      expect(bridge.subjectWordsOf(object)).toBeNull();
+      expect(handle.save_bytes()).toEqual(before);
+      expect(bridge.worldHash()).toBe(hash);
+    } finally { handle.free(); }
+  });
+
+  it('keeps the admin panel to the saved affinity kinds: no subject rows', () => {
+    expect(ADMIN_SOURCES_TS).not.toMatch(/subject/i);
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, memory);
+      expect(bridge.affinityLabels()).toEqual(['plants', 'aquarium', 'television', 'radio']);
+      expect(bridge.affinityLabels()).not.toContain('trains');
+    } finally { handle.free(); }
   });
 });

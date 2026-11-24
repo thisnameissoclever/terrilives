@@ -2098,6 +2098,10 @@ impl SimHandle {
         self.sim.render_buffer().activities.as_ptr()
     }
 
+    /// What each row's conversation is about: the topic table row plus one,
+    /// with bit 16 set for an argument over an everyday activity, or 0
+    /// outside a conversation. Read the table once with
+    /// `conversation_topic_table`.
     pub fn conversation_topics_ptr(&self) -> *const u32 {
         self.sim.render_buffer().conversation_topics.as_ptr()
     }
@@ -2160,6 +2164,21 @@ impl SimHandle {
     /// it once per page.
     pub fn activity_log_labels(&self) -> String {
         self.sim.activity_log_labels().join("\n")
+    }
+
+    /// For each `activity_log_labels` entry, the conversation topic value it
+    /// names (the same value the topic column carries), or 0 for a label that
+    /// is not a topic tag. Fixed by the content pack.
+    pub fn activity_log_topic_rows(&self) -> Vec<u32> {
+        self.sim.activity_log_topic_rows().to_vec()
+    }
+
+    /// The conversation topic table, one line per row in row order: the kind
+    /// (`smalltalk`, `activity`, `fight` or `subject`), the bubble sprite
+    /// name and the player word, tab separated. Fixed by the content pack, so
+    /// the shell reads it once per page.
+    pub fn conversation_topic_table(&self) -> String {
+        self.sim.conversation_topic_table().join("\n")
     }
 
     /// Turns the activity log off for the disabled performance baseline
@@ -3107,6 +3126,29 @@ impl SimHandle {
             .affinity_words_of(entity_index)
             .map(|words| words.into_iter().map(str::to_string).collect())
             .unwrap_or_default()
+    }
+
+    /// The word for each listed subject, in content order, from the same
+    /// edges as `affinity_words_of` - the Likes and dislikes view's read
+    /// ([RT-shell] in `docs/specs/2026-11-22-richer-topics.md`). A subject
+    /// the person cannot offer, such as Work for someone without a job,
+    /// reads as the empty string. Empty for anything that is not a living
+    /// person.
+    pub fn subject_words_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .subject_words_of(entity_index)
+            .map(|words| words.into_iter().map(str::to_string).collect())
+            .unwrap_or_default()
+    }
+
+    /// One label per listed subject, in content order - what
+    /// `subject_words_of`'s words resolve against. Read once at startup.
+    pub fn subject_labels(&self) -> Vec<String> {
+        self.sim
+            .subject_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
     }
 
     /// One label per affinity kind, in pack order - what

@@ -1,0 +1,329 @@
+# Conversation topics: what a chat or a fight is about, as the player sees
+# it. [RT-content] in docs/specs/2026-11-22-richer-topics.md. A topic's row is
+# its place in this file. Saves keep a topic's `code` and `tag`, never a row,
+# so every `code` below is frozen: it must equal the code a save already
+# holds for the same tag. Tags that appear nowhere on an object are legacy
+# aliases old saves still carry, and several tags share a bubble.
+#
+# kind    fields
+# smalltalk, activity   code, tags (a tag may appear in one row only)
+# fight                 code, reason (the fight reason tag)
+# subject               bias, variation, sources, requires (see the spec)
+#
+# `icon` names a conversation bubble sprite; the web shell proves every name
+# resolves. `label` is the word after "about" and in Likes and dislikes; an
+# empty label means the topic names no subject.
+#
+# Order matters in one place. A random fight draws the first smalltalk or
+# activity row in this file with its activity code, so
+# `nothing-in-particular` (a random fight about nothing a person could name)
+# comes before the other two rows that share code 7.
+
+[[topic]]
+id = "smalltalk"
+kind = "smalltalk"
+icon = "Talk"
+code = 4
+tags = ["smalltalk", "socialising"]
+
+[[topic]]
+id = "eating"
+kind = "activity"
+icon = "Eat"
+label = "eating"
+code = 3
+tags = ["eating", "food"]
+
+[[topic]]
+id = "sleep"
+kind = "activity"
+icon = "Sleep"
+label = "sleep"
+code = 5
+tags = ["sleeping", "sleep"]
+
+[[topic]]
+id = "nothing-in-particular"
+kind = "activity"
+icon = "Use"
+code = 7
+
+[[topic]]
+id = "bathroom-privacy"
+kind = "activity"
+icon = "Use"
+label = "bathroom privacy"
+code = 7
+tags = ["bathroom_privacy"]
+
+[[topic]]
+id = "other"
+kind = "activity"
+icon = "Use"
+label = "something"
+code = 7
+
+[[topic]]
+id = "reading"
+kind = "activity"
+icon = "Reading"
+label = "reading"
+code = 8
+tags = ["reading"]
+
+[[topic]]
+id = "exercise"
+kind = "activity"
+icon = "Exercise"
+label = "exercise"
+code = 9
+tags = ["exercise"]
+
+[[topic]]
+id = "aquarium"
+kind = "activity"
+icon = "WatchFish"
+label = "the aquarium"
+code = 10
+tags = ["aquarium", "fish"]
+
+[[topic]]
+id = "comfort"
+kind = "activity"
+icon = "Sitting"
+label = "comfort"
+code = 11
+tags = ["sitting", "comfort"]
+
+[[topic]]
+id = "showers"
+kind = "activity"
+icon = "Shower"
+label = "showers"
+code = 12
+tags = ["showering", "shower"]
+
+[[topic]]
+id = "toilet"
+kind = "activity"
+icon = "Toilet"
+label = "the toilet"
+code = 13
+tags = ["toilet"]
+
+[[topic]]
+id = "television"
+kind = "activity"
+icon = "TV"
+label = "TV"
+code = 14
+tags = ["television", "tv"]
+
+[[topic]]
+id = "lounging"
+kind = "activity"
+icon = "LyingDown"
+label = "lounging"
+code = 15
+tags = ["lounging"]
+
+[[topic]]
+id = "washing"
+kind = "activity"
+icon = "WashHands"
+label = "washing"
+code = 16
+tags = ["washing", "hygiene"]
+
+[[topic]]
+id = "cleaning"
+kind = "activity"
+icon = "WashDishes"
+label = "cleaning"
+code = 17
+tags = ["cleaning"]
+
+[[topic]]
+id = "music"
+kind = "activity"
+icon = "Radio"
+label = "music"
+code = 18
+tags = ["music", "radio"]
+
+[[topic]]
+id = "letters"
+kind = "activity"
+icon = "Correspondence"
+label = "letters"
+code = 19
+tags = ["correspondence"]
+
+[[topic]]
+id = "baths"
+kind = "activity"
+icon = "Bath"
+label = "baths"
+code = 20
+tags = ["bathing", "bath"]
+
+[[topic]]
+id = "ingredients"
+kind = "activity"
+icon = "Ingredients"
+label = "ingredients"
+code = 21
+
+[[topic]]
+id = "preparing-food"
+kind = "activity"
+icon = "PrepareFood"
+label = "preparing food"
+code = 22
+
+[[topic]]
+id = "cooking"
+kind = "activity"
+icon = "Cooking"
+label = "cooking"
+code = 23
+tags = ["cooking"]
+
+[[topic]]
+id = "fight-dishes"
+kind = "fight"
+icon = "WashDishes"
+label = "the dishes"
+code = 24
+reason = "fight-dishes"
+
+[[topic]]
+id = "fight-chore"
+kind = "fight"
+icon = "WashDishes"
+label = "chores"
+code = 25
+reason = "fight-chore"
+
+[[topic]]
+id = "fight"
+kind = "fight"
+icon = "Talk"
+code = 26
+reason = "fight"
+
+[[topic]]
+id = "fight-privacy"
+kind = "fight"
+icon = "Toilet"
+label = "privacy"
+code = 27
+reason = "fight-privacy"
+
+[[topic]]
+id = "fight-television"
+kind = "fight"
+icon = "TV"
+label = "TV"
+code = 28
+reason = "fight-television"
+
+[[topic]]
+id = "fight-music"
+kind = "fight"
+icon = "Radio"
+label = "music"
+code = 29
+reason = "fight-music"
+
+[[topic]]
+id = "fight-exercise"
+kind = "fight"
+icon = "Exercise"
+label = "exercise"
+code = 30
+reason = "fight-exercise"
+
+[[topic]]
+id = "fight-nuisance"
+kind = "fight"
+icon = "Use"
+label = "a nuisance"
+code = 31
+reason = "fight-nuisance"
+
+[[topic]]
+id = "fight-interruption"
+kind = "fight"
+icon = "Talk"
+label = "interruptions"
+code = 32
+reason = "fight-interruption"
+
+# Subjects ([RT-subjects]): what people talk about beyond their activities.
+# interest = clamp(bias + sum(weight * source) + variation * personal, -1, 1).
+# Sources read a tag preference, a skill's mastery (0 to 1), a saved affinity
+# or, for `job`, the person's job satisfaction as (satisfaction - 50) / 50.
+# `personal` is a fixed value from -1 to 1 for each person and subject. Only
+# a person with a positive interest offers a subject. These numbers are
+# rulings for the owner to confirm, tuned by the frequency check.
+
+[[topic]]
+id = "trains"
+kind = "subject"
+icon = "Talk"
+label = "trains"
+bias = 0.0
+variation = 0.45
+sources = []
+
+[[topic]]
+id = "bicycling"
+kind = "subject"
+icon = "Talk"
+label = "bicycling"
+bias = 0.0
+variation = 0.5
+sources = [
+  { kind = "tag", key = "exercise", weight = 0.5 },
+  { kind = "skill", key = "exercise", weight = 0.3 },
+]
+
+[[topic]]
+id = "gardening"
+kind = "subject"
+icon = "Talk"
+label = "gardening"
+bias = 0.0
+variation = 0.5
+sources = [{ kind = "affinity", key = "plants", weight = 0.6 }]
+
+[[topic]]
+id = "weather"
+kind = "subject"
+icon = "Talk"
+label = "the weather"
+bias = 0.1
+variation = 0.6
+sources = []
+
+[[topic]]
+id = "work"
+kind = "subject"
+icon = "Talk"
+label = "work"
+bias = 0.0
+variation = 0.3
+requires = "job"
+sources = [{ kind = "job", weight = 0.8 }]
+
+# Never offered: bias and variation are 0, so its interest is never positive.
+# Any `subject:` tag whose subject has left this file resolves here.
+[[topic]]
+id = "unknown-subject"
+kind = "subject"
+icon = "Talk"
+label = "something"
+bias = 0.0
+variation = 0.0
+sources = []
