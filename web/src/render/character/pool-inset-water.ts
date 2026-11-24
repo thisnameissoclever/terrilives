@@ -15,9 +15,10 @@ export function insetPaddleOffset(s:PoolCycleSource,stroke:(p:number)=>PoolPoseP
  return insetWaterOffset(s,Array.from({length:24},(_,i)=>({program:stroke(i/24),action:'pool_paddle',phase:i/24})));
 }
 export function insetWaterOffset(s:PoolCycleSource,samples:readonly {program:PoolPoseProgram;action:string;phase:number}[]):Vec3{
- const bay=s.definition.dryBay;if(!bay)return [0,0,0];
+ const bay=s.definition.dryBay;
+ if(!bay&&!s.definition.rectangularPool)return [0,0,0];
  const rim=s.fixture.solids.find(o=>o.id==='Pool stone coping')!,floor=s.fixture.solids.find(o=>o.id==='Pool basin floor')!;
- const obstacles:Box[]=[[bay.liner[0],bay.liner[1],bay.liner[2],rim.bounds[1][1],floor.bounds[0][2],rim.bounds[1][2]]];
+ const obstacles:Box[]=bay?[[bay.liner[0],bay.liner[1],bay.liner[2],rim.bounds[1][1],floor.bounds[0][2],rim.bounds[1][2]]]:[];
  for(const solid of s.fixture.solids){
   if(!solid.id.startsWith('Pool inside ladder tread')&&!solid.id.startsWith('Pool ladder'))continue;
   const [lo,hi]=solid.bounds;
@@ -69,7 +70,7 @@ export function insetWaterOffset(s:PoolCycleSource,samples:readonly {program:Poo
   const dx=(x+x0)*stepX,dy=(y+y0)*stepY,cost=dx*dx+dy*dy;
   if(grid[i]===0&&cost<best){out=[dx,dy,0];best=cost;}
  }
- if(!out)throw new PoolTrialRefusal('The configured paddle has no clear lane around the dry bay.');
+ if(!out)throw new PoolTrialRefusal('The configured paddle has no clear lane inside the pool.');
  return out;
 }
 

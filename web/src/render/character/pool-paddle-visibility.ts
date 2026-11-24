@@ -78,7 +78,9 @@ export function poolPaddleArm(bounds:ReturnType<typeof poolWaterBounds>, limb:'h
   // Reserve half a palm in front of its leading edge, then fit one sweep for the whole cycle.
   const frontmostWrist=rearmostContact+(rearmostContact-frontmostContact)/2;
   const forward=Math.min(.81*reach.maximum,shoulder[1]-frontmostWrist);
-  if(!(forward>0))throw new Error('Pool paddle lacks space ahead of the shoulder for a full pull.');
+  if(!(forward>0))throw new Error('Pool paddle lacks space ahead of the shoulder for a full pull.',{
+    cause:{shoulder,frontmostWrist,waterMinimum:bounds.low,waterMaximum:bounds.high},
+  });
   const rear=forward*(.25/.81);
   const direction:Vec3=[side*reach.maximum*(.25+.12*Math.sin(angle)),
     -(rear+(forward-rear)*(1+Math.cos(angle))/2),wrist-shoulder[2]];

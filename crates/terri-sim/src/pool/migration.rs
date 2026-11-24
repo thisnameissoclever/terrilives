@@ -37,7 +37,7 @@ pub(crate) fn migrate_v22(world: &mut World) -> Result<bool, SaveError> {
         if origin.x.fract()!=0. || origin.y.fract()!=0. { return Err(SaveError::InvalidValue); }
         let origin=(origin.x as i32,origin.y as i32);
         let facing=world.get::<ObjectFacing>(target.object).map_or(definition.base_facing,|value|value.0);
-        let endpoint=approach(origin,facing);
+        let endpoint=approach(definition,origin,facing);
         let grid=world.resource::<TileGrid>();
         if !grid.is_walkable(endpoint.0,endpoint.1)
             || !grid.can_interact_with_rect(endpoint,origin,definition.footprint_at(facing))

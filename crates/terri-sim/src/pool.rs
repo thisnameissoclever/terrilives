@@ -52,12 +52,14 @@ pub(crate) fn has_swimming_state(world: &World) -> bool {
     }))
 }
 
-/// The ladder is on source +Y at X=-.5. The four registered renders rotate it.
-pub(crate) fn approach(origin: (i32, i32), facing: terri_core::Facing) -> (i32, i32) {
-    // Source (-.5, 1.5) becomes (-1.5, .5) about the SE fixture centre.
-    // Doubled coordinates retain the half-tile centre exactly through quarter turns.
-    let (x, y) = facing.rotate_axis(-3, 1);
-    (origin.0 + (x + 1) / 2, origin.1 + (y + 1) / 2)
+/// Both pool models place the ladder beside the second row of their base footprint.
+pub(crate) fn approach(
+    object: &terri_data::CompiledObject,
+    origin: (i32, i32),
+    facing: terri_core::Facing,
+) -> (i32, i32) {
+    let (x, y) = object.footprint_offset_at((-1, 1), facing);
+    (origin.0 + x, origin.1 + y)
 }
 
 pub(crate) fn request_exit(world: &mut World, actor: Entity) -> bool {
@@ -104,7 +106,7 @@ pub(crate) fn prepare(world: &mut World) {
         if !definition.interactions.get(target.interaction as usize).is_some_and(is_swimming) { continue; }
         let Some(position) = world.get::<Position>(target.object) else { continue; };
         let facing = world.get::<ObjectFacing>(target.object).map_or(definition.base_facing, |f| f.0);
-        let endpoint = approach((position.x as i32, position.y as i32), facing);
+        let endpoint = approach(definition, (position.x as i32, position.y as i32), facing);
         if world.query::<&PoolEpisode>().iter(world).any(|e| e.approach == endpoint) { continue; }
         world.entity_mut(actor).insert(PoolEpisode { pool: target.object, phase: 0,
             elapsed: 0, exit_origin: 0, interrupted: false, approach: endpoint });

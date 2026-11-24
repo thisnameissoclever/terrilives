@@ -2,7 +2,7 @@
   "version": 1,
   "state": "complete",
   "encoding": "rg-u16-unorm-x-minus-y-range-minus2-plus2",
-  "atlasSha256": "668ded54acc269cdbe9947b68ba59b7939674db5cd12cc45d5c12a0f8600b264",
+  "atlasSha256": "dfc2a51f71075296ea23f60083254bbe2aeaaf937fa77370911624d5790e0d0d",
   "producerHashes": {
     "export_static_depth.py": "d90d0b8828e80dc11729f6a2a7076219928d81262dd736b10e0396f00c9fae18",
     "depth_geometry.py": "6a76cc2dcc44d00a29acd8c6dedf382ae306bcfcd365e82fa22257fcf3d7f365"

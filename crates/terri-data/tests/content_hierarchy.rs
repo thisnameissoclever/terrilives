@@ -479,7 +479,7 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
     let (retained, appended) = current.objects.split_at(legacy.objects.len());
     assert_eq!(
         appended.iter().map(|o| o.id.as_str()).collect::<Vec<_>>(),
-        ["pool", "pool_lounger", "patio_umbrella"]
+        ["pool", "pool_lounger", "patio_umbrella", "pool_rectangular"]
     );
     for object in appended {
         assert!(published.find(&object.id).is_none(), "{} is new", object.id);
@@ -703,9 +703,8 @@ fn every_shipped_model_has_classification_and_seat_actions_take_capacity_from_se
     );
 }
 
-/// Issue 250's yard furniture: each type, its footprint and its actions.
-/// The pool and the umbrella are decorative; the lounger's only action is
-/// the shared Sit, which seats one person on its one seat.
+/// The original yard models retain their types, footprints and actions.
+/// Sit seats one person on the lounger's single seat.
 #[test]
 fn yard_furniture_declares_its_types_footprints_and_the_lounger_sit() {
     use terri_data::{Footprint, SeatUse};
@@ -739,6 +738,34 @@ fn yard_furniture_declares_its_types_footprints_and_the_lounger_sit() {
     assert_eq!(sit.slots, 1);
     assert_eq!(sit.duration_ticks, 40);
     assert_eq!(lounger.seats.len(), 1);
+}
+
+#[test]
+fn the_yard_catalogue_offers_the_rectangular_pool_and_retains_the_square_model() {
+    use terri_data::{Facing, Footprint};
+
+    let pack = terri_data::pack();
+    let legacy_id = pack.find("pool").expect("saved square pool model");
+    let replacement_id = pack.find("pool_rectangular").expect("rectangular pool model");
+    let legacy = pack.object(legacy_id);
+    let replacement = pack.object(replacement_id);
+    assert_eq!(legacy.price, Some(1200));
+    assert_eq!(replacement.price, legacy.price);
+    assert_eq!(replacement.bill_daily, legacy.bill_daily);
+    assert_eq!(replacement.interactions, legacy.interactions);
+    assert_eq!(replacement.display_name(), "Pool");
+    let offered: Vec<_> = pack
+        .catalogue()
+        .filter(|(_, model, _)| model.display_name() == "Pool")
+        .map(|(id, _, _)| id)
+        .collect();
+    assert_eq!(offered, [replacement_id]);
+    assert_eq!(replacement.base_facing, Facing::SouthEast);
+    for (facing, (width, depth)) in Facing::ALL.into_iter().zip([(3, 2), (2, 3), (3, 2), (2, 3)]) {
+        assert!(replacement.supports(facing), "{facing:?}");
+        assert_eq!(replacement.footprint_at(facing), Footprint { width, depth });
+        assert_eq!(legacy.footprint_at(facing), Footprint { width: 2, depth: 2 });
+    }
 }
 
 /// The lounger's one seat and its two approach tiles in every facing,

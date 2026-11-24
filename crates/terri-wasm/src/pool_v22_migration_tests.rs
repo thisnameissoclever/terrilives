@@ -93,6 +93,8 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
             },
             need_mood: vec![],
         });
+        assert_eq!(expected.world.content_fingerprint, 0x7229_9218_57a2_e3ae);
+        expected.world.content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
         for row in &mut expected.0.pools {
             let migrated = actual
                 .0

@@ -41,7 +41,7 @@ fn first_pool_requires_contacts_only_for_the_prepared_candidate_until_confirmed(
     assert_eq!(sim.build_pool_contacts_required(before.token), Ok(false));
 
     let pack = sim.world().resource::<Content>().0;
-    let definition = pack.find("pool").unwrap();
+    let definition = pack.find("pool_rectangular").unwrap();
     issue(&mut sim, SimCommand::BuyObject {
         definition: definition.0, x: 4, y: 4, facing: pack.object(definition).base_facing,
     });

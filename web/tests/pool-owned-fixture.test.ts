@@ -117,7 +117,7 @@ it('rejects a raw fixture restored after its observation',()=>{
 });
 
 it('keeps production parsed values and exact revision hashing unchanged',async()=>{
- const productionFixture=JSON.parse(readFileSync(new URL('../../assets/models/sims/character-creator/clips/pool/contacts-v11.json',import.meta.url),'utf8'));
+ const productionFixture=JSON.parse(readFileSync(new URL('../../assets/models/sims/character-creator/clips/pool/contacts-v12.json',import.meta.url),'utf8'));
  const fixture=poolContactFixture();assertGraph(fixture,productionFixture);
  expect(poolContactFixture()).toBe(fixture);
  expect((await poolContactSourceRevisions()).fixture).toBe(await sleepContactDigest(productionFixture));
@@ -126,7 +126,7 @@ it('keeps production parsed values and exact revision hashing unchanged',async()
 it('loads the split-level hop and its matching climb-out route in the ordinary game',()=>{
  const family=poolContactRelease.family;
  expect(family).toBeDefined();
- const route=readFileSync(new URL('../../assets/models/sims/character-creator/clips/pool/ladder-climb-out-v5.poolroute',import.meta.url));
+ const route=readFileSync(new URL('../../assets/models/sims/character-creator/clips/pool/ladder-climb-out-v6.poolroute',import.meta.url));
  const digest=(bytes:string|Buffer)=>createHash('sha256').update(bytes).digest('hex');
  expect(route.byteLength).toBe(family!.byteLength);
  expect(digest(route)).toBe(family!.sha256);

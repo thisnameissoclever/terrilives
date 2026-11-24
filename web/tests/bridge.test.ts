@@ -116,7 +116,8 @@ describe('SimBridge', () => {
     expect(catalogue).toHaveLength(33);
     // Issue 250: the yard furniture is sold under its own room and placed nowhere at the start.
     const yard = catalogue.filter(item => item.model?.rooms.includes('yard'));
-    expect(yard.map(item => item.name)).toEqual(['Pool', 'Pool lounger', 'Patio umbrella']);
+    expect(yard.map(item => item.name)).toEqual(['Pool lounger', 'Patio umbrella', 'Pool']);
+    expect(yard.find(item => item.name === 'Pool')?.model?.id).toBe('pool_rectangular');
     const placedModels = ids.map(id => bridge.objectModel(id)?.id).filter(id => id !== undefined);
     expect(placedModels.length).toBeGreaterThan(0);
     expect(placedModels.filter(id => yard.some(item => item.model?.id === id))).toEqual([]);

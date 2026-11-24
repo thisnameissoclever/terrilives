@@ -68,7 +68,7 @@ fn issue314_authentic_v19_loads_without_invented_incidents_or_repairs() {
             .legacy
             .legacy;
         five.layout = current_test_snapshot::materialized_shell(&five.layout, 0, 0, 16, 12);
-        five.world.content_fingerprint = 0x7229_9218_57a2_e3ae;
+        five.world.content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
         assert_eq!(
             current.legacy, expected,
             "migration materializes the rear shell, remaps content and raises pre-bill pay"

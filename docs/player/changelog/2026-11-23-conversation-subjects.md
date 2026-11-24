@@ -12,6 +12,7 @@ Housemates can swim, play with a toy in the bath, and chat about trains, gardeni
 - Choose **Hop in** from a pool menu, or let a housemate swim on their own. Swimmers change into trunks matching their pants or a two-piece matching their top. They climb the ladder, push off from the rim, and doggy-paddle. Ripples follow the landing and each stroke.
 - Choose **Clear orders** while the swimmer is climbing up and they climb back down. Once they've pushed off, they finish landing before climbing out. Their usual clothes go back on when they're out of the pool.
 - Saving during a swim preserves the swimmer's place in the action, including a climb out you've already requested.
+- The store's Backyard Rectangle pool needs a 3×2 space and has an outside ladder. Pools in existing saves fit in their original 2×2 spaces.
 
 ## Improved
 

@@ -84,17 +84,29 @@ def render(source, directory):
         sources.extend([MODELS/'outdoor/export_pool_fixture_v7.py', MODELS/'outdoor/pool_activity_layout_v7.py',
                         MODELS/'outdoor/export_pool_fixture_v8.py', MODELS/'outdoor/pool_activity_layout_v8.py',
                         MODELS/definition['modelSource']])
+    rectangular = definition['modelSource'] == 'outdoor/pool_activity_model_v9.py'
+    wide = rectangular and definition.get('rectangularPool') != 'compact'
+    if rectangular:
+        sources.extend(MODELS/f'outdoor/{name}' for name in (
+            'export_pool_fixture_v9.py', 'pool_activity_layout_v9.py',
+            'pool_activity_model_v9.py', 'pool_activity_layout_v8.py',
+            'pool_activity_model_v8.py', 'pool_activity_layout_v7.py',
+        ))
+        sys.path.insert(0, str(MODELS/'outdoor'))
+        from pool_activity_layout_v9 import ORIGIN_Y
     proof = {'state':'rendering', 'object':'pool', 'inputs':{s.relative_to(MODELS).as_posix():digest(s) for s in sources},
              'blender_version':bpy.app.version_string, 'logical_canvas':list(CANVAS),
              'source_density':DENSITY, 'origin_pixels':origin, 'camera_matrix':[list(v) for v in scene.camera.matrix_world],
              'ortho_scale':scene.camera.data.ortho_scale, 'parts':[o.name for o in root.children_recursive],
              'model_sha256':digest(model), 'fixture_sha256':digest(fixture_path),
-             'model_checks':{'footprint':[2,2], 'water_z':fixture['waterHeight'],
+             'model_checks':{'footprint':[3,2] if wide else [2,2], 'water_z':fixture['waterHeight'],
                              'rail_centers_x':[rail['points'][0]['point'][0] for rail in fixture['rails']]},
              'color_management':{'view':scene.view_settings.view_transform, 'look':scene.view_settings.look},
              'approval':'Unreviewed offline candidate; independent visual review required.', 'renders':[]}
     for facing, degrees in FACINGS.items():
         root.rotation_euler.z = math.radians(degrees)
+        if wide:
+            root.location = root.rotation_euler.to_matrix() @ Vector((0, -ORIGIN_Y, 0))
         path = directory/f'closed-{facing}.png'
         scene.render.filepath = str(path)
         bpy.ops.render.render(write_still=True)

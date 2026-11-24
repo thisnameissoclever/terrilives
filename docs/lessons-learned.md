@@ -14054,3 +14054,10 @@ Measure the narrowest surviving strip after the cut. On the exported fixture, ch
 After the pool gained a dry approach step, the worker built the entry and the swimmer reached the paddle in sampled poses. Loading the household still failed. The first entry key marked the right foot as releasing. All twelve exits used that same standing pose with the right foot planted.
 
 Keep both feet planted at the shared standing key. Start the foot release on the interval that follows. Pass the actual worker output through the renderer’s binding check after changing a shared key, and then load the household in the game.
+
+
+## [L-visible-footprint-tradeoffs] Show the visual cost of saving a tile
+
+The first inclined pool ladder fit the existing four tiles by cutting a recess into the basin. Review verified its fit and animation. The owner rejected the resulting shape when he saw the wall and water turn inward around the ladder.
+
+Show the full object from the clearest angle before accepting an art change that alters its shape. Use the actual reserved tiles to explain what the player gives up in exchange for the change. Verify the silhouette and purchase footprint together in the game, then load a fixture from an earlier version to check that an existing layout still fits.

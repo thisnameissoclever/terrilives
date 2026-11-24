@@ -120,8 +120,9 @@ pub(crate) fn materialized_v14(
     source
 }
 
-/// Independent Data-tool measurements bind a481's 30-model catalogue and 513's
-/// 33-model catalogue, with and without Patio. See the yard-integration evidence.
+/// Fingerprint measured from the compiled catalogue with the rectangular pool.
+pub(crate) const CURRENT_CATALOGUE_FINGERPRINT: u64 = 0xf7e3_a71d_c98e_ff9d;
+
 /// This projection can change only the global metadata field, never saved state.
 pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut u64) {
     assert_eq!(
@@ -129,8 +130,9 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
         "authenticated V14/V15 catalogue"
     );
     assert_eq!(
-        *captured, 0x7229_9218_57a2_e3ae,
-        "independently measured current catalogue"
+        *captured,
+        CURRENT_CATALOGUE_FINGERPRINT,
+        "current catalogue"
     );
     *captured = source;
 }

@@ -11,11 +11,9 @@ fn expected_v14_projection(
     geometry: FixtureGeometry,
     adopted: bool,
 ) -> terri_core::SaveSnapshotV14 {
-    // The content fingerprint test in need_interactions/fill_tests.rs pins
-    // the catalogue on both sides of the pool's Hop in action.
     let world = &mut source.legacy.legacy.legacy.legacy.legacy.legacy.world;
     assert_eq!(world.content_fingerprint, 0x5111_16ef_ac94_ae24);
-    world.content_fingerprint = 0x7229_9218_57a2_e3ae;
+    world.content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
     match geometry {
         FixtureGeometry::FramedHouse => current_test_snapshot::materialized_v14(source),
         FixtureGeometry::SparseBlank10x8 => {

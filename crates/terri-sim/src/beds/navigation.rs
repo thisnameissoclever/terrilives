@@ -62,7 +62,7 @@ impl Access {
                 distance,
             });
         if crate::pool::has_pool(object) {
-            let tile = crate::pool::approach(origin, facing);
+            let tile = crate::pool::approach(object, origin, facing);
             let contact = (tile.0.clamp(origin.0, origin.0 + footprint.width as i32 - 1),
                 tile.1.clamp(origin.1, origin.1 + footprint.depth as i32 - 1));
             perimeter = field.distance_to_contact(tile, contact).map(|distance| Reachable {

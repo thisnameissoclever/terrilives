@@ -19,7 +19,8 @@ def digest(path):
     return sha256(path.read_bytes()).hexdigest()
 
 
-def evaluated_fixture(root, rail_centres=(LEFT_RAIL_X, RIGHT_RAIL_X)):
+def evaluated_fixture(root, rail_centres=(LEFT_RAIL_X, RIGHT_RAIL_X), *,
+                      occupied_bounds=((-1, -1), (1, 1))):
     inverse = root.matrix_world.inverted()
     graph = bpy.context.evaluated_depsgraph_get()
     rails, solids = [], []
@@ -35,8 +36,9 @@ def evaluated_fixture(root, rail_centres=(LEFT_RAIL_X, RIGHT_RAIL_X)):
             vertices = [list(transform @ v.co) for v in mesh.vertices]
             triangles = [list(t.vertices) for t in mesh.loop_triangles]
             bounds = [[op(v[axis] for v in vertices) for axis in range(3)] for op in (min, max)]
-            if any(bounds[0][axis] < -1 or bounds[1][axis] > 1 for axis in (0, 1)):
-                raise ValueError(f'{obj.name} leaves the 2 by 2 pool footprint.')
+            if any(bounds[0][axis] < occupied_bounds[0][axis]
+                   or bounds[1][axis] > occupied_bounds[1][axis] for axis in (0, 1)):
+                raise ValueError(f'{obj.name} leaves the pool footprint.')
             solid = {'id': obj.name, 'kind': 'floor' if obj.name == 'Pool basin floor' else 'solid',
                      'vertices': vertices, 'triangles': triangles, 'bounds': bounds}
             if solid['kind'] == 'solid' and not solid_topology(solid)['closedAfterExactCoincidentVertexJoin']:

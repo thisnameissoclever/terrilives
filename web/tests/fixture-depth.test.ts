@@ -42,7 +42,7 @@ it('requires fixture coverage provenance to match the current sprite atlas',()=>
 it('binds all completed companion pages to valid appended atlas records',()=>{
  for(const [,manifest] of bundles)expect(manifest.state).toBe('complete');
  expect(pageCases.length).toBe(FIXTURE_DEPTH_PAGE_COUNT);
- const table=fixtureDepthTable();expect(table.length).toBe(FIXTURE_DEPTH_COUNT*FLOATS_PER_SPRITE);expect(FIXTURE_DEPTH_COUNT).toBe(412);
+ const table=fixtureDepthTable();expect(table.length).toBe(FIXTURE_DEPTH_COUNT*FLOATS_PER_SPRITE);expect(FIXTURE_DEPTH_COUNT).toBe(416);
  for(let index=0;index<FIXTURE_DEPTH_COUNT;index++){
   const row=table.subarray(index*FLOATS_PER_SPRITE,(index+1)*FLOATS_PER_SPRITE);
   expect(row[0]).toBeGreaterThanOrEqual(0);expect(row[1]).toBeGreaterThanOrEqual(0);expect(row[2]).toBeLessThanOrEqual(1);expect(row[3]).toBeLessThanOrEqual(1);
@@ -54,7 +54,8 @@ it('registers every static, aquarium and outdoor frame and samples separate near
  for(const manifest of [staticDepth,aquariumDepth,outdoorDepth])for(const row of manifest.sprites){
   expect(SPRITES[row.sprite].name).toBe(row.name);expect(SPRITES[row.sprite].w).toBe(row.w);expect(SPRITES[row.sprite].h).toBe(row.h);
   expect(row.x+row.w).toBeLessThanOrEqual(ATLAS_WIDTH);expect(row.y+row.h).toBeLessThanOrEqual(ATLAS_HEIGHT);
-  expect(fixtureDepthSprite(row.sprite,40000)).not.toBeNull();expect(row.minSum).toBeGreaterThanOrEqual(-2);expect(row.maxSum).toBeLessThanOrEqual(2);
+  const limit='depthRange' in row && typeof row.depthRange==='number' ? row.depthRange : 2;
+  expect(fixtureDepthSprite(row.sprite,40000)).not.toBeNull();expect(row.minSum).toBeGreaterThanOrEqual(-limit);expect(row.maxSum).toBeLessThanOrEqual(limit);
  }
  const proof=JSON.parse(readFileSync(new URL('../../assets/models/kitchen/owner-review-pending/counter/candidate-01/proof.json',import.meta.url),'utf8'));
  for(const row of staticDepth.sprites.filter(row=>row.name.startsWith('offlineCounter')))for(const sum of [-.5,.5]){
@@ -64,6 +65,28 @@ it('registers every static, aquarium and outdoor frame and samples separate near
   expect(data[at+3]).toBeGreaterThan(0);expect((data[at]*256+data[at+1])/65535*4-2).toBeCloseTo(sum,1);
  }
  expect(fixtureDepthSprite(spriteIndex('offlineCounter'),0)).toBeNull();expect(fixtureSurfaceHeight(spriteIndex('offlineCounter'))).toBe(.86);
+});
+
+it('preserves signed depth beyond two tiles in all rectangular pool facings',()=>{
+ const rows=outdoorDepth.sprites.filter(row=>row.source==='offlinePoolRectangular');
+ expect(rows.map(row=>row.facing)).toEqual(['SE','NW','SW','NE']);
+ for(const row of rows){
+  expect(row.depthRange).toBe(3);
+  const record=outdoorDepth.pages[row.pageIndex],data=page('outdoor-depth',record);
+  let minimum=Infinity,maximum=-Infinity,covered=0,flagged=0;
+  for(let y=0;y<row.h;y++)for(let x=0;x<row.w;x++){
+   const at=((row.y+y)*record.width+row.x+x)*4;
+   if(!data[at+3])continue;
+   if(data[at+2]===128)flagged++;
+   const value=(data[at]*256+data[at+1])/65535*6-3;
+   minimum=Math.min(minimum,value);maximum=Math.max(maximum,value);covered++;
+  }
+  expect(covered).toBe(row.coveredPixels);
+  expect(flagged).toBe(covered);
+  if(row.facing==='NW'||row.facing==='NE')expect(minimum).toBeLessThan(-2);
+  if(row.facing!=='NW')expect(maximum).toBeGreaterThan(2);
+  expect(minimum).toBeCloseTo(row.minSum,4);expect(maximum).toBeCloseTo(row.maxSum,4);
+ }
 });
 
 it('keeps shelf shell and all 24 stock depth records consecutive and independently masked',()=>{

@@ -133,8 +133,10 @@ fn wrong_save_envelopes_leave_the_live_world_unchanged() {
         let mut bytes = original.clone();
         bytes[8..10].copy_from_slice(&version.to_le_bytes());
         if version == 24 {
-            let prefix = postcard::to_allocvec(&0x7229_9218_57a2_e3ae_u64).unwrap();
-            bytes[SAVE_HEADER_BYTES..][..prefix.len()].copy_from_slice(&prefix);
+            let (_, tail) = postcard::take_from_bytes::<u64>(&original[SAVE_HEADER_BYTES..]).unwrap();
+            let end = original.len() - tail.len();
+            let private_digest = postcard::to_allocvec(&0x7229_9218_57a2_e3ae_u64).unwrap();
+            bytes.splice(SAVE_HEADER_BYTES..end, private_digest);
         }
         assert!(!live.load_bytes(&bytes), "schema {version}");
         assert_eq!(live.save_bytes(), original);

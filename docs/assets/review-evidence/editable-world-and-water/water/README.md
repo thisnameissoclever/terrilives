@@ -10,7 +10,13 @@ The boat and submarine households were saved while the toy was in use. Reloading
 
 ## Pool
 
-The ladder and its dry bay fit inside the original two-by-two purchase area. The water ends at the bay wall. The standing approach remains half a tile beyond the original edge. The person uses the sloping steps and turns on a 48 cm landing. Masculine trunks take their color from the pants and a feminine two-piece takes its color from the top.
+The store pool uses a 3×2 placement footprint. Its exterior ladder leads over a straight wall into an uninterrupted rectangular basin. The compact pool from existing saves keeps the original 2×2 placement and also has a straight wall. The two models share a 48 cm turning platform and the same ladder approach relative to the steps. [Swim in the 3×2 pool](rectangular-pool-swim.png) · [Exterior descent](rectangular-pool-exit.png)
+
+The rebuilt game completed visits in all four wide-pool rotations. Tests covered a natural swim, turning back before takeoff, canceling after takeoff, and saving and loading during paddling and descent. Each saved checkpoint reloaded with the same world hash. The browser reported no errors. [Rectangular pool runs](rectangular-play.json)
+
+### Earlier ladder travel
+
+The following captures and measurements are from the earlier inset design. They record the posture and replay defects that informed the external ladder. Masculine trunks take their color from the pants and a feminine two-piece takes its color from the top.
 
 Four rotations were played. The short, broad swimmer finished a complete visit. The tall, broad swimmer was saved while paddling and again while climbing out after cancellation. A third swimmer was interrupted in the air, finished the jump and climbed out. A fourth turned back before takeoff and resumed that retreat from a save. The saved and reloaded world hashes matched at each checkpoint. No browser console errors occurred in these runs. [Recorded game states](pool-play.json)
 

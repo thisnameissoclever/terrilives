@@ -11,6 +11,19 @@ fn pool_has_an_ordinary_single_occupant_hop_in_order() {
     assert_eq!(action.duration_ticks, 120);
     assert_eq!(action.advertises, vec![(1, -5.), (5, 30.), (6, 10.)]);
 }
+
+#[test]
+fn pool_ladder_offsets_turn_from_the_models_base_facing() {
+    use terri_core::Facing;
+
+    let pack = terri_data::pack();
+    let mut definition = pack.object(pack.find("pool_rectangular").unwrap()).clone();
+    definition.base_facing = Facing::SouthWest;
+    for (facing, endpoint) in Facing::ALL.into_iter().zip([(5, 7), (3, 5), (4, 3), (7, 4)]) {
+        assert_eq!(pool::approach(&definition, (4, 4), facing), endpoint);
+    }
+}
+
 use super::*;
 use terri_core::{
     CommandQueue, Eating, IntentQueue, NeedId, Needs, ObjectFacing, Position, Reserved, SimCommand,
@@ -19,10 +32,9 @@ use terri_core::{
 
 fn fixture(facing: terri_core::Facing) -> (Sim, Entity, Entity) {
     let mut sim = Sim::new_with_lot(12, 12);
-    let pool = sim.spawn_object(
-        Position { x: 4., y: 4. },
-        terri_data::pack().find("pool").unwrap(),
-    );
+    let pack = terri_data::pack();
+    let definition = pack.find("pool").unwrap();
+    let pool = sim.spawn_object(Position { x: 4., y: 4. }, definition);
     sim.world_mut()
         .entity_mut(pool)
         .insert(ObjectFacing(facing));
@@ -33,7 +45,7 @@ fn fixture(facing: terri_core::Facing) -> (Sim, Entity, Entity) {
                 .set_blocked(x, y, true);
         }
     }
-    let (x, y) = pool::approach((4, 4), facing);
+    let (x, y) = pool::approach(pack.object(definition), (4, 4), facing);
     let person = sim.spawn_agent(
         Position {
             x: x as f32,

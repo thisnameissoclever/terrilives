@@ -13,6 +13,10 @@ fn old_endpoint(facing: terri_core::Facing) -> (i32, i32) {
     (4 + offset.0, 4 + offset.1)
 }
 
+fn current_square_endpoint(facing: terri_core::Facing) -> (i32, i32) {
+    [(3, 5), (4, 3), (6, 4), (5, 6)][usize::from(facing.code())]
+}
+
 fn fixture(
     facing: terri_core::Facing,
     phase: u8,
@@ -144,7 +148,7 @@ fn historical_all_facings_and_phases_preserve_progress_and_randomness() {
                     before.interrupted
                 )
             );
-            assert_eq!(episode.approach, approach((4, 4), facing));
+            assert_eq!(episode.approach, current_square_endpoint(facing));
             assert_eq!(current.world().resource::<SimRng>(), &random);
             assert_eq!(current.world().get::<Needs>(actor).unwrap(), &needs);
             if phase == 0 {
@@ -179,7 +183,7 @@ fn fractional_rounding_exhausted_paths_and_rowless_waiters_keep_their_positions(
         for kind in 0..4 {
             let (mut source, actor, _) = fixture(facing, 0, 0, false);
             let old = old_endpoint(facing);
-            let new = approach((4, 4), facing);
+            let new = current_square_endpoint(facing);
             let at = match kind {
                 0 => Position {
                     x: old.0 as f32,
@@ -251,7 +255,7 @@ fn a_new_anchor_blocked_by_furniture_or_a_physical_person_refuses_without_changi
     for kind in 0..2 {
         let facing = terri_core::Facing::SouthEast;
         let (mut source, _, _) = fixture(facing, 2, 11, false);
-        let end = approach((4, 4), facing);
+        let end = current_square_endpoint(facing);
         if kind == 0 {
             source.spawn_object(
                 Position {
@@ -289,7 +293,7 @@ fn a_new_anchor_blocked_by_furniture_or_a_physical_person_refuses_without_changi
 fn approaching_a_temporarily_occupied_destination_keeps_a_waitable_route() {
     let facing = terri_core::Facing::SouthEast;
     let (mut source, actor, _) = fixture(facing, 0, 0, false);
-    let end = approach((4, 4), facing);
+    let end = current_square_endpoint(facing);
     source.spawn_agent(
         Position {
             x: end.0 as f32,

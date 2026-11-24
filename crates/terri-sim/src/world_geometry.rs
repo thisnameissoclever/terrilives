@@ -440,7 +440,9 @@ pub fn access_report(world: &World) -> AccessReport {
                         .flatten()
                 };
                 let approaches: BTreeSet<_> = if crate::pool::has_pool(definition) {
-                    component_at(crate::pool::approach((x, y), facing)).into_iter().collect()
+                    component_at(crate::pool::approach(definition, (x, y), facing))
+                        .into_iter()
+                        .collect()
                 } else {
                     (x..right)
                         .flat_map(|x| [(x, y.saturating_sub(1)), (x, bottom)])
@@ -920,27 +922,30 @@ mod access_tests {
     use super::*;
     #[test]
     fn connected_ground_beside_a_pool_cannot_replace_its_blocked_ladder() {
-        let mut sim = crate::Sim::new_with_lot(9, 9);
-        let pack = sim.world().resource::<crate::Content>().0;
-        let model = pack.find("pool").unwrap();
-        let origin = (4, 4);
-        let pool = sim.spawn_object(Position { x: 4., y: 4. }, model);
-        let facing = pack.object(model).base_facing;
-        let ladder = crate::pool::approach(origin, facing);
-        let footprint = pack.object(model).footprint_at(facing);
-        let mut grid = sim.world_mut().resource_mut::<TileGrid>();
-        for x in origin.0..origin.0 + footprint.width as i32 {
-            for y in origin.1..origin.1 + footprint.depth as i32 {
-                grid.set_blocked(x as usize, y as usize, true);
+        for (model, ladder, width) in [("pool", (6, 4), 2), ("pool_rectangular", (7, 4), 3)] {
+            let mut sim = crate::Sim::new_with_lot(9, 9);
+            let pack = sim.world().resource::<crate::Content>().0;
+            let model = pack.find(model).unwrap();
+            let pool = sim.spawn_object(Position { x: 4., y: 4. }, model);
+            sim.world_mut()
+                .entity_mut(pool)
+                .insert(terri_core::ObjectFacing(terri_core::Facing::NorthWest));
+            let mut grid = sim.world_mut().resource_mut::<TileGrid>();
+            for x in 4..4 + width {
+                for y in 4..6 {
+                    grid.set_blocked(x, y, true);
+                }
             }
+            assert!(access_report(sim.world()).blocked_targets.is_empty());
+            sim.world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(ladder.0, ladder.1, true);
+            let report = access_report(sim.world());
+            assert!(report.regions.is_empty());
+            assert_eq!(report.blocked_targets.len(), 1);
+            assert_eq!(report.blocked_targets[0].target, pool.index_u32());
+            assert_eq!(report.blocked_targets[0].tiles.len(), width * 2);
         }
-        assert!(access_report(sim.world()).blocked_targets.is_empty());
-        sim.world_mut().resource_mut::<TileGrid>()
-            .set_blocked(ladder.0 as usize, ladder.1 as usize, true);
-        let report = access_report(sim.world());
-        assert!(report.regions.is_empty());
-        assert_eq!(report.blocked_targets.len(), 1);
-        assert_eq!(report.blocked_targets[0].target, pool.index_u32());
     }
 
     #[test]

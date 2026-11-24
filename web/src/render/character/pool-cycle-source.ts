@@ -73,6 +73,7 @@ interface PoolCrestFitDefinition {
 }
 export type PoolCycleDefinition = {
  dryBay?:{outer:[number,number,number];liner:[number,number,number];water:[number,number,number];inset:number};
+ rectangularPool?:'compact'|'wide';
  clockUnits:number;nativeTicks:{enter:number;paddle:number;exit:number;tickHz:number};
  reference:{neutralSample:{basis:number[][]};sourceRigSha256:string};
  ground:{pelvisXY:[number,number];bounds:Vec3[]};anchors:Anchor[];footTransitions:Transfer[];transferPercentages:number[];bodyProgressFraction:number;
@@ -981,7 +982,7 @@ export class PoolCycleSource {
  private insetPaddleTranslation?:Vec3;
  private fittedStroke(stroke:PoolWaterStrokeDefinition,phase:number,action:'pool_enter'|'pool_paddle'):PoolPoseProgram {
   const pose=this.rawFittedStroke(stroke,phase,action);
-  if(!this.definition.dryBay)return pose;
+  if(!this.definition.dryBay&&!this.definition.rectangularPool)return pose;
   this.insetPaddleTranslation??=insetPaddleOffset(this,p=>this.rawFittedStroke(stroke,p,'pool_paddle'));
   return translateInsetPaddle(this,pose,this.insetPaddleTranslation);
  }

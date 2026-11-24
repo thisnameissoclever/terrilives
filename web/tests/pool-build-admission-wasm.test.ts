@@ -14,7 +14,7 @@ let memory: WebAssembly.Memory;
 beforeAll(async () => { memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory; });
 
 function stagePool(sim: SimBridge, flush = true) {
-  const pool = sim.catalogue().find(item => item.model?.id === 'pool')!;
+  const pool = sim.catalogue().find(item => item.model?.id === 'pool_rectangular')!;
   expect(pool).toBeDefined();
   if (sim.funds() < pool.price) {
     const sellable = Array.from(sim.ids(), id => ({ id, ...sim.salePreview(id) }))

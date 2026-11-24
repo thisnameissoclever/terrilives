@@ -92,6 +92,8 @@ A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} g
 
 Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, climbs to the rim, pushes off into the water, paddles, then climbs back out. Each pool holds one person; the pool and its ladder approach stay reserved until that person is safely out.
 
+The Backyard Rectangle pool in Build takes up three tiles by two, including its outside ladder. Leave the tile at the foot of the ladder clear so a person can reach it. A pool already placed in an older save keeps its original two-by-two space.
+
 :::illustration pool-hop-in
 
 Only paddling supplies Fun and Comfort and costs Energy. Walking to the ladder, climbing in and climbing out supply none of those action effects. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.

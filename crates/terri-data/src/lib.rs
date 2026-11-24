@@ -3928,8 +3928,8 @@ mod tests {
         );
         assert_eq!(
             unplaced,
-            ["patio_umbrella", "pool", "pool_lounger"],
-            "only the yard furniture is sold without a place in the starting house"
+            ["patio_umbrella", "pool", "pool_lounger", "pool_rectangular"],
+            "only yard furniture is absent from the starting house"
         );
     }
 

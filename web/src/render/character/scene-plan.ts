@@ -20,6 +20,9 @@ export interface PlannedActor {
 type Source=Pick<SimBridge,'appearanceHash'|'characterAppearances'|'objectModel'|'objectFacing'|'lotRevision'|'modelSeatIds'>&RenderSource;
 const fixtureAngles=[Math.PI/2,0,3*Math.PI/2,Math.PI];
 const bodyAngles=[0,Math.PI/2,3*Math.PI/2,0,Math.PI];
+// The wider basin adds a tile behind the swimmer. The fitted rails and
+// walking endpoint still use the same ladder origin in all four rotations.
+const rectangularPoolOrigin=[[-.5,0],[0,-.5],[.5,0],[0,.5]] as const;
 
 /** One displayed ownership plan drives mesh rendering, sprite suppression and picking. */
 export class CharacterScenePlan {
@@ -114,10 +117,11 @@ export class CharacterScenePlan {
         if(place<0)throw new Error('Sofa occupant has no stable seat.');offset=[0,(1-place)*.52,0];
       }
       const includeFixture=fixture>=0&&!drawnFixtures.has(fixture);if(fixture>=0)drawnFixtures.add(fixture);
+      const [poolX,poolY]=model?.id==='pool_rectangular'?rectangularPoolOrigin[model.facing]:[0,0];
       this.replacedRows[row]=1;
       this.actors.push({entity:ids[row],sim:record.sim,row,token:row+1,appearance:record.appearance,action,
-        x:fixture>=0?previous[fixture*2]+(current[fixture*2]-previous[fixture*2])*alpha+fixtureOffsets[fixture*2]:x,
-        y:fixture>=0?previous[fixture*2+1]+(current[fixture*2+1]-previous[fixture*2+1])*alpha+fixtureOffsets[fixture*2+1]:y,
+        x:fixture>=0?previous[fixture*2]+(current[fixture*2]-previous[fixture*2])*alpha+fixtureOffsets[fixture*2]+poolX:x,
+        y:fixture>=0?previous[fixture*2+1]+(current[fixture*2+1]-previous[fixture*2+1])*alpha+fixtureOffsets[fixture*2+1]+poolY:y,
         angle:fixture>=0?fixtureAngles[model!.facing]:bodyAngles[facing]??0,offset,fixtureRow:fixture,fixtureEntity:fixture>=0?ids[fixture]:null,
         fixtureModel:fixture>=0?model!.id:null,includeFixture,bathToy:bathToys?.[row]??0,stockMask:fixture>=0?interactions.shelfMask(fixture,shelfPresence(fixture,shelfOffsets,shelfCounts,shelfMasks)):0,head:[x,y,0],feet:[x,y,0],hand:[x,y,0]});
     }

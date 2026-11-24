@@ -805,13 +805,15 @@ fn a_starving_dirty_person_who_gets_little_from_showers_eats_first() {
 }
 
 #[test]
-fn only_the_new_pool_action_moves_the_published_content_fingerprint() {
+fn the_pool_action_and_rectangular_model_move_the_published_content_fingerprint() {
     let shipped = terri_data::pack();
-    assert_eq!(terri_data::content_fingerprint(shipped), 0x7229_9218_57a2_e3ae);
+    let mut before_pool = shipped.clone();
+    assert_eq!(before_pool.objects.pop().unwrap().id, "pool_rectangular");
+    assert_eq!(terri_data::content_fingerprint(&before_pool), 0x7229_9218_57a2_e3ae);
+    assert_ne!(terri_data::content_fingerprint(shipped), terri_data::content_fingerprint(&before_pool));
 
     // Keep the merged bathroom rates and fill tuning in the comparison.
     // Removing the one new action restores main's action table digest.
-    let mut before_pool = shipped.clone();
     let pool = before_pool.find("pool").unwrap();
     let actions = &mut before_pool.objects[pool.0 as usize].interactions;
     assert_eq!(actions.iter().map(|action| action.id.as_str()).collect::<Vec<_>>(), ["hop_in"]);

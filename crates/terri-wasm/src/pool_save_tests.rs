@@ -537,6 +537,118 @@ fn pool_codec_exact_approaches_all_facings_and_queued_command_boundaries() {
 }
 
 #[test]
+fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
+    for (facing, (width, depth, endpoint)) in terri_core::Facing::ALL.into_iter().zip([
+        (3, 2, (3, 5)),
+        (2, 3, (4, 3)),
+        (3, 2, (7, 4)),
+        (2, 3, (5, 7)),
+    ]) {
+        let mut handle = SimHandle::new(12, 12);
+        let pack = handle.sim.world().resource::<Content>().0;
+        let model = pack.find("pool_rectangular").unwrap().0;
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(1200));
+        let facing_code = f64::from(facing.code());
+        let preview = handle.purchase_preview(f64::from(model), 4., 4., facing_code);
+        assert_eq!(preview[0], 0., "{facing:?}");
+        assert_eq!(preview[4..6], [f64::from(width), f64::from(depth)]);
+        assert!(handle.buy_object(f64::from(model), 4., 4., facing_code));
+        handle.flush_commands();
+        let result = handle.last_purchase_result();
+        assert_eq!(result[4..], [0, 0], "{facing:?}");
+        assert_eq!(handle.funds_cents(), 0.);
+
+        let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+        for y in 3..8 {
+            for x in 3..8 {
+                let in_pool = (4..4 + width).contains(&x) && (4..4 + depth).contains(&y);
+                assert_eq!(grid.is_walkable(x, y), !in_pool, "{facing:?} at {x},{y}");
+            }
+        }
+
+        handle.spawn_agent(1., 1., 70.);
+        command(
+            &mut handle,
+            SimCommand::UseObjectFirst {
+                agent: 1,
+                object: 0,
+                interaction: 0,
+            },
+        );
+        reach(&mut handle, 0, 0);
+        let active = handle.sim.save_snapshot_v30();
+        assert_eq!(active.pools[0].approach, endpoint, "{facing:?}");
+        roundtrip_pool(&mut handle, "rectangular ladder approach");
+        reach(&mut handle, 2, 3);
+        let active = handle.sim.current_v5_view();
+        let position = active.world.entities[1].position.unwrap();
+        assert_eq!((position.x, position.y), (endpoint.0 as f32, endpoint.1 as f32));
+        roundtrip_pool(&mut handle, "rectangular pool active swim");
+    }
+}
+
+#[test]
+fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
+    let bytes = include_bytes!("../tests/fixtures/pool-v28/square-pool-active-swim.sav");
+    assert_eq!(&bytes[8..10], &28u16.to_le_bytes());
+    let (source, tail) = postcard::take_from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+    assert!(tail.is_empty());
+    let source = CurrentV5View(source);
+    let mut handle = SimHandle::new(12, 12);
+    assert!(handle.load_bytes(bytes));
+
+    let active = handle.sim.current_v5_view();
+    assert_eq!(active.0.pools, source.0.pools);
+    assert_eq!(active.0.pools[0].approach, (3, 5));
+    assert_eq!(active.0.pools[0].phase, 2);
+    assert_eq!(active.0.pools[0].elapsed, 17);
+    assert_eq!(active.world.entities[0].smart_object.as_deref(), Some("pool"));
+    assert!(active.world.entities[0].reserved);
+    assert_eq!(active.world.entities[1].intents, source.world.entities[1].intents);
+    assert_eq!(active.world.blocked_tiles, source.world.blocked_tiles);
+    roundtrip_pool(&mut handle, "migrated square pool swim");
+}
+
+#[test]
+fn an_explicit_square_pool_purchase_survives_the_catalogue_change() {
+    let mut source = SimHandle::new(12, 12);
+    let mut previous = source.sim.world().resource::<Content>().0.clone();
+    assert_eq!(previous.objects.pop().unwrap().id, "pool_rectangular");
+    let previous = &*Box::leak(Box::new(previous));
+    let square = previous.find("pool").unwrap().0;
+    assert!(previous.catalogue().any(|(id, _, _)| id.0 == square));
+    source.sim = terri_sim::Sim::new_with_lot_and_content(12, 12, Content(previous));
+    source
+        .sim
+        .world_mut()
+        .insert_resource(terri_core::Funds::from_dollars(1200));
+    assert!(source.buy_object(f64::from(square), 4., 4., 0.));
+
+    let mut handle = SimHandle::new(12, 12);
+    assert!(handle.load_bytes(&source.save_bytes()));
+    handle.flush_commands();
+    assert_eq!(handle.last_purchase_result()[4..], [0, 0]);
+    assert_eq!(handle.funds_cents(), 0.);
+
+    let active = handle.sim.current_v5_view();
+    assert_eq!(active.world.entities[0].smart_object.as_deref(), Some("pool"));
+    let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+    for y in 4..6 {
+        assert!(!grid.is_walkable(4, y));
+        assert!(!grid.is_walkable(5, y));
+        assert!(grid.is_walkable(6, y));
+    }
+    let sale = handle.sale_preview(0.);
+    assert_eq!(sale, [0, 600]);
+    assert!(handle.sell_object(0.));
+    handle.flush_commands();
+    assert_eq!(handle.funds_cents(), f64::from(sale[1]) * 100.);
+}
+
+#[test]
 fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
     let mut handle = public_pool((3., 5.), terri_core::Facing::SouthEast, true);
     assert!(handle.spawn_object(1., 5., "pool"));

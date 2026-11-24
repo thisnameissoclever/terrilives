@@ -1032,7 +1032,7 @@ id = "pool"
 object_type = "pool"
 [model.properties]
 name = { set = "Backyard Square" }
-description = { set = "A square above-ground pool with a stone rim, wooden sides, blue water and a pair of chrome rails." }
+description = { set = "A compact above-ground pool with a stone rim, wooden sides, blue water and a ladder." }
 price = { set = 1200 }
 sprite = { set = "offlinePool" }
 footprint = { set = { width = 2, depth = 2 } }
@@ -1057,6 +1057,16 @@ name = { set = "Shady Eight" }
 description = { set = "Eight cream and coral panels on a slim pole and a weighted base." }
 price = { set = 90 }
 sprite = { set = "offlinePatioUmbrella" }
+
+[[model]]
+id = "pool_rectangular"
+object_type = "pool"
+[model.properties]
+name = { set = "Backyard Rectangle" }
+description = { set = "A rectangular above-ground pool with a stone rim, wooden sides, blue water and a ladder." }
+price = { set = 1200 }
+sprite = { set = "offlinePoolRectangular" }
+footprint = { set = { width = 3, depth = 2 } }
 
 [[colourway]]
 id = "as_drawn"

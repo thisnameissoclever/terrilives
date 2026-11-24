@@ -4,15 +4,15 @@
   "bundles": {
     "fixture-depth": {
       "path": "fixture-depth/manifest.json",
-      "sha256": "82655f5e51e26fa9ca935f6d2a385ab0f267bd0c77c9f758787b1404e54327bf"
+      "sha256": "5d1f18093a365b5555269b4121e259ce9723ec9fc153214d1d6a7930e9a258d0"
     },
     "aquarium-depth": {
       "path": "aquarium-depth/manifest.json",
-      "sha256": "b0cbbde462fdf7b7643b04e5696f4d480403bcfdbb72d959329b0aa9f980a671"
+      "sha256": "7ddb80324b884682d1c28b9102c85f059d2e44225ad26a0213c2d9c431f8adcc"
     },
     "outdoor-depth": {
       "path": "outdoor-depth/manifest.json",
-      "sha256": "78d376703b5be55cb382be810f2555ff2c05339135294cce134fc7ebe58f4903"
+      "sha256": "9493422a7f8fdd7dce6ac3b7a1e5961c13e73a077fc575f8410c2cc432115e64"
     },
     "shelf-depth": {
       "path": "shelf-depth/manifest.json",
@@ -24,7 +24,7 @@
     },
     "dropped-book": {
       "path": "dropped-book/manifest.json",
-      "sha256": "42eaf0889278bfb31e6148ca53f4851929ccb3441b172baf8208da02b80579a3"
+      "sha256": "1df74b44638686745e30c11354c91addd525fecae4e700cae2a1b831e114f03c"
     }
   },
   "models": [
@@ -259,6 +259,13 @@
       "atlasIndex": 30935,
       "depthBundle": "outdoor-depth",
       "representation": "unchanged-published-color-with-registered-source-surface-depth"
+    },
+    {
+      "model": "pool_rectangular",
+      "sprite": "offlinePoolRectangular",
+      "atlasIndex": 30939,
+      "depthBundle": "outdoor-depth",
+      "representation": "unchanged-published-color-with-registered-source-surface-depth"
     }
   ],
   "clips": [
@@ -303,7 +310,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/exercise/parts.json",
-        "sha256": "770c1c7473458c9f58259e77d58e8aadabe8dcfb3c54cbfb378d4249fd5f5db0"
+        "sha256": "8a4a9cb825ba70976aea05578ff33b6cc3cc2317861cf292ffa38b97cf837598"
       }
     },
     {
@@ -314,7 +321,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/prepare/parts.json",
-        "sha256": "22d63b9c9b3d38c60347a207874e10e23005405ab739c6f1005e50855f6963e3"
+        "sha256": "95a5c172b0629275867ee5819557fba0a77bea7d699c55ca663d94d630340f47"
       }
     },
     {
@@ -327,7 +334,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cooking/parts.json",
-        "sha256": "679b0f2b6822170661c01aa68d03275ee192836cb0b1ac0f986cc54e31b74be7"
+        "sha256": "39b4a23ed9614eb2763b2bdbbe75f9806b82d75d542d586efb89628891396a77"
       }
     },
     {
@@ -344,7 +351,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cooking/parts.json",
-        "sha256": "679b0f2b6822170661c01aa68d03275ee192836cb0b1ac0f986cc54e31b74be7"
+        "sha256": "39b4a23ed9614eb2763b2bdbbe75f9806b82d75d542d586efb89628891396a77"
       }
     },
     {
@@ -361,7 +368,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cooking/parts.json",
-        "sha256": "679b0f2b6822170661c01aa68d03275ee192836cb0b1ac0f986cc54e31b74be7"
+        "sha256": "39b4a23ed9614eb2763b2bdbbe75f9806b82d75d542d586efb89628891396a77"
       }
     },
     {
@@ -394,7 +401,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/dining/parts.json",
-        "sha256": "48c7a1da095d1f9c96aeb0c8520599cbff15a3b5d29eb457792cc9689cfdc5f7"
+        "sha256": "90a0f38864c5151382336c03af0c4d4973db691723a2d591761d8959fcaac3fd"
       }
     },
     {
@@ -409,7 +416,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/dishes/parts.json",
-        "sha256": "39372217eeae105f78029b3d149d2505494135acb6f65de01b0f2c935b1e8c42"
+        "sha256": "7d223ebf6667ef504eeafdfc4d2583e110b44b2946958b7fe00775835b4adaa3"
       }
     },
     {
@@ -424,7 +431,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/dishes/parts.json",
-        "sha256": "39372217eeae105f78029b3d149d2505494135acb6f65de01b0f2c935b1e8c42"
+        "sha256": "7d223ebf6667ef504eeafdfc4d2583e110b44b2946958b7fe00775835b4adaa3"
       }
     },
     {
@@ -439,7 +446,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/dishes/parts.json",
-        "sha256": "39372217eeae105f78029b3d149d2505494135acb6f65de01b0f2c935b1e8c42"
+        "sha256": "7d223ebf6667ef504eeafdfc4d2583e110b44b2946958b7fe00775835b4adaa3"
       }
     },
     {
@@ -488,7 +495,7 @@
       ],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cleaning/parts.json",
-        "sha256": "09031b3ac906fd028cdac2c1e83d794d6cb11190c18d69a7e4b111366d13bd02"
+        "sha256": "e527134345bf65ba63811595062a5d0937625dd0c6567af36afe515cdf02fa79"
       }
     },
     {
@@ -502,7 +509,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cleaning/parts.json",
-        "sha256": "09031b3ac906fd028cdac2c1e83d794d6cb11190c18d69a7e4b111366d13bd02"
+        "sha256": "e527134345bf65ba63811595062a5d0937625dd0c6567af36afe515cdf02fa79"
       }
     },
     {
@@ -516,7 +523,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cleaning/parts.json",
-        "sha256": "09031b3ac906fd028cdac2c1e83d794d6cb11190c18d69a7e4b111366d13bd02"
+        "sha256": "e527134345bf65ba63811595062a5d0937625dd0c6567af36afe515cdf02fa79"
       }
     },
     {
@@ -530,7 +537,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/cleaning/parts.json",
-        "sha256": "09031b3ac906fd028cdac2c1e83d794d6cb11190c18d69a7e4b111366d13bd02"
+        "sha256": "e527134345bf65ba63811595062a5d0937625dd0c6567af36afe515cdf02fa79"
       }
     },
     {
@@ -557,7 +564,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/toilet/parts.json",
-        "sha256": "2f96632aee50a0956a8e197b2c6fb1a27bec0cd6a84144980d82e2472f920628"
+        "sha256": "3b1cda0c3e3570b5abf3437f7576cfa005dcb5fde8f0ee2affc6720c8e5fb2b4"
       }
     },
     {
@@ -578,11 +585,15 @@
         "Bathtub tap stem -0.135",
         "Bathtub tap stem 0.135"
       ],
-      "independentProps": [],
+      "independentProps": [
+        "Bath play duck",
+        "Bath play boat",
+        "Bath play submarine"
+      ],
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bath/parts.json",
-        "sha256": "cdf8fafae286e5a6f5d9c1c47a439ca39a4aa888dcb8887574ed39a576c6f989"
+        "sha256": "14ccf4dd59e7fde4c0d194e6ec9cdc597a12956eb53c38485add15213fca3098"
       }
     },
     {
@@ -608,7 +619,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/recline/parts.json",
-        "sha256": "c2347ab9a7065fe1d821ecf5c718ec7f176255e5bb546a57b52970ef4aace0f7"
+        "sha256": "4858f8ed275dace240eb2ae6c348b3a9307bd8ea3c844400277a257d876be6fb"
       }
     },
     {
@@ -655,7 +666,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/fridge/parts.json",
-        "sha256": "cb681245940746b3f865fe2705a7b9ab864fc20677b777589baf1842fdd47ce0"
+        "sha256": "8392a8f73958346a522bd6869e4734a08d2cbcd66ae39338dd5558e1627a2a61"
       }
     },
     {
@@ -680,7 +691,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bed/parts.json",
-        "sha256": "a8a12e2715e8ed9fe979aaaffbae94f0a19667b6f756a5678a7af42061ef11cf"
+        "sha256": "b65bc3e9fbf6b32afc5535e349304b11a0eca3b983abffadd33f3056015979a0"
       }
     },
     {
@@ -724,7 +735,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bunk/parts.json",
-        "sha256": "ff8e3b059694914284a67673930431af8610fb89aed19ce96a28929b50caa766"
+        "sha256": "4006a2010bf05ec5ddb075b2659da336209120cc4198157a0ebe31f3654da9e5"
       }
     },
     {
@@ -735,7 +746,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/books/parts.json",
-        "sha256": "22d63b9c9b3d38c60347a207874e10e23005405ab739c6f1005e50855f6963e3"
+        "sha256": "95a5c172b0629275867ee5819557fba0a77bea7d699c55ca663d94d630340f47"
       }
     },
     {
@@ -746,7 +757,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/books/parts.json",
-        "sha256": "22d63b9c9b3d38c60347a207874e10e23005405ab739c6f1005e50855f6963e3"
+        "sha256": "95a5c172b0629275867ee5819557fba0a77bea7d699c55ca663d94d630340f47"
       }
     },
     {
@@ -757,7 +768,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/books/parts.json",
-        "sha256": "22d63b9c9b3d38c60347a207874e10e23005405ab739c6f1005e50855f6963e3"
+        "sha256": "95a5c172b0629275867ee5819557fba0a77bea7d699c55ca663d94d630340f47"
       }
     },
     {
@@ -783,7 +794,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/shower/parts.json",
-        "sha256": "f45504bddaf87e358bfe9db005578b95381c1068d3bf1d6c56c62b8646c37d66"
+        "sha256": "3e3fc8276c3dd17cddc2fb64c700d0eba2ea976128cc51c6f90bd8ae1268a86a"
       }
     },
     {
@@ -805,7 +816,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_armchair/parts.json",
-        "sha256": "f83a47328ca0682eb1c444c78819b4f0f9941875ff542348e71b32c97766a2e9"
+        "sha256": "d91f6dfe43df8bf6129b6d516e8fc1d63ba6e43030adb36022bea1ea1b114bef"
       }
     },
     {
@@ -827,7 +838,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_armchair/parts.json",
-        "sha256": "f83a47328ca0682eb1c444c78819b4f0f9941875ff542348e71b32c97766a2e9"
+        "sha256": "d91f6dfe43df8bf6129b6d516e8fc1d63ba6e43030adb36022bea1ea1b114bef"
       }
     },
     {
@@ -857,7 +868,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_reading/parts.json",
-        "sha256": "ca41bb8b55efeb014c4f6d95344cdefb06338b8da442a8b8ffc9ef897ce54cea"
+        "sha256": "e25bf9d3383fe587d96cf6e8eda80b99d1d4a04fd347dfb5ae2b4b0e2aeab716"
       }
     },
     {
@@ -887,7 +898,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_reading/parts.json",
-        "sha256": "ca41bb8b55efeb014c4f6d95344cdefb06338b8da442a8b8ffc9ef897ce54cea"
+        "sha256": "e25bf9d3383fe587d96cf6e8eda80b99d1d4a04fd347dfb5ae2b4b0e2aeab716"
       }
     },
     {
@@ -913,7 +924,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_dining/parts.json",
-        "sha256": "257bff63728c38a1b183195ee8e5e23b4462a56cf5bd2cd5fc2a84fa2ccf4faf"
+        "sha256": "a675a31a51b6ed56e1eac39c946b12ba9f1af4800fa62247e7379f1c6a4664a0"
       }
     },
     {
@@ -939,7 +950,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_dining/parts.json",
-        "sha256": "257bff63728c38a1b183195ee8e5e23b4462a56cf5bd2cd5fc2a84fa2ccf4faf"
+        "sha256": "a675a31a51b6ed56e1eac39c946b12ba9f1af4800fa62247e7379f1c6a4664a0"
       }
     },
     {
@@ -985,7 +996,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_office/parts.json",
-        "sha256": "c21771fad13a4be2c0aa33e3dd3b081af83a644ac65af9d43b8b62d46b982c0e"
+        "sha256": "de3c59d4f70844a93eff0b59297795fa7ba4dd04d34083533193ce2170b91bf6"
       }
     },
     {
@@ -1031,7 +1042,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_office/parts.json",
-        "sha256": "c21771fad13a4be2c0aa33e3dd3b081af83a644ac65af9d43b8b62d46b982c0e"
+        "sha256": "de3c59d4f70844a93eff0b59297795fa7ba4dd04d34083533193ce2170b91bf6"
       }
     },
     {
@@ -1051,7 +1062,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_ottoman/parts.json",
-        "sha256": "7d4cd2191f5c1f2e9b6458648d099f56b6d3530ef406a832b3e1ec2b702b5a9f"
+        "sha256": "b487c13980e146db48689508f843febf405548a33c6b4af034c4607fda9e7150"
       }
     },
     {
@@ -1071,7 +1082,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_ottoman/parts.json",
-        "sha256": "7d4cd2191f5c1f2e9b6458648d099f56b6d3530ef406a832b3e1ec2b702b5a9f"
+        "sha256": "b487c13980e146db48689508f843febf405548a33c6b4af034c4607fda9e7150"
       }
     },
     {
@@ -1097,7 +1108,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_sofa/parts.json",
-        "sha256": "418674b8be7b1fba1b9fa3636e1b8c551b1ced33c7c3df088ee4400cc62c645e"
+        "sha256": "8b4baa965b06d87d3b45c5e7cf602cf4de569b34a3e3745f5e9ce0124bd43cb3"
       }
     },
     {
@@ -1123,7 +1134,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/seat_sofa/parts.json",
-        "sha256": "418674b8be7b1fba1b9fa3636e1b8c551b1ced33c7c3df088ee4400cc62c645e"
+        "sha256": "8b4baa965b06d87d3b45c5e7cf602cf4de569b34a3e3745f5e9ce0124bd43cb3"
       }
     },
     {
@@ -1167,7 +1178,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1211,7 +1222,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1255,7 +1266,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1299,7 +1310,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1343,7 +1354,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1387,7 +1398,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1431,7 +1442,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1475,7 +1486,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1519,7 +1530,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1563,7 +1574,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1607,7 +1618,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1651,7 +1662,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1695,7 +1706,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1739,7 +1750,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1783,7 +1794,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1827,7 +1838,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1871,7 +1882,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1915,7 +1926,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -1959,7 +1970,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2003,7 +2014,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2047,7 +2058,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2091,7 +2102,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2135,7 +2146,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2179,7 +2190,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2223,7 +2234,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2267,7 +2278,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2311,7 +2322,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2355,7 +2366,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2399,7 +2410,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2443,7 +2454,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2487,7 +2498,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2531,7 +2542,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2575,7 +2586,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2619,7 +2630,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2663,7 +2674,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2707,7 +2718,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2751,7 +2762,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2795,7 +2806,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2839,7 +2850,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2883,7 +2894,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2927,7 +2938,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -2971,7 +2982,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -3015,7 +3026,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -3059,7 +3070,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -3103,7 +3114,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -3147,7 +3158,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -3191,7 +3202,7 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
       }
     },
     {
@@ -3235,7 +3246,273 @@
       "characterOwnedParts": [],
       "partsSource": {
         "path": "assets/models/sims/character-creator/clips/bookcase/parts.json",
-        "sha256": "c7e3774b617c4d654eb245f23572ce3086b39f257dc676cd32650617286383c0"
+        "sha256": "2c4067bb2f304039f4043d81d9f50c6aa8c64ebeee08871df9c2ea51e37e63c3"
+      }
+    },
+    {
+      "clip": "pool_enter",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_paddle",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_0",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_1",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_2",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_3",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_4",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_5",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_6",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_7",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_8",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_9",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_10",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
+      }
+    },
+    {
+      "clip": "pool_exit_11",
+      "family": "pool",
+      "staticFixtureParts": [],
+      "independentProps": [],
+      "characterOwnedParts": [
+        "Creator pool trunks L",
+        "Creator pool trunks R",
+        "Creator pool trunks waist",
+        "Creator pool two_piece waist",
+        "Creator pool two_piece top",
+        "Creator pool shoulder strap -1",
+        "Creator pool shoulder strap 1"
+      ],
+      "partsSource": {
+        "path": "assets/models/sims/character-creator/clips/pool/parts.json",
+        "sha256": "b5971594c77ef42353911d19150e1d205a346467e5035e4e89a638b08de7fcc5"
       }
     }
   ],

@@ -205,7 +205,7 @@ fn validate_physical(world: &World, coordinates: Coordinates, clock: SavedPoolCl
             let origin = (origin.x as i32, origin.y as i32);
             let endpoint = match coordinates {
                 Coordinates::HistoricalV22 => historical_approach(origin, facing),
-                Coordinates::Current => approach(origin, facing),
+                Coordinates::Current => approach(definition, origin, facing),
             };
             let episode = world.get::<PoolEpisode>(actor);
             let eating = world.get::<Eating>(actor);

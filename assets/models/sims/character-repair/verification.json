@@ -17,7 +17,7 @@
     },
     {
       "bundle": "outdoor-depth",
-      "sprites": 12,
+      "sprites": 16,
       "pages": 1,
       "coverage": "all-nonzero-alpha-exact",
       "sourceHashes": "unchanged"
@@ -82,7 +82,7 @@
     },
     {
       "bundle": "model-catalogue",
-      "models": 33,
+      "models": 34,
       "missing": []
     }
   ]

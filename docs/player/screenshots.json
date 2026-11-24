@@ -2879,30 +2879,30 @@
       "description": "The selected person can choose Hop in in the pool object menu.",
       "access": "Select a person. Right-click the pool on desktop or long-press it on a phone.",
       "imageSha256": {
-        "desktop": "18a9e277e23ac587bb793ebaa90fd4e04df0956209d83d8f3030fea335cde031",
-        "desktopDetail": "8da94933501f1a5e73e4dcd3e0b9d2cfa5eed4ff39678b976fe1a1091f2151e3",
-        "mobile": "dcc294fa9b28057046006213b4f67ca4e4a3bf397e462cc80cd06399176965a8",
-        "mobileDetail": "18519c8ecfbd1b37d5977e52abc1616590ec5151b14cf37d93cfee3592f7a025"
+        "desktop": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab",
+        "desktopDetail": "98dc65bd8b95db685cf9dae7155749c4da676718607758126717f076aec6a648",
+        "mobile": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9",
+        "mobileDetail": "8cd2e4fd0c9aef10866b0ba431fb03b117cec9ca5d73e4f25ceedfb9848ec7e0"
       },
       "captureProvenance": {
         "desktop": {
           "viewport": {
-            "width": 1440,
-            "height": 960
+            "width": 1280,
+            "height": 720
           },
-          "state": "Paused household with the inset pool ladder visible and Hop in available in the pool menu.",
-          "sourceImageSha256": "18a9e277e23ac587bb793ebaa90fd4e04df0956209d83d8f3030fea335cde031"
+          "state": "Paused household with Hop in available on the Backyard Rectangle pool menu.",
+          "sourceImageSha256": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab"
         },
         "mobile": {
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "state": "Paused household with the inset pool ladder visible and Hop in available in the pool menu.",
-          "sourceImageSha256": "dcc294fa9b28057046006213b4f67ca4e4a3bf397e462cc80cd06399176965a8"
+          "state": "Paused household with Hop in available on the Backyard Rectangle pool menu.",
+          "sourceImageSha256": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9"
         }
       },
-      "sourceSnapshot": "inset-pool-hop-2026-11-23"
+      "sourceSnapshot": "rectangular-pool-2026-11-23"
     },
     {
       "id": "build-access-review",

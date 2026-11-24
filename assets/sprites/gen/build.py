@@ -1545,22 +1545,25 @@ def main():
     for sprite in conversation_icons.render_icons():
         densities[len(sprites)] = 2
         sprites.append(sprite)
-    # Issue 250's outdoor furniture: the pool, the pool lounger and the patio
-    # umbrella append after the conversation icons, so every earlier index
-    # keeps its place.
-    props, prop_anchors, prop_density, prop_bounds = load_props(
-        os.path.join(ROOT, 'assets', 'models', 'static-props-07.json'),
-        existing_names={sprite[0] for sprite in sprites},
-    )
-    for sprite in props:
-        index = len(sprites)
-        sprites.append(sprite)
-        anchors[index] = prop_anchors[sprite[0]]
-        densities[index] = prop_density[sprite[0]]
-        bounds[index] = prop_bounds[sprite[0]]
+    # Keep the compact pool, lounger and umbrella indices from the first
+    # outdoor catalog. Append the rectangular pool after them.
+    prop_starts = {}
+    for catalog in ('static-props-07.json', 'static-props-08.json'):
+        prop_starts[catalog] = len(sprites)
+        props, prop_anchors, prop_density, prop_bounds = load_props(
+            os.path.join(ROOT, 'assets', 'models', catalog),
+            existing_names={sprite[0] for sprite in sprites},
+        )
+        for sprite in props:
+            index = len(sprites)
+            sprites.append(sprite)
+            anchors[index] = prop_anchors[sprite[0]]
+            densities[index] = prop_density[sprite[0]]
+            bounds[index] = prop_bounds[sprite[0]]
     sync_generated_architecture(sprites, check=args.check)
+    wide_pool_start = prop_starts['static-props-08.json']
     textured = [(index, sprite) for index, sprite in enumerate(sprites)
-                if index not in visible_layers and index not in shelf_data['positions']]
+                if index < wide_pool_start and index not in visible_layers and index not in shelf_data['positions']]
     dense_sprites, texture_aliases = deduplicate_pixels([sprite for _, sprite in textured])
     packed_pages, page_count = pack_pages([(row[2], row[3]) for row in dense_sprites], 2048, PADDING)
     width, height = 2048, 2048
@@ -1580,6 +1583,18 @@ def main():
     sheets.extend(shelf_data['sheets'])
     placed.update(shelf_data['positions'])
     pages.update({index: shelf_page_start + page for index, page in shelf_data['pages'].items()})
+    # Pack the wide pool after the existing source pages. Sorting these tall
+    # sprites into the original shelves would move unrelated source rectangles.
+    wide_pool = sprites[wide_pool_start:]
+    wide_layout, wide_pages = pack_pages([(sprite[2], sprite[3]) for sprite in wide_pool], 2048, PADDING)
+    wide_page_start = len(sheets)
+    sheets.extend(Image.new('RGBA', (width, height)) for _ in range(wide_pages))
+    for index, (_, image, _, _) in enumerate(wide_pool):
+        page, x, y = wide_layout[index]
+        sprite_index = wide_pool_start + index
+        pages[sprite_index] = wide_page_start + page
+        placed[sprite_index] = (x, y)
+        sheets[wide_page_start + page].paste(image, (x, y))
     pngs = [png_bytes(sheet) for sheet in sheets]
     if args.check:
         for index, sheet in enumerate(sheets):

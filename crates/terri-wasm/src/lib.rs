@@ -9031,11 +9031,10 @@ mod boundary_tests {
         assert_eq!(handle.object_colourway(f64::from(result[5])), 2);
     }
 
-    /// [BM-shell]: the catalogue is every priced object, in pack order, with
-    /// its price, the directions it has art for and its base direction, and
-    /// its names come in the same order. An object with no price is left out.
+    /// [BM-shell]: the catalogue columns use the same order for price,
+    /// supported facings, base facing, names, and advertised needs.
     #[test]
-    fn the_catalogue_lists_every_priced_object_and_nothing_else() {
+    fn the_catalogue_lists_each_current_offer_in_pack_order() {
         let mut handle = SimHandle::from_lot();
         let mut pack = handle.sim.world().resource::<Content>().0.clone();
         let dropped = pack.find("coat_rack").unwrap().0 as usize;
@@ -9049,7 +9048,7 @@ mod boundary_tests {
             .objects
             .iter()
             .enumerate()
-            .filter(|(index, _)| *index != dropped)
+            .filter(|(index, object)| *index != dropped && object.id != "pool")
             .collect();
         assert_eq!(names.len(), priced.len());
         assert_eq!(needs.len(), priced.len());

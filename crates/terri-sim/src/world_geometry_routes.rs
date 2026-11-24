@@ -275,7 +275,7 @@ pub(super) fn endpoint_valid(world: &World, actor: Entity, end: Tile) -> bool {
         return true;
     };
     if def.interactions.get(target.interaction as usize).is_some_and(crate::pool::is_swimming) {
-        return end==crate::pool::approach(origin(at),facing)
+        return end==crate::pool::approach(def,origin(at),facing)
             && world.resource::<TileGrid>().can_interact_with_rect(end,origin(at),def.footprint_at(facing));
     }
     let model = world.get::<SmartObject>(target.object).unwrap().0;
@@ -381,7 +381,7 @@ pub(super) fn replan(world: &mut World, actor: Entity) -> Option<Vec<Tile>> {
     }
     if let Some((at,def,facing))=object(world,target.object) {
         if def.interactions.get(target.interaction as usize).is_some_and(crate::pool::is_swimming) {
-            let end=crate::pool::approach(origin(at),facing);
+            let end=crate::pool::approach(def,origin(at),facing);
             let grid=world.resource::<TileGrid>();
             if !grid.can_interact_with_rect(end,origin(at),def.footprint_at(facing)) { return None; }
             let position=*world.get::<Position>(actor)?;

@@ -49,6 +49,7 @@ export class CharacterWorld {
   private readonly poolLanding=new PoolLandingRipples();
   private poolRipples:PoolRipples|null=null;
   private poolFootprint:PoolWaterFootprint|null=null;
+  private rectangularPoolFootprint:PoolWaterFootprint|null=null;
   private constructor(private readonly device:GPUDevice,private readonly format:GPUTextureFormat,
     private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:WorldContacts){
     this.plan=new CharacterScenePlan(action=>{
@@ -107,12 +108,13 @@ export class CharacterWorld {
       cover.update(contributions);
     }
     const active=new Set<number>();this.displayed.length=0;this.steam.begin();
-    const poolActive=this.plan.actors.some(actor=>actor.fixtureModel==='pool'&&actor.action.clip.startsWith('pool_'));
+    const poolActive=this.plan.actors.some(actor=>actor.action.clip.startsWith('pool_'));
     if(poolActive){
       this.poolRipples??=new PoolRipples(this.device);
       if(!this.poolFootprint){
         const {low,high,surface}=poolWaterBounds(poolContactFixture());
         this.poolFootprint={minimum:[low[0],low[1]],maximum:[high[0],high[1]],height:surface,cutout:poolWaterCutout()};
+        this.rectangularPoolFootprint={minimum:[low[0],low[1]-1],maximum:[high[0],high[1]],height:surface};
       }
     }
     this.poolRipples?.begin();
@@ -143,8 +145,9 @@ export class CharacterWorld {
           depth,depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),actor.action.sample/creatorClips.clips.shower.samples.length*Math.PI*2,light,
           showerSteamCabin(body.geometry,body.poseMatrices),actor.angle);
       }
-      if(actor.fixtureModel==='pool'&&actor.fixtureEntity!==null&&actor.action.clip.startsWith('pool_')){
-        const body=renderer.renderer,water=this.poolFootprint!;
+      if(actor.fixtureEntity!==null&&actor.action.clip.startsWith('pool_')){
+        const body=renderer.renderer;
+        const water=(actor.fixtureModel==='pool_rectangular'?this.rectangularPoolFootprint:this.poolFootprint)!;
         const {ripples,touchdown}=collectPoolWaterContacts(body.geometry,body.resources.deformed,body.poseMatrices,water,actor.offset);
         const depth=layeredDepth(actor.x,actor.y,view.gridSize,LAYER_PROP);
         const frame={
