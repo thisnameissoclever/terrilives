@@ -28,6 +28,15 @@ describe('pool water contacts',()=>{
     expect(contacts.touchdown?.[1]).toBeCloseTo(.1);
   });
 
+  it('keeps the recessed ladder bay dry at water height',()=>{
+    const cage=Float32Array.from([...point(-.5,.6,.82,0),...point(-.5,.6,.82,3),...point(.2,.6,.82,3)]);
+    const body={cage,manifest:{bones:names.map(name=>({name}))}};
+    const result=collectPoolWaterContacts(body,cage,pose(),{...water,cutout:[-.895,-.105,.315]},[0,0,0]);
+    expect(result.ripples).toEqual([]);
+    expect(result.touchdown?.[0]).toBeCloseTo(.2);
+    expect(result.touchdown?.[1]).toBeCloseTo(.6);
+  });
+
   it('rejects an airborne pose and feet at water height outside the basin',()=>{
     const cage=Float32Array.from([...point(0,0,1,0),...point(0,0,1.2,0),...point(0,.98,.82,3)]);
     const body={cage,manifest:{bones:names.map(name=>({name}))}};

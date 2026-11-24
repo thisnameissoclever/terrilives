@@ -1,7 +1,13 @@
 import type {Vec3} from './math.js';
 
 type Point2=readonly [number,number];
-export interface PoolWaterFootprint {minimum:Point2;maximum:Point2;height:number}
+export type PoolWaterCutout = readonly [left: number, right: number, innerEdge: number];
+export interface PoolWaterFootprint {minimum:Point2;maximum:Point2;height:number;cutout?:PoolWaterCutout}
+
+function inDryBay(water:PoolWaterFootprint,x:number,y:number):boolean {
+  const bay=water.cutout;
+  return !!bay && x>=bay[0] && x<=bay[1] && y>=bay[2];
+}
 export interface PoolRippleContact {x:number;y:number;radius:number;strength:number}
 interface PoseSource {cage:Float32Array;manifest:{bones:readonly {name:string}[]}}
 interface PoolWaterContacts {ripples:PoolRippleContact[];touchdown:Point2|null}
@@ -44,6 +50,7 @@ export function collectPoolWaterContacts(body:PoseSource,shaped:Float32Array,mat
   const groups=poseGroups(body);
   const ripples:PoolRippleContact[]=[];
   let footX=0,footY=0,footCount=0;
+  let wetFoot:Point2|null=null;
   for(let group=0;group<groups.length;group++){
     let sumX=0,sumY=0,sumRadiusSquared=0,totalWeight=0,min=Infinity,max=-Infinity;
     for(const at of groups[group]){
@@ -58,9 +65,10 @@ export function collectPoolWaterContacts(body:PoseSource,shaped:Float32Array,mat
         pz+=w*(matrices[m+2]*x+matrices[m+6]*y+matrices[m+10]*z+matrices[m+14]);
       }
       if(!(px>water.minimum[0]+INSET&&px<water.maximum[0]-INSET&&py>water.minimum[1]+INSET&&py<water.maximum[1]-INSET))continue;
+      if(inDryBay(water,px,py))continue;
       const height=pz-water.height;
       if(group===3){
-        if(height<=.015){footX+=px;footY+=py;footCount++;}
+        if(height<=.015){footX+=px;footY+=py;footCount++;wetFoot??=[px,py];}
         continue;
       }
       min=Math.min(min,height);max=Math.max(max,height);
@@ -78,7 +86,8 @@ export function collectPoolWaterContacts(body:PoseSource,shaped:Float32Array,mat
     ripples.push({x,y,radius,strength:contact*(torso ? .19 : .15)});
   }
   const contact=ripples[0];
-  return {ripples,touchdown:footCount?[footX/footCount,footY/footCount]:contact?[contact.x,contact.y]:null};
+  const centre:Point2|null=footCount?[footX/footCount,footY/footCount]:contact?[contact.x,contact.y]:null;
+  return {ripples,touchdown:centre&&inDryBay(water,...centre)?wetFoot:centre};
 }
 
 interface LandingPresence {fixture:number;frame:number;launch:boolean;wet:boolean;impact?:{point:Point2;tick:number}}

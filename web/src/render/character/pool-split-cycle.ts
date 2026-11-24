@@ -41,11 +41,12 @@ export function prepareSplitPoolPrograms<T>(source:PoolCycleSource,exterior:Pool
     }
     const units=hop.climbOutUnits.filter(u=>u>=hop.bridgeEndUnit);
     if(exit.size!==units.length||units.some(u=>!exit.has(u)))throw new Error('Independent pool exit omitted an authored event.');
-    const climbMs=elapsed();if(!hop.outwardDescent)fitClimbApproach(source,exit);
+    const legacy=!hop.outwardDescent&&!hop.platformTurn;
+    const climbMs=elapsed();if(legacy)fitClimbApproach(source,exit);
     const handMs=elapsed();
-    const passage=hop.outwardDescent?undefined:fitClimbPassage(source,exit);
+    const passage=legacy?fitClimbPassage(source,exit):undefined;
     const passageMs=elapsed();
-    if(!hop.outwardDescent)fitClimbKneeCurve(source,exit);
+    if(legacy)fitClimbKneeCurve(source,exit);
     const kneeMs=elapsed();
     const check=(a:PoolPoseProgram|undefined,b:PoolPoseProgram|undefined)=>{
       if(!a||!b||a!==b&&canonicalPoolValue(a)!==canonicalPoolValue(b))throw new Error('Split-level pool tracks disagree at their standing or water join.');

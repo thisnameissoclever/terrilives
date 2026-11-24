@@ -42,8 +42,8 @@ def boolean(target, tool, operation, remove=True):
         bpy.data.objects.remove(tool,do_unlink=True)
 
 
-def recessed_wall(wood, liner, root):
-    vertices,faces,materials=L.recessed_wall_geometry()
+def recessed_wall(wood, liner, root, layout=L):
+    vertices,faces,materials=layout.recessed_wall_geometry()
     result=mesh('Pool wall',vertices,faces,wood,root)
     result.data.materials.append(liner)
     for polygon,index in zip(result.data.polygons,materials):polygon.material_index=index
@@ -51,7 +51,7 @@ def recessed_wall(wood, liner, root):
     return result
 
 
-def build(root):
+def build(root, layout=L, *, coping_bevel=.006):
     stone = material('Pool pale stone coping', (.66, .62, .55))
     wood = material('Pool warm wood cladding', (.36, .22, .12))
     trim = material('Pool dark wood trim', (.17, .10, .055))
@@ -61,17 +61,17 @@ def build(root):
     chrome = material('Pool ladder chrome', (.62, .66, .68))
     rubber = material('Pool ladder rubber bumpers', (.05, .05, .055))
 
-    wall = recessed_wall(wood,liner,root)
+    wall = recessed_wall(wood,liner,root,layout)
     bands=[]
     for index, (z0, z1) in enumerate(L.TRIM_BANDS):
         bands.append(ring(f'Pool wall trim band {index+1}', L.WALL_HALF+L.TRIM_OUT,
              L.WALL_HALF-.01, z0, z1, trim, root))
     coping = ring('Pool stone coping', L.COPING_HALF, L.COPING_INNER_HALF,
-         L.COPING_BOTTOM, L.COPING_TOP, stone, root, bevel=.006)
+         L.COPING_BOTTOM, L.COPING_TOP, stone, root, bevel=coping_bevel)
     for index,(low,high) in enumerate(L.TOE_RECESS_HEIGHTS):
         tool=box(f'Pool toe recess tool {index}',
-                 ((L.TOE_RECESS_X[0]+L.TOE_RECESS_X[1])/2,(L.TOE_RECESS_BACK_Y+1.02)/2,(low+high)/2),
-                 (L.TOE_RECESS_X[1]-L.TOE_RECESS_X[0],1.02-L.TOE_RECESS_BACK_Y,high-low),wood,root,bevel=0)
+                 ((layout.TOE_RECESS_X[0]+layout.TOE_RECESS_X[1])/2,(L.TOE_RECESS_BACK_Y+1.02)/2,(low+high)/2),
+                 (layout.TOE_RECESS_X[1]-layout.TOE_RECESS_X[0],1.02-L.TOE_RECESS_BACK_Y,high-low),wood,root,bevel=0)
         for target in [*bands,coping]:
             boolean(target,tool,'DIFFERENCE',remove=False)
         bpy.data.objects.remove(tool,do_unlink=True)
@@ -82,23 +82,23 @@ def build(root):
     for face, highlighted in zip(surface.data.polygons, ripples):
         face.material_index = int(highlighted)
 
-    for index, x in enumerate(L.LADDER_RAIL_X):
-        fitted_rail(f'Pool ladder rail {index+1}', L.ladder_rail_points(x),
-             L.LADDER_RAIL_RADIUS, chrome, root)
+    for index, x in enumerate(layout.LADDER_RAIL_X):
+        fitted_rail(f'Pool ladder rail {index+1}', layout.ladder_rail_points(x),
+             L.LADDER_RAIL_RADIUS, chrome, root, getattr(layout,'OUTER_SLOPE',0))
         foot_y = L.LADDER_SIDE_Y*L.LADDER_PATH[-1][0]
         for z in L.LADDER_BUMPER_Z:
             cylinder(f'Pool ladder bumper {index+1} {z}',
                      (x, foot_y, z), (x, L.LADDER_SIDE_Y*(L.WALL_HALF-.002), z),
                      .016, rubber, root)
-    for index, x in enumerate(L.LADDER_RAIL_X):
-        for flight, points in enumerate(L.LADDER_STRINGERS):
+    for index, x in enumerate(layout.LADDER_RAIL_X):
+        for flight, points in enumerate(layout.LADDER_STRINGERS):
             for section, (start, end) in enumerate(zip(points, points[1:])):
                 suffix = '' if section == 0 else ' upper'
                 cylinder(f'Pool ladder stringer {index+1} {flight+1}{suffix}',
                          (x, *start), (x, *end), L.LADDER_RAIL_RADIUS, chrome, root)
-    for side, treads in [('outside', L.LADDER_OUTSIDE_TREADS), ('inside', L.LADDER_INSIDE_TREADS)]:
+    for side, treads in [('outside', getattr(layout,'LADDER_OUTSIDE_TREADS',L.LADDER_OUTSIDE_TREADS)), ('inside', layout.LADDER_INSIDE_TREADS)]:
         for index, (y,z) in enumerate(treads):
-            x0,x1=L.LADDER_RAIL_X
+            x0,x1=layout.LADDER_RAIL_X
             depth=L.OUTSIDE_RUNG_DEPTH if side=='outside' else L.INSIDE_RUNG_DEPTH
             y0,y1=y-depth/2,y+depth/2
             z0,z1=z-L.RUNG_THICKNESS,z
@@ -106,8 +106,8 @@ def build(root):
             faces=[(0,2,3,1),(4,5,7,6),(0,1,5,4),(2,6,7,3),(0,4,6,2),(1,3,7,5)]
             mesh(f'Pool {side} ladder tread {index+1}',vertices,faces,chrome,root)
     box('Pool ladder crest landing',
-        (L.LADDER_CENTER_X, L.CREST_LANDING_Y, L.CREST_LANDING_TOP-L.RUNG_THICKNESS/2),
-        (L.LADDER_RAIL_X[1]-L.LADDER_RAIL_X[0], L.CREST_LANDING_DEPTH, L.RUNG_THICKNESS),
+        (L.LADDER_CENTER_X, layout.CREST_LANDING_Y, L.CREST_LANDING_TOP-L.RUNG_THICKNESS/2),
+        (layout.LADDER_RAIL_X[1]-layout.LADDER_RAIL_X[0], layout.CREST_LANDING_DEPTH, L.RUNG_THICKNESS),
         chrome, root, bevel=0)
     mesh('Pool basin floor',[(-L.WALL_INNER_HALF,-L.WALL_INNER_HALF,L.BASIN_FLOOR_Z),
          (L.WALL_INNER_HALF,-L.WALL_INNER_HALF,L.BASIN_FLOOR_Z),

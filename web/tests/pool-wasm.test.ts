@@ -70,7 +70,7 @@ it('feeds actual previous/current native phases to fractional display through pa
     const display=(alpha:number,reducedMotion=false)=>{const r=row();return characterActionPlan({
       action:sim.visualActions()[r],activity:sim.activities()[r],entity:actor,facing:1,x:3,y:4,tick:sim.clockTick()+alpha,
       reducedMotion,fixtureModel:'pool',wholeSeat:false,readingStage:0,carriedBook:false,carriedDishes:false,carriedDinner:false,
-      shelfSlot:0,reachRemaining:0,reachTotal:0,progress:0,poolAlpha:alpha,
+      shelfSlot:0,reachRemaining:0,reachTotal:0,progress:0,poolAlpha:alpha,poolExitTicks:sim.poolExitTicks(),
       poolPhase:sim.poolPhases()[r],poolElapsed:sim.poolElapsed()[r],poolExitOrigin:sim.poolExitOrigins()[r],
       prevPoolPhase:sim.prevPoolPhases()[r],prevPoolElapsed:sim.prevPoolElapsed()[r],prevPoolExitOrigin:sim.prevPoolExitOrigins()[r],
     },clip=>clip==='pool_paddle'?12:41);};
@@ -85,14 +85,15 @@ it('feeds actual previous/current native phases to fractional display through pa
     expect(sim.cancelIntents(actor)).toBe(true);sim.flushCommands();
     expect(display(.625)).toEqual(before);expect(display(.625,true)).toEqual(still);
     expect(sim.setSpeed(1)).toBe(true);sim.flushCommands();expect(display(.625)).toEqual(before);
-    sim.tick();expect(display(.5)).toEqual({clip:'pool_exit_5',sample:1,fixture:true});
-    expect(display(.5,true)).toEqual({clip:'pool_exit_0',sample:1,fixture:true});
+    sim.tick();expect(display(.5)).toEqual({clip:'pool_exit_5',sample:.5,fixture:true});
+    expect(display(.5,true)).toEqual({clip:'pool_exit_0',sample:.5,fixture:true});
     const bytes=sim.saveBytes();expect(sim.loadBytes(bytes)).toBe(true);
     expect(sim.prevPoolPhases()).toEqual(sim.poolPhases());expect(sim.prevPoolElapsed()).toEqual(sim.poolElapsed());
     expect(display(.25)).toEqual(display(.75));
-    for(let i=0;i<30&&sim.poolPhases()[row()]!==0;i++)sim.tick();
+    for(let i=0;i<sim.poolExitTicks()&&sim.poolPhases()[row()]!==0;i++)sim.tick();
+    expect(sim.poolPhases()[row()]).toBe(0);
     expect(sim.prevPoolTargets()[row()]).toBe(pool);
-    expect(display(.5)).toEqual({clip:'pool_exit_5',sample:39,fixture:true});
+    expect(display(.5)).toEqual({clip:'pool_exit_5',sample:39.5,fixture:true});
     expect(sim.loadBytes(idle)).toBe(true);
     expect(sim.prevPoolPhases()[row()]).toBe(0);expect(sim.poolPhases()[row()]).toBe(0);
   }finally{handle.free();}

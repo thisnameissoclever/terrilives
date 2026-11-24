@@ -19,7 +19,7 @@ def digest(path):
     return sha256(path.read_bytes()).hexdigest()
 
 
-def evaluated_fixture(root):
+def evaluated_fixture(root, rail_centres=(LEFT_RAIL_X, RIGHT_RAIL_X)):
     inverse = root.matrix_world.inverted()
     graph = bpy.context.evaluated_depsgraph_get()
     rails, solids = [], []
@@ -57,7 +57,7 @@ def evaluated_fixture(root):
                                       'right': list(transform @ p.handle_right)}
                                      for p in path.data.splines[0].bezier_points]})
     if len(rails) != 2 or any(abs(r['points'][0]['point'][0]-x) > 1e-6
-                              for r, x in zip(rails, (LEFT_RAIL_X, RIGHT_RAIL_X))):
+                              for r, x in zip(rails, rail_centres)):
         raise ValueError('Evaluated rail centres differ from the authoring model.')
     return solids, rails
 

@@ -79,7 +79,7 @@ function* bindPoolSelection(artifact:PoolPlayback,geometry:Geometry,shape:ShapeP
     for(const key of track.keys){
       yield;
       const node=artifact.graph.poses[key.pose],phase=fixture.clips[action].playback==='loop'&&key.phase===1?0:key.phase*scale;
-      requirePoolPolicyEqual(node.policy,poolSourcePolicy(fixture,action,phase));
+      requirePoolPolicyEqual(node.policy,poolSourcePolicy(fixture,action,phase),{action,phase});
       const clip=fixture.clips[action],source=clip.samples.find(sample=>sample.phase===phase)?.limbs??clip.intervals.find(interval=>phase>=interval.start&&phase<interval.end)?.limbs;
       for(const limb of ['handL','handR'] as const){
         const end=geometry.manifest.bones.findIndex(bone=>bone.name==='hand.'+limb.slice(-1)),control=node.controls.find(control=>control.end===end),goal=control?.state.attached;
@@ -99,14 +99,14 @@ function* bindPoolSelection(artifact:PoolPlayback,geometry:Geometry,shape:ShapeP
     for(const [index,interval] of track.intervals.entries()){
       yield;
       const start=track.keys[index].phase*scale,end=track.keys[index+1].phase*scale;
-      requirePoolPolicyEqual(interval.policy,poolSourcePolicy(fixture,action,(start+end)/2));
+      requirePoolPolicyEqual(interval.policy,poolSourcePolicy(fixture,action,(start+end)/2),{action,phase:(start+end)/2});
       for(const observation of observations(interval)){
         const phase=observation.fraction===0?start:observation.fraction===1?end:start+(end-start)*observation.fraction;
         const declared=observation.fraction===0?artifact.graph.poses[track.keys[index].pose].policy:observation.fraction===1?artifact.graph.poses[track.keys[index+1].pose].policy:interval.policy;
-        requirePoolPolicyEqual(declared,poolSourcePolicy(fixture,action,phase));
+        requirePoolPolicyEqual(declared,poolSourcePolicy(fixture,action,phase),{action,phase});
       }
       for(const event of events)if(event>start&&event<end){
-        try{requirePoolPolicyEqual(interval.policy,poolSourcePolicy(fixture,action,event));}
+        try{requirePoolPolicyEqual(interval.policy,poolSourcePolicy(fixture,action,event),{action,phase:event});}
         catch{throw new Error('Pool source event requires an explicit graph cut.');}
       }
       for(const limb of ['handL','handR'] as const)if(interval.policy[limb].required){
@@ -116,7 +116,7 @@ function* bindPoolSelection(artifact:PoolPlayback,geometry:Geometry,shape:ShapeP
         requirePoolRailGeometryPair(from.geometry,to.geometry);
       }
       for(const source of fixture.clips[action].intervals){const low=Math.max(start,source.start),high=Math.min(end,source.end);
-        if(low<high)requirePoolPolicyEqual(interval.policy,poolSourcePolicy(fixture,action,(low+high)/2));
+        if(low<high)requirePoolPolicyEqual(interval.policy,poolSourcePolicy(fixture,action,(low+high)/2),{action,phase:(low+high)/2});
       }
     }
   }

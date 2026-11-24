@@ -14,6 +14,8 @@ import {splitDeparture} from './pool-split-departure.js';
 import {prepareFlightTuck} from './pool-launch-tuck.js';
 import {fitPoolKneeOrbit,fitPoolKneeOrbitEdge} from './pool-knee-orbit-fit.js';
 import {fitLaunchWaist} from './pool-launch-waist.js';
+import {insetWaterOffset,translateInsetPaddle} from './pool-inset-water.js';
+import {fitInsetArmGuides} from './pool-inset-arms.js';
 
 const launch=60000,wet=87000,clock=100000,start=42000;
 const clamp=(t:number)=>Math.max(0,Math.min(1,t));
@@ -112,6 +114,7 @@ export function prepareSplitLevelPoolHop(source:PoolCycleSource,crest:PoolPosePr
   stored.set(u,p);return p;
  }
  const water=source.paddle(0);
+ const submergedLadder=hop.platformTurn?source.fixture.solids.filter(s=>s.id.includes('inside ladder tread')||s.id.includes('ladder stringer')):[];
  let tuckedFeet:ReturnType<typeof prepareFlightTuck>|undefined;
  function air(u:number){
   const departure=loaded(launch);
@@ -126,7 +129,19 @@ export function prepareSplitLevelPoolHop(source:PoolCycleSource,crest:PoolPosePr
   }),poolSourcePolicy(source.fixture,'pool_enter',u/clock));
  }
  function recover(splash:PoolPoseProgram,u:number){
-  const p=source.freeWaterKnot(splash,water,ease((u-wet)/(clock-wet)),'pool_enter',u/clock);
+  const t=ease((u-wet)/(clock-wet)),p=source.freeWaterKnot(splash,water,t,'pool_enter',u/clock);
+  if(hop.insetEntry){
+   const hierarchy=(n:PoolPoseProgram)=>poolIntervalPreference(bundle,neutral.rest,neutral.inverse,n.preferenceBasis,n.preferenceBasis,0,true);
+   const left=hierarchy(splash),right=hierarchy(water),now=hierarchy(p);
+   // Recover each free ankle and wrist relative to its own moving socket as the body tips into the stroke.
+   const controls=p.controls.map((c,i)=>{
+    const a=sub(splash.controls[i].state.target,point(left.world[c.upper])),b=sub(water.controls[i].state.target,point(right.world[c.upper]));
+    const offset=add(scale(a,1-t),scale(b,t)),target=add(point(now.world[c.upper]),offset);
+    return {...c,state:{...c.state,target,pole:add(c.state.pole,sub(target,c.state.target))}};
+   });
+   const raw=makePoolPoseProgram(p.preferenceBasis,controls,p.policy);
+   return translateInsetPaddle(source,raw,insetWaterOffset(source,[{program:raw,action:'pool_enter',phase:u/clock}]));
+  }
   const rightEdge=Math.max(...source.fixture.solids.filter(s=>s.id.toLowerCase().includes('ladder')).map(s=>s.bounds[1][0]));
   const tread=source.fixture.solids.find(s=>s.id===definition.places.inside2.surface)!;
   const controls=p.controls.map((c,i)=>{
@@ -141,7 +156,23 @@ export function prepareSplitLevelPoolHop(source:PoolCycleSource,crest:PoolPosePr
    const opening=rightEdge+r,extend=endLeft>opening?ease((left-opening)/(endLeft-opening)):ease((u-wet)/(clock-wet));
    const from=splash.controls[i].state.target[1],tuck=Math.min(from,safe)-r;
    const y=mix(mix(from,tuck,ease((u-wet)/2500)),water.controls[i].state.target[1],extend);
-   return {...c,state:{...c.state,target:[c.state.target[0],y,c.state.target[2]] as Vec3}};
+   const target:Vec3=[c.state.target[0],y,c.state.target[2]];
+   if(submergedLadder.length){
+    const matrix=[...c.state.orientation];matrix.splice(12,3,...target);
+    const vertices=f.map(v=>poolSurfacePoint(matrix,v));
+    const range=(axis:number)=>[Math.min(...vertices.map(v=>v[axis])),Math.max(...vertices.map(v=>v[axis]))];
+    const box=[range(0),range(1),range(2)];
+    const near=submergedLadder.filter(s=>box.every(([lo,hi],axis)=>lo<s.bounds[1][axis]+r&&hi>s.bounds[0][axis]-r));
+    if(near.length){
+     const east=Math.max(...near.map(s=>s.bounds[1][0]))+r,front=Math.min(...near.map(s=>s.bounds[0][1]))-r;
+     const dx=Math.max(0,...vertices.map((v,j)=>(east-v[0])/f[j][3])),dy=Math.min(0,...vertices.map((v,j)=>(front-v[1])/f[j][3]));
+     const pose=poolIntervalPreference(bundle,neutral.rest,neutral.inverse,p.preferenceBasis,p.preferenceBasis,0,true),joint=point(pose.world[c.upper]);
+     const options:Vec3[]=[[dx,0,0],[0,dy,0]];
+     const delta=options.sort((a,b)=>length(a)-length(b)).find(d=>poolChainReachable(shapes[i],joint,add(target,d)));
+     if(delta)return {...c,state:{...c.state,target:add(target,delta)}};
+    }
+   }
+   return {...c,state:{...c.state,target}};
   });
   return makePoolPoseProgram(p.preferenceBasis,controls,p.policy);
  }
@@ -161,6 +192,7 @@ export function prepareSplitLevelPoolHop(source:PoolCycleSource,crest:PoolPosePr
     fitted=fitPoolKneeOrbitEdge(source,measuredPath.get(previous)!,previous,fitted,u,Math.round((previous+u)/2),'pool_enter','footR');
    orbits.set(u,fitted.angle);step=fitted.program;
   }
+  if(hop.insetEntry&&u<launch)step=fitInsetArmGuides(source,step,u);
   measuredPath.set(u,step);return step;
  }
  return (u:number):PoolPoseProgram=>{

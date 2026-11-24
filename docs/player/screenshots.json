@@ -581,6 +581,20 @@
         "sourceRevision": "61a5239b85b6de8db27144cbd64878ceb971bd7a",
         "wasmSha256": "92e987897545b2c42110a8511f611779c256c4a68a6bec5ab6415d5b39d1",
         "method": "Displayed browser on an isolated local production build. Build paused the household, with sound off."
+      },
+      {
+        "id": "inset-pool-hop-2026-11-23",
+        "capturedAt": "2026-11-23",
+        "url": "http://127.0.0.1:5266/",
+        "htmlSha256": "dcbfaa94a3ef1fe42cbe57ebb191d5bfeca310a91e61e32ff4832230585073f3",
+        "bundle": "index-DdMUscYK.js",
+        "bundleSha256": "21dedea7ad21ec5108c01fa1130232c0bb2e5c8e6ee5f45bd9ecdbc1599f0c08",
+        "wasm": "terri_wasm_bg-Bc8WvOYX.wasm",
+        "wasmSha256": "d9f2462de6cf16a34ce8c8bf9210811fbef2ce8ad9eb6d4890e1000fb67ae9f8",
+        "sourceHashesSha256": "8dd3d8da300a84f5cac61d79cbfac6863235402320ef7ab488f550c18fb8ba1b",
+        "poolModelSha256": "2f2e2cffae907f6a44717eb789dada07900e24a4d78b45ed11a57a7ccfc861cb",
+        "fixtureSha256": "5b405f54b4d58b09dbd6e2d7602587301f367afe23b7c4fe953cc36079eac0a0",
+        "method": "Isolated browser on the local production build with sound off and flat lighting. A right-click opened the pool menu on desktop and a touch long-press opened it on the phone layout."
       }
     ],
     "weatherSetup": {
@@ -2230,7 +2244,7 @@
       "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
-      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
+      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab.",
       "sourceSnapshot": "career-tab-2026-11-20",
       "imageSha256": {
         "desktop": "f562193f89c380e3b9f78a8b8ee22b385046c367b053055639c0f46046e70c20",
@@ -2865,10 +2879,10 @@
       "description": "The selected person can choose Hop in in the pool object menu.",
       "access": "Select a person. Right-click the pool on desktop or long-press it on a phone.",
       "imageSha256": {
-        "desktop": "5af86c0a2ef4af87707808623af135cc80277b83f601d91069cbd8de8ecc04b7",
-        "desktopDetail": "9d6b401161d784ff79325bba132d6575d6fcd995911e3c91383b916db98fdb41",
-        "mobile": "5c7d110113d98b51886f1e19a49861daa314e222d70baddc51a469221d95c3ac",
-        "mobileDetail": "a9bf7dac9ab31477ac255742df3718c09b55d30e8ae843bea2d213188bb1b5e8"
+        "desktop": "18a9e277e23ac587bb793ebaa90fd4e04df0956209d83d8f3030fea335cde031",
+        "desktopDetail": "8da94933501f1a5e73e4dcd3e0b9d2cfa5eed4ff39678b976fe1a1091f2151e3",
+        "mobile": "dcc294fa9b28057046006213b4f67ca4e4a3bf397e462cc80cd06399176965a8",
+        "mobileDetail": "18519c8ecfbd1b37d5977e52abc1616590ec5151b14cf37d93cfee3592f7a025"
       },
       "captureProvenance": {
         "desktop": {
@@ -2876,19 +2890,19 @@
             "width": 1440,
             "height": 960
           },
-          "state": "Paused household with the pool object menu open and Hop in available.",
-          "sourceImageSha256": "5af86c0a2ef4af87707808623af135cc80277b83f601d91069cbd8de8ecc04b7"
+          "state": "Paused household with the inset pool ladder visible and Hop in available in the pool menu.",
+          "sourceImageSha256": "18a9e277e23ac587bb793ebaa90fd4e04df0956209d83d8f3030fea335cde031"
         },
         "mobile": {
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "state": "Paused household with the pool object menu open and Hop in available.",
-          "sourceImageSha256": "5c7d110113d98b51886f1e19a49861daa314e222d70baddc51a469221d95c3ac"
+          "state": "Paused household with the inset pool ladder visible and Hop in available in the pool menu.",
+          "sourceImageSha256": "dcc294fa9b28057046006213b4f67ca4e4a3bf397e462cc80cd06399176965a8"
         }
       },
-      "sourceSnapshot": "editable-guide-controls-2026-11-23"
+      "sourceSnapshot": "inset-pool-hop-2026-11-23"
     },
     {
       "id": "build-access-review",

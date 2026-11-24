@@ -87,4 +87,11 @@ export function requirePoolPolicyInterval(left:PoolSourcePolicy,right:PoolSource
 }
 
 export function poolPolicySupportLimbs(policy:PoolSourcePolicy):PoolLimb[]{return POOL_LIMBS.filter(limb=>policy[limb].required);}
-export function requirePoolPolicyEqual(actual:PoolSourcePolicy,expected:PoolSourcePolicy):void {if(canonicalPoolValue(actual)!==canonicalPoolValue(expected))return fail();}
+export function requirePoolPolicyEqual(actual:PoolSourcePolicy,expected:PoolSourcePolicy,location?:PoolSourceLocation):void {
+  if(canonicalPoolValue(actual)===canonicalPoolValue(expected))return;
+  if(!location)return fail();
+  const limb=POOL_LIMBS.find(name=>canonicalPoolValue(actual[name])!==canonicalPoolValue(expected[name]))!;
+  throw new Error(`Pool source contact policy differs for ${limb} in ${location.action} at phase ${location.phase}.`,{
+    cause:{...location,limb,actual:actual[limb],expected:expected[limb]},
+  });
+}

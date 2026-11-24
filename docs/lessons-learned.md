@@ -14036,3 +14036,21 @@ Project the posed foot triangles onto the actual top facets and check the closed
 On the pool ladder, rotating the whole swimmer to clear the right shin moved the opposite hip toward the left rail. The leg solver determined the knee plane from the configured hip frame, so editing the knee guide alone had no effect. A thigh swivel around the line between the hip and the planted ankle moves the knee while preserving the ankle frame and knee flexion.
 
 Check a zero swivel against the original pose and both signs against the actual reconstructed knee. Compare the opposite leg, pelvis and installed foot, including the transition to a free foot. Then check the skin and swimsuit between poses. Two clear endpoint poses on the tall swimmer still had 1.46 mm of shin penetration halfway between them.
+
+## [L-pool-ladder-weight] Check who is carrying the swimmer between rungs
+
+The first pool exits cleared the hardware at sampled poses while the swimmer looked seated or suspended. Copying the climb-up foot positions gave the descending swimmer two fixed ankle targets during a step. The hips could drop before the lower foot touched its rung.
+
+Watch the full exit from both exposed sides of the ladder. At the start, middle and end of a step, compare the hips with the planted foot, check when the lower sole touches, and watch when the upper foot lifts. A clearance check catches an intersection. The played sequence shows whether the legs appear to carry the swimmer.
+
+## [L-pool-coping-bevel] Check the narrowest strip after beveling
+
+A ladder recess left a 10 mm strip of stone on the pool rim. A 6 mm bevel on each edge folded its top over itself. The mesh was still closed, but its two inverted triangles drew a diagonal across the rim. A 3 mm bevel left 4 mm of flat stone between the edges.
+
+Measure the narrowest surviving strip after the cut. On the exported fixture, check that its top triangles face up and have no overlapping interiors. Compare all four rendered facings at game scale and regenerate depth from the same model.
+
+## [L-pool-shared-standing] Keep the standing contact shared by entry and every exit
+
+After the pool gained a dry approach step, the worker built the entry and the swimmer reached the paddle in sampled poses. Loading the household still failed. The first entry key marked the right foot as releasing. All twelve exits used that same standing pose with the right foot planted.
+
+Keep both feet planted at the shared standing key. Start the foot release on the interval that follows. Pass the actual worker output through the renderer’s binding check after changing a shared key, and then load the household in the game.

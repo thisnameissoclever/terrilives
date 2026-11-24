@@ -17,6 +17,7 @@ struct Ripple {
   bounds:vec4f,
   lighting:vec4f,
   effect:vec4f,
+  cutout:vec4f,
 };
 @group(0) @binding(0) var<uniform> view:View;
 @group(0) @binding(1) var<storage,read> ripples:array<Ripple>;
@@ -47,6 +48,8 @@ struct Fragment { @location(0) color:vec4f, @builtin(frag_depth) depth:f32 };
 @fragment fn fragment(input:Vertex)->Fragment {
   let ripple=ripples[input.ripple];
   if(any(input.local<=ripple.bounds.xy)||any(input.local>=ripple.bounds.zw)){discard;}
+
+  if(ripple.cutout.w>0. && input.local.x>=ripple.cutout.x && input.local.x<=ripple.cutout.y && input.local.y>=ripple.cutout.z){discard;}
 
   // A rail and the pool share a pick owner. Accept only the samples that
   // also lie on the registered basin surface, within its pixel quantization.
@@ -85,7 +88,7 @@ export function poolRipplePipelineDescriptor(module:GPUShaderModule):GPURenderPi
   };
 }
 
-const STRIDE=24;
+const STRIDE=28;
 const CAPACITY=256;
 const WATER_INSET=.018;
 
@@ -109,7 +112,7 @@ export class PoolRipples {
   begin():void{this.count=0;}
   add(contact:PoolRippleContact,frame:RippleFrame,landing=false):void{
     if(this.count>=CAPACITY)return;
-    const {minimum,maximum,height}=frame.water;
+    const {minimum,maximum,height,cutout}=frame.water;
     this.records.set([
       contact.x,contact.y,contact.radius,contact.strength,
       frame.x,frame.y,frame.scale,frame.depth,
@@ -117,6 +120,7 @@ export class PoolRipples {
       minimum[0]+WATER_INSET,minimum[1]+WATER_INSET,maximum[0]-WATER_INSET,maximum[1]-WATER_INSET,
       ...frame.light,frame.phase,
       frame.owner,Number(landing),0,0,
+      cutout?.[0]??0,cutout?.[1]??0,cutout?.[2]??0,Number(!!cutout),
     ],this.count++*STRIDE);
   }
   draw(encoder:GPUCommandEncoder,target:SceneTarget):void{

@@ -21,6 +21,7 @@ export interface PoolCrossingPrograms {
   at(unit:number):PoolPoseProgram;
 }
 export interface FittedPoolExterior {
+  readonly fitPlatformGrips?:boolean;
   /** One selected body and wrist command at each semantic anchor, for this source's configured geometry. */
   readonly stages:readonly NumericStageRequest[];
   readonly exterior:ExteriorChainRequest;
@@ -35,7 +36,7 @@ export function assembleSelectedPoolExterior(source:PoolCycleSource,plan:FittedP
   const def=source.definition;
   if(def.version!==16||plan.stages.length!==5||plan.stages.some(s=>s.choices.length!==1))
     throw new Error('A production pool route needs one selected command at each exterior anchor.');
-  const captured=source.captureNumericExterior(plan.stages,work,plan.exterior),geometry=captured.opening;
+  const captured=source.captureNumericExterior(plan.stages,work,plan.exterior,plan.fitPlatformGrips),geometry=captured.opening;
   if(!geometry?.next)throw new Error('The selected exterior must reach the crest landing.');
   const choices=selectNumericPoolAnchors(captured,work),first=choices.next();
   if(first.done)throw new PoolTrialRefusal('The pool exterior selection is empty.');

@@ -8,7 +8,7 @@ PROFILE = 14
 STEPS = 12
 
 
-def fitted_rail(name, points, radius, material, root):
+def fitted_rail(name, points, radius, material, root, outer_slope=0):
     """Build the visible tube from its actual editable Bezier control path."""
     path = tube(name+' authoring path', points, radius, material, root)
     path.hide_render = True
@@ -21,6 +21,10 @@ def fitted_rail(name, points, radius, material, root):
         distance=.14 if index==4 else .25
         point.handle_left=point.co+Vector((0,0,distance))
         point.handle_right=point.co-Vector((0,0,distance))
+        if outer_slope and index>=5:
+            point.handle_right=point.co+Vector((0,outer_slope*distance,-distance))
+            if index==6:
+                point.handle_left=point.co+Vector((0,-outer_slope*distance,distance))
     bpy.context.view_layer.update()
     path.hide_viewport = True
     controls = path.data.splines[0].bezier_points

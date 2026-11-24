@@ -4,6 +4,7 @@ import {canonicalPoolValue} from './pool-contact-identity.js';
 import {parseOwnedPoolFixture} from './pool-owned-fixture.js';
 import type {PoolContactInputV1,PoolFixtureV1} from './pool-contact-types.js';
 import type {PoolCycleSource} from './pool-cycle-source.js';
+import type {PoolWaterCutout} from './pool-water-contact.js';
 import type {SelectedPoolRoute} from './pool-selected-cycle.js';
 
 export interface PoolRouteSelection {
@@ -37,4 +38,10 @@ export function poolContactFixture():PoolFixtureV1 {
 export function poolContactTakeoffPhase():number|null {
  const definition=poolContactRelease.motion as {clockUnits:number;forwardHop?:{takeoffUnit:number}};
  return definition.forwardHop?definition.forwardHop.takeoffUnit/definition.clockUnits:null;
+}
+
+/** The recessed ladder bay opens on the positive Y edge in pool-local space. */
+export function poolWaterCutout():PoolWaterCutout|undefined {
+  const definition=poolContactRelease.motion as {dryBay?:{water:PoolWaterCutout}};
+  return definition.dryBay?.water;
 }

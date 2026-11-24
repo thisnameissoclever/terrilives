@@ -10,7 +10,7 @@ import {resolvePoolRailContactFrame} from './pool-rail-contact-frame.js';
 import type {NumericBody} from './pool-numeric-recipe.js';
 import {PoolTrialRefusal} from './pool-trial-work.js';
 import {poolSelectedVertices} from './pool-surface-coefficient.js';
-import {projectedTrianglePatch,horizontalPatch,type Triangle} from './pool-solid.js';
+import {projectedTrianglePatch,horizontalPatch,PoolSolidIndex,type Triangle} from './pool-solid.js';
 import {fitClimbHand} from './pool-climb-hand.js';
 
 type Range=[number,number];
@@ -49,7 +49,10 @@ export function preparePoolSurfacePosition(source:PoolCycleSource,program:PoolPo
  const box=(v:Triangle)=>[Math.min(...v.map(p=>p[0])),Math.max(...v.map(p=>p[0])),Math.min(...v.map(p=>p[1])),Math.max(...v.map(p=>p[1]))] as const;
  const bounds:(readonly [number,number,number,number])[]=[];
  const depth:(readonly [number,number])[]=[];
- for(const solid of source.fixture.solids.filter(s=>pivot?s.id.startsWith('Pool ladder rail'):/ladder|coping|^Pool wall/i.test(s.id)))for(const f of solid.triangles){
+ const hardware=source.fixture.solids.filter(s=>pivot?s.id.startsWith('Pool ladder rail'):/ladder|coping|^Pool wall/i.test(s.id));
+ const fullDomain=source.definition.version===16&&source.definition.forwardHop?.platformTurn?.loadedSteps?.[0]?.start===64000&&!pivot;
+ const indices=fullDomain?hardware.map(s=>new PoolSolidIndex(s)):[];
+ for(const solid of hardware)for(const f of solid.triangles){
   const t=f.map(i=>{const p=solid.vertices[i];return [p[0],p[2],p[1]];}) as unknown as Triangle;
   const b=box(t),id=faces.length;faces.push(t);bounds.push(b);
   depth.push([Math.min(t[0][2],t[1][2],t[2][2]),Math.max(t[0][2],t[1][2],t[2][2])]);
@@ -62,9 +65,18 @@ export function preparePoolSurfacePosition(source:PoolCycleSource,program:PoolPo
  }
  return (wanted:Vec3,angle:number):Vec3=>{
   const c=Math.cos(angle),s=Math.sin(angle),lo=[Infinity,Infinity],hi=[-Infinity,-Infinity];
-  for(const {points,ids} of meshes)for(const id of ids){
-   const x=points[id*3]-origin[0],y=points[id*3+1]-origin[1],p=[c*x-s*y,s*x+c*y];
+  const include=(px:number,py:number)=>{
+   const x=px-origin[0],y=py-origin[1],p=[c*x-s*y,s*x+c*y];
    for(const axis of [0,1]){lo[axis]=Math.min(lo[axis],p[axis]);hi[axis]=Math.max(hi[axis],p[axis]);}
+  };
+  for(const {points,ids,triangles} of meshes){
+   const top=coping.bounds[1][2]+margin;
+   for(const id of ids)if(!fullDomain||points[id*3+2]<=top)include(points[id*3],points[id*3+1]);
+   if(fullDomain)for(let k=0;k<triangles.length;k+=3)for(let j=0;j<3;j++){
+    const a=3*triangles[k+j],b=3*triangles[k+(j+1)%3],za=points[a+2],zb=points[b+2];
+    if((za-top)*(zb-top)>=0)continue;
+    const t=(top-za)/(zb-za);include(points[a]+(points[b]-points[a])*t,points[a+1]+(points[b+1]-points[a+1])*t);
+   }
   }
   const result=[...wanted];
   for(const axis of [0,1]){
@@ -73,7 +85,30 @@ export function preparePoolSurfacePosition(source:PoolCycleSource,program:PoolPo
    if(low>high)throw new PoolTrialRefusal('The selected swim turn exceeds the basin width.');
    result[axis]=Math.max(low,Math.min(high,result[axis]));
   }
-  const low=min[1]-lo[1]+margin;
+  const low=min[1]-lo[1]+margin,high=fullDomain?max[1]-hi[1]-margin:result[1];
+  const outsideSolids=(x:number,y:number)=>{
+   for(const {points,ids,triangles} of meshes){
+    const placed=new Float64Array(points.length);
+    for(const id of ids){
+     const i=id*3,dx=points[i]-origin[0],dy=points[i+1]-origin[1],p:Vec3=[x+c*dx-s*dy,y+s*dx+c*dy,points[i+2]];
+     placed.set(p,i);
+     for(let j=0;j<hardware.length;j++){
+      const b=hardware[j].bounds;
+      if(p.every((v,k)=>v>=b[0][k]&&v<=b[1][k])&&indices[j].inside(p))return false;
+     }
+    }
+    const at=(j:number):Vec3=>[placed[j*3],placed[j*3+1],placed[j*3+2]];
+    for(let k=0;k<triangles.length;k+=3){
+     const tri:Triangle=[at(triangles[k]),at(triangles[k+1]),at(triangles[k+2])];
+     for(let j=0;j<hardware.length;j++){
+      const box=hardware[j].bounds;
+      if([0,1,2].some(i=>tri.every(p=>p[i]<box[0][i])||tri.every(p=>p[i]>box[1][i])))continue;
+      if(indices[j].triangleWitness(tri))return false;
+     }
+    }
+   }
+   return true;
+  };
   const centerY=(centerX:number)=>{
   const forbidden:Range[]=[],seen=new Int32Array(faces.length);let serial=0;
   for(const m of meshes){
@@ -88,17 +123,29 @@ export function preparePoolSurfacePosition(source:PoolCycleSource,program:PoolPo
      if(seen[id]===serial)continue;seen[id]=serial;
      const h=bounds[id];if(b[0]>h[1]||b[1]<h[0]||b[2]>h[3]||b[3]<h[2])continue;
      // Even before clipping, these depth ranges cannot touch anywhere along the permitted translation.
-     if(depth[id][1]-depthLow+2*margin<low||depth[id][0]-depthHigh-2*margin>result[1])continue;
+     if(depth[id][1]-depthLow+2*margin<low||depth[id][0]-depthHigh-2*margin>high)continue;
      const a=overlap(tri,faces[id],h),z=overlap(faces[id],tri,b);if(!a.length||!z.length)continue;
      const from=Math.min(...z.map(p=>p[2]))-Math.max(...a.map(p=>p[2]))-margin;
      const to=Math.max(...z.map(p=>p[2]))-Math.min(...a.map(p=>p[2]))+margin;
-     if(to>=low&&from<=result[1])forbidden.push([Math.max(low,from),Math.min(result[1],to)]);
+     if(to>=low&&from<=high)forbidden.push([Math.max(low,from),Math.min(high,to)]);
      if(forbidden.length>=8192){const merged=unite(forbidden);forbidden.length=0;forbidden.push(...merged);}
     }
    }
   }
   let y=result[1];
-  for(const [a,b] of unite(forbidden).reverse())if(y>=a&&y<=b)y=a-margin;
+  const blocked=unite(forbidden);
+  if(fullDomain){
+   const possible:number[]=[];
+   let edge=low;
+   for(const [a,b] of blocked){
+    if(b<low||a>high)continue;
+    const top=Math.min(high,a-margin);if(edge<=top)possible.push(Math.max(edge,Math.min(top,y)));
+    edge=Math.max(edge,b+margin);if(edge>high)break;
+   }
+   if(edge<=high)possible.push(Math.max(edge,Math.min(high,y)));
+   return possible.sort((a,b)=>Math.abs(a-y)-Math.abs(b-y)).find(v=>outsideSolids(centerX,v))??null;
+  }
+  for(const [a,b] of blocked.reverse())if(y>=a&&y<=b)y=a-margin;
   return y>=low?y:null;
   };
   const nominal=centerY(result[0]);
@@ -108,6 +155,8 @@ export function preparePoolSurfacePosition(source:PoolCycleSource,program:PoolPo
     const left=min[0]-lo[0]+margin,right=max[0]-hi[0]-margin;
     const lanes=[Math.min(...ladder.map(s=>s.bounds[0][0]))-hi[0]-margin,
       Math.max(...ladder.map(s=>s.bounds[1][0]))-lo[0]+margin].map(x=>Math.max(left,Math.min(right,x)));
+    if(source.definition.forwardHop?.platformTurn?.loadedSteps?.[0]?.start===64000)
+      lanes.push(...lanes.map(x=>(x+result[0])/2));
     for(const x of lanes.sort((a,b)=>Math.abs(a-result[0])-Math.abs(b-result[0]))){
       const y=centerY(x);if(y!==null)return [x,y,result[2]];
     }

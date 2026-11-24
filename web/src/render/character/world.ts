@@ -24,7 +24,7 @@ import {showerSteamEnvelopes,showerSteamCabin} from './steam-envelope.js';
 import {bathToySelector} from './bath-motion.js';
 import {PoolRipples} from './pool-ripples.js';
 import {collectPoolWaterContacts,PoolLandingRipples,type PoolWaterFootprint} from './pool-water-contact.js';
-import {poolContactFixture,poolContactTakeoffPhase} from './pool-contact-release.js';
+import {poolContactFixture,poolContactTakeoffPhase,poolWaterCutout} from './pool-contact-release.js';
 import {poolWaterBounds} from './pool-water-retarget.js';
 
 type WorldContacts=Pick<CharacterContactRoster,'require'> & Partial<Pick<CharacterContactRoster,'mode'>>;
@@ -115,7 +115,7 @@ export class CharacterWorld {
       this.poolRipples??=new PoolRipples(this.device);
       if(!this.poolFootprint){
         const {low,high,surface}=poolWaterBounds(poolContactFixture());
-        this.poolFootprint={minimum:[low[0],low[1]],maximum:[high[0],high[1]],height:surface};
+        this.poolFootprint={minimum:[low[0],low[1]],maximum:[high[0],high[1]],height:surface,cutout:poolWaterCutout()};
       }
     }
     this.poolRipples?.begin();

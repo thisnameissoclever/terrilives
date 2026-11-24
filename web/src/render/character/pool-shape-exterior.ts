@@ -4,6 +4,7 @@ import {assembleSelectedPoolExterior} from './pool-route-assembler.js';
 import {PoolTrialWork} from './pool-trial-work.js';
 import type {PoolPoseProgram} from './pool-pose-program.js';
 import {fitExteriorLandingShin} from './pool-exterior-shin.js';
+import {prepareInsetPoolEntry} from './pool-inset-entry.js';
 
 export interface PoolShapeExterior {
   readonly crestUnit:number;
@@ -14,6 +15,14 @@ export interface PoolShapeExterior {
 export function preparePoolShapeExterior(source:PoolCycleSource):PoolShapeExterior {
   const def=source.definition;
   if(def.version!==16||!def.forwardHop)throw new Error('Shape-configured pool entry requires a forward hop.');
+  if(def.forwardHop.insetEntry){
+    const hop=def.forwardHop;
+    let route:PoolShapeExterior|undefined;
+    return {crestUnit:hop.insetEntry!.steps.at(-1)!.land,at(unit){
+      route??=prepareInsetPoolEntry(source,hop);
+      return route.at(unit);
+    }};
+  }
   const third=def.anchors.find(a=>a.name==='outside-third')?.unit;
   if(third===undefined)throw new Error('Missing exterior ladder anchor.');
   const crestUnit=def.crestRoute.sampleUnits[0];

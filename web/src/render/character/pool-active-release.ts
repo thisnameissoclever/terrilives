@@ -1,6 +1,6 @@
-import motionText from '../../../../assets/models/sims/character-creator/pool_activity_motion_v18.json?raw';
-import fixtureText from '../../../../assets/models/sims/character-creator/clips/pool/contacts-v7.json?raw';
-import climbOut from '../../../../assets/models/sims/character-creator/clips/pool/ladder-climb-out-v1.poolroute?url';
+import motionText from '../../../../assets/models/sims/character-creator/pool_activity_motion_v22.json?raw';
+import fixtureText from '../../../../assets/models/sims/character-creator/clips/pool/contacts-v11.json?raw';
+import climbOut from '../../../../assets/models/sims/character-creator/clips/pool/ladder-climb-out-v5.poolroute?url';
 import type {PoolContactRelease} from './pool-contact-release.js';
 
 export const activePoolRelease = {
@@ -10,7 +10,7 @@ export const activePoolRelease = {
   fixture: JSON.parse(fixtureText) as unknown, fixtureText,
   family: {
     url: climbOut,
-    sha256: 'faaecebc393a23659379777da45a17f157310a07116e00e262a25fcab6b64bd9',
-    byteLength: 115979,
+    sha256: 'ff5d9153c355f90b99ce96015fe52a5df7a3d04527bc1a4690b73a9b14c9fb58',
+    byteLength: 257,
   },
 } satisfies PoolContactRelease;

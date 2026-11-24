@@ -16,6 +16,10 @@ import {resolvePoolRailContactFrame} from './pool-rail-contact-frame.js';
 import {fitClimbHand} from './pool-climb-hand.js';
 import {fitClimbLeg} from './pool-climb-leg.js';
 import {outwardLowerExit} from './pool-outward-lower-exit.js';
+import {platformDescentStance,platformInsideArrival,poolPlatformTurn} from './pool-platform-turn.js';
+import {uprightPoolDescent} from './pool-upright-descent.js';
+import {weightedLadderTransfers} from './pool-weighted-transfer.js';
+import {insetSwimApproach} from './pool-inset-swim.js';
 import {outwardArrival} from './pool-outward-passage.js';
 
 const clamp=(u:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,u));
@@ -35,6 +39,7 @@ function* authoredClimbSteps(source:PoolCycleSource,exterior:(entryUnit:number)=
  if(spec.version!==16||!spec.forwardHop)throw new Error('An independent climb-out needs its authored exit clock.');
  const clock=spec.clockUnits,water=source.paddle(0),action='pool_exit_0';
  const start=10000,feet=['footL','footR'] as const;
+ const turningPlatform=spec.forwardHop.platformTurn;
  const keys=spec.forwardHop.climbKeys;
  const exteriorJoin=spec.forwardHop.launchFromUnit?keys.find(k=>k.entryUnit===spec.forwardHop!.launchFromUnit):undefined;
  const landing=exteriorJoin?poolSourceRecord(source.fixture,{action,phase:exteriorJoin.unit/clock}).limbs.footL:undefined;
@@ -54,7 +59,15 @@ function* authoredClimbSteps(source:PoolCycleSource,exterior:(entryUnit:number)=
  const waterPose=poolIntervalPreference(source.bundle,source.neutral.rest,source.neutral.inverse,water.preferenceBasis,water.preferenceBasis,0,true);
  const hip=source.bundle.bones.findIndex(b=>b.name==='hips'),origin=point(waterPose.world[hip]);
  const tucked=makePoolPoseProgram(water.preferenceBasis,water.controls.map((c,i)=>{
-  if(i<2)return c;
+  if(i<2){
+   if(!turningPlatform)return c;
+   const limb=i===0?'footL':'footR',a=source.anatomy[limb],socket=point(waterPose.world[c.upper]);
+   const sizes=configuredPoolChainReach(source.neutral.rest,a.upper,a.lower,a.end);
+   const floor=source.fixture.solids.find(s=>s.kind==='floor')!,margin=source.fixture.rails[0].radius;
+   const above=Math.max(...a.surfaceCoefficients.map(k=>(floor.bounds[1][2]+3*margin-poolSurfacePoint(c.state.orientation,k)[2])/k[3]));
+   const target:Vec3=[socket[0],socket[1]+sizes.lengths[1]*.25,Math.max(above,socket[2]-sizes.maximum*.62)];
+   return {...c,state:{...c.state,target}};
+  }
   const shoulder=point(waterPose.world[c.upper]),limb=i===2?'handL':'handR';
   const a=source.anatomy[limb],reach=configuredPoolChainReach(source.neutral.rest,a.upper,a.lower,a.end);
   const toward=Math.sign(origin[0]-shoulder[0]),forearm=reach.lengths[1];
@@ -62,18 +75,22 @@ function* authoredClimbSteps(source:PoolCycleSource,exterior:(entryUnit:number)=
    pole:add(shoulder,[-toward*.06,forearm*.50,-forearm*.60])}};
  }),water.policy);
  const fitSwim=preparePoolSurfacePosition(source,tucked,origin);
+ const inset=turningPlatform&&turningPlatform.loadedSteps?.[0].start===turningPlatform.rightTurnUnit?insetSwimApproach(source,water,play):undefined;
  function swim(u:number){
+  if(inset)return inset(u);
   const progress=clamp((u-11500)/7500,0,1),turn=-Math.PI*progress,c=Math.cos(turn),s=Math.sin(turn);
   const rot=[c,s,0,0,-s,c,0,0,0,0,1,0,0,0,0,1],pose=poolIntervalPreference(source.bundle,source.neutral.rest,
    source.neutral.inverse,water.preferenceBasis,water.preferenceBasis,0,true);
   const centre=fitSwim([mix(origin[0],spec.ground.pelvisXY[0],ease(progress)),mix(origin[1],-.07,ease(progress)),origin[2]],turn);
   const carry=(p:Vec3)=>add(centre,transform(rot,sub(p,origin)));
   setPoolWorldRotation(pose,hip,multiply(rot,pose.world[hip]));translatePoolRoot(pose,sub(centre,origin));
-  return makePoolPoseProgram(pose.basis,tucked.controls.map(c=>({...c,state:{...c.state,target:carry(c.state.target),
+  return makePoolPoseProgram(pose.basis,tucked.controls.map((c,i)=>({...c,state:{...c.state,target:carry(i<2&&turningPlatform?
+   lerp(water.controls[i].state.target,c.state.target,ease((u-start)/3000)):c.state.target),
    orientation:multiply(rot,c.state.orientation),pole:carry(c.state.pole)}})),poolSourcePolicy(source.fixture,action,play(u)/clock));
  }
  const turned=swim(19000);
- const swimEnd=point(poolIntervalPreference(source.bundle,source.neutral.rest,source.neutral.inverse,turned.preferenceBasis,turned.preferenceBasis,0,true).world[hip]);
+ const turnedWorld=poolIntervalPreference(source.bundle,source.neutral.rest,source.neutral.inverse,turned.preferenceBasis,turned.preferenceBasis,0,true).world;
+ const swimEnd=point(turnedWorld[hip]);
  if(spec.forwardHop.launchFromUnit&&!independentExit)throw new Error('The split-level hop needs the independently authored inside exit.');
  let destinationPose:PoolPoseProgram|undefined;
  const destination=()=>destinationPose??=(independentExit?independentExit(65000):exterior(46656));
@@ -181,9 +198,18 @@ function* authoredClimbSteps(source:PoolCycleSource,exterior:(entryUnit:number)=
   const pitch=38*(1-ease((u-20000)/30000))+12;
   const upright=1-ease((u-54000)/4000);
   const intent={hips:[centre.x,centre.y,0] as Vec3,hipPitch:0,trunkPitch:pitch*upright,headPitch:10*upright};
-  const desired=source.fixture.waterHeight+.015+1.05*ease((u-20000)/38000);
+  const legacyHeight=source.fixture.waterHeight+.015+1.05*ease((u-20000)/38000);
+  const desired=inset?swimEnd[2]+(legacyHeight-swimEnd[2])*ease((u-19000)/6000):legacyHeight;
   const flat=source.climbBody(intent,yaw),goals=feet.map(l=>{
    const goal=sole(l,u,location),a=source.anatomy[l];
+   if(inset&&!policy[l].required&&u<(l==='footL'?28500:38000)){
+    const j=l==='footL'?0:1,resume=l==='footL'?28500:38000,begin=l==='footL'?23000:28000;
+    const socket=add(point(flat.world[a.upper]),[0,0,desired]);
+    const carried=add(socket,sub(turned.controls[j].state.target,point(turnedWorld[a.upper])));
+    const t=ease((u-begin)/(resume-begin)),target=lerp(carried,goal.target,t);
+    if(policy[l].mode==='approach')target[2]=Math.max(target[2],source.primaryExitFoot(l,l==='footL'?'inside2':'inside3',location).target[2]);
+    return {...goal,target};
+   }
    if(l!=='footR'||u>=28500||policy[l].mode!=='free')return goal;
    const socket=add(point(flat.world[a.upper]),[0,0,desired]),line=sub(goal.target,socket),d=length(line);
    const maximum=configuredPoolChainReach(source.neutral.rest,a.upper,a.lower,a.end).maximum*.94;
@@ -234,6 +260,15 @@ function* authoredClimbSteps(source:PoolCycleSource,exterior:(entryUnit:number)=
    controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],state});
   }
   const program=makePoolPoseProgram(pose.basis,controls,policy);
+  if(inset&&
+     u>19000&&u<=24000&&Object.values(policy).every(s=>!s.required)){
+   const current=point(pose.world[hip]),fit=preparePoolSurfacePosition(source,program,current,{action,phase});
+   const delta=sub(fit(current,0),current);
+   if(delta.some(v=>v!==0)){
+    translatePoolRoot(pose,delta);
+    return makePoolPoseProgram(pose.basis,controls.map(c=>({...c,state:{...c.state,target:add(c.state.target,delta),pole:add(c.state.pole,delta)}})),policy);
+   }
+  }
   const nearPost=u>54000&&u<58000||u===59250;
   if(!nearPost||policy.handL.required||policy.handR.required)return program;
   const preferred=u>55500&&u<58000?crestReturnAngle*(1-ease((u-55500)/2500)):0;
@@ -247,8 +282,25 @@ function* authoredClimbSteps(source:PoolCycleSource,exterior:(entryUnit:number)=
 export function* poolClimbOutSteps(source:PoolCycleSource,exterior:(entryUnit:number)=>PoolPoseProgram,independentExit?:(exitUnit:number)=>PoolPoseProgram):Generator<readonly [number,()=>PoolPoseProgram]>{
  const motion=source.definition;
  const walk=motion.version===16?motion.forwardHop?.outwardDescent:undefined;
+ const turn=motion.version===16?motion.forwardHop?.platformTurn:undefined;
  const seam=motion.version===16&&motion.forwardHop?.launchFromUnit?motion.forwardHop.climbKeys.find(k=>k.entryUnit===motion.forwardHop!.launchFromUnit)?.unit:undefined;
  for(const [unit,build] of authoredClimbSteps(source,exterior,independentExit)){
+  if(turn&&unit===turn.startUnit&&motion.version===16&&motion.forwardHop){
+   const exitExterior=(at:number,entry:number)=>source.materializeSelectedKnot({...captureSelectedPoolKnot(source,entry,exterior(entry)),unit:at},'pool_exit_0');
+   const authoredLower=turn.loadedSteps?.[0].start===turn.rightTurnUnit;
+   const outside=authoredLower?platformDescentStance(source,exterior(0),turn.rightTurnUnit):exitExterior(turn.exteriorUnit,42000);
+   const path=poolPlatformTurn(source,platformInsideArrival(source,build(),unit),outside,exterior(0));
+   const through=turn.loadedSteps?.[0].start??motion.clockUnits;
+   for(const k of motion.forwardHop.climbKeys.filter(k=>k.unit>turn.exteriorUnit&&k.unit<=through)){
+    if(k.entryUnit===undefined)throw new Error('Missing installed exterior descent reference.');
+    const entry=k.entryUnit;path.set(k.unit,exitExterior(k.unit,entry));
+   }
+   if(!authoredLower)uprightPoolDescent(source,path,exterior(0),through);
+   if(turn.loadedSteps)weightedLadderTransfers(source,path,exterior(0),turn.loadedSteps);
+   for(const [time,pose] of path)yield [time,()=>pose];
+   return;
+  }
+  if(turn){yield [unit,()=>platformInsideArrival(source,fitClimbLeg(source,build(),unit),unit)];continue;}
   if(walk&&unit===walk.startUnit){
    const stance=outwardArrival(source,fitClimbLeg(source,build(),unit),unit);
    const path=outwardLowerExit(source,stance,exterior(0),(limb,place,at)=>source.outwardExitFoot(limb,place,at),45000);

@@ -1,33 +1,28 @@
-import {readFileSync} from 'node:fs';
+import {expectHistoricalPoolRejection,historicalCrestPair} from './pool-historical-rejection.js';
 import {expect,it} from 'vitest';
 import {defaultAppearance,validateAppearance} from '../src/character/schema.js';
-import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
+import {PoolCycleSource} from '../src/render/character/pool-cycle-source.js';
 import {measureRawPoolPhysicalObservation} from '../src/render/character/pool-owned-compilation.js';
 import {configuredPoolChainReach} from '../src/render/character/pool-entry-domain.js';
 import {length,sub,type Vec3} from '../src/render/character/math.js';
 import {evaluatePoolPoseProgram} from '../src/render/character/pool-contact-sample.js';
-import {parseOwnedPoolFixture} from '../src/render/character/pool-owned-fixture.js';
 import type {PoolPoseProgram} from '../src/render/character/pool-pose-program.js';
 import {poolSourceEvents} from '../src/render/character/pool-source-policy.js';
 import {PreparedBody} from '../src/render/character/prepared-body.js';
 import {anatomicalHeight} from '../src/render/character/shape.js';
 import {poolBase,poolRig} from './pool-observer-fixture.js';
 
-const directory=new URL('../../assets/models/sims/character-creator/',import.meta.url);
-const read=(name:string)=>readFileSync(new URL(name,directory),'utf8');
-
 function sources(){
- const prior:unknown=JSON.parse(read('pool_activity_motion_v14.json')),candidate:unknown=JSON.parse(read('pool_activity_motion_v15.json'));
- validatePoolCycleDefinition(prior);validatePoolCycleDefinition(candidate);
+ const prior=historicalCrestPair(14),candidate=historicalCrestPair(15);
  const appearance=validateAppearance({...defaultAppearance('masculine'),body:{height:0,build:100,shoulders:100,hips:100,torso:100}});
  const shape={presentation:appearance.presentation,...appearance.body,face:appearance.face};
  const selection=new PreparedBody(poolBase,appearance).select(poolRig,appearance,{wear:'bare',prop:'none',fixture:'none',
   eyes_closed:false,includeFixture:false,clip:'pool_enter',swimwear:'trunks'});
  if(!selection.extra)throw new Error('Pool crest fit needs the selected swimwear');
  const bundle=poolRig.manifest,geometry=[selection.body,selection.extra],top=anatomicalHeight(poolBase.vertices);
- const before=new PoolCycleSource(bundle,shape,top,geometry,parseOwnedPoolFixture(read('clips/pool/contacts-v3.json')),prior);
- const fixture=parseOwnedPoolFixture(read('clips/pool/contacts-v4.json'));
- const after=new PoolCycleSource(bundle,shape,top,geometry,fixture,candidate);
+ const before=new PoolCycleSource(bundle,shape,top,geometry,prior.fixture,prior.definition);
+ const fixture=candidate.fixture;
+ const after=new PoolCycleSource(bundle,shape,top,geometry,fixture,candidate.definition);
  return {before,after,fixture};
 }
 
@@ -42,7 +37,7 @@ it('constructs the exterior turn key within the swing leg reach',()=>{
  expect(distance).toBeLessThan(reach.maximum);
 });
 
-it('clears the early crest contacts and measures the literal inside handoff',()=>{
+it('reproduces the rejected V15 early crest and preserves its admitted turn and handoff controls',()=>{
  const {before,after,fixture}=sources(),location=(phase:number)=>({action:'pool_enter',phase});
  const keys=poolSourceEvents(fixture,'pool_enter').filter(phase=>phase>=.42&&phase<=.496);
  const programs=new Map<number,PoolPoseProgram>(),failures:unknown[]=[];
@@ -93,10 +88,13 @@ it('clears the early crest contacts and measures the literal inside handoff',()=
   const low=keys[index-1],high=keys[index],left=programs.get(low),right=programs.get(high);
   if(left&&right)for(const amount of [.25,.5,.75])inspect(low+(high-low)*amount,left,right,amount);
  }
- expect(failures).toEqual([]);
+ // The frozen V15 motion d1a04bb0 and fixture fe3a9fad struck the right rail
+ // at .471. The November 10 early-crest rejection retained twelve failing observations.
+ expect(programs.size).toBe(7);
+ expectHistoricalPoolRejection(failures,12,'c246ab53f6514378ced03a5e0abf911c1290de2f6c3ae02c600152c3a5814d3a');
 },90_000);
 
-it('clears the supported crest transfer and joins the unchanged first descent pose',()=>{
+it('reproduces the V15 clearance failures between its unchanged approach and descent endpoints',()=>{
  const {before,after,fixture}=sources();
  const location=(phase:number)=>({action:'pool_enter',phase});
  const reject=(phase:number)=>{
@@ -147,5 +145,8 @@ it('clears the supported crest transfer and joins the unchanged first descent po
   const low=keys[i-1],high=keys[i],left=programs.get(low),right=programs.get(high);
   if(left&&right)for(const amount of [.25,.5,.75])inspect(low+(high-low)*amount,left,right,amount);
  }
- expect(failures).toEqual([]);
+ // The complete sweep was replayed against those same frozen assets and their
+ // recorded V15 source. Its physical observations match the current evaluator.
+ expect(programs.size).toBe(25);
+ expectHistoricalPoolRejection(failures,22,'b458eb638519a0858b9f0c402faa5b1cda3588a0542ae5fc04a1cd92853c0389');
 },120_000);

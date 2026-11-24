@@ -1596,8 +1596,8 @@
         "height": 265
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "5af86c0a2ef4af87707808623af135cc80277b83f601d91069cbd8de8ecc04b7",
-      "outputSha256": "9d6b401161d784ff79325bba132d6575d6fcd995911e3c91383b916db98fdb41"
+      "sourceSha256": "18a9e277e23ac587bb793ebaa90fd4e04df0956209d83d8f3030fea335cde031",
+      "outputSha256": "8da94933501f1a5e73e4dcd3e0b9d2cfa5eed4ff39678b976fe1a1091f2151e3"
     },
     {
       "output": "images/guide/pool-hop-in-mobile.png",
@@ -1609,8 +1609,8 @@
         "height": 304
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "5c7d110113d98b51886f1e19a49861daa314e222d70baddc51a469221d95c3ac",
-      "outputSha256": "a9bf7dac9ab31477ac255742df3718c09b55d30e8ae843bea2d213188bb1b5e8"
+      "sourceSha256": "dcc294fa9b28057046006213b4f67ca4e4a3bf397e462cc80cd06399176965a8",
+      "outputSha256": "18519c8ecfbd1b37d5977e52abc1616590ec5151b14cf37d93cfee3592f7a025"
     },
     {
       "output": "images/guide/build-access-review-desktop.png",

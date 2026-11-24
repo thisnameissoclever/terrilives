@@ -23,12 +23,14 @@ export function configuredPoolExterior(source:PoolCycleSource,exterior:ExteriorC
       throw new Error('The supported pool release does not declare its initial toe path.');
     exterior={...exterior,outgoingToe:{limb:'footL',place:'outside3',startUnit:42000,firstUnit:42001,secondUnit:42101,releaseEnd:43200,liftScale:1}};
   }
+  const fit=(id:keyof typeof fitted)=>({kind:'fitted' as const,exterior,stages:structuredClone(fitted[id]) as unknown as NumericStageRequest[],
+    fitPlatformGrips:source.definition.version===16&&Boolean(source.definition.forwardHop?.platformTurn)});
   if(s.presentation==='feminine'&&[s.height,s.build,s.hips,s.shoulders,s.torso].every(v=>v===100))
-    return {kind:'fitted',exterior,stages:structuredClone(fitted['feminine-tall-broad']) as unknown as NumericStageRequest[]};
+    return fit('feminine-tall-broad');
   if(s.presentation==='feminine'&&[s.height,s.build,s.hips,s.shoulders,s.torso].every(v=>v===0))
-    return {kind:'fitted',exterior,stages:structuredClone(fitted['feminine-short-slim']) as unknown as NumericStageRequest[]};
+    return fit('feminine-short-slim');
   if(s.presentation==='masculine'&&s.height===100&&[s.build,s.hips,s.shoulders,s.torso].every(v=>v===0))
-    return {kind:'fitted',exterior,stages:structuredClone(fitted['masculine-tall-slim']) as unknown as NumericStageRequest[]};
+    return fit('masculine-tall-slim');
   return {kind:'authored'};
 }
 

@@ -77,6 +77,13 @@ def render(source, directory):
     definition = json.loads((source/'motion.json').read_bytes())
     if definition['modelSource'] == 'outdoor/pool_activity_model_v6.py':
         sources.extend([MODELS/'outdoor/export_pool_fixture_v6.py', MODELS/definition['modelSource']])
+    if definition['modelSource'] == 'outdoor/pool_activity_model_v7.py':
+        sources.extend([MODELS/'outdoor/export_pool_fixture_v7.py', MODELS/'outdoor/pool_activity_layout_v7.py',
+                        MODELS/definition['modelSource']])
+    if definition['modelSource'] == 'outdoor/pool_activity_model_v8.py':
+        sources.extend([MODELS/'outdoor/export_pool_fixture_v7.py', MODELS/'outdoor/pool_activity_layout_v7.py',
+                        MODELS/'outdoor/export_pool_fixture_v8.py', MODELS/'outdoor/pool_activity_layout_v8.py',
+                        MODELS/definition['modelSource']])
     proof = {'state':'rendering', 'object':'pool', 'inputs':{s.relative_to(MODELS).as_posix():digest(s) for s in sources},
              'blender_version':bpy.app.version_string, 'logical_canvas':list(CANVAS),
              'source_density':DENSITY, 'origin_pixels':origin, 'camera_matrix':[list(v) for v in scene.camera.matrix_world],

@@ -7,7 +7,7 @@ export const ATLAS_STORAGE = {
   "border": 1,
   "physicalSize": 2048,
   "tilesPerRow": 204,
-  "uniqueTiles": 870427,
+  "uniqueTiles": 870487,
   "originalAtlasPages": [
     "atlas-d7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9.png",
     "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
@@ -15,7 +15,7 @@ export const ATLAS_STORAGE = {
     "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
     "atlas-47a7cda58edad50d058cabf38bf0b98d7d15cf85d789f2445fb483631a36f725.png",
     "atlas-98f0a3065d3dd4cef344d4fafb3c02d79babdcd752826b78e545ebd30c74b8cf.png",
-    "atlas-ced625845b3d93b0391dac27b47bf55ac392d1565c62eb9ad60082914f22a654.png",
+    "atlas-10627773738bcc12bd7c95b8cb5cf0609a7d4e133a0245f9b62b4fb340c131cb.png",
     "atlas-2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d.png",
     "atlas-ccc3a47fcebf25c9920b91efdbb72be345586d3425c0331df220cbb61b3fcb42.png",
     "atlas-962e7555dd6a890c24af82e8e656047bf98e0a21ef1cf62cf4d0ecacceb909c3.png",
@@ -76,10 +76,10 @@ export const ATLAS_STORAGE = {
     },
     {
       "folder": "outdoor-depth",
-      "path": "depth-7f5a1535600ddd9f6c9d4d6c6f3b1888fc7df13cec24efc2132775a3e96b14a4.rgba",
+      "path": "depth-3cf89290ca41d2d27b3e4beb88b4fd294d0f2489ef3b273b82a7170595dd8434.rgba",
       "width": 2048,
       "height": 2048,
-      "sha256": "7f5a1535600ddd9f6c9d4d6c6f3b1888fc7df13cec24efc2132775a3e96b14a4"
+      "sha256": "3cf89290ca41d2d27b3e4beb88b4fd294d0f2489ef3b273b82a7170595dd8434"
     },
     {
       "folder": "shelf-depth",
@@ -176,10 +176,10 @@ export const ATLAS_STORAGE = {
       "sha256": "98f0a3065d3dd4cef344d4fafb3c02d79babdcd752826b78e545ebd30c74b8cf"
     },
     {
-      "file": "web/public/atlas-ced625845b3d93b0391dac27b47bf55ac392d1565c62eb9ad60082914f22a654.png",
+      "file": "web/public/atlas-10627773738bcc12bd7c95b8cb5cf0609a7d4e133a0245f9b62b4fb340c131cb.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "ced625845b3d93b0391dac27b47bf55ac392d1565c62eb9ad60082914f22a654"
+      "sha256": "10627773738bcc12bd7c95b8cb5cf0609a7d4e133a0245f9b62b4fb340c131cb"
     },
     {
       "file": "web/public/atlas-2a1f946995402ba86a5842d6be1abcfb238737494674af833ffb20f9db4d817d.png",
@@ -416,10 +416,10 @@ export const ATLAS_STORAGE = {
       "sha256": "09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012"
     },
     {
-      "file": "assets/models/sims/character-repair/outdoor-depth/depth-7f5a1535600ddd9f6c9d4d6c6f3b1888fc7df13cec24efc2132775a3e96b14a4.rgba",
+      "file": "assets/models/sims/character-repair/outdoor-depth/depth-3cf89290ca41d2d27b3e4beb88b4fd294d0f2489ef3b273b82a7170595dd8434.rgba",
       "width": 2048,
       "height": 2048,
-      "sha256": "7f5a1535600ddd9f6c9d4d6c6f3b1888fc7df13cec24efc2132775a3e96b14a4"
+      "sha256": "3cf89290ca41d2d27b3e4beb88b4fd294d0f2489ef3b273b82a7170595dd8434"
     },
     {
       "file": "assets/models/sims/character-repair/shelf-depth/depth-537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0.rgba",
@@ -480,86 +480,86 @@ export const ATLAS_STORAGE = {
       "sha256": "6d707e6736cf5fa866d2f08ce9617aa0b267397265124c1defd3848ee25f0d8d"
     },
     {
-      "file": "atlas-storage/page-c8eeb82cd29a42256374b48aaa6eae12af55474d6e4890f014bcd6ffe44851f3.png",
-      "sha256": "c8eeb82cd29a42256374b48aaa6eae12af55474d6e4890f014bcd6ffe44851f3"
+      "file": "atlas-storage/page-39b90e60e4173962ee4b1fe1395f7d8a1bda178894d429bd5502f9ad2947345b.png",
+      "sha256": "39b90e60e4173962ee4b1fe1395f7d8a1bda178894d429bd5502f9ad2947345b"
     },
     {
-      "file": "atlas-storage/page-c1562d30cbb4d2e2ee4e71928f637c717a055065435dc3a2fa4f7d3b6ebed021.png",
-      "sha256": "c1562d30cbb4d2e2ee4e71928f637c717a055065435dc3a2fa4f7d3b6ebed021"
+      "file": "atlas-storage/page-4cb3d8c350da8f28a70bd520c81388ddb82bd048400478199d455c7b9d971aa3.png",
+      "sha256": "4cb3d8c350da8f28a70bd520c81388ddb82bd048400478199d455c7b9d971aa3"
     },
     {
-      "file": "atlas-storage/page-abb86fc9ec9ee905786a5305ee37c3775df15e6de28da1c27af3bf5bea547f9b.png",
-      "sha256": "abb86fc9ec9ee905786a5305ee37c3775df15e6de28da1c27af3bf5bea547f9b"
+      "file": "atlas-storage/page-73b1553745a8ac7b2793ff42a84321eddf7b068f17520e85c83ab0c2f18f5334.png",
+      "sha256": "73b1553745a8ac7b2793ff42a84321eddf7b068f17520e85c83ab0c2f18f5334"
     },
     {
-      "file": "atlas-storage/page-188233c748de00357a84b980948bdf63a19176cb630b8e7bc0e6dd3ce9b95555.png",
-      "sha256": "188233c748de00357a84b980948bdf63a19176cb630b8e7bc0e6dd3ce9b95555"
+      "file": "atlas-storage/page-eb052c5b4bdcf9dccc708046c4b4c9a0bbde359ee56e4ec65b038ef832bf4865.png",
+      "sha256": "eb052c5b4bdcf9dccc708046c4b4c9a0bbde359ee56e4ec65b038ef832bf4865"
     },
     {
-      "file": "atlas-storage/page-91a118ef4bc4e916d9d698f0506e1677c32057ba84b30803f73f43b56b396fd9.png",
-      "sha256": "91a118ef4bc4e916d9d698f0506e1677c32057ba84b30803f73f43b56b396fd9"
+      "file": "atlas-storage/page-14515bc974757539997f12634fee579768df77aaf427fe533d75989a81b311c7.png",
+      "sha256": "14515bc974757539997f12634fee579768df77aaf427fe533d75989a81b311c7"
     },
     {
-      "file": "atlas-storage/page-343abcec9e0439dca682f8a01964d27c5684f742f0d2d0befbe1648edbe5316b.png",
-      "sha256": "343abcec9e0439dca682f8a01964d27c5684f742f0d2d0befbe1648edbe5316b"
+      "file": "atlas-storage/page-5165ea02e1f84e3329aab2ba1d32487f50cd0fb8dcc48aaa81a95caadc69d07c.png",
+      "sha256": "5165ea02e1f84e3329aab2ba1d32487f50cd0fb8dcc48aaa81a95caadc69d07c"
     },
     {
-      "file": "atlas-storage/page-183d33a499b73782204115ec0a29c89a848665572d63ba2e0d3bb2c725a84353.png",
-      "sha256": "183d33a499b73782204115ec0a29c89a848665572d63ba2e0d3bb2c725a84353"
+      "file": "atlas-storage/page-a88de1d0fd9f0603d94bb93b8eea1396edcd5b42d3df614f60cee7140e5d4ec8.png",
+      "sha256": "a88de1d0fd9f0603d94bb93b8eea1396edcd5b42d3df614f60cee7140e5d4ec8"
     },
     {
-      "file": "atlas-storage/page-b3d1ddc602947d6f03a7b87ccd9d443acfd9356f2a6326aeb008d9f3b5835304.png",
-      "sha256": "b3d1ddc602947d6f03a7b87ccd9d443acfd9356f2a6326aeb008d9f3b5835304"
+      "file": "atlas-storage/page-07a1f07e22d2e6031a5d3c6ad64a69ef843eead88ca716b2ee177409b59566d7.png",
+      "sha256": "07a1f07e22d2e6031a5d3c6ad64a69ef843eead88ca716b2ee177409b59566d7"
     },
     {
-      "file": "atlas-storage/page-ab47d5bc61276c13147ad961074a6647f16c740bd2849f8ee7f921455fc01b69.png",
-      "sha256": "ab47d5bc61276c13147ad961074a6647f16c740bd2849f8ee7f921455fc01b69"
+      "file": "atlas-storage/page-c5be303192e75d49b35df7b952dfcc9cf40075a50879cdd02753b1fb7ca65785.png",
+      "sha256": "c5be303192e75d49b35df7b952dfcc9cf40075a50879cdd02753b1fb7ca65785"
     },
     {
-      "file": "atlas-storage/page-5d6028e8c37e5213c18ca25ae1f55f1317b2f082424fe980761da865f03215a1.png",
-      "sha256": "5d6028e8c37e5213c18ca25ae1f55f1317b2f082424fe980761da865f03215a1"
+      "file": "atlas-storage/page-a1be4aba61d9e1892471dd75da00428708329d9f7977c3547f572a8a1977fbdd.png",
+      "sha256": "a1be4aba61d9e1892471dd75da00428708329d9f7977c3547f572a8a1977fbdd"
     },
     {
-      "file": "atlas-storage/page-034166b242b5cb556440e93e6afdea6d7ef7b9c77b7bfdcbc947a2e684c02ad0.png",
-      "sha256": "034166b242b5cb556440e93e6afdea6d7ef7b9c77b7bfdcbc947a2e684c02ad0"
+      "file": "atlas-storage/page-ad623fc7c7573720da2dcf7da05619648f59b59a936d4aa235a49257cc934dbb.png",
+      "sha256": "ad623fc7c7573720da2dcf7da05619648f59b59a936d4aa235a49257cc934dbb"
     },
     {
-      "file": "atlas-storage/page-b52f01bf00a63840f5f0a41c8286b4f6a4583f359a8319605b7b4b1cd1be668d.png",
-      "sha256": "b52f01bf00a63840f5f0a41c8286b4f6a4583f359a8319605b7b4b1cd1be668d"
+      "file": "atlas-storage/page-6d900ca920ac6c0b1f38ac2666af82fb5c3d6be7a2e5ec389d1b9a00f6fe5a18.png",
+      "sha256": "6d900ca920ac6c0b1f38ac2666af82fb5c3d6be7a2e5ec389d1b9a00f6fe5a18"
     },
     {
-      "file": "atlas-storage/page-2123b29a5cab44b60e1890f42041414f8852c2645a2645c5e508b20d8ad1e988.png",
-      "sha256": "2123b29a5cab44b60e1890f42041414f8852c2645a2645c5e508b20d8ad1e988"
+      "file": "atlas-storage/page-dbeaf407a24d93a9f386223c629ca6a2e5d2ae620a1c60847385221f90fa29e5.png",
+      "sha256": "dbeaf407a24d93a9f386223c629ca6a2e5d2ae620a1c60847385221f90fa29e5"
     },
     {
-      "file": "atlas-storage/page-5b88f63aba802dbe9ac78b908980ea9be032cbcfeb874830bd41163c0a2f24d8.png",
-      "sha256": "5b88f63aba802dbe9ac78b908980ea9be032cbcfeb874830bd41163c0a2f24d8"
+      "file": "atlas-storage/page-94742ee0973ad1937c715db4417a2bafde4628b6204a07a17d6bbbe812cd272d.png",
+      "sha256": "94742ee0973ad1937c715db4417a2bafde4628b6204a07a17d6bbbe812cd272d"
     },
     {
-      "file": "atlas-storage/page-818f48ea3f2d889f6876d19eda106c10f0e8cb14698d079a7650d353a77e2bd8.png",
-      "sha256": "818f48ea3f2d889f6876d19eda106c10f0e8cb14698d079a7650d353a77e2bd8"
+      "file": "atlas-storage/page-61a609ba6e368e5ca56a174fbc5a942516df8b396193041054fbf8f01a52266d.png",
+      "sha256": "61a609ba6e368e5ca56a174fbc5a942516df8b396193041054fbf8f01a52266d"
     },
     {
-      "file": "atlas-storage/page-700fb2aedfddf93ce442b4c5cba3a7dca0a341331a1511b88388d9639cacc598.png",
-      "sha256": "700fb2aedfddf93ce442b4c5cba3a7dca0a341331a1511b88388d9639cacc598"
+      "file": "atlas-storage/page-d07adb8bde352adc3f99757c7a7b116e68e76fd8c96b7e37ca378947fb7e1693.png",
+      "sha256": "d07adb8bde352adc3f99757c7a7b116e68e76fd8c96b7e37ca378947fb7e1693"
     },
     {
-      "file": "atlas-storage/page-9888bda4aa036995f865dd34100df63e09035d3bd95a03d6716395b73502b821.png",
-      "sha256": "9888bda4aa036995f865dd34100df63e09035d3bd95a03d6716395b73502b821"
+      "file": "atlas-storage/page-5664a29acc5ad925b2acce0e876ff930b52e551a3915ef2ce5c5062dbabfba0a.png",
+      "sha256": "5664a29acc5ad925b2acce0e876ff930b52e551a3915ef2ce5c5062dbabfba0a"
     },
     {
-      "file": "atlas-storage/page-cb85e8774f35f230137b0d8bf77fa9dcbf8460a970dcb3f3cd7884cb74de6efc.png",
-      "sha256": "cb85e8774f35f230137b0d8bf77fa9dcbf8460a970dcb3f3cd7884cb74de6efc"
+      "file": "atlas-storage/page-ea2350c06ee617a55b56c2cb05139e34b929bd35c057b05024235cb42af2196d.png",
+      "sha256": "ea2350c06ee617a55b56c2cb05139e34b929bd35c057b05024235cb42af2196d"
     },
     {
-      "file": "atlas-storage/page-1b6c572ae627bcd05311e62bb71212ab97b960ebd6de021c0e745bef6a7f9b8e.png",
-      "sha256": "1b6c572ae627bcd05311e62bb71212ab97b960ebd6de021c0e745bef6a7f9b8e"
+      "file": "atlas-storage/page-042fa4b253ebfdb59a93e69d27cae2c11eb8abc5dad940e7915668230b635962.png",
+      "sha256": "042fa4b253ebfdb59a93e69d27cae2c11eb8abc5dad940e7915668230b635962"
     }
   ],
   "lookup": {
-    "file": "atlas-storage/lookup-d7c53da147ab83b7447b5ef930a162223622ff91383732138aa87b6b6ceac3e0.bin.gz",
+    "file": "atlas-storage/lookup-74012aa94576335af142ebc210d26daca9610012f09c67aa56f10d49d7fc0575.bin.gz",
     "length": 14417924,
-    "sha256": "9bddf126254e7be05f912fb4f27144724effd2a351c5f5d170e919438009b277"
+    "sha256": "6fbebb4f422b03cbc0434d41b707e3bd74e6ef26b73391baa1215b1aefe3e50a"
   },
   "coverage": {
     "file": "atlas-storage/coverage-d1a2a7687b209b0d8d56e3dbbfd949acd589030a58053fcef0385e00c157a54c.bin.gz",
