@@ -228,8 +228,13 @@ export class AnnotationSpread {
     this.consider(i, this.x[i], top + height + this.height[i] + gap);
   }
 
-  /** Moves a covered box to the nearest clear place within its reach, if there is one. */
+  /**
+   * Moves a covered box to the nearest clear place within its reach, if there
+   * is one. A box over someone off screen never moves: any clear place would
+   * be on screen, away from its person.
+   */
   private clear(i: number): void {
+    if (this.x0[i] < 0 || this.x0[i] > this.viewWidth) return;
     if (this.fits(i, this.x[i], this.y[i])) return;
     this.best = Infinity;
     this.bestX = this.x[i];

@@ -543,7 +543,7 @@
     "web/src/new-game-seed.ts": "22a741389cfcc9a7b008bb1c25eae2279496bdd1a162d0ce1afba7fd167e2679",
     "web/src/perf.ts": "40087f8be0f6ea4060825a75b725d6567f843d7a7b3446c862891defe1fd5dc9",
     "web/src/reaction-band.ts": "0a552f2c7398e01eb42e11c88d45e49a88da4e8c4264cf003de6720bb1354384",
-    "web/src/render/annotation-spread.ts": "94339d038d008f84d21a7b9b929790a7efa6f4913cbdbd36a7937ac52dd51e66",
+    "web/src/render/annotation-spread.ts": "413947215b6d780a6ca395d6419ac827b5d1148c2dd704940ccbdba25bb3eb87",
     "web/src/render/architecture-atlas.ts": "77b8a7d128476993e0bd540cfa23d74595e58ca015168089382054943f61223f",
     "web/src/render/architecture-baked-floors.ts": "03833e5449f2709c95fe37477c10b0dcbaf46efa5faf1dd663c380180e8b1deb",
     "web/src/render/architecture-data.ts": "f8dd4a5929a7e7bd76cf1367c9013f4cb25278b5b778b8fab591b0702ea4cd30",

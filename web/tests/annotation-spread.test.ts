@@ -104,6 +104,13 @@ describe('spreading bubbles (issue 360)', () => {
     expect(x(out, 1)).toBe(VIEW + 300);
   });
 
+  it('does not move a covered bubble over someone off screen into view', () => {
+    // A panel covers the edge the off-screen person's bubble pokes past.
+    const out = bubbles([VIEW + 5, 400]);
+    spread(out, controls([VIEW - 300, 0, 300, VIEW]));
+    expect(x(out, 0)).toBe(VIEW + 5);
+  });
+
   it('never moves a bubble more than its own width from where it was drawn', () => {
     const out = bubbles([500, 400], [500, 400], [500, 400], [500, 400]);
     spread(out);
