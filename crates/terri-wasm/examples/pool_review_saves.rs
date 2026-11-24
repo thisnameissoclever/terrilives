@@ -8,7 +8,7 @@ use terri_sim::{Content, Sim};
 use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
-    let snapshot = sim.save_snapshot_v28();
+    let snapshot = sim.save_snapshot_v30();
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -202,7 +202,7 @@ fn main() {
             for _ in 0..100 {
                 sim.tick();
                 if sim
-                    .save_snapshot_v28()
+                    .save_snapshot_v30()
                     .pools
                     .iter()
                     .any(|p| p.actor == actor.index_u32() && p.phase == 1)
@@ -210,23 +210,33 @@ fn main() {
                     break;
                 }
             }
-            let baseline = sim.save_snapshot_v28();
+            let baseline = sim.save_snapshot_v30();
             for (label, ticks, cancel) in [
                 ("entry", 0, false),
                 ("entry-step", 7, false),
                 ("swim", 37, false),
-                ("exit", 88, false),
+                ("exit", 96, false),
                 ("cancel-entry", 7, true),
+                ("cancel-before-takeoff", 11, true),
+                ("cancel-airborne", 12, true),
                 ("cancel-swim", 37, true),
             ] {
+                let short_broad_boundary = preset == "masculine-short-broad"
+                    && ["cancel-before-takeoff", "cancel-airborne"].contains(&label);
+                if ["cancel-before-takeoff", "cancel-airborne"].contains(&label)
+                    && !short_broad_boundary
+                {
+                    continue;
+                }
                 if label != "entry"
+                    && !short_broad_boundary
                     && !(facing == Facing::SouthEast
                         && (preset == "neutral"
                             || preset == "short-wide" && ["swim", "exit"].contains(&label)))
                 {
                     continue;
                 }
-                sim.load_snapshot_v28(baseline.clone()).unwrap();
+                sim.load_snapshot_v30(baseline.clone()).unwrap();
                 for _ in 0..ticks {
                     sim.tick();
                 }
@@ -303,7 +313,7 @@ fn main() {
             .get::<terri_core::Eating>(actor)
             .expect("ordinary bath begins")
             .remaining_ticks;
-        let snapshot = sim.save_snapshot_v28();
+        let snapshot = sim.save_snapshot_v30();
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -315,7 +325,7 @@ fn main() {
         fs::write(folder.join(format!("{name}.bin")), &bytes).unwrap();
         receipts.push(format!("{{\"file\":\"{name}.bin\",\"actor\":{},\"target\":{},\"fixtureModel\":\"bathtub\",\"facing\":{},\"activity\":20,\"remaining\":{remaining},\"bytes\":{}}}",actor.index_u32(),tub.index_u32(),facing.code(),bytes.len()));
     }
-    fs::write(folder.join("manifest.json"),format!("{{\"schema\":{},\"entryMinutes\":20,\"swimMinutes\":60,\"exitMinutes\":20,\"files\":[{}]}}\n",terri_core::SAVE_SCHEMA_VERSION,receipts.join(","))).unwrap();
+    fs::write(folder.join("manifest.json"),format!("{{\"schema\":{},\"entryMinutes\":20,\"swimMinutes\":60,\"exitMinutes\":40,\"files\":[{}]}}\n",terri_core::SAVE_SCHEMA_VERSION,receipts.join(","))).unwrap();
     println!(
         "Wrote {} public-loader-verified pool and bath fixtures to {}",
         receipts.len(),

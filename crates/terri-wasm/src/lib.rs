@@ -2141,6 +2141,11 @@ impl SimHandle {
     pub fn pool_exit_origins_ptr(&self) -> *const u32 {
         self.sim.render_buffer().pool_exit_origins.as_ptr()
     }
+
+    /// The native exit duration used by the character motion sampler.
+    pub fn pool_exit_ticks(&self) -> u32 {
+        self.sim.pool_exit_ticks()
+    }
     pub fn bath_toys_ptr(&self) -> *const u32 {
         self.sim.render_buffer().bath_toys.as_ptr()
     }
@@ -2739,10 +2744,10 @@ impl SimHandle {
     /// and the shell's `saveBytes` turns it into a thrown error so no caller
     /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let Ok(snapshot) = self.sim.try_save_snapshot_v28() else {
+        let Ok(snapshot) = self.sim.try_save_snapshot_v30() else {
             return Vec::new();
         };
-        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV28 serializes");
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV30 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2772,6 +2777,18 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV30>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v30(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 29 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV29>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v29(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 28 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v28(snapshot).is_ok(),
                 _ => false,

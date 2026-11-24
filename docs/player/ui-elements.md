@@ -20,6 +20,8 @@ If the activity beside the selected name is clipped, hover over it, focus it wit
 
 :::illustration household
 
+:::illustration dock-no-selection
+
 ## Clock, speed and camera {#clock-and-speed}
 
 Read the top world panel for Funds, the Bills row and the three-line clock: day and weekday, time, then season and weather. The nearby speed controls pause or change the rate of play. These controls act on the whole household.
@@ -202,6 +204,8 @@ Choose Build, then Buy. Use the catalogue's visible filters to find a type and m
 
 The catalog can scroll while the placement controls remain available. Back to catalog returns from the purchase preview to the product list, keeping its filters and position. Scroll the Buy panel for product options. An item must still satisfy placement rules. A purchased decoration does not gain a use action just because it costs money. See [furniture](home-and-controls/#furniture).
 
+:::illustration buy-details
+
 ## Walls and Windows {#walls}
 
 Choose Build, then Walls, then select an edge between tiles, or a second edge in the same row to select a run. The actions beside the selection offer wall, doorway, removal and window choices. Low and Full height set how tall walls are drawn while you build. Windows is reached from a selected wall edge; it is not a separate tool in the main Build strip. Choose Windows, select a model, then choose Place Window or Replace window for an existing window.
@@ -219,6 +223,8 @@ Choose Build, then Floors, then select a tile, or two opposite corner tiles for 
 Missing materials show a spinner beside the floor actions while the edit waits. If loading fails, choose **Retry** or another covering. Retry continues the waiting edit if the selected tiles and draft still match. Changing either, choosing another covering, leaving Floors or loading another household cancels the waiting edit. With no tile selected, material recovery appears in the game view and leaves the floor unchanged.
 
 :::illustration floor-actions
+
+:::illustration floor-retry
 
 ## Rooms {#rooms}
 

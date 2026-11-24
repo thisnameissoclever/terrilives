@@ -1,11 +1,13 @@
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {expect,it,vi} from 'vitest';
 import fixtureImport from '../../assets/models/sims/character-creator/clips/pool/contacts-v2.json';
-import productionFixture from '../../assets/models/sims/character-creator/clips/pool/contacts-v3.json';
+import {poolV14Fixture} from './pool-v14-fixture.js';
 import * as identity from '../src/render/character/pool-contact-identity.js';
 import * as protocol from '../src/render/character/pool-contact-protocol.js';
 import * as owned from '../src/render/character/pool-owned-fixture.js';
 import {poolContactFixture,poolContactSourceRevisions} from '../src/render/character/pool-contact-preparation.js';
+import {poolContactRelease,poolContactTakeoffPhase} from '../src/render/character/pool-contact-release.js';
 import {sleepContactDigest} from '../src/render/character/sleep-contact-protocol.js';
 import {observePool,poolPointClearance,requirePoolObservedSurface} from '../src/render/character/pool-observer.js';
 import type {PoolFixtureV1} from '../src/render/character/pool-contact-types.js';
@@ -115,13 +117,25 @@ it('rejects a raw fixture restored after its observation',()=>{
 });
 
 it('keeps production parsed values and exact revision hashing unchanged',async()=>{
+ const productionFixture=JSON.parse(readFileSync(new URL('../../assets/models/sims/character-creator/clips/pool/contacts-v7.json',import.meta.url),'utf8'));
  const fixture=poolContactFixture();assertGraph(fixture,productionFixture);
  expect(poolContactFixture()).toBe(fixture);
  expect((await poolContactSourceRevisions()).fixture).toBe(await sleepContactDigest(productionFixture));
 });
 
+it('loads the split-level hop and its matching climb-out route in the ordinary game',()=>{
+ const family=poolContactRelease.family;
+ expect(family).toBeDefined();
+ const route=readFileSync(new URL('../../assets/models/sims/character-creator/clips/pool/ladder-climb-out-v1.poolroute',import.meta.url));
+ const digest=(bytes:string|Buffer)=>createHash('sha256').update(bytes).digest('hex');
+ expect(route.byteLength).toBe(family!.byteLength);
+ expect(digest(route)).toBe(family!.sha256);
+ expect(poolContactFixture().revisions.poseProducer).toBe(digest(poolContactRelease.motionText));
+ expect(poolContactTakeoffPhase()).toBe(12/20);
+});
+
 it('retains the v2 fixture geometry and source timing under the v3 motion revision',()=>{
- const previous=raw(),active=poolContactFixture();
+ const previous=raw(),active=poolV14Fixture;
  expect(active.revisions.poseProducer).not.toBe(previous.revisions.poseProducer);
  expect({...active,revisions:{...active.revisions,poseProducer:previous.revisions.poseProducer}}).toEqual(previous);
 });

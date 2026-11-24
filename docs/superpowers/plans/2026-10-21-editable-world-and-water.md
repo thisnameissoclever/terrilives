@@ -53,6 +53,8 @@ Add ordinary Hop in interaction for orders and autonomy. One occupant at a time;
 
 Initial timing: 20 game minutes enter, 60 swim, 20 exit. Swimming phase grants Fun +30, Comfort +10, Energy -5 over elapsed swimming time via ordinary effects; normal decay continues. Interruptions perform controlled exit before release/next action. Persist phase, progress and ownership. Appearance remains temporary. Add Swim laps to backlog only: a future exercise action and its own animation/effects.
 
+**November 22 choreography amendment.** The owner approved a forward hop from the crest and a separate climb out. The revised exit lasts 40 game minutes to allow time for the swimmer to approach the ladder, take the inside steps, cross the crest and descend outside. Cancellation before takeoff retraces the supported approach. After takeoff the person finishes landing and exits without starting a swimming reward. Verify save and load on both sides of takeoff, the landing transition and cancellation while paddling in the actual game.
+
 ## Task 6: Bath water, fitting and toys
 
 Fit body to current tub with legs/feet contained under opaque water in all views/body sizes. Add activity-owned water and toy with correct mutual depth. Choose one duck, toy boat or toy submarine once per bath using simulation-owned randomness; preserve across pause/load. Shared dimensions/grip and gentle nudge/lift/release motion. Preserve existing bathing duration/effects. Clean up water/toy/appearance on completion/interruption. No model renaming.

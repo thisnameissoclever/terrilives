@@ -1053,7 +1053,8 @@ pub(crate) fn validate_manual_work_trip_activities(world: &World) -> Result<(), 
         ) {
             (Some(Commuting::Outbound), None, None) => true,
             (None, Some(_), None) => world.get::<crate::world_geometry::WaitingToReturn>(actor).is_none(),
-            (None, None, Some(episode)) => episode.interrupted && matches!(episode.phase, 3 | 4),
+            (None, None, Some(episode)) => episode.interrupted
+                && matches!(episode.phase, 3 | 4 | crate::pool::CANCELED_LANDING),
             (None, None, None) => world.get::<Target>(actor).is_none() && world.get::<terri_core::Eating>(actor).is_none(),
             _ => false,
         };

@@ -18,6 +18,20 @@ import {orientedPoolLegMath} from './pool-oriented-leg-math.js';
 
 interface Producer {kind:'configured-rest'|'proper-rotation'|'root-travel'|'oriented-leg';values:readonly number[];errors:readonly number[]}
 const producers=new WeakMap<readonly number[],Producer>();
+// Only route selection needs the inputs for a second, independent production of its pre-control rotations.
+let selectedInputs:WeakMap<readonly number[],readonly number[]>|undefined;
+export function withSelectedPoolBasisInputs<T>(select:()=>T):T {
+ const previous=selectedInputs;
+ selectedInputs=new WeakMap();
+ try{return select();}finally{selectedInputs=previous;}
+}
+export function selectedPoolRotationInput(values:readonly number[]):readonly number[] {
+ requirePoolMatrixRepresentation(values);
+ const input=selectedInputs?.get(values);
+ if(!input)throw new Error('Selected pool basis lacks its original pre-control rotation input.');
+ return [...input];
+}
+
 function retain(output:number[],expected:M,kind:Producer['kind']):number[] {
   if(output.length!==16||expected.some((value,index)=>value.value!==output[index]||!Number.isFinite(value.error)||value.error<0))throw new Error('Pool matrix differs from its declared legitimate producer.');
   producers.set(output,{kind,values:Object.freeze([...output]),errors:Object.freeze(expected.map(value=>value.error))});return output;
@@ -28,7 +42,9 @@ export function registerPoolRestMatrix(output:number[],head:Vec3,tail:Vec3,refer
   return retain(output,boneFrame(vector(head),vector(tail),matrix(reference)),'configured-rest');
 }
 export function registerPoolProperRotation(output:number[],source:readonly number[]):number[] {
-  return retain(output,properRotation(matrix(source)),'proper-rotation');
+  const result=retain(output,properRotation(matrix(source)),'proper-rotation');
+  if(selectedInputs)selectedInputs.set(result,[...source]);
+  return result;
 }
 export function requirePoolMatrixRepresentation(values:readonly number[]):readonly number[] {
   const producer=producers.get(values);
@@ -37,7 +53,9 @@ export function requirePoolMatrixRepresentation(values:readonly number[]):readon
 }
 export function clonePoolMatrix(values:readonly number[]):number[] {
   requirePoolMatrixRepresentation(values);const producer=producers.get(values)!,copy=[...values];
-  producers.set(copy,{...producer,values:Object.freeze([...copy])});return copy;
+  producers.set(copy,{...producer,values:Object.freeze([...copy])});
+  const input=selectedInputs?.get(values);if(input)selectedInputs!.set(copy,input);
+  return copy;
 }
 /** Root translation is intentional travel; its existing rotation producer remains authoritative. */
 export function registerPoolRootTravel(values:number[]):void {
@@ -146,7 +164,7 @@ function trackedHierarchy(pose:PoolHierarchy,rest:M[],inverses:M[],basis:M[]):M[
 }
 
 /** A source-derived, oriented leg is a legitimate producer of both coupled joint rotations. */
-export function preparePoolOrientedLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,frame:PoolFootContactFrame):PoolOrientedLegPlan {
+export function preparePoolOrientedLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,frame:PoolFootContactFrame,kneeOrbit?:number):PoolOrientedLegPlan {
   requirePoolFootContactFrameInstance(frame,pose.inverse[end],pose.bundle);
   const body=pose.bundle.bones.findIndex(bone=>bone.name==='hips'),side=pose.bundle.bones[lower]?.name.slice(-1);
   if(body<0||pose.bundle.bones[upper]?.name!=='thigh.'+side||pose.bundle.bones[lower]?.name!=='shin.'+side||pose.bundle.bones[end]?.name!=='foot.'+side
@@ -157,7 +175,7 @@ export function preparePoolOrientedLeg(pose:PoolHierarchy,upper:number,lower:num
   if(world.some((matrix,bone)=>matrix.some((value,index)=>value.value!==pose.world[bone][index])))throw new Error('Pool oriented leg has a stale initial hierarchy.');
   const source=pose.bundle.basisActions.pool_enter?.[0];if(!source)throw new Error('Pool oriented leg has no clean standing source frame.');
   const target=frame.translation.map((value,axis)=>({value,error:frame.translationError[axis]})) as unknown as V;
-  const result=orientedPoolLegMath({upper,lower,end,body,rest,inverses,basis,world,target,sourceUpper:matrix(source[upper]),sourceLower:matrix(source[lower])});
+  const result=orientedPoolLegMath({upper,lower,end,body,rest,inverses,basis,world,target,sourceUpper:matrix(source[upper]),sourceLower:matrix(source[lower]),kneeOrbit});
   pose.basis[upper]=retain(result.upperBasis.map(value=>value.value),result.upperBasis,'oriented-leg');
   pose.basis[lower]=retain(result.lowerBasis.map(value=>value.value),result.lowerBasis,'oriented-leg');
   const expectedWorld=trackedHierarchy(pose,rest,inverses,result.basis);
@@ -188,7 +206,7 @@ const freeLegOwners=new WeakMap<PoolFreeLegPlan,FreeLegOwner>();
 const freeLegSource=(pose:PoolHierarchy)=>JSON.stringify({source:pose.bundle.sourceSha256,bones:pose.bundle.bones,standing:pose.bundle.basisActions.pool_enter?.[0]});
 
 /** A free leg has an explicit source goal and no nominal support-plane authority. */
-export function preparePoolFreeLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,target:Vec3):PoolFreeLegPlan {
+export function preparePoolFreeLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,target:Vec3,kneeOrbit?:number):PoolFreeLegPlan {
   const body=pose.bundle.bones.findIndex(bone=>bone.name==='hips'),side=pose.bundle.bones[lower]?.name.slice(-1);
   if(body<0||pose.bundle.bones[upper]?.name!=='thigh.'+side||pose.bundle.bones[lower]?.name!=='shin.'+side||pose.bundle.bones[end]?.name!=='foot.'+side
       ||pose.bundle.bones[upper].parent!==body||pose.bundle.bones[lower].parent!==upper||pose.bundle.bones[end].parent!==lower||target.length!==3||target.some(value=>!Number.isFinite(value)))throw new Error('Pool free leg requires its actual configured source chain and finite goal.');
@@ -196,7 +214,7 @@ export function preparePoolFreeLeg(pose:PoolHierarchy,upper:number,lower:number,
   const rest=pose.rest.map(owned),inverses=rest.map(inverse),basis=pose.basis.map(owned),world=trackedHierarchy(pose,rest,inverses,basis);
   if(inverses.some((matrix,bone)=>matrix.some((value,index)=>value.value!==pose.inverse[bone][index]))||world.some((matrix,bone)=>matrix.some((value,index)=>value.value!==pose.world[bone][index])))throw new Error('Pool free leg has a stale configured hierarchy.');
   const source=pose.bundle.basisActions.pool_enter?.[0];if(!source)throw new Error('Pool free leg has no clean standing source frame.');
-  const result=orientedPoolLegMath({upper,lower,end,body,rest,inverses,basis,world,target:vector(target),sourceUpper:matrix(source[upper]),sourceLower:matrix(source[lower])});
+  const result=orientedPoolLegMath({upper,lower,end,body,rest,inverses,basis,world,target:vector(target),sourceUpper:matrix(source[upper]),sourceLower:matrix(source[lower]),kneeOrbit});
   pose.basis[upper]=retain(result.upperBasis.map(value=>value.value),result.upperBasis,'oriented-leg');
   pose.basis[lower]=retain(result.lowerBasis.map(value=>value.value),result.lowerBasis,'oriented-leg');
   const expectedWorld=trackedHierarchy(pose,rest,inverses,result.basis);pose.world=composeSkeletonPose(pose.bundle.bones,pose.rest,pose.basis);

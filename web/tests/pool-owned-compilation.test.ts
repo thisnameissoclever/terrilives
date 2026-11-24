@@ -1,7 +1,8 @@
 import {expect,it,vi} from 'vitest';
 import definition from '../../assets/models/sims/character-creator/pool_activity_motion_v14.json';
 import {defaultAppearance} from '../src/character/schema.js';
-import {createPoolContactInput,poolContactFixture} from '../src/render/character/pool-contact-preparation.js';
+import {createPoolContactInput} from '../src/render/character/pool-contact-preparation.js';
+import {poolV14Fixture} from './pool-v14-fixture.js';
 import {compileOwnedPoolCycle,poolOwnedStaticIdentity} from '../src/render/character/pool-owned-compilation.js';
 import type {PoolCycleDiagnostic} from '../src/render/character/pool-cycle-compiler.js';
 import type {PoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
@@ -55,7 +56,7 @@ async function inputs(){
   fixtureModel:'pool',animationSpace:'evaluated-parent-local-delta'};
  const body={manifest:bundle,description,vertices,indices:new Uint32Array([8,0,0,0,8]).subarray(1,4),cage,
   stencilRanges:new Uint32Array([0,1,0,0]),stencilWeights:weights,normalRanges:new Uint32Array([0,1]),normalTriangles:new Uint32Array([0,0,0])};
- return {appearance,sourceDefinition,row,body,source:{bundle,shape,geometry:[body,{...body,description:{...description,parts:[{...parts[0],name:'garment'}]}}],fixture:structuredClone(poolContactFixture()),top:2}};
+ return {appearance,sourceDefinition,row,body,source:{bundle,shape,geometry:[body,{...body,description:{...description,parts:[{...parts[0],name:'garment'}]}}],fixture:structuredClone(poolV14Fixture),top:2}};
 }
 
 const detail=(row:PoolCycleDiagnostic)=>((row.error?.cause as {cause:Error}).cause).cause as Record<string,unknown>;

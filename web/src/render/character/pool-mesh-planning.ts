@@ -54,4 +54,3 @@ export function prepareOwnedPoolMeshPlan(geometry:Geometry,bundle:Bundle,counter
    return Object.freeze({name,start,count,indices,vertices,legacy});
   }));
  }
-

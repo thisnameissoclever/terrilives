@@ -17,9 +17,9 @@ macro_rules! current_view {
             fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.gameplay_v20_mut().legacy.legacy.legacy.$($field).+ }
         }
         impl Sim {
-            pub(crate) fn $capture(&self) -> $view { $view(self.save_snapshot_v28()) }
+            pub(crate) fn $capture(&self) -> $view { $view(self.save_snapshot_v30()) }
             pub(crate) fn $load(&mut self, snapshot: $view) -> Result<(), SaveError> {
-                self.load_snapshot_v28(snapshot.0)
+                self.load_snapshot_v30(snapshot.0)
             }
         }
     };
@@ -69,13 +69,13 @@ impl std::ops::DerefMut for CurrentV17View {
 }
 impl Sim {
     pub(crate) fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v28())
+        CurrentV17View(self.save_snapshot_v30())
     }
     pub(crate) fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), SaveError> {
-        self.load_snapshot_v28(snapshot.0)
+        self.load_snapshot_v30(snapshot.0)
     }
 }
 
@@ -94,13 +94,13 @@ impl std::ops::DerefMut for CurrentV19View {
 }
 impl Sim {
     pub(crate) fn current_v19_view(&self) -> CurrentV19View {
-        CurrentV19View(self.save_snapshot_v28())
+        CurrentV19View(self.save_snapshot_v30())
     }
     pub(crate) fn load_current_v19_view(
         &mut self,
         snapshot: CurrentV19View,
     ) -> Result<(), SaveError> {
-        self.load_snapshot_v28(snapshot.0)
+        self.load_snapshot_v30(snapshot.0)
     }
 }
 

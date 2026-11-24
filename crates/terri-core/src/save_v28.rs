@@ -9,6 +9,13 @@ pub struct SaveSnapshotV28 {
     pub need_mood: Vec<SavedNeedMood>,
 }
 
+/// V29 keeps the layout and adds the canceled forward-landing pool phase.
+/// The header selects the pool phase rules when restoring these bytes.
+pub type SaveSnapshotV29 = SaveSnapshotV28;
+
+/// V30 uses the same layout with a forty-tick pool exit.
+pub type SaveSnapshotV30 = SaveSnapshotV28;
+
 impl std::ops::Deref for SaveSnapshotV28 {
     type Target = SaveSnapshotV26;
 

@@ -1,0 +1,483 @@
+{
+  "feminine-tall-broad": [
+    {
+      "unit": 5000,
+      "role": "acquisition",
+      "places": {
+        "footL": "ground",
+        "footR": "ground"
+      },
+      "choices": [
+        {
+          "label": "ground"
+        }
+      ]
+    },
+    {
+      "unit": 12000,
+      "role": "first-rung",
+      "places": {
+        "footL": "outside1",
+        "footR": "ground"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.6225453659856823,
+              0.8987060164762374
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 30,
+            "headPitch": 10
+          }
+        }
+      ]
+    },
+    {
+      "unit": 22000,
+      "role": "second-rung",
+      "places": {
+        "footL": "outside1",
+        "footR": "outside2"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.6491233641233594,
+              0.835502436584056
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 30,
+            "headPitch": 10
+          }
+        }
+      ]
+    },
+    {
+      "unit": 32000,
+      "role": "third-rung",
+      "places": {
+        "footL": "outside3",
+        "footR": "outside2"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.649138325519877,
+              1.0840116697385838
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 30,
+            "headPitch": 10
+          }
+        }
+      ]
+    },
+    {
+      "unit": 42000,
+      "role": "crest-leading",
+      "places": {
+        "footL": "outside3",
+        "footR": "crest"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.5508328488812109,
+              0.9180879472319765
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 15,
+            "headPitch": 10
+          },
+          "literalHands": {
+            "handL": {
+              "surface": "Pool ladder rail 1",
+              "parameter": 4.285932129208205,
+              "rawOrientation": [
+                -1.0200627091137583e-06,
+                0.9049952796262352,
+                0.4254216071771532,
+                0,
+                -0.1370453799379532,
+                -0.4214077830389078,
+                0.8964563816672259,
+                0,
+                0.9905647701370273,
+                -0.05830115134768236,
+                0.12402585180079642,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "activeVertex": 33408
+            },
+            "handR": {
+              "surface": "Pool ladder rail 2",
+              "parameter": 4.285932111229749,
+              "rawOrientation": [
+                -1.0200627091144269e-06,
+                -0.9049950932057319,
+                -0.42542200374746486,
+                0,
+                0.13704537993795318,
+                -0.42140817586746143,
+                0.8964561970055877,
+                0,
+                -0.9905647701370273,
+                -0.05830120569599974,
+                0.1240258262531284,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "activeVertex": 34023
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "feminine-short-slim": [
+    {
+      "unit": 5000,
+      "role": "acquisition",
+      "places": {
+        "footL": "ground",
+        "footR": "ground"
+      },
+      "choices": [
+        {
+          "label": "ground"
+        }
+      ]
+    },
+    {
+      "unit": 12000,
+      "role": "first-rung",
+      "places": {
+        "footL": "outside1",
+        "footR": "ground"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.4807737928174372,
+              0.6928024532868475
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 60,
+            "headPitch": 10
+          }
+        }
+      ]
+    },
+    {
+      "unit": 22000,
+      "role": "second-rung",
+      "places": {
+        "footL": "outside1",
+        "footR": "outside2"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.4785060008440891,
+              0.6994879359989993
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 60,
+            "headPitch": 10
+          },
+          "parameters": {
+            "handL": 4.99531678929618,
+            "handR": 4.993638829355641
+          }
+        }
+      ]
+    },
+    {
+      "unit": 32000,
+      "role": "third-rung",
+      "places": {
+        "footL": "outside3",
+        "footR": "outside2"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.4800848994406743,
+              0.948520283928524
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 65.38986394374909,
+            "headPitch": 10
+          },
+          "parameters": {
+            "handL": 4.854166666666666,
+            "handR": 4.854166666666666
+          }
+        }
+      ]
+    },
+    {
+      "unit": 42000,
+      "role": "crest-leading",
+      "places": {
+        "footL": "outside3",
+        "footR": "crest"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.3934960401264438,
+              1.3192763297734493
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 46.35181615322175,
+            "headPitch": 10
+          },
+          "literalHands": {
+            "handL": {
+              "surface": "Pool ladder rail 1",
+              "parameter": 4.229166666666667,
+              "rawOrientation": [
+                -1.1170510960232912e-06,
+                0.9262378481640405,
+                0.37693958219746576,
+                0,
+                -0.15780828925103618,
+                -0.37221660527552447,
+                0.9146318071228585,
+                0,
+                0.9874697685713795,
+                -0.0594831689271198,
+                0.1461684260432951,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "activeVertex": 33408
+            },
+            "handR": {
+              "surface": "Pool ladder rail 2",
+              "parameter": 4.229166666666667,
+              "rawOrientation": [
+                -1.1170510960094138e-06,
+                -0.9262376401262865,
+                -0.376940093399522,
+                0,
+                0.15780828925103615,
+                -0.3722171100720639,
+                0.9146316016917754,
+                0,
+                -0.9874697685713796,
+                -0.05948324959927123,
+                0.14616839321377692,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "activeVertex": 34023
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "masculine-tall-slim": [
+    {
+      "unit": 5000,
+      "role": "acquisition",
+      "places": {
+        "footL": "ground",
+        "footR": "ground"
+      },
+      "choices": [
+        {
+          "label": "ground"
+        }
+      ]
+    },
+    {
+      "unit": 12000,
+      "role": "first-rung",
+      "places": {
+        "footL": "outside1",
+        "footR": "ground"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.711663601044658,
+              0.9714880965121752
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 30,
+            "headPitch": 10
+          }
+        }
+      ]
+    },
+    {
+      "unit": 22000,
+      "role": "second-rung",
+      "places": {
+        "footL": "outside1",
+        "footR": "outside2"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.7456081361321996,
+              0.8835444089717301
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 38.447914123535156,
+            "headPitch": 10
+          },
+          "parameters": {
+            "handL": 4.494140552055753,
+            "handR": 4.493114262151841
+          }
+        }
+      ]
+    },
+    {
+      "unit": 32000,
+      "role": "third-rung",
+      "places": {
+        "footL": "outside3",
+        "footR": "outside2"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.7455528164408185,
+              1.1398514949964484
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 38.447914123535156,
+            "headPitch": 10
+          },
+          "parameters": {
+            "handL": 4.152081584181396,
+            "handR": 4.152081573396788
+          }
+        }
+      ]
+    },
+    {
+      "unit": 42000,
+      "role": "crest-leading",
+      "places": {
+        "footL": "outside3",
+        "footR": "crest"
+      },
+      "choices": [
+        {
+          "label": "retargeted supported leg guides",
+          "body": {
+            "hips": [
+              -0.5,
+              1.2811389375059232,
+              0.7750005837034575
+            ],
+            "hipPitch": 0,
+            "trunkPitch": 15,
+            "headPitch": 10
+          },
+          "literalHands": {
+            "handL": {
+              "surface": "Pool ladder rail 1",
+              "parameter": 4.152081584181396,
+              "rawOrientation": [
+                -8.404132500984464e-07,
+                0.837335149407436,
+                0.5466899007354354,
+                0,
+                -0.09912197793515949,
+                -0.5439976814656917,
+                0.8332114713865703,
+                0,
+                0.9950752903622495,
+                -0.05418828403611168,
+                0.08299877338675687,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "activeVertex": 46047
+            },
+            "handR": {
+              "surface": "Pool ladder rail 2",
+              "parameter": 4.152081573396788,
+              "rawOrientation": [
+                -8.404132500860051e-07,
+                -0.8373347538066829,
+                -0.5466905066550869,
+                0,
+                0.09912197793515952,
+                -0.5439982844013319,
+                0.8332110777339855,
+                0,
+                -0.9950752903622498,
+                -0.054188344096396855,
+                0.08299873417453449,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              "activeVertex": 46662
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

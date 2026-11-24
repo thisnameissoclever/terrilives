@@ -2,9 +2,9 @@
   "version": 1,
   "state": "complete",
   "encoding": "rg-u16-unorm-x-minus-y-range-minus2-plus2",
-  "atlasSha256": "668ded54acc269cdbe9947b68ba59b7939674db5cd12cc45d5c12a0f8600b264",
+  "atlasSha256": "ff719152492613dd55b722e3603ad5466ee9cabc34d14d4ffcffbb7cb032ca24",
   "producerHashes": {
-    "export_static_depth.py": "838b775edbdd5135ba82bc9ca6cc9ee950c7cc5aaaa3b6554ec476d19cd7f023",
+    "export_static_depth.py": "15364116c507be02c9eceaf58621553e74c6bdd95a020c7e5ad54c39372d371f",
     "depth_geometry.py": "6a76cc2dcc44d00a29acd8c6dedf382ae306bcfcd365e82fa22257fcf3d7f365"
   },
   "sprites": [
@@ -20,14 +20,14 @@
       "y": 0,
       "w": 320,
       "h": 352,
-      "opaquePixels": 35928,
-      "outlineSamples": 2592,
-      "maxOutlineDistancePixels": 3.1613984452991124,
+      "opaquePixels": 36008,
+      "outlineSamples": 2610,
+      "maxOutlineDistancePixels": 3.1569905391874786,
       "minSum": -1.9137044548988342,
       "maxSum": 1.9121880531311035,
-      "vertices": 70909,
-      "triangles": 140610,
-      "coveredPixels": 37819,
+      "vertices": 70917,
+      "triangles": 140626,
+      "coveredPixels": 37790,
       "coverageRule": "published-alpha-greater-than-zero",
       "filterSupportPixels": 3
     },
@@ -43,14 +43,14 @@
       "y": 0,
       "w": 320,
       "h": 352,
-      "opaquePixels": 35242,
-      "outlineSamples": 2148,
-      "maxOutlineDistancePixels": 3.157755599671488,
+      "opaquePixels": 35319,
+      "outlineSamples": 2178,
+      "maxOutlineDistancePixels": 3.1538573028575003,
       "minSum": -1.913738489151001,
       "maxSum": 1.9121880531311035,
-      "vertices": 70909,
-      "triangles": 140610,
-      "coveredPixels": 36846,
+      "vertices": 70917,
+      "triangles": 140626,
+      "coveredPixels": 36842,
       "coverageRule": "published-alpha-greater-than-zero",
       "filterSupportPixels": 3
     },
@@ -66,14 +66,14 @@
       "y": 0,
       "w": 320,
       "h": 352,
-      "opaquePixels": 35962,
-      "outlineSamples": 2599,
-      "maxOutlineDistancePixels": 3.163283328967528,
+      "opaquePixels": 35934,
+      "outlineSamples": 2634,
+      "maxOutlineDistancePixels": 3.1632515139504043,
       "minSum": -1.913738489151001,
       "maxSum": 1.9121880531311035,
-      "vertices": 70909,
-      "triangles": 140610,
-      "coveredPixels": 37861,
+      "vertices": 70917,
+      "triangles": 140626,
+      "coveredPixels": 37965,
       "coverageRule": "published-alpha-greater-than-zero",
       "filterSupportPixels": 3
     },
@@ -91,11 +91,11 @@
       "h": 352,
       "opaquePixels": 34581,
       "outlineSamples": 1376,
-      "maxOutlineDistancePixels": 2.8944738647231927,
+      "maxOutlineDistancePixels": 2.8944730209563683,
       "minSum": -1.913738489151001,
       "maxSum": 1.9121880531311035,
-      "vertices": 70909,
-      "triangles": 140610,
+      "vertices": 70917,
+      "triangles": 140626,
       "coveredPixels": 35565,
       "coverageRule": "published-alpha-greater-than-zero",
       "filterSupportPixels": 3
@@ -287,8 +287,8 @@
   ],
   "sources": {
     "offlinePool": {
-      "path": "assets/models/outdoor/owner-review-pending/pool/activity-v4/pool-authoring.blend",
-      "sha256": "deec5d8a5253fd60468423767dca763984afeca381cab52c0c012ebac1abd792"
+      "path": "assets/models/outdoor/owner-review-pending/pool/activity-v6/pool-authoring.blend",
+      "sha256": "1c57aa21da45b7dbfb207a63c4984af2a7613938c0d87afcc42581c64ebf92fa"
     },
     "offlinePoolLounger": {
       "path": "assets/models/outdoor/owner-review-pending/lounger/candidate-01/lounger-authoring.blend",
@@ -300,13 +300,13 @@
     }
   },
   "coverageSources": {
-    "web/public/atlas-67bf56d77f331da5afa2468f24b2d1c1966577da752308f53e20091ee66b5359.png": "67bf56d77f331da5afa2468f24b2d1c1966577da752308f53e20091ee66b5359"
+    "web/public/atlas-ced625845b3d93b0391dac27b47bf55ac392d1565c62eb9ad60082914f22a654.png": "ced625845b3d93b0391dac27b47bf55ac392d1565c62eb9ad60082914f22a654"
   },
   "pages": [
     {
       "pageIndex": 0,
-      "path": "depth-bcf61766393dabf093b22deae8b31a999ee50fc1965b6338832d695a3bea06e7.rgba",
-      "sha256": "bcf61766393dabf093b22deae8b31a999ee50fc1965b6338832d695a3bea06e7",
+      "path": "depth-7f5a1535600ddd9f6c9d4d6c6f3b1888fc7df13cec24efc2132775a3e96b14a4.rgba",
+      "sha256": "7f5a1535600ddd9f6c9d4d6c6f3b1888fc7df13cec24efc2132775a3e96b14a4",
       "width": 2048,
       "height": 2048
     }

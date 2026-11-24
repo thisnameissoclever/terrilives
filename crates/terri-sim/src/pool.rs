@@ -6,8 +6,12 @@ use terri_core::save_editable_v22::SavedPoolEpisode;
 use crate::Content;
 
 pub(crate) const ENTER_TICKS: u32 = 20;
+pub(crate) const TAKEOFF_TICK: u32 = 12;
 pub(crate) const SWIM_TICKS: u32 = 60;
-pub(crate) const EXIT_TICKS: u32 = 20;
+pub(crate) const LEGACY_EXIT_TICKS: u32 = 20;
+pub(crate) const EXIT_TICKS: u32 = 40;
+pub(crate) const TOTAL_TICKS: u32 = ENTER_TICKS + SWIM_TICKS + EXIT_TICKS;
+pub(crate) const CANCELED_LANDING: u8 = 5;
 
 #[derive(Component, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct PoolEpisode {
@@ -17,6 +21,12 @@ pub(crate) struct PoolEpisode {
     pub exit_origin: u32,
     pub interrupted: bool,
     pub approach: (i32, i32),
+}
+
+impl PoolEpisode {
+    pub(crate) fn render_phase(&self) -> u8 {
+        if self.phase == CANCELED_LANDING { 1 } else { self.phase }
+    }
 }
 
 pub(crate) fn is_swimming(action: &terri_data::CompiledInteraction) -> bool {
@@ -58,7 +68,9 @@ pub(crate) fn request_exit(world: &mut World, actor: Entity) -> bool {
     let Some(mut episode) = world.get_mut::<PoolEpisode>(actor) else { return false; };
     episode.interrupted = true;
     match episode.phase {
-        1 => episode.phase = 4,
+        1 => {
+            episode.phase = if episode.elapsed < TAKEOFF_TICK { 4 } else { CANCELED_LANDING };
+        }
         2 => {
             episode.exit_origin = episode.elapsed;
             episode.elapsed = 0;
@@ -133,6 +145,11 @@ pub(crate) fn tick(world: &mut World) {
             episode.elapsed += 1;
             match episode.phase {
                 1 if episode.elapsed == ENTER_TICKS => { episode.phase = 2; episode.elapsed = 0; false }
+                CANCELED_LANDING if episode.elapsed == ENTER_TICKS => {
+                    episode.phase = 3;
+                    episode.elapsed = 0;
+                    false
+                }
                 2 if episode.elapsed == SWIM_TICKS => {
                     episode.phase = 3; episode.exit_origin = episode.elapsed; episode.elapsed = 0; false
                 }
@@ -230,16 +247,82 @@ mod persistence;
 mod migration;
 #[cfg(test)]
 mod migration_tests;
-pub(crate) use persistence::{restore_current, restore_physical, restore_historical_v22};
+pub(crate) use persistence::{restore, restore_physical, restore_historical_v22, SavedPoolClock};
 pub(crate) use migration::migrate_v22;
 
+/// Historical retreats may have reached the part of entry that is now airborne.
+pub(crate) fn migrate_legacy_clock(world: &mut World, clock: SavedPoolClock) {
+    for (mut episode, mut eating) in world.query::<(&mut PoolEpisode, &mut Eating)>().iter_mut(world) {
+        if episode.phase == 4 && clock == SavedPoolClock::Legacy && episode.elapsed >= TAKEOFF_TICK {
+            episode.phase = CANCELED_LANDING;
+        } else if episode.phase == 3 {
+            episode.elapsed = episode.elapsed * EXIT_TICKS / clock.exit_ticks();
+        }
+        eating.remaining_ticks = remaining(&episode);
+    }
+}
+
+pub(crate) fn legacy_exit_clock_is_exact(pools: &[SavedPoolEpisode]) -> bool {
+    pools.iter().all(|episode| {
+        episode.phase != 3
+            || (u64::from(episode.elapsed) * u64::from(LEGACY_EXIT_TICKS))
+                .is_multiple_of(u64::from(EXIT_TICKS))
+    })
+}
+
+/// Project both the pool phase clock and its occupied countdown. Fractional
+/// exit ticks round down on the historical clock.
+pub(crate) fn project_legacy_clock(
+    saved: &mut terri_core::SaveSnapshotV20,
+    pools: &mut [SavedPoolEpisode],
+    clock: SavedPoolClock,
+) {
+    let room_world = &mut saved.legacy.legacy.legacy.legacy;
+    let entities = &mut room_world
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .world
+        .entities;
+    for episode in pools.iter_mut().filter(|row| row.phase != 0) {
+        let Ok(index) = entities.binary_search_by_key(&episode.actor, |entity| entity.index)
+        else {
+            continue;
+        };
+        let Some(eating) = entities[index].eating.as_mut() else {
+            continue;
+        };
+        if Some(eating.remaining_ticks) != countdown(episode.phase, episode.elapsed, EXIT_TICKS) {
+            continue;
+        }
+        if episode.phase == CANCELED_LANDING && clock == SavedPoolClock::Legacy {
+            episode.phase = 4;
+        } else if episode.phase == 3 {
+            episode.elapsed = episode.elapsed * clock.exit_ticks() / EXIT_TICKS;
+        }
+        eating.remaining_ticks = countdown(episode.phase, episode.elapsed, clock.exit_ticks())
+            .expect("projected pool phase fits the historical countdown");
+    }
+}
+
 fn remaining(e: &PoolEpisode) -> u32 {
-    match e.phase {
-        1 => ENTER_TICKS - e.elapsed + SWIM_TICKS + EXIT_TICKS,
-        2 => SWIM_TICKS - e.elapsed + EXIT_TICKS,
-        3 => EXIT_TICKS - e.elapsed,
-        4 => e.elapsed,
-        _ => ENTER_TICKS + SWIM_TICKS + EXIT_TICKS,
+    countdown(e.phase, e.elapsed, EXIT_TICKS).expect("runtime pool phase has a valid countdown")
+}
+
+fn countdown(phase: u8, elapsed: u32, exit_ticks: u32) -> Option<u32> {
+    match phase {
+        0 => Some(ENTER_TICKS + SWIM_TICKS + exit_ticks),
+        1 => ENTER_TICKS.checked_sub(elapsed).map(|entry| entry + SWIM_TICKS + exit_ticks),
+        2 => SWIM_TICKS.checked_sub(elapsed).map(|swim| swim + exit_ticks),
+        3 => exit_ticks.checked_sub(elapsed),
+        4 => Some(elapsed),
+        CANCELED_LANDING => ENTER_TICKS.checked_sub(elapsed).map(|entry| entry + exit_ticks),
+        _ => None,
     }
 }
 

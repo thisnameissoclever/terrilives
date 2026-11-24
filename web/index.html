@@ -1384,6 +1384,10 @@
       #placement-actions[hidden] {
         display: none;
       }
+      /* The scene and its placement controls return together after GPU recovery. */
+      body:has(#graphics-recovery:not([hidden])) :is(#placement-actions, #floor-scene-status, #command-feedback) {
+        display: none !important;
+      }
       #placement-actions .hud-button {
         pointer-events: auto;
         min-height: 44px;

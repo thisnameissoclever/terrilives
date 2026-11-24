@@ -20,7 +20,7 @@ pub(crate) fn restore(
     carried.pools = None;
     carried.baths = None;
     let mut candidate = super::v21::restore(previous, content, carried)?;
-    crate::pool::restore_current(candidate.world_mut(), pools)?;
+    crate::pool::restore(candidate.world_mut(), pools, crate::pool::SavedPoolClock::Legacy)?;
     crate::bath::restore(candidate.world_mut(), baths)?;
     ordinary_world::validate_restored(&candidate, &surfaces)?;
     ordinary_world::validate_commutes(candidate.world(), CommuteEndpoints::DepartureOnly)?;

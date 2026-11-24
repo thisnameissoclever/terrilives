@@ -46,6 +46,8 @@ const v20 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 20, 0, 29, 128, 0, 0
 const v21 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 21, 0, 29, 128, 0, 0, 0, 1]);
 const v22 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 22, 0, 29, 128, 0, 0, 0, 1]);
 const current = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 29, 128, 0, 0, 0, 1]);
+const v29 = new Uint8Array([...current.slice(0, 8), 29, 0, 29, 128, 0, 0, 0, 1]);
+const v28 = new Uint8Array([...current.slice(0, 8), 28, 0, 29, 128, 0, 0, 0, 1]);
 const v27 = new Uint8Array([...current.slice(0, 8), 27, 0, 29, 128, 0, 0, 0, 1]);
 const V20_BACKUP = 'terri-save-1.v20-backup.bin';
 const V21_BACKUP = 'terri-save-1.v21-backup.bin';
@@ -170,7 +172,7 @@ describe('save worker recovery backup', () => {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(digest);
   });
 
-  it.each([v23, v24, editableV24, v25, v26, v27])('preserves recent source bytes and refuses the older published writer', async previous => {
+  it.each([v23, v24, editableV24, v25, v26, v27, v28, v29])('preserves recent source bytes and refuses the older published writer', async previous => {
     const version = previous[8], backup = `terri-save-1.v${version}-backup.bin`;
     const slot = await workerSlot(previous);
     const cached = await slot.connect('v23');
@@ -229,7 +231,7 @@ describe('save worker recovery backup', () => {
     },
   );
 
-  it.each([v24, editableV24, v25, v26, v27])('refuses historical bytes sent to the current writer', async older => {
+  it.each([v24, editableV24, v25, v26, v27, v28, v29])('refuses historical bytes sent to the current writer', async older => {
     const slot = await workerSlot(v23);
     expect(await slot.request('save', older)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v23);

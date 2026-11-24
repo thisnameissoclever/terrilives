@@ -13,10 +13,10 @@ interface FreeConstruction {source:string;plan:PoolFreeLegPlan;expectedLower:rea
 const constructions=new WeakMap<PoolHierarchy,Map<number,FreeConstruction>>();
 
 /** Trace the existing free goal reconstruction; this creates no contact certificate. */
-export function solvePoolFreeLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,target:Vec3,orientation:readonly number[],clearanceReference?:PoolFreeFootClearanceReference):PoolFreeLegPlan {
+export function solvePoolFreeLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,target:Vec3,orientation:readonly number[],clearanceReference?:PoolFreeFootClearanceReference,kneeOrbit?:number):PoolFreeLegPlan {
   const clearance=clearanceReference?requirePoolFreeFootClearanceReference(clearanceReference,target,orientation,pose.inverse[end],pose.bundle):undefined;
   if(clearanceReference&&clearanceReference.bone!==end)throw new Error('Pool free foot reference names another limb.');
-  const plan=preparePoolFreeLeg(pose,upper,lower,end,target),reference=requirePoolFreeLegPlan(plan,pose,target);
+  const plan=preparePoolFreeLeg(pose,upper,lower,end,target,kneeOrbit),reference=requirePoolFreeLegPlan(plan,pose,target);
   const owned=(values:readonly number[]):M=>{const errors=requirePoolMatrixRepresentation(values);return values.map((value,index)=>({value,error:errors[index]}));};
   const rest=pose.rest.map(owned),inverses=rest.map(inverse),basis=pose.basis.map(owned);let world:M[]=[];
   const compose=()=>{world=[];for(let bone=0;bone<rest.length;bone++){const parent=pose.bundle.bones[bone].parent,local=parent<0?rest[bone]:multiply(inverses[parent],rest[bone]),animated=multiply(local,basis[bone]);world.push(parent<0?animated:multiply(world[parent],animated));}};

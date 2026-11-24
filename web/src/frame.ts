@@ -952,6 +952,7 @@ export interface RenderSource {
   prevPoolExitOrigins?(): Uint32Array;
   prevPoolTargets?(): Uint32Array;
   poolExitOrigins?(): Uint32Array;
+  poolExitTicks?(): number;
   bathToys?(): Uint32Array;
   bathElapsed?(): Uint32Array;
   prevBathToys?(): Uint32Array;

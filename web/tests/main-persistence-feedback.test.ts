@@ -13,7 +13,13 @@ function confirmedLoadSource(): string {
   const registration = body.statements.find(node => ts.isExpressionStatement(node) && ts.isCallExpression(node.expression)
     && node.expression.expression.getText(file) === 'confirmLoadGame.addEventListener');
   if (!registration) throw new Error('Missing maintained confirmed-Load listener');
-  return ts.transpile(registration.getText(file), { target: ts.ScriptTarget.ES2022 });
+  const helpers = ['refreshHudPanels', 'adoptLoadedWorld'].map(name => {
+    const statement = body.statements.find(node => ts.isVariableStatement(node)
+      && node.declarationList.declarations.some(declaration => declaration.name.getText(file) === name));
+    if (!statement) throw new Error(`Missing Load helper ${name}`);
+    return statement.getText(file);
+  });
+  return ts.transpile([...helpers, registration.getText(file)].join('\n'), { target: ts.ScriptTarget.ES2022 });
 }
 
 function deferred<T>() {
@@ -35,6 +41,7 @@ function fixture() {
   const waiting = deferred<Uint8Array | null>(), finished = deferred<void>();
   const loadGameDialog = { open: true, close: vi.fn(() => { loadGameDialog.open = false; }), contains: () => false };
   const store = { load: vi.fn(() => { expect(loadGameDialog.open).toBe(false); return waiting.promise; }),
+    lastGoodCopy: async () => null, restoreLastGood: async () => false,
     save: async () => {}, clear: async () => {}, close: () => {} };
   const persistence = new PersistenceController(store, {
     saveBytes: () => new Uint8Array([1]), loadBytes: () => true, clockTick: () => 0, dayTicks: () => 100,
@@ -53,6 +60,8 @@ function fixture() {
     decodeWindowPlacements: () => [], lightingDirty: false, cameraDirty: false,
     menu: { close: vi.fn() }, keyboardTargets: { clear: vi.fn() }, bookResults: resettable(),
     orderDiagnostics: resettable(), bookCommerce: resettable(), builder: resettable(),
+    activityLogStore: resettable(), activityLogPanel: resettable(),
+    careerReviewWindow: { close: vi.fn() }, adminPanel: { close: vi.fn() },
     housemateDialog: { open: false, close: vi.fn() }, housemateView: undefined, creatorSession: undefined,
     characterWorld: { reset: vi.fn(), prepareFixtures: vi.fn() }, bedAssignmentPanel: resettable(),
     careerPanel: resettable(), syncNewHousemateButton: vi.fn(), syncEditHousemateButton: vi.fn(),

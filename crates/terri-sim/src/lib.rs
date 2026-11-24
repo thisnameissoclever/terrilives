@@ -1550,6 +1550,7 @@ impl Sim {
     }
 
     /// Frozen private continuation for fixtures without the published shifts.
+    /// Exit progress rounds down to the earlier historical tick.
     pub fn save_snapshot_editable_world_v23(&self) -> terri_core::LegacyEditableWorldSnapshotV23 {
         if let Some(baseline) = self.committed_projection() {
             return baseline.save_snapshot_editable_world_v23();
@@ -1572,10 +1573,13 @@ impl Sim {
     }
 
     /// The private editable-world format before accumulated need mood.
+    /// Exit progress rounds down to the earlier historical tick.
     pub fn save_snapshot_v26(&self) -> terri_core::SaveSnapshotV26 {
-        build_transaction::committed(&self.world)
+        let mut snapshot = build_transaction::committed(&self.world)
             .map(|snapshot| snapshot.editable.clone())
-            .unwrap_or_else(|| save::v26::capture(self))
+            .unwrap_or_else(|| save::v26::capture(self));
+        save::v26::project_legacy_clock(&mut snapshot, pool::SavedPoolClock::Legacy);
+        snapshot
     }
 
     pub fn load_snapshot_v26(
@@ -1591,8 +1595,9 @@ impl Sim {
     }
 
     /// Historical private projection with world state and without Career inputs.
+    /// Exit progress rounds down to the earlier historical tick.
     pub fn save_snapshot_v25(&self) -> terri_core::SaveSnapshotV25 {
-        build_transaction::committed(&self.world)
+        let mut snapshot = build_transaction::committed(&self.world)
             .map(|snapshot| terri_core::SaveSnapshotV25 {
                 previous: snapshot.previous.legacy.clone(),
                 surfaces: snapshot.surfaces.clone(),
@@ -1600,7 +1605,13 @@ impl Sim {
                 pools: snapshot.pools.clone(),
                 baths: snapshot.baths.clone(),
             })
-            .unwrap_or_else(|| save::v25::capture(self))
+            .unwrap_or_else(|| save::v25::capture(self));
+        pool::project_legacy_clock(
+            &mut snapshot.previous.legacy.legacy.legacy,
+            &mut snapshot.pools,
+            pool::SavedPoolClock::Legacy,
+        );
+        snapshot
     }
 
     pub fn load_snapshot_v25(
@@ -1628,7 +1639,7 @@ impl Sim {
     }
 
     /// Historical typed projection for inspection and fixtures whose state fits V24.
-    /// Use V28 for full continuation.
+    /// Use V30 for full continuation.
     pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
         build_transaction::committed(&self.world)
             .map(|snapshot| snapshot.previous.clone())
@@ -1669,31 +1680,74 @@ impl Sim {
             .unwrap_or_else(|| save::v27::capture(self))
     }
 
-    /// The complete editable household and accumulated need mood.
+    /// Historical V28 projection with airborne cancellation encoded as a retreat.
+    /// Exit progress rounds down to the earlier historical tick.
     pub fn save_snapshot_v28(&self) -> terri_core::SaveSnapshotV28 {
+        let mut snapshot = self.save_snapshot_v30();
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::Legacy);
+        snapshot
+    }
+
+    /// Historical forward-hop projection with the twenty-tick exit clock.
+    /// Exit progress rounds down to the earlier historical tick.
+    pub fn save_snapshot_v29(&self) -> terri_core::SaveSnapshotV29 {
+        let mut snapshot = self.save_snapshot_v30();
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::ForwardHop);
+        snapshot
+    }
+
+    /// The complete editable household with the current pool clock.
+    pub fn save_snapshot_v30(&self) -> terri_core::SaveSnapshotV30 {
         build_transaction::committed(&self.world)
             .cloned()
             .unwrap_or_else(|| save::v28::capture(self))
     }
 
-    /// [`Sim::save_snapshot_v28`], the current save, refusing a queue that
+    /// Number of simulation ticks in an ordinary pool exit.
+    pub fn pool_exit_ticks(&self) -> u32 {
+        pool::EXIT_TICKS
+    }
+
+    /// [`Sim::save_snapshot_v30`], the current save, refusing a queue that
     /// holds an admin command, and a world a broken admin session left with
     /// edits that would not load ([AP-save-queue] in
     /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
     /// save that met one would otherwise leave it out. The command paths
     /// never leave one queued; this is the check that proves it at the save
     /// boundary.
-    pub fn try_save_snapshot_v28(&self) -> Result<terri_core::SaveSnapshotV28, SaveError> {
+    pub fn try_save_snapshot_v30(&self) -> Result<terri_core::SaveSnapshotV30, SaveError> {
         save::refuse_queued_admin(&self.world)?;
         if admin::world_broken(&self.world) {
             return Err(SaveError::AdminSessionBroken);
         }
-        Ok(self.save_snapshot_v28())
+        Ok(self.save_snapshot_v30())
+    }
+
+    /// A checked V29 projection that requires exact progress on its exit clock.
+    pub fn try_save_snapshot_v29(&self) -> Result<terri_core::SaveSnapshotV29, SaveError> {
+        let mut snapshot = self.try_save_snapshot_v30()?;
+        if !pool::legacy_exit_clock_is_exact(&snapshot.pools) {
+            return Err(SaveError::InvalidValue);
+        }
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::ForwardHop);
+        Ok(snapshot)
+    }
+
+    /// A checked V28 projection that requires exact exit progress and a V28 phase.
+    pub fn try_save_snapshot_v28(&self) -> Result<terri_core::SaveSnapshotV28, SaveError> {
+        let mut snapshot = self.try_save_snapshot_v30()?;
+        if !pool::legacy_exit_clock_is_exact(&snapshot.pools)
+            || snapshot.pools.iter().any(|episode| episode.phase == pool::CANCELED_LANDING)
+        {
+            return Err(SaveError::InvalidValue);
+        }
+        save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::Legacy);
+        Ok(snapshot)
     }
 
     /// A checked projection for callers using the published V27 format.
     pub fn try_save_snapshot_v27(&self) -> Result<terri_core::SaveSnapshotV27, SaveError> {
-        let snapshot = self.try_save_snapshot_v28()?;
+        let snapshot = self.try_save_snapshot_v30()?;
         Ok(terri_core::SaveSnapshotV27 {
             legacy: snapshot.editable.previous,
             need_mood: snapshot.need_mood,
@@ -1717,6 +1771,30 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV28,
     ) -> Result<(), SaveError> {
         let candidate = save::v28::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_v29(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV29,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v28::restore_forward_hop(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_v30(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV30,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v28::restore_current(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -3747,7 +3825,7 @@ impl Sim {
             });
             self.render
                 .pool_phases
-                .push(pool.map_or(0, |e| u32::from(e.phase)));
+                .push(pool.map_or(0, |e| u32::from(e.render_phase())));
             self.render.pool_elapsed.push(pool.map_or(0, |e| e.elapsed));
             self.render
                 .pool_exit_origins

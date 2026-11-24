@@ -333,7 +333,7 @@ pub fn follow_path(
                 // sim only finds out how long this particular meal took by
                 // sitting through it.
                 let remaining_ticks = if crate::pool::is_swimming(act) {
-                    100
+                    crate::pool::TOTAL_TICKS
                 } else {
                     sample_duration(
                         act.duration_ticks,

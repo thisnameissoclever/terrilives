@@ -1437,8 +1437,7 @@ async function main(): Promise<void> {
       activityLogStore.resetAfterLoad();
       activityLogPanel.resetAfterLoad();
       orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
-      commandStatus.textContent = '';
-      commandStatus.removeAttribute('data-kind');
+      sceneFeedback.clear('command');
       bookCommerce.resetAfterLoad();
       builder.resetAfterLoad();
       // [ES-form]: a draft names a person of the replaced world, so
@@ -2935,6 +2934,7 @@ async function main(): Promise<void> {
         batch.owners,
         batch.annotations,
         drawWorldEffects,
+        characterWorld.waterSurfaceDraw,
       );
       if (!firstSceneRecorded) {
         firstSceneRecorded = true;

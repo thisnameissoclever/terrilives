@@ -40,15 +40,17 @@ Exit build, or Escape with nothing selected, leaves Build. With unconfirmed chan
 
 ### Review unreachable areas {#access-review}
 
-A layout can leave ground, objects or people unreachable. At Confirm, inspect the highlighted ground and the explanation in Review unreachable areas. Complete any room choices before this access review.
+A layout can leave ground, objects or people unreachable. Choose **Confirm** to review the highlighted ground and the explanation in **Review unreachable areas**. If **Review room changes** opens first, finish your room choices, then choose **Review access**.
 
 Choose **Confirm** to accept the reviewed layout. Choose **Return to build mode**, or press Escape, to keep editing with the draft and highlight available. An edit requires a fresh review. Ordinary Save and autosave do not repeat this approval after the layout is confirmed.
+
+:::illustration build-access-review
 
 The first pool can take time to prepare for the household. While Build shows **Preparing swimming**, choose **Return to build mode** or press Escape to stop waiting and keep the draft.
 
 ## Furniture and buying {#furniture}
 
-In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. A physical conflict or object restriction can refuse placement; the reason appears beside Place. Otherwise valid disconnected layouts use the [access review](#access-review).
+In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. You can move or sell furnishings that came with the house, just like ones you bought. A physical conflict or object restriction can refuse placement; the reason appears beside Place. Otherwise valid disconnected layouts use the [access review](#access-review).
 
 Buy lists items with prices and filters. Select an item, point at a destination, rotate as needed and choose Buy. The cost comes from household Funds. Unaffordable items are disabled. Room associations organize the store; they do not restrict where an object can be placed. Beds must stand inside a closed room: Buy and Place refuse a bed on the yard. In Build you may remove a wall or change a room around a bed while you work, but Confirm is refused while the change would leave a bed outside; move the bed into a room or choose Cancel. A bed already outdoors in an older saved game stays there and works.
 
@@ -64,7 +66,7 @@ Walls selects the edge between floor tiles. Click a wall to select it, or the fl
 
 While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways. An open boundary segment can provide an arrival or departure route; walking within the game remains limited to owned ground.
 
-Original and player-built walls follow the same editing rules. Physical conflicts with furniture, people or ongoing use remain refusals. A valid edit that disconnects ground or blocks an object's approaches instead requires [access review](#access-review). A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
+Original and player-built walls, doors and windows follow the same editing rules. Physical conflicts with furniture, people or ongoing use remain refusals. A valid edit that disconnects ground or blocks an object's approaches instead requires [access review](#access-review). A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
 
 Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering. Remove clears the covering and replaces any underlying indoor floor with grass. Underlying grass and street surfaces stay unchanged. Confirm applies the batch after any required review and exits Build. Covered outdoor ground can collect and be cleaned of grime; bare grass and street do not collect floor grime.
 
@@ -98,7 +100,7 @@ Before each save replaces the one in your browser, the game keeps a copy of it. 
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
-Saves carry the effect that needs have accumulated on mood. An older published save starts with a neutral contribution. If this browser already holds an editable-world development save from version 24, 25 or 26, saving pauses to protect it. Export save downloads the original file for use in the build that created it. Choosing one of those files for Import leaves your current household in place.
+Saves carry the effect that needs have accumulated on mood. Older saves that predate this effect start with a neutral contribution. **Load** and **Import save** can resume households from the earlier editable-world builds, including versions 24, 25 and 26. If the game cannot open or recover the save already in this browser, saving pauses and **Export save** lets you download the original file.
 
 Choose **Load game** in the Load confirmation to restore the save. Choose **Start over** in the New game confirmation to delete the local save and begin again. **Keep playing** closes either confirmation without replacing the household.
 

@@ -13,10 +13,7 @@ import type {PreparedSleepingCover} from './prepared-sleeping-cover.js';
 import {bindSeatContacts} from './seat-contact-sample.js';
 import {bindPoolContacts} from './pool-contact-sample.js';
 import {poolContactAppearanceKey} from './pool-contact-identity.js';
-import {freezePoolFixture} from './pool-contact-protocol.js';
-import poolFixtureData from '../../../../assets/models/sims/character-creator/clips/pool/contacts-v3.json';
-
-const poolFixture=freezePoolFixture(poolFixtureData);
+import {poolContactFixture,poolContactTakeoffPhase} from './pool-contact-release.js';
 
 type Placement=Parameters<CharacterRenderer['prepareScene']>[4];
 type SceneOptions=Parameters<CharacterRenderer['prepareScene']>[5];
@@ -89,7 +86,7 @@ export class PreparedCharacter {
       &&saved.manifest===this.current.body.manifest&&saved.parts===this.current.body.description.parts
       &&saved.garmentManifest===this.current.extra?.manifest&&saved.garmentParts===this.current.extra?.description.parts)return;
     if(!this.current.extra||this.current.variants.length)throw new Error('Pool motion requires its selected body and temporary garments.');
-    bindPoolContacts(artifact,this.current.body,mesh.shape,mesh.top,[this.current.extra],poolFixture);
+    bindPoolContacts(artifact,this.current.body,mesh.shape,mesh.top,[this.current.extra],poolContactFixture(),poolContactTakeoffPhase());
     this.poolBinding={artifact,selection:this.current,shapeKey:this.shapeKey,manifest:this.current.body.manifest,parts:this.current.body.description.parts,garmentManifest:this.current.extra.manifest,garmentParts:this.current.extra.description.parts};
   }
 

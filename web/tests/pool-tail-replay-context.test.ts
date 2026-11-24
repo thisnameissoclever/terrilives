@@ -1,7 +1,7 @@
 import {expect,it} from 'vitest';
 import definition from '../../assets/models/sims/character-creator/pool_activity_motion_v14.json';
 import {defaultAppearance} from '../src/character/schema.js';
-import {poolContactFixture} from '../src/render/character/pool-contact-preparation.js';
+import {poolV14Fixture} from './pool-v14-fixture.js';
 import {interpolatePoolPoseProgram} from '../src/render/character/pool-contact-sample.js';
 import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
 import {poolSourcePolicy,poolSourceRecord} from '../src/render/character/pool-source-policy.js';
@@ -16,7 +16,7 @@ function attachedInterval(){
  const selection=new PreparedBody(poolBase,appearance).select(poolRig,appearance,{wear:'bare',prop:'none',fixture:'none',eyes_closed:false,
   includeFixture:false,clip:'pool_enter',swimwear:'two_piece'});
  if(!selection.extra)throw new Error('Pool replay requires the selected swimwear.');
- const fixture=structuredClone(poolContactFixture()),bundle=poolRig.manifest,top=anatomicalHeight(poolBase.vertices);
+ const fixture=structuredClone(poolV14Fixture),bundle=poolRig.manifest,top=anatomicalHeight(poolBase.vertices);
  const source=new PoolCycleSource(bundle,shape,top,[selection.body,selection.extra],fixture,motion);
  const left=source.entry(.12),right=source.entry(.14),amount=.5,travel=.12+(.14-.12)*amount;
  const forward={action:'pool_enter',phase:travel},reverse={action:'pool_exit_1',phase:1-.9*travel};

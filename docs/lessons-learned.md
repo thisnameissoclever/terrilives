@@ -13963,6 +13963,19 @@ A shell exit or process identifier does not establish exporter completion. Do no
 3. Prevention: label only what the data establishes. Use a neutral activity label unless the simulation supplies an explicit origin.
 4. Verification: check autonomous activity, manual work, and cancellation cleanup against the caption and clearing controls.
 
+## [L-pool-ground-approach] Use the same ground record for ladder contact and clearance
+
+1. Six observations on the last two steps of the pool exit reported that the ground had changed. The fixture stores the ground rectangle separately from its ladder and basin solids.
+2. Foot contact already used that rectangle. Free-foot clearance searched the solid list and could never find it. The clearance certificate now checks the original ground bounds, and the arithmetic check uses the same two ground triangles as the mesh observer.
+3. Exercise the approaching foot before it carries weight. Check that the real ground passes, a foot below its plane fails, and changing its horizontal bounds invalidates the saved certificate.
+
+## [L-loaded-pool-pivot] Preserve the loaded ankle during a ladder turn
+
+1. The pool worker rejected a climb-out because clearing an upright required a 76 mm backward shift, while the leg on the crest allowed only 35 mm. Later in the same turn the fit also held an airborne foot at its old position.
+2. The fit translated the hips while leaving both ankle targets fixed. That consumed the loaded leg's remaining reach and restricted the swinging foot after it had left the landing.
+3. Read the support declaration at the actual phase. A turn about the installed ankle preserves the distance to that hip joint. Keep the supporting sole flat and let the released foot and hands travel with the body.
+4. Reconstruct the complete swimmer and swimwear on the actual ladder. Check rail clearance, the waist and trunks against the landing, and both intervals adjoining the corrected turn.
+
 ## [L-phase-authoring-contract] Validate all authored controls before geometric search
 
 1. What happened: successive numeric guards still allowed a contradictory free-hand command or wrong foot placement to become an unavailable pose, hiding the invalid instruction behind a later valid candidate.
@@ -13999,3 +14012,27 @@ A shell exit or process identifier does not establish exporter completion. Do no
 2. Root cause: the default branch records published formats. Active worktrees can already have produced files using higher version numbers.
 3. Prevention: inspect the current writers and frozen formats in active save-related branches before choosing a new number. When a version is reserved, list the supported versions explicitly in the loader, import controller and storage worker.
 4. Verification: try each reserved header against a running household and against an existing browser slot. Check the world hash and the stored bytes after refusal. Migrate a genuine published save and compare its recovery copy byte for byte.
+
+## [L-pool-approach-endpoints] Check the foot rotation used by the renderer
+
+A household with a pool failed to load when a free foot finished turning toward a ladder tread. At the shared key, the renderer used the arriving foot rotation. The climb checker also required the departing key to have the same rotation, even though the Sim was still turning there.
+
+At a key, check the literal rotation against its support and clearance requirements. Between keys, check the interpolated rotation. Exercise the end of a free swing, the start of the approach and an interior sample. Open the game's startup report on the same origin to recover the original error and loading times after a browser disconnect.
+
+## [L-pool-held-grasp-phase] Rebuild a held grasp when its support record changes
+
+The swimmer held the same rail while its fixture record changed from support to release. The hop copied the earlier hand attachment and changed its phase. The preparation worker produced the poses, but the renderer rejected the old support record when loading the household.
+
+Rebuild the grasp from the new phase’s rail and the swimmer’s selected palm. Verify that its rail parameter, active palm vertex, wrist position and rotation still match the held grasp. Check the preparation worker and renderer together, including the exact key where the hand starts to release.
+
+## [L-pool-finite-tread-clearance] Measure where a swinging foot crosses the tread
+
+The short, slim swimmer’s left foot approached the third outside tread from below its top height. The height check rejected 23 sampled poses. At the first two, the entire foot was outside the tread’s horizontal footprint. At the other 21, the finite solid intersected the foot, with a maximum measured penetration of 5.05 mm.
+
+Project the posed foot triangles onto the actual top facets and check the closed tread mesh for intersections. Record the overlap and depth separately. Raise the moving foot before it crosses the edge, then land on the selected sole frame. Verify both ends and the interior of each affected interval, including samples outside the tread.
+
+## [L-pool-loaded-knee] Move the knee independently during a planted step
+
+On the pool ladder, rotating the whole swimmer to clear the right shin moved the opposite hip toward the left rail. The leg solver determined the knee plane from the configured hip frame, so editing the knee guide alone had no effect. A thigh swivel around the line between the hip and the planted ankle moves the knee while preserving the ankle frame and knee flexion.
+
+Check a zero swivel against the original pose and both signs against the actual reconstructed knee. Compare the opposite leg, pelvis and installed foot, including the transition to a free foot. Then check the skin and swimsuit between poses. Two clear endpoint poses on the tall swimmer still had 1.46 mm of shin penetration halfway between them.

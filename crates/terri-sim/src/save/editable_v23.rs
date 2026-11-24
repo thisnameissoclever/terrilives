@@ -3,8 +3,14 @@ use crate::{SaveError, Sim};
 use terri_core::LegacyEditableWorldSnapshotV23;
 
 pub(crate) fn capture(sim: &Sim) -> LegacyEditableWorldSnapshotV23 {
+    let mut previous = super::editable_v22::capture_current_layer(sim);
+    crate::pool::project_legacy_clock(
+        &mut previous.previous.previous,
+        &mut previous.pools,
+        crate::pool::SavedPoolClock::Legacy,
+    );
     LegacyEditableWorldSnapshotV23 {
-        previous: super::editable_v22::capture_current_layer(sim),
+        previous,
         baths: crate::bath::capture(sim.world()),
     }
 }

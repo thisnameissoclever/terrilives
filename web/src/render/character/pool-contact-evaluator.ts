@@ -3,6 +3,7 @@ import type {PoolSourceLocation,PoolSupportLocation} from './pool-source-policy.
 import {interpolateTransform} from './motion.js';
 import {resolvePoolRailContactFrame,requirePoolRailGeometryPair,type PoolPreparedRailGeometry} from './pool-rail-contact-frame.js';
 import {PoolTrialRefusal} from './pool-trial-work.js';
+import {bones as poolBones} from '../../../../assets/models/sims/character-creator/export/manifest.json';
 
 export interface PreparedPoolLimb {
   start:Vec3;target:Vec3;pole:Vec3;lengths:readonly [number,number];
@@ -10,13 +11,24 @@ export interface PreparedPoolLimb {
   upperReference:readonly number[];lowerReference:readonly number[];
 }
 export interface PoolAttachedRailGoal {source:PoolSupportLocation;geometry:PoolPreparedRailGeometry;parameter:number;rawOrientation:readonly number[];activeVertex:number}
-export interface PoolLimbState {target:Vec3;pole:Vec3;orientation:readonly number[];attached?:PoolAttachedRailGoal}
+export interface PoolLimbState {target:Vec3;pole:Vec3;orientation:readonly number[];attached?:PoolAttachedRailGoal;kneeOrbit?:number}
+/** Tangent of half the signed angle about the ankle-to-hip chord. */
+export function validatePoolKneeOrbit(value:unknown,orientedFoot:boolean):asserts value is number|undefined {
+  if(value!==undefined&&(!orientedFoot||typeof value!=='number'||!Number.isFinite(value)||Math.abs(value)>1))
+    throw new Error('Invalid pool knee orbit for this limb.');
+}
 export interface PoolLimbChain {
   upper:number;lower:number;end:number;anchor:readonly [number,number,number,number];
   legFrame?:'source-entry-0';
 }
 export interface PoolPoseControl extends PoolLimbChain {state:PoolLimbState}
 export interface PoolIntervalLimb extends PoolLimbChain {from:PoolLimbState;to:PoolLimbState}
+export function poolKneeOrbitOwner(control:{upper:unknown;lower:unknown;end:unknown;legFrame?:unknown}):boolean {
+  if(control.legFrame!=='source-entry-0'||typeof control.end!=='number'||typeof control.lower!=='number'||typeof control.upper!=='number')return false;
+  const end=poolBones[control.end],lower=poolBones[control.lower],upper=poolBones[control.upper];
+  return !!end&&!!lower&&!!upper&&(end.name==='foot.L'||end.name==='foot.R')&&end.parent===control.lower&&lower.parent===control.upper&&
+    lower.name==='shin.'+end.name.slice(-1)&&upper.name==='thigh.'+end.name.slice(-1);
+}
 
 const same=(left:readonly number[],right:readonly number[])=>left.length===right.length&&left.every((value,at)=>value===right[at]);
 export function requireLiteralPoolRailFrame(goal:PoolAttachedRailGoal,expected:{target?:Vec3;orientation?:readonly number[]},location:PoolSupportLocation=goal.source){
@@ -37,6 +49,11 @@ export function requireLiteralPoolRailFrame(goal:PoolAttachedRailGoal,expected:{
 }
 /** Exact endpoint ownership and stationary controls precede the unchanged moving interpolation. */
 export function interpolatePoolLimbState(control:PoolIntervalLimb,amount:number):PoolLimbState {
+  if(control.from.kneeOrbit!==undefined||control.to.kneeOrbit!==undefined){
+    const leg=poolKneeOrbitOwner(control);
+    validatePoolKneeOrbit(control.from.kneeOrbit,leg&&!control.from.attached);
+    validatePoolKneeOrbit(control.to.kneeOrbit,leg&&!control.to.attached);
+  }
   if(amount===0)return control.from;if(amount===1)return control.to;
   const {from,to}=control;
   const vector=(a:Vec3,b:Vec3):Vec3=>same(a,b)?a:[a[0]+(b[0]-a[0])*amount,a[1]+(b[1]-a[1])*amount,a[2]+(b[2]-a[2])*amount];
@@ -52,7 +69,8 @@ export function interpolatePoolLimbState(control:PoolIntervalLimb,amount:number)
       rawOrientation:same(a.rawOrientation,b.rawOrientation)?a.rawOrientation:interpolateTransform(a.rawOrientation,b.rawOrientation,amount)};
   }
   if(attached)return {target:from.target,pole:vector(from.pole,to.pole),orientation:from.orientation,attached};
-  return {target:vector(from.target,to.target),pole:vector(from.pole,to.pole),orientation:same(from.orientation,to.orientation)?from.orientation:interpolateTransform(from.orientation,to.orientation,amount),...(attached?{attached}:{})};
+  const a=from.kneeOrbit??0,b=to.kneeOrbit??0,orbit=a===b?a:a+(b-a)*amount;
+  return {target:vector(from.target,to.target),pole:vector(from.pole,to.pole),orientation:same(from.orientation,to.orientation)?from.orientation:interpolateTransform(from.orientation,to.orientation,amount),...(orbit?{kneeOrbit:orbit}:{})};
 }
 
 /** Resolve geometry-owned attached goals before the complete anatomical limb evaluator. */

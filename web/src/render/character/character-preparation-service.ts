@@ -15,11 +15,11 @@ import {validatePreparationResponse,type PreparationArtifact,type PreparationReq
 import {awaitPreparation,isPreparationCancelled} from './preparation-abort.js';
 import {poolContactResource} from './pool-contact-resource.js';
 import {poolContactAppearanceKey} from './pool-contact-identity.js';
-import type {PoolContactArtifactV1,PoolContactInputV1} from './pool-contact-types.js';
+import type {PoolPlayback,PoolContactInputV1} from './pool-contact-types.js';
 import {restorePreparationFailure,attachPreparationContext} from './preparation-error.js';
 
 export type CharacterPreparationMode='base'|'pool-required';
-export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1;readonly seat:SeatContactArtifactV1;readonly pool?:PoolContactArtifactV1}
+export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1;readonly seat:SeatContactArtifactV1;readonly pool?:PoolPlayback}
 export type CharacterPreparationLease=PreparationLease<CharacterPreparation>&{readonly mode:CharacterPreparationMode};
 export function characterPreparationKey(appearance:CharacterAppearanceV1,mode:CharacterPreparationMode='pool-required'):string {
   const keys=[bikeContactAppearanceKey(appearance),sleepContactAppearanceKey(appearance),seatContactAppearanceKey(appearance)];
@@ -118,7 +118,7 @@ export class CharacterPreparationService {
     const seat=this.queue.require(owner+':seat',this.seat.key(appearance)) as SeatContactArtifactV1|undefined;
     if(!bike||!sleep||!seat)return undefined;
     if(mode==='base')return Object.freeze({bike,sleep,seat});
-    const pool=this.queue.require(owner+':pool',this.pool.key(appearance)) as PoolContactArtifactV1|undefined;
+    const pool=this.queue.require(owner+':pool',this.pool.key(appearance)) as PoolPlayback|undefined;
     return pool?Object.freeze({bike,sleep,seat,pool}):undefined;
   }
   require(owner:string,appearance:CharacterAppearanceV1,mode:CharacterPreparationMode='pool-required'):CharacterPreparation {

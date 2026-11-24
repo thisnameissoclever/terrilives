@@ -4,6 +4,9 @@ import {decodeGeometry,geometryBuffers,type Bundle,type Geometry,type MeshDescri
 import {prepareClipFamily,type ClipLibrary,type ClipParts} from '../src/render/character/clip-runtime.js';
 import {PreparedBody} from '../src/render/character/prepared-body.js';
 import {configuredPoseForProof} from '../src/render/character/pose.js';
+import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
+import {poolContactFixture,poolContactRelease} from '../src/render/character/pool-contact-release.js';
+import {interpolatePoolPoseProgram,poolSkinMatrices} from '../src/render/character/pool-contact-sample.js';
 import {anatomicalHeight,shapeVertices} from '../src/render/character/shape.js';
 import {posedCageSurface} from '../src/render/character/geometry-proof.js';
 import {defaultAppearance} from '../src/character/schema.js';
@@ -68,12 +71,20 @@ it('uses native progress for entry, reverse entry and the exact saved paddle exi
 
 it('contains the complete configured swimmer below the rim and keeps both feet below opaque water',()=>{
   const failures:string[]=[];
+  const motion=poolContactRelease.motion;
+  validatePoolCycleDefinition(motion);
   for(const presentation of ['masculine','feminine'] as const)for(const height of [0,100])for(const build of [0,100]){
     const appearance=defaultAppearance(presentation);appearance.body={height,build,shoulders:build,hips:build,torso:height};
     const shape={presentation,...appearance.body,face:appearance.face},top=anatomicalHeight(base.vertices);
     const selection=new PreparedBody(base,appearance).select(rig,appearance,{...context,clip:'pool_paddle',swimwear:presentation==='feminine'?'two_piece':'trunks'});
-    for(const frame of [0,3,6,9]){
-      const pose=configuredPoseForProof(rig.manifest,shape,'pool_paddle',frame,top,undefined,base);
+    const source=new PoolCycleSource(rig.manifest,shape,top,[selection.body,selection.extra!],poolContactFixture(),motion);
+    const count=rig.manifest.actions.pool_paddle.length;
+    const poses=Array.from({length:count},(_,frame)=>source.paddle(frame/count));
+    for(let frame=0;frame<count;frame+=.25){
+      const key=Math.floor(frame),phase=frame/count;
+      const {world}=interpolatePoolPoseProgram(rig.manifest,source.neutral.rest,source.neutral.inverse,
+        poses[key],poses[(key+1)%count],frame-key,{action:'pool_paddle',phase});
+      const pose=poolSkinMatrices(world,source.neutral.inverse);
       for(const geometry of [selection.body,selection.extra!]){
         const points=posedCageSurface(geometry,shapeVertices(geometry.cage,shape,top),pose);
         for(const part of geometry.description.parts)for(let at=part.start;at<part.start+part.count;at++){

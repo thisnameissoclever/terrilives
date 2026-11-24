@@ -1,3 +1,5 @@
+import type {SelectedPoolKnot} from './pool-selected-cycle.js';
+import {poolWithdrawalStart,poolWithdrawalEnd,poolWithdrawalBody,poolFreeWithdrawalHand,poolHeldWithdrawalHand} from './pool-late-withdrawal.js';
 import type {PlantedStep,PlantedEndpoint} from './pool-planted-step.js';
 import {composeSkeletonPose} from './pose-joints.js';
 import type {ExteriorToe,OpeningGeometry,ParsedOpening} from './pool-opening-flight.js';
@@ -5,27 +7,31 @@ import {installedPoolSupport} from './pool-installed-support.js';
 import {openingPolicy,requireOpeningDefinition,type PoolOpeningRequest} from './pool-opening-flight.js';
 import {heldPlace,parseNumericStages,readParsedStages,type ParsedNumericStages} from './pool-numeric-stages.js';
 import type {Bundle,Geometry} from './bundle.js';
-import {numericFeet,numericHands,numericLimbReachable,numericalGroundOffset,numericalWrist,validateNumericKnot,type NumericBody,type NumericFootGoal,type NumericGrasp,type NumericHandGoal,type NumericKnot,type NumericKnotChoices,type NumericPoseShape,type NumericProposalInput,type NumericRailEdge,type NumericStageRequest} from './pool-numeric-recipe.js';
+import {bodyInput,finiteRow,graspInput,rotationInput,numericFeet,numericHands,numericLimbReachable,numericalGroundOffset,numericalWrist,validateNumericKnot,type NumericBody,type NumericFootGoal,type NumericGrasp,type NumericHandGoal,type NumericKnot,type NumericKnotChoices,type NumericPoseShape,type NumericProposalInput,type NumericRailEdge,type NumericStageRequest} from './pool-numeric-recipe.js';
 import {PoolTrialRefusal,type PoolTrialWork} from './pool-trial-work.js';
 import type {ShapeParameters} from './shape.js';
 import {shapeVertices} from './shape.js';
 import type {Vec3} from './math.js';
 import {add,sub,scale,unit,cross,dot,length,multiply,inverseAffine,transform,identity,boneFrame} from './math.js';
-import {canonicalPoolPreference,properPoolRotation,setPoolWorldRotation,translatePoolRoot} from './pool-canonical-pose.js';
+import {canonicalPoolPreference,properPoolRotation,setPoolWorldRotation,translatePoolRoot,type PoolHierarchy} from './pool-canonical-pose.js';
 import {preparePoolEntryAnatomy,poolSurfacePoint} from './pool-entry-anatomy.js';
 import {preparePoolFootContactFrame} from './pool-foot-contact-frame.js';
+import type {PreparedPoolPatch} from './pool-contact-patch.js';
+import {outwardSoleChoices} from './pool-outward-sole.js';
 import {preparePoolRailGeometry,resolvePoolRailContactFrame,type PoolPreparedRailGeometry,type PoolRailContactFrame} from './pool-rail-contact-frame.js';
 import {configuredPoolChainReach,poolRootRayIntervals,poolChainReachable} from './pool-entry-domain.js';
 import {poolIntervalPreference,poolSkinMatrices} from './pool-contact-sample.js';
-import {poolPaddleArm,poolPaddleTorsoRise} from './pool-paddle-visibility.js';
+import {paddleRimSides,poolPaddleArm,poolPaddleTorsoRise} from './pool-paddle-visibility.js';
+import {makeSupportedCrestTurn,type SupportedCrestTurn} from './pool-supported-crest-turn.js';
 import {poolSourceRecord,poolSourcePolicy} from './pool-source-policy.js';
-import {makePoolPoseProgram,type PoolPoseProgram} from './pool-pose-program.js';
-import {requireLiteralPoolRailFrame,type PoolPoseControl,type PoolLimbState} from './pool-contact-evaluator.js';
+import {makePoolPoseProgram,poolIntervalProgramControls,type PoolPoseProgram} from './pool-pose-program.js';
+import {requireLiteralPoolRailFrame,resolvePoolLimbState,validatePoolKneeOrbit,type PoolPoseControl,type PoolLimbState} from './pool-contact-evaluator.js';
 import type {PoolFixtureV1,PoolLimb,PoolSupport} from './pool-contact-types.js';
-import {clonePoolMatrix} from './pool-matrix-producer.js';
+import {clonePoolMatrix,registerPoolRootTravel} from './pool-matrix-producer.js';
 import {canonicalPoolValue} from './pool-contact-identity.js';
 import {interpolateTransform} from './motion.js';
 import {projectedTrianglePatch,type Triangle} from './pool-solid.js';
+import {poolPatchProjectionContained} from './pool-exact-projection.js';
 import {posedCageSurface} from './geometry-proof.js';
 import {solvePoolOrientedFoot,observeConstructedPoolLeg} from './pool-oriented-leg.js';
 import {fitPoolWaterTarget,poolStrokeAirwayRise,poolWaterBounds} from './pool-water-retarget.js';
@@ -45,7 +51,17 @@ interface PoolWaterStrokeDefinition {
  hand:{forwardReachFraction:number;dropReachFraction:number;sweepReachFraction:number;liftReachFraction:number;spreadReachFraction:number};
 }
 interface PoolGroundGripDefinition {acquisitionUnit:number;firstRungUnit:number;secondRungUnit:number;clearance:'crest-exterior-and-planted-shin'}
-interface CrestRoute {handTransferUnits:[number,number,number,number];footSwingUnits:[number,number];rightStepUnits:[number,number];sampleUnits:number[]}
+interface CrestRoute {path?:'supported-turn'|'supported-early-plant';insideHandTransferUnits?:[number,number,number,number];handTransferUnits:[number,number,number,number];footSwingUnits:[number,number];rightStepUnits:[number,number];sampleUnits:number[]}
+export interface PoolForwardHop {
+ kind:'separate-climb-out'; takeoffUnit:60000; bridgeEndUnit:10000; standingUnit:100000;
+ exitTicks?:40;
+ launchFromUnit?:42000;waterContactUnit?:87000;
+ outerGripTransfer?:{kind:'right-first';rightContactUnit:number;leftApproachUnit:number;leftContactUnit:number};
+ outwardDescent?:{kind:'walk-out';startUnit:number;rightCrestUnit:number;leftOutside3Unit:number;rightOutside2Unit:number;rightDryUnit:number;leftDryUnit:number;rightTurnUnit:number};
+ entryUnits:number[]; climbOutUnits:number[];
+ climbKeys:{unit:number;authoredUnit:number;entryUnit?:number;poseEntryUnit?:number;exitReferenceUnit?:number}[];
+ footTransitions:Pick<Transfer,'limb'|'from'|'to'|'startUnit'|'endUnit'>[];
+}
 interface PoolCrestFitDefinition {
  outerShift:number;innerShift:number;shinReferenceUnit:number;outerParameter:number;innerParameter:number;frameBasis:'held-exterior';
  earlyClearance:{rightShinX:number;leftUpperArmX:number};
@@ -63,12 +79,15 @@ export type PoolCycleDefinition = {
  {version:13;hand:PoolHandDefinition & {crestElbowPole?:never};waterStroke?:never;groundGrip?:never;crestFit?:never} |
  {version:14;hand:PoolHandDefinition & {crestElbowPole:CrestElbowPole};waterStroke?:never;groundGrip?:never;crestFit?:never} |
  {version:15;hand:PoolHandDefinition & {crestElbowPole:CrestElbowPole};waterStroke:PoolWaterStrokeDefinition;groundGrip?:PoolGroundGripDefinition;crestFit?:PoolCrestFitDefinition} |
- {version:16;hand:PoolHandDefinition & {crestElbowPole:CrestElbowPole};waterStroke:PoolWaterStrokeDefinition;groundGrip:PoolGroundGripDefinition;crestFit:PoolCrestFitDefinition;crestRoute:CrestRoute}
+ {version:16;hand:PoolHandDefinition & {crestElbowPole:CrestElbowPole};waterStroke:PoolWaterStrokeDefinition;groundGrip:PoolGroundGripDefinition;crestFit:PoolCrestFitDefinition;crestRoute:CrestRoute;forwardHop?:PoolForwardHop}
 );
 export function validatePoolCycleDefinition(value:unknown):asserts value is PoolCycleDefinition {
  if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Pool source definition is missing');const source=value as Partial<PoolCycleDefinition>;
  if(source.version!==13&&source.version!==14&&source.version!==15&&source.version!==16)throw new Error('Pool source motion version is unsupported');
- if(source.clockUnits!==100000||source.nativeTicks?.enter!==20||source.nativeTicks.paddle!==60||source.nativeTicks.exit!==20||source.nativeTicks.tickHz!==10||source.paddle?.samples!==12)throw new Error('Pool source has another native clock');
+ if('forwardHop' in source&&(source.version!==16||!source.forwardHop||typeof source.forwardHop!=='object'))
+  throw new Error('The independent pool hop requires a version 16 motion and a defined clock.');
+ const exitTicks=source.version===16&&source.forwardHop?.exitTicks===40?40:20;
+ if(source.clockUnits!==100000||source.nativeTicks?.enter!==20||source.nativeTicks.paddle!==60||source.nativeTicks.exit!==exitTicks||source.nativeTicks.tickHz!==10||source.paddle?.samples!==12)throw new Error('Pool source has another native clock');
  const paths=[{fromUnit:22000,toUnit:32000,limb:'footR',place:'outside2',boundaryUnits:[21999,22001,31999,32001],sampleUnits:[25125]},
   {fromUnit:32000,toUnit:42000,limb:'footL',place:'outside3',boundaryUnits:[31999,32001,41999,42001],sampleUnits:[35125,36250,37375]}];
  if(canonicalPoolValue(source.plantedBodyPaths)!==canonicalPoolValue(paths))throw new Error('Pool planted body paths differ from their two authored segments');
@@ -92,8 +111,58 @@ export function validatePoolCycleDefinition(value:unknown):asserts value is Pool
   earlyClearance:{rightShinX:-.25201815907410885,leftUpperArmX:-.75572270154953}
  })))throw new Error('Pool source crest fit is invalid');
  if(source.version===16){
+  if(source.forwardHop){
+   const h=source.forwardHop,ordered=(units:number[])=>Array.isArray(units)&&units[0]===0&&units.at(-1)===100000&&units.every((u,i)=>Number.isSafeInteger(u)&&(!i||u>units[i-1]));
+   if(h.kind!=='separate-climb-out'||h.takeoffUnit!==60000||h.bridgeEndUnit!==10000||h.standingUnit!==100000||
+     !ordered(h.entryUnits)||!ordered(h.climbOutUnits)||!h.entryUnits.includes(h.takeoffUnit)||!h.climbOutUnits.includes(h.bridgeEndUnit))
+    throw new Error('Pool hop lacks its takeoff or independent climb-out clock.');
+   const exterior=source.footTransitions.filter(t=>t.endUnit<=42000).map(({limb,from,to,startUnit,endUnit})=>({limb,from,to,startUnit,endUnit}));
+   const split=h.launchFromUnit===42000,wet=split?87000:75000;
+   if(h.outwardDescent){
+    const d=h.outwardDescent,events=[d.startUnit,d.rightCrestUnit,d.leftOutside3Unit,d.rightOutside2Unit,d.rightDryUnit,d.leftDryUnit,d.rightTurnUnit];
+    if(!split||h.outerGripTransfer||d.kind!=='walk-out'||h.exitTicks!==40||events.some((u,i)=>!h.climbOutUnits.includes(u)||i>0&&u<=events[i-1])||
+      d.startUnit<=h.bridgeEndUnit||d.rightTurnUnit>=h.standingUnit||h.climbKeys.some(k=>k.unit>d.startUnit&&(k.entryUnit!==undefined||k.exitReferenceUnit!==undefined||k.poseEntryUnit!==undefined)))
+      throw new Error('Invalid independent outward stair and ground-turn clock.');
+   }
+   if(h.outerGripTransfer!==undefined){
+    const t=h.outerGripTransfer;
+    if(!split||!t||t.kind!=='right-first'||Object.keys(t).sort().join(',')!=='kind,leftApproachUnit,leftContactUnit,rightContactUnit'||
+      ![t.rightContactUnit,t.leftApproachUnit,t.leftContactUnit].every(u=>Number.isSafeInteger(u)&&h.climbOutUnits.includes(u))||
+      !(h.bridgeEndUnit<t.rightContactUnit&&t.rightContactUnit<t.leftApproachUnit&&t.leftApproachUnit<t.leftContactUnit&&t.leftContactUnit<h.standingUnit))
+      throw new Error('Invalid independent climb hand transfer.');
+   }
+   if((h.launchFromUnit!==undefined||h.waterContactUnit!==undefined)&&(!split||h.waterContactUnit!==wet||!h.entryUnits.includes(wet)))throw new Error('Invalid split-level launch clock.');
+   const flights=[{limb:'footL',from:'outside3',to:'free',startUnit:split?44000:42000,endUnit:wet},
+    {limb:'footR',from:'crest',to:'free',startUnit:h.takeoffUnit,endUnit:wet}];
+   if(exterior.length!==4||canonicalPoolValue(h.footTransitions)!==canonicalPoolValue([...exterior,...flights]))
+    throw new Error('The pool hop must load the crest sole until takeoff and land in open water.');
+   if(!Array.isArray(h.climbKeys)||canonicalPoolValue(h.climbKeys.map(r=>r.unit))!==canonicalPoolValue(h.climbOutUnits)||
+    h.climbKeys.some((r,i)=>!Number.isSafeInteger(r.authoredUnit)||r.authoredUnit<0||r.authoredUnit>100000||
+     (r.exitReferenceUnit!==undefined&&(!split||r.exitReferenceUnit!==r.unit||r.entryUnit!==undefined||r.poseEntryUnit!==undefined))||
+     (r.poseEntryUnit!==undefined&&(split||!Number.isSafeInteger(r.poseEntryUnit)||r.poseEntryUnit>=h.takeoffUnit||r.entryUnit!==undefined))||
+     (r.entryUnit!==undefined&&(!Number.isSafeInteger(r.entryUnit)||r.entryUnit<0||r.entryUnit>=h.takeoffUnit||split&&r.entryUnit>42000||
+      (i>0&&h.climbKeys[i-1].entryUnit!==undefined&&r.entryUnit>=h.climbKeys[i-1].entryUnit!)))))
+    throw new Error('The climb-out clock lost an authored exterior step.');
+  }
   const route=source.crestRoute;
-  if(!route||!source.crestFit||!source.groundGrip||canonicalPoolValue(route)!==canonicalPoolValue({
+  if(!route||!source.crestFit||!source.groundGrip)throw new Error('Pool source v16 crest support sequence is missing');
+  if(route.path==='supported-turn'||route.path==='supported-early-plant'){
+   const units=route.sampleUnits;
+   const early=route.path==='supported-early-plant',leftPlant=early?50800:53200,rightDeparture=early?51000:53200;
+   if(Object.keys(route).some(k=>!['path','handTransferUnits','footSwingUnits','rightStepUnits','sampleUnits','insideHandTransferUnits'].includes(k)))
+     throw new Error('Unknown supported pool turn control.');
+   if(route.insideHandTransferUnits!==undefined&&canonicalPoolValue(route.insideHandTransferUnits)!==canonicalPoolValue([50668,50787,51143,51381]))
+     throw new Error('Invalid inside pool wrist regrip clock.');
+   if(!Array.isArray(units)||units.length>256||units[0]!==42000||units.at(-1)!==64000||
+      units.some((u,i)=>!Number.isSafeInteger(u)||i>0&&u<=units[i-1])||
+      ![42001,42101,43200,43875,45225,45900,46278,46467,46656,leftPlant,rightDeparture,51940,53200,62380,...(route.insideHandTransferUnits??[])].every(u=>units.includes(u))||
+      canonicalPoolValue(route.handTransferUnits)!==canonicalPoolValue([43200,43875,45225,45900])||
+      canonicalPoolValue(route.footSwingUnits)!==canonicalPoolValue([42000,leftPlant])||
+      canonicalPoolValue(route.rightStepUnits)!==canonicalPoolValue([rightDeparture,64000])||
+      !source.footTransitions?.some(t=>t.limb==='footL'&&t.from==='outside3'&&t.to==='inside3'&&t.startUnit===42000&&t.endUnit===leftPlant)||
+      !source.footTransitions?.some(t=>t.limb==='footR'&&t.from==='crest'&&t.to==='inside2'&&t.startUnit===rightDeparture&&t.endUnit===64000))
+    throw new Error('Supported pool turn differs from its authored release, replant or landing clock');
+  }else if(canonicalPoolValue(route)!==canonicalPoolValue({
    handTransferUnits:[42400,42800,43600,44800],footSwingUnits:[44800,53200],rightStepUnits:[53200,64000],
    sampleUnits:[42000,42400,42800,43600,44800,47950,50050,53200,64000],
   }))throw new Error('Pool source v16 crest support sequence is invalid');
@@ -142,6 +211,7 @@ export class PoolCycleSource {
  private readonly hip:number;private readonly spine:number;private readonly head:number;
  private readonly limbReach;private readonly sourceHands:Record<PoolHand,{wrist:Vec3;elbow:Vec3;rotation:number[]}>;
  private readonly legBounds:Record<PoolFoot,[Vec3,Vec3]>;
+ private readonly paddleElbowLimit:Record<PoolHand,number>={handL:Infinity,handR:Infinity};
  private readonly plantedEndpoints=new Map<string,readonly [BodyPathEndpoint,BodyPathEndpoint]>();
  private readonly plantedWitnesses=new Map<string,{hips:Vec3;knee:Vec3;ankle:Vec3;amount:number;endpointExact:boolean}>();
  private waterFit?:{pose:ReturnType<PoolCycleSource['body']>['pose'];bounds:ReturnType<typeof poolWaterBounds>};
@@ -194,41 +264,142 @@ export class PoolCycleSource {
   this.hip=bundle.bones.findIndex(b=>b.name==='hips');this.spine=bundle.bones.findIndex(b=>b.name==='spine');this.head=bundle.bones.findIndex(b=>b.name==='head');
   this.rawFeet={footL:properPoolRotation(this.neutral.rest[this.anatomy.footL.end]),footR:properPoolRotation(this.neutral.rest[this.anatomy.footR.end])};
   this.limbReach=Object.fromEntries((['footL','footR','handL','handR'] as const).map(limb=>{const a=this.anatomy[limb];return [limb,configuredPoolChainReach(this.neutral.rest,a.upper,a.lower,a.end)];})) as Record<PoolLimb,ReturnType<typeof configuredPoolChainReach>>;
+  if(definition.version===16&&definition.forwardHop){
+   const sides=paddleRimSides(fixture);
+   for(const [i,limb] of (['handL','handR'] as const).entries()){
+    const arm=geometry[0].description.parts.find(part=>part.name==='Creator upper arm skin '+limb.slice(-1));
+    if(!arm)throw new Error('The pool stroke needs the selected upper arm.');
+    const inverse=this.neutral.inverse[this.anatomy[limb].upper],upperLength=this.limbReach[limb].lengths[0];
+    let radius=0;
+    for(const vertex of new Set(geometry[0].indices.subarray(arm.start,arm.start+arm.count))){
+     const position=vector(Array.from(restSurface.subarray(3*vertex,3*vertex+3)));
+     const [x,y,z]=transform(inverse,position);
+     radius=Math.max(radius,Math.hypot(x,y-clamp(y,0,upperLength),z));
+    }
+    this.paddleElbowLimit[limb]=(i===0?-sides[0]:sides[1])-radius;
+   }
+  }
   this.flatFeet={footL:this.foot('footL','ground').orientation,footR:this.foot('footR','ground').orientation};
   const inverse=inverseAffine(this.neutral.world[this.spine]);
   const handReference=(limb:PoolHand)=>{const a=this.anatomy[limb];return {wrist:transform(inverse,point(this.neutral.world[a.end])),elbow:transform(inverse,point(this.neutral.world[a.lower])),rotation:properPoolRotation(multiply(inverse,this.neutral.world[a.end]))};};
   this.sourceHands={handL:handReference('handL'),handR:handReference('handR')};
  }
- patch(limb:PoolLimb,support:PoolSupport){
+ patch(limb:PoolLimb,support:PoolSupport,location?:{action:string;phase:number}){
   const a=this.anatomy[limb];if(limb.startsWith('hand'))return a.patch;
+  const d=this.definition;
+  if(d.version===16&&d.forwardHop?.outwardDescent&&location?.action.startsWith('pool_exit_')){
+   const place=Object.entries(d.places).find(([,p])=>p.surface===support.surface)?.[0];
+   if(place?.startsWith('outside'))return this.outwardExitFoot(limb as PoolFoot,place,location.phase*d.clockUnits).patch;
+  }
   const name=Object.values(this.definition.places).find(p=>p.surface===support.surface)?.patch??'full';return name==='front'?a.front!:name==='back'?a.back!:a.patch;
  }
- frame(limb:PoolFoot,support:PoolSupport,xy:[number,number],work=this.numericWork){
-  const key=limb+':'+canonicalPoolValue([support,xy]),old=this.footFrames.get(key);if(old)return old;const a=this.anatomy[limb];
+ frame(limb:PoolFoot,support:PoolSupport,xy:[number,number],work=this.numericWork,facesInsideLadder=false){
+  const key=limb+':'+canonicalPoolValue([support,xy])+(facesInsideLadder?':inside-facing':''),old=this.footFrames.get(key);if(old)return old;const a=this.anatomy[limb];
   work?.reserve('prepare phase sole contact frame',{expansions:1});
-  const frame=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],this.patch(limb,support),this.rawFeet[limb],xy);this.footFrames.set(key,frame);return frame;
+  const frame=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],this.patch(limb,support),this.orientedRawFoot(limb,facesInsideLadder),xy);this.footFrames.set(key,frame);return frame;
  }
- foot(limb:PoolFoot,place:string,work=this.numericWork):FootGoal {
-  const key=limb+':'+place,saved=this.footGoals.get(key);if(saved)return saved;
+ private insideFacingExitFoot(limb:PoolFoot,place:string,unit:number):boolean {
+  const outward=this.definition.version===16?this.definition.forwardHop?.outwardDescent:undefined;
+  if(outward)return place!=='ground'||unit<(limb==='footR'?outward.rightTurnUnit:this.definition.clockUnits);
+  const release=this.definition.version===16?this.definition.forwardHop?.climbKeys.find(k=>k.authoredUnit===59000)?.unit:undefined;
+  return place.startsWith('inside')||(place==='crest'&&limb==='footL'&&release!==undefined&&unit<=release);
+ }
+ private orientedRawFoot(limb:PoolFoot,inside:boolean){
+  return inside?multiply([-1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1],this.rawFeet[limb]):this.rawFeet[limb];
+ }
+ phaseFootFrame(limb:PoolFoot,support:PoolSupport,xy:[number,number],location:{action:string;phase:number},work=this.numericWork){
+  const exit=this.definition.version===16&&this.definition.forwardHop&&location.action.startsWith('pool_exit_');
+  const place=exit?Object.entries(this.definition.places).find(([,p])=>p.surface===support.surface)?.[0]:undefined;
+  if(place&&this.definition.version===16&&this.definition.forwardHop?.outwardDescent){
+   const facingPhase=support.mode==='approach'&&support.intervalSpace==='clip-phase'&&support.interval?support.interval[1]:location.phase;
+   const f=this.outwardExitFoot(limb,place,facingPhase*this.definition.clockUnits),key=limb+':walk-out:'+canonicalPoolValue([support,xy,f.raw]);
+   let frame=this.footFrames.get(key);if(!frame){work?.reserve('prepare phase sole contact frame',{expansions:1});
+    frame=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[this.anatomy[limb].end],f.patch,f.raw,xy);
+    this.footFrames.set(key,frame);}
+   return frame;
+  }
+  return this.frame(limb,support,xy,work,!!place&&this.insideFacingExitFoot(limb,place,location.phase*this.definition.clockUnits));
+ }
+ primaryExitFoot(limb:PoolFoot,place:string,unit:number):FootGoal {
+  if(this.definition.version===16&&this.definition.forwardHop?.outwardDescent)return this.outwardExitFoot(limb,place,unit);
+  return this.foot(limb,place,this.numericWork,this.insideFacingExitFoot(limb,place,unit));
+ }
+ private readonly walkSoles=new Map<string,FootGoal&{patch:PreparedPoolPatch;raw:readonly number[];frame:ReturnType<typeof preparePoolFootContactFrame>}>();
+ outwardExitFoot(limb:PoolFoot,place:string,unit:number):FootGoal&{patch:PreparedPoolPatch;raw:readonly number[];frame:ReturnType<typeof preparePoolFootContactFrame>} {
+  const d=this.definition;if(d.version!==16||!d.forwardHop?.outwardDescent)throw new Error('The installed pool does not declare its outward descent.');
+  const outward=this.insideFacingExitFoot(limb,place,unit),key=limb+':'+place+':'+outward,saved=this.walkSoles.get(key);if(saved)return saved;
+  const a=this.anatomy[limb];let patch=a.patch,raw:readonly number[]=this.orientedRawFoot(limb,outward),goal:FootGoal|undefined;
+  if(place.startsWith('outside')){
+   let last:unknown;
+   for(const choice of outwardSoleChoices(this,limb,place)){
+    try{goal=this.foot(limb,place,this.numericWork,true,choice);patch=choice.patch;raw=choice.raw;break;}
+    catch(error){if(!(error instanceof PoolTrialRefusal))throw error;last=error;}
+   }
+   if(!goal)throw new PoolTrialRefusal('No supported outward heel on '+place+' for '+limb,{cause:last});
+  }else if(place==='ground'&&outward){
+   const standing=this.foot(limb,place),x=2*d.ground.pelvisXY[0]-standing.target[0];
+   let y=standing.target[1]-(standing.bounds[1][1]-standing.bounds[0][1])/2;
+   if(limb==='footL'){
+    const clear=this.foot('footR','ground').bounds[1][1]+this.fixture.rails[0].radius;
+    y=Math.max(...a.surfaceCoefficients.map(c=>(clear-poolSurfacePoint(raw,c)[1])/c[3]));
+   }
+   goal=this.foot(limb,place,this.numericWork,true,{raw,patch,xy:[x,y]});
+   if([0,1].some(i=>goal!.bounds[0][i]<this.fixture.ground.bounds[0][i]||goal!.bounds[1][i]>this.fixture.ground.bounds[1][i]))
+    throw new Error('The outward landing leaves the dry ground.');
+  }else if(place==='crest'){
+   const support=installedPoolSupport(this.fixture,d.places.crest.surface);
+   const solid=this.fixture.solids.find(s=>s.id===support.surface)!;
+   if(support.region?.kind!=='top-face'||!support.region.triangles?.length)throw new Error('The outward crest needs finite landing faces.');
+   const faces=support.region.triangles.map((i):Triangle=>{
+    const [a,b,c]=solid.triangles[i];return [solid.vertices[a],solid.vertices[b],solid.vertices[c]];
+   });
+   // The notch ends at the last interior Y level. Beyond it, both feet fit side by side on the dry strip.
+   const levels=[...new Set(faces.flatMap(face=>face.map(p=>p[1])))].sort((a,b)=>a-b);
+   if(levels.length<2)throw new Error('The outward crest has no landing depth.');
+   const dryStripY=levels[levels.length-2],radius=this.fixture.rails[0].radius;
+   const right=limb==='footL'?this.outwardExitFoot('footR',place,unit):undefined;
+   goal=this.foot(limb,place,this.numericWork,true,{raw,patch,crest:{dryStripY,medialMinX:right&&right.bounds[1][0]+radius/4}});
+   const matrix=[...goal.orientation];matrix.splice(12,3,...goal.target);
+   const vertices=patch.vertices.map(v=>poolSurfacePoint(matrix,v.coefficient));
+   const footprint=patch.triangles.map(([a,b,c]):Triangle=>[vertices[a],vertices[b],vertices[c]]);
+   if(!poolPatchProjectionContained(footprint,faces))throw new PoolTrialRefusal('The outward crest sole leaves its finite landing facets.');
+  }else goal=this.foot(limb,place,this.numericWork,outward);
+  const frame=preparePoolFootContactFrame(this.fixture,goal.support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],patch,raw,[goal.target[0],goal.target[1]]);
+  const value={...goal,patch,raw,frame};this.walkSoles.set(key,value);return value;
+ }
+ foot(limb:PoolFoot,place:string,work=this.numericWork,facesInsideLadder=false,sole?:{patch:PreparedPoolPatch;raw:readonly number[];xy?:readonly [number,number];crest?:{dryStripY:number;medialMinX?:number}}):FootGoal {
+  const key=limb+':'+place+(facesInsideLadder?':inside-facing':''),saved=sole?undefined:this.footGoals.get(key);if(saved)return saved;
   work?.reserve('construct fixed sole '+place,{expansions:1});
   const declared=this.definition.places[place];if(!declared)throw new Error('Pool source foot place is unknown: '+place);
-  const a=this.anatomy[limb],support=installedPoolSupport(this.fixture,declared.surface),patch=this.patch(limb,support),ground=place==='ground',solid=this.fixture.solids.find(s=>s.id===support.surface),rectangle=ground?this.fixture.ground.bounds:solid!.bounds;
+  const a=this.anatomy[limb],support=installedPoolSupport(this.fixture,declared.surface),patch=sole?.patch??this.patch(limb,support),ground=place==='ground',solid=this.fixture.solids.find(s=>s.id===support.surface),rectangle=ground?this.fixture.ground.bounds:solid!.bounds;
   work?.reserve('prepare sole reference frame '+place,{expansions:1});
-  const raw=this.rawFeet[limb],reference=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],patch,raw,[0,0]);
+  const raw=sole?.raw??this.orientedRawFoot(limb,facesInsideLadder),failure=sole?(message:string)=>new PoolTrialRefusal(message):undefined;
+  const reference=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],patch,raw,[0,0],failure);
   const rows=a.surfaceCoefficients.map(c=>({p:poolSurfacePoint(reference.orientation,c),w:c[3]})),patchRows=patch.vertices.map(v=>({p:poolSurfacePoint(reference.orientation,v.coefficient),w:v.coefficient[3]}));
   const lo=[0,1].map(i=>Math.max(...patchRows.map(r=>(rectangle[0][i]-r.p[i])/r.w))),hi=[0,1].map(i=>Math.min(...patchRows.map(r=>(rectangle[1][i]-r.p[i])/r.w)));
-  let x=point(this.neutral.world[a.end])[0],y=this.definition.ground.pelvisXY[1];
+  let x=sole?.xy?.[0]??point(this.neutral.world[a.end])[0],y=sole?.xy?.[1]??this.definition.ground.pelvisXY[1];
   if(!ground){
    const left=this.fixture.solids.find(s=>s.id===this.fixture.rails[0].id)!,right=this.fixture.solids.find(s=>s.id===this.fixture.rails[1].id)!,middle=this.definition.ground.pelvisXY[0];
-   const lane=limb==='footL'?[left.bounds[1][0],middle]:[middle,right.bounds[0][0]];
+   const leftLane=(limb==='footL')!==facesInsideLadder;
+   const lane=leftLane?[left.bounds[1][0],middle]:[middle,right.bounds[0][0]];
+   if(sole?.crest?.medialMinX!==undefined)lane[0]=Math.max(lane[0],sole.crest.medialMinX);
+   if(facesInsideLadder&&place==='crest'&&limb==='footL'&&!(this.definition.version===16&&this.definition.forwardHop?.outwardDescent)){
+    const arriving=this.foot('footR','crest',work);
+    lane[0]=left.bounds[1][0];lane[1]=arriving.bounds[0][0]-this.fixture.rails[1].radius;
+   }
    lo[0]=Math.max(lo[0],...rows.map(r=>(lane[0]-r.p[0])/r.w));hi[0]=Math.min(hi[0],...rows.map(r=>(lane[1]-r.p[0])/r.w));
+   if(sole?.crest)lo[1]=Math.max(lo[1],...patchRows.map(r=>(sole.crest!.dryStripY-r.p[1])/r.w));
    if(place.startsWith('outside')){
     const wall=this.fixture.solids.find(s=>s.id==='Pool wall')!,planes=wall.triangles.flatMap(t=>{const [a,b,c]=t.map(i=>wall.vertices[i]),n=cross(sub(b,a),sub(c,a));return n[1]>0&&n[0]===0&&n[2]===0&&a[1]>0?[a[1]]:[];});
     if(!planes.length)throw new Error('Pool toe recess has no actual backing plane');const back=Math.min(...planes);
     lo[1]=Math.max(lo[1],...rows.map(r=>(back-r.p[1])/r.w));
    }
-   if(lo.some((v,i)=>v>=hi[i]))throw new Error('Complete configured foot has no compact support domain: '+limb+' '+place);
+   if(lo.some((v,i)=>v>=hi[i]))throw new (sole?PoolTrialRefusal:Error)('Complete configured foot has no compact support domain: '+limb+' '+place);
    x=(lo[0]+hi[0])/2;y=(lo[1]+hi[1])/2;
+   if(facesInsideLadder&&place==='crest'&&limb==='footL'){
+    if(sole?.crest)x=lo[0]+Math.min(this.fixture.rails[0].radius/4,(hi[0]-lo[0])/2);
+    else{x=hi[0];y=hi[1];}
+   }
   }else if(x<lo[0]||x>hi[0]||y<lo[1]||y>hi[1])throw new Error('Configured grounded foot leaves its actual landing');
   work?.reserve('prepare installed sole frame '+place,{expansions:1});
   const frame=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],patch,raw,[x,y]),matrix=[...frame.orientation];matrix.splice(12,3,...frame.translation);
@@ -245,8 +416,8 @@ export class PoolCycleSource {
     if(clearance<verticalClearance){ceiling=points[0][2];verticalClearance=clearance;}
    }
   }
-  const maxW=Math.max(...rows.map(r=>r.w)),lift=Math.min(.25/4,verticalClearance/(2*maxW));if(!(lift>0))throw new Error('Complete configured foot has no withdrawal height: '+limb+' '+place,{cause:{ceiling,verticalClearance,full,plane:frame.planeHeight,target:frame.translation}});
-  const result={place,support,target:frame.translation,orientation:frame.orientation,plane:frame.planeHeight,bounds:full,height:full[1][2]-frame.planeHeight,lift};this.footGoals.set(key,result);return result;
+  const maxW=Math.max(...rows.map(r=>r.w)),lift=Math.min(.25/4,verticalClearance/(2*maxW));if(!(lift>0))throw new (sole?PoolTrialRefusal:Error)('Complete configured foot has no withdrawal height: '+limb+' '+place,{cause:{ceiling,verticalClearance,full,plane:frame.planeHeight,target:frame.translation}});
+  const result={place,support,target:frame.translation,orientation:frame.orientation,plane:frame.planeHeight,bounds:full,height:full[1][2]-frame.planeHeight,lift};if(!sole)this.footGoals.set(key,result);return result;
  }
  private chord(limb:PoolFoot,degrees:number):number {
   const a=this.anatomy[limb],m=this.neutral.basis[a.lower],axis=unit([m[6]-m[9],m[8]-m[2],m[1]-m[4]]),angle=degrees*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle),v=1-c,[x,y,z]=axis;
@@ -417,15 +588,22 @@ export class PoolCycleSource {
   if(place==='free')return this.waterFoot(limb,body.hips,wave,true);
   return this.foot(limb,place).target;
  }
- private elbow(limb:PoolHand,pose:ReturnType<PoolCycleSource['body']>['pose']):Vec3 {
+ private elbow(limb:PoolHand,pose:Pick<PoolHierarchy,'world'>):Vec3 {
   const a=this.anatomy[limb],shoulder=point(pose.world[a.upper]),hips=point(pose.world[this.hip]),distance=this.limbReach[limb].lengths[0];return [shoulder[0]+Math.sign(hips[0]-shoulder[0])*distance,shoulder[1],shoulder[2]-distance];
  }
- private gripRail(limb:PoolHand,phase:number,work=this.numericWork){
+ private gripRail(limb:PoolHand,phase:number,work=this.numericWork,action='pool_enter'){
   work?.reserve('construct phase rail basis '+limb,{expansions:1});
-  const a=this.anatomy[limb],support=poolSourceRecord(this.fixture,{action:'pool_enter',phase}).limbs[limb],geometryKey=limb+':'+canonicalPoolValue(support);let physical=this.railInputs.get(geometryKey);
+  const a=this.anatomy[limb],support=poolSourceRecord(this.fixture,{action,phase}).limbs[limb],geometryKey=limb+':'+canonicalPoolValue(support);let physical=this.railInputs.get(geometryKey);
   if(!physical){work?.reserve('prepare actual rail geometry '+limb,{expansions:1});physical=preparePoolRailGeometry(this.fixture,support,this.geometry[0],this.cages[0],this.neutral.inverse[a.end],a.patch);this.railInputs.set(geometryKey,physical);}
-  const inverse=[...this.neutral.inverse[a.end]];inverse.splice(12,3,0,0,0);const localNormal=transform(inverse,[0,1,0]),thumb=a.thumb!,thumbDirection=sub(vector(thumb.slice(0,3)),scale(vector(a.anchor.slice(0,3)),thumb[3]/a.anchor[3])),reference=identity();reference.splice(0,3,...thumbDirection);const local=inverseAffine(boneFrame([0,0,0],localNormal,reference));
-  return {physical,geometryKey,local,location:{action:'pool_enter',phase,limb}};
+  return {physical,geometryKey,local:this.palmGripBasis(limb),location:{action,phase,limb}};
+ }
+ palmGripBasis(limb:PoolHand):number[]{
+  const a=this.anatomy[limb],inverse=[...this.neutral.inverse[a.end]];
+  inverse.splice(12,3,0,0,0);
+  const localNormal=transform(inverse,[0,1,0]),thumb=a.thumb!;
+  const thumbDirection=sub(vector(thumb.slice(0,3)),scale(vector(a.anchor.slice(0,3)),thumb[3]/a.anchor[3]));
+  const reference=identity();reference.splice(0,3,...thumbDirection);
+  return inverseAffine(boneFrame([0,0,0],localNormal,reference));
  }
  private gripRailReference(rail:ReturnType<PoolCycleSource['gripRail']>,entry:PoolPreparedRailGeometry['edges'][number],shoulder:Vec3,work=this.numericWork){
   const {physical,geometryKey,local,location}=rail;
@@ -437,11 +615,18 @@ export class PoolCycleSource {
   if(!frame){work?.reserve('resolve actual reference palm frame',{expansions:1});frame=resolvePoolRailContactFrame(physical,raw,entry.edge.fromParameter,undefined,location);this.railReferences.set(referenceKey,frame);}
   return {raw,frame};
  }
- private exactGrip(rail:ReturnType<PoolCycleSource['gripRail']>,pose:ReturnType<PoolCycleSource['body']>['pose'],parameter:number,raw:readonly number[],active:number,work=this.numericWork):PoolLimbState {
+ private exactGrip(rail:ReturnType<PoolCycleSource['gripRail']>,pose:Pick<PoolHierarchy,'world'>,parameter:number,raw:readonly number[],active:number,work=this.numericWork):PoolLimbState {
   work?.reserve('resolve actual attached palm frame',{expansions:1});
   const {location,physical}=rail,frame=resolvePoolRailContactFrame(physical,raw,parameter,active,location);
   return {target:frame.translation,orientation:frame.orientation,pole:this.elbow(location.limb,pose),
    attached:{source:location,geometry:physical,parameter,rawOrientation:raw,activeVertex:frame.activeVertex}};
+ }
+ /** Materialize an authored supported turn from its two literal, already selected outer programs. */
+ supportedCrestTurn(left:PoolPoseProgram,right:PoolPoseProgram,turn:SupportedCrestTurn):PoolPoseProgram {
+  return makeSupportedCrestTurn({bundle:this.bundle,rest:this.neutral.rest,inverse:this.neutral.inverse,fixture:this.fixture,
+   anatomy:this.anatomy,clockUnits:this.definition.clockUnits,
+   grip:(limb,phase,pose,parameter,raw,active)=>this.exactGrip(this.gripRail(limb,phase),pose,parameter,raw,active)},
+   left,right,turn);
  }
  private crestRails(){
   return this.fixture.rails.map(rail=>{
@@ -575,14 +760,24 @@ export class PoolCycleSource {
    trunkYaw:mix(left.body.trunkYaw??0,right.body.trunkYaw??0,amount)},
    grips:[mix(left.grips[0],right.grips[0],amount),mix(left.grips[1],right.grips[1],amount)]};
  }
- private preferredGrip(limb:PoolHand,phase:number,pose:ReturnType<PoolCycleSource['body']>['pose'],inside=false):PoolLimbState|undefined {
-  const rail=this.gripRail(limb,phase),{physical}=rail;
+ climbBody(intent:NumericBody,facing:number){
+  const pose=this.placeBody(intent);
+  setPoolWorldRotation(pose,this.hip,multiply(yaw(facing),pose.world[this.hip]));
+  return pose;
+ }
+ climbGrip(limb:PoolHand,phase:number,pose:PoolHierarchy,maintained?:PoolLimbState['attached']){
+  const grip=this.preferredGrip(limb,phase,pose,true,'pool_exit_0',maintained);
+  if(!grip)throw new PoolTrialRefusal('No reachable inside ladder grip for '+limb+' at '+phase);
+  return grip;
+ }
+ private preferredGrip(limb:PoolHand,phase:number,pose:Pick<PoolHierarchy,'world'>,inside=false,action='pool_enter',maintained?:PoolLimbState['attached']):PoolLimbState|undefined {
+  const rail=this.gripRail(limb,phase,this.numericWork,action),{physical}=rail;
   const shoulder=point(pose.world[this.anatomy[limb].upper]),upper=this.limbReach[limb].lengths[0];
   const outside=!inside&&phase<=.42,crest=!inside&&phase>.42&&phase<=.48,branch=outside?this.definition.hand.outsideBranch:crest?this.definition.hand.crestBranch:this.definition.hand.insideBranch;
-  const desired:Vec3=[shoulder[0],crest?Math.max(shoulder[1],this.fixture.rails[0].points[3].point[1]):shoulder[1]-upper,shoulder[2]+(outside?upper/2:crest?-upper:-upper)];
+  const desired:Vec3=action==='pool_exit_0'?[shoulder[0],shoulder[1]+upper,shoulder[2]+upper/3]:[shoulder[0],crest?Math.max(shoulder[1],this.fixture.rails[0].points[3].point[1]):shoulder[1]-upper,shoulder[2]+(outside?upper/2:crest?-upper:-upper)];
   const choices:{parameter:number;raw:number[];active:number;distance:number}[]=[];
   for(const entry of physical.edges){if(entry.edge.toParameter<=branch[0]||entry.edge.fromParameter>=branch[1])continue;
-   const {raw,frame}=this.gripRailReference(rail,entry,shoulder);
+   const {raw,frame}=maintained?{raw:[...maintained.rawOrientation],frame:resolvePoolRailContactFrame(physical,maintained.rawOrientation,entry.edge.fromParameter,maintained.activeVertex,rail.location)}:this.gripRailReference(rail,entry,shoulder);
    const coefficient=physical.coefficients[physical.vertices.indexOf(frame.activeVertex)][3],w=Number(coefficient.numerator)*2**coefficient.exponent;
    const from=vector(entry.from.map((v,i)=>frame.translation[i]+(v-frame.targetPoint[i])/w)),direction=scale(sub(entry.to,entry.from),1/w),wanted=dot(sub(desired,from),direction)/dot(direction,direction);
    for(const interval of poolRootRayIntervals(direction,[{limb,center:sub(shoulder,from),reach:this.limbReach[limb]}])){
@@ -711,7 +906,7 @@ export class PoolCycleSource {
  }
  private fittedPaddleArm(limb:PoolHand,phase:number,pose:ReturnType<PoolCycleSource['body']>['pose'],bounds:ReturnType<typeof poolWaterBounds>):PoolLimbState {
   const a=this.anatomy[limb],orientation=properPoolRotation(multiply(pitch(this.definition.paddle.handPitchDegrees),this.neutral.rest[a.end]));
-  return poolPaddleArm(bounds,limb,phase,point(pose.world[a.upper]),this.limbReach[limb],orientation,a.completeHandCoefficients!);
+  return poolPaddleArm(bounds,limb,phase,point(pose.world[a.upper]),this.limbReach[limb],orientation,a.completeHandCoefficients!,this.paddleElbowLimit[limb]);
  }
  private fittedStroke(stroke:PoolWaterStrokeDefinition,phase:number,action:'pool_enter'|'pool_paddle'):PoolPoseProgram {
   if(!this.waterFit){
@@ -791,11 +986,29 @@ export class PoolCycleSource {
   const paddle=this.paddleHand(limb,body,0),a=this.anatomy[limb],shoulder=point(body.pose.world[a.upper]),bodyRotation=pitch(body.intent.trunkPitch),fore=this.limbReach[limb].lengths[1],middle:PoolLimbState={target:add(shoulder,transform(bodyRotation,[0,-fore,-fore])),pole:this.elbow(limb,body.pose),orientation:paddle.orientation};
   const from=phase<.88?neutral:middle,to=phase<.88?middle:paddle,u=phase<.88?(phase-.78)/.10:clamp((phase-.88)/.06,0,1);return {target:lerp(from.target,to.target,u),pole:lerp(from.pole,to.pole,u),orientation:rotationMix(from.orientation,to.orientation,u)};
  }
- private numericAttachment(l:PoolHand,phase:number,g:NumericGrasp,expected:{target?:Vec3;orientation?:readonly number[]},work=this.numericWork){
-  const rail=this.gripRail(l,phase,work),attached={source:rail.location,geometry:rail.physical,parameter:g.parameter,rawOrientation:g.rawOrientation,activeVertex:g.activeVertex};
+ private numericAttachment(l:PoolHand,phase:number,g:NumericGrasp,expected:{target?:Vec3;orientation?:readonly number[]},work=this.numericWork,action='pool_enter'){
+  const rail=this.gripRail(l,phase,work,action),attached={source:rail.location,geometry:rail.physical,parameter:g.parameter,rawOrientation:g.rawOrientation,activeVertex:g.activeVertex};
   work?.reserve('resolve literal numeric wrist '+l,{expansions:1});
   const frame=requireLiteralPoolRailFrame(attached,expected);
   return {attached,target:frame.translation,orientation:frame.orientation};
+ }
+ /** Rebuild a maintained physical grasp on this phase's complete fixture support record. */
+ heldClimbWrist(limb:PoolHand,action:string,phase:number,previous:PoolLimbState):PoolLimbState {
+  const g=previous.attached,record=poolSourceRecord(this.fixture,{action,phase}).limbs[limb];
+  if(!g||g.source.limb!==limb||g.geometry.surface!==record.surface||!poolSourcePolicy(this.fixture,action,phase)[limb].required)
+   throw new Error('A maintained pool grasp requires its matching rail and hand at this phase.');
+  const grasp={surface:g.geometry.surface,parameter:g.parameter,rawOrientation:g.rawOrientation,activeVertex:g.activeVertex};
+  return {...this.numericAttachment(limb,phase,grasp,previous,this.numericWork,action),pole:previous.pole};
+ }
+ outwardRail(limb:PoolHand,unit:number):PoolPreparedRailGeometry {
+  return this.gripRail(limb,unit/this.definition.clockUnits,this.numericWork,'pool_exit_0').physical;
+ }
+ slideClimbWrist(limb:PoolHand,unit:number,previous:PoolLimbState,parameter:number,pole:Vec3):PoolLimbState {
+  const g=previous.attached,phase=unit/this.definition.clockUnits,action='pool_exit_0';
+  const p=poolSourcePolicy(this.fixture,action,phase)[limb];
+  if(!g||!p.required||p.surface!==g.geometry.surface||g.source.limb!==limb)throw new Error('The sliding wrist must remain on its declared rail.');
+  const grasp={surface:g.geometry.surface,parameter,rawOrientation:g.rawOrientation,activeVertex:g.activeVertex};
+  return {...this.numericAttachment(limb,phase,grasp,{},this.numericWork,action),pole};
  }
  /** Geometry capture for the bounded v16 diagnostic. It never requests a candidate body, entry, first-rung fit or nominal crest. */
  captureNumericExterior(raw:readonly NumericStageRequest[],work:PoolTrialWork,opening?:PoolOpeningRequest):NumericProposalInput {
@@ -911,17 +1124,18 @@ export class PoolCycleSource {
     choices:stage.choices.map(c=>{const configuredBody=c.body??body;return {...c,body:configuredBody,shape:shape(configuredBody)};})};
   });
   const opening=parsed.opening;
-  const captureFlight=(opening:ParsedOpening):OpeningGeometry=>{
+  const flight=opening?this.captureOpeningGeometry(opening,work):undefined;
+  return structuredClone({acquisition:{body,hands,branch:ordinary?'ordinary':'fallback'},reach:this.limbReach,stages:configured,parameterDomain:spec.hand.outsideBranch,...(flight?{opening:flight}:{})});
+ }
+
+ captureOpeningGeometry(opening:ParsedOpening,work:PoolTrialWork):OpeningGeometry {
    work.reserve('measure selected opening foot envelope',{expansions:1});
    const l=opening.flight.limb,from=this.foot(l,opening.flight.from,work),to=this.foot(l,opening.flight.to,work);
    const edge=Math.max(...this.fixture.solids.map(s=>s.bounds[1][1])),gap=2*this.fixture.rails[0].radius;
    const corridorY=Math.max(...this.anatomy[l].surfaceCoefficients.map(c=>(edge+gap-poolSurfacePoint(from.orientation,c)[1])/c[3]));
    if(!Number.isFinite(corridorY)||!(from.lift>0&&to.lift>0))throw new Error('Opening foot has invalid configured clearance geometry.');
    const {next,...segment}=opening;
-   return {...segment,departureLift:from.lift,arrivalLift:to.lift,corridorY,...(next?{next:captureFlight(next)}:{})};
-  };
-  const flight=opening?captureFlight(opening):undefined;
-  return structuredClone({acquisition:{body,hands,branch:ordinary?'ordinary':'fallback'},reach:this.limbReach,stages:configured,parameterDomain:spec.hand.outsideBranch,...(flight?{opening:flight}:{})});
+   return {...segment,departureLift:from.lift,arrivalLift:to.lift,corridorY,...(next?{next:this.captureOpeningGeometry(next,work)}:{})};
  }
 
  materializeExteriorToe(start:PoolPoseProgram,contract:ExteriorToe,unitAt:number,work:PoolTrialWork):PoolPoseProgram {
@@ -1007,7 +1221,12 @@ export class PoolCycleSource {
   if(fittedCrest&&knot.unit!==this.definition.crestRoute.sampleUnits[0])throw new Error('Fitted crest control pose needs its literal landing.');
   const controlPose=fittedCrest?poolIntervalPreference(this.bundle,body.rest,body.inverse,body.basis,body.basis,0,true):body;
   const support=poolSourceRecord(this.fixture,loc).limbs,policy=poolSourcePolicy(this.fixture,loc.action,phase),controls:PoolPoseControl[]=[];
-  let unreachable:string|undefined;
+  let unreachable:PoolTrialRefusal|undefined;
+  const checkReach=(limb:PoolLimb,upper:Vec3,target:Vec3)=>{
+   const reach=this.limbReach[limb];
+   if(!numericLimbReachable(reach,upper,target))unreachable??=new PoolTrialRefusal('Cannot reach numeric '+(limb.startsWith('foot')?'sole ':'wrist ')+limb,
+    {cause:{unit:knot.unit,limb,upper,target,distance:length(sub(upper,target)),minimum:reach.minimum,maximum:reach.maximum}});
+  };
   for(const l of numericFeet){
    const goal=knot.feet[l],a=this.anatomy[l];
    if('flight' in goal){
@@ -1025,7 +1244,7 @@ export class PoolCycleSource {
     const frame=this.frame(l,support[l],[installed.target[0],installed.target[1]]);
     if(!same(frame.translation,goal.target)||!same(frame.orientation,goal.orientation))throw new Error('Numeric sole differs from its installed frame: '+l);
    }
-   if(!numericLimbReachable(this.limbReach[l],point(controlPose.world[a.upper]),goal.target))unreachable??='Cannot reach numeric sole '+l;
+   checkReach(l,point(controlPose.world[a.upper]),goal.target);
    controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],legFrame:'source-entry-0',
     state:{target:goal.target,orientation:goal.orientation,pole:point(controlPose.world[a.lower])}});
   }
@@ -1040,12 +1259,156 @@ export class PoolCycleSource {
     const actual=this.numericAttachment(l,phase,h.grasp,{target:h.heldTarget,orientation:h.heldOrientation});
     state={...actual,pole:add(shoulder,h.poleOffset)};
    }
-   if(!numericLimbReachable(this.limbReach[l],shoulder,state.target))unreachable??='Cannot reach numeric wrist '+l;
+   checkReach(l,shoulder,state.target);
    controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],state});
   }
-  if(unreachable)throw new PoolTrialRefusal(unreachable);
+  if(unreachable)throw unreachable;
   return makePoolPoseProgram(body.basis,controls,policy);
  }
+ /** Approach the selected first grasp from the actual standing pose on the authored opening clock. */
+ acquireFromStanding(unitAt:number,acquisition:NumericKnot,arrived:PoolPoseProgram):PoolPoseProgram {
+  const spec=this.definition;
+  if(spec.version!==16||acquisition.unit!==spec.groundGrip.acquisitionUnit||unitAt<0||unitAt>acquisition.unit)throw new Error('Invalid selected pool acquisition range.');
+  if(unitAt===acquisition.unit)return arrived;
+  const phase=unitAt/spec.clockUnits,weight=smooth(unitAt/acquisition.unit);
+  const standing=this.anchorIntent(spec.anchors[0]),chosen=acquisition.body;
+  const intent:BodyIntent={hips:lerp(standing.hips,chosen.hips,weight),hipPitch:mix(standing.hipPitch,chosen.hipPitch,weight),
+   trunkPitch:mix(standing.trunkPitch,chosen.trunkPitch,weight),headPitch:mix(standing.headPitch,chosen.headPitch,weight)};
+  const basis=this.placeBody(intent),body={intent,basis:basis.basis,pose:poolIntervalPreference(this.bundle,basis.rest,basis.inverse,basis.basis,basis.basis,0,true)};
+  const controls:PoolPoseControl[]=[],policy=poolSourcePolicy(this.fixture,'pool_enter',phase);
+  for(const limb of numericFeet){
+   const a=this.anatomy[limb],foot=this.foot(limb,'ground');
+   controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],legFrame:'source-entry-0',state:{target:foot.target,orientation:foot.orientation,pole:point(body.pose.world[a.lower])}});
+  }
+  const [start,end]=spec.hand.approach;
+  for(const limb of numericHands){
+   const a=this.anatomy[limb],neutral=this.neutralHand(limb,body),selected=arrived.controls.find(c=>c.end===a.end)?.state;
+   if(!selected?.attached||policy[limb].required||end!==acquisition.unit/spec.clockUnits)throw new Error('Selected wrist approach contradicts its authored acquisition.');
+   const t=clamp((phase-start)/(end-start),0,1);
+   const state=t===0?neutral:{target:lerp(neutral.target,selected.target,t),pole:lerp(neutral.pole,selected.pole,t),orientation:rotationMix(neutral.orientation,selected.orientation,t)};
+   controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],state});
+  }
+  return makePoolPoseProgram(body.basis,controls,policy);
+ }
+
+ /** Rebuild detached route controls against this source's installed soles and rail facets. */
+ materializeSelectedKnot(knot:SelectedPoolKnot,action:'pool_enter'|'pool_exit_0'='pool_enter'):PoolPoseProgram {
+  const phase=knot.unit/this.definition.clockUnits,location={action,phase};
+  const policy=poolSourcePolicy(this.fixture,location.action,phase),controls:PoolPoseControl[]=[];
+  if(knot.rotationInputs.length!==this.bundle.bones.length||Object.keys(knot.limbs).sort().join()!=='footL,footR,handL,handR')
+   throw new Error('Selected pool knot has the wrong configured hierarchy or limb set.');
+  finiteRow(knot.rootTravel,3,'selected root travel');
+  const basis=knot.rotationInputs.map((input,i)=>{
+   finiteRow(input,16,'pre-control rotation input');
+   const rotation=properPoolRotation(input);
+   if(i===0){rotation.splice(12,3,...knot.rootTravel);registerPoolRootTravel(rotation);}
+   return rotation;
+  });
+  const pose=poolIntervalPreference(this.bundle,this.neutral.rest,this.neutral.inverse,basis,basis,0,true);
+  for(const limb of [...numericFeet,...numericHands]){
+   const s=knot.limbs[limb],a=this.anatomy[limb],p=policy[limb];
+   finiteRow(s.target,3,'selected limb target');finiteRow(s.pole,3,'selected limb pole');rotationInput(s.orientation,'selected limb orientation');
+   const foot=limb==='footL'||limb==='footR';
+   validatePoolKneeOrbit(s.kneeOrbit,foot);
+   let state:PoolLimbState={target:s.target,pole:s.pole,orientation:s.orientation,...(s.kneeOrbit===undefined?{}:{kneeOrbit:s.kneeOrbit})};
+   if(foot){
+    if(s.grasp)throw new Error('Selected foot has an arm attachment.');
+    const place=action==='pool_enter'?heldPlace(this.definition,limb,knot.unit):Object.entries(this.definition.places).find(([,spec])=>spec.surface===p.surface)?.[0];
+    if(p.required){
+     if(!place||this.definition.places[place]?.surface!==p.surface||p.region?.kind!=='top-face'||
+       canonicalPoolValue(p.region)!==canonicalPoolValue(installedPoolSupport(this.fixture,p.surface!).region))
+      throw new Error('Selected foot differs from its declared support at '+knot.unit);
+     const installed=action==='pool_enter'?this.foot(limb,place):this.primaryExitFoot(limb,place,knot.unit);
+     if(!same(s.target,installed.target)||!same(s.orientation,installed.orientation))throw new Error('Selected foot differs from its installed sole at '+knot.unit);
+    }
+   }else if(p.required){
+    if(!s.grasp||p.region?.kind!=='rail'||p.surface!==s.grasp.surface)throw new Error('Selected wrist lost its declared rail at '+knot.unit);
+    graspInput(s.grasp,p.region.parameter);
+    state={...this.numericAttachment(limb,phase,s.grasp,{target:s.target,orientation:s.orientation},this.numericWork,action),pole:s.pole};
+   }else if(s.grasp)throw new Error('Selected free wrist unexpectedly remains attached.');
+   if(!numericLimbReachable(this.limbReach[limb],point(pose.world[a.upper]),state.target))
+    throw new PoolTrialRefusal('Selected pool control cannot reach '+limb+' at '+knot.unit);
+   controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],...(foot?{legFrame:'source-entry-0' as const}:{}),state});
+  }
+  return makePoolPoseProgram(basis,controls,policy);
+ }
+
+ /** A declared intermediate cut derives its body and commands from the actual two selected endpoint programs. */
+ splitSelectedEntry(left:PoolPoseProgram,right:PoolPoseProgram,fromUnit:number,toUnit:number,unit:number,action:'pool_enter'|'pool_exit_0'='pool_enter'):PoolPoseProgram {
+  if(unit===fromUnit)return left;if(unit===toUnit)return right;
+  if(![fromUnit,toUnit,unit].every(Number.isSafeInteger)||!(unit>fromUnit&&unit<toUnit))throw new Error('Invalid selected pool interval cut.');
+  const t=(unit-fromUnit)/(toUnit-fromUnit),phase=unit/this.definition.clockUnits,location={action,phase};
+  const policy=poolSourcePolicy(this.fixture,location.action,phase);
+  const pose=poolIntervalPreference(this.bundle,this.neutral.rest,this.neutral.inverse,left.preferenceBasis,right.preferenceBasis,t,true);
+  const controls=poolIntervalProgramControls(left,right).map(c=>{
+   const {from,to,...chain}=c,limb=this.bundle.bones[c.end].name.replace('.','') as PoolLimb;
+   let {state}=resolvePoolLimbState(c,t,location);
+   if(state.attached){
+    if(!policy[limb].required||limb!=='handL'&&limb!=='handR')throw new Error('Unsupported wrist attachment at a selected interval cut.');
+    state={...state,attached:{...state.attached,source:{...location,limb}}};
+   }else if((limb==='handL'||limb==='handR')&&policy[limb].required)throw new Error('Selected interval cut lacks a required wrist.');
+   return {...chain,state};
+  });
+  return makePoolPoseProgram(pose.basis,controls,policy);
+ }
+
+ /** Build any extra water-only cut from the same two selected programs used by the graph. */
+ freeWaterKnot(left:PoolPoseProgram,right:PoolPoseProgram,t:number,action:string,phase:number):PoolPoseProgram {
+  if(t===0)return left;if(t===1)return right;
+  const policy=poolSourcePolicy(this.fixture,action,phase);
+  if([...numericFeet,...numericHands].some(l=>policy[l].mode!=='free'))throw new Error('A water bridge unexpectedly requires a contact.');
+  const pose=poolIntervalPreference(this.bundle,this.neutral.rest,this.neutral.inverse,left.preferenceBasis,right.preferenceBasis,t,true);
+  const controls=poolIntervalProgramControls(left,right).map(({from,to,...chain})=>({
+   ...chain,state:resolvePoolLimbState({...chain,from,to},t,{action,phase}).state,
+  }));
+  return makePoolPoseProgram(pose.basis,controls,policy);
+ }
+
+ /** Bind the selected 62380 program once; both incident intervals consume that exact node. */
+ withdrawalFrom(start:PoolPoseProgram,landed:NumericBody):(phase:number)=>PoolPoseProgram {
+  if(this.definition.version!==16)throw new Error('The selected pool withdrawal requires a water-stroke motion.');
+  bodyInput(landed);
+  const spec=this.definition,atStart=this.placeBody(landed),from=start.controls;
+  if(!atStart.basis.every((m,i)=>same(m,start.preferenceBasis[i])))throw new Error('Selected withdrawal intent differs from its pre-control seam.');
+  const canonical=this.entry(poolWithdrawalEnd),swim=this.paddle(0),bounds=poolWaterBounds(this.fixture);
+  const stateOf=(p:PoolPoseProgram,l:PoolLimb)=>{
+   const c=p.controls.find(c=>c.end===this.anatomy[l].end);
+   if(!c)throw new Error('Withdrawal seam lacks the configured '+l);
+   return c.state;
+  };
+  const held={handL:stateOf(start,'handL'),handR:stateOf(start,'handR')};
+  if(!held.handL.attached||!held.handR.attached||from.length!==4)throw new Error('Withdrawal must start with both selected literal rail grasps.');
+  return phase=>{
+   if(!Number.isFinite(phase)||phase<poolWithdrawalStart||phase>1)throw new Error('Pool withdrawal is outside the selected entry path.');
+   if(phase===poolWithdrawalStart)return start;
+   if(phase===poolWithdrawalEnd)return canonical;
+   if(phase===1)return swim;
+   if(phase>poolWithdrawalEnd)return this.freeWaterKnot(canonical,swim,(phase-poolWithdrawalEnd)/(1-poolWithdrawalEnd),'pool_enter',phase);
+   const nominal=phase<=spec.hand.release.handR[1]?landed:this.body(phase).intent;
+   const {intent,freeFootShiftX}=poolWithdrawalBody(phase,landed,nominal,spec.waterCorridor);
+   const pose=this.placeBody(intent),policy=poolSourcePolicy(this.fixture,'pool_enter',phase),controls:PoolPoseControl[]=[];
+   for(const limb of numericFeet){
+    const a=this.anatomy[limb],goal=this.freeFootGoal(limb,phase,intent);
+    controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],legFrame:'source-entry-0',
+     state:{target:freeFootShiftX?add(goal,[freeFootShiftX,0,0]):goal,pole:point(pose.world[a.lower]),orientation:this.flatFeet[limb]}});
+   }
+   for(const limb of numericHands){
+    const grip=held[limb],a=this.anatomy[limb],shoulder=point(pose.world[a.upper]),release=spec.hand.release[limb];
+    let state:PoolLimbState;
+    if(phase<=release[0]){
+     const g=grip.attached!;
+     const actual=this.exactGrip(this.gripRail(limb,phase),pose,g.parameter,g.rawOrientation,g.activeVertex);
+     if(!same(actual.target,grip.target)||!same(actual.orientation,grip.orientation))throw new Error('Held withdrawal wrist changed its literal attachment.');
+     state=poolHeldWithdrawalHand(actual,grip,point(atStart.world[a.upper]),shoulder);
+    }else state=poolFreeWithdrawalHand(phase,{limb,landedGrip:grip,landedHipX:landed.hips[0],release,railRadius:this.fixture.rails[limb==='handL'?0:1].radius,
+     shoulder,reach:this.limbReach[limb],palm:a.completeHandCoefficients!,bounds,paddle:stateOf(canonical,limb)});
+    if(policy[limb].required!==!!state.attached)throw new Error('Withdrawal wrist differs from its phase-owned support.');
+    controls.push({upper:a.upper,lower:a.lower,end:a.end,anchor:[0,0,0,1],state});
+   }
+   return makePoolPoseProgram(pose.basis,controls,policy);
+  };
+ }
+
  entry(phase:number):PoolPoseProgram {
   if(phase===1&&this.definition.waterStroke)return this.waterJoin??=this.fittedStroke(this.definition.waterStroke,0,'pool_enter');
   if(phase===.94&&this.definition.version===16)return this.corridorJoin??=this.entryNode(phase);

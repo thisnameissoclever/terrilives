@@ -79,7 +79,7 @@ fn fixture(
         sim.world_mut().entity_mut(actor).insert(Eating {
             object: definition,
             interaction: 0,
-            remaining_ticks: remaining(&episode),
+            remaining_ticks: countdown(phase, elapsed, LEGACY_EXIT_TICKS).unwrap(),
         });
     }
     (sim, actor, pool)
@@ -139,7 +139,7 @@ fn historical_all_facings_and_phases_preserve_progress_and_randomness() {
                 ),
                 (
                     before.phase,
-                    before.elapsed,
+                    if phase == 3 { before.elapsed * 2 } else { before.elapsed },
                     before.exit_origin,
                     before.interrupted
                 )

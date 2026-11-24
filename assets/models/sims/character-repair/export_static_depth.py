@@ -87,6 +87,22 @@ def main():
                 raise ValueError(f'Authored model differs from published receipt: {source}')
             bpy.ops.wm.open_mainfile(filepath=str(source), load_ui=False, use_scripts=False)
             root = next(obj for obj in bpy.data.objects if obj.type == 'EMPTY' and obj.name.endswith('_MODEL_ROOT'))
+            if bpy.context.scene.camera is None and entry['name'] == 'offlinePool':
+                # The editable pool lives in its own scene. Trace depth from the
+                # exact camera that rendered the registered color sprites.
+                from mathutils import Matrix
+                scene = bpy.context.scene
+                camera_data = bpy.data.cameras.new('Registered pool depth camera')
+                camera_data.type = 'ORTHO'
+                camera_data.ortho_scale = proof['ortho_scale']
+                camera = bpy.data.objects.new(camera_data.name, camera_data)
+                scene.collection.objects.link(camera)
+                camera.matrix_world = Matrix(proof['camera_matrix'])
+                scene.camera = camera
+                width, height = proof['logical_canvas']
+                scene.render.resolution_x = width * proof['source_density']
+                scene.render.resolution_y = height * proof['source_density']
+                scene.render.pixel_aspect_x = scene.render.pixel_aspect_y = 1
             for obj in root.children_recursive:
                 obj.hide_render = bool(obj.get('pool_rail_authoring_path'))
             if entry['name'] == 'offlineBunk':

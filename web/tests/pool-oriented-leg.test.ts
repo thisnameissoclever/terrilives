@@ -5,7 +5,9 @@ import {anatomicalHeight} from '../src/render/character/shape.js';
 import {PoolEntryCompiler} from '../src/render/character/pool-entry-compiler.js';
 import {poolEntrySearchPlan} from '../src/render/character/pool-entry-search-plan.js';
 import {clonePoolMatrix,requirePoolMatrixRepresentation,preparePoolOrientedLeg,requirePoolOrientedLeg,requirePoolOrientedLegReference} from '../src/render/character/pool-matrix-producer.js';
-import {solvePoolOrientedFoot,observeConstructedPoolLeg,poolLegFrameDiagnostic} from '../src/render/character/pool-oriented-leg.js';
+import {solvePoolOrientedFoot,observeConstructedPoolLeg,poolLegFrameDiagnostic,evaluatePoolOrientedLeg} from '../src/render/character/pool-oriented-leg.js';
+import {solvePoolFreeLeg,observeConstructedPoolFreeLeg} from '../src/render/character/pool-free-leg.js';
+import {interpolatePoolLimbState,validatePoolKneeOrbit} from '../src/render/character/pool-contact-evaluator.js';
 import {poolKneePolicies,observePoolKneeBranch} from '../src/render/character/pool-knee-branch.js';
 import {properPoolRotation} from '../src/render/character/pool-canonical-pose.js';
 import {poolAdd,poolMultiply,poolNumber} from '../src/render/character/pool-arithmetic.js';
@@ -16,7 +18,7 @@ import {orientedPoolLegMath,type OrientedLegInput} from '../src/render/character
 import * as tracked from '../src/render/character/pool-matrix-arithmetic.js';
 import {translatePoolRoot} from '../src/render/character/pool-canonical-pose.js';
 import {poolRootRayIntervals} from '../src/render/character/pool-entry-domain.js';
-import {scale} from '../src/render/character/math.js';
+import {add,scale,sub,unit,cross,dot,length,type Vec3} from '../src/render/character/math.js';
 import {interpolatePoolHierarchy,interpolatePoolPose,poolSkinMatrices,poolIntervalPreference} from '../src/render/character/pool-contact-sample.js';
 import {posedCageSurface} from '../src/render/character/geometry-proof.js';
 import {shapeVertices} from '../src/render/character/shape.js';
@@ -32,6 +34,38 @@ function source(){
   const pose={...domain.node,basis:domain.node.basis.map(clonePoolMatrix),world:domain.node.world.map(matrix=>[...matrix])};
   return {compiler,domain,pose};
 }
+
+it('orbits only the actual supported knee and replays the same hinge on a free foot',()=>{
+  const {domain,pose}=source(),contact=domain.footContacts.find(c=>c.frame)!;
+  const {upper,lower,end}=contact.anatomy,frame=contact.frame!;
+  const fresh=()=>({...pose,basis:pose.basis.map(clonePoolMatrix),world:pose.world.map(m=>[...m])});
+  const literal=fresh(),zero=fresh(),base=solvePoolOrientedFoot(literal,upper,lower,end,frame);
+  solvePoolOrientedFoot(zero,upper,lower,end,frame,0);
+  expect(zero.world).toEqual(literal.world);
+  const at=(m:number[])=>m.slice(12,15) as unknown as Vec3;
+  const h=at(literal.world[upper]),k=at(literal.world[lower]),a=at(literal.world[end]),axis=unit(sub(h,a)),v=sub(k,a);
+  for(const bias of [-.28,.28]){
+    const angle=2*Math.atan(bias),c=Math.cos(angle),s=Math.sin(angle);
+    const expected=add(a,add(add(scale(v,c),scale(cross(axis,v),s)),scale(axis,dot(axis,v)*(1-c))));
+    const held=fresh(),free=fresh(),actual=fresh(),heldPlan=solvePoolOrientedFoot(held,upper,lower,end,frame,bias);
+    const freePlan=solvePoolFreeLeg(free,upper,lower,end,frame.translation,frame.orientation,undefined,bias);
+    evaluatePoolOrientedLeg(actual,upper,lower,end,frame.translation,frame.orientation,bias);
+    expect(observeConstructedPoolLeg(held,frame,heldPlan).admitted).toBe(true);
+    expect(observeConstructedPoolFreeLeg(free,freePlan).admitted).toBe(true);
+    expect(heldPlan.branch).toBe(base.branch);expect(heldPlan.flexion).toBe(base.flexion);
+    expect(length(sub(at(held.world[lower]),expected))).toBeLessThan(1e-10);
+    expect(length(sub(at(held.world[end]),a))).toBeLessThan(1e-10);
+    expect(Math.max(...held.world[end].map((n,i)=>Math.abs(n-literal.world[end][i])))).toBeLessThan(1e-10);
+    for(let i=0;i<held.world.length;i++){
+      if(i!==upper&&i!==lower&&i!==end)expect(held.world[i]).toEqual(literal.world[i]);
+      for(const other of [actual,free])expect(Math.max(...held.world[i].map((n,j)=>Math.abs(n-other.world[i][j])))).toBeLessThan(1e-10);
+    }
+    const state={target:frame.translation,orientation:frame.orientation,pole:k};
+    expect(interpolatePoolLimbState({upper,lower,end,anchor:[0,0,0,1],legFrame:'source-entry-0',from:{...state,kneeOrbit:bias},to:state},.5).kneeOrbit).toBe(bias/2);
+  }
+  expect(()=>validatePoolKneeOrbit(.1,false)).toThrow('Invalid pool knee orbit');
+  for(const bad of [NaN,Infinity,-1.1,1.1])expect(()=>validatePoolKneeOrbit(bad,true)).toThrow('Invalid pool knee orbit');
+});
 
 it('keeps the published oriented-leg plan and its nested frame values immutable',()=>{
   const {domain,pose}=source(),contact=domain.footContacts[0],{upper,lower,end}=contact.anatomy,frame=contact.frame!,plan=preparePoolOrientedLeg(pose,upper,lower,end,frame),before=JSON.stringify(plan);

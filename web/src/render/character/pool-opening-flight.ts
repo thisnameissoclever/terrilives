@@ -48,13 +48,14 @@ export function openingPolicy(f:OpeningFlight,fixture:PoolFixtureV1,def:PoolCycl
   const l=policy[f.limb],r=policy[fixed],old=def.places[f.from].surface,next=def.places[f.to].surface;
   const held=def.places[takeoff.feet[index]].surface;
   const acquisition=poolSourcePolicy(fixture,action,def.groundGrip!.acquisitionUnit/def.clockUnits);
-  const nextRelease=def.footTransitions.find(t=>t.limb===fixed&&t.startUnit===f.endUnit);
+  const moves=def.version===16&&def.forwardHop?def.forwardHop.footTransitions:def.footTransitions;
+  const nextRelease=moves.find(t=>t.limb===fixed&&t.startUnit===f.endUnit);
   const outgoing=toe&&phase===b&&f.kind==='crest-landing-step';
   const release=phase===b&&nextRelease;
   if(!r.required||r.surface!==held||r.region?.kind!=='top-face'||canonicalPoolValue(r.region)!==canonicalPoolValue(installedPoolSupport(fixture,held).region)||
     r.mode!==(release||outgoing?'release':'support'))throw new Error('Opening flight lost its installed supporting foot.');
   if(outgoing&&(row[fixed].interval?.[0]!==b||row[fixed].interval?.[1]!==toe.releaseEnd/def.clockUnits||row[fixed].intervalSpace!=='clip-phase'))throw new Error('Crest toe has a different outgoing release.');
-  if(release){
+  if(release&&!outgoing){
     const releaseEnd=(release.startUnit+(release.endUnit-release.startUnit)*def.transferPercentages[1]/100)/def.clockUnits;
     const actual=row[fixed];
     if(actual.intervalSpace!=='clip-phase'||actual.interval?.[0]!==b||actual.interval?.[1]!==releaseEnd)

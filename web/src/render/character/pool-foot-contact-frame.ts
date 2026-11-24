@@ -56,7 +56,7 @@ function coefficient(geometry:Geometry,cage:Float32Array<ArrayBuffer>,inverse:re
 }
 
 /** Construct the physical premise before IK or any rounded surface observation exists. */
-export function preparePoolFootContactFrame(fixture:PoolFixtureV1,support:PoolSupport,geometry:Geometry,cage:Float32Array<ArrayBuffer>,inverse:readonly number[],patch:PreparedPoolPatch,orientation:readonly number[],translationXY:readonly [number,number]):PoolFootContactFrame {
+export function preparePoolFootContactFrame(fixture:PoolFixtureV1,support:PoolSupport,geometry:Geometry,cage:Float32Array<ArrayBuffer>,inverse:readonly number[],patch:PreparedPoolPatch,orientation:readonly number[],translationXY:readonly [number,number],unavailable?:(message:string)=>Error):PoolFootContactFrame {
   if(!support.surface||support.region?.kind!=='top-face')throw new Error('Pool foot contact needs a named horizontal finite support.');
   if(translationXY.some(value=>!Number.isFinite(value)))throw new Error('Pool foot contact needs finite plane coordinates.');
   if(orientation.length!==16||orientation.some(value=>!Number.isFinite(value)))throw new Error('Pool foot contact needs a finite intended orientation.');
@@ -85,7 +85,11 @@ export function preparePoolFootContactFrame(fixture:PoolFixtureV1,support:PoolSu
     if(!target||poolRatioCompare(ratio,target)>0||poolRatioCompare(ratio,target)===0&&patchVertices.has(vertex)&&!patchVertices.has(activeVertex)){target=ratio;activeVertex=vertex;}
     return ratio;
   });
-  if(!target||!patchVertices.has(activeVertex))throw new Error('The full-foot tangent vertex is outside the unchanged required patch.');
+  if(!target)throw new Error('The full-foot tangent vertex is outside the unchanged required patch.');
+  if(!patchVertices.has(activeVertex)){
+   const message='The full-foot tangent vertex is outside the unchanged required patch.';
+   throw unavailable?.(message)??new Error(message);
+  }
   // Exact comparison, independently repeated over the complete selected foot.
   if(targets.some(ratio=>poolRatioCompare(ratio,target!)>0))throw new Error('Pool foot tangent target leaves a nominal vertex below its plane.');
   const z=poolRatioNumber(target),error=poolRatioRoundingError(target,z);
@@ -125,7 +129,8 @@ export function requirePoolFootContactFrameInstance(frame:PoolFootContactFrame,a
 /** A literal free goal may use this plane reference without claiming tangent contact. */
 export function requirePoolFootClearanceReference(frame:PoolFootContactFrame,target:readonly number[],orientation:readonly number[],actualInverse?:readonly number[],actualRig?:Bundle,onNegative?:(reason:Error)=>Error) {
   requirePoolFootContactFrameInstance(frame,actualInverse,actualRig);
-  const certificate=certificates.get(frame)!,solid=certificate.fixture.solids.find(solid=>solid.id===frame.surface);
+  const certificate=certificates.get(frame)!,fixture=certificate.fixture;
+  const solid=fixture.ground.id===frame.surface?fixture.ground:fixture.solids.find(solid=>solid.id===frame.surface);
   if(!certificate.rigKey||actualRig&&certificate.rigKey!==rigKey(actualRig))throw new Error('Pool free foot uses a different actual selected rig.');
   if(!solid||!certificate.owned&&canonicalPoolValue(solid)!==certificate.solidKey)throw new Error('Pool free foot reference solid changed.');
   if(target.length!==3||target.some(value=>!Number.isFinite(value))||target[0]!==frame.translation[0]||target[1]!==frame.translation[1])throw new Error('Pool free foot differs from its reference plane coordinates.');

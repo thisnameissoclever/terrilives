@@ -20,14 +20,19 @@ import retained from './pool-approach-input.json';
 import {solvePoolOrientedFoot} from '../src/render/character/pool-oriented-leg.js';
 
 const phase=.29999999999999993;
-function input(abovePlane=false,mutablePatch=false,near=false,selectedMismatch?:'source'|'bones'){
+function input(abovePlane=false,mutablePatch=false,near=false,selectedMismatch?:'source'|'bones',groundApproach=false){
   const appearance=defaultAppearance('feminine'),shape={presentation:appearance.presentation,...appearance.body,face:appearance.face};
   const selected=new PreparedBody(poolBase,appearance).select(poolRig,appearance,{wear:'bare',prop:'none',fixture:'none',eyes_closed:false,includeFixture:false,clip:'pool_enter',swimwear:'two_piece'});
   const geometry={...selected.body,indices:selected.body.indices.slice(),stencilRanges:selected.body.stencilRanges.slice(),stencilWeights:selected.body.stencilWeights.slice(0),description:structuredClone(selected.body.description)};
-  const fixture=structuredClone(poolFixture),compiler=new PoolEntryCompiler(poolRig.manifest,shape,anatomicalHeight(poolBase.vertices),[geometry],fixture),domain=compiler.prepareLegDomain(.2,poolEntrySearchPlan(.2)[0]);
+  const fixture=structuredClone(poolFixture),compiler=new PoolEntryCompiler(poolRig.manifest,shape,anatomicalHeight(poolBase.vertices),[geometry],fixture);
+  const seedPhase=groundApproach?0:.2,domain=compiler.prepareLegDomain(seedPhase,poolEntrySearchPlan(seedPhase)[0]);
   if(near){expect(poolRig.manifest.sourceSha256).toBe(retained.provenance.baseSourceSha256);expect(poolRig.manifest.basisActions.pool_enter[0]).toEqual(retained.standingBasis);}
   const pose=poolIntervalPreference(poolRig.manifest,domain.seed.rest,domain.seed.inverse,near?retained.leftPreferenceBasis:domain.node.basis,near?retained.rightPreferenceBasis:domain.node.basis,near?retained.fraction:0,true),anatomy=compiler.anatomy.footL,cage=domain.cages[0],patch=mutablePatch?{...anatomy.front!}:anatomy.front!;
   const support=poolSourceRecord(fixture,{action:'pool_enter',phase}).limbs.footL,flat=properPoolRotation(pose.rest[anatomy.end]);
+  if(groundApproach){
+    support.surface=fixture.ground.id;
+    support.region={kind:'top-face'};
+  }
   if(abovePlane)(fixture.solids.find(solid=>solid.id===support.surface)!.vertices[0] as unknown as [number,number,number])[2]=1;
   if(selectedMismatch)geometry.manifest={...geometry.manifest,...(selectedMismatch==='source'?{sourceSha256:'selected-only-change'}:{bones:geometry.manifest.bones.map((bone,i)=>i===anatomy.lower?{...bone,name:'wrong-selected-shin'}:bone)})};
   const frame=preparePoolFootContactFrame(fixture,support,geometry,cage,pose.inverse[anatomy.end],patch,flat,(near?retained.target:domain.footContacts[0].frame!.translation).slice(0,2) as [number,number]);
@@ -38,6 +43,17 @@ function input(abovePlane=false,mutablePatch=false,near=false,selectedMismatch?:
   const derive=(actualSurface=surface,actualObservation=observation)=>derivePoolApproachClearanceArithmetic(fixture,actualSurface,cage,pose,patch,support,'footL',frame,plan,actualObservation);
   return {fixture,geometry,cage,pose,patch,support,frame,target,plan,anatomy,surface,observation,evaluate,derive};
 }
+
+it('authenticates the ground during a free-foot approach and detects a change to its finite bounds',()=>{
+  const p=input(false,false,false,undefined,true);
+  expect(p.frame.surface).toBe(p.fixture.ground.id);
+  expect(p.derive()).toMatchObject({surface:p.fixture.ground.id,required:false,contactEstablished:false});
+  const below:Vec3=[p.target[0],p.target[1],p.frame.translation[2]-.001];
+  expect(()=>requirePoolFootClearanceReference(p.frame,below,p.frame.orientation)).toThrow('below its exact nominal');
+  const high=p.fixture.ground.bounds[1];
+  p.fixture.ground.bounds[1]=[high[0]+.1,high[1],high[2]];
+  expect(()=>requirePoolFootClearanceReference(p.frame,p.target,p.frame.orientation)).toThrow('Pool free foot reference solid changed.');
+});
 
 it.each(['points','recomputed'] as const)('authenticates same-phase observation surfaces: %s',mode=>{
   const p=input(false,false,true),bound=p.derive().maximumOutputError;

@@ -67,7 +67,7 @@ export class CharacterScenePlan {
     const whole=source.seatedWhole?.(),seatedPlaces=source.seatedPlaces?.(),sleepingPlaces=source.sleepingPlaces?.(),progress=source.choreProgress?.();
     const targets=source.interactionTargets?.(),beds=source.sleepingBeds?.(),seats=source.seatedFurniture?.(),shelves=source.readingHomeShelves?.();
     const soundActions=source.soundActions?.(),soundSources=source.soundSources?.();
-    const poolPhases=source.poolPhases?.(),poolElapsed=source.poolElapsed?.(),poolOrigins=source.poolExitOrigins?.();
+    const poolPhases=source.poolPhases?.(),poolElapsed=source.poolElapsed?.(),poolOrigins=source.poolExitOrigins?.(),poolExitTicks=source.poolExitTicks?.();
     const previousPoolPhases=source.prevPoolPhases?.(),previousPoolElapsed=source.prevPoolElapsed?.(),previousPoolOrigins=source.prevPoolExitOrigins?.(),previousPoolTargets=source.prevPoolTargets?.();
     const bathToys=source.bathToys?.(),bathElapsed=source.bathElapsed?.(),previousBathToys=source.prevBathToys?.(),previousBathElapsed=source.prevBathElapsed?.(),previousBathTargets=source.prevBathTargets?.();
     const shelfOffsets=source.shelfBookOffsets?.(),shelfCounts=source.shelfBookCounts?.(),shelfMasks=source.shelfBookMasks?.();
@@ -91,7 +91,7 @@ export class CharacterScenePlan {
       const facing=actions[row]===5?walkingFacing(previous[row*2],previous[row*2+1],current[row*2],current[row*2+1],facings[row]):facings[row];
       const action=characterActionPlan({action:shower?20:actions[row],activity:activities[row],entity:ids[row],facing,x,y,tick:tick+alpha,reducedMotion,
         fixtureModel:model?.id??null,wholeSeat:whole?.[row]===1,readingStage:stages?.[row]??0,carriedBook:books!==undefined&&books[row]!==0xffffffff,
-        poolPhase:poolPhases?.[row],poolElapsed:poolElapsed?.[row],poolExitOrigin:poolOrigins?.[row],
+        poolPhase:poolPhases?.[row],poolElapsed:poolElapsed?.[row],poolExitOrigin:poolOrigins?.[row],poolExitTicks,
         prevPoolPhase:previousPoolTargets?.[row]===poolTarget?previousPoolPhases?.[row]:0,
         prevPoolElapsed:previousPoolElapsed?.[row],prevPoolExitOrigin:previousPoolOrigins?.[row],poolAlpha:alpha,
         bathElapsed:(bathToys?.[row]??0)>0?(()=>{

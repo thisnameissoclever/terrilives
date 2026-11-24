@@ -587,6 +587,15 @@ export class SpriteRenderer {
     drawAroundMarkers(pass,start,count,this.markerSlots,markers);
   }
 
+  private drawLowWalls(pass:GPURenderPassEncoder,total:number):void {
+    if(!this.lowWallCount)return;
+    pass.setPipeline(this.lowWallPipeline);
+    pass.setBindGroup(0,this.bindGroup);
+    pass.setVertexBuffer(0,this.instanceBuffer);
+    pass.setVertexBuffer(1,this.ownerBuffer);
+    pass.draw(VERTICES_PER_QUAD,this.lowWallCount,0,total);
+  }
+
   /**
    * @param ambient The hour of day as an rgba multiplier, from
    *   `ambientFor` in daylight.ts. Defaults to neutral, so a caller that
@@ -605,6 +614,7 @@ export class SpriteRenderer {
     owners?:Uint32Array,
     annotations:Readonly<{start:number;count:number}>={start:count,count:0},
     drawEffects?: (encoder:GPUCommandEncoder,target:SceneTarget)=>void,
+    drawWaterSurface?: (encoder:GPUCommandEncoder,target:SceneTarget)=>void,
   ): void {
     if(!Number.isInteger(annotations.start)||!Number.isInteger(annotations.count)||annotations.start<0||annotations.count<0||annotations.start+annotations.count>count)
       throw new Error('Invalid activity annotation range.');
@@ -686,12 +696,18 @@ export class SpriteRenderer {
     // before the short walls: those write no depth, so only drawing them
     // afterwards lets a short wall cover the rim of a marker behind it.
     this.groundSelection.draw(pass,this.sceneTarget!,instances,this.markerRows,markers,scale);
-    if (this.lowWallCount > 0) {
-      pass.setPipeline(this.lowWallPipeline);
-      pass.setBindGroup(0, this.bindGroup);
-      pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
+    if(drawWaterSurface){
+      pass.end();
+      drawWaterSurface(encoder,this.sceneTarget!);
+      if(this.lowWallCount){
+        const walls=this.sceneTarget!.resume(encoder);
+        this.drawLowWalls(walls,total);
+        walls.end();
+      }
+    }else{
+      this.drawLowWalls(pass,total);
+      pass.end();
     }
-    pass.end();
     drawEffects?.(encoder,this.sceneTarget!);
     if(annotations.count){
       const annotationPass=this.sceneTarget!.beginAnnotations(encoder,owners!.subarray(annotations.start,afterAnnotations));

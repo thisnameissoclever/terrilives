@@ -1,3 +1,5 @@
+import {withSelectedPoolBasisInputs} from './pool-matrix-producer.js';
+import {bindSelectedPoolRoute,type SelectedPoolRoute} from './pool-selected-cycle.js';
 import type {PlantedStep} from './pool-planted-step.js';
 import {openingAt,openingSegments,requireSelectedPoolRecipe,openingPolicy,requireOpeningDefinition,type PoolOpeningRequest,type OpeningFlight,type ExteriorToe,type ParsedOpening} from './pool-opening-flight.js';
 import {requirePoolRailContactFrame} from './pool-rail-contact-frame.js';
@@ -25,6 +27,7 @@ import {posedCageSurface} from './geometry-proof.js';
 import {observeOwnedPoolPhysicalSource,observePoolSource,type PoolObservation,type PoolSurfaceInput} from './pool-observer.js';
 import {derivePoolSupportArithmetic,derivePoolApproachClearanceArithmetic,type PoolContactArithmetic} from './pool-support-arithmetic.js';
 import {derivePoolRailArithmetic} from './pool-rail-support-arithmetic.js';
+import {poolFootOverlapsTread} from './pool-tread-footprint.js';
 import {observePoolPatchSupports} from './pool-support-observer.js';
 import {poolSourceRecord,poolSourcePolicy,poolSourceEvents,requirePoolPolicyEqual,requirePoolPolicyInterval,POOL_LIMBS,type PoolSourceLocation} from './pool-source-policy.js';
 import {canonicalPoolValue,poolPartKey,poolShapeIdentity} from './pool-contact-identity.js';
@@ -128,7 +131,7 @@ class PoolOwnedCompilation {
  inverse?:readonly (readonly number[])[];
  active?:ObservationOwner;
 
- constructor(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition,extras?:{numericRequest?:PoolNumericSliceRequest;numericRecipe?:NumericRecipe;numericSelection?:NumericRecipe;numericPlants?:readonly PlantedStep[];numericOpening?:ParsedOpening},work?:PoolTrialWork,onScheduled?:(jobs:readonly PoolReplayJob[])=>void){
+ constructor(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition,extras?:{selectedRoute?:SelectedPoolRoute;numericRequest?:PoolNumericSliceRequest;numericRecipe?:NumericRecipe;numericSelection?:NumericRecipe;numericPlants?:readonly PlantedStep[];numericOpening?:ParsedOpening},work?:PoolTrialWork,onScheduled?:(jobs:readonly PoolReplayJob[])=>void){
   this.captured=copyInputs({input,sources,definition,...extras},this.counters);
   const captured=this.captured.sources,{bundle,shape,top,geometry,fixture}=captured;
   validatePoolContactInput(this.captured.input);validatePoolCycleDefinition(this.captured.definition);
@@ -239,8 +242,22 @@ export function poolOwnsObservationRows(fixture:PoolFixtureV1,rows:readonly Pool
 function detachedError(value:unknown):unknown {return restoreErrorDetails(serializeErrorDetails(value),'Pool compilation failed.');}
 
 /** Capture the physical inputs before constructing the source or invoking diagnostics. */
-export function compileOwnedPoolCycle(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition,diagnostic?:Diagnostic,counters?:(summary:PoolOwnedCompilationCounters)=>void):PoolContactArtifactV1 {
- const owner=new PoolOwnedCompilation(input,sources,definition),captured=owner.captured;
+export function compileOwnedPoolCycle(input:PoolContactInputV1,sources:PoolCycleInputs,definition:PoolCycleDefinition,diagnostic?:Diagnostic,counters?:(summary:PoolOwnedCompilationCounters)=>void,selection?:(input:PoolContactInputV1,source:PoolCycleSource)=>SelectedPoolRoute):PoolContactArtifactV1 {
+ let selectedRoute:SelectedPoolRoute|undefined;
+ if(selection){
+  const preparation=new PoolOwnedCompilation(input,sources,definition);
+  try{
+   const {input:capturedInput,definition:motion,sources:{bundle,shape,top,geometry,fixture}}=preparation.captured;
+   if(motion.version!==16)throw new Error('Selected route preparation requires its declared motion.');
+   selectedRoute=withSelectedPoolBasisInputs(()=>{
+    const author=new PoolCycleSource(bundle,shape,top,geometry,fixture,motion);
+    preparation.configure(author);
+    return selection(capturedInput,author);
+   });
+   if(!selectedRoute)throw new Error('The pool selector produced no complete entry route.');
+  }finally{preparation.dispose();}
+ }
+ const owner=new PoolOwnedCompilation(input,sources,definition,selectedRoute?{selectedRoute}:undefined),captured=owner.captured;
  const {bundle,shape,top,geometry,fixture}=captured.sources;
  const emit=diagnostic?(row:PoolCycleDiagnostic)=>{
   const {error,...values}=row,copy:PoolCycleDiagnostic=structuredClone(values);
@@ -292,16 +309,16 @@ export type PoolNumericSliceResult=
   |{kind:'cancelled'|'exhausted';reason:string;details:unknown;published:false};
 
 /** Derive the maintained branch from this owner's actual selected endpoint foot frames, independently of authored path caches. */
-function numericEndpointBranches(source:PoolCycleSource,node:PoolPoseProgram,phase:number,work:PoolTrialWork):Map<PoolFoot,number>{
- work.reserve('prepare selected endpoint hierarchy',{expansions:1});
- const record=poolSourceRecord(source.fixture,{action:'pool_enter',phase}),branches=new Map<PoolFoot,number>();
+function numericEndpointBranches(source:PoolCycleSource,node:PoolPoseProgram,phase:number,work?:PoolTrialWork,action='pool_enter'):Map<PoolFoot,number>{
+ work?.reserve('prepare selected endpoint hierarchy',{expansions:1});
+ const record=poolSourceRecord(source.fixture,{action,phase}),branches=new Map<PoolFoot,number>();
  const posed=poolIntervalPreference(source.bundle,source.neutral.rest,source.neutral.inverse,node.preferenceBasis,node.preferenceBasis,0,true);
  for(const limb of ['footL','footR'] as const)if(node.policy[limb].required){
-  work.reserve('derive selected endpoint hinge '+limb,{expansions:1});
+  work?.reserve('derive selected endpoint hinge '+limb,{expansions:1});
   const a=source.anatomy[limb],control=node.controls.find(c=>c.end===a.end);
   if(!control||control.legFrame!=='source-entry-0')throw new Error('Pool numerical endpoint has no maintained leg control.');
-  const frame=source.frame(limb,record.limbs[limb],[control.state.target[0],control.state.target[1]]);
-  const hinge=solvePoolOrientedFoot(posed,a.upper,a.lower,a.end,frame);
+  const frame=source.phaseFootFrame(limb,record.limbs[limb],[control.state.target[0],control.state.target[1]],{action,phase});
+  const hinge=solvePoolOrientedFoot(posed,a.upper,a.lower,a.end,frame,control.state.kneeOrbit);
   branches.set(limb,observeConstructedPoolLeg(posed,frame,hinge).branch);
  }
  return branches;
@@ -322,7 +339,7 @@ function authenticateOpeningSample(source:PoolCycleSource,left:PoolPoseProgram,r
   const limb=bundle.bones[c.end].name.replace('.','') as PoolLimb,a=source.anatomy[limb],s=support[limb];
   if(!a||seen.has(limb)||a.upper!==c.upper||a.lower!==c.lower||a.end!==c.end||!same(c.anchor,[0,0,0,1]))throw new Error('Opening replay has invalid control ownership.');
   seen.add(limb);
-  const patch=source.patch(limb,s),resolved=resolvePoolLimbState(c,t,location),state=resolved.state;
+  const patch=source.patch(limb,s,location),resolved=resolvePoolLimbState(c,t,location),state=resolved.state;
   if(limb==='footL'||limb==='footR'){
    if(c.legFrame!=='source-entry-0')throw new Error('Opening foot lost its configured hinge.');
    if(policy[limb].required||s.mode==='approach'){
@@ -498,23 +515,39 @@ interface Constructed {limb:PoolLimb;patch:PreparedPoolPatch;frame?:PoolFootCont
 /** One evaluation feeds both physical observation and the returned immutable trajectory. */
 function observe(source:PoolCycleSource,left:PoolPoseProgram,right:PoolPoseProgram,amount:number,location:PoolSourceLocation,owner?:PoolOwnedCompilation){
  const {bundle,fixture,geometry,cages,neutral}=source,{rest,inverse}=neutral,controls=poolIntervalProgramControls(left,right),actual=interpolatePoolPoseProgram(bundle,rest,inverse,left,right,amount,location);
+ const skin=poolSkinMatrices(actual.world,inverse);let surfaceCache:PoolSurfaceInput[]|undefined;
+ const posedSurfaces=()=>surfaceCache??=geometry.map((g,i)=>({geometry:g,points:posedCageSurface(g,cages[i],skin)}));
  const replay=poolIntervalPreference(bundle,rest,inverse,left.preferenceBasis,right.preferenceBasis,amount,true),record=poolSourceRecord(fixture,location),policy=poolSourcePolicy(fixture,location.action,location.phase),constructed:Constructed[]=[],knees=[];
  for(const control of controls){
   const limb=bundle.bones[control.end].name.replace('.','') as PoolLimb,a=source.anatomy[limb];if(!a||control.upper!==a.upper||control.lower!==a.lower||control.end!==a.end)throw new Error('Pool program changed its configured limb owner');
-  const support=record.limbs[limb],patch=source.patch(limb,support),resolved=resolvePoolLimbState(control,amount,location),state=resolved.state;
+  const support=record.limbs[limb],patch=source.patch(limb,support,location),resolved=resolvePoolLimbState(control,amount,location),state=resolved.state;
   if(limb==='footL'||limb==='footR'){
    if(policy[limb].required){
-    const frame=source.frame(limb,support,state.target.slice(0,2) as [number,number]);
+    const frame=source.phaseFootFrame(limb,support,state.target.slice(0,2) as [number,number],location);
     if(!same(frame.translation,state.target)||!same(frame.orientation,state.orientation))throw new Error('Required authored foot differs from its actual physical frame');
-    const plan=solvePoolOrientedFoot(replay,a.upper,a.lower,a.end,frame);knees.push(observeConstructedPoolLeg(replay,frame,plan));constructed.push({limb,patch,frame});
+    const plan=solvePoolOrientedFoot(replay,a.upper,a.lower,a.end,frame,state.kneeOrbit);knees.push(observeConstructedPoolLeg(replay,frame,plan));constructed.push({limb,patch,frame});
    }else {
     let frame:PoolFootContactFrame|undefined;
     if(support.mode==='approach'){
-     if(!same(control.from.orientation,control.to.orientation))throw new Error('Compact source does not authorize a changing free-foot orientation');
-     frame=source.frame(limb,support,state.target.slice(0,2) as [number,number]);
-     requirePoolFootClearanceReference(frame,state.target,state.orientation,inverse[a.end],bundle);
+     // At either endpoint the renderer uses that key's literal rotation. The other
+     // key may belong to the preceding free swing or the following release.
+     if(amount!==0&&amount!==1&&!same(control.from.orientation,control.to.orientation))throw new Error('Compact source does not authorize a changing free-foot orientation');
+     frame=source.phaseFootFrame(limb,support,state.target.slice(0,2) as [number,number],location);
+     let negative:Error|undefined;
+     try{requirePoolFootClearanceReference(frame,state.target,state.orientation,inverse[a.end],bundle,reason=>{negative=reason;return reason;});}
+     catch(error){
+      const d=source.definition;
+      const finite=d.version===16&&d.forwardHop&&(d.forwardHop.outwardDescent?
+       ['outside1','outside2','outside3'].some(p=>support.surface===d.places[p].surface):
+       d.forwardHop.outerGripTransfer&&limb==='footL'&&support.surface===d.places.outside3.surface);
+      if(!negative||error!==negative||!finite||!location.action.startsWith('pool_exit_')||support.region?.kind!=='top-face'||!support.region.triangles?.length)throw error;
+      const tread=fixture.solids.find(s=>s.id===support.surface);
+      if(!tread||poolFootOverlapsTread(posedSurfaces()[0],a.patch.part,tread,support.region.triangles))throw error;
+      // The free leg carries no plane certificate here. The closed-solid observer still sees every posed triangle.
+      frame=undefined;
+     }
     }
-    const plan=solvePoolFreeLeg(replay,a.upper,a.lower,a.end,state.target,state.orientation,frame);knees.push(observeConstructedPoolFreeLeg(replay,plan));constructed.push({limb,patch,...(frame?{approach:{frame,plan}}:{free:plan})});
+    const plan=solvePoolFreeLeg(replay,a.upper,a.lower,a.end,state.target,state.orientation,frame,state.kneeOrbit);knees.push(observeConstructedPoolFreeLeg(replay,plan));constructed.push({limb,patch,...(frame?{approach:{frame,plan}}:{free:plan})});
    }
   }else if(policy[limb].required){
    if(!resolved.railFrame)throw new Error('Required authored hand has no actual rail frame');
@@ -529,7 +562,7 @@ function observe(source:PoolCycleSource,left:PoolPoseProgram,right:PoolPoseProgr
   sealMatrices(replay.basis);sealMatrices(replay.world);Object.freeze(replay);
   for(const construction of constructed)if(construction.free)observeConstructedPoolFreeLeg(replay,construction.free);
  }
- const skin=poolSkinMatrices(actual.world,inverse),surfaces:PoolSurfaceInput[]=geometry.map((g,i)=>({geometry:g,points:posedCageSurface(g,cages[i],skin)}));
+ const surfaces=posedSurfaces();
  if(owner)owner.active={identity:Object.freeze({}),rows:surfaces,replay};
  const observation=owner?observeOwnedPoolPhysicalSource(fixture,surfaces,location):observePoolSource(fixture,surfaces,location);
  if(owner)owner.active!.observation=observation;
@@ -586,8 +619,12 @@ function compileCycle(input:PoolContactInputV1,bundle:Bundle,shape:ShapeParamete
  const constructorStart=performance.now();
  const source=new PoolCycleSource(bundle,shape,top,geometry,fixture,definition),poses:PoolPoseProgram[]=[],entry:PoolPreparedTrack={keys:[],intervals:[]},paddle:PoolPreparedTrack={keys:[],intervals:[]},bridges:PoolPreparedTrack[]=[],failures:Error[]=[];
  owner?.configure(source);
+ const selected=owner?.captured.selectedRoute?bindSelectedPoolRoute(source,input,owner.captured.selectedRoute):undefined;
+ if(definition.version===16&&definition.forwardHop&&!selected?.climbOut)throw new Error('This forward hop cannot publish without its independently authored climb-out.');
+ const entryPhases=selected?selected.schedule.entryUnits.map(u=>u/definition.clockUnits):poolSourceEvents(fixture,'pool_enter');
+ const maintained=new Map<PoolPoseProgram,Map<PoolFoot,number>>();
  const constructorMs=performance.now()-constructorStart;
- const measured=new Map<string,Measurement>();
+
  const failed=(location:PoolSourceLocation,stage:string,cause:unknown)=>{
   const failure=new Error(`Pool ${location.action} at ${location.phase} failed during ${stage}.`,{cause:{...location,stage,cause}});
   failures.push(failure);return failure;
@@ -599,6 +636,15 @@ function compileCycle(input:PoolContactInputV1,bundle:Bundle,shape:ShapeParamete
    let result:Observation,authoring:ReturnType<PoolCycleSource['bodyPathDiagnostic']>,measurement:Measurement;
    try{
     result=observe(source,left,right,amount,location,owner);
+    if(selected&&(location.action==='pool_enter'||stage==='climb-key'||stage==='climb-interval')){
+     const start=maintained.get(left),end=maintained.get(right);
+     if(!start||!end)throw new Error('Selected entry observation lacks its endpoint hinge constructions.');
+     for(const [limb,branch] of start){
+      if(!end.has(limb)||left.policy[limb].surface!==right.policy[limb].surface)continue;
+      const knee=result.knees.find(k=>k.side===limb.at(-1));
+      if(!knee?.admitted||knee.branch!==branch||end.get(limb)!==branch)throw new Error('Selected pool interval changed the maintained '+limb+' at '+location.phase);
+     }
+    }
     authoring=location.action==='pool_enter'?source.bodyPathDiagnostic(location.phase,result.pose.world):undefined;
     if(authoring?.paths.some(path=>result.knees.find(k=>k.side===path.segment.limb.at(-1))?.branch!==path.endpoints[0].branch))throw new Error('Pool planted body path changed its maintained hinge branch');
     measurement=owner?compactObservation(result):result;
@@ -608,28 +654,32 @@ function compileCycle(input:PoolContactInputV1,bundle:Bundle,shape:ShapeParamete
    return measurement;
   }catch(error){const failure=failed(location,stage,error);diagnostic?.({...location,stage,passed:false,sourceMs,constructorMs,observationMs:performance.now()-observationStart,interval:{left,right,amount},program:amount===1?right:left,error:failure});return undefined;}
  };
- for(const phase of poolSourceEvents(fixture,'pool_enter')){
+ for(const phase of entryPhases){
   const sourceStart=performance.now();
-  try{const program=source.entry(phase),pose=poses.length,sourceMs=performance.now()-sourceStart;poses.push(program);entry.keys.push({phase,pose});const result=assess(program,program,0,{action:'pool_enter',phase},'entry-key',sourceMs);if(result)measured.set('pool_enter:'+phase,result);}
+  try{const program=selected?selected.entry(Math.round(phase*definition.clockUnits)):source.entry(phase),pose=poses.length,sourceMs=performance.now()-sourceStart;if(selected)maintained.set(program,numericEndpointBranches(source,program,phase));poses.push(program);entry.keys.push({phase,pose});assess(program,program,0,{action:'pool_enter',phase},'entry-key',sourceMs);}
   catch(error){const failure=failed({action:'pool_enter',phase},'entry-source',error);diagnostic?.({action:'pool_enter',phase,stage:'entry-source',passed:false,sourceMs:performance.now()-sourceStart,constructorMs,error:failure});}
  }
  const common=entry.keys.at(-1)?.pose;if(common===undefined||entry.keys.at(-1)!.phase!==1)throw refuse('Pool complete source has no paddle join');
- for(let i=0;i<12;i++){
-  const phase=i/12;
+ if(selected&&(source.paddle(0)!==poses[common]||source.paddle(1)!==poses[common]))throw refuse('Selected entry failed to share one paddle endpoint.');
+ const paddlePhases=selected?selected.schedule.jobs.filter(j=>j.action==='pool_paddle'&&j.kind==='node'&&j.phase<1).map(j=>j.phase):Array.from({length:12},(_,i)=>i/12);
+ for(const phase of paddlePhases){
   const sourceStart=performance.now();
-  try{const program=i===0?poses[common]:source.paddle(phase),pose=i===0?common:poses.length,sourceMs=performance.now()-sourceStart;if(i)poses.push(program);paddle.keys.push({phase,pose});const result=assess(program,program,0,{action:'pool_paddle',phase},'paddle-key',sourceMs);if(result)measured.set('pool_paddle:'+phase,result);}
+  try{const program=phase===0?poses[common]:source.paddle(phase),pose=phase===0?common:poses.length,sourceMs=performance.now()-sourceStart;if(phase!==0)poses.push(program);paddle.keys.push({phase,pose});assess(program,program,0,{action:'pool_paddle',phase},'paddle-key',sourceMs);}
   catch(error){const failure=failed({action:'pool_paddle',phase},'paddle-source',error);diagnostic?.({action:'pool_paddle',phase,stage:'paddle-source',passed:false,sourceMs:performance.now()-sourceStart,constructorMs,error:failure});}
  }
- paddle.keys.push({phase:1,pose:common});if(measured.has('pool_paddle:0'))measured.set('pool_paddle:1',measured.get('pool_paddle:0')!);
+ paddle.keys.push({phase:1,pose:common});
+ if(selected)assess(poses[common],poses[common],0,{action:'pool_paddle',phase:1},'paddle-key');
  if(failures.length)throw refuse('Pool complete source key admission failed');
- const complete=(track:PoolPreparedTrack,action:string,timeScale=1)=>{
+ const complete=(track:PoolPreparedTrack,action:string,timeScale=1,phaseCuts?:readonly number[],stage='interval')=>{
   for(let i=0;i<track.keys.length-1;i++){
-   const a=track.keys[i],b=track.keys[i+1],left=poses[a.pose],right=poses[b.pose],start=a.phase*timeScale,end=b.phase*timeScale,phase=start+(end-start)/2;
+   const a=track.keys[i],b=track.keys[i+1],left=poses[a.pose],right=poses[b.pose],start=phaseCuts?.[i]??a.phase*timeScale,end=phaseCuts?.[i+1]??b.phase*timeScale,phase=start+(end-start)/2;
    try{const policy=poolSourcePolicy(fixture,action,phase);
    const supportLimbs=POOL_LIMBS.filter(limb=>left.policy[limb].required||right.policy[limb].required||policy[limb].required);requirePoolPolicyInterval(left.policy,right.policy,policy,supportLimbs);
    const observations=[];
-   for(const fraction of [0,.25,.5,.75,1]){const at=fraction===0?start:fraction===1?end:start+(end-start)*fraction,key=action+':'+at;let result=(fraction===0||fraction===1)?measured.get(key):undefined;
-    result??=assess(left,right,fraction,{action,phase:at},'interval');if(result?.passed){
+   for(const fraction of [0,.25,.5,.75,1]){
+    const at=fraction===0?start:fraction===1?end:start+(end-start)*fraction;
+    const result=assess(left,right,fraction,{action,phase:at},stage);
+    if(result?.passed){
      try{observations.push(receipt(result,fraction));}catch(error){const failure=failed({action,phase:at},'interval-publication',error);diagnostic?.({action,phase:at,stage:'interval-publication',passed:false,error:failure});}
     }
    }
@@ -641,13 +691,54 @@ function compileCycle(input:PoolContactInputV1,bundle:Bundle,shape:ShapeParamete
  complete(entry,'pool_enter');complete(paddle,'pool_paddle');
  for(let origin=0;origin<12;origin++){
   const first=paddle.keys.find(k=>k.phase===origin/12);if(!first)throw new Error('Pool bridge lost its actual paddle origin');
-  const track:PoolPreparedTrack={keys:[{phase:0,pose:first.pose},{phase:1,pose:common}],intervals:[]};bridges.push(track);complete(track,'pool_exit_'+origin,.1);
+  const action='pool_exit_'+origin,track:PoolPreparedTrack={keys:[{phase:0,pose:first.pose}],intervals:[]},phaseCuts=[0];
+  if(selected)assess(poses[first.pose],poses[first.pose],0,{action,phase:0},'bridge-key');
+  if(selected)for(const job of selected.schedule.jobs){
+   if(job.kind!=='node'||job.action!==action||job.phase<=0||job.phase>=.1)continue;
+   const local=job.phase/.1,program=source.freeWaterKnot(poses[first.pose],poses[common],local,action,job.phase);
+   const pose=poses.push(program)-1;track.keys.push({phase:local,pose});phaseCuts.push(job.phase);assess(program,program,0,{action,phase:job.phase},'bridge-key');
+  }
+  track.keys.push({phase:1,pose:common});phaseCuts.push(.1);
+  if(selected)assess(poses[common],poses[common],0,{action,phase:.1},'bridge-key');
+  bridges.push(track);complete(track,action,.1,selected?phaseCuts:undefined);
  }
- if(failures.length||entry.intervals.length!==entry.keys.length-1||paddle.intervals.length!==paddle.keys.length-1||bridges.some(t=>t.intervals.length!==1))throw refuse('Pool complete source interval admission failed');
+ let climbOut:PoolPreparedTrack|undefined;
+ if(selected?.climbOut){
+  const action='pool_exit_0',units=selected.climbOutUnits!;
+  climbOut={keys:[],intervals:[]};
+  for(const unit of units){
+   const phase=unit/definition.clockUnits,program=selected.climbOut(unit);
+   const pose=phase===.1?common:phase===1?entry.keys[0].pose:poses.push(program)-1;
+   if(poses[pose]!==program)throw refuse('Selected climb-out did not share its canonical endpoints.');
+   climbOut.keys.push({phase,pose});
+   maintained.set(program,numericEndpointBranches(source,program,phase,undefined,action));
+   assess(program,program,0,{action,phase},'climb-key');
+  }
+  complete(climbOut,action,1,undefined,'climb-interval');
+  if(failures.length||climbOut.intervals.length!==climbOut.keys.length-1)throw refuse('Pool authored climb-out admission failed');
+  // The twelve bridge origins enter the same independent climb. Rebind each sample in its own action context.
+  const compare=(left:PoolPoseProgram,right:PoolPoseProgram,t:number,phase:number)=>{
+   const reference=poolSourceRecord(fixture,{action,phase}).limbs,policy=poolSourcePolicy(fixture,action,phase);
+   const pose=interpolatePoolPoseProgram(bundle,source.neutral.rest,source.neutral.inverse,left,right,t,{action,phase}).world;
+   for(let i=1;i<12;i++){
+    const origin='pool_exit_'+i;
+    if(canonicalPoolValue(reference)!==canonicalPoolValue(poolSourceRecord(fixture,{action:origin,phase}).limbs)||
+      canonicalPoolValue(policy)!==canonicalPoolValue(poolSourcePolicy(fixture,origin,phase)))throw refuse('Climb-out contacts differ at '+origin+' '+phase);
+    const actual=interpolatePoolPoseProgram(bundle,source.neutral.rest,source.neutral.inverse,left,right,t,{action:origin,phase}).world;
+    if(actual.some((m,b)=>!same(m,pose[b])))throw refuse('Climb-out pose differs at '+origin+' '+phase);
+   }
+  };
+  for(const k of climbOut.keys)compare(poses[k.pose],poses[k.pose],0,k.phase);
+  for(let i=1;i<climbOut.keys.length;i++){
+   const a=climbOut.keys[i-1],b=climbOut.keys[i];
+   for(const t of [0,.25,.5,.75,1])compare(poses[a.pose],poses[b.pose],t,t===0?a.phase:t===1?b.phase:a.phase+(b.phase-a.phase)*t);
+  }
+ }
+ if(failures.length||climbOut&&climbOut.intervals.length!==climbOut.keys.length-1||entry.intervals.length!==entry.keys.length-1||paddle.intervals.length!==paddle.keys.length-1||bridges.some(t=>t.intervals.length!==t.keys.length-1))throw refuse('Pool complete source interval admission failed');
  // Exit tails share exactly the measured entry path; each action must retain those physical obligations and outputs.
  const tailAmounts=[0,.5,1] as const,tailCounters=owner?.counters;
  const forwardReferences:({policy?:ReturnType<typeof poolSourcePolicy>;world?:number[][]}|undefined)[]|undefined=owner?[]:undefined;
- for(let origin=0;origin<12;origin++)for(let i=0;i<entry.keys.length-1;i++){
+ if(!climbOut)for(let origin=0;origin<12;origin++)for(let i=0;i<entry.keys.length-1;i++){
   const a=entry.keys[i],b=entry.keys[i+1],left=poses[a.pose],right=poses[b.pose];
   for(const [fraction,amount] of tailAmounts.entries()){
    const travel=amount===0?a.phase:amount===1?b.phase:a.phase+(b.phase-a.phase)*amount,phase=travel===1?.1:travel===0?1:1-.9*travel,action='pool_exit_'+origin;
@@ -667,6 +758,6 @@ function compileCycle(input:PoolContactInputV1,bundle:Bundle,shape:ShapeParamete
    }catch(error){const failure=failed({action,phase},'exit-tail-replay',error);diagnostic?.({action,phase,stage:'exit-tail-replay',passed:false,error:failure});throw refuse('Pool complete source exit tail admission failed');}
   }
  }
- const artifact:PoolContactArtifactV1={version:1,solverRevision:POOL_SOLVER_REVISION,key:input.key,appearanceKey:input.appearanceKey,revisions:input.revisions,source:bundle.sourceSha256,partKeys:geometry.map(poolPartKey),shapeKey:poolShapeIdentity(shape,top),top,waterHeight:fixture.waterHeight,graph:{poses,entry,paddle,bridges},coverage:poolCycleCoverage([entry,paddle,...bridges])};
+ const artifact:PoolContactArtifactV1={version:1,solverRevision:POOL_SOLVER_REVISION,key:input.key,appearanceKey:input.appearanceKey,revisions:input.revisions,source:bundle.sourceSha256,partKeys:geometry.map(poolPartKey),shapeKey:poolShapeIdentity(shape,top),top,waterHeight:fixture.waterHeight,graph:{poses,entry,paddle,bridges,...(climbOut?{climbOut,takeoffPhase:selected!.takeoffPhase}:{})},coverage:poolCycleCoverage([entry,paddle,...bridges,...(climbOut?[climbOut]:[])])};
  validatePoolContactArtifact(artifact);return artifact;
 }

@@ -28,6 +28,7 @@ function fixture() {
   const game = { tick: 0, acceptsLoad: true, saveBytes: () => new Uint8Array([1, 2, 3]),
     loadBytes: () => game.acceptsLoad, clockTick: () => game.tick, dayTicks: () => 100 };
   const store: SaveStore = { save: vi.fn(async () => {}), load: vi.fn(async () => new Uint8Array([1])),
+    lastGoodCopy: async () => null, restoreLastGood: async () => false,
     clear: vi.fn(async () => {}), close: vi.fn() };
   const controller = new PersistenceController(store, game, hint, vi.fn(), undefined, event => {
     events.push(event); presentation.present(event);
@@ -168,6 +169,6 @@ it('keeps the recovery hint out of the clock and live regions, and gives scene s
   const actions = markup.match(/<section id="game-actions"[\s\S]*?<\/section>/)?.[0];
   expect(actions).toContain(hint);
   const css = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
-  const pendingSelectors = css.match(/\[data-state='pending'\][^,{]*/g);
+  const pendingSelectors = css.match(/\[data-state='pending'\][^,{]*/g)?.map(selector => selector.trim());
   expect(pendingSelectors).toEqual(Array(2).fill("[data-state='pending']:not([data-surface='scene'])::before"));
 });

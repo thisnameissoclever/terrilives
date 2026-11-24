@@ -720,3 +720,20 @@ it('validates a malformed later crest literal before any early choice starts geo
   expect(mesh).not.toHaveBeenCalled();expect(resolve).not.toHaveBeenCalled();
  }finally{resolve.mockRestore();mesh.mockRestore();}
 },100_000);
+
+it('assembles the full selected exterior and an incident standing approach from one chosen chain',async()=>{
+ const {assembleSelectedPoolExterior}=await import('../src/render/character/pool-route-assembler.js');
+ const {measureRawPoolPhysicalObservation}=await import('../src/render/character/pool-owned-compilation.js');
+ const x=await setup(),source=x.source();
+ const assembled=assembleSelectedPoolExterior(source,{stages:exteriorStages(true),exterior},new PoolTrialWork(limits));
+ expect(assembled.programs.get(42000)).toBe(assembled.landing.program);
+ expect(assembled.prefixUnits.includes(62380)).toBe(true);
+ for(const phase of [0,.01,.05]){
+  const node=assembled.programs.get(phase*100000)!;
+  const m=measureRawPoolPhysicalObservation(source,node,node,0,{action:'pool_enter',phase});
+  expect(m.unresolved).toEqual([]);expect(m.passed).toBe(true);
+ }
+ const a=assembled.programs.get(1000)!,b=assembled.programs.get(5000)!;
+ const m=measureRawPoolPhysicalObservation(source,a,b,.5,{action:'pool_enter',phase:.03});
+ expect(m.unresolved).toEqual([]);expect(m.passed).toBe(true);
+},45_000);

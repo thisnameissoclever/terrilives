@@ -150,7 +150,7 @@ fn go_to_work_from_the_pool_resumes_across_both_sides_of_the_ladder_exit() {
     let commands = sim.career_command_count();
 
     continue_roundtrip(&mut sim, 3);
-    until(&mut sim, "ladder released", 20, |s| {
+    until(&mut sim, "ladder released", 40, |s| {
         s.world().get::<crate::pool::PoolEpisode>(actor).is_none()
     });
     assert!(manual_work_trip(sim.world(), actor));

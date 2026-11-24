@@ -3,14 +3,14 @@ import {defaultAppearance} from '../src/character/schema.js';
 import {PreparationQueue} from '../src/render/character/preparation-queue.js';
 import {poolContactResource} from '../src/render/character/pool-contact-resource.js';
 import {createPoolContactInput} from '../src/render/character/pool-contact-preparation.js';
-import type {PoolContactInputV1,PoolContactArtifactV1} from '../src/render/character/pool-contact-types.js';
+import type {PoolContactInputV1,PoolPlayback} from '../src/render/character/pool-contact-types.js';
 import {schemaPoolArtifact} from './pool-contact-service-fixture.js';
 
 function deferred<T>(){let resolve!:(value:T)=>void;const promise=new Promise<T>(yes=>{resolve=yes;});return {promise,resolve};}
 const turn=()=>new Promise<void>(resolve=>queueMicrotask(resolve));
 
 it('cancels obsolete pool input work before compilation and ignores its late completion',async()=>{
-  const queue=new PreparationQueue<PoolContactArtifactV1>(),a=defaultAppearance(),gate=deferred<PoolContactInputV1>();
+  const queue=new PreparationQueue<PoolPlayback>(),a=defaultAppearance(),gate=deferred<PoolContactInputV1>();
   const compile=vi.fn(async(input:PoolContactInputV1)=>schemaPoolArtifact(input));
   const definition=poolContactResource({inputFactory:()=>gate.promise,compile});
   try{
@@ -21,7 +21,7 @@ it('cancels obsolete pool input work before compilation and ignores its late com
 });
 
 it('retains shared pool compilation until its final owner leaves and rejects late publication',async()=>{
-  const queue=new PreparationQueue<PoolContactArtifactV1>(),a=defaultAppearance(),pending=deferred<unknown>(),calls:{input:PoolContactInputV1;signal:AbortSignal}[]=[];
+  const queue=new PreparationQueue<PoolPlayback>(),a=defaultAppearance(),pending=deferred<unknown>(),calls:{input:PoolContactInputV1;signal:AbortSignal}[]=[];
   const definition=poolContactResource({compile:async(input,signal)=>{calls.push({input,signal});return pending.promise;}});
   try{
     const first=queue.acquire('draft',a,definition),second=queue.acquire('live',a,definition);
@@ -35,7 +35,7 @@ it('retains shared pool compilation until its final owner leaves and rejects lat
 });
 
 it('rejects incomplete or stale pool graphs, retries the failed key and freezes retained protocol data',async()=>{
-  const queue=new PreparationQueue<PoolContactArtifactV1>(),a=defaultAppearance();let failures=2;
+  const queue=new PreparationQueue<PoolPlayback>(),a=defaultAppearance();let failures=2;
   const compile=vi.fn(async(input:PoolContactInputV1)=>{
     const value=schemaPoolArtifact(input);if(failures===2)value.graph.entry.intervals=[];else if(failures===1)value.revisions={...value.revisions,fixture:'f'.repeat(64)};failures--;return value;
   });
@@ -51,7 +51,7 @@ it('rejects incomplete or stale pool graphs, retries the failed key and freezes 
 });
 
 it('rejects a valid input digest for a different physical appearance before dispatch',async()=>{
-  const queue=new PreparationQueue<PoolContactArtifactV1>(),a=defaultAppearance(),other=structuredClone(a);other.body.height=99;
+  const queue=new PreparationQueue<PoolPlayback>(),a=defaultAppearance(),other=structuredClone(a);other.body.height=99;
   const compile=vi.fn(async(input:PoolContactInputV1)=>schemaPoolArtifact(input));
   const definition=poolContactResource({inputFactory:()=>createPoolContactInput(other),compile});
   try{await expect(queue.acquire('draft',a,definition).ready).rejects.toThrow('requested physical appearance');expect(compile).not.toHaveBeenCalled();}

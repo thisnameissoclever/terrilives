@@ -515,6 +515,72 @@
         "capturedAt": "2026-11-21",
         "method": "The phone pictures were captured again from commit 5a0ecd7e1, where on touch-sized screens card titles sit at the card padding, heading buttons take their own full-width line under the title, and a closed folding card is one 44 px tap target; the source files above are hashed at that commit. Each tab was played and captured exactly as snapshot admin-heading-rows-2026-11-21 describes, then shown at 390 by 844 by viewport size only. The desktop pictures are the ones from that snapshot at 5dc36064b: the later changes apply only inside the block for screens 600 px wide or less, 480 px tall or less, or with a coarse pointer, which a 1440 by 960 desktop with a mouse does not match.",
         "evidence": "docs/player/images/ui-admin-housemate-mobile.png, ui-admin-relationships-mobile.png and ui-admin-household-mobile.png"
+      },
+      {
+        "id": "editable-guide-queue-2026-11-20",
+        "capturedAt": "2026-11-20",
+        "url": "http://127.0.0.1:5237/",
+        "sourceRevision": "0683357985fc39cb2975ea18f447879c921ae8a5",
+        "htmlSha256": "d4c86427898aa952c9be4a019efb221e6f83a7f96112b884cc250e2af0ff84aa",
+        "wasmSha256": "1d494805d4d2ee828fa8c136b62500cedb59efd4226b1e23a7a2fa6bb247f7ca",
+        "method": "Isolated loopback production build and original game viewport captures."
+      },
+      {
+        "id": "editable-guide-floor-desktop-2026-11-20",
+        "capturedAt": "2026-11-20",
+        "url": "http://127.0.0.1:5241/",
+        "sourceRevision": "0683357985fc39cb2975ea18f447879c921ae8a5",
+        "htmlSha256": "af210321d6f25141ad9af09db6ade33a1109097225aeb79c2605435603df8b73",
+        "wasmSha256": "2308013739a2713bdce82b6bf771b1b08d89db522f10b00c675284053dabd92b",
+        "method": "Isolated loopback production build and original game viewport captures."
+      },
+      {
+        "id": "editable-guide-dock-2026-10-22",
+        "capturedAt": "2026-10-22",
+        "url": "http://127.0.0.1:5198/?debug=1",
+        "sourceRevision": "179f4c7738817b111eb53f10f3f09728e81d0b75",
+        "htmlSha256": "e1533abb2cb496740926bba96ca65eeb46c9be8dd675b52e3fb7cbd6d071410c",
+        "wasmSha256": "92e987897545b2c42110a8511f611779c256c4a68a6bec5ab6415d5b39d1",
+        "method": "Displayed browser on a local production build, sound off, paused household."
+      },
+      {
+        "id": "editable-guide-object-description-2026-10-22",
+        "capturedAt": "2026-10-22",
+        "sourceRevision": "9123d0ba52f49e6d4f3d6d86a063f23687910481",
+        "htmlSha256": "e90b9a589dfdec61a03fb5fc7ff4717fe4f932e22eeded7e56a72997a8c187ab7",
+        "wasmSha256": "92e987897545b2c42110a8511f611779c256c4a68a6bec5ab6415d5b39d1",
+        "method": "Displayed browser on a local production build. A local household was opened in Options, with the game paused."
+      },
+      {
+        "id": "editable-guide-floor-phone-2026-10-22",
+        "capturedAt": "2026-10-22",
+        "sourceRevision": "364c70fc9d866542c47e15869845f6ff4b2022f6",
+        "htmlSha256": "71dda420ea6e8bfe2996503df3a675e1d2e314a226705992a3b14cf1b6565d99",
+        "wasmSha256": "92e987897545b2c42110a8511f611779c256c4a68a6bec5ab6415d5b39d1",
+        "method": "Displayed browser on a local production build. A controlled material fetch failure exposed the ordinary Retry and other finish choices."
+      },
+      {
+        "id": "editable-guide-controls-2026-11-23",
+        "capturedAt": "2026-11-23",
+        "url": "http://127.0.0.1:5256/",
+        "sourceRevision": "cf4e59229a227acad15664ee33a2da981180bf87",
+        "htmlSha256": "b067a235eef121b09e3b6cff0847333d80ee50a063538b9b0614ca629ac34023",
+        "wasmSha256": "71db390acfd0ba00db0520891c8e6fd35dee840973b8990f9d460c3bfa93617c",
+        "method": "Isolated loopback production build and original game viewport captures."
+      },
+      {
+        "id": "editable-guide-access-desktop-2026-10-22",
+        "capturedAt": "2026-10-22",
+        "sourceRevision": "3536373a7b5e5c39554d3d6c709e4a1184bda8ac",
+        "wasmSha256": "74e82c3c79ddc2cf97d1eceba5db2977df9e44f3e89e3122ef5a79a69b023623",
+        "method": "Displayed browser on an isolated local production build. The crop records the access panel; the earlier full viewport includes a scene-feedback issue outside the panel."
+      },
+      {
+        "id": "editable-guide-access-phone-2026-10-22",
+        "capturedAt": "2026-10-22",
+        "sourceRevision": "61a5239b85b6de8db27144cbd64878ceb971bd7a",
+        "wasmSha256": "92e987897545b2c42110a8511f611779c256c4a68a6bec5ab6415d5b39d1",
+        "method": "Displayed browser on an isolated local production build. Build paused the household, with sound off."
       }
     ],
     "weatherSetup": {
@@ -675,47 +741,33 @@
     {
       "id": "dock-collapsed",
       "section": "household",
-      "desktop": "images/ui-build-release-dock-collapsed-desktop.png",
-      "mobile": "images/ui-build-release-dock-collapsed-mobile.png",
-      "description": "The dock after Collapse; choose Expand to show the household again.",
-      "access": "Choose Collapse in the selected-person dock.",
-      "sourceSnapshot": "build-release-guide-integration",
-      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
-      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+      "desktop": "images/ui-editable-dock-collapsed-desktop.jpg",
+      "mobile": "images/ui-editable-dock-collapsed-mobile.jpg",
+      "description": "The up-chevron expands the dock to show the household.",
+      "access": "Choose the down-chevron to collapse the selected-person dock.",
       "imageSha256": {
-        "desktop": "46d4e1e1c179ce7f636345b8030d2158d1c5a99c38dccf4af585e593dd9677b9",
-        "mobile": "250124339ff4f889f574001731966cda3403714a63c0630ec42c3370f1f60834"
+        "desktop": "03e0b2b47181d2a865337913e93ba9ea234dc1557a9c07c2c2257ea7762d5b18",
+        "mobile": "ef79bec64d45e390ae830728d2dec2664914ef5d80771f27d7f3727e38732970"
       },
-      "imageSourceSnapshots": {
-        "desktop": "build-release-guide-integration",
-        "mobile": "build-release-guide-integration"
-      },
-      "captureMetadata": {
+      "captureProvenance": {
         "desktop": {
-          "width": 1440,
-          "height": 960,
           "viewport": {
             "width": 1440,
             "height": 960
           },
-          "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
-          "dialogs": [],
-          "sourceImageSha256": "46d4e1e1c179ce7f636345b8030d2158d1c5a99c38dccf4af585e593dd9677b9"
+          "state": "Tim is selected, the household is paused and the dock is collapsed.",
+          "sourceImageSha256": "03e0b2b47181d2a865337913e93ba9ea234dc1557a9c07c2c2257ea7762d5b18"
         },
         "mobile": {
-          "width": 390,
-          "height": 844,
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
-          "dialogs": [],
-          "sourceImageSha256": "250124339ff4f889f574001731966cda3403714a63c0630ec42c3370f1f60834"
+          "state": "Tim is selected, the household is paused and the dock is collapsed.",
+          "sourceImageSha256": "ef79bec64d45e390ae830728d2dec2664914ef5d80771f27d7f3727e38732970"
         }
-      }
+      },
+      "sourceSnapshot": "editable-guide-controls-2026-11-23"
     },
     {
       "id": "sim-needs",
@@ -827,17 +879,37 @@
     {
       "id": "sim-queue",
       "section": "activity-and-orders",
-      "desktop": "images/ui-sim-queue-desktop.png",
-      "mobile": "images/ui-sim-queue-mobile.png",
-      "description": "Queue new orders and Clear orders beside the action queue.",
-      "access": "Select a name at the bottom of the screen, then Sim details > Queue. Desktop also has Queue in the dock.",
-      "desktopDetail": "images/ui-sim-queue-detail-desktop.png",
-      "sourceSnapshot": "career-tab-fixes-2026-11-20",
+      "desktop": "images/ui-editable-sim-queue-desktop.png",
+      "desktopDetail": "images/guide/sim-queue-desktop.png",
+      "mobile": "images/ui-editable-sim-queue-mobile.png",
+      "mobileDetail": "images/guide/sim-queue-mobile.png",
+      "description": "Queue new orders is on. Clear orders is unavailable while the person is only carrying out their own choice.",
+      "access": "Select a person, choose Sim details, then Queue. Desktop also has Queue in the dock.",
       "imageSha256": {
-        "desktop": "69addac3f7958ba7cfa23821fd52e34c51e6fb25b8b4637d0755463ca91ccc94",
-        "mobile": "c9f9d0a10a2a820d889564b73377c6dd50518f51705092365f80b066ea364761",
-        "desktopDetail": "c53a53c9097d1da3381b29f582f1b39683c54639fa4d2e2ecbeb8d5e5cc0ccc3"
-      }
+        "desktop": "16c1176fa9470c6858c740cf2593c86b4e53ef9c1857b5f9d5dd3e7756c38729",
+        "desktopDetail": "0c4974b2585d10a6829497f9678dce53d7be958da90a38d708881748ff87577b",
+        "mobile": "fae9c323cf00abee64853d7eca31e66d4ff1fc676ced50993e37c4286a3ab976",
+        "mobileDetail": "712f465082c05ef84450659071622cc9f654ccc39de21b8947a69da1a8e56f96"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "state": "Tim is carrying out his own choice while the game is paused.",
+          "sourceImageSha256": "16c1176fa9470c6858c740cf2593c86b4e53ef9c1857b5f9d5dd3e7756c38729"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Tim is carrying out his own choice while the game is paused.",
+          "sourceImageSha256": "fae9c323cf00abee64853d7eca31e66d4ff1fc676ced50993e37c4286a3ab976"
+        }
+      },
+      "sourceSnapshot": "editable-guide-queue-2026-11-20"
     },
     {
       "id": "chores-board",
@@ -1645,40 +1717,72 @@
     {
       "id": "object-description",
       "section": "object-menu",
-      "desktop": "images/ui-object-description-desktop.png",
-      "mobile": "images/ui-object-description-mobile.png",
-      "description": "An expanded object description.",
-      "access": "Open an object action menu, then choose its type and model name. Scroll inside longer descriptions.",
-      "desktopDetail": "images/ui-object-description-detail-desktop.png",
-      "sourceSnapshot": "identity-final",
-      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
-      "mobileDetail": "images/ui-object-description-detail-mobile.png",
+      "desktop": "images/ui-editable-object-description-desktop.jpg",
+      "desktopDetail": "images/guide/object-description-desktop.png",
+      "mobile": "images/ui-editable-object-description-mobile.jpg",
+      "mobileDetail": "images/guide/object-description-mobile.png",
+      "description": "Opening the object name reveals its optional description beside the available actions.",
+      "access": "Open the object menu, then activate the object name.",
       "imageSha256": {
-        "desktop": "f756b500df7b1272fb3376eaeee7c9422b73f5c131ffe17b9b549835eb2df6ed",
-        "mobile": "1268524baf250b909880f6c40d57da8fcf1ffa35053b3011f6764628cfa3abbe",
-        "desktopDetail": "207d6b96ba15817cf97e9ed12b9a679faae5e5ba3379f6b63be5aeeca750232b",
-        "mobileDetail": "25bac42eba4d16a930ea306b945195b30b1ca1345e40be620995b20cebdd4d30"
-      }
+        "desktop": "e33f9acafb0aa93182cd44ce345a39709802e8124ed811ead99ef68f76465e92",
+        "desktopDetail": "d2be10b20d7f25209d0b07207fb05bfb5a2517798b9c56b422ffb27cb964687e",
+        "mobile": "060628f639107364cca8bb727709cee1a6d22f3b923d9d6236f8a5b28c819b38",
+        "mobileDetail": "26a3223a7e1d97c643ec97e10c3d330ab4cdee79c6de95e519f19df1cd58fb95"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "state": "The armchair description is open in the surrounding menu.",
+          "sourceImageSha256": "e33f9acafb0aa93182cd44ce345a39709802e8124ed811ead99ef68f76465e92"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "The bookcase description is open in the phone menu.",
+          "sourceImageSha256": "060628f639107364cca8bb727709cee1a6d22f3b923d9d6236f8a5b28c819b38"
+        }
+      },
+      "sourceSnapshot": "editable-guide-object-description-2026-10-22"
     },
     {
       "id": "object-menu",
       "section": "object-menu",
-      "desktop": "images/ui-object-menu-desktop.png",
-      "mobile": "images/ui-object-menu-mobile.png",
-      "description": "An object action menu.",
-      "access": "Select a person, then right-click an object or hold a finger on it. With the game view focused, arrows choose a target and Enter opens its actions.",
-      "desktopDetail": "images/ui-object-menu-detail-desktop.png",
-      "sourceSnapshot": "identity-final",
-      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
-      "mobileDetail": "images/ui-object-menu-detail-mobile.png",
+      "desktop": "images/ui-editable-object-menu-desktop.jpg",
+      "desktopDetail": "images/guide/object-menu-desktop.png",
+      "mobile": "images/ui-editable-object-menu-mobile.jpg",
+      "mobileDetail": "images/guide/object-menu-mobile.png",
+      "description": "The desktop menu shows Clear orders because Tim has a player order. The phone bookcase menu shows item actions and Close.",
+      "access": "Right-click a placed object on desktop or long-press it on a phone. With the game view focused, target the object with the arrow keys and press Enter.",
       "imageSha256": {
-        "desktop": "ce27a310733ce78e4c7cfbef88a02add620621d7a4a89044c54382c9e255b78f",
-        "mobile": "03655913f4aed957cf314436935a0439717425b19ccad8b96654c6bd6cbfb879",
-        "desktopDetail": "3210c97eed5ce9c3dc71dbdef7e13658199bd569a01326b849d70b8a087260a1",
-        "mobileDetail": "54ae74782847253b38c13dbbb9c1087f4c99c9b3b46e7fc7d1b3e1e7d2ae5c72"
-      }
+        "desktop": "026d713a5f059079ef56ea8c6903e2dda9b8ccdda38c96e2ef74d1da7f1a19d4",
+        "desktopDetail": "5c56595ac2c1f58cec8229a68f89d47bd53ad0f18c1464412bf869203cd80d6a",
+        "mobile": "e528d45b92efc95a0d49105c63a0acb3c6891b26f3069d1b428eb873b8b52c3d",
+        "mobileDetail": "ac4f22809369f3a72276ba8f192d74ef1c9667cb0b5db040ae3ccd5e3c83d2de"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "state": "Tim has a waiting player order. The armchair menu includes Clear orders.",
+          "sourceImageSha256": "026d713a5f059079ef56ea8c6903e2dda9b8ccdda38c96e2ef74d1da7f1a19d4"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "The bookcase menu is open with no player order to clear.",
+          "sourceImageSha256": "e528d45b92efc95a0d49105c63a0acb3c6891b26f3069d1b428eb873b8b52c3d"
+        }
+      },
+      "sourceSnapshot": "editable-guide-dock-2026-10-22"
     },
     {
       "id": "person-menu",
@@ -1873,17 +1977,37 @@
     {
       "id": "buy-details",
       "section": "buy",
-      "desktop": "images/ui-buy-details-desktop.png",
-      "mobile": "images/ui-buy-details-mobile.png",
-      "description": "A purchase preview with its price, rotation, colour and cancellation controls.",
-      "access": "Choose Build > Buy, choose a product, then select a destination. Scroll the Buy panel for Colour and other details.",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "desktop": "images/ui-editable-buy-details-desktop.jpg",
+      "desktopDetail": "images/guide/buy-details-desktop.png",
+      "mobile": "images/ui-editable-buy-details-mobile.jpg",
+      "mobileDetail": "images/guide/buy-details-mobile.png",
+      "description": "The preview puts Buy, the rotation buttons, Back to catalog and Cancel beside the item.",
+      "access": "Open Build, choose Buy, select an item, then select a destination.",
       "imageSha256": {
-        "desktop": "0bbb09c89b0c15eccab6e7af835b387c13aca391f9cb686850fd0391757532f9",
-        "mobile": "8613c9e93f80c3fe8c62112351ee998c3bb99c061cc06d1a87acbe445b513034"
-      }
+        "desktop": "ff4485c3d72b9e27b1f74d6153e9aeaeaba99aefacf9e2075071c30e0a5d1c2b",
+        "desktopDetail": "469de504c31a12460eeccd58f83d3545f3284b00c28f449604fa9de7d6f30a35",
+        "mobile": "c81e3620b9d4a519181aa46c431a1e6c5c9d60b4d73ba022e5e8596253988b0f",
+        "mobileDetail": "71a244387ea70130bfa1639e60bb34246899357237e296e89434a772837b59b0"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "state": "A dining chair preview is active on an available tile.",
+          "sourceImageSha256": "ff4485c3d72b9e27b1f74d6153e9aeaeaba99aefacf9e2075071c30e0a5d1c2b"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "A dining chair preview is active on an available tile.",
+          "sourceImageSha256": "c81e3620b9d4a519181aa46c431a1e6c5c9d60b4d73ba022e5e8596253988b0f"
+        }
+      },
+      "sourceSnapshot": "editable-guide-controls-2026-11-23"
     },
     {
       "id": "buy-filters",
@@ -2621,6 +2745,187 @@
           "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
           "sourceImageSha256": "7f7a29723d65239874709022d3bd2ba9c26bf1f15b38e710caf52c4f17a2ebde"
         }
+      }
+    },
+    {
+      "id": "household",
+      "section": "household",
+      "desktop": "images/ui-editable-sim-queue-desktop.png",
+      "desktopDetail": "images/guide/household-desktop.png",
+      "mobile": "images/ui-editable-sim-queue-mobile.png",
+      "mobileDetail": "images/guide/household-mobile.png",
+      "description": "The dock shows the selected person, household names and the collapse chevron.",
+      "access": "Choose a name under Household in the bottom dock.",
+      "imageSha256": {
+        "desktop": "16c1176fa9470c6858c740cf2593c86b4e53ef9c1857b5f9d5dd3e7756c38729",
+        "desktopDetail": "58e716d5baea776f136f082a66f49da19fae95eaaf5548a559eb3a07783a385e",
+        "mobile": "fae9c323cf00abee64853d7eca31e66d4ff1fc676ced50993e37c4286a3ab976",
+        "mobileDetail": "e7ef34c3d2aa6f5b44e83da94c19f2242c3ebd9727e5559ff0aa8fc0866f94f6"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "state": "Tim is selected and the dock is expanded.",
+          "sourceImageSha256": "16c1176fa9470c6858c740cf2593c86b4e53ef9c1857b5f9d5dd3e7756c38729"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Tim is selected and the dock is expanded.",
+          "sourceImageSha256": "fae9c323cf00abee64853d7eca31e66d4ff1fc676ced50993e37c4286a3ab976"
+        }
+      },
+      "sourceSnapshot": "editable-guide-queue-2026-11-20"
+    },
+    {
+      "id": "dock-no-selection",
+      "section": "household",
+      "desktop": "images/ui-editable-dock-no-selection-desktop.jpg",
+      "desktopDetail": "images/guide/dock-no-selection-desktop.png",
+      "mobile": "images/ui-editable-dock-no-selection-mobile.jpg",
+      "mobileDetail": "images/guide/dock-no-selection-mobile.png",
+      "description": "Hollow mood, life satisfaction and need tracks show that nobody is selected.",
+      "access": "Select empty floor, then expand the dock if it is collapsed.",
+      "imageSha256": {
+        "desktop": "3c5904e6aeb4e5e0e3682d7fc544bdae3af38abf08c96b67e918afe600e16cfc",
+        "desktopDetail": "dd12020a7071a130c4b9676765d3c05ce3ddb2a3b944c53191c047ac9df72fe0",
+        "mobile": "de4627add890a18b098af97a626d3458ee272628e1a5684f7c941391e531511f",
+        "mobileDetail": "d18d31d59c3446e81f01cba02869ab7ab083013c854547421bb5993dd5c6629d"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "state": "Selection cleared with the dock expanded.",
+          "sourceImageSha256": "3c5904e6aeb4e5e0e3682d7fc544bdae3af38abf08c96b67e918afe600e16cfc"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Selection cleared with the dock expanded.",
+          "sourceImageSha256": "de4627add890a18b098af97a626d3458ee272628e1a5684f7c941391e531511f"
+        }
+      },
+      "sourceSnapshot": "editable-guide-dock-2026-10-22"
+    },
+    {
+      "id": "floor-retry",
+      "section": "floors",
+      "desktop": "images/ui-editable-floor-retry-desktop.png",
+      "desktopDetail": "images/guide/floor-retry-desktop.png",
+      "mobile": "images/ui-editable-floor-retry-mobile.jpg",
+      "mobileDetail": "images/guide/floor-retry-mobile.png",
+      "description": "Outdoor patio failed to load. Retry and the other available coverings remain beside the selected tile.",
+      "access": "Choose Build, then Floors. Select a tile and choose Outdoor patio. Retry appears if the material fails to load.",
+      "imageSha256": {
+        "desktop": "50240272fc3a12295448c089c1a94724038a359bd6a0b72b2ec0afff47065c12",
+        "desktopDetail": "fc5f8e475efe124f1f273851032c57a8ea345a28065caea924eee1f3d3e6b1f5",
+        "mobile": "6aee6573e22c1790566eaf00fd18c9db2f42fb77dbeeaad28448ff44013b33a0",
+        "mobileDetail": "81f68c71ccfaf763c99d203fd76107262e52df222275261859da7533bd09bb16"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "state": "Outdoor patio request failed with a tile selected.",
+          "sourceImageSha256": "50240272fc3a12295448c089c1a94724038a359bd6a0b72b2ec0afff47065c12"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Outdoor patio request failed with a tile selected. The fault-injection indicator is outside the crop.",
+          "sourceImageSha256": "6aee6573e22c1790566eaf00fd18c9db2f42fb77dbeeaad28448ff44013b33a0"
+        }
+      },
+      "sourceSnapshots": {
+        "desktop": "editable-guide-floor-desktop-2026-11-20",
+        "mobile": "editable-guide-floor-phone-2026-10-22"
+      }
+    },
+    {
+      "id": "pool-hop-in",
+      "section": "swimming",
+      "desktop": "images/ui-editable-pool-hop-in-desktop.jpg",
+      "desktopDetail": "images/guide/pool-hop-in-desktop.png",
+      "mobile": "images/ui-editable-pool-hop-in-mobile.jpg",
+      "mobileDetail": "images/guide/pool-hop-in-mobile.png",
+      "description": "The selected person can choose Hop in in the pool object menu.",
+      "access": "Select a person. Right-click the pool on desktop or long-press it on a phone.",
+      "imageSha256": {
+        "desktop": "5af86c0a2ef4af87707808623af135cc80277b83f601d91069cbd8de8ecc04b7",
+        "desktopDetail": "9d6b401161d784ff79325bba132d6575d6fcd995911e3c91383b916db98fdb41",
+        "mobile": "5c7d110113d98b51886f1e19a49861daa314e222d70baddc51a469221d95c3ac",
+        "mobileDetail": "a9bf7dac9ab31477ac255742df3718c09b55d30e8ae843bea2d213188bb1b5e8"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "state": "Paused household with the pool object menu open and Hop in available.",
+          "sourceImageSha256": "5af86c0a2ef4af87707808623af135cc80277b83f601d91069cbd8de8ecc04b7"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Paused household with the pool object menu open and Hop in available.",
+          "sourceImageSha256": "5c7d110113d98b51886f1e19a49861daa314e222d70baddc51a469221d95c3ac"
+        }
+      },
+      "sourceSnapshot": "editable-guide-controls-2026-11-23"
+    },
+    {
+      "id": "build-access-review",
+      "section": "build",
+      "desktop": "images/ui-editable-build-access-review-desktop.jpg",
+      "desktopDetail": "images/guide/build-access-review-desktop.png",
+      "mobile": "images/ui-editable-build-access-review-mobile.jpg",
+      "mobileDetail": "images/guide/build-access-review-mobile.png",
+      "description": "The review explains affected access and offers Return to build mode and Confirm. The phone view also shows the highlighted ground.",
+      "access": "Open Build, make a draft that leaves an area unreachable, and choose Confirm. Finish any room review first.",
+      "imageSha256": {
+        "desktop": "e377cf626ebf8aa8a5f8e168f455f5774797df9f80a73d392914a33ae4577760",
+        "desktopDetail": "734b61b73cd2d372db4e73fef4e2a396b455b1006ff5104d27d99769bb6e71a7",
+        "mobile": "40c72f5c4520df7c6c869c83cf9fb6e5db507ff39757e6c7e4ef179145a3787a",
+        "mobileDetail": "4110d89e246d0a69ff7a6c2c8cb3a184a5a55f2f894198f0f6c6785c8056e270"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "state": "An isolated area triggered an access review. The crop shows the review controls.",
+          "sourceImageSha256": "e377cf626ebf8aa8a5f8e168f455f5774797df9f80a73d392914a33ae4577760"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Two isolated areas are visible above the access review.",
+          "sourceImageSha256": "40c72f5c4520df7c6c869c83cf9fb6e5db507ff39757e6c7e4ef179145a3787a"
+        }
+      },
+      "sourceSnapshots": {
+        "desktop": "editable-guide-access-desktop-2026-10-22",
+        "mobile": "editable-guide-access-phone-2026-10-22"
       }
     }
   ],

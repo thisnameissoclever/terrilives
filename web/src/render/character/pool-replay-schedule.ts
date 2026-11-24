@@ -32,28 +32,33 @@ export function poolReplaySchedule(fixture:PoolFixtureV1,definition:PoolCycleDef
   const clock=definition.clockUnits,paddleCount=definition.paddle.samples;
   if(!Number.isSafeInteger(clock)||clock<1||paddleCount!==12)throw new Error('Invalid pool replay clock.');
   const authored:number[]=[],recipeUnits=recipeKnots.map(k=>k.unit);
-  for(const anchor of definition.anchors){
-    if(exactPoolEntryUnit(anchor.phase,clock)!==anchor.unit)throw new Error('Pool anchor phase differs from its unit.');
-    authored.push(anchor.unit);
-  }
-  for(const t of definition.footTransitions){
-    if(exactPoolEntryUnit(t.start,clock)!==t.startUnit||exactPoolEntryUnit(t.end,clock)!==t.endUnit)throw new Error('Pool transfer phase differs from its unit.');
-    authored.push(t.startUnit,t.endUnit);
-  }
-  for(const p of definition.plantedBodyPaths)authored.push(p.fromUnit,p.toUnit,...p.boundaryUnits,...p.sampleUnits);
-  for(const p of [...definition.hand.approach,...definition.hand.release.handL,...definition.hand.release.handR])authored.push(exactPoolEntryUnit(p,clock));
-  if(definition.hand.crestElbowPole){
-    const pole=definition.hand.crestElbowPole;authored.push(pole.fromUnit,pole.peakUnit,pole.toUnit);
-  }
-  if(definition.groundGrip)authored.push(definition.groundGrip.acquisitionUnit,definition.groundGrip.firstRungUnit,definition.groundGrip.secondRungUnit);
-  if(definition.crestFit)authored.push(definition.crestFit.shinReferenceUnit);
-  if(definition.version===16){
-    const r=definition.crestRoute;authored.push(...r.handTransferUnits,...r.footSwingUnits,...r.rightStepUnits,...r.sampleUnits);
+  const hop=definition.version===16?definition.forwardHop:undefined;
+  if(hop)authored.push(...hop.entryUnits);
+  else{
+    for(const anchor of definition.anchors){
+      if(exactPoolEntryUnit(anchor.phase,clock)!==anchor.unit)throw new Error('Pool anchor phase differs from its unit.');
+      authored.push(anchor.unit);
+    }
+    for(const t of definition.footTransitions){
+      if(exactPoolEntryUnit(t.start,clock)!==t.startUnit||exactPoolEntryUnit(t.end,clock)!==t.endUnit)throw new Error('Pool transfer phase differs from its unit.');
+      authored.push(t.startUnit,t.endUnit);
+    }
+    for(const p of definition.plantedBodyPaths)authored.push(p.fromUnit,p.toUnit,...p.boundaryUnits,...p.sampleUnits);
+    for(const p of [...definition.hand.approach,...definition.hand.release.handL,...definition.hand.release.handR])authored.push(exactPoolEntryUnit(p,clock));
+    if(definition.hand.crestElbowPole){
+      const pole=definition.hand.crestElbowPole;authored.push(pole.fromUnit,pole.peakUnit,pole.toUnit);
+    }
+    if(definition.groundGrip)authored.push(definition.groundGrip.acquisitionUnit,definition.groundGrip.firstRungUnit,definition.groundGrip.secondRungUnit);
+    if(definition.crestFit)authored.push(definition.crestFit.shinReferenceUnit);
+    if(definition.version===16){
+      const r=definition.crestRoute;authored.push(...r.handTransferUnits,...r.footSwingUnits,...r.rightStepUnits,...r.sampleUnits);
+    }
   }
   if(!authored.includes(0)||!authored.includes(clock)||[...authored,...recipeUnits].some(u=>!Number.isSafeInteger(u)||u<0||u>clock))
     throw new Error('Invalid declared pool key sequence.');
   const units=new Set([...authored,...recipeUnits,...poolSourceEvents(fixture,'pool_enter').map(p=>exactPoolEntryUnit(p,clock))]);
-  for(let origin=0;origin<12;origin++)for(const phase of poolSourceEvents(fixture,'pool_exit_'+origin))if(phase>.1){
+  if(hop&&[...units].some(u=>!hop.entryUnits.includes(u)))throw new Error('Entry recipe or support event is absent from the forward hop clock.');
+  if(!hop)for(let origin=0;origin<12;origin++)for(const phase of poolSourceEvents(fixture,'pool_exit_'+origin))if(phase>.1){
     const u=Math.round((1-phase)/.9*clock);
     if(!Number.isSafeInteger(u)||u<0||u>=clock||phase!==(u===0?1:1-.9*(u/clock)))throw new Error('Pool exit event is off the shared reverse clock.');
     units.add(u);
@@ -85,7 +90,18 @@ export function poolReplaySchedule(fixture:PoolFixtureV1,definition:PoolCycleDef
     const action='pool_exit_'+origin,events=poolSourceEvents(fixture,action);
     const bridge=[...new Set([0,.1,...events.filter(p=>p>0&&p<.1)])].sort((a,b)=>a-b);
     const start=paddle.find(k=>k.phase===origin/12)!;
-    physical(action,bridge.map(p=>({phase:p,ref:p===0?start.ref:p===.1?'entry/'+clock:action+'/bridge/'+p})),false);
+    const bridgeKeys=bridge.map(p=>({phase:p,ref:p===0?start.ref:p===.1?'entry/'+clock:action+'/bridge/'+p}));
+    if(hop){
+      const clip=fixture.clips[action];
+      if([...clip.samples,...clip.intervals].some(row=>Object.values(row.limbs).some(s=>s.interval&&s.intervalSpace!=='clip-phase')))
+        throw new Error('An authored climb-out must declare support times on its own clip clock.');
+      for(const p of events)if(p>=.1&&!hop.climbOutUnits.includes(exactPoolEntryUnit(p,clock)))
+        throw new Error('Exit support event is missing from the authored climb-out clock.');
+      const climb=hop.climbOutUnits.filter(u=>u>hop.bridgeEndUnit).map(u=>({phase:u/clock,ref:u===clock?'entry/0':'climb/'+u}));
+      physical(action,[...bridgeKeys,...climb],false);
+      continue;
+    }
+    physical(action,bridgeKeys,false);
     for(let i=1;i<entry.length;i++){
       const a=entry[i-1],b=entry[i];
       for(const t of [0,.5,1]){

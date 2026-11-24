@@ -6,7 +6,7 @@ export interface CharacterActionState {
   fixtureModel:string|null;wholeSeat:boolean;readingStage:number;carriedBook:boolean;carriedDishes:boolean;carriedDinner:boolean;
   shelfSlot:number;reachRemaining:number;reachTotal:number;progress:number;
   halfCycleTicks?:number;
-  poolPhase?:number;poolElapsed?:number;poolExitOrigin?:number;
+  poolPhase?:number;poolElapsed?:number;poolExitOrigin?:number;poolExitTicks?:number;
   prevPoolPhase?:number;prevPoolElapsed?:number;prevPoolExitOrigin?:number;poolAlpha?:number;
   bathElapsed?:number;
 }
@@ -18,6 +18,8 @@ const halfCycles=[1,8,16,24,24,1,8,24,24,32,10,10,10,16,1,1,1,1,12,12,12,10,1];
 /** Follow the native render buffer's completed transition, including command-only exits. */
 function poolAction(state:CharacterActionState,frameCount:(clip:string)=>number):CharacterActionPlan|null {
   const phase=state.poolPhase??0,elapsed=state.poolElapsed??0,origin=state.poolExitOrigin??0;
+  const exitTicks=state.poolExitTicks??20;
+  if(!Number.isSafeInteger(exitTicks)||exitTicks<1)throw new Error('Invalid native pool exit duration.');
   const previous=state.prevPoolPhase??phase,previousElapsed=state.prevPoolElapsed??elapsed;
   const previousOrigin=state.prevPoolExitOrigin??origin,alpha=Math.max(0,Math.min(1,state.poolAlpha??0));
   if(!phase&&!previous)return null;
@@ -26,12 +28,12 @@ function poolAction(state:CharacterActionState,frameCount:(clip:string)=>number)
   const paddle=(time:number)=>({clip:'pool_paddle',sample:state.reducedMotion?0:((time%12)+12)%12*frameCount('pool_paddle')/12,fixture:true});
   const exit=(time:number,from:number)=>{
     const clip=`pool_exit_${state.reducedMotion?0:from%12}`;
-    return {clip,sample:Math.max(0,Math.min(20,time))*(frameCount(clip)-1)/20,fixture:true};
+    return {clip,sample:Math.max(0,Math.min(exitTicks,time))*(frameCount(clip)-1)/exitTicks,fixture:true};
   };
   if(!phase){
     if(alpha===1)return null;
     if(previous===4)return entry(lerp(previousElapsed,0));
-    if(previous===3)return exit(lerp(previousElapsed,20),previousOrigin);
+    if(previous===3)return exit(lerp(previousElapsed,exitTicks),previousOrigin);
     throw new Error('Pool render continuation lost an occupied phase before exit.');
   }
   if(phase===1||phase===4)return entry(lerp(previous===1||previous===4?previousElapsed:elapsed,elapsed));
@@ -40,6 +42,7 @@ function poolAction(state:CharacterActionState,frameCount:(clip:string)=>number)
     return paddle(lerp(previous===2?previousElapsed:elapsed,elapsed));
   }
   if(phase===3){
+    if(previous===1&&alpha<1)return entry(lerp(previousElapsed,20));
     if(previous===2){
       // A paused cancellation changes the phase at the current endpoint without moving it.
       const distance=origin-previousElapsed+elapsed,travel=alpha*distance;

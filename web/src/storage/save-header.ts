@@ -1,5 +1,5 @@
 const MAGIC = [84, 69, 82, 82, 73, 83, 65, 86] as const;
-export const CURRENT_SAVE_VERSION = 28;
+export const CURRENT_SAVE_VERSION = 30;
 
 // Both V24 writers start their payload with a postcard-encoded content fingerprint.
 const CAREER_V24_FINGERPRINT = [164, 220, 210, 228, 250, 221, 197, 136, 81] as const;

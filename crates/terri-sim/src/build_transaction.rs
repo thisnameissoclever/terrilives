@@ -358,7 +358,7 @@ impl Sim {
             }
         }
         let baseline = save::v28::capture(self);
-        if let Err(error) = save::v28::restore(
+        if let Err(error) = save::v28::restore_current(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -447,7 +447,7 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v28::restore(
+                save::v28::restore_current(
                     save::v28::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
@@ -499,7 +499,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v28::restore(
+        let mut candidate = save::v28::restore_current(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -532,7 +532,7 @@ impl Sim {
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v28::restore(
+            candidate = save::v28::restore_current(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -798,7 +798,7 @@ impl Sim {
         baseline: SaveSnapshotV28,
         request_runtime: &crate::social_episode::requests::runtime::Runtime,
     ) -> Result<Sim, SaveError> {
-        let mut restored = save::v28::restore(
+        let mut restored = save::v28::restore_current(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -847,7 +847,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v28::restore(
+            save::v28::restore_current(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),

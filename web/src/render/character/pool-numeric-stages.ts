@@ -71,7 +71,8 @@ function parseBody(raw:unknown):NumericBody {
 }
 export function heldPlace(definition:PoolCycleDefinition,limb:NumericFoot,unit:number):string|undefined {
   let place=definition.anchors[0].feet[limb==='footL'?0:1];
-  for(const move of definition.footTransitions)if(move.limb===limb){
+  const moves=definition.version===16&&definition.forwardHop?definition.forwardHop.footTransitions:definition.footTransitions;
+  for(const move of moves)if(move.limb===limb){
     if(unit<move.startUnit)break;
     if(unit===move.startUnit)return move.from;
     if(unit<move.endUnit)return;

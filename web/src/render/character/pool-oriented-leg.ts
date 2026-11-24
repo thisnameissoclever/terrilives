@@ -10,12 +10,12 @@ import {composeSkeletonPose} from './pose-joints.js';
 import {solvePoolHierarchyLimb} from './pool-canonical-pose.js';
 
 /** Runtime uses the same complete frame program as the traced preparation producer. */
-export function evaluatePoolOrientedLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,target:Vec3,orientation:readonly number[]){
+export function evaluatePoolOrientedLeg(pose:PoolHierarchy,upper:number,lower:number,end:number,target:Vec3,orientation:readonly number[],kneeOrbit?:number){
   const body=pose.bundle.bones[upper]?.parent,source=pose.bundle.basisActions.pool_enter?.[0],side=pose.bundle.bones[lower]?.name.slice(-1);
   if(body===undefined||pose.bundle.bones[body]?.name!=='hips'||pose.bundle.bones[upper]?.name!=='thigh.'+side||pose.bundle.bones[lower]?.name!=='shin.'+side
       ||pose.bundle.bones[end]?.name!=='foot.'+side||pose.bundle.bones[lower].parent!==upper||pose.bundle.bones[end].parent!==lower||!source)throw new Error('Pool interval has no configured source-oriented leg chain.');
   const result=orientedPoolLegMath({upper,lower,end,body,rest:pose.rest.map(matrix),inverses:pose.inverse.map(matrix),basis:pose.basis.map(matrix),world:pose.world.map(matrix),
-    sourceUpper:matrix(source[upper]),sourceLower:matrix(source[lower]),target:vector(target)});
+    sourceUpper:matrix(source[upper]),sourceLower:matrix(source[lower]),target:vector(target),kneeOrbit});
   pose.basis[upper]=result.upperBasis.map(value=>value.value);pose.basis[lower]=result.lowerBasis.map(value=>value.value);
   pose.world=composeSkeletonPose(pose.bundle.bones,pose.rest,pose.basis);
   const pole=pose.world[lower].slice(12,15) as unknown as Vec3;
@@ -30,8 +30,8 @@ export function poolLegFrameDiagnostic(relative:readonly number[],axis:Vec3){
   return {axisMotion:length(sub(moved,axis)),orientedSpin:Math.atan2(sine,cosine),signedX:Math.atan2(relative[6]-relative[9],relative[5]+relative[10])};
 }
 
-export function solvePoolOrientedFoot(pose:PoolHierarchy,upper:number,lower:number,end:number,frame:PoolFootContactFrame):PoolOrientedLegPlan {
-  const plan=preparePoolOrientedLeg(pose,upper,lower,end,frame);
+export function solvePoolOrientedFoot(pose:PoolHierarchy,upper:number,lower:number,end:number,frame:PoolFootContactFrame,kneeOrbit?:number):PoolOrientedLegPlan {
+  const plan=preparePoolOrientedLeg(pose,upper,lower,end,frame,kneeOrbit);
   solveCertifiedPoolFoot(pose,upper,lower,end,frame,plan.pole,plan);return plan;
 }
 

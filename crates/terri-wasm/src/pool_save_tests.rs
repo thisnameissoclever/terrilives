@@ -43,7 +43,7 @@ fn exiting_pool() -> SimHandle {
         handle.sim.tick();
         if handle
             .sim
-            .save_snapshot_v28()
+            .save_snapshot_v30()
             .pools
             .first()
             .is_some_and(|episode| episode.phase == 3)
@@ -59,6 +59,71 @@ fn bytes(snapshot: &CurrentV5View) -> Vec<u8> {
     bytes.extend(terri_core::SAVE_SCHEMA_VERSION.to_le_bytes());
     bytes.extend(postcard::to_allocvec(&snapshot.0).unwrap());
     bytes
+}
+
+#[test]
+fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
+    let mut handle = exiting_pool();
+    let actor = handle.sim.save_snapshot_v30().pools[0].actor;
+    handle.sim.world_mut().resource_mut::<CommandQueue>().push(
+        SimCommand::CancelIntents { agent: actor },
+    );
+    handle.sim.flush_commands();
+    let original = handle.save_bytes();
+    let mut legacy = handle.sim.current_v5_view();
+    let episode = &mut legacy.0.pools[0];
+    episode.phase = 4;
+    episode.elapsed = 13;
+    episode.exit_origin = 0;
+    assert!(episode.interrupted);
+    legacy.world.entities.iter_mut().find(|row| row.index == actor)
+        .unwrap().eating.as_mut().unwrap().remaining_ticks = 13;
+
+    let mut old_bytes = bytes(&legacy);
+    assert!(!handle.load_bytes(&old_bytes), "current saves cannot reverse an airborne hop");
+    assert_eq!(handle.save_bytes(), original);
+    old_bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&28u16.to_le_bytes());
+    assert!(handle.load_bytes(&old_bytes));
+    let migrated = handle.sim.current_v5_view();
+    let episode = &migrated.0.pools[0];
+    assert_eq!((episode.phase, episode.elapsed, episode.exit_origin), (5, 13, 0));
+    assert!(episode.interrupted);
+    assert_eq!(episode.approach, legacy.0.pools[0].approach);
+    let actor = migrated.world.entities.iter().find(|row| row.index == actor).unwrap();
+    assert_eq!(actor.eating.as_ref().unwrap().remaining_ticks, 47);
+
+    let current = handle.save_bytes();
+    assert!(handle.load_bytes(&current));
+    assert_eq!(handle.save_bytes(), current);
+    let mut mislabeled = current.clone();
+    mislabeled[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&28u16.to_le_bytes());
+    assert!(!handle.load_bytes(&mislabeled), "historical headers forbid the new phase");
+    assert_eq!(handle.save_bytes(), current);
+}
+
+#[test]
+fn pool_codec_migrates_v29_exit_progress_and_rejects_crossed_clocks() {
+    let mut handle = exiting_pool();
+    for _ in 0..18 {
+        handle.tick();
+    }
+    let current = handle.save_bytes();
+    let before = handle.sim.current_v5_view();
+    assert_eq!((before.0.pools[0].phase, before.0.pools[0].elapsed), (3, 18));
+    let old = handle.sim.save_snapshot_v29();
+    assert_eq!((old.pools[0].phase, old.pools[0].elapsed), (3, 9));
+    let mut historical = SAVE_MAGIC.to_vec();
+    historical.extend(29u16.to_le_bytes());
+    historical.extend(postcard::to_allocvec(&old).unwrap());
+    assert!(handle.load_bytes(&historical));
+    assert_eq!(handle.save_bytes(), current);
+
+    let mut mislabeled = current.clone();
+    mislabeled[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&29u16.to_le_bytes());
+    assert!(!handle.load_bytes(&mislabeled));
+    historical[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
+    assert!(!handle.load_bytes(&historical));
+    assert_eq!(handle.save_bytes(), current);
 }
 
 #[test]
@@ -89,8 +154,8 @@ fn pool_codec_rejects_a_countdown_that_disagrees_with_native_phase_time() {
         .eating
         .as_mut()
         .unwrap();
-    assert_eq!(eating.remaining_ticks, 20);
-    eating.remaining_ticks = 19;
+    assert_eq!(eating.remaining_ticks, 40);
+    eating.remaining_ticks = 39;
     assert!(!handle.load_bytes(&bytes(&snapshot)));
     assert_eq!(handle.save_bytes(), before);
 }
@@ -167,7 +232,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
         handle.tick();
         if handle
             .sim
-            .save_snapshot_v28()
+            .save_snapshot_v30()
             .pools
             .first()
             .is_some_and(|episode| episode.phase > 0)
@@ -175,7 +240,7 @@ fn pool_fractional_same_tile_arrival_reaches_exact_contact_and_roundtrips() {
             break;
         }
     }
-    assert_eq!(handle.sim.save_snapshot_v28().pools[0].phase, 1);
+    assert_eq!(handle.sim.save_snapshot_v30().pools[0].phase, 1);
     let current = handle.sim.current_v5_view().world.clone();
     let position = current
         .entities
@@ -329,7 +394,7 @@ fn pool_codec_complete_physical_contract_negative_controls() {
 #[test]
 fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
     let natural = exiting_pool();
-    let origin = natural.sim.save_snapshot_v28().pools[0].clone();
+    let origin = natural.sim.save_snapshot_v30().pools[0].clone();
     // Reproduce each checkpoint through full public ticks, not DTO fabrication.
     for (phase, elapsed, cancel) in [
         (1, 0, false),
@@ -359,7 +424,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
         for _ in 0..150 {
             if handle
                 .sim
-                .save_snapshot_v28()
+                .save_snapshot_v30()
                 .pools
                 .first()
                 .is_some_and(|e| e.phase == phase && e.elapsed == elapsed)
@@ -368,7 +433,7 @@ fn pool_codec_preserves_public_phase_and_paused_cancellation_boundaries() {
             }
             handle.tick();
         }
-        let current = handle.sim.save_snapshot_v28().pools[0].clone();
+        let current = handle.sim.save_snapshot_v30().pools[0].clone();
         assert_eq!((current.phase, current.elapsed), (phase, elapsed));
         if cancel {
             handle
@@ -426,7 +491,7 @@ fn reach(handle: &mut SimHandle, phase: u8, elapsed: u32) {
     for _ in 0..200 {
         if handle
             .sim
-            .save_snapshot_v28()
+            .save_snapshot_v30()
             .pools
             .iter()
             .any(|e| e.actor == 1 && e.phase == phase && e.elapsed == elapsed)
@@ -508,13 +573,13 @@ fn pool_codec_waiting_shared_approach_survives_the_blocker_completion_tick() {
     assert_eq!(actor.target.unwrap().object, 2);
     assert!(actor.path.is_some() && actor.eating.is_none());
     roundtrip_pool(&mut handle, "waiting for another pool's ladder");
-    for _ in 0..110 {
+    for _ in 0..130 {
         handle.tick();
-        if handle.sim.save_snapshot_v28().pools.is_empty() {
+        if handle.sim.save_snapshot_v30().pools.is_empty() {
             break;
         }
     }
-    assert!(handle.sim.save_snapshot_v28().pools.is_empty());
+    assert!(handle.sim.save_snapshot_v30().pools.is_empty());
     let waiting = handle.sim.current_v5_view();
     let actor = waiting
         .world
@@ -552,7 +617,7 @@ fn pool_codec_preserves_exact_orders_without_adopting_a_later_repeated_order() {
                 .all(|o| !o.served));
         }
         handle.tick();
-        assert!(handle.sim.save_snapshot_v28().pools[0].interrupted);
+        assert!(handle.sim.save_snapshot_v30().pools[0].interrupted);
         assert!(handle
             .sim
             .current_v17_view()

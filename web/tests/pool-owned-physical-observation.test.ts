@@ -1,7 +1,8 @@
 import {expect,it,vi} from 'vitest';
 import definition from '../../assets/models/sims/character-creator/pool_activity_motion_v14.json';
 import {defaultAppearance} from '../src/character/schema.js';
-import {createPoolContactInput,poolContactFixture} from '../src/render/character/pool-contact-preparation.js';
+import {createPoolContactInput} from '../src/render/character/pool-contact-preparation.js';
+import {poolV14Fixture} from './pool-v14-fixture.js';
 import {compileOwnedPoolCycle,measureRawPoolPhysicalObservation,poolOwnedObservationIdentity,type PoolOwnedCompilationCounters} from '../src/render/character/pool-owned-compilation.js';
 import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
 import {PreparedBody} from '../src/render/character/prepared-body.js';
@@ -19,6 +20,7 @@ import * as orientedLeg from '../src/render/character/pool-oriented-leg.js';
 import * as supportArithmetic from '../src/render/character/pool-support-arithmetic.js';
 import * as supportObserver from '../src/render/character/pool-support-observer.js';
 import {poolBase,poolRig} from './pool-observer-fixture.js';
+import {multiply} from '../src/render/character/math.js';
 
 const phases=vi.hoisted(()=>({value:[0,.01,.05,1]}));
 vi.mock('../src/render/character/pool-source-policy.js',async original=>({
@@ -35,7 +37,7 @@ async function openingSources(){
  const selection=new PreparedBody(poolBase,appearance).select(poolRig,appearance,{wear:'bare',prop:'none',fixture:'none',
   eyes_closed:false,includeFixture:false,clip:'pool_enter',swimwear:'two_piece'});
  const sources={bundle:poolRig.manifest,shape:{presentation:appearance.presentation,...appearance.body,face:appearance.face},
-  top:anatomicalHeight(poolBase.vertices),geometry:[selection.body,selection.extra!],fixture:poolContactFixture()};
+  top:anatomicalHeight(poolBase.vertices),geometry:[selection.body,selection.extra!],fixture:poolV14Fixture};
  return {sourceDefinition,input,sources};
 }
 
@@ -129,6 +131,20 @@ it('reserves the owned source entry for active rows and returns detached raw int
  const original=structuredClone(measurement);
  measurement.supports[0].reasons.push('edited diagnostic');
  expect(measureRawPoolPhysicalObservation(source,left,right,.5,{...location,phase:.03})).toEqual(original);
+});
+
+it('checks the arriving foot at its literal approach key after a free swing',async()=>{
+ const {sourceDefinition,sources}=await openingSources(),{bundle,shape,top,geometry,fixture}=sources;
+ const source=new PoolCycleSource(bundle,shape,top,geometry,fixture,sourceDefinition);
+ const location={action:'pool_enter',phase:.1095},arrival=source.entry(location.phase);
+ const foot=source.anatomy.footL.end;
+ const turn=[-1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1];
+ const swing={...arrival,controls:arrival.controls.map(control=>control.end===foot
+   ? {...control,state:{...control.state,orientation:multiply(turn,control.state.orientation)}} : control)};
+ const atKey=measureRawPoolPhysicalObservation(source,arrival,arrival,0,location);
+ expect(atKey.passed).toBe(true);
+ expect(measureRawPoolPhysicalObservation(source,swing,arrival,1,location)).toEqual(atKey);
+ expect(()=>measureRawPoolPhysicalObservation(source,swing,arrival,.5,location)).toThrow('changing free-foot orientation');
 });
 
 it('matches raw topology, exact rail coefficients and arithmetic for the maintained opening poses',async()=>{

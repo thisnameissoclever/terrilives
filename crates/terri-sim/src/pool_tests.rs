@@ -8,7 +8,7 @@ fn pool_has_an_ordinary_single_occupant_hop_in_order() {
         .find(|a| a.label == "Hop in")
         .expect("pool must advertise the ordinary Hop in action");
     assert_eq!(action.slots, 1);
-    assert_eq!(action.duration_ticks, 100);
+    assert_eq!(action.duration_ticks, 120);
     assert_eq!(action.advertises, vec![(1, -5.), (5, 30.), (6, 10.)]);
 }
 use super::*;
@@ -75,6 +75,7 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
     let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
     order(&mut sim, actor, object);
     entered(&mut sim, actor);
+    assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, 120);
     let initial = sim.world().get::<Needs>(actor).unwrap().clone();
     for _ in 0..20 {
         pool::tick(sim.world_mut());
@@ -96,7 +97,8 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
         assert!((after.get(need) - initial.get(need) - delta).abs() < 0.001);
     }
     assert!(sim.world().get::<Reserved>(object).is_some());
-    for _ in 0..19 {
+    assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, 40);
+    for _ in 0..39 {
         pool::tick(sim.world_mut());
     }
     assert!(sim.world().get::<Reserved>(object).is_some());
@@ -106,6 +108,35 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
     assert!(sim.world().get::<Eating>(actor).is_none());
     assert!(sim.world().get::<Reserved>(object).is_none());
     assert!(sim.world().get::<IntentQueue>(actor).unwrap().is_empty());
+}
+
+#[test]
+fn pool_checked_legacy_writers_refuse_a_half_exit_step() {
+    let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
+    order(&mut sim, actor, object);
+    entered(&mut sim, actor);
+    for _ in 0..(20 + 60 + 38) {
+        pool::tick(sim.world_mut());
+    }
+    assert_eq!(sim.try_save_snapshot_v28().unwrap().pools[0].elapsed, 19);
+    assert_eq!(sim.try_save_snapshot_v29().unwrap().pools[0].elapsed, 19);
+
+    pool::tick(sim.world_mut());
+    let current = sim.try_save_snapshot_v30().unwrap();
+    assert_eq!((current.pools[0].phase, current.pools[0].elapsed), (3, 39));
+    assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, 1);
+    assert_eq!(sim.try_save_snapshot_v28(), Err(crate::SaveError::InvalidValue));
+    assert_eq!(sim.try_save_snapshot_v29(), Err(crate::SaveError::InvalidValue));
+    assert_eq!(sim.save_snapshot_v28().pools[0].elapsed, 19);
+    assert_eq!(sim.save_snapshot_v29().pools[0].elapsed, 19);
+    assert_eq!(sim.try_save_snapshot_v30().unwrap(), current);
+
+    sim.load_snapshot_v30(current.clone()).unwrap();
+    assert_eq!(sim.try_save_snapshot_v30().unwrap(), current);
+    assert!(sim.world().get::<Reserved>(object).is_some());
+    pool::tick(sim.world_mut());
+    assert!(sim.world().get::<pool::PoolEpisode>(actor).is_none());
+    assert!(sim.world().get::<Reserved>(object).is_none());
 }
 
 #[test]
@@ -140,10 +171,10 @@ fn pool_cancel_each_phase_keeps_pose_progress_and_physical_owner_but_clears_orde
         assert!(sim.world().get::<Reserved>(object).is_some());
         assert!(!crate::player_actions::has_player_work(sim.world(), actor));
         let levels = sim.world().get::<Needs>(actor).unwrap().clone();
-        let saved = sim.save_snapshot_v28();
-        sim.load_snapshot_v28(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v28(), saved);
-        for _ in 0..20 {
+        let saved = sim.save_snapshot_v30();
+        sim.load_snapshot_v30(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v30(), saved);
+        for _ in 0..40 {
             if sim.world().get::<pool::PoolEpisode>(actor).is_some() {
                 pool::tick(sim.world_mut());
             }
@@ -151,6 +182,157 @@ fn pool_cancel_each_phase_keeps_pose_progress_and_physical_owner_but_clears_orde
         assert!(sim.world().get::<pool::PoolEpisode>(actor).is_none());
         assert!(sim.world().get::<Reserved>(object).is_none());
         assert_eq!(sim.world().get::<Needs>(actor).unwrap(), &levels);
+    }
+}
+
+#[test]
+fn pool_cancel_at_takeoff_lands_before_exit_without_swim_rewards() {
+    for elapsed in [11, 12, 13] {
+        let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
+        order(&mut sim, actor, object);
+        entered(&mut sim, actor);
+        for _ in 0..elapsed {
+            pool::tick(sim.world_mut());
+        }
+        let entry = sim.save_snapshot_v30();
+        sim.load_snapshot_v30(entry.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v30(), entry, "entry tick {elapsed}");
+
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::CancelIntents {
+                agent: actor.index_u32(),
+            });
+        sim.flush_commands();
+        let landing = elapsed >= 12;
+        let episode = sim.world().get::<pool::PoolEpisode>(actor).unwrap();
+        assert_eq!(episode.phase, if landing { 5 } else { 4 });
+        assert_eq!(episode.elapsed, elapsed);
+        assert!(episode.interrupted);
+        let remaining = if landing { 60 - elapsed } else { elapsed };
+        assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, remaining);
+
+        order(&mut sim, actor, object);
+        let levels = sim.world().get::<Needs>(actor).unwrap().clone();
+        let queued = sim.world().get::<terri_core::IntentQueue>(actor).unwrap().entries().to_vec();
+        let satisfaction = |sim: &Sim| {
+            sim.world().get::<terri_core::Satisfaction>(actor).map(terri_core::Satisfaction::value)
+        };
+        let original_satisfaction = satisfaction(&sim);
+        let saved = sim.save_snapshot_v30();
+        sim.load_snapshot_v30(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v30(), saved, "paused cancellation at {elapsed}");
+        if landing {
+            let render = sim.render_buffer();
+            let row = render.ids.iter().position(|&id| id == actor.index_u32()).unwrap();
+            assert_eq!((render.pool_phases[row], render.pool_elapsed[row]), (1, elapsed));
+            sim.begin_build().unwrap();
+            sim.end_build().unwrap();
+            assert_eq!(sim.save_snapshot_v30(), saved);
+            sim.begin_admin().unwrap();
+            sim.admin_apply(terri_core::admin::AdminChange {
+                edits: vec![terri_core::admin::AdminEdit::AdjustFunds { cents: 500 }],
+            }).unwrap();
+            sim.admin_undo().unwrap();
+            sim.end_admin();
+            assert_eq!(sim.save_snapshot_v30(), saved);
+        }
+        for step in 1..=remaining {
+            pool::tick(sim.world_mut());
+            let episode = sim.world().get::<pool::PoolEpisode>(actor);
+            assert_eq!(episode.is_some(), step < remaining);
+            assert_eq!(sim.world().get::<Reserved>(object).is_some(), step < remaining);
+            if let Some(episode) = episode {
+                let total = elapsed + step;
+                if !landing {
+                    assert_eq!((episode.phase, episode.elapsed), (4, elapsed - step));
+                } else if total < 20 {
+                    assert_eq!((episode.phase, episode.elapsed), (5, total));
+                } else {
+                    assert_eq!((episode.phase, episode.elapsed, episode.exit_origin), (3, total - 20, 0));
+                }
+            }
+            assert_eq!(sim.world().get::<Needs>(actor).unwrap(), &levels);
+            assert_eq!(satisfaction(&sim), original_satisfaction);
+            assert_eq!(sim.world().get::<terri_core::IntentQueue>(actor).unwrap().entries(), queued);
+        }
+    }
+}
+
+#[test]
+fn pool_historical_writers_round_trip_a_canceled_landing() {
+    let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
+    order(&mut sim, actor, object);
+    entered(&mut sim, actor);
+    for _ in 0..13 {
+        pool::tick(sim.world_mut());
+    }
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents {
+            agent: actor.index_u32(),
+        });
+    sim.flush_commands();
+    order(&mut sim, actor, object);
+
+    let current = sim.save_snapshot_v30();
+    assert_eq!((current.pools[0].phase, current.pools[0].elapsed), (5, 13));
+    assert_eq!(
+        sim.try_save_snapshot_v28(),
+        Err(crate::SaveError::InvalidValue)
+    );
+    for during_build in [false, true] {
+        if during_build {
+            sim.begin_build().unwrap();
+        }
+        let v23 = sim.save_snapshot_editable_world_v23();
+        let v25 = sim.save_snapshot_v25();
+        let v26 = sim.save_snapshot_v26();
+        let v28 = sim.save_snapshot_v28();
+        let v29 = sim.save_snapshot_v29();
+        for rows in [&v23.previous.pools, &v25.pools, &v26.pools, &v28.pools] {
+            let mut expected = current.pools.clone();
+            expected[0].phase = 4;
+            assert_eq!(rows, &expected);
+        }
+        assert_eq!(v29.pools, current.pools);
+        assert_eq!(sim.try_save_snapshot_v29().unwrap(), v29);
+        let expected_queue = sim
+            .world()
+            .get::<terri_core::IntentQueue>(actor)
+            .unwrap()
+            .entries();
+        let assert_resumed = |restored: &Sim| {
+            assert_eq!(restored.save_snapshot_v30().pools, current.pools);
+            let actor = crate::dining::entity(restored.world(), actor.index_u32()).unwrap();
+            let object = crate::dining::entity(restored.world(), object.index_u32()).unwrap();
+            assert_eq!(
+                restored.world().get::<Eating>(actor).unwrap().remaining_ticks,
+                47
+            );
+            assert_eq!(
+                restored.world().get::<terri_core::IntentQueue>(actor).unwrap().entries(),
+                expected_queue
+            );
+            assert!(restored.world().get::<Reserved>(object).is_some());
+        };
+        let mut restored = Sim::new_with_lot(12, 12);
+        restored.load_snapshot_editable_world_v23(v23).unwrap();
+        assert_resumed(&restored);
+        restored.load_snapshot_v25(v25).unwrap();
+        assert_resumed(&restored);
+        restored.load_snapshot_v26(v26).unwrap();
+        assert_resumed(&restored);
+        restored.load_snapshot_v28(v28).unwrap();
+        assert_resumed(&restored);
+        assert_eq!(restored.save_snapshot_v30(), current);
+        restored.load_snapshot_v29(v29).unwrap();
+        assert_resumed(&restored);
+        assert_eq!(restored.save_snapshot_v30(), current);
+        assert_eq!(sim.save_snapshot_v30(), current);
+        if during_build {
+            sim.end_build().unwrap();
+        }
     }
 }
 
@@ -164,17 +346,17 @@ fn pool_all_facings_preserve_live_continuation_through_save_load_and_build_cance
             for _ in 0..ticks {
                 pool::tick(sim.world_mut());
             }
-            let before = sim.save_snapshot_v28();
+            let before = sim.save_snapshot_v30();
             let hash = sim.world_hash();
-            sim.load_snapshot_v28(before.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v28(), before);
+            sim.load_snapshot_v30(before.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v30(), before);
             assert_eq!(sim.world_hash(), hash);
         }
-        let before = sim.save_snapshot_v28();
+        let before = sim.save_snapshot_v30();
         sim.begin_build().unwrap();
-        assert_eq!(sim.save_snapshot_v28(), before);
+        assert_eq!(sim.save_snapshot_v30(), before);
         sim.cancel_build().unwrap();
-        assert_eq!(sim.save_snapshot_v28(), before);
+        assert_eq!(sim.save_snapshot_v30(), before);
     }
 }
 
@@ -220,9 +402,9 @@ fn pool_projection_keeps_native_previous_phase_through_paused_commands_and_reset
     assert_eq!(sim.render_buffer().prev_pool_phases[row], 4);
     assert_eq!(sim.render_buffer().prev_pool_elapsed[row], current);
     assert_eq!(sim.render_buffer().pool_elapsed[row] + 1, current);
-    let saved = sim.save_snapshot_v28();
-    sim.load_snapshot_v28(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v28(), saved);
+    let saved = sim.save_snapshot_v30();
+    sim.load_snapshot_v30(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v30(), saved);
     let render = sim.render_buffer();
     assert_eq!(render.prev_pool_phases, render.pool_phases);
     assert_eq!(render.prev_pool_elapsed, render.pool_elapsed);
@@ -253,7 +435,7 @@ fn pool_new_order_waits_for_controlled_exit_and_remains_cancelable() {
         3
     );
     assert!(crate::player_actions::has_player_work(sim.world(), actor));
-    for _ in 0..21 {
+    for _ in 0..41 {
         sim.tick();
     }
     assert!(sim.world().get::<pool::PoolEpisode>(actor).is_none());
@@ -265,7 +447,7 @@ fn pool_corrupt_phase_or_owner_is_refused_atomically() {
     let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
     order(&mut sim, actor, object);
     entered(&mut sim, actor);
-    let before = sim.save_snapshot_v28();
+    let before = sim.save_snapshot_v30();
     for case in 0..6 {
         let mut invalid = before.clone();
         match case {
@@ -279,8 +461,8 @@ fn pool_corrupt_phase_or_owner_is_refused_atomically() {
             }
             _ => invalid.pools.clear(),
         }
-        assert!(sim.load_snapshot_v28(invalid).is_err());
-        assert_eq!(sim.save_snapshot_v28(), before);
+        assert!(sim.load_snapshot_v30(invalid).is_err());
+        assert_eq!(sim.save_snapshot_v30(), before);
     }
 }
 
@@ -315,10 +497,10 @@ fn pool_addition_preserves_pre_pool_v21_household_progress() {
             .0,
         "Pool migration witness"
     );
-    let upgraded = current.save_snapshot_v28();
+    let upgraded = current.save_snapshot_v30();
     assert!(upgraded.pools.is_empty());
-    current.load_snapshot_v28(upgraded.clone()).unwrap();
-    assert_eq!(current.save_snapshot_v28(), upgraded);
+    current.load_snapshot_v30(upgraded.clone()).unwrap();
+    assert_eq!(current.save_snapshot_v30(), upgraded);
 }
 
 #[test]
@@ -421,9 +603,9 @@ fn pool_current_outfit_edit_survives_exit_and_saved_phase() {
     edited.colors.trousers = [21, 80, 155];
     edited.top = "jacket".into();
     sim.world_mut().entity_mut(actor).insert(edited.clone());
-    let saved = sim.save_snapshot_v28();
-    sim.load_snapshot_v28(saved).unwrap();
-    for _ in 0..75 {
+    let saved = sim.save_snapshot_v30();
+    sim.load_snapshot_v30(saved).unwrap();
+    for _ in 0..95 {
         pool::tick(sim.world_mut());
     }
     assert!(sim.world().get::<pool::PoolEpisode>(actor).is_none());
@@ -488,10 +670,10 @@ fn pool_lifecycle_loss_releases_fixture_and_approach_without_panicking() {
 #[test]
 fn pool_world_replacement_drops_old_episodes_and_projection() {
     let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
-    let replacement = sim.save_snapshot_v28();
+    let replacement = sim.save_snapshot_v30();
     order(&mut sim, actor, object);
     entered(&mut sim, actor);
-    sim.load_snapshot_v28(replacement.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v28(), replacement);
+    sim.load_snapshot_v30(replacement.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v30(), replacement);
     assert!(sim.render_buffer().pool_phases.iter().all(|p| *p == 0));
 }

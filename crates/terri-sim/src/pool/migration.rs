@@ -76,6 +76,6 @@ pub(crate) fn migrate_v22(world: &mut World) -> Result<bool, SaveError> {
         }
         if change.claims { world.get_mut::<PoolEpisode>(change.actor).unwrap().approach=change.endpoint; }
     }
-    super::persistence::validate_current(world)?;
+    super::persistence::validate_legacy_clock_at_current_coordinates(world)?;
     Ok(true)
 }

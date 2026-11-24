@@ -3,7 +3,6 @@ import {readFileSync} from 'node:fs';
 import {expect,it} from 'vitest';
 import {defaultAppearance} from '../src/character/schema.js';
 import {posedCageSurface} from '../src/render/character/geometry-proof.js';
-import {poolContactFixture} from '../src/render/character/pool-contact-preparation.js';
 import {evaluatePoolPoseProgram,poolSkinMatrices} from '../src/render/character/pool-contact-sample.js';
 import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
 import {configuredPoolChainReach} from '../src/render/character/pool-entry-domain.js';
@@ -19,13 +18,13 @@ const read=(file:string)=>readFileSync(new URL(file,directory),'utf8');
 const sha256=(text:string)=>createHash('sha256').update(text).digest('hex');
 const motionV13=read('pool_activity_motion_v13.json'),motionV14=read('pool_activity_motion_v14.json');
 const contactsV2=read('clips/pool/contacts-v2.json'),contactsV3=read('clips/pool/contacts-v3.json');
-const fixtureV2=parseOwnedPoolFixture(contactsV2);
+const fixtureV2=parseOwnedPoolFixture(contactsV2),fixtureV3=parseOwnedPoolFixture(contactsV3);
 
-it('derives the active fixture from the previous bytes by changing the authored motion hash',()=>{
+it('derives the v14 fixture from the previous bytes by changing the authored motion hash',()=>{
  const previous=sha256(motionV13),current=sha256(motionV14);
  expect(fixtureV2.revisions.poseProducer).toBe(previous);
  expect(Buffer.from(contactsV3).equals(Buffer.from(contactsV2.replace('"poseProducer":"'+previous+'"','"poseProducer":"'+current+'"')))).toBe(true);
- expect(poolContactFixture().revisions.poseProducer).toBe(current);
+ expect(fixtureV3.revisions.poseProducer).toBe(current);
 });
 
 it('requires the v14 crest elbow adjustment at the existing attached hand events',()=>{
@@ -42,7 +41,7 @@ it('requires the v14 crest elbow adjustment at the existing attached hand events
   expect(()=>validatePoolCycleDefinition({...candidate,hand:{...candidate.hand,crestElbowPole:invalid}})).toThrow('v14 crest elbow pole is invalid');
  }
  for(const unit of [crest.fromUnit,crest.peakUnit,crest.toUnit]){
-  const source=poolSourceRecord(poolContactFixture(),{action:'pool_enter',phase:unit/candidate.clockUnits});
+  const source=poolSourceRecord(fixtureV3,{action:'pool_enter',phase:unit/candidate.clockUnits});
   expect(source.kind).toBe('key');
   expect(source.limbs.handL.mode).toBe('support');
   expect(source.limbs.handR.mode).toBe('support');
@@ -59,7 +58,7 @@ it('clears the measured upper arm crossings by changing the attached elbow poles
  if(!selection.extra)throw new Error('Pool fit requires the selected swimwear');
  const bundle=poolRig.manifest,geometry=[selection.body,selection.extra],top=anatomicalHeight(poolBase.vertices);
  const before=new PoolCycleSource(bundle,shape,top,geometry,fixtureV2,prior);
- const after=new PoolCycleSource(bundle,shape,top,geometry,poolContactFixture(),candidate);
+ const after=new PoolCycleSource(bundle,shape,top,geometry,fixtureV3,candidate);
  const crest=candidate.hand.crestElbowPole,phase=crest.peakUnit/candidate.clockUnits,location={action:'pool_enter',phase};
  const first=before.entry(phase),second=after.entry(phase);
  expect(second.preferenceBasis).toEqual(first.preferenceBasis);

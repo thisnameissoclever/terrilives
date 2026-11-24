@@ -4,8 +4,10 @@ import {sleepContactDigest} from './sleep-contact-protocol.js';
 import {cross,dot,type Vec3} from './math.js';
 import {validatePoolGraph} from './pool-motion-graph.js';
 import {requirePoolSourcePolicy,requirePoolPolicyInterval,poolPolicySupportLimbs} from './pool-source-policy.js';
-import {requirePoolIntervalProgram,type PoolPoseProgram} from './pool-pose-program.js';
+import {poolIntervalProgramVerifier,type PoolPoseProgram} from './pool-pose-program.js';
+import {poolKneeOrbitOwner,validatePoolKneeOrbit} from './pool-contact-evaluator.js';
 import type {PoolIntervalLimb} from './pool-contact-evaluator.js';
+import {isPoolShapePlayback,type PoolPlayback,type PoolShapePlayback} from './pool-contact-types.js';
 import {POOL_SOLVER_REVISION,POOL_OBSERVER_REVISION,POOL_INTERPOLATION_REVISION,type PoolContactInputDataV1,type PoolContactInputV1,type PoolContactArtifactV1,type PoolFixtureV1} from './pool-contact-types.js';
 
 function object(value:unknown):Record<string,unknown>{if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid pool preparation record.');return value as Record<string,unknown>;}
@@ -29,22 +31,28 @@ function controlChain(control:Record<string,unknown>,ends:Set<number>):void {
   numbers(control.anchor,4);if(control.anchor[3]<=0)throw new Error('Invalid pool contact coefficient.');
   if(control.legFrame!==undefined&&control.legFrame!=='source-entry-0')throw new Error('Invalid pool oriented leg frame.');
 }
-function controlState(value:unknown):void {
+function controlState(value:unknown,checkedRails:WeakSet<object>,control:Record<string,unknown>):void {
   const state=object(value);numbers(state.target,3);numbers(state.pole,3);numbers(state.orientation,16);rigidBasis(state.orientation,1);
+  if(state.kneeOrbit!==undefined)validatePoolKneeOrbit(state.kneeOrbit,!state.attached&&poolKneeOrbitOwner({
+    upper:control.upper,lower:control.lower,end:control.end,legFrame:control.legFrame}));
   if(state.attached!==undefined){
     const goal=object(state.attached),data=object(goal.geometry);const source=object(goal.source);text(source.action);if(!Number.isFinite(source.phase)||(source.phase as number)<0||(source.phase as number)>1||!['handL','handR'].includes(source.limb as string))throw new Error('Invalid pool attached source location.');numbers(goal.rawOrientation,16);rigidBasis(goal.rawOrientation,1);
     if(!Number.isFinite(goal.parameter)||!Number.isSafeInteger(goal.activeVertex)||(goal.activeVertex as number)<0||data.version!=='pool-rail-goal-v1')throw new Error('Invalid pool attached rail goal.');
+    const support=object(data.support),region=object(support.region);
+    if(support.surface!==data.surface||region.kind!=='rail')throw new Error('Invalid pool attached support owner.');numbers(region.parameter,2);
+    if((goal.parameter as number)<region.parameter[0]||(goal.parameter as number)>region.parameter[1])throw new Error('Pool attached parameter leaves its source domain.');
+    if(!Array.isArray(data.vertices)||!data.vertices.includes(goal.activeVertex))throw new Error('Invalid pool complete-palm vertices.');
+    if(checkedRails.has(data))return;
     for(const name of ['sourceKey','part','surface'])text(data[name]);numbers(data.inverse,16);
     if(!Number.isSafeInteger(data.bone)||!Number.isFinite(data.planeX)||![1,-1].includes(data.side as number))throw new Error('Invalid pool attached rail owner.');
-    if(!Array.isArray(data.vertices)||data.vertices.length<3||data.vertices.length>100000||data.vertices.some(value=>!Number.isSafeInteger(value)||value<0)||!data.vertices.includes(goal.activeVertex))throw new Error('Invalid pool complete-palm vertices.');
+    if(data.vertices.length<3||data.vertices.length>100000||data.vertices.some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Invalid pool complete-palm vertices.');
     if(!Array.isArray(data.coefficients)||data.coefficients.length!==data.vertices.length)throw new Error('Invalid pool attached coefficients.');
     for(const values of data.coefficients){if(!Array.isArray(values)||values.length!==4)throw new Error('Invalid pool attached coefficients.');for(const value of values){const term=object(value);if(typeof term.numerator!=='string'||!/^[-]?[0-9]{1,2048}$/.test(term.numerator)||!Number.isSafeInteger(term.exponent)||Math.abs(term.exponent as number)>4096)throw new Error('Invalid exact pool coefficient.');}}
     if(!Array.isArray(data.edges)||data.edges.length<1||data.edges.length>4096)throw new Error('Invalid pool attached edge domain.');
     for(const value of data.edges){const row=object(value),edge=object(row.edge);numbers(row.from,3);numbers(row.to,3);
       if(!Number.isSafeInteger(edge.from)||!Number.isSafeInteger(edge.to)||!Number.isFinite(edge.fromParameter)||!Number.isFinite(edge.toParameter)||(edge.fromParameter as number)>=(edge.toParameter as number)||!Array.isArray(row.incidentFacets)||!row.incidentFacets.length||row.incidentFacets.some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Invalid pool attached edge.');}
     const patch=object(data.patch);text(patch.part);if(patch.bone!==data.bone||patch.part!==data.part)throw new Error('Invalid pool attached patch owner.');
-    const support=object(data.support),region=object(support.region);if(support.surface!==data.surface||region.kind!=='rail')throw new Error('Invalid pool attached support owner.');numbers(region.parameter,2);
-    if((goal.parameter as number)<region.parameter[0]||(goal.parameter as number)>region.parameter[1])throw new Error('Pool attached parameter leaves its source domain.');
+    checkedRails.add(data);
   }
 }
 export function validatePoolContactInputData(value:unknown):asserts value is PoolContactInputDataV1 {
@@ -57,43 +65,57 @@ export async function verifyPoolContactInput(input:PoolContactInputV1):Promise<v
 
 export function validatePoolArtifactForInput(value:unknown,input:PoolContactInputV1):asserts value is PoolContactArtifactV1 {
   validatePoolContactArtifact(value);
+  requirePoolPlaybackInput(value,input);
+}
+export function requirePoolPlaybackInput(value:PoolPlayback,input:PoolContactInputV1):void {
   if(value.key!==input.key||value.appearanceKey!==input.appearanceKey||canonicalPoolValue(value.revisions)!==canonicalPoolValue(input.revisions))throw new Error('Prepared pool motion does not match the requested physical inputs.');
 }
 
 export const POOL_ACTIONS=['pool_enter','pool_paddle',...Array.from({length:12},(_,i)=>'pool_exit_'+i)] as const;
+const validatedPoolArtifacts=new WeakSet<object>();
 export function validatePoolContactArtifact(value:unknown):asserts value is PoolContactArtifactV1 {
+  if(typeof value==='object'&&value!==null&&validatedPoolArtifacts.has(value))return;
+  if(isPoolShapePlayback(value))throw new Error('A shape-configured pool route does not carry measured interval evidence.');
+  validatePoolPlaybackStructure(value,false);
+}
+function validatePoolPlaybackStructure(value:unknown,configured:boolean):void {
   const row=header(value);if(typeof row.key!=='string'||!/^pool-v1:[a-f0-9]{64}$/.test(row.key))throw new Error('Invalid pool artifact key.');
   for(const name of ['source','shapeKey'])text(row[name]);if(!Array.isArray(row.partKeys)||row.partKeys.length<2||row.partKeys.length>4)throw new Error('Pool motion requires its complete selected body and garments.');row.partKeys.forEach(text);
   if(typeof row.top!=='number'||!Number.isFinite(row.top)||row.top<=0)throw new Error('Invalid pool anatomical reference.');
   if(typeof row.waterHeight!=='number'||!Number.isFinite(row.waterHeight))throw new Error('Invalid pool water plane.');
-  const coverage=object(row.coverage);
-  if(coverage.observerRevision!==POOL_OBSERVER_REVISION||coverage.continuousBound!==false||!Number.isSafeInteger(coverage.samples)||(coverage.samples as number)<2
+  const coverage=configured?undefined:object(row.coverage);
+  if(coverage&&(coverage.observerRevision!==POOL_OBSERVER_REVISION||coverage.continuousBound!==false||!Number.isSafeInteger(coverage.samples)||(coverage.samples as number)<2
       ||!Number.isSafeInteger(coverage.interpolationSamples)||(coverage.interpolationSamples as number)<1||typeof coverage.minimumObservedClearance!=='number'||!Number.isFinite(coverage.minimumObservedClearance)
-      ||typeof coverage.minimumClassifiedClearance!=='number'||!Number.isFinite(coverage.minimumClassifiedClearance)||coverage.minimumClassifiedClearance<0)throw new Error('Pool artifact has incomplete or failed physical observations.');
+      ||typeof coverage.minimumClassifiedClearance!=='number'||!Number.isFinite(coverage.minimumClassifiedClearance)||coverage.minimumClassifiedClearance<0))throw new Error('Pool artifact has incomplete or failed physical observations.');
   const graph=object(row.graph);validatePoolGraph(graph as unknown as PoolContactArtifactV1['graph']);
+  const checkedRails=new WeakSet<object>();
   for(const value of graph.poses as unknown[]){const pose=object(value);
     if(!Array.isArray(pose.preferenceBasis)||pose.preferenceBasis.length!==17)throw new Error('Pool trajectory requires its shared 17-bone pre-control preference.');
     pose.preferenceBasis.forEach((matrix,index)=>{numbers(matrix,16);rigidBasis(matrix,index);});
-    if(!Array.isArray(pose.controls)||pose.controls.length>4)throw new Error('Pool node requires its authoritative endpoint program.');
+    if(!Array.isArray(pose.controls)||pose.controls.length>4||configured&&pose.controls.length!==4)throw new Error('Pool node requires its authoritative endpoint program.');
     requirePoolSourcePolicy(pose.policy);
-    const ends=new Set<number>();for(const value of pose.controls){const control=object(value);controlChain(control,ends);controlState(control.state);}
+    const ends=new Set<number>();for(const value of pose.controls){const control=object(value);controlChain(control,ends);controlState(control.state,checkedRails,control);}
   }
+  const requirePoolIntervalProgram=poolIntervalProgramVerifier();
   let samples=0,interiors=0,minimum=Infinity,classifiedMinimum=Infinity;
-  for(const value of [graph.entry,graph.paddle,...graph.bridges as unknown[]]){
+  for(const value of [graph.entry,graph.paddle,...graph.bridges as unknown[],...(graph.climbOut===undefined?[]:[graph.climbOut])]){
     const track=object(value),keys=track.keys as unknown[];
     if(!Array.isArray(track.intervals)||track.intervals.length!==keys.length-1)throw new Error('Pool graph has incomplete interval coverage.');
     for(const [index,value] of track.intervals.entries()){const interval=object(value);
-      if(interval.status!=='measured'||interval.observerRevision!==POOL_OBSERVER_REVISION||interval.interpolationRevision!==POOL_INTERPOLATION_REVISION)throw new Error('Pool interval observation revision differs.');
+      if(configured){
+        if('observations' in interval||'status' in interval)throw new Error('A configured interval cannot carry observation claims.');
+      }else if(interval.status!=='measured'||interval.observerRevision!==POOL_OBSERVER_REVISION||interval.interpolationRevision!==POOL_INTERPOLATION_REVISION)throw new Error('Pool interval observation revision differs.');
       if(!Array.isArray(interval.controls)||interval.controls.length>4)throw new Error('Invalid prepared pool limb controls.');
       const ends=new Set<number>();
       for(const value of interval.controls){const control=object(value);
-        controlChain(control,ends);controlState(control.from);controlState(control.to);
+        controlChain(control,ends);controlState(control.from,checkedRails,control);controlState(control.to,checkedRails,control);
       }
       const poses=graph.poses as PoolPoseProgram[],left=object(keys[index]).pose as number,right=object(keys[index+1]).pose as number;
       requirePoolIntervalProgram(poses[left],poses[right],interval.controls as unknown as PoolIntervalLimb[]);
       const limbs=['handL','handR','footL','footR'];
       if(!Array.isArray(interval.supportLimbs)||interval.supportLimbs.some(limb=>!limbs.includes(String(limb)))||new Set(interval.supportLimbs).size!==interval.supportLimbs.length)throw new Error('Invalid pool support coverage.');
       requirePoolSourcePolicy(interval.policy);requirePoolPolicyInterval(poses[left].policy,poses[right].policy,interval.policy,interval.supportLimbs as PoolContactArtifactV1['graph']['entry']['intervals'][number]['supportLimbs']);
+      if(configured)continue;
       if(!Array.isArray(interval.observations)||interval.observations.length<3||interval.observations.length>17)throw new Error('Pool interval needs bounded endpoint and interior observations.');
       let previous=-1;const fractions=new Set<number>();
       for(const value of interval.observations){const observation=object(value),fraction=observation.fraction;
@@ -128,15 +150,33 @@ export function validatePoolContactArtifact(value:unknown):asserts value is Pool
       if(!fractions.has(0)||!fractions.has(.5)||!fractions.has(1))throw new Error('Pool interval is missing deterministic observation phases.');
     }
   }
-  if(coverage.samples!==samples||coverage.interpolationSamples!==interiors||coverage.minimumObservedClearance!==minimum||coverage.minimumClassifiedClearance!==classifiedMinimum)throw new Error('Pool observation summary does not match its intervals.');
+  if(coverage&&(coverage.samples!==samples||coverage.interpolationSamples!==interiors||coverage.minimumObservedClearance!==minimum||coverage.minimumClassifiedClearance!==classifiedMinimum))throw new Error('Pool observation summary does not match its intervals.');
+}
+
+const validatedConfigured=new WeakSet<PoolShapePlayback>();
+export function freezePoolPlayback(value:unknown):PoolPlayback {
+  if(!isPoolShapePlayback(value))return freezePoolContactArtifact(value);
+  if(validatedConfigured.has(value))return value;
+  if(!/^[a-f0-9]{64}$/.test(value.family)||'coverage' in value||!value.graph?.climbOut)
+    throw new Error('Invalid shape-configured pool route.');
+  validatePoolPlaybackStructure(value,true);freezePoolRecord(value);validatedConfigured.add(value);return value;
 }
 
 /** Freeze the validated ownership boundary before identity-based binding or caching. */
 export function freezePoolContactArtifact(value:unknown):PoolContactArtifactV1 {
   validatePoolContactArtifact(value);
-  freezePoolRecord(value);return value;
+  if(!validatedPoolArtifacts.has(value)){
+    freezePoolRecord(value);
+    validatedPoolArtifacts.add(value);
+  }
+  return value;
 }
-function freezePoolRecord(row:unknown):void {if(row&&typeof row==='object'&&!Object.isFrozen(row)){for(const child of Object.values(row))freezePoolRecord(child);Object.freeze(row);}}
+function freezePoolRecord(value:unknown,seen=new WeakSet<object>()):void {
+  if(!value||typeof value!=='object'||seen.has(value))return;
+  seen.add(value);
+  for(const child of Object.values(value))freezePoolRecord(child,seen);
+  Object.freeze(value);
+}
 export function freezePoolFixture(value:unknown):PoolFixtureV1 {validatePoolFixture(value);freezePoolRecord(value);return value;}
 
 export function validatePoolFixture(value:unknown):asserts value is PoolFixtureV1 {

@@ -617,13 +617,13 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 26. It adds explicit ground surfaces, commute direction and pool and
+use version 30. Its V26 payload adds explicit ground surfaces, commute direction and pool and
 bath continuation to published V24, including Career inputs, bills and lingering furniture mood.
 It also records manual work-trip priority and the source jobs and base pay behind
 exceptional Career input rows. Historical base pay that cannot be recovered stays
 explicitly unrecorded; the recorded shift cents remain authoritative for payout.
 Native V24 snapshots are historical field views for inspection and compatible
-fixtures. Current persistence uses V28. The envelope preserves exact player-order and social-execution
+fixtures. Current persistence uses V30. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -685,9 +685,13 @@ V24 wraps the complete V23 payload with the Career tab's score inputs and every 
 
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
-V28 wraps the complete editable-world V26 record and adds the accumulated need mood from public V27. Build rollback and admin Undo use V28 so they preserve pool and bath activity, work trips, and mood together. The two predecessor records retain their distinct wire formats.
+V30 retains the V29 payload and extends the separate climb out to 40 ticks. Loading an earlier exit validates its original countdown and maps elapsed time to the same fraction of the climb. Entry, supported retreat, and paddling retain their clocks.
 
-V27 wraps V24 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V24 begin at zero. Private editable-world V24, V25 and V26 files belong to other development builds. Loading or importing one is refused, and the browser protects the original slot and allows its bytes to be exported.
+V29 uses the V28 payload layout and adds a pool phase for finishing an interrupted airborne entry. The V28 loader checks the saved countdown and ownership under the original rules before converting a late retreat into a landing and climb out. Build rollback and admin Undo use the current phase rules.
+
+V28 wraps the complete editable-world V26 record and adds the accumulated need mood from public V27. V28 brought pool and bath activity, work trips, and mood into the same rollback snapshot. The two predecessor records retain their distinct wire formats.
+
+V27 wraps V24 and stores the accumulated need contribution for each person with a nonzero balance. One mood point equals 6,000 signed units. Published saves through V24 begin at zero. Private editable-world V24, V25 and V26 files belong to other development builds. The published V27 build protected those private saves from overwrite. The current loader recognizes them and preserves their editable-world state during migration.
 
 V22 wraps the complete V21 payload with the household bills: the last counted day, the open month's start and the month length it is counted under, the month's day, tile, use, daily-object and trip counts, the last month's usage, and every unpaid bill and the bills of the last issued month with their late fees and the terms each was issued under (its month length, days of grace, and daily late fee and cap), so a later change to the tuning never makes a save unloadable. Use and daily kinds are saved by id, so an unknown kind is dropped on load. Loading V21 or earlier starts the bills record empty and raises saved career pay and open shifts' pay to the new wages; settled shifts keep the pay they were settled at ([wages and bills](specs/2026-10-18-wages-and-bills.md)).
 
@@ -734,7 +738,7 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-27. The worker backs up a supported historical primary before the first V28 overwrite. Existing recovery files stay intact. A backup
+29. The worker backs up a supported historical primary before the first V30 overwrite. Existing recovery files stay intact. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 Every current write first copies a non-empty, supported primary to
 `terri-save-1.previous.bin`, the last good copy, and a failed write restores the

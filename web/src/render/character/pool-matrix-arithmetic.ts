@@ -68,4 +68,3 @@ export function solve(start:V,end:V,upper:N,lower:N,pole:V):V {
   const squared=sub(mul(upper,upper),mul(along,along)),height=squareRoot(squared);
   return plus(plus(start,scale(axis,along)),scale(perpendicular,height));
 }
-

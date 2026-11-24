@@ -1459,6 +1459,10 @@ export class SimBridge {
   prevPoolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_elapsed_ptr(),this.count); }
   prevPoolExitOrigins(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_exit_origins_ptr(),this.count); }
   prevPoolTargets(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_targets_ptr(),this.count); }
+  poolExitTicks(): number {
+    const handle=this.handle as typeof this.handle&{pool_exit_ticks?:()=>number};
+    return handle.pool_exit_ticks?.()??20;
+  }
   poolExitOrigins(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_exit_origins_ptr(),this.count); }
   bathToys(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.bath_toys_ptr(),this.count); }
   bathElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.bath_elapsed_ptr(),this.count); }

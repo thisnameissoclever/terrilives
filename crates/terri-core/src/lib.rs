@@ -74,7 +74,7 @@ pub use save_v25::SaveSnapshotV25;
 pub use save_v26::SaveSnapshotV26;
 pub use world_surfaces::WorldSurfaces;
 pub use save_v27::SaveSnapshotV27;
-pub use save_v28::SaveSnapshotV28;
+pub use save_v28::{SaveSnapshotV28, SaveSnapshotV29, SaveSnapshotV30};
 mod save_before_voice;
 pub mod windows;
 

@@ -7,7 +7,7 @@ import type {PoolPoseProgram} from './pool-pose-program.js';
 
 export const POOL_SOLVER_REVISION='pool-surfaces-v1';
 export const POOL_OBSERVER_REVISION='pool-evaluated-solids-v1';
-export const POOL_INTERPOLATION_REVISION='pool-canonical-contact-v9';
+export const POOL_INTERPOLATION_REVISION='pool-canonical-contact-v10';
 export type PoolLimb='handL'|'handR'|'footL'|'footR';
 export interface PoolSupport {
   mode:'free'|'approach'|'support'|'release';surface:string|null;interval:[number,number]|null;
@@ -49,10 +49,26 @@ export interface PoolPreparedInterval {
 }
 export interface PoolPreparedTrack extends PoolGraphTrack {intervals:PoolPreparedInterval[]}
 export interface PoolPreparedGraph extends PoolCanonicalGraph<PoolPreparedPose> {
-  entry:PoolPreparedTrack;paddle:PoolPreparedTrack;bridges:PoolPreparedTrack[];
+  entry:PoolPreparedTrack;paddle:PoolPreparedTrack;bridges:PoolPreparedTrack[];climbOut?:PoolPreparedTrack;
 }
 export interface PoolContactArtifactV1 {
   version:1;solverRevision:typeof POOL_SOLVER_REVISION;key:string;appearanceKey:string;revisions:PoolContactRevisions;
   source:string;partKeys:string[];shapeKey:string;top:number;waterHeight:number;graph:PoolPreparedGraph;
   coverage:{observerRevision:typeof POOL_OBSERVER_REVISION;samples:number;interpolationSamples:number;minimumObservedClearance:number;minimumClassifiedClearance:number;continuousBound:false};
+}
+
+export interface PoolConfiguredInterval {
+  policy:PoolSourcePolicy;controls:PoolIntervalLimb[];supportLimbs:PoolLimb[];
+}
+export interface PoolConfiguredTrack extends PoolGraphTrack {intervals:PoolConfiguredInterval[]}
+export interface PoolConfiguredGraph extends PoolCanonicalGraph<PoolPreparedPose> {
+  entry:PoolConfiguredTrack;paddle:PoolConfiguredTrack;bridges:PoolConfiguredTrack[];climbOut:PoolConfiguredTrack;
+}
+/** Configured target controls carry no measurements from the actor used to author the route. */
+export interface PoolShapePlayback extends Omit<PoolContactArtifactV1,'coverage'|'graph'> {
+  kind:'configured-shape';family:string;graph:PoolConfiguredGraph;
+}
+export type PoolPlayback=PoolContactArtifactV1|PoolShapePlayback;
+export function isPoolShapePlayback(value:unknown):value is PoolShapePlayback {
+  return typeof value==='object'&&value!==null&&'kind' in value&&value.kind==='configured-shape';
 }

@@ -10,7 +10,7 @@ import {canonicalPoolValue} from './pool-contact-identity.js';
 import {poolRailArithmeticBound,type PoolRailSupportArithmetic} from './pool-rail-support-arithmetic.js';
 import {requirePoolFreeFootConstruction} from './pool-free-leg.js';
 import type {PoolFreeLegPlan} from './pool-matrix-producer.js';
-import {requirePoolObservationSupport,requirePoolObservedSurface,poolObservationOwnsWitness} from './pool-observer.js';
+import {requirePoolObservationSupport,requirePoolObservedSurface,poolObservationOwnsWitness,poolGroundSolid} from './pool-observer.js';
 import {poolSourceSupport} from './pool-source-policy.js';
 import {poolOwnedObservationIdentity,poolOwnedParts,requirePoolArithmeticReplay} from './pool-owned-compilation.js';
 
@@ -105,7 +105,7 @@ function requireApproachOwner(owner:ApproachInputs) {
   if(pose.bundle.bones[plan.end]?.name!=='foot.'+limb.slice(-1)||patch.bone!==plan.end||patch.part!==frame.part)throw new Error('Pool free-foot clearance names another limb or part.');
   if('kind' in frame)requirePoolInterpolatedFootReference(frame,fixture,surface.geometry,cage,patch,support,{...location,limb},pose.inverse[plan.end],pose.bundle);
   else requirePoolFootContactFrame(frame,fixture,surface.geometry,cage,patch,pose.inverse[plan.end],support,pose.bundle);
-  const solid=fixture.solids.find(solid=>solid.id===support.surface);
+  const solid=support.surface===fixture.ground.id?poolGroundSolid(fixture.ground):fixture.solids.find(solid=>solid.id===support.surface);
   if(!solid||solid.vertices.some(vertex=>vertex.some(value=>!Number.isFinite(value))||vertex[2]>frame.planeHeight)||solid.bounds[1][2]>frame.planeHeight
       ||solid.triangles.some(face=>face.some(vertex=>!Number.isInteger(vertex)||vertex<0||vertex>=solid.vertices.length)))throw new Error('Pool approach solid is not wholly at or below its certified plane.');
   const solidKey=canonicalPoolValue({solid,revisions:fixture.revisions});

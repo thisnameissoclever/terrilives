@@ -4,7 +4,7 @@ import {vector,identity,plus,minus,scale,dot,cross,point,length,multiply,inverse
 
 export interface OrientedLegInput {
   upper:number;lower:number;end:number;body:number;
-  rest:M[];inverses:M[];basis:M[];world:M[];sourceUpper:M;sourceLower:M;target:V;
+  rest:M[];inverses:M[];basis:M[];world:M[];sourceUpper:M;sourceLower:M;target:V;kneeOrbit?:number;
 }
 const direction=(matrix:M,value:V):V=>{
   const rotation=[...matrix];rotation.splice(12,3,number(0),number(0),number(0));return transform(rotation,value);
@@ -47,6 +47,15 @@ export function orientedPoolLegMath(input:OrientedLegInput){
   }
   const lowerBasis=properRotation(joint),combined=plus(a,direction(localLower,direction(lowerBasis,b)));
   const localFrame=orientedFrame(vector([0,0,0]),combined,hingeUpper),worldFrame=orientedFrame(point(world[upper]),delta,axisWorld);
+  if(input.kneeOrbit!==undefined&&(!Number.isFinite(input.kneeOrbit)||Math.abs(input.kneeOrbit)>1))throw new Error('Invalid pool knee orbit.');
+  if(input.kneeOrbit){
+    const t=number(input.kneeOrbit),t2=mul(t,t),den=add(number(1),t2),cos=div(sub(number(1),t2),den),sin=div(mul(number(2),t),den);
+    // Y follows hip-to-ankle. Turn X and Z about the opposite direction without moving Y or either joint.
+    for(let i=0;i<3;i++){
+      const x=worldFrame[i],z=worldFrame[8+i];
+      worldFrame[i]=add(mul(cos,x),mul(sin,z));worldFrame[8+i]=sub(mul(cos,z),mul(sin,x));
+    }
+  }
   const desiredUpper=multiply(worldFrame,inverse(localFrame)),parentBody=world[body],parentFrame=multiply(parentBody,localUpper),upperBasis=properRotation(multiply(inverse(parentFrame),desiredUpper));
   const next=basis.map(matrix=>[...matrix]);next[upper]=upperBasis;next[lower]=lowerBasis;
   return {basis:next,upperBasis,lowerBasis,localAxis,axisInBody,axisWorld,cosine:c,sine:s,branch,

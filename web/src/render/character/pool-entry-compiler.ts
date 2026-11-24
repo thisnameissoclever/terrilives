@@ -43,7 +43,7 @@ interface EntryContact {attached?:PoolAttachedRailGoal;originTarget?:true;limb:P
 export class PoolEntryCompiler {
   readonly anatomy;
   private readonly rails:Record<'L'|'R',PoolRailRegion>;
-  
+
   private readonly cages;
   private readonly railGeometry=new Map<string,PoolPreparedRailGeometry>();
   private readonly limbViews=new Map<PoolLimb,Geometry[]>();
@@ -165,7 +165,7 @@ export class PoolEntryCompiler {
     const approaches:{contact:EntryContact;frame:PoolFootContactFrame;plan:ReturnType<typeof solvePoolFreeLeg>;patch:PreparedPoolPatch}[]=[];
     for(const [index,contact] of contacts.entries()){
       const {upper,lower,end}=contact.anatomy;
-      if(contact.frame){const plan=solvePoolOrientedFoot(replay,upper,lower,end,contact.frame);knees.push(observeConstructedPoolLeg(replay,contact.frame,plan));}
+      if(contact.frame){const plan=solvePoolOrientedFoot(replay,upper,lower,end,contact.frame,program.controls[index].state.kneeOrbit);knees.push(observeConstructedPoolLeg(replay,contact.frame,plan));}
       else if(contact.limb.startsWith('foot')){
         const control=program.controls[index],support=source[contact.limb],patch=support.surface?.includes('inside')?contact.anatomy.back!:contact.anatomy.front!;
         let reference:PoolFootContactFrame|undefined;
@@ -173,7 +173,7 @@ export class PoolEntryCompiler {
           const frame=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],replay.inverse[end],patch,properPoolRotation(replay.rest[end]),control.state.target.slice(0,2) as [number,number]);
           requirePoolFootClearanceReference(frame,control.state.target,control.state.orientation,replay.inverse[end]);reference=frame;
         }catch{/* An unproved free orientation or height retains ordinary collision rejection. */}
-        const plan=solvePoolFreeLeg(replay,upper,lower,end,control.state.target,control.state.orientation,reference);knees.push(observeConstructedPoolFreeLeg(replay,plan));
+        const plan=solvePoolFreeLeg(replay,upper,lower,end,control.state.target,control.state.orientation,reference,control.state.kneeOrbit);knees.push(observeConstructedPoolFreeLeg(replay,plan));
         if(reference)approaches.push({contact,frame:reference,plan,patch});
       }
       else if(contact.railFrame){
@@ -227,14 +227,14 @@ export class PoolEntryCompiler {
       if(limb==='footL'||limb==='footR'){
         if(required){const frame=preparePoolFootContactFrame(this.fixture,support,this.geometry[0],this.cages[0],inverse[control.end],patch,properPoolRotation(rest[control.end]),state.target.slice(0,2) as [number,number]);
           if(frame.translation.some((v,i)=>v!==state.target[i])||frame.orientation.some((v,i)=>!Object.is(v,state.orientation[i])))throw new Error('Pool required interval foot differs from its literal exact frame.');
-          const plan=solvePoolOrientedFoot(replay,control.upper,control.lower,control.end,frame);knees.push(observeConstructedPoolLeg(replay,frame,plan));constructed.push({limb,patch,frame});
+          const plan=solvePoolOrientedFoot(replay,control.upper,control.lower,control.end,frame,state.kneeOrbit);knees.push(observeConstructedPoolLeg(replay,frame,plan));constructed.push({limb,patch,frame});
         }else{
           let reference:PoolFreeFootClearanceReference|undefined;
           if(support.mode==='approach'){
             const producer=preparePoolInterpolatedFootRotation(endpointRotation(left,limb),endpointRotation(right,limb),control,{...location,limb});
             reference=preparePoolInterpolatedFootReference(this.fixture,support,this.geometry[0],this.cages[0],inverse[control.end],patch,this.bundle,{...location,limb},state.target,state.orientation,producer);
           }
-          const plan=solvePoolFreeLeg(replay,control.upper,control.lower,control.end,state.target,state.orientation,reference);knees.push(observeConstructedPoolFreeLeg(replay,plan));constructed.push({limb,patch,reference,plan});
+          const plan=solvePoolFreeLeg(replay,control.upper,control.lower,control.end,state.target,state.orientation,reference,state.kneeOrbit);knees.push(observeConstructedPoolFreeLeg(replay,plan));constructed.push({limb,patch,reference,plan});
         }
       }else if(required){const frame=resolved[index].railFrame;if(!frame)throw new Error('Pool required interval hand has no actual rail construction.');solveCertifiedPoolRail(replay,control.upper,control.lower,control.end,frame,state.pole,{fixture:this.fixture,geometry:this.geometry[0],cage:this.cages[0],patch,support});constructed.push({limb,patch,railFrame:frame});}
       else {const lengths=[length(point(multiply(inverse[control.upper],rest[control.lower]))),length(point(multiply(inverse[control.lower],rest[control.end])))] as const;

@@ -32,6 +32,15 @@ export class SceneTarget {
    {view:this.identity.createView(),loadOp:'clear',storeOp:'store',clearValue:[0,0,0,0]}],
    depthStencilAttachment:{view:this.depth.createView(),depthLoadOp:'clear',depthStoreOp:'store',depthClearValue:1}});
  }
+ /** Resume the scene after an effect has read the completed opaque samples. */
+ resume(encoder:GPUCommandEncoder):GPURenderPassEncoder {
+  return encoder.beginRenderPass({
+   colorAttachments:[this.color,this.surface,this.identity].map(texture=>({
+    view:texture.createView(),loadOp:'load' as const,storeOp:'store' as const,
+   })),
+   depthStencilAttachment:{view:this.depth.createView(),depthLoadOp:'load',depthStoreOp:'store'},
+  });
+ }
  /** Annotation coverage has its own owner; it cannot replace world depth or identity. */
  beginAnnotations(encoder:GPUCommandEncoder,owners:ArrayLike<number>):GPURenderPassEncoder {
   this.annotationTexture??=this.device.createTexture({size:[this.width,this.height],format:'r32uint',

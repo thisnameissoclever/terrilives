@@ -90,18 +90,20 @@ A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} g
 
 ## Swimming {#swimming}
 
-Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, climbs the ladder, paddles and climbs out. Each pool holds one person; the pool and its ladder approach stay reserved until that person is safely out.
+Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, climbs to the rim, pushes off into the water, paddles, then climbs back out. Each pool holds one person; the pool and its ladder approach stay reserved until that person is safely out.
+
+:::illustration pool-hop-in
 
 Only paddling supplies Fun and Comfort and costs Energy. Walking to the ladder, climbing in and climbing out supply none of those action effects. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
 
-To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue new orders off](home-and-controls/#orders) before giving the new instruction. The person gets out safely before the next activity starts.
+To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue new orders off](home-and-controls/#orders) before giving the new instruction. If the person is still walking to the pool, they can stop right away. If they have started to climb but haven't taken off, they climb back down. Once airborne, they land in the water and climb out before starting the next activity.
 
 Benefits and costs already delivered remain. Save and Load preserve the current phase and progress.
 
 Masculine swim trunks use the person's pants color; a feminine two-piece uses the person's top color. The usual outfit returns after leaving the pool.
 
 :::numbers Numbers and limits
-An uninterrupted visit has 20 game minutes of entry, 60 game minutes of swimming and 20 game minutes of exit. These phases have fixed lengths. The ordinary action-duration variation does not apply.
+An uninterrupted visit has 20 game minutes of entry, 60 game minutes of swimming and 40 game minutes of exit. These phases have fixed lengths. The ordinary action-duration variation does not apply.
 
 The 60-minute swimming phase has baseline totals of Fun +30 points, Comfort +10 points and Energy -5 points, delivered over elapsed swimming time. Personality changes positive refill; ordinary need loss and meter limits can change the final meter difference. Interrupting before swimming gives no swimming benefit or cost.
 :::

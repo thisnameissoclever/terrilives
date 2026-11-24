@@ -1,5 +1,5 @@
 import type {Geometry} from './bundle.js';
-import type {PoolFixtureV1,PoolLimb,PoolSupport} from './pool-contact-types.js';
+import type {PoolFixtureV1,PoolLimb,PoolSolid,PoolSupport} from './pool-contact-types.js';
 import {POOL_LIMBS,poolSourceRecord,requirePoolSourceSupport,type PoolSourceLocation} from './pool-source-policy.js';
 import {canonicalPoolValue} from './pool-contact-identity.js';
 import {poolPhysicalFixtureKey as fixtureKey} from './pool-owned-fixture.js';
@@ -108,13 +108,17 @@ function sealWitness(witness:PoolWitness):PoolWitness {
   return Object.freeze({...witness,point,...(box?{boundBox:box}:{})});
 }
 
+export function poolGroundSolid(ground:PoolFixtureV1['ground']):PoolSolid {
+  const [low,high]=ground.bounds;
+  return {id:ground.id,kind:'floor',bounds:ground.bounds,
+    vertices:[low,[high[0],low[1],high[2]],high,[low[0],high[1],high[2]]],triangles:[[0,1,2],[0,2,3]]};
+}
+
 function indices(fixture:PoolFixtureV1):FixtureIndex {
   const ownedKey=poolOwnedFixtureKey(fixture),key=ownedKey??fixtureKey(fixture),found=indexCache.get(fixture);if(found?.key===key)return found;
   const physical={ground:fixture.ground,solids:fixture.solids,revisions:fixture.revisions},source=ownedKey?physical:structuredClone(physical);
   if(!ownedKey&&fixtureKey(source)!==key)throw new Error('Pool fixture changed while capturing acceleration inputs.');
-  const [low,high]=source.ground.bounds;
-  const ground={id:source.ground.id,kind:'floor' as const,bounds:source.ground.bounds,
-    vertices:[low,[high[0],low[1],high[2]],high,[low[0],high[1],high[2]]] as Vec3[],triangles:[[0,1,2],[0,2,3]] as [number,number,number][]};
+  const ground=poolGroundSolid(source.ground);
   const record={key,source,items:[...source.solids,ground].map(s=>new PoolSolidIndex(s))};indexCache.set(fixture,record);return record;
 }
 

@@ -10,6 +10,22 @@ use terri_core::{AtWork, Commuting, Reserved, StepWork};
 #[derive(Clone, Copy)]
 enum Coordinates { HistoricalV22, Current }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SavedPoolClock {
+    Legacy,
+    ForwardHop,
+    LongExit,
+}
+
+impl SavedPoolClock {
+    pub(super) fn exit_ticks(self) -> u32 {
+        match self {
+            Self::Legacy | Self::ForwardHop => LEGACY_EXIT_TICKS,
+            Self::LongExit => EXIT_TICKS,
+        }
+    }
+}
+
 /// Frozen meaning of the header-22 pool coordinates.
 pub(super) fn historical_approach(origin: (i32, i32), facing: terri_core::Facing) -> (i32, i32) {
     let offset = match facing {
@@ -27,26 +43,32 @@ pub(crate) fn restore_physical(
     rows: Vec<SavedPoolEpisode>,
 ) -> Result<(), SaveError> {
     attach(world, rows)?;
-    validate_physical(world, Coordinates::Current)
+    validate_physical(world, Coordinates::Current, SavedPoolClock::LongExit)
 }
 
-/// Current layers attach after every nested component and order is restored.
-pub(crate) fn restore_current(
+/// Save layers attach after every nested component and order is restored.
+pub(crate) fn restore(
     world: &mut World,
     rows: Vec<SavedPoolEpisode>,
+    clock: SavedPoolClock,
 ) -> Result<(), SaveError> {
-    restore_physical(world, rows)?;
-    validate_orders(world)
+    attach(world, rows)?;
+    validate_physical(world, Coordinates::Current, clock)?;
+    validate_orders(world)?;
+    if clock != SavedPoolClock::LongExit {
+        migrate_legacy_clock(world, clock);
+    }
+    Ok(())
 }
 
 pub(crate) fn restore_historical_v22(world: &mut World, rows: Vec<SavedPoolEpisode>) -> Result<(), SaveError> {
     attach(world, rows)?;
-    validate_physical(world, Coordinates::HistoricalV22)?;
+    validate_physical(world, Coordinates::HistoricalV22, SavedPoolClock::Legacy)?;
     validate_orders(world)
 }
 
-pub(super) fn validate_current(world: &World) -> Result<(), SaveError> {
-    validate_physical(world, Coordinates::Current)?;
+pub(super) fn validate_legacy_clock_at_current_coordinates(world: &World) -> Result<(), SaveError> {
+    validate_physical(world, Coordinates::Current, SavedPoolClock::Legacy)?;
     validate_orders(world)
 }
 
@@ -110,22 +132,31 @@ fn attach(world: &mut World, rows: Vec<SavedPoolEpisode>) -> Result<(), SaveErro
     Ok(())
 }
 
-fn phase_valid(e: &PoolEpisode) -> bool {
+fn phase_valid(e: &PoolEpisode, clock: SavedPoolClock) -> bool {
     match e.phase {
         0 => e.elapsed == 0 && !e.interrupted && e.exit_origin == 0,
         1 => e.elapsed < ENTER_TICKS && !e.interrupted && e.exit_origin == 0,
         2 => e.elapsed < SWIM_TICKS && !e.interrupted && e.exit_origin == 0,
         3 => {
-            e.elapsed < EXIT_TICKS
+            e.elapsed < clock.exit_ticks()
                 && e.exit_origin <= SWIM_TICKS
                 && (e.interrupted || e.exit_origin == SWIM_TICKS)
         }
-        4 => e.elapsed < ENTER_TICKS && e.interrupted && e.exit_origin == 0,
+        4 => {
+            let limit = if clock == SavedPoolClock::Legacy { ENTER_TICKS } else { TAKEOFF_TICK };
+            e.elapsed < limit && e.interrupted && e.exit_origin == 0
+        }
+        CANCELED_LANDING => {
+            clock != SavedPoolClock::Legacy
+                && (TAKEOFF_TICK..ENTER_TICKS).contains(&e.elapsed)
+                && e.interrupted
+                && e.exit_origin == 0
+        }
         _ => false,
     }
 }
 
-fn validate_physical(world: &World, coordinates: Coordinates) -> Result<(), SaveError> {
+fn validate_physical(world: &World, coordinates: Coordinates, clock: SavedPoolClock) -> Result<(), SaveError> {
     let pack = world.resource::<Content>().0;
     let pools: BTreeSet<_> =
         world
@@ -180,7 +211,7 @@ fn validate_physical(world: &World, coordinates: Coordinates) -> Result<(), Save
             let eating = world.get::<Eating>(actor);
             let path = world.get::<Path>(actor);
             if let Some(e) = episode {
-                if e.pool != target.object || e.approach != endpoint || !phase_valid(e) {
+                if e.pool != target.object || e.approach != endpoint || !phase_valid(e, clock) {
                     return Err(SaveError::InvalidValue);
                 }
             }
@@ -190,7 +221,7 @@ fn validate_physical(world: &World, coordinates: Coordinates) -> Result<(), Save
                     || eating.is_none_or(|work| {
                         work.object != object.0
                             || work.interaction != target.interaction
-                            || work.remaining_ticks != remaining(e)
+                            || Some(work.remaining_ticks) != countdown(e.phase, e.elapsed, clock.exit_ticks())
                     })
                 {
                     return Err(SaveError::InvalidValue);

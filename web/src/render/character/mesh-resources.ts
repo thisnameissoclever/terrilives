@@ -36,7 +36,7 @@ export class CharacterMeshResources {
   lastMatrices:Float32Array<ArrayBuffer>|null=null;
   poseSource:Float32Array<ArrayBuffer>|null=null;
   surfaceDirty=true;
-  poolContact:import('./pool-contact-types.js').PoolContactArtifactV1|undefined;
+  poolContact:import('./pool-contact-types.js').PoolPlayback|undefined;
   bikeContact:BikeContactArtifactV1|undefined;
   sleepContact:SleepContactArtifactV1|undefined;
   seatContact:import('./seat-contact-types.js').SeatContactArtifactV1|undefined;

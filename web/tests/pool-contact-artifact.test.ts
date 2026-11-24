@@ -5,8 +5,8 @@ import {identity,length,multiply,sub} from '../src/render/character/math.js';
 import {anatomicalHeight} from '../src/render/character/shape.js';
 import {configuredJointSetup} from '../src/render/character/pose-joints.js';
 import {poolContactAppearanceKey,poolPartKey,poolShapeIdentity} from '../src/render/character/pool-contact-identity.js';
-import {makePoolContactInput,validatePoolArtifactForInput,validatePoolContactArtifact} from '../src/render/character/pool-contact-protocol.js';
-import {bindPoolContacts,PoolContactNotReadyError,requirePoolPose} from '../src/render/character/pool-contact-sample.js';
+import {freezePoolContactArtifact,freezePoolPlayback,makePoolContactInput,validatePoolArtifactForInput,validatePoolContactArtifact} from '../src/render/character/pool-contact-protocol.js';
+import {bindPoolContacts,PoolContactNotReadyError,preparePoolRendererBinding,requirePoolPose} from '../src/render/character/pool-contact-sample.js';
 import {POOL_INTERPOLATION_REVISION,POOL_OBSERVER_REVISION,POOL_SOLVER_REVISION,type PoolContactArtifactV1,type PoolContactInputDataV1,type PoolPreparedTrack,type PoolArithmeticContactRecord} from '../src/render/character/pool-contact-types.js';
 import {observePoolInput,poolBase,poolRig,poolFixture} from './pool-observer-fixture.js';
 import {poolSourcePolicy,poolPolicySupportLimbs} from '../src/render/character/pool-source-policy.js';
@@ -39,6 +39,38 @@ it('rejects a missing, unbound or physically stale trajectory before sampling',(
   const stale=structuredClone(value);stale.partKeys[1]+='stale';expect(()=>bindPoolContacts(stale,geometry,shape,top,extras,syntheticPoolPolicyFixture())).toThrow(PoolContactNotReadyError);
   bindPoolContacts(value,geometry,shape,top,extras,syntheticPoolPolicyFixture());expect(requirePoolPose(value,geometry,shape,top,'pool_enter',0).length).toBe(272);
   expect(()=>requirePoolPose(value,geometry,{...shape,height:shape.height+1},top,'pool_enter',0)).toThrow(PoolContactNotReadyError);
+});
+
+it('freezes nested observations even when the received artifact was already shallow-frozen',()=>{
+  const value=Object.freeze(artifact());
+  expect(freezePoolContactArtifact(value)).toBe(value);
+  const observation=value.graph.entry.intervals[0].observations[1];
+  expect(Object.isFrozen(observation)).toBe(true);
+  expect(()=>{observation.minimumClassifiedClearance=-1;}).toThrow();
+  const changed=structuredClone(value);
+  changed.graph.entry.intervals[0].observations[1].minimumClassifiedClearance=-1;
+  expect(()=>freezePoolContactArtifact(changed)).toThrow('failed physical observation');
+});
+
+it('keeps configured target motion separate from measured graph evidence',()=>{
+  const measured=artifact();
+  const configured={...measured,kind:'configured-shape',family:'a'.repeat(64)};
+  expect(()=>freezePoolPlayback(configured)).toThrow('Invalid shape-configured pool route');
+  expect(()=>validatePoolContactArtifact(configured)).toThrow('does not carry measured interval evidence');
+});
+
+it('only publishes a completed renderer binding for a matching body, outfit and fixture',async()=>{
+  const a=artifact(),fixture=syntheticPoolPolicyFixture();
+  const cancelled=new AbortController();cancelled.abort();
+  await expect(preparePoolRendererBinding(cancelled.signal,a,geometry,shape,top,extras,fixture)).rejects.toMatchObject({name:'AbortError'});
+  expect(()=>requirePoolPose(a,geometry,shape,top,'pool_enter',0)).toThrow(PoolContactNotReadyError);
+  await preparePoolRendererBinding(new AbortController().signal,a,geometry,shape,top,extras,fixture);
+  const other={...geometry,indices:geometry.indices.slice()};
+  bindPoolContacts(a,other,shape,top,extras,fixture);
+  expect(requirePoolPose(a,other,shape,top,'pool_enter',0)).toEqual(requirePoolPose(a,geometry,shape,top,'pool_enter',0));
+  expect(()=>bindPoolContacts(a,other,shape,top,[],fixture)).toThrow(PoolContactNotReadyError);
+  const wrong=structuredClone(fixture);wrong.clips.pool_enter.samples[0].limbs.handL.mode='support';
+  expect(()=>bindPoolContacts(a,other,shape,top,extras,wrong)).toThrow();
 });
 
 it('retains raw negative observations separately from explicitly classified horizontal contacts',()=>{
