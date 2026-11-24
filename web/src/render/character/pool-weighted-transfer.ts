@@ -1,7 +1,7 @@
-import {add,sub,scale,length,unit,type Vec3} from './math.js';
+import {add,sub,scale,length,unit,multiply,type Vec3} from './math.js';
 import {interpolateTransform} from './motion.js';
 import {poolIntervalPreference} from './pool-contact-sample.js';
-import {translatePoolRoot} from './pool-canonical-pose.js';
+import {translatePoolRoot,setPoolWorldRotation} from './pool-canonical-pose.js';
 import {poolSourcePolicy} from './pool-source-policy.js';
 import {makePoolPoseProgram,type PoolPoseProgram} from './pool-pose-program.js';
 import {configuredPoolChainReach,projectPoolEntryRoot,poolRootRayIntervals,poolChainReachable} from './pool-entry-domain.js';
@@ -10,9 +10,10 @@ import {fitClimbHand} from './pool-climb-hand.js';
 import {fitPoolKneeOrbit} from './pool-knee-orbit-fit.js';
 import {properPoolRotation} from './pool-canonical-pose.js';
 import {aimOutwardKnee} from './pool-outward-calf.js';
-import {outwardElbow} from './pool-outward-passage.js';
+import {outwardBodyPassage,outwardElbow} from './pool-outward-passage.js';
 import {wristAtHeight} from './pool-upright-descent.js';
 import {fitSlidingReach} from './pool-sliding-reach.js';
+import {clearDryBaySide} from './pool-bay-side.js';
 import {PoolTrialRefusal} from './pool-trial-work.js';
 import type {PoolCycleSource,PoolFoot,PoolHand} from './pool-cycle-source.js';
 import type {PoolLimbState} from './pool-contact-evaluator.js';
@@ -32,6 +33,11 @@ export function weightedLadderTransfers(source:PoolCycleSource,poses:Map<number,
  if(!origin)throw new Error('The upright transfer has no installed starting stance.');
  const sizes=limbs.map(l=>{const a=source.anatomy[l];return configuredPoolChainReach(neutral.rest,a.upper,a.lower,a.end);});
  const lastHands=origin.controls.slice(2).map(c=>c.state);
+ const firstPose=pref(origin),lastShoulders=origin.controls.slice(2).map(c=>pos(firstPose.world[c.upper]));
+ const lastGrasp=[steps[0].start,steps[0].start];
+ const lastRung=motion.forwardHop.platformTurn?.lastRungHandRelease;
+ const torso=lastRung?outwardBodyPassage(source,origin,steps[0].start/motion.clockUnits,true):undefined;
+ const spine=bundle.bones.findIndex(b=>b.name==='spine');
  function goal(limb:PoolFoot,place:string,u:number){
   if(place==='crest')return source.turnLandingFoot(limb,u);
   if(place!=='nearGround')return source.foot(limb,place);
@@ -54,6 +60,13 @@ export function weightedLadderTransfers(source:PoolCycleSource,poses:Map<number,
    const supported:Vec3=[load.target[0]-os[0]*.55,load.target[1]+.30*reach.lengths[1],
     load.target[2]+.91*reach.maximum-os[2]];
    let desired=mix(startHip,supported,shift);
+   if(torso&&u<steps[1].free){
+    const steer=ease((u-steps[0].start)/(steps[0].free-steps[0].start))*(1-ease((u-steps[0].land)/(steps[1].free-steps[0].land)));
+    const angle=torso.angle*steer,c=Math.cos(angle),s=Math.sin(angle),span=torso.position(angle);
+    setPoolWorldRotation(p,spine,multiply([c,s,0,0,-s,c,0,0,0,0,1,0,0,0,0,1],p.world[spine]));
+    const constrained=span.lowX<=span.highX?Math.max(span.lowX,Math.min(span.highX,desired[0])):span.x;
+    desired[0]+=(constrained-desired[0])*steer;
+   }
    if(step.fromPlace==='nearGround')desired=mix(desired,standingHip,ease((u-step.lift)/(step.land-step.lift)));
    const part=source.anatomy[step.limb],orient=ease((u-step.lift)/(step.approach-step.lift));
    const orientation=interpolateTransform(begin.orientation,end.orientation,orient);
@@ -112,7 +125,17 @@ export function weightedLadderTransfers(source:PoolCycleSource,poses:Map<number,
      }catch(cause){
       throw new PoolTrialRefusal('The loaded ladder wrist must clear its post.',{cause:{u,hand,shoulder:root,target:state.target,parameter:state.attached?.parameter,reach:sizes[j],reason:String(cause)}});
      }const value={...held,pole:outwardElbow(root,held.target,guide,sizes[j].lengths[0],sizes[j].lengths[1],standingHip[0])};
-     lastHands[j-2]=value;return {...c,state:value};}
+     lastHands[j-2]=value;lastGrasp[j-2]=u;lastShoulders[j-2]=root;return {...c,state:value};}
+    if(lastRung){
+     const last=lastHands[j-2],duration=u-lastGrasp[j-2],centre=pos(p.world[hip]);
+     const tuck:Vec3=[root[0]+(centre[0]-root[0])*.65,root[1]-.44*sizes[j].lengths[0],root[2]-.55*sizes[j].lengths[0]];
+     const dry=ease((u-96000)/(motion.clockUnits-96000)),restTarget=add(root,sub(c.state.target,pos(ground.world[c.upper])));
+     const amount=ease(duration/1800),carried=add(last.target,sub(root,lastShoulders[j-2]));
+     const wanted=mix(carried,mix(tuck,restTarget,dry),amount),v=sub(wanted,root),d=length(v);
+     const target=add(root,scale(d?unit(v):[0,-1,0],Math.max(sizes[j].minimum+radius,Math.min(sizes[j].maximum-radius/8,d))));
+     const elbow=outwardElbow(root,target,last.pole,sizes[j].lengths[0],sizes[j].lengths[1],centre[0]);
+     return {...c,state:{target,orientation:interpolateTransform(last.orientation,c.state.orientation,amount),pole:mix(elbow,guide,dry)}};
+    }
     const target=add(root,sub(c.state.target,pos(ground.world[c.upper])));
     return {...c,state:{target,orientation:c.state.orientation,pole:guide}};
    });
@@ -128,6 +151,7 @@ export function weightedLadderTransfers(source:PoolCycleSource,poses:Map<number,
     const fit=fitPoolKneeOrbit(source,node,{action,phase},l,2*Math.atan(node.controls[j].state.kneeOrbit??0),q.required?'installed':'free-goal',solids.map(solid=>({solid,axis:1,side:-1})));
     if(fit.clear)node=fit.program;
    }
+   if(lastRung&&u>lastRung[0])node=clearDryBaySide(source,node,u);
    poses.set(u,node);previous=node;
   }
   feet[i]=end;

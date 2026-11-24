@@ -10,7 +10,7 @@ export const activePoolRelease = {
   fixture: JSON.parse(fixtureText) as unknown, fixtureText,
   family: {
     url: climbOut,
-    sha256: 'ff5d9153c355f90b99ce96015fe52a5df7a3d04527bc1a4690b73a9b14c9fb58',
+    sha256: '5e038c2a8eb510781a31332314721bf3cf2373e1e651c0e1013904abaaee3e16',
     byteLength: 257,
   },
 } satisfies PoolContactRelease;

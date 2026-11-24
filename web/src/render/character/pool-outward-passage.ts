@@ -51,12 +51,12 @@ export function outwardArrival(source:PoolCycleSource,node:PoolPoseProgram,u:num
 }
 
 /** Choose a yaw from the swimmer's actual torso and swimsuit widths in the fitted post opening. */
-export function outwardBodyPassage(source:PoolCycleSource,seam:PoolPoseProgram,phase:number){
+export function outwardBodyPassage(source:PoolCycleSource,seam:PoolPoseProgram,phase:number,includeShoulders=false){
  const posed=evaluatePoolPoseProgram(source.bundle,source.neutral.rest,source.neutral.inverse,seam,{action:'pool_exit_0',phase});
  const hip=posed.world[source.bundle.bones.findIndex(b=>b.name==='hips')],skin=poolSkinMatrices(posed.world,source.neutral.inverse);
  const points:XY[]=[];
  source.geometry.forEach((g,i)=>{
-  const selected=g.description.parts.filter(p=>/bare hips|bare torso|pool .* (waist|top)/.test(p.name)),m=posedCageSurface(g,source.cages[i],skin);
+  const selected=g.description.parts.filter(p=>/bare hips|bare torso|pool .* (waist|top)/.test(p.name)||includeShoulders&&p.name.includes('upper arm skin')),m=posedCageSurface(g,source.cages[i],skin);
   for(const part of selected)for(const id of new Set(g.indices.subarray(part.start,part.start+part.count)))points.push([m[id*3]-hip[12],m[id*3+1]-hip[13]]);
  });
  if(!points.length)throw new Error('The ladder passage lacks the selected torso.');
@@ -84,7 +84,7 @@ export function outwardBodyPassage(source:PoolCycleSource,seam:PoolPoseProgram,p
    [Math.PI/2,-Math.PI/2].sort((a,b)=>(span(a).high-span(a).low)-(span(b).high-span(b).low))[0];
  const front=Math.max(...rails.map(r=>r.bounds[1][1]))+margin;
  return {angle,position(a:number){
-  const b=span(a);return {x:(minX+maxX-b.low-b.high)/2,y:front-b.rear};
+  const b=span(a);return {x:(minX+maxX-b.low-b.high)/2,lowX:minX-b.low,highX:maxX-b.high,y:front-b.rear};
  }};
 }
 

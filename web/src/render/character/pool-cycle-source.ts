@@ -61,7 +61,7 @@ export interface PoolForwardHop {
  launchFromUnit?:42000;waterContactUnit?:87000;
  outerGripTransfer?:{kind:'right-first';rightContactUnit:number;leftApproachUnit:number;leftContactUnit:number};
  outwardDescent?:{kind:'walk-out';startUnit:number;rightCrestUnit:number;leftOutside3Unit:number;rightOutside2Unit:number;rightDryUnit:number;leftDryUnit:number;rightTurnUnit:number};
- platformTurn?:{kind:'stepping-turn';startUnit:number;quarterUnit:number;leftTurnUnit:number;rightTurnUnit:number;exteriorUnit:number;
+ platformTurn?:{kind:'stepping-turn';startUnit:number;quarterUnit:number;leftTurnUnit:number;rightTurnUnit:number;exteriorUnit:number;lastRungHandRelease?:[number,number];
   loadedSteps?:{limb:PoolFoot;fromPlace:string;toPlace:string;start:number;lift:number;free:number;approach:number;land:number}[]};
  entryUnits:number[]; climbOutUnits:number[];
  climbKeys:{unit:number;authoredUnit:number;entryUnit?:number;poseEntryUnit?:number;exitReferenceUnit?:number}[];

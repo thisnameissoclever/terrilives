@@ -33,14 +33,19 @@ export function wristChordDeviation(a:PoolAttachedRailGoal,b:PoolAttachedRailGoa
 /** The lower body uses a fixed facing. Shoulder travel is linear between keys, but the held wrist follows the tube. */
 export function fitSlidingReach(source:PoolCycleSource,programs:Map<number,PoolPoseProgram>,fromUnit:number){
  const keys=[...programs.keys()].filter(u=>u>=fromUnit).sort((a,b)=>a-b);
- const {bundle,neutral}=source,hip=bundle.bones.findIndex(b=>b.name==='hips'),guard=source.fixture.rails[0].radius/32;
+ const {bundle,neutral}=source,hip=bundle.bones.findIndex(b=>b.name==='hips'),spine=bundle.bones.findIndex(b=>b.name==='spine'),guard=source.fixture.rails[0].radius/32;
+ const before=keys.map(u=>{const n=programs.get(u)!;return poolIntervalPreference(bundle,neutral.rest,neutral.inverse,n.preferenceBasis,n.preferenceBasis,0,true).world;});
  const reach=names.map(name=>{const a=source.anatomy[name];return configuredPoolChainReach(neutral.rest,a.upper,a.lower,a.end);});
  const limits=keys.map(()=>reach.map(r=>r.maximum-guard));
  for(let j=1;j<keys.length;j++){
   const left=programs.get(keys[j-1])!,right=programs.get(keys[j])!;
   for(const i of [2,3]){
    const a=left.controls[i].state.attached,b=right.controls[i].state.attached;if(!a||!b)continue;
-   const maximum=reach[i].maximum-wristChordDeviation(a,b)-guard;
+   const l=before[j-1],r=before[j];let trace=0;
+   for(const n of [0,1,2,4,5,6,8,9,10])trace+=l[spine][n]*r[spine][n];
+   const angle=Math.acos(Math.max(-1,Math.min(1,(trace-1)/2))),shoulder=left.controls[i].upper;
+   const shoulderBow=length(sub(pos(l[shoulder]),pos(l[spine])))*angle*angle/8;
+   const maximum=reach[i].maximum-wristChordDeviation(a,b)-shoulderBow-guard;
    limits[j-1][i]=Math.min(limits[j-1][i],maximum);limits[j][i]=Math.min(limits[j][i],maximum);
   }
  }
