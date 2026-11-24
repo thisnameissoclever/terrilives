@@ -13,15 +13,18 @@ import {poolNodeProgramControls,poolIntervalProgramControls,type PoolPoseProgram
 import {properPoolRotation,solvePoolHierarchyLimb} from './pool-canonical-pose.js';
 import {evaluatePoolOrientedLeg} from './pool-oriented-leg.js';
 import {bindPoolRailGeometry,requirePoolRailGeometryPair} from './pool-rail-contact-frame.js';
-import {preparePoolEntryAnatomy} from './pool-entry-anatomy.js';
+import {preparePoolEntryAnatomy,type PoolEntryAnatomy} from './pool-entry-anatomy.js';
 import {shapeVertices} from './shape.js';
 import {registerPoolRootTravel} from './pool-matrix-producer.js';
 import {preparationCancelled} from './preparation-abort.js';
+import {blendPoolStairArms,poolStairArmBlend} from './pool-stair-arms.js';
+import {sampleInGroundPool} from './in-ground-pool-pose.js';
+import type {PoolPoseLayout} from './pool-world-layout.js';
 
 export class PoolContactNotReadyError extends Error {
   constructor(){super('Pool motion must be prepared before rendering this configuration.');this.name='PoolContactNotReadyError';}
 }
-interface Binding {rest:number[][];inverse:number[][];shapeKey:string}
+interface Binding {rest:number[][];inverse:number[][];shapeKey:string;anatomy?:PoolEntryAnatomy}
 const bindings=new WeakMap<Geometry,WeakMap<PoolPlayback,Binding>>();
 interface PreparedPoolSelection {parts:readonly Geometry[];fixture:PoolFixtureV1;binding:Binding}
 const preparedSelections=new WeakMap<PoolPlayback,PreparedPoolSelection>();
@@ -120,7 +123,7 @@ function* bindPoolSelection(artifact:PoolPlayback,geometry:Geometry,shape:ShapeP
       }
     }
   }
-  return {rest,inverse,shapeKey};
+  return {rest,inverse,shapeKey,anatomy};
 }
 
 export function bindPoolContacts(...args:Parameters<typeof bindPoolSelection>):void {
@@ -148,17 +151,34 @@ export async function preparePoolRendererBinding(signal:AbortSignal,...args:Para
 }
 
 /** Required prepared trajectories only. No geometry search or fit occurs in sampling. */
-export function requirePoolPose(artifact:PoolPlayback|undefined,geometry:Geometry,shape:ShapeParameters,top:number,action:string,frame:number,reducedMotion=false):Float32Array<ArrayBuffer> {
+export function requirePoolPose(artifact:PoolPlayback|undefined,geometry:Geometry,shape:ShapeParameters,top:number,action:string,frame:number,reducedMotion=false,layout:PoolPoseLayout='legacy'):Float32Array<ArrayBuffer> {
   if(!artifact)throw new PoolContactNotReadyError();const binding=bindings.get(geometry)?.get(artifact);
   if(!binding||binding.shapeKey!==poolShapeIdentity(shape,top))throw new PoolContactNotReadyError();
   const count=geometry.manifest.actions[action]?.length;if(!count||!Number.isFinite(frame)||frame<0)throw new PoolContactNotReadyError();
   const mode=action==='pool_enter'?'entry':action==='pool_paddle'?'paddle':/^pool_exit_(?:[0-9]|1[01])$/.test(action)?'exit':null;
   if(!mode)throw new PoolContactNotReadyError();
   const phase=mode==='paddle'?(frame%count)/count:Math.min(1,frame/(count-1));
-  const sample=samplePoolGraph(artifact.graph,mode,phase,mode==='exit'?Number(action.slice(10)):0,reducedMotion);
-  const left=artifact.graph.poses[sample.left],right=artifact.graph.poses[sample.right];
-  if(sample.left===sample.right)return poolSkinMatrices(evaluatePoolPoseProgram(geometry.manifest,binding.rest,binding.inverse,left,{action,phase}).world,binding.inverse);
-  return poolSkinMatrices(interpolatePoolPoseProgram(geometry.manifest,binding.rest,binding.inverse,left,right,sample.amount,{action,phase}).world,binding.inverse);
+  const origin=mode==='exit'?Number(action.slice(10)):0,graph=artifact.graph;
+  const pose=layout==='in-ground'
+    ? sampleInGroundPool(mode,phase,(track,at,freeArms)=>samplePoolHierarchy(
+      graph,geometry.manifest,binding,track,at,origin,reducedMotion,freeArms),binding.anatomy)
+    : samplePoolHierarchy(graph,geometry.manifest,binding,mode,phase,origin,reducedMotion,layout==='lodge');
+  return poolSkinMatrices(pose.world,binding.inverse);
+}
+
+function samplePoolHierarchy(graph:PoolPlayback['graph'],bundle:Bundle,binding:Binding,
+  mode:'entry'|'paddle'|'exit',phase:number,origin:number,reducedMotion:boolean,freeStairArms:boolean) {
+  const sample=samplePoolGraph(graph,mode,phase,origin,reducedMotion);
+  const left=graph.poses[sample.left],right=graph.poses[sample.right];
+  const action=mode==='entry'?'pool_enter':mode==='paddle'?'pool_paddle':'pool_exit_'+origin;
+  const blend=freeStairArms?poolStairArmBlend(mode,phase):0;
+  const sameKey=sample.left===sample.right;
+  const controls=sameKey?poolNodeProgramControls(left):poolIntervalProgramControls(left,right);
+  const mounted=blend===1?controls.filter(control=>!bundle.bones[control.upper].name.startsWith('upper_arm.')):controls;
+  const pose=interpolatePoolHierarchy(bundle,binding.rest,binding.inverse,left.preferenceBasis,right.preferenceBasis,
+    sameKey?0:sample.amount,mounted,{action,phase});
+  if(blend>0) blendPoolStairArms(pose,phase,blend,mode==='exit');
+  return pose;
 }
 
 export function poolSkinMatrices(world:readonly number[][],inverse:readonly number[][]):Float32Array<ArrayBuffer> {

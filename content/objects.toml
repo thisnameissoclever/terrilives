@@ -1068,6 +1068,26 @@ price = { set = 1200 }
 sprite = { set = "offlinePoolRectangular" }
 footprint = { set = { width = 3, depth = 2 } }
 
+[[model]]
+id = "pool_above_ground_3x4"
+object_type = "pool"
+[model.properties]
+name = { set = "Backyard Lodge" }
+description = { set = "A rectangular above-ground pool with wood siding and a sandstone rim. Oak steps lead up the ladder at one short end." }
+price = { set = 1500 }
+sprite = { set = "offlinePoolLodge" }
+footprint = { set = { width = 4, depth = 3 } }
+
+[[model]]
+id = "pool_in_ground_5x7"
+object_type = "pool"
+[model.properties]
+name = { set = "Garden Basin" }
+description = { set = "An in-ground pool with a stone rim and a ladder set into one short end." }
+price = { set = 2400 }
+sprite = { set = "offlinePoolInGround" }
+footprint = { set = { width = 7, depth = 5 } }
+
 [[colourway]]
 id = "as_drawn"
 name = "As drawn"

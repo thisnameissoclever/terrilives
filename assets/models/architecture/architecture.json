@@ -85,6 +85,14 @@
       "kind": "conversation-neutral-icons",
       "catalog": "assets/sprites/conversation-neutral-icons.json",
       "canonicalSha256": "10dafab8cd705def6bab4f8e60fde5e8355ce797aceb7855f425588f348500f0"
+    },
+    {
+      "catalog": "assets/models/static-props-09.json",
+      "canonicalSha256": "a2ca8d641596ba37fed0636a0ebdb8dfa6248b4cad678d8ecf0a8efdc865d5d8"
+    },
+    {
+      "catalog": "assets/models/static-props-10.json",
+      "canonicalSha256": "950f8467d01693b68192e79da12e5d56f9bd81fbe8085cc3dd42efa81d39f537"
     }
   ],
   "historicalFiles": {

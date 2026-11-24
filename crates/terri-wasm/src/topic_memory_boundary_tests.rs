@@ -1,6 +1,7 @@
 //! Remembered topic preferences across the browser boundary: issue 359.
 use super::*;
-use terri_core::SaveSnapshotV30;
+use crate::current_test_snapshot::{CurrentV5View, CURRENT_CATALOGUE_FINGERPRINT};
+use terri_core::{SaveSnapshotV30, SaveSnapshotV31};
 use terri_sim::topic_memory::TopicMemory;
 
 const EVENING: &[u8] =
@@ -9,8 +10,8 @@ const SUNDAY: &[u8] =
     include_bytes!("../tests/fixtures/topic-memory-v30/new-game-sunday-evening.sav");
 
 /// Main's schema-30 saves, which have no place for memories, load with
-/// nothing remembered, keep every schema-30 field, save as the current
-/// schema, load again without change and go on identically.
+/// nothing remembered, preserve the schema-30 state with the current
+/// catalogue fingerprint, and resume identically after another load.
 #[test]
 fn main_schema_thirty_saves_load_with_nothing_remembered_and_save_current() {
     for (name, bytes) in [("evening", EVENING), ("sunday", SUNDAY)] {
@@ -18,6 +19,11 @@ fn main_schema_thirty_saves_load_with_nothing_remembered_and_save_current() {
         let (original, tail) =
             postcard::take_from_bytes::<SaveSnapshotV30>(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         assert!(tail.is_empty(), "{name}");
+        let original = CurrentV5View(SaveSnapshotV31 {
+            current: original,
+            topic_memory: vec![],
+        });
+        assert_eq!(original.world.content_fingerprint, 0xf7e3_a71d_c98e_ff9d);
         let mut migrated = SimHandle::from_lot();
         assert!(migrated.load_bytes(bytes), "{name}");
         assert!(
@@ -30,9 +36,14 @@ fn main_schema_thirty_saves_load_with_nothing_remembered_and_save_current() {
             &SAVE_SCHEMA_VERSION.to_le_bytes(),
             "{name}"
         );
-        let saved = decode_current(&current);
-        assert!(saved.topic_memory.is_empty(), "{name}");
-        assert_eq!(saved.current, original, "{name}");
+        let mut saved = CurrentV5View(decode_current(&current));
+        assert!(saved.0.topic_memory.is_empty(), "{name}");
+        assert_eq!(
+            saved.world.content_fingerprint,
+            CURRENT_CATALOGUE_FINGERPRINT
+        );
+        saved.world.content_fingerprint = original.world.content_fingerprint;
+        assert_eq!(saved.0.current, original.0.current, "{name}");
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "{name}");

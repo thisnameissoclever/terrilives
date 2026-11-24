@@ -63,6 +63,13 @@ import {
   screenY,
 } from './iso.js';
 
+export interface FloorOpening {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly depth: number;
+}
+
 /** What `buildStaticInstances` needs to know about the lot. */
 export interface Lot {
   /** Explicit opt-in keeps historical snapshots and proof atlases on their original path. */
@@ -106,6 +113,8 @@ export interface Lot {
    * covering ([FL-save]). A tile with no entry is drawn by where it is.
    */
   readonly floors?: Uint32Array | null;
+  /** Tiles covered by geometry beneath the ordinary ground plane. */
+  readonly floorOpenings?: readonly FloorOpening[];
   /** Saved row-major base surfaces: floor, grass, street. */
   readonly surfaces?: Uint8Array | null;
   /**
@@ -425,8 +434,7 @@ export function buildStaticInstances(
   }
 
   // Floor and exterior walls share the playable grid's exact boundary.
-  const floorCount = lot.width * lot.height;
-  const count = floorCount + interiorPanels.length + boundary.length + doorways.length
+  const count = lot.width * lot.height + interiorPanels.length + boundary.length + doorways.length
     + (edgePanels?.length ?? 0);
   if (scratch.length < count * FLOATS_PER_INSTANCE) {
     scratch = new Float32Array(count * FLOATS_PER_INSTANCE);
@@ -499,11 +507,23 @@ export function buildStaticInstances(
     writeShade(instances, slot - 1, sampleShade(sky, x, y));
   };
 
-  for (let y = 0; y < lot.height; y++) {
-    for (let x = 0; x < lot.width; x++) {
-      writeFloor(x, y, floorSprite);
+  let openTiles: Set<number> | undefined;
+  if (lot.floorOpenings?.length) {
+    openTiles = new Set();
+    for (const opening of lot.floorOpenings) {
+      for (let y = opening.y; y < opening.y + opening.depth; y++) {
+        for (let x = opening.x; x < opening.x + opening.width; x++) {
+          openTiles.add(y * lot.width + x);
+        }
+      }
     }
   }
+  for (let y = 0; y < lot.height; y++) {
+    for (let x = 0; x < lot.width; x++) {
+      if (!openTiles?.has(y * lot.width + x)) writeFloor(x, y, floorSprite);
+    }
+  }
+  const floorCount = slot;
   for (const [x, y, sprite] of interiorPanels) {
     write(
       x,

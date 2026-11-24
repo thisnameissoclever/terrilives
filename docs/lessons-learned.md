@@ -14061,3 +14061,11 @@ Keep both feet planted at the shared standing key. Start the foot release on the
 The first inclined pool ladder fit the existing four tiles by cutting a recess into the basin. Review verified its fit and animation. The owner rejected the resulting shape when he saw the wall and water turn inward around the ladder.
 
 Show the full object from the clearest angle before accepting an art change that alters its shape. Use the actual reserved tiles to explain what the player gives up in exchange for the change. Verify the silhouette and purchase footprint together in the game, then load a fixture from an earlier version to check that an existing layout still fits.
+
+## [L-pool-ladder-depth] Follow the ladder down from the deck into the water
+
+The first in-ground pool concept drew bright submerged rungs over the water. Moving them behind the near rim hid the connection between the rails and the rungs, making the rails appear to end inside the wall.
+
+Check the ladder from both sides in the game. From the exposed side, follow each rail over the coping and down to a submerged rung inside the basin. From the near side, verify that the coping hides the submerged portion. Compare the two views before accepting a change to depth or contrast.
+
+The first rendered basin also had a thin outline below the outer edge of the deck. Blender hid the buried walls, then Freestyle traced their outlines into the transparent pixels. Restrict outlines to the exposed surfaces and inspect the exported sprite over ground color from all four facings. The deck should meet the ground at its coping.

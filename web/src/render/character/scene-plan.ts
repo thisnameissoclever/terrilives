@@ -9,6 +9,7 @@ import type {Vec3} from './math.js';
 import {fixtureDepthSprite,fixtureDrawRecord,shelfDepthSprite,type FixtureDrawRecord} from '../fixture-depth.js';
 import {ScenePickRegistry} from '../scene-picks.js';
 import {fixtureRegistration} from '../fixture-registration.js';
+import {poolContactOffset} from './pool-world-layout.js';
 
 export interface PlannedActor {
   entity:number;sim:number;row:number;token:number;appearance:CharacterAppearanceV1;action:CharacterActionPlan;
@@ -20,9 +21,6 @@ export interface PlannedActor {
 type Source=Pick<SimBridge,'appearanceHash'|'characterAppearances'|'objectModel'|'objectFacing'|'lotRevision'|'modelSeatIds'>&RenderSource;
 const fixtureAngles=[Math.PI/2,0,3*Math.PI/2,Math.PI];
 const bodyAngles=[0,Math.PI/2,3*Math.PI/2,0,Math.PI];
-// The wider basin adds a tile behind the swimmer. The fitted rails and
-// walking endpoint still use the same ladder origin in all four rotations.
-const rectangularPoolOrigin=[[-.5,0],[0,-.5],[.5,0],[0,.5]] as const;
 
 /** One displayed ownership plan drives mesh rendering, sprite suppression and picking. */
 export class CharacterScenePlan {
@@ -117,7 +115,7 @@ export class CharacterScenePlan {
         if(place<0)throw new Error('Sofa occupant has no stable seat.');offset=[0,(1-place)*.52,0];
       }
       const includeFixture=fixture>=0&&!drawnFixtures.has(fixture);if(fixture>=0)drawnFixtures.add(fixture);
-      const [poolX,poolY]=model?.id==='pool_rectangular'?rectangularPoolOrigin[model.facing]:[0,0];
+      const [poolX,poolY]=model?poolContactOffset(model.id,model.facing):[0,0];
       this.replacedRows[row]=1;
       this.actors.push({entity:ids[row],sim:record.sim,row,token:row+1,appearance:record.appearance,action,
         x:fixture>=0?previous[fixture*2]+(current[fixture*2]-previous[fixture*2])*alpha+fixtureOffsets[fixture*2]+poolX:x,

@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "objects": [
+  {
+   "name": "offlinePoolInGround",
+   "directory": "outdoor/owner-review-pending/pool/in-ground",
+   "proof_sha256": "778bc5f62d04bfcae3d9b2d19a2088e5f1b71d829c7139cdf30e1648e020d7ea",
+   "review_status": "accepted-independent-review"
+  }
+ ]
+}

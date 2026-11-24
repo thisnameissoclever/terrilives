@@ -42,7 +42,7 @@ it('requires fixture coverage provenance to match the current sprite atlas',()=>
 it('binds all completed companion pages to valid appended atlas records',()=>{
  for(const [,manifest] of bundles)expect(manifest.state).toBe('complete');
  expect(pageCases.length).toBe(FIXTURE_DEPTH_PAGE_COUNT);
- const table=fixtureDepthTable();expect(table.length).toBe(FIXTURE_DEPTH_COUNT*FLOATS_PER_SPRITE);expect(FIXTURE_DEPTH_COUNT).toBe(416);
+ const table=fixtureDepthTable();expect(table.length).toBe(FIXTURE_DEPTH_COUNT*FLOATS_PER_SPRITE);expect(FIXTURE_DEPTH_COUNT).toBe(424);
  for(let index=0;index<FIXTURE_DEPTH_COUNT;index++){
   const row=table.subarray(index*FLOATS_PER_SPRITE,(index+1)*FLOATS_PER_SPRITE);
   expect(row[0]).toBeGreaterThanOrEqual(0);expect(row[1]).toBeGreaterThanOrEqual(0);expect(row[2]).toBeLessThanOrEqual(1);expect(row[3]).toBeLessThanOrEqual(1);
@@ -67,25 +67,31 @@ it('registers every static, aquarium and outdoor frame and samples separate near
  expect(fixtureDepthSprite(spriteIndex('offlineCounter'),0)).toBeNull();expect(fixtureSurfaceHeight(spriteIndex('offlineCounter'))).toBe(.86);
 });
 
-it('preserves signed depth beyond two tiles in all rectangular pool facings',()=>{
- const rows=outdoorDepth.sprites.filter(row=>row.source==='offlinePoolRectangular');
+it.each([
+ ['offlinePoolRectangular', 3, 128],
+ ['offlinePoolLodge', 4, 129],
+ ['offlinePoolInGround', 6, 131],
+] as const)('preserves the full signed depth of each %s facing', (source, limit, tag)=>{
+ const rows=outdoorDepth.sprites.filter(row=>row.source===source);
  expect(rows.map(row=>row.facing)).toEqual(['SE','NW','SW','NE']);
  for(const row of rows){
-  expect(row.depthRange).toBe(3);
+  expect(row.depthRange).toBe(limit);
   const record=outdoorDepth.pages[row.pageIndex],data=page('outdoor-depth',record);
   let minimum=Infinity,maximum=-Infinity,covered=0,flagged=0;
   for(let y=0;y<row.h;y++)for(let x=0;x<row.w;x++){
    const at=((row.y+y)*record.width+row.x+x)*4;
    if(!data[at+3])continue;
-   if(data[at+2]===128)flagged++;
-   const value=(data[at]*256+data[at+1])/65535*6-3;
+   if(data[at+2]===tag)flagged++;
+   const value=(data[at]*256+data[at+1])/65535*(2*limit)-limit;
    minimum=Math.min(minimum,value);maximum=Math.max(maximum,value);covered++;
   }
   expect(covered).toBe(row.coveredPixels);
   expect(flagged).toBe(covered);
-  if(row.facing==='NW'||row.facing==='NE')expect(minimum).toBeLessThan(-2);
-  if(row.facing!=='NW')expect(maximum).toBeGreaterThan(2);
-  expect(minimum).toBeCloseTo(row.minSum,4);expect(maximum).toBeCloseTo(row.maxSum,4);
+  if(row.facing==='NW'||row.facing==='NE')expect(minimum).toBeLessThan(1-limit);
+  if(row.facing!=='NW')expect(maximum).toBeGreaterThan(limit-1);
+  const halfQuantizationStep=limit/65535;
+  expect(Math.abs(minimum-row.minSum)).toBeLessThanOrEqual(halfQuantizationStep);
+  expect(Math.abs(maximum-row.maxSum)).toBeLessThanOrEqual(halfQuantizationStep);
  }
 });
 

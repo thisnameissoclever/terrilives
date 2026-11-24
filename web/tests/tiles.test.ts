@@ -10,6 +10,8 @@ import {
 import { SPRITES, spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
 import { spriteFramingHeight } from '../src/render/sprite-anchors.js';
+import { IN_GROUND_POOL_MODEL } from '../src/render/character/pool-world-layout.js';
+import { inGroundPoolFloorOpenings } from '../src/render/in-ground-pool-terrain.js';
 import { lotExtent } from '../src/render/camera.js';
 import {
   FLOATS_PER_INSTANCE,
@@ -159,6 +161,53 @@ const LOT = {
 };
 
 describe('buildStaticInstances', () => {
+  it('projects openings from centered render positions and native rotated footprints of in-ground pools', () => {
+    const ids = Uint32Array.of(9, 10, 11, 12);
+    const positions = Float32Array.of(4.5, 4, 5, 6, 9, 10, 3, 4);
+    const lookup = (entity: number) => {
+      // Returning a native string can grow WASM memory and detach the render views.
+      if (entity === 10) structuredClone(positions.buffer, { transfer: [positions.buffer] });
+      return { id: entity === 9 ? 'pool_above_ground_3x4' : IN_GROUND_POOL_MODEL };
+    };
+    expect(inGroundPoolFloorOpenings({
+      ids: () => ids, positions: () => positions,
+      kinds: () => Uint32Array.of(1, 1, 1, 0),
+      footprintWidths: () => Uint32Array.of(4, 7, 5, 7),
+      footprintDepths: () => Uint32Array.of(3, 5, 7, 5),
+      objectModel: lookup,
+    })).toEqual([
+      { entity: 10, x: 3, y: 5, width: 5, depth: 3 },
+      { entity: 11, x: 8, y: 8, width: 3, depth: 5 },
+    ]);
+  });
+
+  it('cuts the basin opening inside each placed footprint and fills the old opening after edits', () => {
+    const lot = { width: 16, height: 14, walls: new Uint32Array(),
+      edges: new Uint32Array(), floors: Uint32Array.of(3, 5, 1),
+      coveringLooks: Float32Array.of(0, 1, .6) };
+    const eastWest = { ...lot, floorOpenings: [{ x: 3, y: 4, width: 5, depth: 3 }] };
+    const before = buildStaticInstances(eastWest, ORIGIN_X, ORIGIN_Y, GRID);
+    const beforeRows = rows(before.instances, before.count);
+    expect(before.floorCount).toBe(16 * 14 - 15);
+    expect(find(beforeRows, 2, 4)).toHaveLength(1);
+    expect(find(beforeRows, 3, 5)).toHaveLength(0);
+    expect(find(beforeRows, 7, 6)).toHaveLength(0);
+    expect(find(beforeRows, 8, 6)).toHaveLength(1);
+
+    const northSouth = { ...lot, floorOpenings: [{ x: 9, y: 6, width: 3, depth: 5 }] };
+    const moved = buildStaticInstances(northSouth, ORIGIN_X, ORIGIN_Y, GRID);
+    const movedRows = rows(moved.instances, moved.count);
+    expect(moved.floorCount).toBe(16 * 14 - 15);
+    expect(find(movedRows, 3, 5)).toHaveLength(1);
+    expect(find(movedRows, 9, 10)).toHaveLength(0);
+    expect(find(movedRows, 11, 10)).toHaveLength(0);
+    expect(find(movedRows, 11, 11)).toHaveLength(1);
+
+    const sold = buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(sold.floorCount).toBe(16 * 14);
+    expect(find(rows(sold.instances, sold.count), 9, 10)).toHaveLength(1);
+  });
+
   const built = buildStaticInstances(LOT, ORIGIN_X, ORIGIN_Y, GRID);
   const all = rows(built.instances, built.count);
 

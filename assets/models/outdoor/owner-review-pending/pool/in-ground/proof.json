@@ -1,0 +1,91 @@
+{
+  "state": "complete",
+  "object": "pool",
+  "inputs": {
+    "outdoor/export_in_ground_pool.py": "a97f96e24bd7099540eba8157889d64759c57f79733c8eaa2127e120538e5a99",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/character-creator/clips/pool/contacts-v12.json": "e842fd0b4e2a65ebab0b24bfb2edc57d3539c4e4a262e9b786d46ef140585bcf",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "outdoor/pool_activity_layout_v9.py": "cd97a08ca38cfd670ef0d3abc39da4f60c11e58fe5594d50f26e517ff05d1bf0",
+    "outdoor/pool_activity_model_v8.py": "4f8d6b3e23873f24bb6d85cf60ac7f706164c3b603ac45d5625afeba54ea8b7c",
+    "outdoor/registered_pool_art.py": "2782cff6d8dec9467d8639ee800f969bb4d79cdb62c6a76589e193a7fbd63ef4",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "logical_canvas": [
+    416,
+    352
+  ],
+  "source_density": 8,
+  "origin_pixels": [
+    1664.0001983642578,
+    1688.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 9.192387580871582,
+  "model_sha256": "c03a77a1db10d0d041424f22ed8129b2a8aa4947801c0247a84b6ef8c1ba7e00",
+  "geometry_sha256": "e64c7d1863199cfca2d8b339387c0aede43e90428e5b20cea14a4d477c66c753",
+  "blender_version": "4.5.16 LTS",
+  "model_checks": {
+    "footprint": [
+      7,
+      5
+    ],
+    "origin": [
+      0,
+      0
+    ],
+    "water_z": -0.18
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "54355d64aed00f84e5a37fa6185578cf3a62f99555637b1cdd769b24eceb84a9"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "464bc0aa40fda278f62df1e95fd4c236bec7f662e863d11d4118f028525e5abc"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "42bae8a4404b1feb38512a913657d2419491a66443c7bee5a12acfddb64e207e"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "e8be667c7db69ccb1489380e96401eb7c7460fad92acb49a4194ddc9b8851f95"
+    }
+  ]
+}

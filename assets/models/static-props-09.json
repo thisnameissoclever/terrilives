@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "objects": [
+  {
+   "name": "offlinePoolLodge",
+   "directory": "outdoor/owner-review-pending/pool/lodge",
+   "proof_sha256": "d8681f61a6b52c16b004a6dc849adb59c5e2baf76ed25c830ad97bb864d2e98f",
+   "review_status": "accepted-independent-review"
+  }
+ ]
+}

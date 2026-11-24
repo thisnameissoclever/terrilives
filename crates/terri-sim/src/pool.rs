@@ -78,13 +78,17 @@ pub(crate) fn has_swimming_state(world: &World) -> bool {
     })
 }
 
-/// Both pool models place the ladder beside the second row of their base footprint.
+/// Rotate the tile at the foot of the ladder with the model's reserved rectangle.
 pub(crate) fn approach(
     object: &terri_data::CompiledObject,
     origin: (i32, i32),
     facing: terri_core::Facing,
 ) -> (i32, i32) {
-    let (x, y) = object.footprint_offset_at((-1, 1), facing);
+    let offset = match object.id.as_str() {
+        "pool_above_ground_3x4" | "pool_in_ground_5x7" => (-1, 2),
+        _ => (-1, 1),
+    };
+    let (x, y) = object.footprint_offset_at(offset, facing);
     (origin.0 + x, origin.1 + y)
 }
 

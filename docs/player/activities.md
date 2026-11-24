@@ -90,15 +90,15 @@ A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} g
 
 ## Swimming {#swimming}
 
-Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, climbs to the rim, pushes off into the water, paddles, then climbs back out. Each pool holds one person; the pool and its ladder approach stay reserved until that person is safely out.
+Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, hops into the water, paddles, then climbs back out. Each pool holds one person. The pool and its ladder approach stay reserved until that person is safely out.
 
-The Backyard Rectangle pool in Build takes up three tiles by two, including its outside ladder. Leave the tile at the foot of the ladder clear so a person can reach it. A pool already placed in an older save keeps its original two-by-two space.
+Build offers Backyard Lodge, a 3×4 above-ground pool with exterior stairs, and Garden Basin, a 5×7 in-ground pool with a short ladder inside one end. Leave a clear tile at the foot of the Lodge stairs or outside the Basin's ladder end. Use [Land](ui-elements/#land) in Build if you need more room in the yard. Older pools keep the footprint they had when placed.
 
 :::illustration pool-hop-in
 
-Only paddling supplies Fun and Comfort and costs Energy. Walking to the ladder, climbing in and climbing out supply none of those action effects. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
+Only paddling supplies Fun and Comfort and costs Energy. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
 
-To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue new orders off](home-and-controls/#orders) before giving the new instruction. If the person is still walking to the pool, they can stop right away. If they have started to climb but haven't taken off, they climb back down. Once airborne, they land in the water and climb out before starting the next activity.
+To stop a swim you ordered, choose [Clear orders](ui-elements/#object-menu). This also clears the person's waiting orders. To switch to another activity, [turn Queue new orders off](home-and-controls/#orders) before giving the new instruction. If the person is still walking to the pool, they can stop right away. Before takeoff they return to their starting tile. Once airborne, they land in the water and climb out before starting the next activity.
 
 Benefits and costs already delivered remain. Save and Load preserve the current phase and progress.
 
