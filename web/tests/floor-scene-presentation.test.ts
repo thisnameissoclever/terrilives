@@ -91,7 +91,7 @@ function fixture() {
     landTool: { highlight: () => null },
     floorTool: { highlight: () => null, resourceStatus: null as string | null, resourceFailed: false,
       setResourceStatus(value: string | null, failed = false) { this.resourceStatus = value; this.resourceFailed = failed; } },
-    buildInstanceBatch: (_sim: unknown, _alpha: number, x: number, y: number) => ({ instances: Float32Array.from([x, y]), count: 1 }),
+    buildInstanceBatch: (_sim: unknown, _alpha: number, x: number, y: number) => ({ instances: Float32Array.from([x, y]), count: 1, annotations: { start: 1, count: 0 } }),
     applyCamera: () => applyMainCamera(ctx),
     floorScene: new FloorScenePresentation({ suspend: () => overlayPause.suspend('floor-materials'),
       resume: () => overlayPause.resume('floor-materials'), status: (blocked, error) => statuses.push([blocked, error]) }),

@@ -13,7 +13,7 @@ export const activityCategories:readonly ActivityCategory[]=[
   {id:'read',label:'Read',routes:[['sofa','read'],['bookshelf','read'],['chair','read'],['long_sofa','read'],['armchair','read'],['desk_chair','read'],['reading_chair','settle_in']]},
   {id:'television',label:'Watch TV',routes:[['television','watch_tv']]},
   {id:'music',label:'Listen to music',routes:[['radio','listen']]},
-  {id:'exercise',label:'Exercise',routes:[['moving_box','use_exercise_bike']]},
+  {id:'exercise',label:'Exercise',routes:[['moving_box','use_exercise_bike'],['pool','hop_in'],['pool_rectangular','hop_in']]},
   {id:'letters',label:'Write letters',routes:[['desk','attend_correspondence']]},
   {id:'fish',label:'Watch fish',routes:[['reference_shelf','watch_fish']]},
 ];

@@ -715,7 +715,8 @@ describe('HousemateFormView', () => {
     const header = INDEX_HTML.slice(INDEX_HTML.indexOf('<div id="sim-dock-header">'));
     const identityEnd = header.indexOf('</div>', header.indexOf('<div id="sim-identity">')) + '</div>'.length;
     expect(header.slice(identityEnd).trimStart())
-      .toMatch(/^<button id="edit-housemate" class="hud-button" type="button" disabled>Edit<\/button>/);
+      // Hidden and disabled until a person is selected; main.ts shows it then.
+      .toMatch(/^<button id="edit-housemate" class="hud-button" type="button" hidden disabled>Edit<\/button>/);
     expect(CREATOR_SESSION).toContain('CharacterDraft.edit(snapshot');
     expect(CREATOR_VIEW).toContain("['personality','Personality']");
     expect(CREATOR_VIEW).toContain("['household','Household']");

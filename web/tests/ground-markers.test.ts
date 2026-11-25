@@ -764,19 +764,30 @@ describe('the marker pipeline and its place in the scene pass', () => {
     const begin = source.indexOf('this.sceneTarget!.begin(encoder)');
     const grime = source.indexOf('pass.setPipeline(this.grimePipeline)', begin);
     const markers = source.indexOf('this.groundSelection.draw(', begin);
-    const shortWalls = source.indexOf('pass.setPipeline(this.lowWallPipeline)', begin);
-    const restore = source.indexOf('pass.setBindGroup(0, this.bindGroup)', shortWalls);
-    const shortWallDraw = source.indexOf('pass.draw(VERTICES_PER_QUAD, this.lowWallCount', begin);
     const end = source.indexOf('pass.end();', begin);
+    // Both branches after the markers draw the short walls: one resumes the
+    // scene after the water surface, the other stays in the first pass.
+    const water = source.indexOf('drawWaterSurface(encoder', begin);
+    const resumedWalls = source.indexOf('this.drawLowWalls(walls', water);
+    const passWalls = source.indexOf('this.drawLowWalls(pass', resumedWalls);
+    const passEnd = source.indexOf('pass.end();', passWalls);
     expect(begin, 'the scene pass begins').toBeGreaterThan(0);
     expect(grime, 'the scene pass draws grime').toBeGreaterThan(begin);
     expect(markers, 'the floor markers are drawn after grime').toBeGreaterThan(grime);
-    expect(markers, 'the floor markers are drawn before the short walls').toBeLessThan(shortWalls);
     expect(markers, 'the floor markers are drawn inside the scene pass').toBeLessThan(end);
+    expect(end, 'the scene pass ends only for the water surface before the short walls').toBeLessThan(water);
+    expect(resumedWalls, 'the short walls follow the markers and the water surface').toBeGreaterThan(water);
+    expect(passWalls, 'without water the short walls follow the markers in the same pass').toBeGreaterThan(resumedWalls);
+    expect(passEnd, 'without water the short walls are drawn inside the scene pass').toBeGreaterThan(passWalls);
     // The marker draw replaces bind group 0, so the short walls restore the sprite group first.
+    const walls = source.indexOf('private drawLowWalls(');
+    const shortWalls = source.indexOf('pass.setPipeline(this.lowWallPipeline)', walls);
+    const restore = source.indexOf('pass.setBindGroup(0,this.bindGroup)', shortWalls);
+    const shortWallDraw = source.indexOf('pass.draw(VERTICES_PER_QUAD,this.lowWallCount', walls);
+    expect(walls, 'the short walls have one draw routine').toBeGreaterThan(0);
+    expect(shortWalls, 'the short-wall routine sets its pipeline').toBeGreaterThan(walls);
     expect(restore, 'the short walls restore the sprite bind group').toBeGreaterThan(shortWalls);
     expect(restore, 'the sprite bind group is restored before the short-wall draw').toBeLessThan(shortWallDraw);
-    expect(shortWallDraw, 'the short walls are drawn inside the scene pass').toBeLessThan(end);
   });
 });
 
