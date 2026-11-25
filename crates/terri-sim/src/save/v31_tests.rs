@@ -159,3 +159,90 @@ fn the_loader_refuses_bad_rows() {
     let mut live = Sim::new_from_shipped_lot();
     live.load_snapshot_v31(edge).expect("boundaries load");
 }
+
+/// Build mode rebuilds the world from its baseline on cancel, so the
+/// baseline must hold every memory.
+#[test]
+fn entering_and_leaving_build_keeps_the_memories() {
+    let mut sim = remembering();
+    let rows = sim.save_snapshot_v31().topic_memory;
+    let hash = sim.world_hash();
+    assert_eq!(rows.len(), 3);
+    sim.begin_build().expect("build opens");
+    assert_eq!(sim.save_snapshot_v31().topic_memory, rows, "in build");
+    sim.cancel_build().expect("cancel");
+    sim.end_build().expect("leave");
+    assert_eq!(sim.save_snapshot_v31().topic_memory, rows, "after cancel");
+    assert_eq!(sim.world_hash(), hash);
+}
+
+fn buy_a_lamp(sim: &mut Sim) {
+    let lamp = terri_data::pack().find("floor_lamp").expect("a floor lamp");
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::BuyObject {
+            definition: lamp.0,
+            x: 17,
+            y: 13,
+            facing: terri_core::Facing::SouthEast,
+        });
+    sim.flush_commands();
+}
+
+/// A confirmed Build edit installs a candidate rebuilt from a capture, and
+/// keeps every memory.
+#[test]
+fn confirming_a_build_edit_keeps_the_memories() {
+    let mut sim = remembering();
+    sim.world_mut().resource_mut::<terri_core::Funds>().0 = 1_000_000;
+    let baseline = sim.save_snapshot_v31();
+    sim.begin_build().unwrap();
+    buy_a_lamp(&mut sim);
+    let review = sim.prepare_build_commit(Default::default()).unwrap();
+    sim.commit_build(review.token).unwrap();
+    let saved = sim.save_snapshot_v31();
+    assert_ne!(saved.current.editable, baseline.current.editable);
+    assert_eq!(saved.topic_memory, baseline.topic_memory);
+    assert_eq!(
+        sim.world().resource::<TopicMemory>(),
+        remembering().world().resource::<TopicMemory>()
+    );
+}
+
+/// An ordinary purchase outside Build mode is applied to a candidate
+/// rebuilt from a capture of the live world, so it must carry every memory.
+#[test]
+fn buying_furniture_keeps_the_memories() {
+    let mut sim = remembering();
+    sim.world_mut().resource_mut::<terri_core::Funds>().0 = 1_000_000;
+    let rows = sim.save_snapshot_v31().topic_memory;
+    let before = sim.world().resource::<terri_core::Funds>().0;
+    buy_a_lamp(&mut sim);
+    assert!(
+        sim.world().resource::<terri_core::Funds>().0 < before,
+        "the lamp was bought, so the world was rebuilt around it"
+    );
+    assert_eq!(sim.save_snapshot_v31().topic_memory, rows);
+}
+
+/// The admin panel restores its baseline when it opens and on Undo, so the
+/// baseline must hold every memory.
+#[test]
+fn an_admin_session_and_undo_keep_the_memories() {
+    use terri_core::admin::{AdminChange, AdminEdit};
+    let mut sim = remembering();
+    let rows = sim.save_snapshot_v31().topic_memory;
+    let hash = sim.world_hash();
+    sim.begin_admin().expect("admin opens");
+    assert_eq!(sim.world_hash(), hash, "opening changes nothing");
+    assert_eq!(sim.save_snapshot_v31().topic_memory, rows);
+    sim.admin_apply(AdminChange {
+        edits: vec![AdminEdit::AdjustFunds { cents: 500 }],
+    })
+    .expect("the edit applies");
+    assert_eq!(sim.save_snapshot_v31().topic_memory, rows, "after an edit");
+    sim.admin_undo().expect("undo");
+    assert_eq!(sim.world_hash(), hash, "undo returns to the baseline");
+    assert_eq!(sim.save_snapshot_v31().topic_memory, rows, "after undo");
+    sim.end_admin();
+}
