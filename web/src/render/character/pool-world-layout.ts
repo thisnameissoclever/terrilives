@@ -37,15 +37,21 @@ const clearLodgeStairs = [.55,-.66,0] as const;
 // The west route rounds the submerged stair before crossing toward its berth.
 const lodgeRoutes:readonly (readonly Waypoint[])[] = [
   [lodgeMouth,clearLodgeStairs,[.55,-.66,turn],[.55,-.95,turn],[.03,-.95,turn],
-    [.03,-1.35,turn],[-.18,-1.35,turn],[-.18,-2.17,turn]],
-  [lodgeMouth,clearLodgeStairs,[.55,-.66,turn/2],[1.18,-.66,turn/2],[1.18,-2.23,turn/2]],
+    [.03,-1.35,turn],[-.18,-1.35,turn],[-.18,-2.17,.58]],
+  [lodgeMouth,clearLodgeStairs,[.55,-.66,turn/2],[1.10,-.66,turn/2],[1.18,-2.16,-.90]],
 ];
 
-// The Basin leaves a central passage between its two rows of berths.
-const basinRoutes:readonly (readonly Waypoint[])[] = Array.from({length:4},(_,slot)=>{
-  const x=slot%2===0?-1.30:1.30,y=slot<2?0:-1.62;
-  return [basinMouth,[.623,1.77,0],[0,1.77,0],[0,1.77,turn],[0,y,turn],[x,y,turn]];
-});
+// Turn down the Basin's center aisle before crossing to each berth's open diagonal.
+function basinRoute(berth:Waypoint,aisleEntryYaw:number,aisleEndYaw:number):readonly Waypoint[] {
+  return [basinMouth,[.623,1.77,0],[0,1.77,0],[0,1.77,aisleEntryYaw],[0,berth[1],aisleEndYaw],berth];
+}
+
+const basinRoutes = [
+  basinRoute([-1.30,0,.47],turn/8,turn/2),
+  basinRoute([1.30,0,-2.16],-turn/2,-turn*1.25),
+  basinRoute([-1.28,-1.62,2.56],turn/8,turn*.75),
+  basinRoute([1.30,-1.62,-.63],turn/8,turn*.75),
+];
 
 /** The live swimmer's pivot follows a reversible route in the authored pool frame. */
 export function poolSwimPlacement(model:string|null,slot:number,progress:number):PoolPlacement|undefined {

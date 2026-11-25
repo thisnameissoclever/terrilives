@@ -14105,3 +14105,9 @@ Check reachability against the contacts for the requested action before checking
 Opening a bookcase menu at 3× speed dropped a local Chrome run from 60 to 13 to 15 frames per second. The simulation clock reran the full radial layout even when the camera and object stood still. Each pass searched 112 times for space for a collapsed description.
 
 Use the position of the target and the sizes of the menu and nearby controls to decide when placement is stale. Keep optional text in the measured layout only while it is visible. Verify the same running lot with the menu closed, open, and expanded. Run the comparison at 3× speed and check that a stationary menu does not write new positions on simulation ticks.
+
+## [L-recline-support-regions] Check which parts of the body support a recline
+
+The Sunstrip pose passed a clearance check while a hand held the body above the cushion and the head remained upright. The check used the closest vertex anywhere on the body. The fit also treated that closest point as support.
+
+Fit the hips and upper back to their cushions while checking the entire body for clipping. Measure the head angle separately. Compare the pose with the original at normal play zoom and close up, and include short, tall, slim, and broad people.

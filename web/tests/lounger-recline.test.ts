@@ -26,6 +26,12 @@ it('fits extended legs and swimwear to the Sunstrip deck for short, neutral and 
       const bone=rig.manifest.bones.findIndex(bone=>bone.name===name);
       return transform(matrices.subarray(bone*16,bone*16+16),heads[bone]);
     };
+    const headBone=rig.manifest.bones.findIndex(bone=>bone.name==='head');
+    const [headX,headY,headZ]=heads[headBone];
+    const [_,lean,rise]=sub(transform(matrices.subarray(headBone*16,headBone*16+16),[headX,headY,headZ+1]),pivot('head'));
+    const headPitch=Math.atan2(rise,lean)*180/Math.PI;
+    expect(headPitch).toBeGreaterThan(35);
+    expect(headPitch).toBeLessThan(58);
     expect(pivot('head')[2]-pivot('hips')[2]).toBeGreaterThan(.20);
     for(const side of ['L','R']){
       const thigh=pivot('thigh.'+side),knee=pivot('shin.'+side),ankle=pivot('foot.'+side);
@@ -50,6 +56,13 @@ it('fits extended legs and swimwear to the Sunstrip deck for short, neutral and 
     expect(nearestBack).toBeGreaterThanOrEqual(-.003);
     expect(nearestBack).toBeLessThan(.045);
     const points=posedCageSurface(selected.body,shapeVertices(selected.body.cage,shape,top),matrices);
+    const torso=selected.body.description.parts.find(part=>part.name==='Creator bare torso')!;
+    const torsoGap=Math.min(...Array.from(selected.body.indices.slice(torso.start,torso.start+torso.count),id=>{
+      const [x,y,z]=points.subarray(id*3,id*3+3);
+      return Math.abs(x)<=.29&&y>=backStart&&y<=backEnd
+        ? z-.33-.09*Math.cos(tilt)-(y-backStart)*Math.tan(tilt) : Infinity;
+    }));
+    expect(torsoGap).toBeLessThan(.065);
     for(const name of ['Creator bare foot L','Creator bare foot R']){
       const part=selected.body.description.parts.find(part=>part.name===name)!;
       const bottom=Math.min(...Array.from(selected.body.indices.slice(part.start,part.start+part.count),id=>points[id*3+2]));
