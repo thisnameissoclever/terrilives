@@ -630,11 +630,11 @@ Minimizing asks without waiting, because the minimized game keeps running and
 may never see `visibilitychange`.
 
 The packaged app checks for updates at launch (`desktop/src/updates.js`). On
-Windows, electron-updater downloads from the newest GitHub release in the
-background and installs on quit. An unsigned Mac app cannot install updates,
-so on macOS the app only compares its version with the latest release and
-offers that release's page. The preload passes the news to the page, which
-shows it under the time; the website has no bridge and never checks.
+Windows and macOS alike, electron-updater downloads from the newest GitHub
+release in the background and installs on quit; the Mac app is signed and
+notarized because macOS requires that for updates. The preload passes the
+news to the page, which shows it under the time; the website has no bridge
+and never checks.
 
 The worker queue serializes file I/O, but the player operation begins one layer
 higher. `PersistenceController` exclusively owns Save, Load, or clear before it

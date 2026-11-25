@@ -48,8 +48,8 @@ Applications.
 
 How it differs from the website:
 
-- It plays offline. On Windows, updates download in the background while
-  you play; see below.
+- It plays offline. Updates download in the background while you play; see
+  below.
 - Your saved game is an ordinary file, not browser storage, so browser storage
   limits and clearing site data do not affect it. It lives in
   `%APPDATA%\Natural Causes\saves` on Windows and
@@ -63,23 +63,14 @@ How it differs from the website:
 - **Export save** and **Import save** in Options move a game between the
   website and the installed game, in either direction. Export save writes a
   file; Import save loads one after you confirm, replacing the current game.
-- On Windows, the game updates itself: it downloads a new version in the
-  background and installs it when you close the game. A short note under the
-  time says when an update is ready.
-- On Mac, the game cannot update itself. When a new version is out, a note
-  under the time says "New version available"; choose **Download** to open
-  the release page, then drag the new app over the old one in Applications.
-- Your saves stay where they are through every update.
+- The game updates itself on Windows and Mac: it downloads a new version in
+  the background and installs it when you close the game. A short note under
+  the time says when an update is ready. Your saves stay where they are.
 
-The installers are not signed, so both systems warn before the first launch:
-
-- **Windows:** if SmartScreen says it protected your PC, choose **More info**,
-  then **Run anyway**. Some antivirus programs also flag unsigned installers.
-- **Mac:** open the app once, then go to **System Settings**, **Privacy &
-  Security**, and choose **Open Anyway** beside the message about Natural
-  Causes. Alternatively, run
-  `xattr -dr com.apple.quarantine "/Applications/Natural Causes.app"` in
-  Terminal, then open the app.
+The Mac app is signed and notarized by Apple, so it opens without a security
+warning. The Windows installer is not signed, so Windows warns before the
+first install: if SmartScreen says it protected your PC, choose **More info**,
+then **Run anyway**. Some antivirus programs also flag unsigned installers.
 
 Each release lists SHA-256 checksums for its downloads. Maintainers build and
 publish releases with [the desktop release runbook](docs/desktop-release.md).

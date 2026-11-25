@@ -62,8 +62,12 @@ function checksumName(platform) {
   return platform === 'win' ? 'SHA256SUMS-windows.txt' : 'SHA256SUMS-macos.txt';
 }
 
-/** The files electron-updater reads to find and download a Windows update. */
-function updateFileNames(version) {
+/** The files electron-updater reads to find and download an update on each platform. */
+function updateFileNames(version, platform = 'win') {
+  if (platform === 'mac') {
+    return ['arm64', 'x64'].flatMap((arch) => [`Natural-Causes-${version}-${arch}-mac.zip`, `Natural-Causes-${version}-${arch}-mac.zip.blockmap`])
+      .concat('latest-mac.yml');
+  }
   return [`Natural-Causes-Setup-${version}-x64.exe.blockmap`, 'latest.yml'];
 }
 
@@ -72,8 +76,7 @@ function updateFileNames(version) {
  * from this script; the Mac assets come from the desktop-mac workflow.
  */
 function expectedAssets(version, platform) {
-  const updates = platform === 'win' ? updateFileNames(version) : [];
-  return [...installerNames(version, platform), ...updates, checksumName(platform)];
+  return [...installerNames(version, platform), ...updateFileNames(version, platform), checksumName(platform)];
 }
 
 /**
@@ -186,7 +189,7 @@ function releaseNotes(version, platformSums) {
     '',
     `How to install, and what to do about the security warnings: ${README_INSTALL}`,
     '',
-    'The installed game on Windows updates itself. On a Mac, it tells you when a new version is out.',
+    'The installed game updates itself on Windows and Mac.',
     '',
     'SHA-256 checksums are in the SHA256SUMS files attached below.',
   ];

@@ -391,8 +391,7 @@ async function main(): Promise<void> {
     applyDesktopWording(document);
     const row = document.getElementById('desktop-update');
     const text = document.getElementById('desktop-update-text');
-    const download = document.getElementById('desktop-update-download');
-    if (row && text && download) connectDesktopUpdates(desktop, { row, text, download });
+    if (row && text) connectDesktopUpdates(desktop, { row, text });
   }
   // First, so a phone in desktop mode is told before the long load, not after.
   // The installed game is never a phone browser in desktop mode.

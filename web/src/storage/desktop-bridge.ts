@@ -26,16 +26,11 @@ export interface DesktopBridge {
   onSaveRequested(handler: () => Promise<unknown>): void;
   /** Update news from the app; absent from older app builds. */
   onUpdateStatus?(handler: (status: DesktopUpdateStatus) => void): void;
-  /** Opens the newer release's page in the web browser. The app chooses the address. */
-  openReleasePage?(): void;
 }
 
-/**
- * `ready`: Windows downloaded an update that installs when the game closes.
- * `available`: a Mac found a newer release it cannot install itself.
- */
+/** `ready`: an update finished downloading and installs when the game closes. */
 export interface DesktopUpdateStatus {
-  readonly kind: 'ready' | 'available';
+  readonly kind: 'ready';
   readonly version: string;
 }
 

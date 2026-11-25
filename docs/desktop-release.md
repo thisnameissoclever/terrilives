@@ -2,7 +2,7 @@
 
 This is the maintainer runbook for the installed game in `desktop/`, issue 276. Players read the README's [Local install](../README.md#local-install) section instead.
 
-The installed game is an Electron app that serves the built website, `web/dist`, from disk under `natural-causes://game/`. It plays offline and saves to ordinary files. Installers are unsigned. The Windows installer is built on the owner's PC and attached to a draft GitHub release; the Mac disk images are built by the `desktop-mac` workflow when that release is published. Changes under `desktop/` do not start the Pages deployment.
+The installed game is an Electron app that serves the built website, `web/dist`, from disk under `natural-causes://game/`. It plays offline and saves to ordinary files. The Windows installer is unsigned, built on the owner's PC and attached to a draft GitHub release. The Mac app is signed with the owner's Developer ID and notarized by the `desktop-mac` workflow when that release is published. Changes under `desktop/` do not start the Pages deployment.
 
 ## How it fits together
 
@@ -82,14 +82,26 @@ When the draft has the four Windows files, publish it:
 node desktop/scripts/release.js --publish
 ```
 
-Publishing starts the Mac workflow. GitHub runs the workflow file as it exists at the release's tag, so a tag made before the workflow was added never starts it; and uploading after publication works only while the repository's immutable releases setting stays off. It checks out the release's tag, confirms that `web/package.json` has the same version, builds wasm, the website and both disk images with the ad hoc identity `-`, and uploads `Natural-Causes-<version>-arm64.dmg`, `Natural-Causes-<version>-x64.dmg` and `SHA256SUMS-macos.txt` to the release. It needs only the `contents: write` permission, and gives the token only to the steps that read the release and upload; the build steps run without it. It fails unless `codesign` reports an ad hoc signature for both apps. If it fails, fix the cause and run it again from the Actions tab with the release's tag; it replaces any Mac files already uploaded. A published release cannot be given new Windows files; raise the version for the next one.
+### Mac signing secrets
+
+The workflow reads five repository secrets. None of this material is ever committed.
+
+| Secret | What it holds | Where it comes from |
+| --- | --- | --- |
+| `MAC_CERT_P12_BASE64` | The Developer ID Application certificate and its private key, exported as a `.p12` file and base64 encoded. The workflow decodes it to a temporary file and passes that path as `CSC_LINK`. | The owner's Apple Developer account, team G8NAYQQS78. The owner holds the certificate privately. |
+| `MAC_CERT_PASSWORD` | The password chosen when exporting the `.p12`; passed as `CSC_KEY_PASSWORD`. | Set by the owner at export. |
+| `APPLE_API_KEY_P8` | The contents of the App Store Connect API key file (`AuthKey_<id>.p8`). The workflow writes it to a temporary file and passes that path as `APPLE_API_KEY`. | An App Store Connect team API key with the Developer role, created under Users and Access, Integrations. The file downloads only once. |
+| `APPLE_API_KEY_ID` | That key's ID. | Shown beside the key in App Store Connect. |
+| `APPLE_API_ISSUER` | The issuer ID for the team's keys. | Shown above the key list in App Store Connect. |
+
+Publishing starts the Mac workflow. GitHub runs the workflow file as it exists at the release's tag, so a tag made before the workflow was added never starts it; and uploading after publication works only while the repository's immutable releases setting stays off. It checks out the release's tag, confirms that `web/package.json` has the same version, builds wasm, the website and the app for arm64 and x64, signs it with the Developer ID Application certificate for team G8NAYQQS78 under the hardened runtime (`desktop/build/entitlements.mac.plist` allows only JIT and unsigned executable memory, which V8 needs), notarizes and staples it, and uploads both disk images, both update zips with their `.blockmap` files, `latest-mac.yml` and `SHA256SUMS-macos.txt` to the release. It fails with a clear message if any signing secret is missing, and fails unless `codesign`, `stapler` and `spctl` accept both apps. It needs only the `contents: write` permission, and gives the token only to the steps that read the release and upload. The signing secrets exist only in the build step, the certificate and key are written to the runner's temp folder, and an `always()` step deletes them. If it fails, fix the cause and run it again from the Actions tab with the release's tag; it replaces any Mac files already uploaded. A published release cannot be given new Windows files; raise the version for the next one.
 
 ## Automatic updates
 
 The installed game checks for updates when it starts, only when it is packaged and never on the website. Pass `--no-update-check` to skip the check during verification.
 
-- **Windows:** electron-updater (pinned to 6.8.11, the version that shares `builder-util-runtime` 9.7.0 with electron-builder 26.18.0) reads `latest.yml` from the newest published release of `thisnameissoclever/terrilives`, downloads the new installer in the background, and installs it when the player closes the game. Nothing shows until the download is ready; then the time panel says "Update ready. It installs when you close the game." Drafts are ignored, so nothing updates before `--publish`.
-- **Mac:** the app is signed only ad hoc, so Squirrel.Mac cannot install updates, and the app never downloads one. It asks GitHub's API for the latest release, compares its tag with the app's version, and when the release is newer and already has the disk image for this Mac's processor, the time panel says "New version available" with a **Download** button. The button opens that release's page, `https://github.com/thisnameissoclever/terrilives/releases/tag/v<version>`, in the default browser. The app builds that address from the version; the page cannot supply another one.
+- electron-updater (pinned to 6.8.11, the version that shares `builder-util-runtime` 9.7.0 with electron-builder 26.18.0) reads `latest.yml` on Windows or `latest-mac.yml` on a Mac from the newest published release of `thisnameissoclever/terrilives`, downloads the update in the background (the installer on Windows, the zip for the Mac's processor on a Mac), and installs it when the player closes the game. Nothing shows until the download is ready; then the time panel says "Update ready. It installs when you close the game." Nothing restarts the game. Drafts are ignored, so nothing updates before `--publish`.
+- macOS installs updates only into a signed app whose signature matches, which is why the Mac app is signed and notarized. Windows checks no signature, because no `publisherName` is configured.
 - The NSIS installer keeps a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe`. electron-updater uses that folder for downloads and differential updates; uninstalling does not remove it.
 
 ## Versions and cadence
@@ -110,7 +122,7 @@ When re-pinning Electron, choose the newest stable release that has been public 
 6. Export save opens a native save dialog; Import save opens a native open dialog and then the confirmation.
 7. Install per user, launch from the Start menu, uninstall, and confirm the `saves` folder remains.
 
-Nobody on the project has a Mac. The workflow log shows whether both disk images built and what `codesign -dv` reports. A Mac user must still check: the app launches through the Gatekeeper steps in the README, WebGPU runs on Metal, saves land in `~/Library/Application Support/Natural Causes/saves`, Cmd+Q saves, a Dock minimize keeps the clock running, the Edit menu's Copy and Paste work, and a newer release shows "New version available" with a working Download button.
+Nobody on the project has a Mac. The workflow log shows whether both apps built, signed, notarized and passed `spctl`. A Mac user must still check: the app opens without a Gatekeeper warning, WebGPU runs on Metal, saves land in `~/Library/Application Support/Natural Causes/saves`, Cmd+Q saves, a Dock minimize keeps the clock running, the Edit menu's Copy and Paste work, and an older installed version updates itself after a newer release is published.
 
 ## Measured sizes
 

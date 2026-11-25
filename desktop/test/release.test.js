@@ -74,7 +74,10 @@ test('names the assets: Windows files with their update files here, Mac files fr
     'Natural-Causes-Setup-1.1.0-x64.exe', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap', 'latest.yml', 'SHA256SUMS-windows.txt',
   ]);
   assert.deepEqual(release.expectedAssets('1.1.0', 'mac'), [
-    'Natural-Causes-1.1.0-arm64.dmg', 'Natural-Causes-1.1.0-x64.dmg', 'SHA256SUMS-macos.txt',
+    'Natural-Causes-1.1.0-arm64.dmg', 'Natural-Causes-1.1.0-x64.dmg',
+    'Natural-Causes-1.1.0-arm64-mac.zip', 'Natural-Causes-1.1.0-arm64-mac.zip.blockmap',
+    'Natural-Causes-1.1.0-x64-mac.zip', 'Natural-Causes-1.1.0-x64-mac.zip.blockmap',
+    'latest-mac.yml', 'SHA256SUMS-macos.txt',
   ]);
   const view = { assets: release.expectedAssets('1.1.0', 'win').map((name) => ({ name })) };
   // The Mac files arrive after publishing, so they do not block it.

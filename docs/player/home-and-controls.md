@@ -120,8 +120,7 @@ To move a household between the website and the installed game, in either direct
 
 The installed game looks for a new version each time it starts. Nothing interrupts play.
 
-- On Windows, it downloads the new version in the background. When the download is ready, a note under the time says "Update ready. It installs when you close the game." The next time you close the game, the update installs, and the game opens updated next time.
-- On Mac, the game cannot install updates itself. When a new version is out, the note says "New version available". Choose **Download** to open the release page in your web browser, download the new version, and drag it over the old one in Applications.
+On Windows and Mac, it downloads the new version in the background. When the download is ready, a note under the time says "Update ready. It installs when you close the game." The next time you close the game, the update installs, and the game opens updated next time.
 
 Your saves stay in place through an update. The website always runs the newest version and shows no update note.
 

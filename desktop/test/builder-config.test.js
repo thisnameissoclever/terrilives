@@ -45,10 +45,19 @@ test('installs per user on Windows and keeps saves on uninstall', () => {
   assert.equal(config.nsis.artifactName, 'Natural-Causes-Setup-${version}-x64.${ext}');
 });
 
-test('builds ad hoc signed Mac disk images for both processors', () => {
-  assert.deepEqual(config.mac.target, [{ target: 'dmg', arch: ['arm64', 'x64'] }]);
-  assert.equal(config.mac.identity, '-');
-  assert.equal(config.mac.hardenedRuntime, false);
+test('builds signed, notarized Mac disk images and update zips for both processors', () => {
+  assert.deepEqual(config.mac.target, [{ target: 'dmg', arch: ['arm64', 'x64'] }, { target: 'zip', arch: ['arm64', 'x64'] }]);
+  // No ad hoc identity: the Developer ID certificate comes from CSC_LINK in the workflow.
+  assert.equal(config.mac.identity, undefined);
+  assert.equal(config.mac.hardenedRuntime, true);
+  assert.equal(config.mac.notarize, true);
+  assert.equal(config.mac.artifactName, 'Natural-Causes-${version}-${arch}-mac.${ext}');
+  for (const key of ['entitlements', 'entitlementsInherit']) {
+    const plist = fs.readFileSync(path.join(__dirname, '..', config.mac[key]), 'utf8');
+    assert.match(plist, /com\.apple\.security\.cs\.allow-jit<\/key>\s*<true\/>/);
+    assert.match(plist, /com\.apple\.security\.cs\.allow-unsigned-executable-memory<\/key>\s*<true\/>/);
+    assert.doesNotMatch(plist, /disable-library-validation/);
+  }
   assert.equal(config.dmg.artifactName, 'Natural-Causes-${version}-${arch}.${ext}');
   assert.equal(config.dmg.writeUpdateInfo, false);
 });

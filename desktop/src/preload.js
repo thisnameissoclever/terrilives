@@ -26,7 +26,7 @@ ipcRenderer.on('natural-causes:save-requested', async (_event, id) => {
 });
 
 ipcRenderer.on('natural-causes:update-status', (_event, status) => {
-  if (!status || (status.kind !== 'ready' && status.kind !== 'available') || typeof status.version !== 'string') return;
+  if (!status || status.kind !== 'ready' || typeof status.version !== 'string') return;
   lastUpdateStatus = { kind: status.kind, version: status.version };
   if (updateHandler !== null) updateHandler(lastUpdateStatus);
 });
@@ -40,14 +40,10 @@ contextBridge.exposeInMainWorld('naturalCausesDesktop', {
   onSaveRequested(handler) {
     if (typeof handler === 'function' && saveRequestHandler === null) saveRequestHandler = handler;
   },
-  /** Update news: `{ kind: 'ready' | 'available', version }`, replayed if it came first. */
+  /** Update news: `{ kind: 'ready', version }` once a download is ready, replayed if it came first. */
   onUpdateStatus(handler) {
     if (typeof handler !== 'function' || updateHandler !== null) return;
     updateHandler = handler;
     if (lastUpdateStatus !== null) handler(lastUpdateStatus);
-  },
-  /** Opens the newer release's page in the web browser. Mac only; the app chooses the address. */
-  openReleasePage() {
-    ipcRenderer.send('natural-causes:open-release-page');
   },
 });

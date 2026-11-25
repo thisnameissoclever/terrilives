@@ -11,7 +11,7 @@
  * - `--no-update-check` skips the update check, for verification runs.
  */
 
-const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, session, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, protocol, session, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -39,9 +39,8 @@ const bundleRoot = app.isPackaged
 let gameWindow = null;
 let saves = null;
 let quitting = false;
-/** The latest update news for the page, and the one release page the Mac may open. */
+/** The latest update news for the page. */
 let updateStatus = null;
-let releasePage = null;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -83,7 +82,6 @@ async function start() {
     // A leftover temporary file is harmless; the next write uses a new name.
   }
   registerSaveChannels();
-  registerUpdateChannels();
   createGameWindow();
   if (app.isPackaged && !skipUpdateCheck) checkForUpdates();
 }
@@ -92,16 +90,8 @@ async function start() {
 function checkForUpdates() {
   void startUpdateCheck({
     platform: process.platform,
-    arch: process.arch,
-    currentVersion: app.getVersion(),
-    autoUpdater: process.platform === 'win32' ? require('electron-updater').autoUpdater : null,
-    fetchJson: async (url) => {
-      const response = await net.fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
-      if (!response.ok) throw new Error(`Update check failed: HTTP ${response.status}`);
-      return response.json();
-    },
-    notify: ({ kind, version, url }) => {
-      if (kind === 'available') releasePage = url;
+    autoUpdater: require('electron-updater').autoUpdater,
+    notify: ({ kind, version }) => {
       updateStatus = { kind, version };
       sendUpdateStatus();
     },
@@ -114,17 +104,6 @@ function sendUpdateStatus() {
   gameWindow.webContents.send('natural-causes:update-status', updateStatus);
 }
 
-function registerUpdateChannels() {
-  // Opens only the release page this process found; the page sends no address.
-  ipcMain.on('natural-causes:open-release-page', (event) => {
-    try {
-      trustedSaveRequest(event);
-    } catch {
-      return;
-    }
-    if (releasePage !== null) openExternal(releasePage);
-  });
-}
 
 function setApplicationMenu() {
   if (process.platform !== 'darwin') {
