@@ -29,7 +29,7 @@ async function acquireDevice(
   canvas: HTMLCanvasElement,
 ): Promise<GpuContext> {
   if (!navigator.gpu) {
-    throw new Error('WebGPU is not available in this browser.');
+    throw new Error('WebGPU is not available.');
   }
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) {

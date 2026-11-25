@@ -247,7 +247,7 @@ Choose Behind the house, Left side or Right side and inspect dimensions, price a
 
 ## Options {#options}
 
-Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, Export save, Import save, New game, Report bug, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab.
+Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, Export save, Import save, New game, Report bug, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab, or a new window in the installed game.
 
 Report bug opens an email draft to Tim with the game version, recorded error and newest logs that fit. Review the draft and describe the problem before sending it. To copy or download the larger retained report, open [Startup report](https://natural-causes.life/startup-report.html) in the same browser. See [loading failures](start-here/#loading-failure).
 
@@ -291,7 +291,7 @@ Changes are part of the game, so Save keeps them. See [Save and Load](#saves).
 
 Choose Options, then Save to write the local household slot. Options, then Load opens confirmation before replacing progress. Options, then New game opens a separate confirmation before deleting the local save and starting again.
 
-After Save, wait for Game saved. The status reports the result; read it before assuming the write or load succeeded. The household slot belongs to this browser and site. See [saving](home-and-controls/#saves).
+After Save, wait for Game saved. The status reports the result; read it before assuming the write or load succeeded. On the website, the household slot belongs to this browser and site; the installed game keeps it in a file on your computer. See [saving](home-and-controls/#saves) and [the installed game](home-and-controls/#installed-saves).
 
 Choose **Load game** to restore the save. **Keep playing** dismisses the confirmation without replacing the household.
 
@@ -301,7 +301,7 @@ Choose **Start over** to confirm a new game. **Keep playing** also dismisses thi
 
 :::illustration new-game-confirm
 
-Options, then Export save downloads the current household as a file and opens instructions for recovering a save from the old website. Follow the recovery link in the same browser, profile, and device where you played. Close the instructions with Close or Escape. Options, then Import save opens a file picker; after you choose a save file, a confirmation appears before the running game and this browser's saved game are replaced. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
+Options, then Export save downloads the current household as a file and opens instructions for recovering a save from the old website. Follow the recovery link in the same browser, profile, and device where you played. Close the instructions with Close or Escape. Options, then Import save opens a file picker; after you choose a save file, a confirmation appears before the running game and its saved game are replaced. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
 
 :::illustration import-confirm
 

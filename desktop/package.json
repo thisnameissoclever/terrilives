@@ -1,0 +1,22 @@
+{
+  "name": "natural-causes-desktop",
+  "private": true,
+  "productName": "Natural Causes",
+  "description": "Natural Causes, the installed game for Windows and macOS.",
+  "author": "Tim Woodruff",
+  "type": "commonjs",
+  "main": "src/main.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/app-protocol.test.js test/save-files.test.js test/window-policy.test.js test/builder-config.test.js test/release.test.js",
+    "pack:dir": "electron-builder --dir --config electron-builder.config.js --publish never",
+    "release": "node scripts/release.js"
+  },
+  "devDependencies": {
+    "electron": "45.3.0",
+    "electron-builder": "26.18.0"
+  }
+}

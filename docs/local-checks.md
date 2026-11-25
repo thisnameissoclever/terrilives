@@ -10,13 +10,15 @@ Run the complete local check catalog from the repository root:
 python -B scripts/check-local-ci.py run --report .local-build/local-ci/report.json
 ```
 
-The runner executes checks sequentially. It retains documentation IDs; the complete CI-script and workflow-policy suite; every previous sprite and model contract suite; atlas reproducibility and lossless runtime-storage reconstruction; Rust formatting, Clippy and workspace tests; native and WebAssembly dependency-purity checks; public documentation generation tests and builds; WebAssembly compilation; compiled player-reference validation; web type checks and tests; and the release web build. Python commands use the interpreter running the script. npm commands run from `web/`.
+The runner executes checks sequentially. It retains documentation IDs; the complete CI-script and workflow-policy suite; every previous sprite and model contract suite; atlas reproducibility and lossless runtime-storage reconstruction; Rust formatting, Clippy and workspace tests; native and WebAssembly dependency-purity checks; public documentation generation tests and builds; WebAssembly compilation; compiled player-reference validation; web type checks and tests; the release web build; and the installed game's shell tests. Python commands use the interpreter running the script. npm commands run from `web/`.
 
 The existing Pillow and NumPy installation command and `npm ci` remain available through `--install-dependencies`. Use that flag only when dependency installation is authorized. Ordinary checks use the installed dependencies. The runner does not upgrade dependencies or toolchains.
 
+The `desktop` group runs `node --test` on the five shell test files in `desktop/` after the web build, because one of them checks every file type in the fresh `web/dist`. It needs no Electron download and never packages an installer; packaging is in [the desktop release runbook](desktop-release.md).
+
 Web tests use one worker. Cargo uses at most two build jobs. Node processes receive a 2,048 MiB heap limit. Existing stricter Node and Cargo limits remain in effect, and the report records the chosen bounds. These limits apply to each process; they do not cap the entire machine's memory use. Commands run sequentially.
 
-Use `--group docs`, `--group scripts`, `--group art`, `--group rust`, `--group site` or `--group web` for an affected subset. Repeat the flag for several groups. Use `--list` to inspect the selected command catalog without executing it. A subset report records its actual results and always has `complete: false`.
+Use `--group docs`, `--group scripts`, `--group art`, `--group rust`, `--group site`, `--group web` or `--group desktop` for an affected subset. Repeat the flag for several groups. Use `--list` to inspect the selected command catalog without executing it. A subset report records its actual results and always has `complete: false`.
 
 The report records the checked HEAD revision, the working diff hash, hashes of untracked source files, the platform, each command and working directory, exit status, duration and log path. Reports and logs are excluded from their own source comparison. A failed check stops later work. Interrupted and changed-source runs remain incomplete. Logs sit beside the report in a directory with the `.logs` suffix. Keep this evidence in ignored local storage.
 

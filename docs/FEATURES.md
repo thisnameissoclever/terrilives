@@ -1462,9 +1462,13 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Shared civic projects** | Depends on a backend beyond content sync |
 | **Cross-player economy** | Depends on trust and moderation infrastructure |
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
-| **Native desktop build** | Shell swap, deferred by choice, not blocked. Shell options, costs and multithreading paths are in [the desktop app research](plans/2026-10-17-desktop-app.md) |
+| **Threads or a native simulation in the desktop build** | The installed game (below) runs the same single-threaded wasm as the website. Multithreading paths and their costs are in [the desktop app research](plans/2026-10-17-desktop-app.md) |
 | **Weather, seasonal gameplay, vehicles** | Classic expansion-pack material. The season cycle, green seasonal grass and occasional visual weather are covered by [S-calendar]; seasons with gameplay effects remain later work. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
 | **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
+
+## [F-installed-game] The installed game for Windows and macOS
+
+Built for issue 276 on 2026-11-25. An Electron app in `desktop/` serves the same built game from disk under `natural-causes://game/`, with cross-origin isolation, so it plays offline. Saves are ordinary files in the app's `saves` folder and survive uninstalling; they follow the website's slot rules exactly. The game keeps running while the window is minimized, and closing the window saves first. Export save and Import save move a game between the website and the app. Installers are unsigned, built on the owner's machines and attached to GitHub releases; see [the desktop release runbook](desktop-release.md) and the README's Local install section.
 
 ## Design tone
 

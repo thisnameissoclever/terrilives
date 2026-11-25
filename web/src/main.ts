@@ -133,6 +133,8 @@ import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
+import { desktopBridge, registerDesktopSaveRequests } from './storage/desktop-bridge.js';
+import { applyDesktopLinkWording } from './ui/desktop-wording.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
@@ -382,8 +384,12 @@ declare global {
 const loading = startupLoading(document);
 
 async function main(): Promise<void> {
+  // The installed game's bridge, or null on the website.
+  const desktop = desktopBridge();
+  if (desktop !== null) applyDesktopLinkWording(document);
   // First, so a phone in desktop mode is told before the long load, not after.
-  showDesktopSiteNotice(window, document);
+  // The installed game is never a phone browser in desktop mode.
+  if (desktop === null) showDesktopSiteNotice(window, document);
   // Audio is wired FIRST, ahead of every await below. Two reasons, both
   // learned the hard way. A phone takes seconds to fetch the WASM, bring up
   // WebGPU and decode the atlas, and a gesture made during that wait is the
@@ -498,7 +504,7 @@ async function main(): Promise<void> {
   const commandStatus = sceneFeedback.status;
   const persistenceFeedback = new PersistenceSceneFeedback(sceneFeedback, saveStatus);
   const persistence = new PersistenceController(
-    createSaveStore(),
+    createSaveStore(desktop),
     buildSession,
     saveStatus,
     (error) => console.error('save storage failed:', error),
@@ -1737,6 +1743,16 @@ async function main(): Promise<void> {
       void saving.then(() => syncPersistenceButtons());
     }
   });
+  // The installed game keeps running while minimized, so `visibilitychange`
+  // may never fire, and closing the window ends the page before an ordinary
+  // save could finish. The app asks for a save at both moments instead.
+  if (desktop !== null) {
+    registerDesktopSaveRequests(desktop, () => {
+      const saving = persistence.saveAutomatically();
+      syncPersistenceButtons();
+      return saving.finally(() => syncPersistenceButtons());
+    }, () => startingNewGame);
+  }
 
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
   // least (w - 1) + (h - 1) for the far corner to keep a depth inside
@@ -3215,6 +3231,7 @@ void main().catch((error: unknown) => {
     describeStartupFailure(error, {
       webgpu: 'gpu' in navigator && navigator.gpu !== undefined,
       secure: window.isSecureContext,
+      desktop: desktopBridge() !== null,
     }),
     document.body,
   );

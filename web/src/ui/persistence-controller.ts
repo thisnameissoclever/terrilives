@@ -340,7 +340,7 @@ export class PersistenceController {
           stored = this.protectedBytes ?? await this.store.load();
         } catch (error: unknown) {
           this.reportError(error);
-          this.showImportFailure('Could not check the saved data in this browser.');
+          this.showImportFailure('Could not check the existing saved data.');
           return false;
         }
         if (stored !== null && !slotAcceptsCurrentWrite(stored)) {
@@ -474,7 +474,7 @@ export class PersistenceController {
 
   private refuseUnreplaceableSlot(): void {
     this.showImportFailure(
-      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again.',
+      'The existing saved data cannot be replaced. Export save to keep it, then New game, then import again.',
     );
   }
 

@@ -16,7 +16,9 @@ import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GROUPS = ("docs", "scripts", "art", "rust", "site", "web")
+GROUPS = ("docs", "scripts", "art", "rust", "site", "web", "desktop")
+DESKTOP_TESTS = ("test/app-protocol.test.js", "test/save-files.test.js", "test/window-policy.test.js",
+                 "test/builder-config.test.js", "test/release.test.js")
 ART_DIRECTORIES = ("assets/sprites/gen", "assets/models/sims/sim-01", "assets/models/furniture",
                    "assets/models/kitchen", "assets/models/bathroom", "assets/models/kitchen/actions",
                    "assets/models/bathroom/actions", "assets/models/bedroom", "assets/models/office", "assets/models/outdoor")
@@ -57,6 +59,8 @@ def commands(groups, *, install_dependencies=False):
         Command("web", "Type check web", ("npm", "run", "typecheck"), "web"),
         Command("web", "Test web", ("npm", "test", "--", "--maxWorkers=1"), "web"),
         Command("web", "Build web", ("npm", "run", "build"), "web"),
+        # After Build web: the protocol test reads the fresh web/dist. No installer is packaged here.
+        Command("desktop", "Test desktop shell", ("node", "--test", *DESKTOP_TESTS), "desktop"),
     ])
     return [row for row in rows if row.group in groups]
 

@@ -27,6 +27,11 @@ export interface StartupEnvironment {
   readonly webgpu: boolean;
   /** `window.isSecureContext` - https, localhost, or 127.0.0.1. */
   readonly secure: boolean;
+  /**
+   * The installed game, which has no browser to restart and no address bar,
+   * so its advice names the app and the computer instead.
+   */
+  readonly desktop?: boolean;
 }
 
 /** The message, chosen; rendering it is `renderStartupFailure`'s job. */
@@ -67,6 +72,17 @@ export function describeStartupFailure(
     };
   }
 
+  if (!env.webgpu && env.desktop) {
+    return {
+      title: 'This computer cannot render the game',
+      detail,
+      hints: [
+        'The game draws with WebGPU, which could not start on this computer.',
+        'Update the graphics driver, then open Natural Causes again.',
+      ],
+    };
+  }
+
   if (!env.webgpu) {
     return {
       title: 'This browser cannot render the game',
@@ -75,6 +91,19 @@ export function describeStartupFailure(
         'The game draws with WebGPU, which this browser does not offer.',
         'Recent Chrome or Edge works everywhere; Safari 18 and Firefox ' +
           'are getting there. Try one of those.',
+      ],
+    };
+  }
+
+  if (isNoAdapter(error) && env.desktop) {
+    return {
+      title: 'The game did not get a graphics device',
+      detail,
+      hints: [
+        'WebGPU is available, but the game could not use the graphics card. ' +
+          'This usually happens after a graphics driver crash or reset.',
+        'Close Natural Causes and open it again.',
+        'If that does not help, restart the computer or update the graphics driver.',
       ],
     };
   }
@@ -100,9 +129,12 @@ export function describeStartupFailure(
     title: 'The game failed to start',
     detail,
     hints: [
-      'WebGPU is present, so this is not the usual browser-support ' +
-        'problem. The message above is the real error; the console has ' +
-        'the full stack.',
+      env.desktop
+        ? 'WebGPU is present, so this is not the usual graphics-support ' +
+          'problem. The message above is the real error.'
+        : 'WebGPU is present, so this is not the usual graphics-support ' +
+          'problem. The message above is the real error; the console has ' +
+          'the full stack.',
     ],
   };
 }

@@ -6,6 +6,8 @@ target-*/
 node_modules/
 web/src/wasm/
 web/dist/
+# Installers and unpacked apps built by electron-builder.
+desktop/dist/
 .superpowers/
 mutants.out/
 mutants.out.old/

@@ -106,7 +106,11 @@ class ClassifyPaths(unittest.TestCase):
                      "assets/models/sims/character-repair/unshipped-trial/manifest.json",
                      "crates/terri-data/tests/fixtures/pre-books-920abaf/edited.sav",
                      "crates/terri-data/tests/fixtures/pre-books-edit-845101d/source.json",
-                     "docs/testing-protocol.md", "docs/mutants-baseline.txt", "README.md"):
+                     "docs/testing-protocol.md", "docs/mutants-baseline.txt", "README.md",
+                     "desktop/package.json", "desktop/package-lock.json", "desktop/electron-builder.config.js",
+                     "desktop/src/main.js", "desktop/src/app-protocol.js", "desktop/src/preload.js",
+                     "desktop/build/icon.ico", "desktop/scripts/release.js", "desktop/test/save-files.test.js",
+                     "docs/desktop-release.md"):
             self.assertFalse(changes.affects_site([path]), path)
 
     def test_local_code_scope_does_not_force_publication(self):

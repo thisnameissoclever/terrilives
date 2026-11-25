@@ -81,7 +81,7 @@ class FakeElement {
 }
 
 describe('describeStartupFailure', () => {
-  const gpuMissing = new Error('WebGPU is not available in this browser.');
+  const gpuMissing = new Error('WebGPU is not available.');
 
   it('blames the address, not the browser, on an insecure origin', () => {
     const notice = describeStartupFailure(gpuMissing, {
@@ -142,6 +142,40 @@ describe('describeStartupFailure', () => {
     const paused = describeGraphicsLost('GPU reset', 'paused');
     expect(paused.hints[0]).toContain('Saving is paused');
     expect(paused.hints[0]).not.toContain('could not');
+  });
+
+  describe('in the installed game', () => {
+    const desktop = { webgpu: true, secure: true, desktop: true } as const;
+
+    it('names the computer, not a browser, when WebGPU is missing', () => {
+      const notice = describeStartupFailure(gpuMissing, { ...desktop, webgpu: false });
+      expect(notice.title).toBe('This computer cannot render the game');
+      expect(notice.hints).toEqual([
+        'The game draws with WebGPU, which could not start on this computer.',
+        'Update the graphics driver, then open Natural Causes again.',
+      ]);
+    });
+
+    it('tells the player to reopen the app, not to restart a browser, for a refused device', () => {
+      const notice = describeStartupFailure(new NoGpuAdapterError(), desktop);
+      expect(notice.title).toBe('The game did not get a graphics device');
+      const hints = notice.hints.join(' ');
+      expect(hints).toContain('Close Natural Causes and open it again.');
+      expect(hints).not.toMatch(/browser|chrome:/i);
+    });
+
+    it('drops the console advice from an ordinary failure', () => {
+      const notice = describeStartupFailure(new Error('atlas decode failed'), desktop);
+      expect(notice.title).toBe('The game failed to start');
+      expect(notice.hints.join(' ')).not.toMatch(/browser|console/i);
+    });
+
+    it('keeps every browser hint on the website', () => {
+      for (const env of [{ webgpu: false, secure: true }, { webgpu: true, secure: true }]) {
+        const notice = describeStartupFailure(new NoGpuAdapterError(), env);
+        expect(notice.hints.join(' ')).toMatch(/Chrome|chrome:/);
+      }
+    });
   });
 
   it('stringifies a non-Error throw instead of printing undefined', () => {

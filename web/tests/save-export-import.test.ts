@@ -296,7 +296,7 @@ describe('Import save', () => {
     expect(game.loadBytes).not.toHaveBeenCalled();
     expect(backend.saves).toEqual([]);
     expect(view.textContent).toBe(
-      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Saving paused.',
+      'The existing saved data cannot be replaced. Export save to keep it, then New game, then import again. Saving paused.',
     );
     expect(controller.isSavingPaused()).toBe(true);
     expect(controller.controlState().importDisabled).toBe(false);
@@ -309,7 +309,7 @@ describe('Import save', () => {
 
     expect(controller.acceptImportFile(saveBytes().slice(0, 10))).toBe(false);
     expect(view.textContent).toBe(
-      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Saving paused.',
+      'The existing saved data cannot be replaced. Export save to keep it, then New game, then import again. Saving paused.',
     );
   });
 
@@ -324,7 +324,7 @@ describe('Import save', () => {
 
     expect(await controller.importSave(saveBytes())).toBe(false);
     expect(loadBytes).not.toHaveBeenCalled();
-    expect(view.textContent).toBe('Could not check the saved data in this browser. Saving paused.');
+    expect(view.textContent).toBe('Could not check the existing saved data. Saving paused.');
   });
 
   it('allows current-world export and Save retry after a confirmed import fails to save', async () => {

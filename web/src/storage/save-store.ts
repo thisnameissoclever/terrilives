@@ -1,15 +1,18 @@
 /**
- * Browser storage for the single playable-alpha save slot.
+ * Storage for the single playable-alpha save slot.
  *
  * The simulation owns the bytes and this module owns only their trip to
- * Origin Private File System storage. Calls are serialized so worker I/O
- * cannot overlap. `PersistenceController` separately owns the larger player
+ * storage: Origin Private File System storage through a worker on the
+ * website, or ordinary files through the desktop bridge in the installed
+ * game. Calls are serialized so storage I/O cannot overlap. `PersistenceController` separately owns the larger player
  * operation, beginning before save bytes are captured and ending after a
  * loaded world is applied. Browsers are very good at exposing the gap between
  * those two boundaries, which is their little way of keeping us humble.
  */
 
 import {copyOriginalError,diagnosticMessage,requireDiagnosticKeys,restoreErrorDetails,serializeErrorDetails,validateErrorDetails,type ErrorDetails} from '../diagnostics/error-details.js';
+import { desktopBridge, type DesktopBridge } from './desktop-bridge.js';
+import { FileSaveBackend } from './file-save-backend.js';
 
 export interface SaveStore {
   load(): Promise<Uint8Array | null>;
@@ -103,7 +106,7 @@ interface PendingRequest {
 const STORAGE_FAILURE = 'Browser storage operation failed.';
 const INVALID_RESPONSE = 'The browser storage worker returned invalid data.';
 
-function storageError(value: unknown): Error {
+export function storageError(value: unknown): Error {
   if (value instanceof Error) return Object.isExtensible(value) ? value : copyOriginalError(value, STORAGE_FAILURE);
   const details = serializeErrorDetails(value), error = new Error(diagnosticMessage(details, STORAGE_FAILURE));
   Object.defineProperty(error, 'stack', { value: undefined, writable: true, configurable: true });
@@ -111,7 +114,7 @@ function storageError(value: unknown): Error {
   return error;
 }
 
-function withRequestContext(error: Error, id: number, kind: SaveRequestInput['kind']): Error {
+export function withRequestContext(error: Error, id: number, kind: SaveRequestInput['kind']): Error {
   const descriptor = Object.getOwnPropertyDescriptor(error, 'persistence');
   if (!Object.isExtensible(error) || descriptor && !descriptor.configurable) error = copyOriginalError(error, STORAGE_FAILURE);
   Object.defineProperty(error, 'persistence', { value: { operation: kind, requestId: id }, writable: true, configurable: true, enumerable: true });
@@ -260,8 +263,12 @@ class WorkerSaveBackend implements SaveBackend {
   }
 }
 
-/** Creates the production one-slot OPFS store. */
-export function createSaveStore(): SaveStore {
+/**
+ * Creates the production one-slot store: files through the desktop bridge in
+ * the installed game, otherwise OPFS through the storage worker.
+ */
+export function createSaveStore(bridge: DesktopBridge | null = desktopBridge()): SaveStore {
+  if (bridge !== null) return new SerializedSaveStore(new FileSaveBackend(bridge.saves));
   const worker = new Worker(new URL('./save-worker.ts', import.meta.url), {
     type: 'module',
     name: 'terrilives-save-store',

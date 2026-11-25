@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'assets/branding/approved-logo-pair.png'
 PUBLIC = ROOT / 'web/public'
 BRAND = PUBLIC / 'branding'
+DESKTOP = ROOT / 'desktop/build'
 
 
 def foreground(panel):
@@ -114,6 +115,10 @@ def export():
         icon.resize((size,size), Image.Resampling.LANCZOS).save(BRAND / f'icon-{size}.png', optimize=True)
     icon.resize((180,180), Image.Resampling.LANCZOS).save(PUBLIC / 'apple-touch-icon.png', optimize=True)
     icon.save(PUBLIC / 'favicon.ico', sizes=[(s,s) for s in (16,24,32,48,64,128,256)])
+    # The installed game's application icons, read by electron-builder.
+    DESKTOP.mkdir(parents=True, exist_ok=True)
+    icon.save(DESKTOP / 'icon.png', optimize=True)
+    icon.save(DESKTOP / 'icon.ico', sizes=[(s,s) for s in (16,24,32,48,64,128,256)])
     # A local review sheet includes actual small-icon sizes and both themes.
     sheet = Image.new('RGB', (1000,580), '#f2f5f8')
     ImageDraw.Draw(sheet).rectangle((500,0,1000,580), fill='#11161d')

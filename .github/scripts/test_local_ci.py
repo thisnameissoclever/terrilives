@@ -75,6 +75,14 @@ class LocalVerification(unittest.TestCase):
         self.assertTrue(any(row.argv == ("node", "--test", "scripts/build-changelog.test.mjs", "scripts/build-player-guide.test.mjs",
                                         "scripts/player-activity-filters.test.mjs", "scripts/player-coverage.test.mjs",
                                         "scripts/check-player-reference.test.mjs", "scripts/branding.test.mjs") for row in rows))
+        desktop = [row for row in rows if row.group == "desktop"]
+        self.assertEqual(len(desktop), 1)
+        self.assertEqual(desktop[0].cwd, "desktop")
+        self.assertEqual(desktop[0].argv, ("node", "--test", "test/app-protocol.test.js", "test/save-files.test.js",
+                                           "test/window-policy.test.js", "test/builder-config.test.js", "test/release.test.js"))
+        self.assertLess(names.index("Build web"), names.index("Test desktop shell"))
+        self.assertIn("desktop", local.GROUPS)
+        self.assertFalse(any("electron-builder" in " ".join(row.argv) for row in rows), "Local CI never packages an installer")
         setup = local.commands(("art",), install_dependencies=True)
         self.assertTrue(any(row.argv[1:] == ("-m", "pip", "install", "--quiet", "--disable-pip-version-check", "Pillow", "numpy") for row in setup))
 

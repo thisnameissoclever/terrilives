@@ -17,10 +17,11 @@
 
 <p align="center"><a href="https://natural-causes.life/guide/">Player guide</a> | <a href="https://natural-causes.life/changelog/">Changelog</a></p>
 
-Natural Causes is a dark-comedy life sim that runs in the browser. The current
-cast is Tim, Bill, and Casey.
+Natural Causes is a dark-comedy life sim that runs in the browser, or as an
+installed game on Windows and Mac (see [Local install](#local-install)). The
+current cast is Tim, Bill, and Casey.
 
-Version 1.0.0. The game reads its version from `web/package.json` and shows it
+Version 1.1.0. The game reads its version from `web/package.json` and shows it
 at the top of the Options panel. This line and the Rust workspace version in
 `Cargo.toml` are copies; `web/tests/game-version.test.ts` fails if either
 differs.
@@ -31,6 +32,49 @@ the save file all keep it on purpose: renaming the storage keys would reset
 every player's settings, renaming the save fingerprint seeds would invalidate
 every existing save, and renaming the repository would move the public play
 URL. `docs/TIM-TODO.md` [T1] records the decision and what is still open.
+
+## Local install
+
+The installed game is the same game as the website, packaged for Windows and
+Mac. Download it from the repository's
+[Releases page](https://github.com/thisnameissoclever/terrilives/releases):
+`Natural-Causes-Setup-<version>-x64.exe` for Windows,
+`Natural-Causes-<version>-arm64.dmg` for a Mac with Apple silicon, or
+`Natural-Causes-<version>-x64.dmg` for a Mac with an Intel processor. The
+download is several hundred MB, because it carries its own copy of the
+Chromium browser engine. On Windows, run the installer; it installs for your
+user account only. On Mac, open the disk image and drag Natural Causes into
+Applications.
+
+How it differs from the website:
+
+- It plays offline. Nothing is downloaded while you play.
+- Your saved game is an ordinary file, not browser storage, so browser storage
+  limits and clearing site data do not affect it. It lives in
+  `%APPDATA%\Natural Causes\saves` on Windows and
+  `~/Library/Application Support/Natural Causes/saves` on Mac. Uninstalling
+  the game leaves that folder in place.
+- The game keeps running while its window is minimized, and it saves when you
+  minimize or close the window.
+- **Export save** and **Import save** in Options move a game between the
+  website and the installed game, in either direction. Export save writes a
+  file; Import save loads one after you confirm, replacing the current game.
+- Updates are not automatic. Install a newer release to update: on Windows,
+  run the new installer and it replaces the old version; on Mac, drag the new
+  app over the old one in Applications. Your saves stay where they are.
+
+The installers are not signed, so both systems warn before the first launch:
+
+- **Windows:** if SmartScreen says it protected your PC, choose **More info**,
+  then **Run anyway**. Some antivirus programs also flag unsigned installers.
+- **Mac:** open the app once, then go to **System Settings**, **Privacy &
+  Security**, and choose **Open Anyway** beside the message about Natural
+  Causes. Alternatively, run
+  `xattr -dr com.apple.quarantine "/Applications/Natural Causes.app"` in
+  Terminal, then open the app.
+
+Each release lists SHA-256 checksums for its downloads. Maintainers build and
+publish releases with [the desktop release runbook](docs/desktop-release.md).
 
 ## Where the documentation is
 
@@ -53,6 +97,7 @@ Then, by what you want:
 | Mistakes already made, so they are not made twice | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | How the testing gates work | [docs/testing-protocol.md](docs/testing-protocol.md) |
 | How to run checks locally and retain their results | [docs/local-checks.md](docs/local-checks.md) |
+| How to build, test and release the installed game | [docs/desktop-release.md](docs/desktop-release.md) |
 
 ### The bracketed tags in code comments and docs
 

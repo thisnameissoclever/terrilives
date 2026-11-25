@@ -15,7 +15,7 @@ from other docs and from discussion. Do not renumber them.
 | Presentation | 2.5D, fixed isometric camera |
 | Simulation core | Rust, compiled to `wasm32` and native from one source |
 | Shell (first) | TypeScript + WebGPU renderer, DOM-based UI |
-| Shell (later) | Native desktop, as a shell swap rather than a rewrite; options and multithreading paths in [the desktop app research](plans/2026-10-17-desktop-app.md) |
+| Shell (installed) | Electron app in `desktop/` that serves the same built game from disk; see [the desktop release runbook](desktop-release.md), and [the desktop app research](plans/2026-10-17-desktop-app.md) for multithreading paths |
 | Scale target | "Town" tier: ~1k-5k sims, ~100k objects |
 | Multiplayer v1 | Layer 1 only (asynchronous, no time coupling) |
 | Multiplayer later | Layer 2 (synchronous sessions), designed for but not built |
@@ -104,9 +104,15 @@ web/src/
   render/         WebGPU renderer
   ui/             DOM UI
   bridge.ts       Typed-array views into WASM memory
-  storage/        Browser-owned OPFS worker and serialized save operations
+  storage/        Shared save-slot rules, the OPFS worker, the desktop file
+                  backend and serialized save operations
   net/            (later) Ghost sync client. The ONLY network I/O location.
 content/          Data files: objects, traits, careers, interactions
+desktop/          Electron shell for the installed game. Plain CommonJS, its
+                  own package.json; web/src never imports from it.
+  src/main.js     Electron wiring: window, protocol, save IPC, close save
+  src/*.js        Pure modules: game protocol, save files, window policy
+  scripts/        Local release scripts; installers are never built in CI
 ```
 
 ## [D2] Tick model
@@ -604,6 +610,22 @@ outside those frozen records. Continuation is tested across save/load.
 
 Storage is **OPFS** (Origin Private File System), not `localStorage` - real
 file handles from a worker, subject to the browser's storage quota.
+
+The installed game stores the same files as ordinary files in
+`<userData>/saves` (`%APPDATA%\Natural Causes\saves` on Windows,
+`~/Library/Application Support/Natural Causes/saves` on macOS). Both versions
+run one set of slot rules, `web/src/storage/save-slot.ts`: the website through
+the storage worker on an OPFS directory, the installed game through
+`FileSaveBackend` on the page's main thread, because the app's preload bridge
+(`window.naturalCausesDesktop`, validated in `desktop-bridge.ts`) exists only
+there. `createSaveStore` picks the backend by that bridge alone. The Electron
+main process writes each file atomically (temporary file, sync, rename),
+accepts only the slot's file names and only from the game window, and
+serializes every operation. A single-instance lock keeps a second copy of the
+app from opening the same folder. Closing the window first asks the page for an
+automatic save and waits up to ten seconds for its answer; minimizing asks
+without waiting, because the minimized game keeps running and may never see
+`visibilitychange`.
 
 The worker queue serializes file I/O, but the player operation begins one layer
 higher. `PersistenceController` exclusively owns Save, Load, or clear before it

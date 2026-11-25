@@ -26,7 +26,7 @@ Press ~ to open or close the [admin panel](ui-elements/#admin-panel). On a touch
 
 Opening Options does not pause the household. Build and dialogs that say the household is paused hold game time while open. Use the visible pause control whenever you want to inspect the home without time advancing.
 
-The household keeps running at the selected speed when you switch tabs or minimize the browser, and its sound can keep playing. Pause before leaving the game if you want the household to wait. Choose Sound: off in Options to silence it. A browser can still suspend background tabs to save power; the game does not make up that lost time afterward.
+The household keeps running at the selected speed when you switch tabs or minimize the browser, and its sound can keep playing. Pause before leaving the game if you want the household to wait. Choose Sound: off in Options to silence it. A browser can still suspend background tabs to save power; the game does not make up that lost time afterward. The [installed game](#installed-saves) keeps running while its window is minimized and saves when you minimize it.
 
 ## Build, confirm and discard {#build}
 
@@ -94,31 +94,39 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 ## Save, Load and New game {#saves}
 
-Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work, accepted work trips, queued orders and career reviews, including pending reviews and recorded inputs, so the household can resume.
+Options contains Save, Load, Export save, Import save and New game. Save writes the current household to the game's save slot: browser storage on the website, or a file on your computer in the [installed game](#installed-saves). Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work, accepted work trips, queued orders and career reviews, including pending reviews and recorded inputs, so the household can resume.
 
-Before each save replaces the one in your browser, the game keeps a copy of it. If the latest save cannot be read, for example because the tab closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
+Before each save replaces the previous one, the game keeps a copy of it. If the latest save cannot be read, for example because the tab closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
-Saves carry the effect that needs have accumulated on mood. Older saves that predate this effect start with a neutral contribution. **Load** and **Import save** can resume households from the earlier editable-world builds, including versions 24, 25 and 26. If the game cannot open or recover the save already in this browser, saving pauses and **Export save** lets you download the original file.
+Saves carry the effect that needs have accumulated on mood. Older saves that predate this effect start with a neutral contribution. **Load** and **Import save** can resume households from the earlier editable-world builds, including versions 24, 25 and 26. If the game cannot open or recover the save it already has, saving pauses and **Export save** lets you download the original file.
 
 Choose **Load game** in the Load confirmation to restore the save. Choose **Start over** in the New game confirmation to delete the local save and begin again. **Keep playing** closes either confirmation without replacing the household.
 
 :::illustration load-confirm
 
-The slot belongs to the game's site in this browser. A different browser, browser profile or site address has separate storage. Light and sound preferences are separate from household progress.
+On the website, the slot belongs to the game's site in this browser. A different browser, browser profile or site address has separate storage, and so does the installed game. Light and sound preferences are separate from household progress.
 
-### Move a save to another browser or device {#export-import}
+### In the installed game {#installed-saves}
 
-Choose Options, then Export save to download the current household as a file ending in `.ncsave`. Exporting leaves this browser's saved game as it is. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
+The installed game for Windows and Mac keeps its saves as files in a folder on your computer instead of browser storage: `%APPDATA%\Natural Causes\saves` on Windows, or `~/Library/Application Support/Natural Causes/saves` on Mac. Save, Load, autosave, the kept copy and New game work as described above. Clearing browser data does not touch these files, and uninstalling the game leaves them in place, so a reinstalled game finds them again.
 
-To use the file, open the game in the browser or on the device where you want to play, choose Options, then Import save, and pick the file. Choose **Import game** in the confirmation. The imported household replaces the running game and this browser's saved game, and this cannot be undone, so export the current game first if you want to keep it. **Keep playing** closes the confirmation without changing anything. A file that is not a Natural Causes save, a damaged save, or a save from a newer version of the game is rejected and the current game is kept. While saving is paused because this browser's saved game is unreadable or from a newer version, Import save cannot replace it: export it first if you want to keep it, choose New game, then import again.
+The installed game also saves when you minimize its window and before it closes. Closing waits up to ten seconds for that save to finish. Time keeps passing while the window is minimized.
+
+To move a household between the website and the installed game, use Export save in one and Import save in the other, as described below. The installed game's Export save asks where to save the file, and its Import save opens your computer's file picker.
+
+### Move a save to another browser, device or the installed game {#export-import}
+
+Choose Options, then Export save to download the current household as a file ending in `.ncsave`. Exporting leaves the saved game where it was. The installed game asks where to save the file. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
+
+To use the file, open the game where you want to play (another browser, another device, the website or the installed game), choose Options, then Import save, and pick the file. Choose **Import game** in the confirmation. The imported household replaces the running game and its saved game, and this cannot be undone, so export the current game first if you want to keep it. **Keep playing** closes the confirmation without changing anything. A file that is not a Natural Causes save, a damaged save, or a save from a newer version of the game is rejected and the current game is kept. While saving is paused because the existing saved game is unreadable or from a newer version, Import save cannot replace it: export it first if you want to keep it, choose New game, then import again.
 
 :::illustration import-confirm
 
 ### Saves from the old web address {#old-address}
 
-Export save also opens prominent recovery instructions with a link to the old website's recovery page. Close the instructions with Close or Escape.
+Export save also opens prominent recovery instructions with a link to the old website's recovery page, on the website and in the installed game. In the installed game, the link opens in your web browser. Close the instructions with Close or Escape.
 
 :::illustration save-recovery
 
