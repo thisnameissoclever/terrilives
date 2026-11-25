@@ -2127,6 +2127,12 @@ impl SimHandle {
     pub fn pool_phases_ptr(&self) -> *const u32 {
         self.sim.render_buffer().pool_phases.as_ptr()
     }
+    pub fn pool_slots_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().pool_slots.as_ptr()
+    }
+    pub fn prev_pool_slots_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().prev_pool_slots.as_ptr()
+    }
     pub fn pool_elapsed_ptr(&self) -> *const u32 {
         self.sim.render_buffer().pool_elapsed.as_ptr()
     }
@@ -2763,7 +2769,7 @@ impl SimHandle {
     /// and the shell's `saveBytes` turns it into a thrown error so no caller
     /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let Ok(snapshot) = self.sim.try_save_snapshot_v31() else {
+        let Ok(snapshot) = self.sim.try_save_snapshot_v32() else {
             return Vec::new();
         };
         let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV31 serializes");
@@ -2796,6 +2802,12 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV31>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v32(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 31 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV31>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v31(snapshot).is_ok(),
                 _ => false,

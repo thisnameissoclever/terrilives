@@ -15,6 +15,7 @@ it('adopts a pool-free household without requesting swimming contacts', async ()
       loadBytes: () => true,
       characterAppearances: () => [{ entity: 1, appearance }],
       poolContactRequired: () => false,
+      prepareSceneAssets: () => undefined,
       flushCommands() {},
       free() {},
     }), roster);
@@ -82,4 +83,27 @@ it('installs post-command swimming contacts when a paused Build load settles the
   } finally {
     roster.dispose();
   }
+});
+
+it('holds save adoption until the Sunstrip introduced by a queued command has its rig',async()=>{
+  const service=new AdmissionTestService(),roster=new CharacterContactRoster(service),appearance=defaultAppearance();
+  let finishRig!:()=>void;
+  const rig=new Promise<void>(resolve=>{finishRig=resolve;});
+  let flushed=false,adopted=false;
+  const inspection:boolean[]=[];
+  try{
+    const pending=loadPreparedCharacterState(new Uint8Array([5]),{loadBytes(){adopted=true;return true;}},()=>({
+      loadBytes:()=>true,characterAppearances:()=>[{entity:1,appearance}],poolContactRequired:()=>false,
+      prepareSceneAssets(){inspection.push(flushed);return flushed?rig:undefined;},
+      flushCommands(){flushed=true;},free() {},
+    }),roster);
+    void pending.catch(()=>{});
+    service.finish(appearance,'base');
+    await Promise.resolve();
+    expect(inspection).toEqual([false,true]);
+    expect(adopted).toBe(false);
+    finishRig();
+    expect(await pending).toBe(true);
+    expect(adopted).toBe(true);
+  }finally{finishRig();roster.dispose();}
 });

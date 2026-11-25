@@ -1047,7 +1047,7 @@ price = { set = 120 }
 sprite = { set = "offlinePoolLoungerSW" }
 base_facing = { set = "SW" }
 footprint = { set = { width = 1, depth = 2 } }
-seat = { set = [{ id = "seat", x = 0.0, y = 0.5, facing = "SE", approaches = [[1, 0], [1, 1]] }] }
+seat = { set = [{ id = "seat", x = 0.0, y = 0.5, facing = "SE", approaches = [[1, 0], [1, 1], [-1, 0], [-1, 1]] }] }
 
 [[model]]
 id = "patio_umbrella"

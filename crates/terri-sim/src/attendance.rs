@@ -1127,7 +1127,13 @@ pub(crate) fn validate_manual_work_trip_activities(world: &World) -> Result<(), 
                 .is_none(),
             (None, None, Some(episode)) => {
                 episode.interrupted
-                    && matches!(episode.phase, 3 | 4 | crate::pool::CANCELED_LANDING)
+                    && matches!(
+                        episode.phase,
+                        3 | 4
+                            | crate::pool::CANCELED_LANDING
+                            | crate::pool::WAITING_FOR_LADDER
+                            | crate::pool::RETURNING_TO_LADDER
+                    )
             }
             (None, None, None) => {
                 world.get::<Target>(actor).is_none()

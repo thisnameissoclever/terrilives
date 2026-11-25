@@ -535,7 +535,7 @@
       ],
       "numbers": [],
       "review": {
-        "basis": "Entry lasts 20 game minutes, swimming 60 and exit 40. Only elapsed swimming supplies baseline Fun +30, Comfort +10 and Energy -5 points; positive refill uses ordinary personality/failure scaling, negative cost stays full and ordinary decay continues. Swimming provides no Social, Hygiene or Fitness practice. Interruption retains delivered effects and physical ownership through controlled exit; saves preserve phase and progress."
+        "basis": "Lodge holds two swimmers. Entry lasts 20 game minutes, active swimming 60, the return to the ladder 8 and climbing out 40. Waiting for the ladder can add time. Only active swimming delivers the baseline Fun +30, Comfort +10 and Energy -5. Ordinary decay and personality scaling still apply. Saves preserve each swimmer's place and phase."
       }
     },
     {
@@ -554,7 +554,7 @@
       ],
       "numbers": [],
       "review": {
-        "basis": "Entry lasts 20 game minutes, swimming 60 and exit 40. Only elapsed swimming supplies baseline Fun +30, Comfort +10 and Energy -5 points; positive refill uses ordinary personality/failure scaling, negative cost stays full and ordinary decay continues. Swimming provides no Social, Hygiene or Fitness practice. Interruption retains delivered effects and physical ownership through controlled exit; saves preserve phase and progress."
+        "basis": "Basin holds four swimmers. Entry lasts 20 game minutes, active swimming 100, the return to the ladder 8 and climbing out 40. Waiting for the ladder can add time. Only active swimming delivers the baseline Fun +30, Comfort +10 and Energy -5. Ordinary decay and personality scaling still apply. Saves preserve each swimmer's place and phase."
       }
     },
     {
@@ -571,7 +571,7 @@
       ],
       "numbers": [],
       "review": {
-        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+        "basis": "Sunstrip holds one person and is reachable from either long side. The housemate reclines in swimwear. The action supplies only its authored Comfort. Actual occupied secondary seating is separate."
       }
     },
     {

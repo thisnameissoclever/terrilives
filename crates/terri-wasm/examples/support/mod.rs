@@ -4,7 +4,7 @@ use terri_core::{
 };
 use terri_sim::{Content, Sim};
 
-const _: () = assert!(SAVE_SCHEMA_VERSION == 31);
+const _: () = assert!(SAVE_SCHEMA_VERSION == 32);
 
 /// A field view keeps scene tools on V19 fields while retaining the complete current state.
 #[derive(Clone, Debug, PartialEq)]
@@ -29,13 +29,13 @@ pub trait CurrentSnapshotViews {
 }
 impl CurrentSnapshotViews for Sim {
     fn current_snapshot(&self) -> CurrentSnapshot {
-        CurrentSnapshot(self.save_snapshot_v31())
+        CurrentSnapshot(self.save_snapshot_v32())
     }
     fn load_current_snapshot(
         &mut self,
         snapshot: CurrentSnapshot,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v31(snapshot.0)
+        self.load_snapshot_v32(snapshot.0)
     }
 }
 

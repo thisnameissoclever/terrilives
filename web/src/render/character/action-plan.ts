@@ -1,5 +1,6 @@
 import {distanceAnimationSample,tickAnimationSample} from '../sim-animation.js';
 import {bathAnimationSample} from './bath-motion.js';
+import {NO_POOL_SLOT,POOL_DEPARTURE_TICKS,POOL_RETURN_TICKS,poolSwimPlacement,type PoolPlacement} from './pool-world-layout.js';
 
 export interface CharacterActionState {
   action:number;activity:number;entity:number;facing:number;x:number;y:number;tick:number;reducedMotion:boolean;
@@ -8,9 +9,10 @@ export interface CharacterActionState {
   halfCycleTicks?:number;
   poolPhase?:number;poolElapsed?:number;poolExitOrigin?:number;poolExitTicks?:number;
   prevPoolPhase?:number;prevPoolElapsed?:number;prevPoolExitOrigin?:number;poolAlpha?:number;
+  poolSlot?:number;prevPoolSlot?:number;
   bathElapsed?:number;
 }
-export interface CharacterActionPlan {clip:string;sample:number;fixture:boolean;heldSlot?:number}
+export interface CharacterActionPlan {clip:string;sample:number;fixture:boolean;heldSlot?:number;poolPlacement?:PoolPlacement}
 const seatKinds:Readonly<Record<string,string>>={armchair:'armchair',reading_chair:'reading',chair:'dining',desk_chair:'office',sofa:'ottoman',long_sofa:'sofa'};
 const actions=['idle','talk','eat','read','stand_read','walk','exercise','watch_fish','sit','sleep','prepare','cook_v2','wash','seated_eat','mop','wipe_counter','wipe_table','empty_bin','toilet','bath','shower','prepare','idle'];
 const halfCycles=[1,8,16,24,24,1,8,24,24,32,10,10,10,16,1,1,1,1,12,12,12,10,1];
@@ -22,10 +24,15 @@ function poolAction(state:CharacterActionState,frameCount:(clip:string)=>number)
   if(!Number.isSafeInteger(exitTicks)||exitTicks<1)throw new Error('Invalid native pool exit duration.');
   const previous=state.prevPoolPhase??phase,previousElapsed=state.prevPoolElapsed??elapsed;
   const previousOrigin=state.prevPoolExitOrigin??origin,alpha=Math.max(0,Math.min(1,state.poolAlpha??0));
+  const slot=(phase?state.poolSlot:state.prevPoolSlot)??NO_POOL_SLOT;
   if(!phase&&!previous)return null;
   const lerp=(from:number,to:number)=>from+(to-from)*alpha;
   const entry=(time:number)=>({clip:'pool_enter',sample:Math.max(0,Math.min(20,time))*(frameCount('pool_enter')-1)/20,fixture:true});
-  const paddle=(time:number)=>({clip:'pool_paddle',sample:state.reducedMotion?0:((time%12)+12)%12*frameCount('pool_paddle')/12,fixture:true});
+  const paddle=(time:number,amount=0):CharacterActionPlan=>{
+    const plan={clip:'pool_paddle',sample:state.reducedMotion?0:((time%12)+12)%12*frameCount('pool_paddle')/12,fixture:true};
+    const placement=slot===NO_POOL_SLOT?undefined:poolSwimPlacement(state.fixtureModel,slot,amount);
+    return placement?{...plan,poolPlacement:placement}:plan;
+  };
   const exit=(time:number,from:number)=>{
     const clip=`pool_exit_${state.reducedMotion?0:from%12}`;
     return {clip,sample:Math.max(0,Math.min(exitTicks,time))*(frameCount(clip)-1)/exitTicks,fixture:true};
@@ -39,10 +46,30 @@ function poolAction(state:CharacterActionState,frameCount:(clip:string)=>number)
   if(phase===1||phase===4)return entry(lerp(previous===1||previous===4?previousElapsed:elapsed,elapsed));
   if(phase===2){
     if(previous===1&&alpha<1)return entry(lerp(previousElapsed,20));
-    return paddle(lerp(previous===2?previousElapsed:elapsed,elapsed));
+    const time=lerp(previous===2?previousElapsed:elapsed,elapsed);
+    return paddle(time,time/POOL_DEPARTURE_TICKS);
+  }
+  if(phase===6||phase===7){
+    const previousStroke=previous===2?previousElapsed:previousOrigin+previousElapsed;
+    const stroke=origin+elapsed;
+    // Long waits and the transition to the return both wrap the native stroke clock.
+    const nextStroke=previous===6?previousStroke+((stroke-previousStroke)%12+12)%12:stroke;
+    const time=lerp(previous===2||previous===6||previous===7?previousStroke:stroke,nextStroke);
+    let amount=time/POOL_DEPARTURE_TICKS;
+    if(phase===7){
+      const progress=1-elapsed/POOL_RETURN_TICKS;
+      const before=previous===7?1-previousElapsed/POOL_RETURN_TICKS:
+        previous===6?Math.min(1,previousStroke/POOL_DEPARTURE_TICKS):progress;
+      amount=lerp(before,progress);
+    }
+    return paddle(time,amount);
   }
   if(phase===3){
     if(previous===1&&alpha<1)return entry(lerp(previousElapsed,20));
+    if(previous===7&&alpha<1){
+      const returning=lerp(previousElapsed,POOL_RETURN_TICKS);
+      return paddle(previousOrigin+returning,1-returning/POOL_RETURN_TICKS);
+    }
     if(previous===2){
       // A paused cancellation changes the phase at the current endpoint without moving it.
       const distance=origin-previousElapsed+elapsed,travel=alpha*distance;
@@ -62,7 +89,8 @@ export function characterActionPlan(state:CharacterActionState,frameCount:(clip:
   if(state.action===9&&state.fixtureModel){
     if(!['bed','double_bed'].includes(state.fixtureModel))throw new Error('No configured sleeping fixture: '+state.fixtureModel);
     clip=state.fixtureModel==='bed'?'bunk_sleep':'bed_sleep';fixture=true;
-  }else if(state.wholeSeat&&state.activity===15){clip='sofa_recline';fixture=true;}
+  }else if(state.action===8&&state.fixtureModel==='pool_lounger'){clip='lounger_recline';fixture=true;}
+  else if(state.wholeSeat&&state.activity===15){clip='sofa_recline';fixture=true;}
   else if(state.readingStage===6||state.readingStage===7){
     if(!Number.isInteger(state.shelfSlot)||state.shelfSlot<0||state.shelfSlot>=24)throw new Error('Invalid physical book slot.');
     clip=(state.readingStage===6?'fetch_':'shelve_')+state.shelfSlot;fixture=true;heldSlot=state.shelfSlot;

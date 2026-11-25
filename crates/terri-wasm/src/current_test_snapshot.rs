@@ -215,24 +215,24 @@ pub(crate) trait CurrentSnapshotViews {
 }
 impl CurrentSnapshotViews for Sim {
     fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v31())
+        CurrentV17View(self.save_snapshot_v32())
     }
     fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v31(snapshot.0)
+        self.load_snapshot_v32(snapshot.0)
     }
     fn current_v5_view(&self) -> CurrentV5View {
-        CurrentV5View(self.save_snapshot_v31())
+        CurrentV5View(self.save_snapshot_v32())
     }
     fn current_v6_view(&self) -> CurrentV6View {
-        CurrentV6View(self.save_snapshot_v31())
+        CurrentV6View(self.save_snapshot_v32())
     }
     fn load_current_v6_view(
         &mut self,
         snapshot: CurrentV6View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v31(snapshot.0)
+        self.load_snapshot_v32(snapshot.0)
     }
 }

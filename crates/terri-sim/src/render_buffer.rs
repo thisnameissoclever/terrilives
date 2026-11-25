@@ -113,12 +113,16 @@ pub struct RenderBuffer {
     pub visual_actions: Vec<u32>,
     /// Derived timed-chore phase in thousandths; zero for inactive rows.
     pub chore_progress: Vec<u32>,
-    /// Native pool phase: 0 inactive/approach, 1 entry, 2 paddle, 3 exit, 4 reversed entry.
+    /// Native pool phase: 0 approach/inactive, 1 entry, 2 swim, 3 exit,
+    /// 4 reversed entry, 6 waiting to exit, 7 swimming back to the ladder.
     pub pool_phases: Vec<u32>,
+    /// Reserved water position, or u32::MAX for inactive and mono outings.
+    pub pool_slots: Vec<u32>,
     pub pool_elapsed: Vec<u32>,
     pub pool_exit_origins: Vec<u32>,
     /// Previous native pool projection, advanced with the position interpolation pair.
     pub prev_pool_phases: Vec<u32>,
+    pub prev_pool_slots: Vec<u32>,
     pub prev_pool_elapsed: Vec<u32>,
     pub prev_pool_exit_origins: Vec<u32>,
     pub prev_pool_targets: Vec<u32>,

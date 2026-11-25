@@ -31,6 +31,7 @@ export interface CharacterLoadCandidate {
   loadBytes(bytes:Uint8Array):boolean;
   characterAppearances():ContactAppearance[];
   poolContactRequired?():boolean;
+  prepareSceneAssets?():Promise<void>|undefined;
   flushCommands():void;
   free():void;
 }
@@ -48,9 +49,13 @@ export async function loadPreparedCharacterState(bytes:Uint8Array,live:{loadByte
     if(signal?.aborted)throw abortedContact();
     if(!candidate.loadBytes(snapshot))return false;
     const current=candidate.characterAppearances(),currentMode=contactMode(candidate);
+    const settles=live.settlesQueuedOnLoad?.()??false;
+    const currentSceneAssets=settles?undefined:candidate.prepareSceneAssets?.();
+    void currentSceneAssets?.catch(()=>{});
     candidate.flushCommands();
     const future=candidate.characterAppearances(),futureMode=contactMode(candidate);
-    const settles=live.settlesQueuedOnLoad?.()??false;
+    const sceneAssets=Promise.all([currentSceneAssets,candidate.prepareSceneAssets?.()]);
+    void sceneAssets.catch(()=>{});
     if(futureMode==='pool-required'||(!settles&&currentMode==='pool-required'))onPoolPreparation?.();
     const stage=settles?roster.stage(future,undefined,{current:futureMode})
       :roster.stage(current,future,{current:currentMode,afterCommands:futureMode});
@@ -60,7 +65,7 @@ export async function loadPreparedCharacterState(bytes:Uint8Array,live:{loadByte
       const cancel=()=>{stage.release();reject(abortedContact());};signal.addEventListener('abort',cancel,{once:true});removeAbort=()=>signal.removeEventListener('abort',cancel);
       if(signal.aborted)cancel();
     });
-    await Promise.race([stage.ready,aborted]);
+    await Promise.race([Promise.all([stage.ready,sceneAssets]),aborted]);
     if(signal?.aborted||settles!==(live.settlesQueuedOnLoad?.()??false))throw abortedContact();
     return stage.commit(()=>live.loadBytes(snapshot));
   }finally{removeAbort();release();candidate.free();}

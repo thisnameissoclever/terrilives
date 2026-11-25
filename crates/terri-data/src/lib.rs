@@ -22,6 +22,7 @@ mod relationship_tuning;
 pub use need_tuning::NeedInteractionTuning;
 pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
+pub mod swimming;
 
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;

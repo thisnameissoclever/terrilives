@@ -669,6 +669,7 @@ fn end_obstructed_work(world: &mut World, actor: Entity, reason: &str) {
         .entity_mut(actor)
         .remove::<Path>()
         .remove::<Target>()
+        .remove::<crate::pool::PoolEpisode>()
         .remove::<terri_core::Eating>()
         .remove::<terri_core::StepWork>();
 }

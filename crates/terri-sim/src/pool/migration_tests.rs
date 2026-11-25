@@ -61,6 +61,7 @@ fn fixture(
         },
         interrupted,
         approach: end,
+        place: None,
     };
     sim.world_mut().entity_mut(actor).insert((
         Target {

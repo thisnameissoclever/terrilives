@@ -71,6 +71,139 @@ fn order(sim: &mut Sim, actor: Entity, object: Entity) {
         });
     sim.flush_commands();
 }
+
+#[test]
+fn current_pool_models_admit_their_swimmer_capacity_through_ordinary_orders() {
+    for (model, capacity) in [("pool_above_ground_3x4", 2), ("pool_in_ground_5x7", 4)] {
+        let mut sim = Sim::new_with_lot(18, 18);
+        let pack = terri_data::pack();
+        let definition = pack.find(model).unwrap();
+        let data = pack.object(definition);
+        let object = sim.spawn_object(Position { x: 6., y: 6. }, definition);
+        for y in 6..6 + data.footprint.depth as usize {
+            for x in 6..6 + data.footprint.width as usize {
+                sim.world_mut()
+                    .resource_mut::<TileGrid>()
+                    .set_blocked(x, y, true);
+            }
+        }
+        let (x, y) = pool::approach(data, (6, 6), data.base_facing);
+        let swimmers: Vec<_> = (0..=capacity)
+            .map(|index| {
+                let actor = sim.spawn_agent(
+                    Position {
+                        x: x as f32 - 1.,
+                        y: y as f32 - 2. + index as f32,
+                    },
+                    50.,
+                );
+                sim.world_mut().entity_mut(actor).insert(Needs::all_at(50.));
+                order(&mut sim, actor, object);
+                actor
+            })
+            .collect();
+        let mut most_paddling = 0;
+        for _ in 0..300 {
+            sim.tick();
+            let occupies_pool = |actor: &Entity| {
+                sim.world()
+                    .get::<pool::PoolEpisode>(*actor)
+                    .filter(|episode| episode.pool == object)
+            };
+            let occupants = swimmers.iter().filter_map(occupies_pool).count();
+            assert!(occupants <= capacity, "{model} exceeded its capacity");
+            assert!(
+                swimmers
+                    .iter()
+                    .filter_map(occupies_pool)
+                    .filter(|episode| episode.uses_ladder())
+                    .count()
+                    <= 1,
+                "{model} let two Sims use the ladder together"
+            );
+            let slots: std::collections::BTreeSet<_> = swimmers
+                .iter()
+                .filter_map(occupies_pool)
+                .filter_map(pool::PoolEpisode::slot)
+                .collect();
+            assert_eq!(
+                slots.len(),
+                occupants,
+                "{model} handed out the same place twice"
+            );
+            most_paddling = most_paddling.max(
+                swimmers
+                    .iter()
+                    .filter_map(occupies_pool)
+                    .filter(|episode| episode.phase == 2)
+                    .count(),
+            );
+            if most_paddling == capacity {
+                break;
+            }
+        }
+        assert_eq!(
+            most_paddling, capacity,
+            "{model} never filled with paddling Sims"
+        );
+    }
+}
+
+#[test]
+fn detouring_a_shared_pool_arrival_releases_its_ladder_claim_only() {
+    let mut sim = Sim::new_with_lot(18, 18);
+    let pack = terri_data::pack();
+    let definition = pack.find("pool_above_ground_3x4").unwrap();
+    let model = pack.object(definition);
+    let object = sim.spawn_object(Position { x: 6., y: 6. }, definition);
+    let approach = pool::approach(model, (6, 6), model.base_facing);
+    let earlier = (approach.0 - 1, approach.1);
+    let actor = sim.spawn_agent(
+        Position {
+            x: earlier.0 as f32,
+            y: earlier.1 as f32,
+        },
+        50.,
+    );
+    let target = Target {
+        object,
+        interaction: 0,
+    };
+    sim.world_mut().entity_mut(object).insert(Reserved);
+    sim.world_mut().entity_mut(actor).insert((
+        target,
+        terri_core::Path {
+            steps: vec![approach],
+            cursor: 0,
+        },
+    ));
+    pool::prepare(sim.world_mut());
+    assert!(sim
+        .world()
+        .get::<pool::PoolEpisode>(actor)
+        .unwrap()
+        .uses_ladder());
+
+    sim.world_mut().entity_mut(actor).insert(terri_core::Path {
+        steps: vec![earlier, approach],
+        cursor: 0,
+    });
+    pool::prepare(sim.world_mut());
+    assert!(sim.world().get::<pool::PoolEpisode>(actor).is_none());
+    assert_eq!(sim.world().get::<Target>(actor), Some(&target));
+    assert!(sim.world().get::<Reserved>(object).is_some());
+
+    sim.world_mut()
+        .get_mut::<terri_core::Path>(actor)
+        .unwrap()
+        .cursor = 1;
+    pool::prepare(sim.world_mut());
+    assert!(sim
+        .world()
+        .get::<pool::PoolEpisode>(actor)
+        .unwrap()
+        .uses_ladder());
+}
 fn entered(sim: &mut Sim, actor: Entity) {
     for _ in 0..100 {
         sim.tick();

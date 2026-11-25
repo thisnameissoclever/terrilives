@@ -62,6 +62,166 @@ fn bytes(snapshot: &CurrentV5View) -> Vec<u8> {
 }
 
 #[test]
+fn pool_save_v32_keeps_a_published_v31_single_swimmer_loadable() {
+    let mut handle = exiting_pool();
+    let current = handle.save_bytes();
+    assert_eq!(&current[8..10], &32u16.to_le_bytes());
+
+    let mut older = current.clone();
+    older[8..10].copy_from_slice(&31u16.to_le_bytes());
+    assert!(handle.load_bytes(&older));
+    assert_eq!(handle.save_bytes(), current);
+}
+
+#[test]
+fn shared_pool_save_keeps_both_slots_and_refuses_impossible_claims() {
+    let mut handle = SimHandle::new(15, 15);
+    let definition = handle
+        .sim
+        .world()
+        .resource::<Content>()
+        .0
+        .find("pool_above_ground_3x4")
+        .unwrap();
+    let pool = handle
+        .sim
+        .spawn_object(Position { x: 6., y: 6. }, definition);
+    for y in 6..9 {
+        for x in 6..10 {
+            handle
+                .sim
+                .world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+    }
+    for y in [7., 8.] {
+        let actor = handle.sim.spawn_agent(Position { x: 4., y }, 50.);
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(actor)
+            .insert(Needs::all_at(50.));
+        command(
+            &mut handle,
+            SimCommand::UseObjectFirst {
+                agent: actor.index_u32(),
+                object: pool.index_u32(),
+                interaction: 0,
+            },
+        );
+    }
+    for _ in 0..150 {
+        handle.tick();
+        let snapshot = handle.sim.save_snapshot_v32();
+        if snapshot.pools.len() == 2 && snapshot.pools.iter().all(|e| e.phase % 8 == 2) {
+            break;
+        }
+    }
+
+    let baseline = handle.sim.current_v5_view();
+    assert_eq!(baseline.0.pools.len(), 2);
+    let mut phases: Vec<_> = baseline.0.pools.iter().map(|row| row.phase).collect();
+    phases.sort_unstable();
+    assert_eq!(phases, [10, 18]);
+    assert!(handle.sim.try_save_snapshot_v31().is_err());
+    assert!(handle.sim.try_save_snapshot_v30().is_err());
+    roundtrip_pool(&mut handle, "two active Lodge swimmers");
+
+    let baseline = handle.sim.current_v5_view();
+    let mut older = handle.save_bytes();
+    older[8..10].copy_from_slice(&31u16.to_le_bytes());
+    assert!(!handle.load_bytes(&older));
+    let mut duplicate = baseline.clone();
+    duplicate.0.pools[1].phase = duplicate.0.pools[0].phase;
+    assert!(!handle.load_bytes(&bytes(&duplicate)));
+    let mut excess = baseline.clone();
+    excess.0.pools[1].phase = 26;
+    assert!(!handle.load_bytes(&bytes(&excess)));
+
+    let mut ladder_overlap = baseline.clone();
+    for row in &mut ladder_overlap.0.pools {
+        row.phase = row.phase / 8 * 8 + 7;
+        row.elapsed = 0;
+        row.exit_origin = 0;
+    }
+    let actors: Vec<_> = ladder_overlap.0.pools.iter().map(|row| row.actor).collect();
+    for actor in &mut ladder_overlap.world.entities {
+        if actors.contains(&actor.index) {
+            actor.eating.as_mut().unwrap().remaining_ticks = 48;
+        }
+    }
+    assert!(!handle.load_bytes(&bytes(&ladder_overlap)));
+    assert_eq!(handle.sim.current_v5_view(), baseline);
+}
+
+#[test]
+fn shared_pool_save_rejects_an_early_or_exhausted_ladder_claim() {
+    let mut handle = SimHandle::new(12, 12);
+    assert!(handle.spawn_object(4., 4., "pool_above_ground_3x4"));
+    for y in 4..7 {
+        for x in 4..8 {
+            handle
+                .sim
+                .world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+    }
+    handle.spawn_agent(2., 5., 70.);
+    command(
+        &mut handle,
+        SimCommand::UseObjectFirst {
+            agent: 1,
+            object: 0,
+            interaction: 0,
+        },
+    );
+    reach(&mut handle, 0, 0);
+
+    let baseline = handle.save_bytes();
+    let mut saved = handle.sim.current_v5_view();
+    assert_eq!(saved.0.pools[0].phase, 8);
+    assert_eq!(saved.0.pools[0].approach, (3, 6));
+    let actor = &mut saved.world.entities[1];
+    let position = actor.position.as_mut().unwrap();
+    position.x = 3.;
+    position.y = 5.;
+    let path = actor.path.as_mut().unwrap();
+    path.steps = vec![(3, 5), (3, 6)];
+    path.cursor = 1;
+
+    let mut control = SimHandle::new(12, 12);
+    assert!(control.load_bytes(&bytes(&saved)), "final ladder step");
+    let mut arrived = saved.clone();
+    let actor = &mut arrived.world.entities[1];
+    actor.position.as_mut().unwrap().y = 6.;
+    actor.path.as_mut().unwrap().cursor = 2;
+    assert!(
+        control.load_bytes(&bytes(&arrived)),
+        "exhausted at the ladder"
+    );
+
+    for (cursor, reason) in [
+        (0, "early ladder claim"),
+        (2, "exhausted away from the ladder"),
+    ] {
+        saved.world.entities[1].path.as_mut().unwrap().cursor = cursor;
+        assert!(!handle.load_bytes(&bytes(&saved)), "{reason}");
+        assert_eq!(handle.save_bytes(), baseline, "{reason}");
+    }
+
+    let path = saved.world.entities[1].path.as_mut().unwrap();
+    path.steps = vec![(3, 6), (3, 5), (3, 6)];
+    path.cursor = 0;
+    assert!(
+        !handle.load_bytes(&bytes(&saved)),
+        "loop before the final step"
+    );
+    assert_eq!(handle.save_bytes(), baseline);
+}
+
+#[test]
 fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
     let mut handle = exiting_pool();
     let actor = handle.sim.save_snapshot_v30().pools[0].actor;
@@ -525,7 +685,7 @@ fn reach(handle: &mut SimHandle, phase: u8, elapsed: u32) {
             .save_snapshot_v30()
             .pools
             .iter()
-            .any(|e| e.actor == 1 && e.phase == phase && e.elapsed == elapsed)
+            .any(|e| e.actor == 1 && e.phase % 8 == phase && e.elapsed == elapsed)
         {
             return;
         }

@@ -70,6 +70,7 @@ export class CharacterScenePlan {
     const soundActions=source.soundActions?.(),soundSources=source.soundSources?.();
     const poolPhases=source.poolPhases?.(),poolElapsed=source.poolElapsed?.(),poolOrigins=source.poolExitOrigins?.(),poolExitTicks=source.poolExitTicks?.();
     const previousPoolPhases=source.prevPoolPhases?.(),previousPoolElapsed=source.prevPoolElapsed?.(),previousPoolOrigins=source.prevPoolExitOrigins?.(),previousPoolTargets=source.prevPoolTargets?.();
+    const poolSlots=source.poolSlots?.(),previousPoolSlots=source.prevPoolSlots?.();
     const bathToys=source.bathToys?.(),bathElapsed=source.bathElapsed?.(),previousBathToys=source.prevBathToys?.(),previousBathElapsed=source.prevBathElapsed?.(),previousBathTargets=source.prevBathTargets?.();
     const shelfOffsets=source.shelfBookOffsets?.(),shelfCounts=source.shelfBookCounts?.(),shelfMasks=source.shelfBookMasks?.();
     const drawnFixtures=new Set<number>();
@@ -93,6 +94,7 @@ export class CharacterScenePlan {
       const action=characterActionPlan({action:shower?20:actions[row],activity:activities[row],entity:ids[row],facing,x,y,tick:tick+alpha,reducedMotion,
         fixtureModel:model?.id??null,wholeSeat:whole?.[row]===1,readingStage:stages?.[row]??0,carriedBook:books!==undefined&&books[row]!==0xffffffff,
         poolPhase:poolPhases?.[row],poolElapsed:poolElapsed?.[row],poolExitOrigin:poolOrigins?.[row],poolExitTicks,
+        poolSlot:poolSlots?.[row],prevPoolSlot:previousPoolSlots?.[row],
         prevPoolPhase:previousPoolTargets?.[row]===poolTarget?previousPoolPhases?.[row]:0,
         prevPoolElapsed:previousPoolElapsed?.[row],prevPoolExitOrigin:previousPoolOrigins?.[row],poolAlpha:alpha,
         bathElapsed:(bathToys?.[row]??0)>0?(()=>{
@@ -106,7 +108,7 @@ export class CharacterScenePlan {
       // Keep contacting feet on the same eight source states as the published pedals.
       if(action.clip==='exercise')action.sample=Math.floor(action.sample);
       if(action.fixture&&(target<0||!model))throw new Error('Configured activity has no physical fixture: '+action.clip);
-      const fixture=action.fixture?target:-1;let offset:Vec3=[0,0,0];
+      const fixture=action.fixture?target:-1;let offset:Vec3=action.poolPlacement?.offset??[0,0,0];
       if(action.clip==='bed_sleep'){
         const place=sleepingPlaces?.[row];if(place!==0&&place!==1)throw new Error('Double-bed sleeper has no valid place.');offset=[place===1?-.77:0,0,0];
       }else if(action.clip.startsWith('seat_sofa_')){

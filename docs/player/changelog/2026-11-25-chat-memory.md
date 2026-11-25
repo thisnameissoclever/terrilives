@@ -10,6 +10,12 @@ Build offers two larger pools. Housemates now learn which topics each person enj
 - Backyard Lodge is a 3×4 above-ground pool with wood sides and exterior stairs.
 - Garden Basin is a 5×7 in-ground pool with a ladder inside the short end. Pools already placed in saved games keep their original footprints.
 
+## Improved
+
+- Backyard Lodge fits two swimmers, and Garden Basin fits four. Swimmers take turns on the ladder.
+- Housemates change into swimwear and recline on a Sunstrip lounger with their legs extended.
+
 ## Fixed
 
 - Buying land while a housemate is swimming keeps their swim in progress.
+- A housemate can reach the Sunstrip lounger from either long side. Sit reports the lounger as unreachable when both sides are blocked.
