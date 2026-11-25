@@ -14087,3 +14087,8 @@ Advance the next sample into the same loop interval first. Check both endpoints 
 An empty lounger left a housemate waiting for someone to finish using it. The planner found a route to a short end while both long sides were blocked, then treated the absence of a usable seat approach as an occupancy problem.
 
 Check reachability against the contacts for the requested action before checking ownership. Give an unreachable directed order a route failure and exclude the unreachable action from autonomous wait choices. Verify a blocked seat with a free perimeter tile, a usable long side in each facing, and a real wait that ends when the occupant leaves.
+## [L-object-menu-geometry-invalidation] Reposition a menu when its geometry changes
+
+Opening a bookcase menu at 3× speed dropped a local Chrome run from 60 to 13 to 15 frames per second. The simulation clock reran the full radial layout even when the camera and object stood still. Each pass searched 112 times for space for a collapsed description.
+
+Use the position of the target and the sizes of the menu and nearby controls to decide when placement is stale. Keep optional text in the measured layout only while it is visible. Verify the same running lot with the menu closed, open, and expanded. Run the comparison at 3× speed and check that a stationary menu does not write new positions on simulation ticks.

@@ -1,6 +1,6 @@
-# Larger pools and conversation memory
+# Larger pools, conversation memory, and object menus
 
-Build offers two larger pools. Housemates now learn which topics each person enjoys and steer their chats accordingly.
+Build offers two larger pools. Housemates learn which topics each person enjoys and steer their chats accordingly. Object and person actions open in a list beside the target.
 
 ## New
 
@@ -14,8 +14,11 @@ Build offers two larger pools. Housemates now learn which topics each person enj
 
 - Backyard Lodge fits two swimmers, and Garden Basin fits four. Swimmers take turns on the ladder.
 - Housemates change into swimwear and recline on a Sunstrip lounger with their legs extended.
+- Right-click or long-press an object or person to open a compact list beside it. Scroll the menu on smaller screens to reach every action.
+- Bookcase actions show which book you will buy or sell and what it costs or pays.
 
 ## Fixed
 
 - Buying land while a housemate is swimming keeps their swim in progress.
 - A housemate can reach the Sunstrip lounger from either long side. Sit reports the lounger as unreachable when both sides are blocked.
+- The game keeps running smoothly with a furniture menu open, including at 3× speed.

@@ -80,12 +80,6 @@ function contrast(a, b) {
     } else if (name === 'Creator Cancel') {
       const next = await page.locator('[data-undo]').isEnabled() ? '[data-undo]' : '[data-reset]';
       await page.locator(next).focus(); await page.keyboard.press('Shift+Tab');
-    } else if (name === 'Real radial Close') {
-      await page.locator('#object-menu .menu-entry:not(:disabled)').first().focus(); await page.keyboard.press('Shift+Tab');
-    } else if (/radial (More actions|Back)$/.test(name)) {
-      // Explicit menu DOM contract: ordinary entries precede Back, then More actions.
-      await page.locator('#object-menu .menu-entry[data-menu-index]:not(:disabled)').last().focus();
-      await page.keyboard.press('Tab');
     } else {
       assert(routes[name], name + ' has an explicit keyboard route');
       const [from, key] = routes[name]; await page.locator(from).focus(); await page.keyboard.press(key);
@@ -225,44 +219,30 @@ function contrast(a, b) {
     await capture('new-game-dialog'); await page.locator('#new-game-dialog button[value="cancel"]').click();
     if (await page.locator('#options-close').isVisible()) await page.locator('#options-close').click();
     await page.setViewportSize({ width: 320, height: 568 });
-    let radialFound = false, paginationFound = false;
-    const radialTargets = [];
+    let menuFound = false;
+    const objectTargets = [];
     for (let index = 0; index < 24; index++) {
       await page.locator('#stage').focus();
       for (let step = 0; step <= index; step++) await page.keyboard.press('ArrowRight');
-      radialTargets.push(await page.locator('#keyboard-target').textContent());
+      objectTargets.push(await page.locator('#keyboard-target').textContent());
       await page.keyboard.press('Enter'); await settle();
       const menu = page.locator('#object-menu');
-      if (await menu.locator('button').first().isVisible()) {
-        if (!radialFound) { await states(menu.locator('.radial-close'), 'negative', 'Real radial Close'); await capture('radial-menu'); radialFound = true; }
-        const more = menu.getByRole('button', { name: 'More actions', exact: true });
-        if (await more.isVisible()) {
-          await states(more, 'affirmative', 'Real radial More actions'); await capture('radial-more'); await more.click();
-          await states(menu.getByRole('button', { name: 'Back', exact: true }), 'negative', 'Real radial Back');
-          await capture('radial-back'); paginationFound = true; await page.keyboard.press('Escape'); break;
-        }
-        await page.keyboard.press('Escape');
-      }
+      const close = menu.getByRole('button', { name: 'Close menu' });
+      if (!await close.isVisible()) continue;
+      assert.equal((await appearance(close)).intent, 'negative', 'Object menu Close intent');
+      await close.hover();
+      assert.equal((await appearance(close)).background, palettes.negative.emphasized, 'Object menu Close hover');
+      const first = menu.locator('.menu-entry:not(:disabled)').first();
+      await first.focus(); await page.keyboard.press('Shift+Tab');
+      assert((await appearance(close)).focusVisible, 'Object menu Close keyboard focus');
+      await capture('object-menu-close');
+      await page.keyboard.press('Escape');
+      menuFound = true;
+      break;
     }
-    report.checks.push({ name: 'Real radial search', targets: radialTargets, paginationFound });
-    assert(radialFound, 'Real radial menu reached');
-    if (!paginationFound) report.limits.push('The bounded real object cycle did not require More actions/Back; component fixture covers pagination below.');
+    report.checks.push({ name: 'Real object menu search', targets: objectTargets });
+    assert(menuFound, 'Real object menu reached');
     await page.setViewportSize({ width: 1440, height: 900 });
-    // Exercise exported components with controlled inputs only where live timing/data cannot guarantee a state.
-    await page.evaluate(async () => {
-      const { createMenuSurface, NOTHING } = await import('/src/ui/object-menu.ts');
-      const root = document.querySelector('#object-menu');
-      const surface = createMenuSurface(document, root);
-      surface.show({ title: 'Controlled pagination fixture', entries: [
-        ...Array.from({ length: 14 }, (_, i) => ({ label: `Ordinary action ${i + 1}`, action: { kind: 'use', object: 1, interaction: i } })), NOTHING,
-      ] }, 720, 450, () => {});
-      window.__actionColorFixture = { surface, root };
-    });
-    await states(page.locator('#object-menu').getByRole('button', { name: 'More actions', exact: true }), 'affirmative', 'Component radial More actions', true);
-    await page.locator('#object-menu').getByRole('button', { name: 'More actions', exact: true }).click();
-    await states(page.locator('#object-menu').getByRole('button', { name: 'Back', exact: true }), 'negative', 'Component radial Back', true);
-    await capture('component-radial-back');
-    await page.evaluate(() => { window.__actionColorFixture.surface.hide(); delete window.__actionColorFixture; });
     await page.evaluate(async () => {
       const { BookCommerce } = await import('/src/ui/book-commerce.ts');
       const { BookResults } = await import('/src/books/results.ts');

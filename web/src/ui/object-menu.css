@@ -1,0 +1,169 @@
+#object-menu {
+  --menu-surface: #202229;
+  --menu-edge: #687384;
+  --menu-rule: #3c414e;
+  position: fixed;
+  z-index: 10;
+  width: min(242px, calc(100vw - 16px));
+  color: #f2f3f7;
+  text-align: left;
+}
+
+#object-menu[hidden], #object-menu [hidden] { display: none; }
+body:has(#object-menu:not([hidden])) #keyboard-target { display: none; }
+
+.object-menu-panel {
+  box-sizing: border-box;
+  width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: #8290a2 #303541;
+  scrollbar-gutter: stable;
+  background: var(--menu-surface);
+  border: 1px solid var(--menu-edge);
+  border-radius: 9px;
+}
+
+.object-menu-header {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--menu-rule);
+}
+
+#object-menu .object-identity { flex: 1; min-width: 0; padding: 0; }
+
+#object-menu .object-identity summary {
+  position: relative;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 8px 34px 8px 11px;
+}
+
+#object-menu .object-description-arrow {
+  position: absolute;
+  top: calc(50% - 10px);
+  right: 6px;
+  color: #a0d7eb;
+  transform: rotate(90deg);
+}
+
+#object-menu .object-identity[open] .object-description-arrow { transform: rotate(-90deg); }
+#object-menu .object-model { color: #bac2d0; }
+
+.object-menu-title {
+  flex: 1;
+  min-width: 0;
+  padding: 11px;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+#object-menu .object-menu-close {
+  flex: 0 0 44px;
+  min-height: 44px;
+  align-self: stretch;
+  border: 0;
+  border-left: 1px solid var(--menu-rule);
+  color: #d7dce5;
+  background: transparent;
+  font: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+#object-menu .object-menu-title:empty ~ .object-menu-close { border-left: 0; }
+
+.object-menu-description {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--menu-rule);
+  background: #262a32;
+}
+
+#object-menu .object-menu-description .object-description {
+  margin: 0;
+  max-width: none;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.object-menu-actions { padding: 3px; }
+.object-menu-requirement {
+  margin: 0;
+  padding: 4px 8px 8px;
+  color: #bac2d0;
+  font-size: 12px;
+}
+
+#object-menu .menu-entry {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  padding: 7px 8px;
+  font: 600 13px/1.3 system-ui, sans-serif;
+  cursor: pointer;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+#object-menu .menu-entry[data-divider],
+#object-menu .object-menu-requirement + .menu-entry { border-top: 1px solid var(--menu-rule); }
+#object-menu :is(.menu-entry, .object-menu-close):is(:hover, :active):not(:disabled),
+#object-menu summary:hover { background: var(--action-hover-background, #353c48); }
+#object-menu :is(button, summary):focus-visible {
+  outline: 2px solid #a0d7eb;
+  outline-offset: -3px;
+}
+#object-menu .menu-entry:disabled { cursor: default; color: #9da6b6; }
+#object-menu .menu-secondary {
+  display: block;
+  margin-top: 2px;
+  color: #bac2d0;
+  font-weight: 400;
+  font-size: 12px;
+}
+#object-menu .action-price {
+  flex-shrink: 0;
+  color: #e5d0a1;
+  font-weight: 650;
+  font-size: 13px;
+}
+#object-menu [data-action-intent='destructive'] .action-price { color: #b4e0bf; }
+
+.object-menu-tether {
+  position: absolute;
+  height: 2px;
+  transform-origin: left center;
+  background: #a0d7eb;
+  outline: 1px solid #172330;
+  pointer-events: none;
+}
+
+.object-menu-tether::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #172330;
+  border-radius: 50%;
+  background: radial-gradient(circle, #233647 33%, #a0d7eb 35%);
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 600px), (any-pointer: coarse) {
+  #object-menu { width: min(224px, calc(100vw - 16px)); }
+}
+
+@media (forced-colors: active) {
+  #object-menu :is(button, summary):focus-visible { outline-color: Highlight; }
+  #object-menu .menu-entry:disabled { color: GrayText; }
+}

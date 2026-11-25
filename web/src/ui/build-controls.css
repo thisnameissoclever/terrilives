@@ -38,6 +38,9 @@ body[data-building='true'] #builder-controls { box-sizing: border-box; width: 30
 #buy-facts { overflow-wrap: anywhere; }
 [data-context-action] { flex-direction: column; }
 .action-price { display: block; font-size: 11px; color: var(--hud-muted); font-weight: normal; }
+.book-commerce { margin-top: 10px; }
+.book-commerce-actions { display: flex; gap: 6px; }
+.book-commerce-actions button { flex: 1; min-height: 44px; }
 body[data-building='true'] #build-toggle { display: none; }
 .build-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
 #builder-controls #builder-exit { flex: none; min-height: 36px; font-size: 12px; }

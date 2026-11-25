@@ -8,7 +8,9 @@
 import { setActionIntent, type ActionIntent } from './action-intent.js';
 import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 import type { PurchaseQuote, SaleQuote, QuoteResult, ReadingChoice } from '../books/commerce-codec.js';
-import { actionPage, layoutObjectActions, layoutActionRail, maximumActionSize, chooseActionPlacement, descriptionPlacement, type ActionRegion } from './object-menu-layout.js';
+import { placeObjectMenu } from './object-menu-layout.js';
+import type { ScenePoint } from './scene-feedback-layout.js';
+import type { BookCopy, BookTitle } from '../books/codec.js';
 import { formatFunds } from './game-hud.js';
 import { preventMenuSelection } from './menu-selection.js';
 
@@ -95,6 +97,10 @@ export interface MenuEntry {
  */
 export interface Menu {
   readonly object?: number;
+  readonly person?: number;
+  readonly book?: number;
+  readonly dishes?: readonly number[];
+  readonly needsPerson?: boolean;
   readonly title: string;
   readonly details?: ObjectDetails;
   readonly entries: readonly MenuEntry[];
@@ -145,6 +151,8 @@ export interface SurfaceMenuSource {
   bookPurchaseQuote?(): QuoteResult<PurchaseQuote>;
   bookPurchasePrice?(): number | null;
   bookSaleQuote?(shelf: number): QuoteResult<SaleQuote>;
+  bookCatalogue?(): readonly BookTitle[];
+  bookCopies?(): readonly BookCopy[];
   pendingBookCommands?(): number;
   funds?(): number;
   tableActions?(entity:number):Uint32Array;
@@ -161,7 +169,7 @@ export function surfaceMenuEntries(source: SurfaceMenuSource, entity: number): M
   const model = source.objectModel?.(entity);
   let menu = menuEntries(source.entityName(entity), source.interactionLabels(entity), entity, source.objectDetails?.(entity));
   if (source.dishPiles?.().some((value, i) => i % 3 === 0 && value === entity)) {
-    return { ...menu, object: entity, entries: [{ label: 'Clean up', enabled: person !== null, action: { kind: 'clean', surface: entity, dishes: null } },
+    return { ...menu, object: entity, ...(person === null ? { needsPerson: true } : {}), entries: [{ label: 'Clean up', enabled: person !== null, action: { kind: 'clean', surface: entity, dishes: null } },
       { label: 'Enter build mode', enabled: true, action: { kind: 'build', object: entity } }, ...(person === null ? [] : [NOTHING])] };
   }
   const table = source.tableActions?.(entity);
@@ -179,17 +187,23 @@ export function surfaceMenuEntries(source: SurfaceMenuSource, entity: number): M
   });
   const chores = source.choreOptions?.(entity);
   if (chores) for (let i = 0; i + 1 < chores.length; i += 2) entries.push({ ...choreEntry(chores[i], chores[i + 1]), enabled: person !== null });
+  const needsPerson = person === null && entries.length > 0;
   if (model && model.shelfCapacity > 0) {
     const buy = source.bookPurchaseQuote?.().quote ?? null;
     const sell = source.bookSaleQuote?.(entity).quote ?? null;
     const pending = (source.pendingBookCommands?.() ?? 0) > 0;
     const price = buy?.price ?? source.bookPurchasePrice?.();
-    entries.push({ label: 'Buy book', enabled: buy !== null && !pending && buy.price <= (source.funds?.() ?? Infinity), ...(price != null ? { price } : {}), action: { kind: 'buy-book', quote: buy } },
-      { label: 'Sell book', enabled: sell !== null && !pending, ...(sell ? { price: sell.price } : {}), action: { kind: 'sell-book', quote: sell } });
+    const catalogue = source.bookCatalogue?.();
+    const saleTitleId = sell && source.bookCopies?.().find(copy => copy.id === sell.copy)?.titleId;
+    entries.push({ label: 'Buy book', enabled: buy !== null && !pending && buy.price <= (source.funds?.() ?? Infinity),
+      ...(price != null ? { price } : {}), ...(buy && catalogue ? { secondary: catalogue.find(title => title.id === buy.title)?.title } : {}),
+      action: { kind: 'buy-book', quote: buy } },
+    { label: 'Sell book', enabled: sell !== null && !pending, ...(sell ? { price: sell.price } : {}),
+      ...(saleTitleId && catalogue ? { secondary: catalogue.find(title => title.id === saleTitleId)?.title } : {}), action: { kind: 'sell-book', quote: sell } });
   }
   entries.push({ label: 'Enter build mode', enabled: true, action: { kind: 'build', object: entity } });
   if (person !== null) entries.push(NOTHING);
-  return { ...menu, object: entity, entries };
+  return { ...menu, object: entity, ...(needsPerson ? { needsPerson } : {}), entries };
 }
 
   export const CHORE_LABELS=['Do dishes','Clean floor','Wipe surface','Empty bin','Wipe counter surfaces','Wipe table surfaces'] as const;
@@ -199,7 +213,8 @@ export function choreEntry(choreKind:number,target:number):MenuEntry {
 export function floorMenuEntries(kind:number,target:number):Menu{return {title:'Floor',entries:[choreEntry(kind,target),NOTHING]};}
 
 export function dishMenuEntries(surface: number, dishes: readonly number[], hasPerson = true): Menu {
-  return { title: 'Dishes', entries: [{ label: 'Do dishes', enabled: hasPerson, action: { kind: 'clean', surface, dishes } }, ...(hasPerson ? [NOTHING] : [])] };
+  return { title: 'Dishes', object: surface, dishes, ...(hasPerson ? {} : { needsPerson: true }),
+    entries: [{ label: 'Do dishes', enabled: hasPerson, action: { kind: 'clean', surface, dishes } }, ...(hasPerson ? [NOTHING] : [])] };
 }
 
 /**
@@ -218,7 +233,7 @@ export function socialMenuEntries(
     action: { kind: 'talk', target, interaction },
   }));
   entries.push(NOTHING);
-  return { title, entries };
+  return { title, person: target, entries };
 }
 
 /**
@@ -247,29 +262,6 @@ export interface MenuSurface {
     preserveState?: boolean,
   ): void;
   hide(): void;
-}
-
-export interface MenuPosition {
-  readonly x: number;
-  readonly y: number;
-}
-
-/** Keeps a laid-out menu inside the visible viewport. */
-export function clampMenuPosition(
-  clientX: number,
-  clientY: number,
-  menuWidth: number,
-  menuHeight: number,
-  viewportWidth: number,
-  viewportHeight: number,
-  margin = 8,
-): MenuPosition {
-  const maxX = Math.max(margin, viewportWidth - menuWidth - margin);
-  const maxY = Math.max(margin, viewportHeight - menuHeight - margin);
-  return {
-    x: Math.min(Math.max(margin, clientX), maxX),
-    y: Math.min(Math.max(margin, clientY), maxY),
-  };
 }
 
 /**
@@ -327,6 +319,7 @@ export class ObjectMenu {
     this.clearable = this.canClearOrders();
     this.entries = menu.entries.filter(entry => entry.action.kind !== 'cancel' || this.clearable)
       .map(entry => this.canActivate(entry.action) ? entry : { ...entry, enabled: false, secondary: undefined });
+    if (!this.entries.length) { this.close(); this.current = null; return; }
     this.showing = true;
     this.surface.show({ ...menu, entries: this.entries }, clientX, clientY, (index, additive) =>
       this.activate(index, additive),
@@ -426,273 +419,227 @@ export function queueModifierHeld(event: {
   return event.ctrlKey || event.metaKey;
 }
 
-/**
- * A [`MenuSurface`] over a real DOM element.
- *
- * Browser-only wiring with no decisions in it, in the sense
- * `buildNeedBars` is: every rule about what the menu contains and when it
- * goes away is in [`ObjectMenu`] above, where a test can reach it.
- *
- * `<button>` per row rather than `<div>`, so the rows are reachable by
- * keyboard and announced as controls without a hand-written ARIA role.
- *
- * **The rows are removed on hide, not merely hidden.** A `hidden` element's
- * buttons are out of the tab order, but leaving them in the tree means the
- * next open has to clear them anyway, and a stale row that somehow received
- * a click would name an object the player right-clicked minutes ago.
- *
- * Positioned in CLIENT pixels, which is correct only for a `position:
- * fixed` element; `index.html` styles it that way. It is made visible before
- * its final position is calculated so `offsetWidth` and `offsetHeight` are
- * real layout measurements rather than guessed menu dimensions.
- */
+/** DOM and geometry for the shared pointer, touch and keyboard menu. */
 export interface MenuSurfaceOptions {
-  anchor?(menu: Menu): { x: number; y: number } | null;
-  revision?(): string;
-  keepouts?(): readonly ActionRegion[];
+  anchor?(menu: Menu): ScenePoint | null | undefined;
+  revision?(menu: Menu): string;
+  keepouts?: readonly HTMLElement[];
   dismiss?(): void;
   closed?(): void;
-  positioned?(point: {x: number; y: number}): void;
+  positioned?(point: ScenePoint): void;
 }
 
 export function createMenuSurface(doc: Document, root: HTMLElement, options: MenuSurfaceOptions = {}): MenuSurface {
   preventMenuSelection(root);
   let returnFocus: HTMLElement | null = null;
-  let disposeIdentity: (() => void) | undefined;
   let cleanup: (() => void) | undefined;
   return {
     show(menu, clientX, clientY, onPick, preserveState = false) {
-      const previousIndex = (doc.activeElement as HTMLElement | null)?.dataset?.menuIndex;
       const wasOpen = !root.hidden;
+      const active = doc.activeElement as HTMLElement | null;
+      const hadFocus = root.contains(active);
       const previousIdentity = root.querySelector<HTMLDetailsElement>('.object-identity');
-      const identityOpen = preserveState && previousIdentity?.open;
-      const identityFocused = preserveState && doc.activeElement === previousIdentity?.querySelector('summary');
-      const descriptionFocused = preserveState && doc.activeElement === root.querySelector('.radial-description');
-      cleanup?.(); disposeIdentity?.();
-      if (!wasOpen) returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
-      root.replaceChildren(); root.classList.add('object-menu-radial');
-      root.setAttribute('aria-label', menu.title ? `${menu.title} actions` : 'Actions');
-      root.hidden = false;
-      const rail = doc.createElement('div'); rail.className = 'object-action-rail'; rail.hidden = true;
-      rail.dataset.sceneClip = 'true'; rail.setAttribute('tabindex', '0'); rail.setAttribute('role', 'group');
-      rail.setAttribute('aria-label', 'Object actions, scroll sideways');
-      const scrollHint = doc.createElement('span'); scrollHint.className = 'object-action-scroll-hint'; scrollHint.hidden = true;
-      scrollHint.textContent = 'Scroll sideways for actions'; root.append(rail, scrollHint);
-      const identity = doc.createElement('div'); identity.className = 'radial-identity';
-      const description = doc.createElement('div'); description.className = 'radial-description'; description.hidden = true;
-      description.style.position = 'fixed';
-      description.setAttribute('tabindex', '0'); description.setAttribute('role', 'region');
-      description.setAttribute('aria-label', 'Object description');
-      if (menu.details) {
-        const presentation = createObjectIdentity(doc, menu.title, menu.details, {descriptionHost: description, onToggle: () => {
-          place(); if (root.dataset.rail === 'true' && !description.hidden) description.focus();
-        }});
-        disposeIdentity = presentation.dispose; identity.append(presentation.element);
-        if (identityOpen) { (presentation.element as HTMLDetailsElement).open = true; description.hidden = false; }
-      } else if (menu.title) {
-        const name = doc.createElement('strong'); name.textContent = menu.title; identity.append(name);
+      const wasExpanded = preserveState && previousIdentity?.open;
+      const identityFocused = preserveState && active === previousIdentity?.querySelector('summary');
+      const closeFocused = preserveState && active === root.querySelector('.object-menu-close');
+      const previousIndex = active?.dataset.menuIndex;
+      const previousScroll = preserveState ? root.querySelector('.object-menu-panel')?.scrollTop ?? 0 : 0;
+      cleanup?.();
+      if (!wasOpen) returnFocus = active;
+
+      const panel = doc.createElement('div');
+      panel.className = 'object-menu-panel';
+      const content = doc.createElement('div');
+      const header = doc.createElement('div');
+      header.className = 'object-menu-header';
+      const description = doc.createElement('div');
+      description.className = 'object-menu-description';
+      description.hidden = true;
+      const identity = menu.details
+        ? createObjectIdentity(doc, menu.title, menu.details, { descriptionHost: description })
+        : undefined;
+      let summary: HTMLElement | null = null;
+      if (identity) {
+        header.append(identity.element);
+        summary = identity.element.querySelector('summary');
+        if (wasExpanded) {
+          (identity.element as HTMLDetailsElement).open = true;
+          description.hidden = false;
+        }
+      } else {
+        const title = doc.createElement('strong');
+        title.className = 'object-menu-title';
+        title.textContent = menu.title;
+        header.append(title);
       }
-      root.append(identity, description);
-      const close = doc.createElement('button'); close.type = 'button'; close.className = 'radial-close';
-      close.style.position = 'fixed';
+      const close = doc.createElement('button');
+      close.type = 'button';
+      close.className = 'object-menu-close';
+      close.textContent = '\u00d7';
+      close.setAttribute('aria-label', 'Close menu');
       setActionIntent(close, 'negative');
-      close.textContent = '\u00d7'; close.setAttribute('aria-label', 'Close menu');
-      close.addEventListener('click', () => options.dismiss?.()); root.append(close);
-      let page = 0, capacity = 6, buttons: HTMLButtonElement[] = [];
-      let revision = '', frame = 0, disposed = false;
-      let measurementKey = '', measuredEntries: {width:number;height:number}[] = [], navigation = {width:44,height:44};
-      let descriptionSize: {width: number; height: number} | undefined;
-      let railScrollbarHeight = 0;
-      const make = (label: string, activate: (event: MouseEvent) => void, entry?: MenuEntry, intent: ActionIntent = 'neutral'): HTMLButtonElement => {
-        const button = doc.createElement('button'); button.type = 'button'; button.className = 'menu-entry';
-        setActionIntent(button, entry ? menuActionIntent(entry.action) : intent);
-        button.disabled = entry?.enabled === false;
-        const text = doc.createElement('span'); text.textContent = label; button.append(text);
-        if (entry?.price !== undefined) {
-          const price = doc.createElement('small'); price.className = 'action-price'; price.textContent = `$${formatFunds(entry.price)}`;
+      close.addEventListener('click', () => options.dismiss?.());
+      header.append(close);
+      content.append(header, description);
+
+      const actions = doc.createElement('div');
+      actions.className = 'object-menu-actions';
+      const buttons = menu.entries.map((entry, index) => {
+        const button = doc.createElement('button');
+        button.type = 'button';
+        button.className = 'menu-entry';
+        button.disabled = entry.enabled === false;
+        button.dataset.menuIndex = String(index);
+        if (entry.divider) button.dataset.divider = 'true';
+        setActionIntent(button, menuActionIntent(entry.action));
+        const text = doc.createElement('span');
+        text.className = 'object-menu-action-text';
+        text.textContent = entry.label;
+        if (entry.secondary) {
+          const secondary = doc.createElement('small');
+          secondary.className = 'menu-secondary';
+          secondary.textContent = entry.secondary;
+          text.append(secondary);
+        }
+        button.append(text);
+        if (entry.price !== undefined) {
+          const price = doc.createElement('small');
+          price.className = 'action-price';
+          price.textContent = (entry.action.kind === 'sell-book' ? '+$' : '$') + formatFunds(entry.price);
           button.append(price);
         }
-        if (entry?.secondary) { const secondary = doc.createElement('small'); secondary.className = 'menu-secondary'; secondary.textContent = entry.secondary; button.append(secondary); }
-        button.addEventListener('click', event => { event.stopPropagation(); activate(event); });
-        root.append(button); return button;
-      };
-      const render = () => {
-        buttons.forEach(button => button.remove()); buttons = [];
-        const current = actionPage(menu.entries.length, capacity, page); page = current.page;
-        current.indices.forEach(index => { const entry = menu.entries[index]; const button=make(entry.label,
-          event => onPick(index, queueModifierHeld(event)), entry); button.dataset.menuIndex=String(index); buttons.push(button); });
-        const turn = (delta: number) => {
-          page += delta; render(); place();
-          buttons.find(button => !button.disabled)?.focus();
-        };
-        if (current.back) buttons.push(make('Back', () => turn(-1), undefined, 'negative'));
-        if (current.more) buttons.push(make('More actions', () => turn(1), undefined, 'affirmative'));
-      };
+        button.addEventListener('click', event => onPick(index, queueModifierHeld(event)));
+        return button;
+      });
+      const requirement = doc.createElement('p');
+      requirement.className = 'object-menu-requirement';
+      requirement.textContent = 'Select a person to use these actions.';
+      const firstIndependent = menu.entries.findIndex(entry => ['buy-book', 'sell-book', 'build'].includes(entry.action.kind));
+      buttons.forEach((button, index) => {
+        if (menu.needsPerson && index === firstIndependent) actions.append(requirement);
+        actions.append(button);
+      });
+      if (menu.needsPerson && firstIndependent < 0) actions.append(requirement);
+      content.append(actions);
+      panel.append(content);
+
+      const tether = doc.createElement('span');
+      tether.className = 'object-menu-tether';
+      tether.setAttribute('aria-hidden', 'true');
+      tether.hidden = true;
+      root.replaceChildren();
+      root.append(panel, tether);
+      root.setAttribute('aria-label', menu.title ? menu.title + ' actions' : 'Actions');
+      root.hidden = false;
+
+      const view = doc.defaultView;
+      const keepouts = options.keepouts ?? [];
+      let dirty = true;
+      let disposed = false;
+      let frame = 0;
+      let revision = options.revision?.(menu);
+      const followsTarget = menu.object !== undefined || menu.person !== undefined || menu.book !== undefined;
       const place = () => {
-        const view = doc.defaultView;
-        if (!view || root.hidden || disposed) return;
-        const focusedBefore = doc.activeElement as HTMLElement | null;
-        const anchor = menu.object !== undefined && options.anchor ? options.anchor(menu) : { x: clientX, y: clientY };
-        if (!anchor) { options.dismiss?.(); return; }
-        options.positioned?.(anchor);
-        const maximumWidth = Math.max(44,Math.min(136,view.innerWidth-16));
-        buttons.forEach(button => { button.style.maxWidth = `${maximumWidth}px`; });
-        const nextMeasurement = `${maximumWidth}:${view.innerWidth}:${view.devicePixelRatio}:${view.getComputedStyle(root).fontSize}`;
-        if (measurementKey !== nextMeasurement) {
-          measurementKey = nextMeasurement;
-          const probes = [...menu.entries.map(entry => make(entry.label, () => {}, entry)), make('More actions', () => {}, undefined, 'affirmative'), make('Back', () => {}, undefined, 'negative')];
-          probes.forEach(button => { button.style.visibility = 'hidden'; button.style.maxWidth = `${maximumWidth}px`; });
-          measuredEntries = probes.slice(0,menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
-          navigation = maximumActionSize(probes.slice(menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight})));
-          probes.forEach(button=>button.remove());
-          const railProbe = doc.createElement('div'); railProbe.className = 'object-action-rail';
-          railProbe.setAttribute('aria-hidden', 'true');
-          Object.assign(railProbe.style, {position: 'fixed', left: '0px', top: '0px', width: '100px', height: '44px',
-            overflowX: 'scroll', visibility: 'hidden', pointerEvents: 'none'});
-          root.append(railProbe);
-          railScrollbarHeight = Math.max(0, railProbe.offsetHeight - railProbe.clientHeight);
-          railProbe.remove();
-          if (menu.details) {
-            const hidden = description.hidden;
-            description.hidden = false; description.style.visibility = 'hidden';
-            description.style.width = `${Math.min(320, view.innerWidth - 16)}px`; description.style.maxHeight = '';
-            descriptionSize = {width: description.offsetWidth, height: description.offsetHeight};
-            description.hidden = hidden; description.style.visibility = '';
-          }
-        }
-        identity.style.maxHeight = ''; identity.style.overflowY = '';
-        const viewport = {width:view.innerWidth,height:view.innerHeight};
-        const identityWidth = identity.offsetWidth;
-        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? [],identityWidth,descriptionSize,railScrollbarHeight);
+        if (!view || disposed || root.hidden) return;
+        const point = options.anchor?.(menu);
+        if (point === null) { options.dismiss?.(); return; }
+        const anchor = point ?? { x: clientX, y: clientY };
+        const width = panel.offsetWidth;
+        const height = content.getBoundingClientRect().height + 2;
+        const viewport = { width: view.innerWidth, height: view.innerHeight };
+        const obstacles = keepouts.map(element => element.getBoundingClientRect())
+          .filter(rect => rect.width > 0 && rect.height > 0);
+        const placement = placeObjectMenu(anchor, { width, height }, viewport, obstacles);
         if (!placement) { options.dismiss?.(); return; }
-        let focusAfterPlace: HTMLButtonElement | null = null;
-        if (placement.capacity !== capacity) {
-          const focused=doc.activeElement as HTMLButtonElement, hadFocus=buttons.includes(focused) || preserveState && previousIndex !== undefined;
-          const index=focused?.dataset?.menuIndex ?? (preserveState ? previousIndex : undefined);
-          capacity=placement.capacity; page=0;
-          if (index !== undefined) for (let candidate=0;candidate<=menu.entries.length;candidate++) {
-            const part=actionPage(menu.entries.length,capacity,candidate);
-            if (part.indices.includes(Number(index))) {page=candidate;break;}
-            if (!part.more) break;
-          }
-          render(); buttons.forEach(button=>{button.style.maxWidth=`${maximumWidth}px`;});
-          if (hadFocus) focusAfterPlace=buttons.find(button=>!button.disabled && button.dataset.menuIndex===index) ?? buttons.find(button=>!button.disabled) ?? close;
-        }
-        if (placement.rail) {
-          const region = placement.region;
-          let layout = layoutActionRail(region, placement.railHintHeight);
-          root.dataset.compact = 'true'; root.dataset.rail = 'true'; root.dataset.sceneClip = 'false';
-          root.style.left = `${region.left}px`; root.style.top = `${region.top}px`;
-          root.style.width = `${region.right - region.left}px`; root.style.height = `${region.bottom - region.top}px`;
-          root.style.overflowY = 'visible'; root.style.pointerEvents = 'none';
-          rail.hidden = false; rail.style.left = '0px'; rail.style.top = '0px';
-          rail.style.width = `${layout.viewport.right - layout.viewport.left}px`;
-          rail.style.height = `${layout.viewport.bottom - layout.viewport.top}px`;
-          for (const element of [identity, description, ...buttons]) {
-            if (element.parentElement !== rail) rail.append(element);
-            element.style.position = 'relative'; element.style.left = ''; element.style.top = '';
-          }
-          if (rail.clientHeight < 44 && layout.hint.bottom > layout.hint.top) {
-            layout = layoutActionRail(region, 0);
-            rail.style.height = `${layout.viewport.bottom - layout.viewport.top}px`;
-          }
-          const itemHeight = rail.clientHeight;
-          if (itemHeight < 44) { options.dismiss?.(); return; }
-          rail.dataset.tight = String(itemHeight < 50);
-          identity.style.maxHeight = `${itemHeight}px`; identity.style.overflowY = 'auto';
-          buttons.forEach(button => {button.style.maxWidth = rail.style.width;});
-          description.style.width = rail.style.width; description.style.maxHeight = `${itemHeight}px`; description.style.overflowY = 'auto';
-          close.style.left = `${layout.close.x}px`; close.style.top = `${layout.close.y}px`;
-          const compactHint = layout.hint.top === layout.hint.bottom, overflow = rail.scrollWidth > rail.clientWidth;
-          scrollHint.dataset.compact = String(compactHint);
-          scrollHint.textContent = compactHint ? '›' : 'Scroll sideways for actions';
-          if (compactHint) scrollHint.setAttribute('aria-hidden', 'true'); else scrollHint.removeAttribute('aria-hidden');
-          scrollHint.style.left = compactHint ? rail.style.width : '0px';
-          scrollHint.style.top = compactHint ? `${(layout.viewport.bottom - layout.viewport.top - 14) / 2}px` : `${layout.hint.top - region.top}px`;
-          scrollHint.style.width = compactHint ? '8px' : rail.style.width; scrollHint.style.height = '14px'; scrollHint.hidden = !overflow;
-          rail.setAttribute('aria-label', overflow ? 'Object actions, scroll sideways' : 'Object actions');
-          if (focusedBefore && root.contains(focusedBefore) && doc.activeElement !== focusedBefore) focusedBefore.focus();
-          focusAfterPlace?.focus();
-          return;
-        }
-        root.dataset.rail = 'false'; rail.hidden = true; scrollHint.hidden = true;
-        if (identity.parentElement !== root) root.insertBefore(identity, close);
-        if (description.parentElement !== root) root.insertBefore(description, close);
-        buttons.forEach(button => {if (button.parentElement !== root) root.append(button);});
-        description.style.position = 'fixed'; description.style.overflowY = '';
-        identity.style.maxHeight = `${placement.identityHeight}px`; identity.style.overflowY='auto';
-        const region=placement.region, sizes=buttons.map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
-        const layout=layoutObjectActions(anchor,sizes,viewport,region.top,placement.scroll ? region.top+44 : region.bottom,identity.offsetHeight,region.left,region.right,identityWidth);
-        root.dataset.compact=String(layout.compact);
-        root.dataset.sceneClip = String(placement.scroll);
-        root.style.left=placement.scroll ? `${region.left}px` : '0px'; root.style.top=placement.scroll ? `${region.top}px` : '0px';
-        root.style.width=placement.scroll ? `${region.right-region.left}px` : '0px'; root.style.height=placement.scroll ? `${region.bottom-region.top}px` : '0px';
-        root.style.overflowY=placement.scroll ? 'auto' : ''; root.style.pointerEvents=placement.scroll ? 'auto' : 'none';
-        buttons.forEach((button,index)=>{button.style.position=placement.scroll ? 'absolute' : 'fixed';button.style.left=`${layout.positions[index].x-(placement.scroll?region.left:0)}px`;button.style.top=`${layout.positions[index].y-(placement.scroll?region.top:0)}px`;});
-        identity.style.position=placement.scroll ? 'absolute' : 'fixed';identity.style.left=`${layout.identity.x-(placement.scroll?region.left:0)}px`;identity.style.top=`${layout.identity.y-(placement.scroll?region.top:0)}px`;
-        close.style.left=`${layout.close.x}px`;close.style.top=`${layout.close.y}px`;
-        if (!description.hidden) {
-          description.style.width = `${Math.min(320, view.innerWidth - 16)}px`;
-          description.style.maxHeight = '';
-          const boxes = [...buttons, identity, close].map(element => element.getBoundingClientRect());
-          const bubble = descriptionPlacement({x: layout.identity.x + identityWidth / 2, y: layout.identity.y},
-            {width: description.offsetWidth, height: description.offsetHeight}, viewport, [...(options.keepouts?.() ?? []), ...boxes]);
-          if (bubble) {
-            description.style.width = `${bubble.width}px`; description.style.maxHeight = `${bubble.height}px`;
-            description.style.left = `${bubble.x}px`; description.style.top = `${bubble.y}px`;
-          }
-        }
-        focusAfterPlace?.focus({preventScroll:!placement.scroll});
-        if (focusedBefore && root.contains(focusedBefore) && doc.activeElement !== focusedBefore) focusedBefore.focus({preventScroll: true});
-      };
-      const toggle = () => place(); root.addEventListener('toggle', toggle, true);
-      const observer = new ResizeObserver(() => {measurementKey = ''; place();});
-      for (const id of ['hud','time-controls','build-toggle','options-toggle','build-camera','sim-dock','builder-controls']) {
-        const element=doc.getElementById(id);if(element) observer.observe(element);
-      }
-      observer.observe(identity);
-      observer.observe(description);
-      observer.observe(rail);
-      const revealFocused = (event: FocusEvent) => {
-        if (root.dataset.rail === 'true' && event.target instanceof HTMLElement && rail.contains(event.target)) {
-          event.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
+        const { left, top, height: available } = placement;
+        root.style.left = left + 'px';
+        root.style.top = top + 'px';
+        panel.style.maxHeight = available + 'px';
+        options.positioned?.(anchor);
+
+        const x = Math.max(8, Math.min(viewport.width - 8, anchor.x));
+        const y = Math.max(8, Math.min(viewport.height - 8, anchor.y));
+        const right = left + width, bottom = top + available;
+        const beside = x <= left || x >= right;
+        const edgeX = beside ? (x <= left ? left : right) : Math.max(left + 10, Math.min(right - 10, x));
+        const edgeY = beside ? Math.max(top + 10, Math.min(bottom - 10, y)) : (y < top ? top : bottom);
+        const dx = edgeX - x, dy = edgeY - y;
+        const length = Math.hypot(dx, dy);
+        const unobstructed = !obstacles.some(rect => Math.min(y, edgeY) < rect.bottom + 5 && Math.max(y, edgeY) > rect.top - 5
+          && Math.min(x, edgeX) < rect.right + 5 && Math.max(x, edgeX) > rect.left - 5);
+        const targetUnderControl = obstacles.some(rect => x >= rect.left - 6 && x <= rect.right + 6
+          && y >= rect.top - 6 && y <= rect.bottom + 6);
+        tether.hidden = (!beside && y >= top && y <= bottom) || length < 6 || targetUnderControl
+          || Math.abs(x - anchor.x) > 12 || Math.abs(y - anchor.y) > 12;
+        if (!tether.hidden) {
+          const shortLink = length <= 82 && unobstructed;
+          tether.style.left = x - left + 'px';
+          tether.style.top = y - top + 'px';
+          tether.style.width = (shortLink ? length : 0) + 'px';
+          tether.style.transform = shortLink ? 'rotate(' + Math.atan2(dy, dx) + 'rad)' : '';
         }
       };
-      root.addEventListener('focusin', revealFocused);
+      const invalidate = () => {
+        dirty = true;
+        if (!frame && !disposed && view) frame = view.requestAnimationFrame(follow);
+      };
+      const follow = () => {
+        frame = 0;
+        if (disposed || root.hidden || !view) return;
+        const next = options.revision?.(menu);
+        if (dirty || next !== revision) {
+          dirty = false;
+          revision = next;
+          place();
+        }
+        if (!disposed && followsTarget) {
+          frame = view.requestAnimationFrame(follow);
+        }
+      };
+      const observer = new ResizeObserver(invalidate);
+      observer.observe(content);
+      keepouts.forEach(element => observer.observe(element));
       const navigate = (event: KeyboardEvent) => {
-        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
-        const usable = buttons.filter(button => !button.disabled), index = usable.indexOf(doc.activeElement as HTMLButtonElement);
-        if (index < 0 || !usable.length) return;
-        event.preventDefault(); const delta = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
+        if (event.key === 'Enter' && event.repeat) { event.preventDefault(); return; }
+        if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+        const usable = buttons.filter(button => !button.disabled);
+        const index = usable.indexOf(doc.activeElement as HTMLButtonElement);
+        if (index < 0) return;
+        event.preventDefault();
+        const delta = event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 1;
         usable[(index + delta + usable.length) % usable.length].focus();
       };
       root.addEventListener('keydown', navigate);
-      const follow = () => {
-        if (disposed || root.hidden) return;
-        const next = options.revision?.() ?? '';
-        if (next !== revision) { revision = next; place(); }
-        frame = requestAnimationFrame(follow);
+      view?.addEventListener('resize', invalidate);
+      cleanup = () => {
+        disposed = true;
+        observer.disconnect();
+        if (frame) view?.cancelAnimationFrame(frame);
+        view?.removeEventListener('resize', invalidate);
+        root.removeEventListener('keydown', navigate);
+        identity?.dispose();
       };
-      frame = requestAnimationFrame(follow);
-      cleanup = () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); root.removeEventListener('toggle', toggle, true); root.removeEventListener('keydown', navigate); root.removeEventListener('focusin', revealFocused); };
-      if (preserveState && previousIndex !== undefined) {
-        for (let candidate = 0; candidate <= menu.entries.length; candidate++) {
-          const part = actionPage(menu.entries.length, capacity, candidate);
-          if (part.indices.includes(Number(previousIndex))) {page = candidate; break;}
-          if (!part.more) break;
-        }
+      dirty = false;
+      place();
+      if (!disposed) panel.scrollTop = previousScroll;
+      if (!disposed && (!preserveState || hadFocus)) {
+        const previous = (preserveState || wasOpen) && previousIndex !== undefined ? buttons[Number(previousIndex)] : undefined;
+        const preferred = closeFocused ? close : identityFocused ? summary : previous && !previous.disabled ? previous : null;
+        const compact = view && view.innerWidth <= 600;
+        (preferred ?? (compact ? summary : null) ?? buttons.find(button => !button.disabled) ?? summary ?? close)
+          .focus({ preventScroll: preserveState && !!preferred });
       }
-      render(); place();
-      if (!root.hidden) (descriptionFocused ? description : identityFocused || root.dataset.rail === 'true' && !preserveState ? identity.querySelector<HTMLElement>('summary') ?? close :
-        buttons.find(button => !button.disabled && wasOpen && button.dataset.menuIndex === previousIndex)
-        ?? buttons.find(button => !button.disabled) ?? close).focus();
+      if (!disposed && view && followsTarget) frame = view.requestAnimationFrame(follow);
     },
     hide() {
-      cleanup?.(); cleanup = undefined; disposeIdentity?.(); disposeIdentity = undefined;
+      cleanup?.();
+      cleanup = undefined;
       const restore = root.contains(doc.activeElement);
-      root.hidden = true; root.replaceChildren();
+      root.hidden = true;
+      root.replaceChildren();
       options.closed?.();
-      if (restore) returnFocus?.focus(); returnFocus = null;
+      if (restore) returnFocus?.focus({ preventScroll: true });
+      returnFocus = null;
     },
   };
 }

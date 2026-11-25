@@ -48,6 +48,8 @@ import { BuildSceneFeedback, PendingIndicator, SceneFeedback, operationFeedback 
 import { PersistenceSceneFeedback } from './ui/persistence-feedback.js';
 import { SceneLayoutObserver } from './ui/scene-feedback-layout.js';
 import { screenX, screenY } from './render/iso.js';
+import { fixtureRegistration } from './render/fixture-registration.js';
+import { surfaceDishPoint, surfaceLayout } from './render/surface-items.js';
 import type { BuildReview } from './rooms/codec.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
@@ -131,13 +133,13 @@ import { BuildContextActions, createContextSurface, ghostAnchorTop, ghostAnchorX
 import { canvasToClient } from './input.js';
 import { createCompactBuildLayout } from './ui/build-layout.js';
 import { installShortcuts } from './ui/shortcuts.js';
-import { KIND_AGENT } from './render/instances.js';
+import { ACTIVITY_AT_WORK, KIND_AGENT } from './render/instances.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
-import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
+import { failureBubbleAnchor, OrderFailureBubbles } from './ui/order-failure-bubbles.js';
 import { BubbleControls } from './ui/bubble-controls.js';
 import { AnnotationSpread } from './render/annotation-spread.js';
 import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
@@ -1945,13 +1947,51 @@ async function main(): Promise<void> {
   // off, because every object on it offers exactly one.
   // Queue mode or the modifier held on the row: either appends, the same
   // rule the canvas click follows.
-  let menuSceneAnchor: {x: number; y: number} | null = null;
+  const menuKeepouts = ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls',
+    'activity-log-toggle', 'activity-log', 'sim-sheet', 'options-panel', 'builder-dock']
+    .map(id => document.getElementById(id)).filter((element): element is HTMLElement => element !== null);
+  const menuHead = (person: number) => {
+    const row = sim.ids().indexOf(person);
+    if (row < 0 || sim.activities()[row] === ACTIVITY_AT_WORK) return null;
+    const head = characterWorld.plan.actorAt(row)?.head;
+    if (head) return head;
+    const positions = sim.positions();
+    return [positions[row * 2], positions[row * 2 + 1], 1.7] as const;
+  };
+  const menuBookPosition = (book: number) => {
+    const row = sim.droppedBookIds().indexOf(book);
+    if (row < 0) return null;
+    const positions = sim.droppedBookPositions();
+    return [positions[row * 2], positions[row * 2 + 1]] as const;
+  };
+  const menuDishPosition = (surface: number, dishes: readonly number[], row: number) => {
+    const layout = surfaceLayout(sim.sprites()[row]);
+    return layout && surfaceDishPoint(layout, surface, dishes, sim.dishPiles());
+  };
   const menu: ObjectMenu = new ObjectMenu(createMenuSurface(document, menuRoot, {
     anchor(model) {
-      if (model.object === undefined) return null;
-      const row = Array.from(sim.ids()).indexOf(model.object);
+      if (model.person !== undefined) {
+        const head = menuHead(model.person);
+        return head && failureBubbleAnchor([head[0], head[1], head[2] - 0.33],
+          { ...camera, width: stage.width, height: stage.height, rect: stage.getBoundingClientRect() });
+      }
+      if (model.book !== undefined) {
+        const position = menuBookPosition(model.book);
+        return position && canvasToClient(screenX(...position, camera.originX, camera.scale),
+          screenY(...position, camera.originY, camera.scale), stage.getBoundingClientRect(), stage.width, stage.height);
+      }
+      if (model.object === undefined) return undefined;
+      const row = sim.ids().indexOf(model.object);
       if (row < 0) return null;
-      const positions = sim.positions(), x = positions[row * 2], y = positions[row * 2 + 1];
+      const offsets = fixtureRegistration(sim).offsets;
+      const positions = sim.positions();
+      const x = positions[row * 2] + offsets[row * 2], y = positions[row * 2 + 1] + offsets[row * 2 + 1];
+      if (model.dishes) {
+        const point = menuDishPosition(model.object, model.dishes, row);
+        return point ? canvasToClient(screenX(x, y, camera.originX, camera.scale) + point[0] * camera.scale,
+          screenY(x, y, camera.originY, camera.scale) + point[1] * camera.scale,
+          stage.getBoundingClientRect(), stage.width, stage.height) : null;
+      }
       const sprite = sim.sprites()[row];
       const object = sim.objectModel(model.object);
       if (!object) return null;
@@ -1962,13 +2002,17 @@ async function main(): Promise<void> {
         stage.getBoundingClientRect(), stage.width, stage.height);
       return point;
     },
-    revision: () => [camera.originX, camera.originY, camera.scale, stage.width, stage.height, sim.clockTick()].join(','),
-    keepouts: () => ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls']
-      .map(id => document.getElementById(id)?.getBoundingClientRect())
-      .filter((rect): rect is DOMRect => !!rect && rect.width > 0 && rect.height > 0),
+    revision(model) {
+      const position = model.person !== undefined ? menuHead(model.person) : model.book !== undefined ? menuBookPosition(model.book) : null;
+      const motion = position?.map(value => Math.round(value * camera.scale * 34)).join(',') ?? '';
+      const dish = model.dishes && model.object !== undefined
+        ? menuDishPosition(model.object, model.dishes, sim.ids().indexOf(model.object))?.join(',') ?? 'removed' : '';
+      return `${camera.originX},${camera.originY},${camera.scale},${stage.width},${stage.height},${sim.lotRevision()},${motion},${dish}`;
+    },
+    keepouts: menuKeepouts,
     dismiss: () => menu.close(),
     closed: () => sceneFeedback.anchor(null),
-    positioned: point => { menuSceneAnchor = point; sceneFeedback.anchor(point); },
+    positioned: point => sceneFeedback.anchor(point),
   }), (action, additive) => {
     if (action.kind === 'build') {
       if (overlayPause.suspendedExcept('builder') || builder.pending) return;
@@ -2463,8 +2507,7 @@ async function main(): Promise<void> {
     const viewport=stage.getBoundingClientRect();
     return {left:viewport.left,top:viewport.top,right:viewport.right,
       bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
-  },sceneObstacles,[stage,builderDock], () => menuRoot.hidden ? [] :
-    Array.from(menuRoot.querySelectorAll<HTMLElement>('.menu-entry, .radial-identity, .radial-close, .radial-description, .object-action-rail')));
+  },sceneObstacles,[stage,builderDock]);
   let highlightRevision = sim.lotRevision();
   const renderBuildFeedback = (now: number): void => {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
@@ -2609,6 +2652,7 @@ async function main(): Promise<void> {
     }
     if (event.key === 'Enter') {
       event.preventDefault();
+      if (event.repeat) return;
       const action = keyboardTargets.activate();
       if (action.kind === 'select') {
         const accepted = sim.select(action.entity);
@@ -2750,7 +2794,7 @@ async function main(): Promise<void> {
   );
   function openBookCopy(copy: number): void {
     const rect = stage.getBoundingClientRect();
-    menu.open({ title: 'Book', entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
+    menu.open({ title: 'Book', book: copy, entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
       rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
   const timer = new FrameTimer(FRAME_WINDOW);

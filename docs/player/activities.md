@@ -2,7 +2,7 @@
 
 ## All actions at a glance {#all-actions}
 
-Select a person, then click or tap an object for its default action. Right-click or long-press for a particular action. The [object menu](ui-elements/#object-menu) shows the available choices; More actions opens another page when needed.
+Select a person, then click or tap an object for its default action. Right-click or long-press for a particular action. Scroll inside the [object menu](ui-elements/#object-menu) when the available choices extend beyond it.
 
 :::illustration object-menu
 
