@@ -528,7 +528,10 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// Editable world and water branch before the Career merge measured `0xfe8f_2322_891c_e5d0`.
 /// Conversation subjects change the subsequent random draws. Both work settings
 /// produce this same two-day fold with the editable household and subject rows.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x88a4_d29e_ee60_b5ca;
+/// Issue 359 moved it from 0x88a4_d29e_ee60_b5ca: topics are steered by memory
+/// and guesses, and remembered topics join each tick's hash. With the memory
+/// resource removed the old fold comes back.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5c3b_7d08_431b_cc03;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -579,7 +582,9 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x88a4_d29e_ee60_b5ca;
 /// again. Measured in a release build from the failing assertion.
 /// Editable world and water branch before the Career merge measured `0xc65b_1bd5_e41a_f993`.
 /// The twenty-day release replay with conversation subjects produced this fold.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa764_0b3b_6516_e115;
+/// Issue 359 moved it from 0xa764_0b3b_6516_e115, for the reason given for the
+/// two-day fold. Measured in a release build from the failing assertion.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4c23_0370_81d0_e3e4;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
@@ -613,7 +618,11 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
-    assert_eq!(fold_without_the_work_knobs(20), 0xf3ae_9319_a9b5_9cb8);
+    // Issue 359 moved it from 0xf3ae_9319_a9b5_9cb8, for the reason given
+    // for the two-day fold, and again from 0x3655_5654_5726_31fc when a
+    // remembered topic began to refresh without a roll. Measured in a
+    // release build.
+    assert_eq!(fold_without_the_work_knobs(20), 0xc2ac_b905_0b16_eacc);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

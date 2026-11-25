@@ -628,6 +628,10 @@ impl From<PublishedTuning> for Tuning {
             admin_skip_default_hours: Tuning::SHIPPED_ADMIN_SKIP_DEFAULT_HOURS,
             admin_skip_ticks_per_frame: Tuning::SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME,
             admin_bill_due_months: Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS,
+            topic_memory_fade_days: Tuning::SHIPPED_TOPIC_MEMORY_FADE_DAYS,
+            topic_memory_remember_floor: Tuning::SHIPPED_TOPIC_MEMORY_REMEMBER_FLOOR,
+            topic_memory_avoidance: Tuning::SHIPPED_TOPIC_MEMORY_AVOIDANCE,
+            topic_memory_min_factor: Tuning::SHIPPED_TOPIC_MEMORY_MIN_FACTOR,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -1254,6 +1258,31 @@ fn a_published_pack_reconstructs_the_shipped_admin_panel_knobs() {
             shipped.admin_bill_due_months,
         ]
     );
+}
+
+/// Issue 359: an authentic published pack rebuilds the shipped topic memory
+/// knobs, so a world loaded from one remembers and steers chats as the
+/// content ships.
+#[test]
+fn a_published_pack_reconstructs_the_shipped_topic_memory_knobs() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    let shipped = crate::pack().tuning;
+    let knobs = |tuning: &Tuning| {
+        (
+            tuning.topic_memory_fade_days,
+            [
+                tuning.topic_memory_remember_floor,
+                tuning.topic_memory_avoidance,
+                tuning.topic_memory_min_factor,
+            ],
+        )
+    };
+    assert_eq!(knobs(&old.tuning), (42, [0.3333, 0.9, 0.1]));
+    assert_eq!(knobs(&old.tuning), knobs(&shipped));
 }
 
 /// Shifts (issue 296, [WS-model]): a job from a pack published before

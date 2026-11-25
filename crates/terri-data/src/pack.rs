@@ -1274,6 +1274,18 @@ pub struct Tuning {
     pub admin_skip_ticks_per_frame: u32,
     /// How many billing months back the Due selects offer, from 1 to 120.
     pub admin_bill_due_months: u32,
+    /// Remembered topic preferences (issue 359), appended after the admin
+    /// panel knobs per the rule above: how many game days a memory takes to
+    /// fade to nothing, from 1 to 365.
+    pub topic_memory_fade_days: u32,
+    /// The chance that the least sociable person remembers a completed chat,
+    /// from 0 to 1. It rises with sociability to 1.
+    pub topic_memory_remember_floor: f32,
+    /// How strongly a remembered dislike holds a topic back, from 0 to 1.
+    pub topic_memory_avoidance: f32,
+    /// The least a remembered dislike leaves of a topic's weight, above 0
+    /// and at most 1.
+    pub topic_memory_min_factor: f32,
 }
 
 /// The most ticks any lift from liked furniture takes to fade (issue 344):
@@ -1383,6 +1395,12 @@ impl Tuning {
     pub const SHIPPED_ADMIN_SKIP_DEFAULT_HOURS: u32 = 8;
     pub const SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME: u32 = 300;
     pub const SHIPPED_ADMIN_BILL_DUE_MONTHS: u32 = 12;
+    /// The shipped topic memory knobs (issue 359), reconstructed for packs
+    /// published before them.
+    pub const SHIPPED_TOPIC_MEMORY_FADE_DAYS: u32 = 42;
+    pub const SHIPPED_TOPIC_MEMORY_REMEMBER_FLOOR: f32 = 0.3333;
+    pub const SHIPPED_TOPIC_MEMORY_AVOIDANCE: f32 = 0.9;
+    pub const SHIPPED_TOPIC_MEMORY_MIN_FACTOR: f32 = 0.1;
 
     /// The pay of one shift of `kind` for a person paid `pay` whole dollars
     /// per shift, in cents ([WB-wages]): `pay * 100` with the night premium
@@ -2501,6 +2519,10 @@ mod tests {
             admin_skip_default_hours: 9,
             admin_skip_ticks_per_frame: 301,
             admin_bill_due_months: 13,
+            topic_memory_fade_days: 43,
+            topic_memory_remember_floor: 0.375,
+            topic_memory_avoidance: 0.875,
+            topic_memory_min_factor: 0.125,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -3372,8 +3394,9 @@ mod tests {
     /// the fill limit's varint, the ten bytes of the work lateness knobs
     /// ([WL-tuning]), the four bytes of the presence fade (issue 344), the
     /// three bytes of the Career tab knobs (issues 311 and 317,
-    /// [CT-tuning]) and the six bytes of the admin panel knobs (issue 312,
-    /// [AP-tuning]); every established field stays put.
+    /// [CT-tuning]), the six bytes of the admin panel knobs (issue 312,
+    /// [AP-tuning]) and the thirteen bytes of the topic memory knobs (issue
+    /// 359); every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -3387,13 +3410,64 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Issue 312 ([AP-tuning]): the four admin panel knobs are the last
-        // six bytes: the skip limit as a two-byte varint (169), the default
-        // hours as one byte (9), the frame budget as two bytes (301) and the
-        // Due months as one byte (13). Changing each moves only its own
-        // first byte.
-        let admin = before.len() - 6;
-        assert_eq!(before[admin..], [0xA9, 0x01, 9, 0xAD, 0x02, 13]);
+        // Issue 359: the four topic memory knobs are the last thirteen
+        // bytes: the fade days as a one-byte varint (43), then the remember
+        // floor, the avoidance and the least factor as floats (0.375, 0.875
+        // and 0.125). Changing each moves only its own bytes.
+        let memory = before.len() - 13;
+        assert_eq!(
+            before[memory..],
+            [
+                &[43u8][..],
+                &0.375f32.to_le_bytes()[..],
+                &0.875f32.to_le_bytes()[..],
+                &0.125f32.to_le_bytes()[..]
+            ]
+            .concat()[..]
+        );
+        assert_eq!(
+            changed(Tuning {
+                topic_memory_fade_days: 44,
+                ..a_tuning()
+            }),
+            vec![memory]
+        );
+        for (offset, tuning) in [
+            (
+                1,
+                Tuning {
+                    topic_memory_remember_floor: 0.5,
+                    ..a_tuning()
+                },
+            ),
+            (
+                5,
+                Tuning {
+                    topic_memory_avoidance: 0.5,
+                    ..a_tuning()
+                },
+            ),
+            (
+                9,
+                Tuning {
+                    topic_memory_min_factor: 0.5,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            let moved = changed(tuning);
+            assert!(!moved.is_empty());
+            assert!(moved
+                .iter()
+                .all(|&at| (memory + offset..memory + offset + 4).contains(&at)));
+        }
+        // Issue 312 ([AP-tuning]): the four admin panel knobs are the six
+        // bytes before them: the skip limit as a two-byte varint (169), the
+        // default hours as one byte (9), the frame budget as two bytes (301)
+        // and the Due months as one byte (13). Changing each moves only its
+        // own first byte.
+        let admin = memory - 6;
+        assert_eq!(before[admin..memory], [0xA9, 0x01, 9, 0xAD, 0x02, 13]);
         assert_eq!(
             changed(Tuning {
                 admin_skip_max_hours: 170,

@@ -202,6 +202,7 @@ describe('Import save', () => {
     ['V27', 27, [7]],
     ['V28', 28, [8]],
     ['V29', 29, [9]],
+    ['V30', 30, [9]],
   ] as const)('passes a recognized %s import to prepared loading', async (_family, version, fingerprint) => {
     const backend = store(null);
     const game = sim();

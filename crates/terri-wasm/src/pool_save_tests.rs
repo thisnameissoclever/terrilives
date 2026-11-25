@@ -95,7 +95,10 @@ fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
         "current saves cannot reverse an airborne hop"
     );
     assert_eq!(handle.save_bytes(), original);
-    old_bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&28u16.to_le_bytes());
+    // A schema-28 save has the V30 layout, without remembered topics.
+    old_bytes = SAVE_MAGIC.to_vec();
+    old_bytes.extend(28u16.to_le_bytes());
+    old_bytes.extend(postcard::to_allocvec(&legacy.0.current).unwrap());
     assert!(handle.load_bytes(&old_bytes));
     let migrated = handle.sim.current_v5_view();
     let episode = &migrated.0.pools[0];
@@ -625,9 +628,14 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
 fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
     let bytes = include_bytes!("../tests/fixtures/pool-v28/square-pool-active-swim.sav");
     assert_eq!(&bytes[8..10], &28u16.to_le_bytes());
-    let (source, tail) = postcard::take_from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+    let (source, tail) =
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
+            .unwrap();
     assert!(tail.is_empty());
-    let source = CurrentV5View(source);
+    let source = CurrentV5View(terri_core::SaveSnapshotV31 {
+        current: source,
+        topic_memory: vec![],
+    });
     let mut handle = SimHandle::new(12, 12);
     assert!(handle.load_bytes(bytes));
 

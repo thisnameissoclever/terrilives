@@ -299,7 +299,11 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// The V28 replay with gradual need mood changes the hash. Jobs, shifts and random draws agree.
 /// Conversation subjects change household choices before Thursday. The three
 /// jobs, shift assignments, seven career draws and two shift draws remain identical.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (5434137366638582315, 7, 2);
+/// Issue 359 moved the hash from 5434137366638582315: topics are steered by
+/// memory and guesses, and remembered topics join the hash. Jobs, shifts and
+/// draw counts are unchanged; with the memory resource removed the old hash
+/// comes back.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (9206014275219435614, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

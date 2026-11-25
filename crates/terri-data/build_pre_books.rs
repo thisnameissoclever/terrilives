@@ -300,6 +300,24 @@ pub fn compile(root: &Path) -> pack::ContentPack {
             "admin_bill_due_months",
             toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS)),
         ),
+        // Remembered topic preferences (issue 359): the shipped knobs,
+        // reconstructed by the published-pack conversions too.
+        (
+            "topic_memory_fade_days",
+            toml::Value::Integer(i64::from(pack::Tuning::SHIPPED_TOPIC_MEMORY_FADE_DAYS)),
+        ),
+        (
+            "topic_memory_remember_floor",
+            toml::Value::Float(f64::from(pack::Tuning::SHIPPED_TOPIC_MEMORY_REMEMBER_FLOOR)),
+        ),
+        (
+            "topic_memory_avoidance",
+            toml::Value::Float(f64::from(pack::Tuning::SHIPPED_TOPIC_MEMORY_AVOIDANCE)),
+        ),
+        (
+            "topic_memory_min_factor",
+            toml::Value::Float(f64::from(pack::Tuning::SHIPPED_TOPIC_MEMORY_MIN_FACTOR)),
+        ),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

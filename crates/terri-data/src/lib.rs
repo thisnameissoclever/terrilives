@@ -1277,6 +1277,18 @@ mod tests {
                 ],
                 [168, 8, 300, 12]
             );
+            // Issue 359: and the shipped topic memory knobs.
+            assert_eq!(
+                (
+                    historical.tuning.topic_memory_fade_days,
+                    [
+                        historical.tuning.topic_memory_remember_floor,
+                        historical.tuning.topic_memory_avoidance,
+                        historical.tuning.topic_memory_min_factor,
+                    ]
+                ),
+                (42, [0.3333, 0.9, 0.1])
+            );
             assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
         }
         // Households from before bills started with nothing, so only the
@@ -1662,6 +1674,13 @@ mod tests {
         assert_eq!(tuning.admin_skip_default_hours, 8);
         assert_eq!(tuning.admin_skip_ticks_per_frame, 300);
         assert_eq!(tuning.admin_bill_due_months, 12);
+        // Issue 359: a memory fades over 42 game days; at least a third of
+        // chats are remembered; a remembered dislike holds a topic back by up
+        // to 0.9, never below a tenth of its weight.
+        assert_eq!(tuning.topic_memory_fade_days, 42);
+        assert_eq!(tuning.topic_memory_remember_floor, 0.3333);
+        assert_eq!(tuning.topic_memory_avoidance, 0.9);
+        assert_eq!(tuning.topic_memory_min_factor, 0.1);
         assert_eq!(tuning.affinity_band_loves, 0.6);
         assert_eq!(tuning.affinity_band_likes, 0.2);
         assert_eq!(tuning.affinity_from_mild_trait, 0.4);

@@ -16,6 +16,13 @@ use crate::relationship_effects::{
 };
 use crate::Content;
 
+/// A person's hobbies and traits, read for sociability where the
+/// Satisfaction ledger query cannot reach them.
+type Tastes = (
+    Option<&'static terri_core::Hobbies>,
+    Option<&'static terri_core::Traits>,
+);
+
 /// Advances every conversation by one tick, delivering to BOTH
 /// participants, and completes it. The ordinary affinity gain happens on
 /// completion. An unmet-need penalty is applied separately at actual contact
@@ -56,9 +63,10 @@ pub fn tick_social(
         ResMut<crate::social_episode::requests::ConversationRequests>,
     ),
     clock: Res<terri_core::SimClock>,
-    (mut diagnostics, mut log): (
+    (mut diagnostics, mut log, mut memory): (
         ResMut<RelationshipDiagnostics>,
         Option<ResMut<crate::activity_log::ActivityLog>>,
+        Option<ResMut<crate::topic_memory::TopicMemory>>,
     ),
     context: Res<crate::relationship_dynamics::RelationshipContext>,
     mut talking: Query<(Entity, &mut Socialising)>,
@@ -74,7 +82,10 @@ pub fn tick_social(
         Option<&terri_core::Hobbies>,
         Option<&mut terri_core::Traits>,
     )>,
-    mut skills: Query<&mut terri_core::Skills>,
+    (mut skills, unledgered): (
+        Query<&mut terri_core::Skills>,
+        Query<Tastes, Without<terri_core::Satisfaction>>,
+    ),
     mut fights: ResMut<crate::fights::Fights>,
 ) {
     let tuning = content.0.tuning;
@@ -267,6 +278,49 @@ pub fn tick_social(
             }
             commands.entity(partner).try_remove::<Reserved>();
             continue;
+        }
+
+        // Issue 359: each side may remember how the other really felt about
+        // the topic, before the payout below changes anyone's traits. A
+        // fight never reaches here, and smalltalk teaches nothing.
+        if let (Some(memory), Some(topic)) =
+            (memory.as_deref_mut(), episodes.topics.get(&initiator))
+        {
+            for (me, other, preference) in [
+                (initiator, partner, topic.listener_preference),
+                (partner, initiator, topic.initiator_preference),
+            ] {
+                let (Ok(&knower), Ok(&about)) = (sim_ids.get(me), sim_ids.get(other)) else {
+                    continue;
+                };
+                // The same inputs `subjects::preferences_of` reads for topic
+                // choice, whether or not the person keeps a Satisfaction
+                // ledger.
+                let (hobbies, traits) = match ledgers.get(me) {
+                    Ok((_, hobbies, traits)) => (hobbies, traits),
+                    Err(_) => unledgered.get(me).unwrap_or((None, None)),
+                };
+                let preferences = crate::compatibility::preferences(
+                    content.0,
+                    personalities.get(me).ok(),
+                    traits,
+                    hobbies,
+                );
+                let sociability = crate::social_episode::sociability(
+                    content.0,
+                    &preferences,
+                    personalities.get(me).ok(),
+                    skills.get(me).ok(),
+                );
+                crate::topic_memory::learn(
+                    memory,
+                    &tuning,
+                    (knower, about, topic),
+                    preference,
+                    sociability,
+                    clock.tick,
+                );
+            }
         }
 
         // Completion pays the ordinary affinity gain. An interrupted

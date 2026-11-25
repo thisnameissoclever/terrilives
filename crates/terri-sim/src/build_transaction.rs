@@ -10,10 +10,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV28,
+    SaveSnapshotV31,
 };
 
-fn saved_rooms(snapshot: &SaveSnapshotV28) -> &SavedRooms {
+fn saved_rooms(snapshot: &SaveSnapshotV31) -> &SavedRooms {
     &snapshot.room_world_v16().rooms
 }
 
@@ -165,12 +165,12 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV28,
+    draft: SaveSnapshotV31,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV28,
+    baseline: SaveSnapshotV31,
     // The draft room map can move into a larger grid before land is confirmed.
     rent_tiles: Option<(u32, u32)>,
     pool_contacts_required: bool,
@@ -185,7 +185,7 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV28,
+        baseline: SaveSnapshotV31,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
         pool_contacts_required: bool,
@@ -262,7 +262,7 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV28> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV31> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
@@ -303,7 +303,7 @@ impl Sim {
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v28::capture(self))
+            || !same_authored(&build.baseline, &save::v31::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -360,8 +360,8 @@ impl Sim {
                 return Err(error);
             }
         }
-        let baseline = save::v28::capture(self);
-        if let Err(error) = save::v28::restore_current(
+        let baseline = save::v31::capture(self);
+        if let Err(error) = save::v31::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -450,8 +450,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v28::restore_current(
-                    save::v28::capture(candidate),
+                save::v31::restore(
+                    save::v31::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -502,7 +502,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v28::restore_current(
+        let mut candidate = save::v31::restore(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -529,13 +529,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v28::capture(self);
-        if save::v28::capture(&candidate) != draft {
+        let draft = save::v31::capture(self);
+        if save::v31::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v28::restore_current(
+            candidate = save::v31::restore(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -653,7 +653,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v28::capture(self) != prepared.draft {
+        if save::v31::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -754,7 +754,7 @@ impl Sim {
         // shell may have drained records since; installing that copy would
         // hand them over a second time.
         ordinary::runtime::carry_activity_log(&self.world, &mut prepared.candidate.world);
-        let baseline = save::v28::capture(&prepared.candidate);
+        let baseline = save::v31::capture(&prepared.candidate);
         let pool_contacts_required = crate::pool::contacts_required(&prepared.candidate.world);
         let rent_tiles = crate::rooms::rent_tiles(&prepared.candidate.world);
         let request_runtime =
@@ -798,10 +798,10 @@ impl Sim {
     /// untouched.
     pub(crate) fn restore_session_baseline(
         &self,
-        baseline: SaveSnapshotV28,
+        baseline: SaveSnapshotV31,
         request_runtime: &crate::social_episode::requests::runtime::Runtime,
     ) -> Result<Sim, SaveError> {
-        let mut restored = save::v28::restore_current(
+        let mut restored = save::v31::restore(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -850,7 +850,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v28::restore_current(
+            save::v31::restore(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -924,7 +924,7 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV28, b: &SaveSnapshotV28) -> bool {
+fn same_authored(a: &SaveSnapshotV31, b: &SaveSnapshotV31) -> bool {
     if a.surfaces != b.surfaces {
         return false;
     }

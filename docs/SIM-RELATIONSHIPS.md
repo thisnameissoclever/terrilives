@@ -148,6 +148,21 @@ unchanged. The Likes and dislikes view lists each person's subjects read only,
 with Work shown only for someone with a job. See
 [richer topics](specs/2026-11-22-richer-topics.md).
 
+Housemates remember topic preferences (issue 359). When a chat that is not a
+fight completes, each side may remember the other's true preference for its
+topic, with a chance of `topic_memory_remember_floor` plus the rest scaled by
+their sociability, the inclination above. The roll is an FNV hash of the tick,
+both `SimId`s and the tag, so no draw is added. A memory's strength falls
+linearly to 0 over `topic_memory_fade_days` game days, a later chat on the same
+topic with the same person refreshes it, and death removes every memory by or
+about the dead person. Without a memory the initiator guesses: sociability
+times the truth plus the rest times hashed noise from -1 to 1. A topic's weight
+reads the strength-weighted blend of memory and guess in place of the
+listener's true preference, and only a remembered dislike holds a topic back,
+by up to `topic_memory_avoidance` and never below `topic_memory_min_factor` of
+its weight. The chat still uses both true preferences for the outcome, the
+bubbles and the Log. Memories are saved from schema 31 and are not shown.
+
 Chosen conversations retain a request with an exact initiator, recipient and
 origin. The initiator approaches and waits while the recipient finishes their
 existing activity, including travel and the complete meal or reading goal.
