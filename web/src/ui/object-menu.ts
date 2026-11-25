@@ -523,12 +523,16 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       content.append(actions);
       panel.append(content);
 
+      const scrollHint = doc.createElement('div');
+      scrollHint.className = 'object-menu-scroll-hint';
+      scrollHint.textContent = 'Scroll to see all actions';
+      scrollHint.hidden = true;
       const tether = doc.createElement('span');
       tether.className = 'object-menu-tether';
       tether.setAttribute('aria-hidden', 'true');
       tether.hidden = true;
       root.replaceChildren();
-      root.append(panel, tether);
+      root.append(panel, scrollHint, tether);
       root.setAttribute('aria-label', menu.title ? menu.title + ' actions' : 'Actions');
       root.hidden = false;
 
@@ -554,7 +558,10 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         const { left, top, height: available } = placement;
         root.style.left = left + 'px';
         root.style.top = top + 'px';
-        panel.style.maxHeight = available + 'px';
+        // Keep a full 44-pixel control in view even with the cue below it.
+        const hintHeight = height > available && available >= 64 ? 18 : 0;
+        scrollHint.hidden = hintHeight === 0;
+        panel.style.maxHeight = available - hintHeight + 'px';
         options.positioned?.(anchor);
 
         const x = Math.max(8, Math.min(viewport.width - 8, anchor.x));

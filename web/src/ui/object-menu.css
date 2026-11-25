@@ -26,6 +26,19 @@ body:has(#object-menu:not([hidden])) #keyboard-target { display: none; }
   border-radius: 9px;
 }
 
+.object-menu-panel:has(+ .object-menu-scroll-hint:not([hidden])) { border-radius: 9px 9px 0 0; }
+.object-menu-scroll-hint {
+  box-sizing: border-box;
+  height: 18px;
+  border: 1px solid var(--menu-edge);
+  border-top: 0;
+  border-radius: 0 0 9px 9px;
+  background: #2d3541;
+  color: #dce7f0;
+  font: 600 11px/16px system-ui, sans-serif;
+  text-align: center;
+}
+
 .object-menu-header {
   display: flex;
   align-items: stretch;
