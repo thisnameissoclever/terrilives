@@ -32,11 +32,12 @@ jobs:
     timeout-minutes: 90
     env:
       TAG: ${{ github.event.release.tag_name || inputs.tag }}
-      GH_TOKEN: ${{ github.token }}
       # The app is signed ad hoc (identity '-'); never look for a certificate.
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
       - name: Check the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
           case "$TAG" in
@@ -48,6 +49,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event.release.tag_name || inputs.tag }}
+          # Build steps run third-party install scripts; keep the token out of .git/config.
+          persist-credentials: false
 
       - name: Check the version matches the tag
         run: |
@@ -87,12 +90,17 @@ jobs:
 
       - name: Build the disk images
         working-directory: desktop
+        env:
+          # electron-builder downloads its own Electron for each processor.
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
         run: |
           npm ci
           npx electron-builder --mac --config electron-builder.config.js --publish never
 
       - name: Checksum and upload
         working-directory: desktop/dist
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
           version="${TAG#v}"
@@ -100,7 +108,11 @@ jobs:
           intel="Natural-Causes-$version-x64.dmg"
           test -f "$arm"
           test -f "$intel"
-          codesign -dv --verbose=2 "mac-arm64/Natural Causes.app" 2>&1 | grep -E 'Signature=adhoc|flags=' || true
+          for app in "mac-arm64/Natural Causes.app" "mac/Natural Causes.app"; do
+            codesign -dv --verbose=2 "$app" 2>&1 | tee codesign.txt
+            grep -q 'Signature=adhoc' codesign.txt || { echo "$app is not signed ad hoc" >&2; exit 1; }
+          done
+          rm codesign.txt
           shasum -a 256 "$arm" "$intel" > SHA256SUMS-macos.txt
           cat SHA256SUMS-macos.txt
           ls -l "$arm" "$intel"

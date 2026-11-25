@@ -88,6 +88,10 @@ test('checks that latest.yml describes this version and installer', () => {
   assert.deepEqual(release.updateInfoProblems(good, '1.1.0'), []);
   assert.equal(release.updateInfoProblems(good.replace('version: 1.1.0', 'version: 1.0.0'), '1.1.0').length, 1);
   assert.equal(release.updateInfoProblems('version: 1.1.0\npath: other.exe\n', '1.1.0').length, 1);
+  const withHash = `${good}sha512: abc==\nsize: 10\n`;
+  assert.deepEqual(release.updateInfoProblems(withHash, '1.1.0', { sha512: 'abc==', size: 10 }), []);
+  assert.equal(release.updateInfoProblems(withHash, '1.1.0', { sha512: 'xyz==', size: 10 }).length, 1);
+  assert.equal(release.updateInfoProblems(withHash, '1.1.0', { sha512: 'abc==', size: 11 }).length, 1);
 });
 
 test('parses options, builds only on Windows, and refuses unknown ones', () => {
@@ -112,7 +116,7 @@ test('notes are for players: platforms, changelog, install help and checksums', 
 });
 
 /** A full Windows run against fake commands and files. */
-function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-Setup-1.1.0-x64.exe', 'latest.yml', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap', 'builder-debug.yml'], latest = 'version: 1.1.0\npath: Natural-Causes-Setup-1.1.0-x64.exe\n' } = {}) {
+function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-Setup-1.1.0-x64.exe', 'latest.yml', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap', 'builder-debug.yml'], latest = 'version: 1.1.0\npath: Natural-Causes-Setup-1.1.0-x64.exe\nsha512: SHA\nsize: 123\n' } = {}) {
   const commands = [];
   const written = new Map();
   const exec = (command, args) => {
@@ -143,6 +147,7 @@ function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-S
     writeText: (file, text) => written.set(path.basename(file), text),
     list: () => ['index.html', 'game.wasm'],
     sha256: () => 'c'.repeat(64),
+    sha512Base64: () => 'SHA',
     size: () => 123,
   };
   return { commands, written, exec, files };
@@ -182,7 +187,7 @@ test('a refused release builds nothing', () => {
 test('a run without the update files or with a stale latest.yml uploads nothing', () => {
   const missing = fakeRun({ dist: ['Natural-Causes-Setup-1.1.0-x64.exe'] });
   assert.throws(() => release.release([], { exec: missing.exec, files: missing.files, log: () => {}, platform: 'win32' }), /which updates need/);
-  const stale = fakeRun({ latest: 'version: 1.0.0\npath: Natural-Causes-Setup-1.0.0-x64.exe\n' });
+  const stale = fakeRun({ latest: 'version: 1.0.0\npath: Natural-Causes-Setup-1.0.0-x64.exe\nsha512: SHA\nsize: 123\n' });
   assert.throws(() => release.release([], { exec: stale.exec, files: stale.files, log: () => {}, platform: 'win32' }), /latest\.yml does not name/);
   for (const fake of [missing, stale]) assert.ok(!fake.commands.some((command) => command[0] === 'gh' && ['create', 'upload'].includes(command[2])));
 });

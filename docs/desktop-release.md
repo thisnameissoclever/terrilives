@@ -82,14 +82,14 @@ When the draft has the four Windows files, publish it:
 node desktop/scripts/release.js --publish
 ```
 
-Publishing starts the Mac workflow. It checks out the release's tag, confirms that `web/package.json` has the same version, builds wasm, the website and both disk images with the ad hoc identity `-`, and uploads `Natural-Causes-<version>-arm64.dmg`, `Natural-Causes-<version>-x64.dmg` and `SHA256SUMS-macos.txt` to the release. It needs only the `contents: write` permission. If it fails, fix the cause and run it again from the Actions tab with the release's tag; it replaces any Mac files already uploaded. A published release cannot be given new Windows files; raise the version for the next one.
+Publishing starts the Mac workflow. GitHub runs the workflow file as it exists at the release's tag, so a tag made before the workflow was added never starts it; and uploading after publication works only while the repository's immutable releases setting stays off. It checks out the release's tag, confirms that `web/package.json` has the same version, builds wasm, the website and both disk images with the ad hoc identity `-`, and uploads `Natural-Causes-<version>-arm64.dmg`, `Natural-Causes-<version>-x64.dmg` and `SHA256SUMS-macos.txt` to the release. It needs only the `contents: write` permission, and gives the token only to the steps that read the release and upload; the build steps run without it. It fails unless `codesign` reports an ad hoc signature for both apps. If it fails, fix the cause and run it again from the Actions tab with the release's tag; it replaces any Mac files already uploaded. A published release cannot be given new Windows files; raise the version for the next one.
 
 ## Automatic updates
 
 The installed game checks for updates when it starts, only when it is packaged and never on the website. Pass `--no-update-check` to skip the check during verification.
 
 - **Windows:** electron-updater (pinned to 6.8.11, the version that shares `builder-util-runtime` 9.7.0 with electron-builder 26.18.0) reads `latest.yml` from the newest published release of `thisnameissoclever/terrilives`, downloads the new installer in the background, and installs it when the player closes the game. Nothing shows until the download is ready; then the time panel says "Update ready. It installs when you close the game." Drafts are ignored, so nothing updates before `--publish`.
-- **Mac:** the app is signed only ad hoc, so Squirrel.Mac cannot install updates, and the app never downloads one. It asks GitHub's API for the latest release, compares its tag with the app's version, and when the release is newer the time panel says "New version available" with a **Download** button. The button opens that release's page, `https://github.com/thisnameissoclever/terrilives/releases/tag/v<version>`, in the default browser. The app builds that address from the version; the page cannot supply another one.
+- **Mac:** the app is signed only ad hoc, so Squirrel.Mac cannot install updates, and the app never downloads one. It asks GitHub's API for the latest release, compares its tag with the app's version, and when the release is newer and already has the disk image for this Mac's processor, the time panel says "New version available" with a **Download** button. The button opens that release's page, `https://github.com/thisnameissoclever/terrilives/releases/tag/v<version>`, in the default browser. The app builds that address from the version; the page cannot supply another one.
 - The NSIS installer keeps a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe`. electron-updater uses that folder for downloads and differential updates; uninstalling does not remove it.
 
 ## Versions and cadence
@@ -114,13 +114,14 @@ Nobody on the project has a Mac. The workflow log shows whether both disk images
 
 ## Measured sizes
 
-Measured on 2026-11-25 for version 1.1.0, built from commit `dd932d662` with Electron 45.3.0 and electron-builder 26.18.0, on a Windows 11 x64 desktop:
+Measured on 2026-11-25 for version 1.1.0 with Electron 45.3.0 and electron-builder 26.18.0, on a Windows 11 x64 desktop. The second build is the first with automatic updates: electron-updater adds about 2 MB to the app, and the installer is packed for partial updates (the `.blockmap`), which compresses it less tightly. Later updates then download only the blocks that changed.
 
-| Output | Bytes | Files |
+| Output | Commit `dd932d662` | Commit `7a1d6c3a2` |
 | --- | ---: | ---: |
-| `web/dist`, the built website | 585,338,082 | 459 |
-| `desktop/dist/win-unpacked`, the unpacked app | 958,933,744 | 532 |
-| `Natural-Causes-Setup-1.1.0-x64.exe`, the installer | 259,855,869 | 1 |
+| `web/dist`, the built website, bytes | 585,338,082 | 585,373,052 |
+| `desktop/dist/win-unpacked`, the unpacked app, bytes | 958,933,744 | 961,158,316 |
+| `Natural-Causes-Setup-1.1.0-x64.exe`, the installer, bytes | 259,855,869 | 314,407,671 |
+| `Natural-Causes-Setup-1.1.0-x64.exe.blockmap`, bytes | none | 320,553 |
 
 Measure again with `Get-ChildItem -Recurse -File <folder> | Measure-Object Length -Sum` in PowerShell, or `du -sb <folder>` on a Mac. The Mac disk images have not been measured yet.
 

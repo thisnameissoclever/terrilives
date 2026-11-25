@@ -48,13 +48,14 @@ Applications.
 
 How it differs from the website:
 
-- It plays offline. Nothing is downloaded while you play.
+- It plays offline. On Windows, updates download in the background while
+  you play; see below.
 - Your saved game is an ordinary file, not browser storage, so browser storage
   limits and clearing site data do not affect it. It lives in
   `%APPDATA%\Natural Causes\saves` on Windows and
   `~/Library/Application Support/Natural Causes/saves` on Mac. Uninstalling
   the game leaves that folder in place. The Windows installer also keeps a
-  copy of itself, about 260 MB, in
+  copy of itself, about 315 MB, in
   `%LOCALAPPDATA%\natural-causes-desktop-updater`; delete that folder after
   uninstalling if you want the space back.
 - The game keeps running while its window is minimized, and it saves when you

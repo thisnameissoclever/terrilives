@@ -76,12 +76,20 @@ function expectedAssets(version, platform) {
   return [...installerNames(version, platform), ...updates, checksumName(platform)];
 }
 
-/** Checks that latest.yml describes this version and this installer. */
-function updateInfoProblems(text, version) {
+/**
+ * Checks that latest.yml describes this version and this installer. With
+ * `installer` ({ sha512 base64, size }), it also checks the file's hash and
+ * size, which every player's update download is verified against.
+ */
+function updateInfoProblems(text, version, installer = null) {
   const problems = [];
   const lines = text.split('\n').map((line) => line.trim());
   if (!lines.includes(`version: ${version}`)) problems.push(`latest.yml does not name version ${version}.`);
   if (!text.includes(`Natural-Causes-Setup-${version}-x64.exe`)) problems.push('latest.yml does not name the installer.');
+  if (installer !== null) {
+    if (!lines.includes(`sha512: ${installer.sha512}`)) problems.push('latest.yml has a different SHA-512 from the installer.');
+    if (!lines.includes(`size: ${installer.size}`)) problems.push('latest.yml has a different size from the installer.');
+  }
   return problems;
 }
 
@@ -287,7 +295,9 @@ function collectAssets(version, platform, files, log) {
     if (!files.exists(file)) throw new ReleaseError(`electron-builder did not produce ${name}, which updates need.`);
     return file;
   });
-  const problems = updateInfoProblems(files.readText(path.join(DIST, 'latest.yml')), version);
+  const installer = entries[0];
+  const problems = updateInfoProblems(files.readText(path.join(DIST, 'latest.yml')), version,
+    { sha512: files.sha512Base64(installer.file), size: installer.bytes });
   if (problems.length > 0) throw new ReleaseError(problems.join(' '));
   const uploads = [...entries.map((entry) => entry.file), ...updates, sumsFile];
   const expected = expectedAssets(version, platform);
@@ -301,6 +311,7 @@ const realFiles = {
   writeText: (file, text) => fs.writeFileSync(file, text),
   list: (dir) => fs.readdirSync(dir, { recursive: true }).map(String),
   sha256,
+  sha512Base64: (file) => crypto.createHash('sha512').update(fs.readFileSync(file)).digest('base64'),
   size: (file) => fs.statSync(file).size,
 };
 

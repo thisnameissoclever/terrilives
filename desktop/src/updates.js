@@ -47,7 +47,7 @@ function releasePageUrl(version) {
  * may open, or null. `notify` receives `{ kind: 'ready', version }` on Windows or
  * `{ kind: 'available', version, url }` on a Mac; main.js keeps the URL to itself.
  */
-async function startUpdateCheck({ platform, currentVersion, autoUpdater, fetchJson, notify, log = () => {} }) {
+async function startUpdateCheck({ platform, arch, currentVersion, autoUpdater, fetchJson, notify, log = () => {} }) {
   if (platform === 'win32') {
     autoUpdater.autoDownload = true;
     autoUpdater.autoInstallOnAppQuit = true;
@@ -65,6 +65,10 @@ async function startUpdateCheck({ platform, currentVersion, autoUpdater, fetchJs
       const latest = await fetchJson(LATEST_RELEASE_API);
       const version = parseVersion(latest && latest.tag_name);
       if (version === null || !isNewerVersion(latest.tag_name, currentVersion)) return null;
+      // The Mac disk images arrive minutes after publication, or not at all
+      // if their build fails. Announce only a release this Mac can download.
+      const image = `Natural-Causes-${version.join('.')}-${arch}.dmg`;
+      if (!Array.isArray(latest.assets) || !latest.assets.some((asset) => asset && asset.name === image)) return null;
       const url = releasePageUrl(latest.tag_name);
       notify({ kind: 'available', version: version.join('.'), url });
       return url;

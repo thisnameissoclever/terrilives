@@ -92,6 +92,7 @@ async function start() {
 function checkForUpdates() {
   void startUpdateCheck({
     platform: process.platform,
+    arch: process.arch,
     currentVersion: app.getVersion(),
     autoUpdater: process.platform === 'win32' ? require('electron-updater').autoUpdater : null,
     fetchJson: async (url) => {

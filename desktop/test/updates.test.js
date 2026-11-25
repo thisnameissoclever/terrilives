@@ -57,8 +57,8 @@ test('a Mac offers the release page of a newer version and never touches the upd
   const asked = [];
   const news = [];
   const url = await startUpdateCheck({
-    platform: 'darwin', currentVersion: '1.1.0', autoUpdater: untouchable,
-    fetchJson: async (address) => { asked.push(address); return { tag_name: 'v1.2.0', html_url: 'https://evil.example/' }; },
+    platform: 'darwin', arch: 'arm64', currentVersion: '1.1.0', autoUpdater: untouchable,
+    fetchJson: async (address) => { asked.push(address); return { tag_name: 'v1.2.0', html_url: 'https://evil.example/', assets: [{ name: 'Natural-Causes-1.2.0-x64.dmg' }, { name: 'Natural-Causes-1.2.0-arm64.dmg' }] }; },
     notify: (n) => news.push(n),
   });
   assert.deepEqual(asked, [LATEST_RELEASE_API]);
@@ -69,15 +69,28 @@ test('a Mac offers the release page of a newer version and never touches the upd
 test('a Mac shows nothing for the same, an older or a malformed release, or when offline', async () => {
   for (const release of [{ tag_name: 'v1.1.0' }, { tag_name: 'v1.0.9' }, { tag_name: 'nightly' }, { tag_name: 'v2.0.0-beta.1' }, null]) {
     const news = [];
-    const url = await startUpdateCheck({ platform: 'darwin', currentVersion: '1.1.0', autoUpdater: untouchable, fetchJson: async () => release, notify: (n) => news.push(n) });
+    const url = await startUpdateCheck({ platform: 'darwin', arch: 'arm64', currentVersion: '1.1.0', autoUpdater: untouchable, fetchJson: async () => release, notify: (n) => news.push(n) });
     assert.equal(url, null, JSON.stringify(release));
     assert.deepEqual(news, []);
   }
   const logged = [];
-  const url = await startUpdateCheck({ platform: 'darwin', currentVersion: '1.1.0', autoUpdater: untouchable,
+  const url = await startUpdateCheck({ platform: 'darwin', arch: 'arm64', currentVersion: '1.1.0', autoUpdater: untouchable,
     fetchJson: async () => { throw new Error('offline'); }, notify: () => assert.fail('notified'), log: (e) => logged.push(e.message) });
   assert.equal(url, null);
   assert.deepEqual(logged, ['offline']);
+});
+
+test('a Mac waits until the release has a disk image for its processor', async () => {
+  for (const assets of [undefined, [], [{ name: 'Natural-Causes-Setup-1.2.0-x64.exe' }], [{ name: 'Natural-Causes-1.2.0-x64.dmg' }]]) {
+    const url = await startUpdateCheck({ platform: 'darwin', arch: 'arm64', currentVersion: '1.1.0', autoUpdater: untouchable,
+      fetchJson: async () => ({ tag_name: 'v1.2.0', assets }), notify: () => assert.fail('notified') });
+    assert.equal(url, null, JSON.stringify(assets));
+  }
+  const news = [];
+  const url = await startUpdateCheck({ platform: 'darwin', arch: 'x64', currentVersion: '1.1.0', autoUpdater: untouchable,
+    fetchJson: async () => ({ tag_name: 'v1.2.0', assets: [{ name: 'Natural-Causes-1.2.0-x64.dmg' }] }), notify: (n) => news.push(n) });
+  assert.equal(url, 'https://github.com/thisnameissoclever/terrilives/releases/tag/v1.2.0');
+  assert.equal(news.length, 1);
 });
 
 test('other systems check nothing', async () => {
