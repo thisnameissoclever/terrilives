@@ -53,7 +53,10 @@ it('contains tall fridge reaching geometry and outlines in all four world facing
     }
   }
 });
-it.each(Object.keys(library.sources).flatMap(family=>(['masculine','feminine'] as const).map(presentation=>[family,presentation] as const)))('solves %s %s clips at proof endpoints and independent body corners',(family,presentation)=>{
+// Pool clips are left out: the game samples them from the prepared pool route
+// (requirePoolPose), never from the whole-clip fitter this proof runs. The pool
+// route has its own tests, such as pool-crest-transfer and pool-runtime-integration.
+it.each(Object.keys(library.sources).filter(family=>family!=='pool').flatMap(family=>(['masculine','feminine'] as const).map(presentation=>[family,presentation] as const)))('solves %s %s clips at proof endpoints and independent body corners',(family,presentation)=>{
   const base=readGeometry(manifest.runtime,'export'),top=anatomicalHeight(base.vertices),failures:string[]=[];
     const parts=JSON.parse(readFileSync(new URL(`clips/${family}/parts.json`,directory),'utf8')) as ClipParts;
     const extra=parts.geometry?readGeometry(parts.geometry,`clips/${family}`):null;
