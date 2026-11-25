@@ -13,7 +13,7 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
   const gate=new Promise(resolve=>release=resolve);await page.route(/\/src\/main\.ts(?:\?|$)/,async route=>{await gate;await route.continue();});
   await page.goto('http://127.0.0.1:5187/?stress=0',{waitUntil:'commit'});
   await page.locator('#startup-loading-title').waitFor({state:'visible'});
-  check('Loading cover paints before the game module arrives',await page.locator('#startup-loading-step').textContent()==='Step 1 of 10: Downloading the game');
+  check('Loading cover paints before the game module arrives',await page.locator('#startup-loading-step').textContent()==='Step 1 of 10: Loading the game');
   await page.screenshot({path:path.join(out,'01-before-game-script.png')});release();
   await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});await page.locator('#startup-loading').waitFor({state:'detached',timeout:120000});
   check('Loading cover leaves after a drawable scene',await page.locator('#stage').isVisible());await page.locator('label[for="speed-0"]').click();

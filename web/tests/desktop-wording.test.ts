@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-import { applyDesktopLinkWording } from '../src/ui/desktop-wording.js';
+import { DESKTOP_EXPORT_NOTE, applyDesktopLinkWording, applyDesktopWording } from '../src/ui/desktop-wording.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
@@ -63,6 +63,16 @@ describe('installed game link wording', () => {
     link.children.push({});
     applyDesktopLinkWording(rootWith([link]));
     expect(link.textContent).toBe('Guide (opens in a new tab)');
+  });
+
+  it('names the app in the Export save note and leaves the website wording in the page', () => {
+    const note = /<p id="save-transfer-export">([^<]*)<\/p>/.exec(INDEX_HTML);
+    expect(note?.[1]).toBe("Export save downloads the game at this website. Use the recovery page above for the old website's save.");
+    const element = { textContent: note![1] };
+    const root = { querySelectorAll: () => [], getElementById: (id: string) => (id === 'save-transfer-export' ? element : null) };
+    applyDesktopWording(root as unknown as Document);
+    expect(element.textContent).toBe(DESKTOP_EXPORT_NOTE);
+    expect(DESKTOP_EXPORT_NOTE).not.toMatch(/this website|download/);
   });
 
   it('rewords every new-tab label in the real game page', () => {

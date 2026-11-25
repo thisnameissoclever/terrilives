@@ -134,7 +134,7 @@ import { KIND_AGENT } from './render/instances.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { desktopBridge, registerDesktopSaveRequests } from './storage/desktop-bridge.js';
-import { applyDesktopLinkWording } from './ui/desktop-wording.js';
+import { applyDesktopWording } from './ui/desktop-wording.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
@@ -386,7 +386,7 @@ const loading = startupLoading(document);
 async function main(): Promise<void> {
   // The installed game's bridge, or null on the website.
   const desktop = desktopBridge();
-  if (desktop !== null) applyDesktopLinkWording(document);
+  if (desktop !== null) applyDesktopWording(document);
   // First, so a phone in desktop mode is told before the long load, not after.
   // The installed game is never a phone browser in desktop mode.
   if (desktop === null) showDesktopSiteNotice(window, document);
@@ -436,7 +436,7 @@ async function main(): Promise<void> {
   // can count it arriving. init() still gets the original response, so
   // compiling overlaps the download and the browser can cache the compiled
   // code; a clone is counted alongside, and the step changes once it ends.
-  loading.step('Downloading the simulation');
+  loading.step('Loading the simulation');
   const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
     .then(response => countAlongside(response, count => loading.bytes(count),
       () => loading.step('Starting the simulation'))) });

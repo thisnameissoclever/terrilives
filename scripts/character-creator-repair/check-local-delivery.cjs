@@ -15,7 +15,7 @@ const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
   await page.route(/\.js(?:\?|$)/,async route=>{await modulesReady;await route.continue();});
   await page.goto(gameUrl+'/?stress=0',{waitUntil:'commit'});
   await page.locator('#startup-loading-title').waitFor({state:'visible'});
-  check('Built loading cover appears before game scripts arrive',await page.locator('#startup-loading-step').textContent()==='Step 1 of 10: Downloading the game');
+  check('Built loading cover appears before game scripts arrive',await page.locator('#startup-loading-step').textContent()==='Step 1 of 10: Loading the game');
   await page.screenshot({path:path.join(out,'loading-before-scripts.png')});releaseModules();
   await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});
   await page.locator('#startup-loading').waitFor({state:'detached',timeout:120000});

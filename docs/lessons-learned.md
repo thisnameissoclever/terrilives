@@ -14061,3 +14061,10 @@ Keep both feet planted at the shared standing key. Start the foot release on the
 The first inclined pool ladder fit the existing four tiles by cutting a recess into the basin. Review verified its fit and animation. The owner rejected the resulting shape when he saw the wall and water turn inward around the ladder.
 
 Show the full object from the clearest angle before accepting an art change that alters its shape. Use the actual reserved tiles to explain what the player gives up in exchange for the change. Verify the silhouette and purchase footprint together in the game, then load a fixture from an earlier version to check that an existing layout still fits.
+
+## [L-close-save-waits-for-the-boundary] A save before teardown must wait for the operation already running
+
+1. What happened: the installed game's first close handler called the automatic save directly. Independent review found that when an autosave, Load or import already held the persistence boundary, the automatic save returned at once without saving, the app reported the save as finished, and the window closed. A file write could still be in progress when the process quit.
+2. Root cause: the website's hide save may skip while another operation runs, because the page keeps running and the next autosave catches up. A close ends the page, so the same skip loses the save. The boundary rule from [L64] was right; the caller assumed a skipped save was harmless.
+3. Prevention: a save requested just before the page or process ends first waits for the active operation (`PersistenceController.whenIdle`), checks again that New game is not starting, then saves. The Electron main process holds `will-quit` until queued save file writes finish, for at most five seconds. Every wait is bounded by the app's ten-second close limit.
+4. Verification: the controller and bridge tests hold a save open and require the close save to wait and then run, and to skip if New game began meanwhile. The save-files test requires `idle()` to wait for a queued write, including a refused one.
