@@ -43,16 +43,20 @@ export function desktopBridge(scope: object = globalThis): DesktopBridge | null 
 }
 
 /**
- * Answers the app's save requests with an automatic save. Starting a new
- * game skips it, as the website's hide save does, so a request cannot write
- * the old household back while New game is clearing it.
+ * Answers the app's save requests with an automatic save. It first waits for
+ * any Save, Load, import or clear already running, because an automatic save
+ * is skipped while one runs and the window may close right after this answer.
+ * Starting a new game skips the save, as the website's hide save does, so a
+ * request cannot write the old household back while New game is clearing it.
  */
 export function registerDesktopSaveRequests(
   bridge: DesktopBridge,
   save: () => Promise<unknown>,
   isStartingNewGame: () => boolean,
+  whenIdle: () => Promise<void> = () => Promise.resolve(),
 ): void {
   bridge.onSaveRequested(async () => {
+    await whenIdle();
     if (isStartingNewGame()) return;
     await save();
   });

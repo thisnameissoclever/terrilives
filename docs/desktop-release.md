@@ -6,7 +6,7 @@ The installed game is an Electron app that serves the built website, `web/dist`,
 
 ## How it fits together
 
-- `desktop/src/main.js` is the only file that touches Electron. It registers the `natural-causes` scheme, opens the game window, answers save requests from the page, and asks the page to save before closing and when minimizing.
+- `desktop/src/main.js` is the only file that touches Electron. It registers the `natural-causes` scheme, opens the game window, answers save requests from the page, and asks the page to save before closing and when minimizing. On close, the page first waits for any save or load already running; the app waits up to ten seconds for the answer, and quitting waits up to five more for file writes in progress.
 - `desktop/src/app-protocol.js` serves files from the bundle with the three cross-origin isolation headers on every response. It never sends `Content-Encoding`: the game decompresses its own `.gz` files.
 - `desktop/src/save-files.js` stores the save files in `<userData>/saves`. It accepts only the names the game's slot rules produce, writes each file atomically, and runs one operation at a time.
 - `desktop/src/window-policy.js` decides where links go. The game window stays on the game's site. The guide, changelog and startup report open in separate app windows. Links to `natural-causes.life`, `thisnameissoclever.github.io`, `github.com` and `mailto:` go to the system's browser or mail program. Everything else is refused.
@@ -114,7 +114,17 @@ A Mac must check: both disk images build, `codesign -dv` reports an ad hoc signa
 
 ## Measured sizes
 
-MEASUREMENTS_PLACEHOLDER
+Measured on 2026-11-25 for version 1.1.0, built from commit `dd932d662` with Electron 45.3.0 and electron-builder 26.18.0, on a Windows 11 x64 desktop:
+
+| Output | Bytes | Files |
+| --- | ---: | ---: |
+| `web/dist`, the built website | 585,338,082 | 459 |
+| `desktop/dist/win-unpacked`, the unpacked app | 958,933,744 | 532 |
+| `Natural-Causes-Setup-1.1.0-x64.exe`, the installer | 259,855,869 | 1 |
+
+Measure again with `Get-ChildItem -Recurse -File <folder> | Measure-Object Length -Sum` in PowerShell, or `du -sb <folder>` on a Mac. The Mac disk images have not been measured yet.
+
+The installer leaves a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe` (the same size as the installer) after installing, and uninstalling does not remove it. That is electron-builder's NSIS behavior for its updater, which this app does not use.
 
 ## Follow-ups
 

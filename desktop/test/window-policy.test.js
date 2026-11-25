@@ -14,6 +14,23 @@ test('the guide, changelog and report open as app windows; the game page focuses
   assert.equal(policy.windowOpenDecision('natural-causes://game/index.html'), 'focus-game');
 });
 
+test('no other spelling of the game page opens a second copy of the game', () => {
+  for (const url of [
+    'natural-causes://game//index.html',
+    'natural-causes://game/%69ndex.html',
+    'natural-causes://game/INDEX.HTML',
+    'natural-causes://game/index.html.',
+    'natural-causes://game/index.html%20',
+    'natural-causes://game/%5Cindex.html',
+    'natural-causes://game/%E0%A4%A',
+  ]) {
+    assert.equal(policy.windowOpenDecision(url), 'focus-game', url);
+    assert.equal(policy.navigationDecision(url, { isGameWindow: false }), 'focus-game', url);
+  }
+  assert.equal(policy.windowOpenDecision('natural-causes://game/index.html.bak'), 'app-window');
+  assert.equal(policy.windowOpenDecision('natural-causes://game/guide/index.html'), 'app-window');
+});
+
 test('allowed websites and mail links go to the system; everything else is refused', () => {
   for (const url of [
     'https://natural-causes.life/changelog/',

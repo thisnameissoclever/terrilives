@@ -152,6 +152,11 @@ class SaveFiles {
     }
   }
 
+  /** Settles once every operation asked for so far has finished. Never rejects. */
+  idle() {
+    return this.tail;
+  }
+
   enqueue(operation) {
     const result = this.tail.then(operation, operation);
     this.tail = result.then(() => undefined, () => undefined);

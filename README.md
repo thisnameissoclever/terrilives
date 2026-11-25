@@ -53,7 +53,10 @@ How it differs from the website:
   limits and clearing site data do not affect it. It lives in
   `%APPDATA%\Natural Causes\saves` on Windows and
   `~/Library/Application Support/Natural Causes/saves` on Mac. Uninstalling
-  the game leaves that folder in place.
+  the game leaves that folder in place. The Windows installer also keeps a
+  copy of itself, about 260 MB, in
+  `%LOCALAPPDATA%\natural-causes-desktop-updater`; delete that folder after
+  uninstalling if you want the space back.
 - The game keeps running while its window is minimized, and it saves when you
   minimize or close the window.
 - **Export save** and **Import save** in Options move a game between the

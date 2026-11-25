@@ -7,6 +7,9 @@ import { CURRENT_SAVE_VERSION } from '../src/storage/save-header.js';
 
 // The website's worker and the installed game's file backend must leave the
 // same files, byte for byte, after the same sequence of player operations.
+// Both run the shared SaveSlot, so this pins the two storage adapters to each
+// other; save-worker.test.ts and save-worker-interrupted-write.test.ts, left
+// unchanged by the move into save-slot.ts, pin the slot rules themselves.
 
 const SLOT = 'terri-save-1.bin';
 const first = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 29, 128, 0, 0, 0, 1]);

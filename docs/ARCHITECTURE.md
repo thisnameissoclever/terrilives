@@ -622,10 +622,12 @@ there. `createSaveStore` picks the backend by that bridge alone. The Electron
 main process writes each file atomically (temporary file, sync, rename),
 accepts only the slot's file names and only from the game window, and
 serializes every operation. A single-instance lock keeps a second copy of the
-app from opening the same folder. Closing the window first asks the page for an
-automatic save and waits up to ten seconds for its answer; minimizing asks
-without waiting, because the minimized game keeps running and may never see
-`visibilitychange`.
+app from opening the same folder. Closing the window first asks the page to
+save: the page waits for any Save, Load, import or clear already running, then
+saves automatically. The app waits up to ten seconds for that answer, and
+quitting waits up to five more seconds for file writes still in progress.
+Minimizing asks without waiting, because the minimized game keeps running and
+may never see `visibilitychange`.
 
 The worker queue serializes file I/O, but the player operation begins one layer
 higher. `PersistenceController` exclusively owns Save, Load, or clear before it

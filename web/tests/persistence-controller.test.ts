@@ -60,6 +60,26 @@ it('marks storage waits immediately and clears the spinner on success and failur
   await controller.load(); expect(view.attributes.has('data-pending')).toBe(false);
 });
 
+it('reports idle only after the running operation finishes, so a close save is not skipped', async () => {
+  const write = deferred<void>();
+  const backend = store(null);
+  backend.save = () => write.promise;
+  const controller = new PersistenceController(backend, sim(), status());
+  await controller.whenIdle();
+  const saving = controller.save();
+  let idle = false;
+  const waiting = controller.whenIdle().then(() => { idle = true; });
+  expect(await controller.saveAutomatically()).toBe(false);
+  await Promise.resolve();
+  expect(idle).toBe(false);
+  write.resolve();
+  await saving;
+  await waiting;
+  expect(idle).toBe(true);
+  backend.save = async () => {};
+  expect(await controller.saveAutomatically()).toBe(true);
+});
+
 function store(saved: Uint8Array | null, lastGood: Uint8Array | null = null): SaveStore & {
   saves: Uint8Array[];
   cleared: number;

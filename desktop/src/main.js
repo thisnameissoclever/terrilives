@@ -19,6 +19,7 @@ const { SaveFiles } = require('./save-files.js');
 const policy = require('./window-policy.js');
 
 const CLOSE_SAVE_TIMEOUT_MS = 10_000;
+const QUIT_WRITE_TIMEOUT_MS = 5_000;
 
 // The profile folder must be chosen before anything reads it, including the
 // single-instance lock below.
@@ -41,6 +42,7 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on('second-instance', focusGameWindow);
   app.on('before-quit', () => { quitting = true; });
+  app.on('will-quit', holdQuitForSaveWrites);
   app.on('window-all-closed', () => app.quit());
   app.on('web-contents-created', (_event, contents) => applyContentsPolicy(contents));
   app.whenReady().then(start).catch((error) => {
@@ -121,6 +123,23 @@ function createGameWindow() {
     if (gameWindow === window) gameWindow = null;
   });
   void window.loadURL(START_URL);
+}
+
+let saveWritesDrained = false;
+
+/**
+ * A save file write the page asked for keeps running in this process after
+ * the window is gone. Quitting waits for it, for up to five seconds, so the
+ * process does not exit in the middle of a write.
+ */
+function holdQuitForSaveWrites(event) {
+  if (saves === null || saveWritesDrained) return;
+  event.preventDefault();
+  const limit = new Promise((resolve) => setTimeout(resolve, QUIT_WRITE_TIMEOUT_MS));
+  void Promise.race([saves.idle(), limit]).then(() => {
+    saveWritesDrained = true;
+    app.quit();
+  });
 }
 
 let nextSaveRequest = 1;

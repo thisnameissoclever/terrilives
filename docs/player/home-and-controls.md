@@ -96,7 +96,7 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 Options contains Save, Load, Export save, Import save and New game. Save writes the current household to the game's save slot: browser storage on the website, or a file on your computer in the [installed game](#installed-saves). Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work, accepted work trips, queued orders and career reviews, including pending reviews and recorded inputs, so the household can resume.
 
-Before each save replaces the previous one, the game keeps a copy of it. If the latest save cannot be read, for example because the tab closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
+Before each save replaces the previous one, the game keeps a copy of it. If the latest save cannot be read, for example because the game closed in the middle of saving, Load and the game on opening use that copy instead and say so. The unreadable file is kept aside, and the copy never brings back a household you removed with New game. A save from an unsupported version is never replaced this way.
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
@@ -110,15 +110,15 @@ On the website, the slot belongs to the game's site in this browser. A different
 
 ### In the installed game {#installed-saves}
 
-The installed game for Windows and Mac keeps its saves as files in a folder on your computer instead of browser storage: `%APPDATA%\Natural Causes\saves` on Windows, or `~/Library/Application Support/Natural Causes/saves` on Mac. Save, Load, autosave, the kept copy and New game work as described above. Clearing browser data does not touch these files, and uninstalling the game leaves them in place, so a reinstalled game finds them again.
+The installed game for Windows and Mac keeps its saves as files in a folder on your computer instead of browser storage: `%APPDATA%\Natural Causes\saves` on Windows, or `~/Library/Application Support/Natural Causes/saves` on Mac. Save, Load, autosave, the kept copy and New game work as described above. Clearing browser data does not touch these files, and uninstalling the game leaves them in place, so a reinstalled game finds them again. To open the folder on Windows, paste its path into the File Explorer address bar; on Mac, choose Go, then Go to Folder in Finder. Delete the folder to remove the saves for good.
 
 The installed game also saves when you minimize its window and before it closes. Closing waits up to ten seconds for that save to finish. Time keeps passing while the window is minimized.
 
-To move a household between the website and the installed game, use Export save in one and Import save in the other, as described below. The installed game's Export save asks where to save the file, and its Import save opens your computer's file picker.
+To move a household between the website and the installed game, in either direction, use Export save in one and Import save in the other, as described below.
 
 ### Move a save to another browser, device or the installed game {#export-import}
 
-Choose Options, then Export save to download the current household as a file ending in `.ncsave`. Exporting leaves the saved game where it was. The installed game asks where to save the file. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
+Choose Options, then Export save to save the current household as a file ending in `.ncsave`: the website downloads it, and the installed game asks where to save it. Exporting leaves the saved game where it was. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
 
 To use the file, open the game where you want to play (another browser, another device, the website or the installed game), choose Options, then Import save, and pick the file. Choose **Import game** in the confirmation. The imported household replaces the running game and its saved game, and this cannot be undone, so export the current game first if you want to keep it. **Keep playing** closes the confirmation without changing anything. A file that is not a Natural Causes save, a damaged save, or a save from a newer version of the game is rejected and the current game is kept. While saving is paused because the existing saved game is unreadable or from a newer version, Import save cannot replace it: export it first if you want to keep it, choose New game, then import again.
 
@@ -130,7 +130,7 @@ Export save also opens prominent recovery instructions with a link to the old we
 
 :::illustration save-recovery
 
-If you played at thisnameissoclever.github.io/terrilives, natural-causes.life starts without your household, because a save stays in the browser where it was made. The old address now opens the new one. To bring that save across, open [Move your Natural Causes save](https://thisnameissoclever.github.io/natural-causes-old-save/) in the same browser and on the same device, choose **Download save**, then use Import save at natural-causes.life.
+If you played at thisnameissoclever.github.io/terrilives, natural-causes.life starts without your household, because a save stays in the browser where it was made. The old address now opens the new one. To bring that save across, open [Move your Natural Causes save](https://thisnameissoclever.github.io/natural-causes-old-save/) in the same browser and on the same device, choose **Download save**, then use Import save at natural-causes.life or in the installed game.
 
 Do this soon. Some browsers, including Safari, can clear saved data for a site you have not visited for a while.
 

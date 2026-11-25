@@ -138,6 +138,8 @@ export class PersistenceController {
   /** The protected slot's bytes, when known, so Export can deliver them within the click. */
   private protectedBytes: Uint8Array | null = null;
   private activeOperation: PersistenceOperation | null = null;
+  /** Callers of `whenIdle`, released when the active operation finishes. */
+  private idleWaiters: Array<() => void> = [];
   private automaticOperation = false;
   private readonly pendingIndicator: PendingIndicator;
 
@@ -532,6 +534,16 @@ export class PersistenceController {
     return Math.floor(this.sim.clockTick() / dayTicks);
   }
 
+  /**
+   * Resolves once no Save, Load, import, export or clear holds the operation
+   * boundary. The installed game waits on this before its close save, because
+   * an automatic save started while another operation runs is skipped.
+   */
+  whenIdle(): Promise<void> {
+    if (this.activeOperation === null) return Promise.resolve();
+    return new Promise((resolve) => this.idleWaiters.push(resolve));
+  }
+
   private beginOperation(operation: PersistenceOperation, automatic = false): boolean {
     if (this.activeOperation !== null) return false;
     this.activeOperation = operation;
@@ -545,6 +557,7 @@ export class PersistenceController {
       this.activeOperation = null;
       this.automaticOperation = false;
       if (!this.presentFeedback) this.pendingIndicator.stop();
+      for (const resolve of this.idleWaiters.splice(0)) resolve();
     }
   }
 

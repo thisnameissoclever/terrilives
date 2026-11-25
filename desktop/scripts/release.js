@@ -172,11 +172,15 @@ function npmCli(name) {
   return path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', `${name}-cli.js`);
 }
 
-/** Runs a command without a shell. On Windows, npm runs through Node directly. */
+/**
+ * Runs a command without a shell. On Windows, npm is a batch file that cannot
+ * run without one, so npm's own script runs through Node instead. Elsewhere
+ * npm is an ordinary executable.
+ */
 function realExec(command, args, { cwd = REPO_ROOT, capture = false } = {}) {
   let file = command;
   let argv = args;
-  if (command === 'npm') {
+  if (command === 'npm' && process.platform === 'win32') {
     file = process.execPath;
     argv = [npmCli('npm'), ...args];
   }

@@ -177,6 +177,25 @@ test('operations run one at a time in the order they were asked for', async () =
   assert.deepEqual(order, ['write starts', 'write ends', 'read 1']);
 });
 
+test('idle settles after every queued operation, including a failed one', async () => {
+  const directory = folder();
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const recorder = recordingFs({ writeFile: async () => { await gate; } });
+  const saves = new SaveFiles({ directory, fs: recorder.fs });
+  const writing = saves.write('terri-save-1.bin', new Uint8Array([1]));
+  const refused = saves.write('bad name', new Uint8Array([1])).catch(() => 'refused');
+  let idle = false;
+  const waiting = saves.idle().then(() => { idle = true; });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(idle, false);
+  release();
+  await Promise.all([writing, waiting]);
+  assert.equal(await refused, 'refused');
+  assert.equal(idle, true);
+  assert.deepEqual([...fs.readFileSync(path.join(directory, 'terri-save-1.bin'))], [1]);
+});
+
 test('startup removes temporary files left by an unfinished write, and nothing else', async () => {
   const directory = folder();
   fs.mkdirSync(directory, { recursive: true });

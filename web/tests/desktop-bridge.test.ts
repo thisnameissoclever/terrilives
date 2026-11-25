@@ -92,6 +92,27 @@ describe('registerDesktopSaveRequests', () => {
     expect(save).toHaveBeenCalledTimes(1);
   });
 
+  it('waits for a running operation before saving, then checks for a new game again', async () => {
+    const { bridge, request } = validBridge();
+    const save = vi.fn(async () => true);
+    let idle!: () => void;
+    let starting = false;
+    registerDesktopSaveRequests(bridge as DesktopBridge, save, () => starting,
+      () => new Promise<void>((resolve) => { idle = resolve; }));
+    const answered = request();
+    await Promise.resolve();
+    expect(save).not.toHaveBeenCalled();
+    starting = true;
+    idle();
+    await answered;
+    expect(save).not.toHaveBeenCalled();
+    starting = false;
+    const second = request();
+    idle();
+    await second;
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+
   it('lets the app wait for the save to finish', async () => {
     const { bridge, request } = validBridge();
     let finish!: () => void;

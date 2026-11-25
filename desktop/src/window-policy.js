@@ -29,11 +29,25 @@ function isGameUrl(url) {
   return parsed !== null && parsed.protocol === `${SCHEME}:` && parsed.host === HOST;
 }
 
-/** The game itself, as opposed to the guide, changelog or report pages beside it. */
+/**
+ * The game itself, as opposed to the guide, changelog or report pages beside
+ * it. Compared the way the file server and Windows read a path, so that no
+ * other spelling of index.html opens a second copy of the game. A path that
+ * cannot be decoded counts as the game, which refuses it everywhere.
+ */
 function isGamePage(url) {
   if (!isGameUrl(url)) return false;
-  const { pathname } = new URL(url);
-  return pathname === '/' || pathname === '/index.html';
+  let path;
+  try {
+    path = decodeURIComponent(new URL(url).pathname);
+  } catch {
+    return true;
+  }
+  // Backslashes and repeated slashes are one separator; Windows ignores case
+  // and a name's trailing dots and spaces.
+  const normalized = path.replace(/[\\/]+/g, '/').split('/')
+    .map((segment) => segment.replace(/[. ]+$/, '')).join('/').toLowerCase();
+  return normalized === '/' || normalized === '/index.html';
 }
 
 /** A link the system's browser or mail program should open. */

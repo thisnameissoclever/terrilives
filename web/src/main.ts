@@ -1751,7 +1751,7 @@ async function main(): Promise<void> {
       const saving = persistence.saveAutomatically();
       syncPersistenceButtons();
       return saving.finally(() => syncPersistenceButtons());
-    }, () => startingNewGame);
+    }, () => startingNewGame, () => persistence.whenIdle());
   }
 
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
