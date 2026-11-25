@@ -45,7 +45,7 @@ describe('committed atlas packet validation',()=>{
   });
   it('rejects stale fixture identities and grime dimensions',()=>{
     const m=clone();m.companions[0].sha256='0'.repeat(64);expect(()=>validateAtlasStorage(m,gpu().device)).toThrow(/source|catalogue/);
-    const n=clone();n.sources[43].width=2048;expect(()=>validateAtlasStorage(n,gpu().device)).toThrow(/source|catalogue/);
+    const n=clone(),grime=n.sources.findIndex((s:{file:string})=>s.file.endsWith('grime/household-stains.png'));expect(grime).toBeGreaterThan(0);n.sources[grime].width=2048;expect(()=>validateAtlasStorage(n,gpu().device)).toThrow(/source|catalogue/);
   });
   it.each([['maxTextureDimension2D',1024],['maxTextureArrayLayers',20],['maxStorageBufferBindingSize',1024],['maxBufferSize',1024],['maxStorageBuffersPerShaderStage',3]])(
     'rejects device %s before fetch',async(key,value)=>{const {device}=gpu();Object.assign(device.limits,{[key]:value});const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);

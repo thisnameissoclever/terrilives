@@ -520,7 +520,7 @@
     "web/src/books/commerce-codec.ts": "622d508685c5f33e2091f8a585b50a03a2fc8d51b56f9f587cefae2c62b3e7b5",
     "web/src/books/results.ts": "46764c33cfd3e3c3cd7d98a9528624791c0837cca711eb22422db820db7cec5e",
     "web/src/bridge.ts": "3d493fc3816c11fb31bc27da2d2187037a52af4a9562e32fe6c8838d41cd9220",
-    "web/src/character/activity-categories.ts": "55c57b7418949f85abfcd8a3d03b71dd1df4bf65fac7b585403ca43f524d1d24",
+    "web/src/character/activity-categories.ts": "71b85cec629e22c28f99ca5f531244eb42ac4ccac597657b42162e309130bdee",
     "web/src/character/catalog.ts": "bd3660f889edcdbb85df9a8c0bb02bb931b3b45ebfe1436ddf32436743c52887",
     "web/src/character/choice-influences.ts": "f4db7989d4aa821b24242f786c67658976d5e1459020bfad5a2bbaefb8a1fded",
     "web/src/character/codec.ts": "a6d00d454d50d185218dc1fc3059b74528267c34ddcc5e0d9347c2e24aa1a546",

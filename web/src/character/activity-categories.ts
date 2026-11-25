@@ -13,12 +13,14 @@ export const activityCategories:readonly ActivityCategory[]=[
   {id:'read',label:'Read',routes:[['sofa','read'],['bookshelf','read'],['chair','read'],['long_sofa','read'],['armchair','read'],['desk_chair','read'],['reading_chair','settle_in']]},
   {id:'television',label:'Watch TV',routes:[['television','watch_tv']]},
   {id:'music',label:'Listen to music',routes:[['radio','listen']]},
-  {id:'exercise',label:'Exercise',routes:[['moving_box','use_exercise_bike'],['pool','hop_in'],['pool_rectangular','hop_in']]},
+  {id:'exercise',label:'Exercise',routes:[['moving_box','use_exercise_bike']]},
   {id:'letters',label:'Write letters',routes:[['desk','attend_correspondence']]},
   {id:'fish',label:'Watch fish',routes:[['reference_shelf','watch_fish']]},
 ];
 
-export const hiddenActivityRoutes:readonly Route[]=[['kitchen_sink','clean_dishes']];
+// Swimming has no creator category yet: exercise traits do not cover it, so
+// grouping it under Exercise would dilute their shown effect. It keeps 1x.
+export const hiddenActivityRoutes:readonly Route[]=[['kitchen_sink','clean_dishes'],['pool','hop_in'],['pool_rectangular','hop_in']];
 export const matchesRoute=(route:{object:string;action:string},[object,action]:Route):boolean=>route.object===object&&route.action===action;
 export function categoryMembers(category:ActivityCategory,catalog:CharacterCatalog):CharacterCatalog['activities'] {
   return catalog.activities.filter(route=>category.routes.some(pair=>matchesRoute(route,pair)));

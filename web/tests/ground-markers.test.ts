@@ -775,6 +775,7 @@ describe('the marker pipeline and its place in the scene pass', () => {
     expect(grime, 'the scene pass draws grime').toBeGreaterThan(begin);
     expect(markers, 'the floor markers are drawn after grime').toBeGreaterThan(grime);
     expect(markers, 'the floor markers are drawn inside the scene pass').toBeLessThan(end);
+    expect(source.indexOf('this.drawLowWalls(', begin), 'no short walls are drawn before the markers').toBeGreaterThan(markers);
     expect(end, 'the scene pass ends only for the water surface before the short walls').toBeLessThan(water);
     expect(resumedWalls, 'the short walls follow the markers and the water surface').toBeGreaterThan(water);
     expect(passWalls, 'without water the short walls follow the markers in the same pass').toBeGreaterThan(resumedWalls);
