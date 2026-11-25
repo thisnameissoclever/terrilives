@@ -113,9 +113,7 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
     careers.hash_into(&mut legacy);
     let mut jobs: Vec<_> = household(&mut sim)
         .into_iter()
-        .filter_map(|(id, entity)| {
-            sim.world().get::<Career>(entity).map(|job| (id.0, job.0))
-        })
+        .filter_map(|(id, entity)| sim.world().get::<Career>(entity).map(|job| (id.0, job.0)))
         .collect();
     jobs.sort_unstable();
     legacy.write_u64(jobs.len() as u64);
@@ -533,7 +531,14 @@ fn a_build_transaction_keeps_the_held_shift() {
     assert!(before.iter().any(|shift| *shift != 0));
     sim.begin_build().expect("build starts");
     assert_eq!(
-        sim.save_snapshot_v28().previous.legacy.legacy.legacy.shifts.held.len(),
+        sim.save_snapshot_v28()
+            .previous
+            .legacy
+            .legacy
+            .legacy
+            .shifts
+            .held
+            .len(),
         before.iter().filter(|s| **s != 0).count()
     );
     sim.cancel_build().expect("cancel restores the baseline");
@@ -651,7 +656,8 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     assert_eq!(loaded.save_snapshot_v28(), saved);
 
     let mut unknown = saved.clone();
-    unknown.previous.legacy.legacy.legacy.shifts.changed_today[0].from = "no_such_shift".to_string();
+    unknown.previous.legacy.legacy.legacy.shifts.changed_today[0].from =
+        "no_such_shift".to_string();
     assert_eq!(
         Sim::new_from_shipped_lot().load_snapshot_v28(unknown),
         Err(crate::SaveError::InvalidValue),
@@ -688,5 +694,13 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     for _ in 0..1440 {
         sim.tick();
     }
-    assert!(sim.save_snapshot_v28().previous.legacy.legacy.legacy.shifts.changed_today.is_empty());
+    assert!(sim
+        .save_snapshot_v28()
+        .previous
+        .legacy
+        .legacy
+        .legacy
+        .shifts
+        .changed_today
+        .is_empty());
 }

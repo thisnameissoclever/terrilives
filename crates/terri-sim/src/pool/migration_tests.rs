@@ -102,7 +102,10 @@ fn assert_old_source(source: &Sim, snapshot: &terri_core::LegacyEditableWorldSna
     restore_historical_v22(restored.world_mut(), snapshot.pools.clone())
         .expect("historical endpoint contract must admit the source");
 }
-fn restored(source: &Sim, snapshot: terri_core::LegacyEditableWorldSnapshotV22) -> Result<Sim, SaveError> {
+fn restored(
+    source: &Sim,
+    snapshot: terri_core::LegacyEditableWorldSnapshotV22,
+) -> Result<Sim, SaveError> {
     save::editable_v22::restore(
         snapshot,
         source.world().resource::<Content>().0,
@@ -129,7 +132,7 @@ fn historical_all_facings_and_phases_preserve_progress_and_randomness() {
             assert_old_source(&source, &old);
             let before = source.world().get::<PoolEpisode>(actor).unwrap().clone();
             let point = *source.world().get::<Position>(actor).unwrap();
-            let needs = source.world().get::<Needs>(actor).unwrap().clone();
+            let needs = *source.world().get::<Needs>(actor).unwrap();
             let random = source.world().resource::<SimRng>().clone();
             let current = restored(&source, old).unwrap();
             let actor = source_entity(&current, actor.index_u32());
@@ -143,7 +146,11 @@ fn historical_all_facings_and_phases_preserve_progress_and_randomness() {
                 ),
                 (
                     before.phase,
-                    if phase == 3 { before.elapsed * 2 } else { before.elapsed },
+                    if phase == 3 {
+                        before.elapsed * 2
+                    } else {
+                        before.elapsed
+                    },
                     before.exit_origin,
                     before.interrupted
                 )

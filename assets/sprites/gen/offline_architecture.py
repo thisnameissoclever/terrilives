@@ -305,6 +305,10 @@ def load_historical_extensions(config, existing_names=frozenset()):
             from conversation_icons import load_reviewed_icons
             sprites = load_reviewed_icons(path)
             assert not names.intersection(row[0] for row in sprites), 'duplicate conversation icon records'
+        elif extension.get('kind') == 'conversation-neutral-icons':
+            from conversation_icons import load_reviewed_icons, render_neutral_icons
+            sprites = load_reviewed_icons(path, render_neutral_icons)
+            assert not names.intersection(row[0] for row in sprites), 'duplicate neutral conversation icon records'
         elif extension.get('kind', 'static') == 'static':
             sprites, _, _, _ = load_props(path, existing_names=names)
         elif extension['kind'] == 'neutral-seating':

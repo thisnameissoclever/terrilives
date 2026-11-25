@@ -7,7 +7,7 @@ export const ATLAS_STORAGE = {
   "border": 1,
   "physicalSize": 2048,
   "tilesPerRow": 204,
-  "uniqueTiles": 875438,
+  "uniqueTiles": 877007,
   "originalAtlasPages": [
     "atlas-d7b5b95b0e874eeea0e64d4f4b2ce2544e7eacf6bdc006b14cd14d869a2771e9.png",
     "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
@@ -51,7 +51,7 @@ export const ATLAS_STORAGE = {
     "atlas-6ad58c9226041b030e25d7db8bab07a422af2aab3033f01911117e63ead76947.png",
     "atlas-bfdcc66fe0f1b026b32107ba2d0d72b1ff8698152dfea01fee4fc0f48b239882.png",
     "atlas-76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a.png",
-    "atlas-f087bfcaa6535f3bdb7270a98dbdab277c066a65347a02bb976d0ee825f1cd35.png"
+    "atlas-4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c.png"
   ],
   "companions": [
     {
@@ -393,10 +393,10 @@ export const ATLAS_STORAGE = {
       "sha256": "76f04e7016e20347947a92e1aed826613099f0c1ac848ab0336c69bde3a35d9a"
     },
     {
-      "file": "web/public/atlas-f087bfcaa6535f3bdb7270a98dbdab277c066a65347a02bb976d0ee825f1cd35.png",
+      "file": "web/public/atlas-4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c.png",
       "width": 2048,
       "height": 2048,
-      "sha256": "f087bfcaa6535f3bdb7270a98dbdab277c066a65347a02bb976d0ee825f1cd35"
+      "sha256": "4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c"
     },
     {
       "file": "web/public/grime/household-stains.png",
@@ -555,22 +555,22 @@ export const ATLAS_STORAGE = {
       "sha256": "6d7ea95535ff11915731b89efee84b5e3ff08aae1d18602319213fafc65b438b"
     },
     {
-      "file": "atlas-storage/page-d2a5b19a773d575bd8b538e64916d8a6791943495880759543054efdae48ea4e.png",
-      "sha256": "d2a5b19a773d575bd8b538e64916d8a6791943495880759543054efdae48ea4e"
+      "file": "atlas-storage/page-78bc1eff41fee7cc2e644e35c514142e7041eb50f36b97767894b94b00c1c9b7.png",
+      "sha256": "78bc1eff41fee7cc2e644e35c514142e7041eb50f36b97767894b94b00c1c9b7"
     },
     {
-      "file": "atlas-storage/page-a0f35041e974a15d3e0f6f3e63df6dd6c7373fe728b4aa4e370d2c84ab10c07b.png",
-      "sha256": "a0f35041e974a15d3e0f6f3e63df6dd6c7373fe728b4aa4e370d2c84ab10c07b"
+      "file": "atlas-storage/page-6dc1e9b3782398bfe55753f2293e493291dd583d6afb9873ea38ef33494899c3.png",
+      "sha256": "6dc1e9b3782398bfe55753f2293e493291dd583d6afb9873ea38ef33494899c3"
     },
     {
-      "file": "atlas-storage/page-0d6b0fcb29b96af139a33102506b75cb27482730fd32702ff815a60109b14b5b.png",
-      "sha256": "0d6b0fcb29b96af139a33102506b75cb27482730fd32702ff815a60109b14b5b"
+      "file": "atlas-storage/page-3b6cb2c8684af12b55551be6af9e3593fa18b1f947aae217f77aceded6ad1387.png",
+      "sha256": "3b6cb2c8684af12b55551be6af9e3593fa18b1f947aae217f77aceded6ad1387"
     }
   ],
   "lookup": {
-    "file": "atlas-storage/lookup-2de71d6f100fecb780a70ab3a91e4f0dfd6b1f8bf7f1273d5863515ce279c3cd.bin.gz",
+    "file": "atlas-storage/lookup-d5bbdb4f409f514d2e04207c6e0f98794a99a7ed9ba416c64e96fb3c8fbda66d.bin.gz",
     "length": 14680068,
-    "sha256": "66645f0b3627c0fbbf83659e32fdb5cc4b33df372ce1b8f79ddeeebcd66c2b66"
+    "sha256": "e547949129c09b73925485f19e3b9c0aa8faf72fc7d393857078cc74554c67c9"
   },
   "coverage": {
     "file": "atlas-storage/coverage-d1a2a7687b209b0d8d56e3dbbfd949acd589030a58053fcef0385e00c157a54c.bin.gz",
@@ -22359,6 +22359,86 @@ export const ATLAS_STORAGE = {
       },
       {
         "sprite": 30926,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30943,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30944,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30945,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30946,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30947,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30948,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30949,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30950,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30951,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30952,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30953,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30954,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30955,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30956,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30957,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30958,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30959,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30960,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30961,
+        "bottomPixels": 41.5
+      },
+      {
+        "sprite": 30962,
         "bottomPixels": 41.5
       }
     ]

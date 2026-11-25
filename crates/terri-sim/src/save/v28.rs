@@ -47,7 +47,10 @@ fn restore_with_pool_clock(
     carried: Carried,
     clock: SavedPoolClock,
 ) -> Result<Sim, SaveError> {
-    let SaveSnapshotV28 { editable, need_mood } = snapshot;
+    let SaveSnapshotV28 {
+        editable,
+        need_mood,
+    } = snapshot;
     v27::validate_rows(&need_mood)?;
     let mut candidate = v26::restore_with_pool_clock(editable, content, carried, clock)?;
     v27::install(candidate.world_mut(), need_mood)?;

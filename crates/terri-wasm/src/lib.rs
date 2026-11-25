@@ -2833,13 +2833,15 @@ impl SimHandle {
         }
         // Private editable-world producers used the same version tags as later
         // published releases. Their content fingerprint precedes every divergence.
-        let private_editable = matches!(version, 22 | 23 | 24)
+        let private_editable = matches!(version, 22..=24)
             && matches!(
                 postcard::take_from_bytes::<u64>(payload),
                 Ok((0x7229_9218_57a2_e3ae, _))
             );
         if version == 24 && private_editable {
-            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV24>(payload) {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV24>(
+                payload,
+            ) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v24(snapshot).is_ok(),
                 _ => false,
             };
@@ -2859,7 +2861,9 @@ impl SimHandle {
             };
         }
         if version == 23 && private_editable {
-            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV23>(payload) {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV23>(
+                payload,
+            ) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v23(snapshot).is_ok(),
                 _ => false,
             };
@@ -2871,7 +2875,9 @@ impl SimHandle {
             };
         }
         if version == 22 && private_editable {
-            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV22>(payload) {
+            return match postcard::take_from_bytes::<terri_core::LegacyEditableWorldSnapshotV22>(
+                payload,
+            ) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_editable_world_v22(snapshot).is_ok(),
                 _ => false,
             };
@@ -11515,10 +11521,6 @@ fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
 mod shift_save_tests;
 
 #[cfg(test)]
-mod published_v21_tests;
-#[cfg(test)]
-mod published_v24_tests;
-#[cfg(test)]
 mod admin_boundary_tests;
 #[cfg(test)]
 mod admin_queue_tests;
@@ -11532,6 +11534,10 @@ mod career_tab_boundary_tests;
 mod need_mood_boundary_tests;
 #[cfg(test)]
 mod presence_fade_boundary_tests;
+#[cfg(test)]
+mod published_v21_tests;
+#[cfg(test)]
+mod published_v24_tests;
 
 #[cfg(test)]
 mod current_test_snapshot;

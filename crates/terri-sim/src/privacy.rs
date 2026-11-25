@@ -379,9 +379,16 @@ pub(crate) fn route(world: &mut World) {
                 if let Some(mut steps) = safe
                     .find_path(from, end)
                     .and_then(|s| {
-                        if target.is_some_and(|target| world.get::<SmartObject>(target.object)
-                            .is_some_and(|object| crate::pool::has_pool(pack.object(object.0)))) {
-                            crate::beds::navigation::Route::Exact(end).bind_path(&safe, (pos.x, pos.y), s)
+                        if target.is_some_and(|target| {
+                            world
+                                .get::<SmartObject>(target.object)
+                                .is_some_and(|object| crate::pool::has_pool(pack.object(object.0)))
+                        }) {
+                            crate::beds::navigation::Route::Exact(end).bind_path(
+                                &safe,
+                                (pos.x, pos.y),
+                                s,
+                            )
                         } else {
                             safe.anchor_path((pos.x, pos.y), s)
                         }

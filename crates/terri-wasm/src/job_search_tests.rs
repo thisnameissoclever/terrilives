@@ -169,7 +169,11 @@ fn older_saves_give_every_living_person_the_household_setting() {
     // The migrated game saves in the current schema with everyone listed.
     let mut migrated = SimHandle::from_lot();
     assert!(migrated.load_bytes(&off));
-    let resaved = payload!(&migrated.save_bytes(), SAVE_SCHEMA_VERSION, terri_core::SaveSnapshotV28);
+    let resaved = payload!(
+        &migrated.save_bytes(),
+        SAVE_SCHEMA_VERSION,
+        terri_core::SaveSnapshotV28
+    );
     let resaved = resaved.editable.previous.legacy.legacy.legacy.legacy.legacy;
     assert_eq!(
         resaved.legacy.job_search_off.len(),

@@ -19,7 +19,10 @@ fn pool_ladder_offsets_turn_from_the_models_base_facing() {
     let pack = terri_data::pack();
     let mut definition = pack.object(pack.find("pool_rectangular").unwrap()).clone();
     definition.base_facing = Facing::SouthWest;
-    for (facing, endpoint) in Facing::ALL.into_iter().zip([(5, 7), (3, 5), (4, 3), (7, 4)]) {
+    for (facing, endpoint) in Facing::ALL
+        .into_iter()
+        .zip([(5, 7), (3, 5), (4, 3), (7, 4)])
+    {
         assert_eq!(pool::approach(&definition, (4, 4), facing), endpoint);
     }
 }
@@ -87,8 +90,11 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
     let (mut sim, actor, object) = fixture(terri_core::Facing::SouthEast);
     order(&mut sim, actor, object);
     entered(&mut sim, actor);
-    assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, 120);
-    let initial = sim.world().get::<Needs>(actor).unwrap().clone();
+    assert_eq!(
+        sim.world().get::<Eating>(actor).unwrap().remaining_ticks,
+        120
+    );
+    let initial = *sim.world().get::<Needs>(actor).unwrap();
     for _ in 0..20 {
         pool::tick(sim.world_mut());
     }
@@ -100,7 +106,7 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
     for _ in 0..60 {
         pool::tick(sim.world_mut());
     }
-    let after = sim.world().get::<Needs>(actor).unwrap().clone();
+    let after = *sim.world().get::<Needs>(actor).unwrap();
     for (need, delta) in [
         (NeedId::Fun, 30.),
         (NeedId::Comfort, 10.),
@@ -109,7 +115,10 @@ fn pool_phases_deliver_only_sixty_swim_minutes_and_release_after_exit() {
         assert!((after.get(need) - initial.get(need) - delta).abs() < 0.001);
     }
     assert!(sim.world().get::<Reserved>(object).is_some());
-    assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, 40);
+    assert_eq!(
+        sim.world().get::<Eating>(actor).unwrap().remaining_ticks,
+        40
+    );
     for _ in 0..39 {
         pool::tick(sim.world_mut());
     }
@@ -137,8 +146,14 @@ fn pool_checked_legacy_writers_refuse_a_half_exit_step() {
     let current = sim.try_save_snapshot_v30().unwrap();
     assert_eq!((current.pools[0].phase, current.pools[0].elapsed), (3, 39));
     assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, 1);
-    assert_eq!(sim.try_save_snapshot_v28(), Err(crate::SaveError::InvalidValue));
-    assert_eq!(sim.try_save_snapshot_v29(), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.try_save_snapshot_v28(),
+        Err(crate::SaveError::InvalidValue)
+    );
+    assert_eq!(
+        sim.try_save_snapshot_v29(),
+        Err(crate::SaveError::InvalidValue)
+    );
     assert_eq!(sim.save_snapshot_v28().pools[0].elapsed, 19);
     assert_eq!(sim.save_snapshot_v29().pools[0].elapsed, 19);
     assert_eq!(sim.try_save_snapshot_v30().unwrap(), current);
@@ -182,7 +197,7 @@ fn pool_cancel_each_phase_keeps_pose_progress_and_physical_owner_but_clears_orde
         }
         assert!(sim.world().get::<Reserved>(object).is_some());
         assert!(!crate::player_actions::has_player_work(sim.world(), actor));
-        let levels = sim.world().get::<Needs>(actor).unwrap().clone();
+        let levels = *sim.world().get::<Needs>(actor).unwrap();
         let saved = sim.save_snapshot_v30();
         sim.load_snapshot_v30(saved.clone()).unwrap();
         assert_eq!(sim.save_snapshot_v30(), saved);
@@ -222,29 +237,51 @@ fn pool_cancel_at_takeoff_lands_before_exit_without_swim_rewards() {
         assert_eq!(episode.elapsed, elapsed);
         assert!(episode.interrupted);
         let remaining = if landing { 60 - elapsed } else { elapsed };
-        assert_eq!(sim.world().get::<Eating>(actor).unwrap().remaining_ticks, remaining);
+        assert_eq!(
+            sim.world().get::<Eating>(actor).unwrap().remaining_ticks,
+            remaining
+        );
 
         order(&mut sim, actor, object);
-        let levels = sim.world().get::<Needs>(actor).unwrap().clone();
-        let queued = sim.world().get::<terri_core::IntentQueue>(actor).unwrap().entries().to_vec();
+        let levels = *sim.world().get::<Needs>(actor).unwrap();
+        let queued = sim
+            .world()
+            .get::<terri_core::IntentQueue>(actor)
+            .unwrap()
+            .entries()
+            .to_vec();
         let satisfaction = |sim: &Sim| {
-            sim.world().get::<terri_core::Satisfaction>(actor).map(terri_core::Satisfaction::value)
+            sim.world()
+                .get::<terri_core::Satisfaction>(actor)
+                .map(terri_core::Satisfaction::value)
         };
         let original_satisfaction = satisfaction(&sim);
         let saved = sim.save_snapshot_v30();
         sim.load_snapshot_v30(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v30(), saved, "paused cancellation at {elapsed}");
+        assert_eq!(
+            sim.save_snapshot_v30(),
+            saved,
+            "paused cancellation at {elapsed}"
+        );
         if landing {
             let render = sim.render_buffer();
-            let row = render.ids.iter().position(|&id| id == actor.index_u32()).unwrap();
-            assert_eq!((render.pool_phases[row], render.pool_elapsed[row]), (1, elapsed));
+            let row = render
+                .ids
+                .iter()
+                .position(|&id| id == actor.index_u32())
+                .unwrap();
+            assert_eq!(
+                (render.pool_phases[row], render.pool_elapsed[row]),
+                (1, elapsed)
+            );
             sim.begin_build().unwrap();
             sim.end_build().unwrap();
             assert_eq!(sim.save_snapshot_v30(), saved);
             sim.begin_admin().unwrap();
             sim.admin_apply(terri_core::admin::AdminChange {
                 edits: vec![terri_core::admin::AdminEdit::AdjustFunds { cents: 500 }],
-            }).unwrap();
+            })
+            .unwrap();
             sim.admin_undo().unwrap();
             sim.end_admin();
             assert_eq!(sim.save_snapshot_v30(), saved);
@@ -253,7 +290,10 @@ fn pool_cancel_at_takeoff_lands_before_exit_without_swim_rewards() {
             pool::tick(sim.world_mut());
             let episode = sim.world().get::<pool::PoolEpisode>(actor);
             assert_eq!(episode.is_some(), step < remaining);
-            assert_eq!(sim.world().get::<Reserved>(object).is_some(), step < remaining);
+            assert_eq!(
+                sim.world().get::<Reserved>(object).is_some(),
+                step < remaining
+            );
             if let Some(episode) = episode {
                 let total = elapsed + step;
                 if !landing {
@@ -261,12 +301,21 @@ fn pool_cancel_at_takeoff_lands_before_exit_without_swim_rewards() {
                 } else if total < 20 {
                     assert_eq!((episode.phase, episode.elapsed), (5, total));
                 } else {
-                    assert_eq!((episode.phase, episode.elapsed, episode.exit_origin), (3, total - 20, 0));
+                    assert_eq!(
+                        (episode.phase, episode.elapsed, episode.exit_origin),
+                        (3, total - 20, 0)
+                    );
                 }
             }
             assert_eq!(sim.world().get::<Needs>(actor).unwrap(), &levels);
             assert_eq!(satisfaction(&sim), original_satisfaction);
-            assert_eq!(sim.world().get::<terri_core::IntentQueue>(actor).unwrap().entries(), queued);
+            assert_eq!(
+                sim.world()
+                    .get::<terri_core::IntentQueue>(actor)
+                    .unwrap()
+                    .entries(),
+                queued
+            );
         }
     }
 }
@@ -319,11 +368,19 @@ fn pool_historical_writers_round_trip_a_canceled_landing() {
             let actor = crate::dining::entity(restored.world(), actor.index_u32()).unwrap();
             let object = crate::dining::entity(restored.world(), object.index_u32()).unwrap();
             assert_eq!(
-                restored.world().get::<Eating>(actor).unwrap().remaining_ticks,
+                restored
+                    .world()
+                    .get::<Eating>(actor)
+                    .unwrap()
+                    .remaining_ticks,
                 47
             );
             assert_eq!(
-                restored.world().get::<terri_core::IntentQueue>(actor).unwrap().entries(),
+                restored
+                    .world()
+                    .get::<terri_core::IntentQueue>(actor)
+                    .unwrap()
+                    .entries(),
                 expected_queue
             );
             assert!(restored.world().get::<Reserved>(object).is_some());

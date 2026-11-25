@@ -80,6 +80,11 @@
     {
       "catalog": "assets/models/static-props-08.json",
       "canonicalSha256": "d96ded4ad0b77f2d25d4a23c83a18a5e420e4d3d99a113e5da62114488d807dc"
+    },
+    {
+      "kind": "conversation-neutral-icons",
+      "catalog": "assets/sprites/conversation-neutral-icons.json",
+      "canonicalSha256": "10dafab8cd705def6bab4f8e60fde5e8355ce797aceb7855f425588f348500f0"
     }
   ],
   "historicalFiles": {

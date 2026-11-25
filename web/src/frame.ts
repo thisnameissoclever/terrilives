@@ -1,6 +1,7 @@
 import {indicatorAnchorY} from './render/indicator-coverage.js';
 import {cleaningFrame} from './render/cleaning-animation.js';
 import {conversationBubbles} from './render/conversation-bubbles.js';
+import type {ReactionBands} from './reaction-band.js';
 import type {TopicRow} from './topic-table.js';
 import type {CharacterScenePlan} from './render/character/scene-plan.js';
 import {fixtureSurfaceHeight,surfacePropDepthOffset} from './render/fixture-depth.js';
@@ -30,6 +31,7 @@ import {
 } from './render/iso.js';
 import {
   ACTIVITY_AT_WORK,
+  EMISSIVE_ANNOTATION,
   EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
   OFFSET_PROJECTION_ANCHOR_X,
@@ -929,6 +931,11 @@ export interface RenderSource {
   conversationTopicTable?(): readonly TopicRow[];
   conversationPreferences?(): Float32Array;
   /**
+   * The Log's reaction band edges in hundredths. Without them a bubble shows a
+   * reaction by the preference's sign alone.
+   */
+  conversationReactionBands?(): ReactionBands;
+  /**
    * Presentation pose: 0 none, 1 talk, 2 eat, 3 seated read,
    * 4 standing read, 5 walk, 6 exercise, 7 watch fish, 8 sit, 9 sleep.
    */
@@ -1139,7 +1146,7 @@ export function buildInstanceBatch(
   const sprites = source.sprites();
   const activities = source.activities();
   const conversationTopics = source.conversationTopics?.();
-  const topicBubbles = conversationBubbles(source.conversationTopicTable?.());
+  const topicBubbles = conversationBubbles(source.conversationTopicTable?.(), source.conversationReactionBands?.());
   const conversationPreferences = source.conversationPreferences?.();
   const visualActions = source.visualActions();
   const simIds = source.simIds?.();
@@ -1394,7 +1401,7 @@ export function buildInstanceBatch(
         layeredDepth(x,y,gridSize,LAYER_FOREGROUND),sprite,
         conversation===null?1:topicBubbles.tint(preference,0,topic),
         conversation===null?1:topicBubbles.tint(preference,1,topic),
-        conversation===null?1:topicBubbles.tint(preference,2,topic));batch.owners[slot-1]=i+1;continue;}
+        conversation===null?1:topicBubbles.tint(preference,2,topic),EMISSIVE_ANNOTATION);batch.owners[slot-1]=i+1;continue;}
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)+fixtureOffsets[positionRow*2];
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)+fixtureOffsets[positionRow*2+1];
@@ -1445,6 +1452,7 @@ export function buildInstanceBatch(
       conversation === null ? 1 : topicBubbles.tint(preference, 0, topic),
       conversation === null ? 1 : topicBubbles.tint(preference, 1, topic),
       conversation === null ? 1 : topicBubbles.tint(preference, 2, topic),
+      EMISSIVE_ANNOTATION,
     );
     batch.owners[slot-1]=i+1;
   }

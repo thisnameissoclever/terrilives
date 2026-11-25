@@ -2,6 +2,7 @@ function isBookIndex(value: number): boolean { return Number.isInteger(value) &&
 
 import type { SimHandle } from './wasm/terri_wasm.js';
 import { parseTopicTable, type TopicRow } from './topic-table.js';
+import { bandsInHundredths, type ReactionBands } from './reaction-band.js';
 import type { WeatherTuning } from './render/weather.js';
 import type { ActionQueueRow, OrderEvent, OrderEventBatch } from './ui/player-orders.js';
 import type { WorkConflict } from './ui/work-order-confirmation.js';
@@ -1457,6 +1458,14 @@ export class SimBridge {
   }
 
   /**
+   * The reaction band edges in hundredths, the ones the Log words chats by,
+   * so a bubble shows the same reaction. Fixed by the content pack.
+   */
+  conversationReactionBands(): ReactionBands {
+    return this.conversationReactionBandsCache ??= bandsInHundredths(this.activityLogReactionBands());
+  }
+
+  /**
    * The presentation body-action category for each row: 0 none; 1 talk;
    * 2 eat; 3 seated read; 4 standing read; 5 walk; 6 exercise; 7 watch fish;
    * 8 sit; 9 sleep.
@@ -1590,6 +1599,7 @@ export class SimBridge {
 
   private activityLogLabelsCache: string[] | null = null;
   private conversationTopicTableCache: TopicRow[] | null = null;
+  private conversationReactionBandsCache: ReactionBands | null = null;
   private activityLogTopicRowsCache: Uint32Array | null = null;
 
   /**

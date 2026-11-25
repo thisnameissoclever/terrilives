@@ -21,7 +21,8 @@ fn at_work(mut sim: Sim) -> Sim {
 
 fn historical_shipped_household() -> Sim {
     let mut sim = Sim::new_from_shipped_lot();
-    sim.world_mut().remove_resource::<terri_core::WorldSurfaces>();
+    sim.world_mut()
+        .remove_resource::<terri_core::WorldSurfaces>();
     sim
 }
 
@@ -270,7 +271,9 @@ fn a_save_from_mid_month_keeps_loading_and_building_after_a_month_length_change(
 #[test]
 fn schema_twenty_two_round_trips_the_bills_record() {
     let mut source = rich();
-    source.world_mut().remove_resource::<terri_core::WorldSurfaces>();
+    source
+        .world_mut()
+        .remove_resource::<terri_core::WorldSurfaces>();
     let snapshot = capture(&source);
     assert_eq!(snapshot.bills.bills.len(), 3);
     assert_eq!(

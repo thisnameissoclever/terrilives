@@ -278,9 +278,11 @@ pub(crate) fn accept(world: &mut World, actor: Entity, entry: QueuedOrder) {
         && intent.chore.is_none()
         && world.get::<Agent>(intent.object).is_some()
         && crate::attendance::manual_work_trip(world, intent.object)
-        && world.get_resource::<ConfirmedRecipientOrder>().is_some_and(|proof| {
-            proof.agent == actor.index_u32() && proof.target == intent.object.index_u32()
-        })
+        && world
+            .get_resource::<ConfirmedRecipientOrder>()
+            .is_some_and(|proof| {
+                proof.agent == actor.index_u32() && proof.target == intent.object.index_u32()
+            })
     {
         crate::attendance::interrupt_for_order(world, intent.object);
     }
@@ -635,7 +637,13 @@ pub(crate) fn has_own_player_work(world: &World, actor: Entity) -> bool {
         .is_some_and(|q| !q.is_empty())
         || world
             .get_resource::<PlayerActions>()
-            .is_some_and(|actions| actions.orders.range((actor, 0)..=(actor, u64::MAX)).next().is_some())
+            .is_some_and(|actions| {
+                actions
+                    .orders
+                    .range((actor, 0)..=(actor, u64::MAX))
+                    .next()
+                    .is_some()
+            })
 }
 
 pub(crate) fn has_player_work(world: &World, actor: Entity) -> bool {

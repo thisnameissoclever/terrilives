@@ -1031,12 +1031,11 @@ pub(crate) fn maintain(world: &mut World) {
                 continue;
             }
         }
-        let Some(steps) = next
-            .access
-            .route
-            .path(grid, from)
-            .and_then(|p| next.access.route.bind_path(grid, (position.x, position.y), p))
-        else {
+        let Some(steps) = next.access.route.path(grid, from).and_then(|p| {
+            next.access
+                .route
+                .bind_path(grid, (position.x, position.y), p)
+        }) else {
             cancel(world, person, target);
             continue;
         };

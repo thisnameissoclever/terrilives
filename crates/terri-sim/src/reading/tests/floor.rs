@@ -465,17 +465,25 @@ fn floor_book_claims_require_a_position_and_a_housemate_identity() {
         } else {
             sim.world_mut().entity_mut(incomplete).remove::<Position>();
         }
-        sim.world_mut().entity_mut(person).insert(AtWork { remaining_ticks: 1 });
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(AtWork { remaining_ticks: 1 });
         crate::reading::floor::claim(sim.world_mut());
         crate::reading::floor::pick_up_arrivals(sim.world_mut());
         assert!(on_the_floor(&copy(&sim)));
         assert!(sim.world().get::<Path>(incomplete).is_none());
         assert!(stage(&sim, incomplete).is_none());
 
-        sim.world_mut().entity_mut(person).remove::<AtWork>().insert(book_tile);
+        sim.world_mut()
+            .entity_mut(person)
+            .remove::<AtWork>()
+            .insert(book_tile);
         crate::reading::floor::pick_up_arrivals(sim.world_mut());
         assert!(stage(&sim, person).is_some());
-        assert_eq!(copy(&sim).borrower, sim.world().get::<SimId>(person).copied());
+        assert_eq!(
+            copy(&sim).borrower,
+            sim.world().get::<SimId>(person).copied()
+        );
     }
 }
 

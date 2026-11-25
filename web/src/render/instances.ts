@@ -150,6 +150,13 @@ export const TINT_NONE = 1;
 export const EMISSIVE_NONE = 0;
 
 /**
+ * Activity symbols and conversation bubbles are annotations over the scene,
+ * not objects in it, so night does not darken them. A bubble's like or
+ * dislike tint must still read in the dark (issue 360).
+ */
+export const EMISSIVE_ANNOTATION = 1;
+
+/**
  * The `kinds` array the render buffer exports: 0 for a sim, 1 for a smart
  * object. It is **not** what the GPU draws - the sprite index is - and it
  * exists on this side only to pick the depth layer a row belongs on. See

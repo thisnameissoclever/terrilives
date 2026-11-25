@@ -1,6 +1,6 @@
 //! Frozen private editable-world V21; generic header21 belongs to published shifts.
-use crate::{world_geometry::WorldSurfaces, SaveError, Sim};
 use super::ordinary_world::{self, CommuteEndpoints};
+use crate::{world_geometry::WorldSurfaces, SaveError, Sim};
 use terri_core::LegacyEditableWorldSnapshotV21;
 
 pub(crate) fn capture(sim: &Sim) -> LegacyEditableWorldSnapshotV21 {

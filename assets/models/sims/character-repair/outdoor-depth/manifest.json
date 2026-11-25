@@ -2,7 +2,7 @@
   "version": 1,
   "state": "complete",
   "encoding": "rg-u16-unorm-x-minus-y-with-b-high-range",
-  "atlasSha256": "dfc2a51f71075296ea23f60083254bbe2aeaaf937fa77370911624d5790e0d0d",
+  "atlasSha256": "134f63536f942b65a3fc11fefb9d3efcb6877992158532c004b445ef8393809f",
   "producerHashes": {
     "export_static_depth.py": "15364116c507be02c9eceaf58621553e74c6bdd95a020c7e5ad54c39372d371f",
     "depth_geometry.py": "93e63864ef816ca04b0673119dc22f2ccd18f5cb6dcea0e4a7315666a96adfca",
@@ -409,7 +409,7 @@
   },
   "coverageSources": {
     "web/public/atlas-559f7263d2c67e371fce5a64dcb62ba1b88c2019169a231b67af4078ddf5cc06.png": "559f7263d2c67e371fce5a64dcb62ba1b88c2019169a231b67af4078ddf5cc06",
-    "web/public/atlas-f087bfcaa6535f3bdb7270a98dbdab277c066a65347a02bb976d0ee825f1cd35.png": "f087bfcaa6535f3bdb7270a98dbdab277c066a65347a02bb976d0ee825f1cd35"
+    "web/public/atlas-4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c.png": "4de03fe24f5b8cfe68cd17a3e86204a7052fa8f713743ae5c952a521d2bf039c"
   },
   "pages": [
     {

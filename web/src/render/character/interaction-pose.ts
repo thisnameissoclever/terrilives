@@ -267,7 +267,6 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
     };
     const pitchSolution=(roll:number)=>{
       let solution=candidate(0,roll);
-      if(contacts.policy==='bath')return solution;
       for(let degrees=1;degrees<=45&&!solution;degrees++)for(const sign of [1,-1]){
         const angle=sign*degrees*Math.PI/180,found=candidate(angle,roll);if(!found)continue;
         let low=sign*(degrees-1)*Math.PI/180,high=angle;

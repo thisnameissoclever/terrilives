@@ -65,6 +65,7 @@ import {
   screenY,
 } from '../src/render/iso.js';
 import {
+  EMISSIVE_ANNOTATION,
   FLOATS_PER_INSTANCE,
   KIND_AGENT,
   OFFSET_DEPTH,
@@ -2137,6 +2138,35 @@ describe('activity indicator bubbles', () => {
     expect(built[4 * FLOATS_PER_INSTANCE + OFFSET_TINT_G]).toBeCloseTo(0.78);
     expect(Array.from(built.slice(5 * FLOATS_PER_INSTANCE + OFFSET_TINT_R,
       5 * FLOATS_PER_INSTANCE + OFFSET_TINT_B + 1))).toEqual([1, 1, 1]);
+    // Night must not grey the tints out: every bubble resists the ambient (issue 360).
+    for (const row of [3, 4, 5]) {
+      expect(built[row * FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(EMISSIVE_ANNOTATION);
+    }
+  });
+
+  it('draws the reaction the Log names, from the same band edges (issue 360)', () => {
+    // The Log's words for these, with edges at 60 and 20 hundredths: loves,
+    // likes, does not mind (twice), dislikes, hates.
+    const preferences = [0.6, 0.2, 0.19, -0.19, -0.2, -0.6];
+    const talking = Object.assign(new FakeEntities(), {
+      conversationTopics: () => new Uint32Array(preferences.length).fill(1),
+      conversationTopicTable: () => READING_TOPIC_TABLE,
+      conversationPreferences: () => new Float32Array(preferences),
+      conversationReactionBands: () => ({ loves: 60, likes: 20 }),
+    });
+    talking.set(preferences.map((_, i) => [i + 1, i + 1, i + 1, i + 1, KIND_AGENT, 3, 4]));
+    const built = buildInstances(talking, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    const bubbleAt = (i: number) => (preferences.length + i) * FLOATS_PER_INSTANCE;
+    const faces = ['Like', 'Like', 'Neutral', 'Neutral', 'Dislike', 'Dislike'];
+    faces.forEach((face, i) => {
+      expect(built[bubbleAt(i) + OFFSET_SPRITE]).toBe(spriteIndex(`conversationReading${face}`));
+    });
+    // A neutral reaction keeps plain linen; the others keep their tint.
+    for (const i of [2, 3]) {
+      expect(Array.from(built.slice(bubbleAt(i) + OFFSET_TINT_R, bubbleAt(i) + OFFSET_TINT_B + 1))).toEqual([1, 1, 1]);
+    }
+    expect(built[bubbleAt(1) + OFFSET_TINT_R]).toBeLessThan(1);
+    expect(built[bubbleAt(4) + OFFSET_TINT_G]).toBeLessThan(1);
   });
 
   it('uses registered counter surface depth beside configured people', () => {
@@ -2164,6 +2194,7 @@ describe('activity indicator bubbles', () => {
       expect(batch.instances[base+OFFSET_SPRITE]).toBe(spriteIndex('conversationReadingDislike'));
       expect(batch.instances[base+OFFSET_TINT_R]).toBeCloseTo(.99);expect(batch.instances[base+OFFSET_TINT_G]).toBeCloseTo(.78);
       expect(batch.instances[base+OFFSET_TINT_B]).toBeCloseTo(.76);expect(batch.owners[batch.annotations.start]).toBe(1);
+      expect(batch.instances[base+OFFSET_EMISSIVE]).toBe(EMISSIVE_ANNOTATION);
     } finally {vi.unstubAllGlobals();}
   });
 
@@ -2184,6 +2215,8 @@ describe('activity indicator bubbles', () => {
     expect(built[bubbleBase + OFFSET_SCREEN_Y]).toBe(
       indicatorY(1, 1, built[simBase + OFFSET_SPRITE]),
     );
+    // A plain activity symbol stays as readable at night as a conversation bubble.
+    expect(built[bubbleBase + OFFSET_EMISSIVE]).toBe(EMISSIVE_ANNOTATION);
     // Nearer than its own sim, by less than anything else could sit
     // between: a tie discards one quad, a big nudge reorders strangers.
     expect(built[bubbleBase + OFFSET_DEPTH]).toBeLessThan(

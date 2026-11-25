@@ -1,7 +1,7 @@
 //! Current saves compose published careers and explicit world/activity continuation.
-use crate::{SaveError, Sim};
-use crate::pool::SavedPoolClock;
 use super::ordinary_world::{self, CommuteEndpoints};
+use crate::pool::SavedPoolClock;
+use crate::{SaveError, Sim};
 use terri_core::{SaveSnapshotV26, WorldSurfaces};
 
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV26 {
@@ -62,12 +62,18 @@ pub(super) fn restore_with_pool_clock(
         open_shift_base_pay,
         career_input_sources,
     } = snapshot;
-    ordinary_world::prepare_geometry(&previous.legacy.legacy.legacy.legacy, &surfaces, commutes, &mut carried)?;
+    ordinary_world::prepare_geometry(
+        &previous.legacy.legacy.legacy.legacy,
+        &surfaces,
+        commutes,
+        &mut carried,
+    )?;
     // Complete activity/order ownership is checked after all published queue layers.
     carried.pools = None;
     carried.baths = None;
     carried.manual_work_trips = Some(manual_work_trips);
-    let mut candidate = super::v24::restore_with_sources(previous, content, carried, career_input_sources)?;
+    let mut candidate =
+        super::v24::restore_with_sources(previous, content, carried, career_input_sources)?;
     crate::attendance::restore_open_base_pay(candidate.world_mut(), open_shift_base_pay)?;
     crate::pool::restore(candidate.world_mut(), pools, clock)?;
     crate::bath::restore(candidate.world_mut(), baths)?;

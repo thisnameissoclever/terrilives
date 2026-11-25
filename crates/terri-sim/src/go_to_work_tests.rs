@@ -503,17 +503,20 @@ fn status_after_a_settled_shift_today_is_tomorrow() {
     let end = START + u64::from(SHIFT);
     let pay_cents = standard_pay(&sim);
     let mut attendance = Attendance::default();
-    attendance.shifts.insert(id, SavedScheduledShift {
-        sim: id.0,
-        career: 0,
-        start_tick: START,
-        end_tick: end,
-        worked_ticks: u64::from(SHIFT),
-        accounted_tick: end,
-        pay_cents,
-        settled: true,
-        legacy: false,
-    });
+    attendance.shifts.insert(
+        id,
+        SavedScheduledShift {
+            sim: id.0,
+            career: 0,
+            start_tick: START,
+            end_tick: end,
+            worked_ticks: u64::from(SHIFT),
+            accounted_tick: end,
+            pay_cents,
+            settled: true,
+            legacy: false,
+        },
+    );
     sim.world_mut().insert_resource(attendance);
     at(&mut sim, end + 10);
     let day = day_ticks(&sim);

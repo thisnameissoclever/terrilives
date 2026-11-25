@@ -183,7 +183,9 @@ fn draft_land_growth_keeps_confirmed_rent_in_the_original_coordinate_frame() {
     let original_width = sim.world().resource::<terri_core::TileGrid>().width();
     sim.world_mut().insert_resource(Funds(100_000_000));
     sim.begin_build().unwrap();
-    sim.world_mut().resource_mut::<CommandQueue>().push(SimCommand::BuyLand { side: 0 });
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::BuyLand { side: 0 });
     sim.flush_commands();
     let grid = sim.world().resource::<terri_core::TileGrid>();
     assert!(grid.width() > original_width);

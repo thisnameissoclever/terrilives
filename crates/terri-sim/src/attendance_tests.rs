@@ -142,11 +142,18 @@ fn go_to_work_from_the_pool_resumes_across_both_sides_of_the_ladder_exit() {
     let accepted = sim.save_snapshot_v28();
     issue(&mut sim, command);
     assert_eq!(
-        sim.world().resource::<Careers>().last_result.unwrap().reason,
+        sim.world()
+            .resource::<Careers>()
+            .last_result
+            .unwrap()
+            .reason,
         Some(CareerRefusal::AtWork)
     );
     assert_eq!(sim.save_snapshot_v28().pools, accepted.pools);
-    assert_eq!(sim.save_snapshot_v28().manual_work_trips, accepted.manual_work_trips);
+    assert_eq!(
+        sim.save_snapshot_v28().manual_work_trips,
+        accepted.manual_work_trips
+    );
     let commands = sim.career_command_count();
 
     continue_roundtrip(&mut sim, 3);
@@ -155,10 +162,16 @@ fn go_to_work_from_the_pool_resumes_across_both_sides_of_the_ladder_exit() {
     });
     assert!(manual_work_trip(sim.world(), actor));
     continue_roundtrip(&mut sim, 1);
-    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Outbound));
+    assert_eq!(
+        sim.world().get::<Commuting>(actor),
+        Some(&Commuting::Outbound)
+    );
     assert!(manual_work_trip(sim.world(), actor));
     assert_eq!(sim.career_command_count(), commands);
-    assert_eq!(sim.world().get::<Needs>(actor).unwrap().get(NeedId::Hunger), 0.0);
+    assert_eq!(
+        sim.world().get::<Needs>(actor).unwrap().get(NeedId::Hunger),
+        0.0
+    );
 }
 
 #[derive(Clone, Copy)]
@@ -191,7 +204,8 @@ fn swimmer_leaving_at_week_boundary(review: WorkReview) -> (Sim, Entity, Entity,
     new.social_demand = 0.125;
     new.trait_fit = vec![(0, 0.25)];
     new.shifts.clear();
-    sim.world_mut().insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
     sim.world_mut().resource_mut::<SimClock>().tick = 50;
     start_swimming(&mut sim, actor);
     let boundary = 2 * 7 * 240;
@@ -200,14 +214,27 @@ fn swimmer_leaving_at_week_boundary(review: WorkReview) -> (Sim, Entity, Entity,
     let job = &sim.world().resource::<Content>().0.careers[0];
     let mut record = crate::careers::Record::new(job);
     record.consecutive_good = job.advance_weeks;
-    record.shifts.push(if matches!(review, WorkReview::NoChange) { 60.0 } else { 100.0 });
-    sim.world_mut().resource_mut::<Careers>().records.insert(id, record);
+    record
+        .shifts
+        .push(if matches!(review, WorkReview::NoChange) {
+            60.0
+        } else {
+            100.0
+        });
+    sim.world_mut()
+        .resource_mut::<Careers>()
+        .records
+        .insert(id, record);
 
     let agent = actor.index_u32();
     issue(&mut sim, SimCommand::GoToWork { agent });
     sim.tick();
     assert_eq!(
-        sim.world().resource::<Careers>().record(id).unwrap().review_due,
+        sim.world()
+            .resource::<Careers>()
+            .record(id)
+            .unwrap()
+            .review_due,
         Some(1)
     );
     (sim, actor, object, boundary)
@@ -227,9 +254,22 @@ fn pool_departure_across_week_boundary_keeps_the_shift_until_the_promotion() {
     until(&mut sim, "arrival at the accepted shift", 100, |s| {
         s.world().get::<AtWork>(actor).is_some()
     });
-    assert_eq!(sim.world().get::<Career>(actor), Some(&Career(registered.career)));
-    assert_eq!(open_shift(sim.world(), actor).unwrap().pay_cents, registered.pay_cents);
-    assert_eq!(sim.world().resource::<Careers>().record(id).unwrap().review_due, Some(1));
+    assert_eq!(
+        sim.world().get::<Career>(actor),
+        Some(&Career(registered.career))
+    );
+    assert_eq!(
+        open_shift(sim.world(), actor).unwrap().pay_cents,
+        registered.pay_cents
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .record(id)
+            .unwrap()
+            .review_due,
+        Some(1)
+    );
     continue_roundtrip(&mut sim, 1);
     until(&mut sim, "shift settlement", 120, |s| {
         s.world().resource::<Attendance>().outcomes.len() == 1
@@ -254,28 +294,75 @@ fn pool_departure_across_week_boundary_keeps_the_shift_until_the_promotion() {
     assert_eq!(record.history.last().unwrap().performance, 100.0);
     assert_eq!(record.shifts, [payout.score]);
     assert_eq!(record.shift_inputs.len(), 1);
-    assert_eq!(record.last_shift.unwrap().missed_minutes, payout.missed_minutes);
+    assert_eq!(
+        record.last_shift.unwrap().missed_minutes,
+        payout.missed_minutes
+    );
     let old_base = pack.careers[0].pay;
-    assert_eq!(registered.pay_cents, pack.tuning.shift_pay_cents(old_base, terri_data::SHIFT_NIGHT));
-    assert_eq!(record.current_input_sources[&0], crate::careers::ShiftSource { career: 0, base_pay: Some(old_base) });
+    assert_eq!(
+        registered.pay_cents,
+        pack.tuning
+            .shift_pay_cents(old_base, terri_data::SHIFT_NIGHT)
+    );
+    assert_eq!(
+        record.current_input_sources[&0],
+        crate::careers::ShiftSource {
+            career: 0,
+            base_pay: Some(old_base)
+        }
+    );
     let current = sim.save_snapshot_v28();
     assert!(current.previous.career_inputs[0].current.is_empty());
-    assert_eq!(current.career_input_sources[0].current.as_ref().unwrap().inputs.len(), 1);
+    assert_eq!(
+        current.career_input_sources[0]
+            .current
+            .as_ref()
+            .unwrap()
+            .inputs
+            .len(),
+        1
+    );
     let mut wrong_source = current.clone();
-    wrong_source.career_input_sources[0].current.as_mut().unwrap().sources[0].input_index = 1;
+    wrong_source.career_input_sources[0]
+        .current
+        .as_mut()
+        .unwrap()
+        .sources[0]
+        .input_index = 1;
     let before = sim.world_hash();
-    assert_eq!(sim.load_snapshot_v28(wrong_source), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_snapshot_v28(wrong_source),
+        Err(crate::SaveError::InvalidValue)
+    );
     assert_eq!(sim.world_hash(), before);
     let mut duplicate = current.clone();
-    duplicate.previous.career_inputs[0].current = duplicate.career_input_sources[0].current.as_ref().unwrap().inputs.clone();
-    assert_eq!(sim.load_snapshot_v28(duplicate), Err(crate::SaveError::InvalidValue));
+    duplicate.previous.career_inputs[0].current = duplicate.career_input_sources[0]
+        .current
+        .as_ref()
+        .unwrap()
+        .inputs
+        .clone();
+    assert_eq!(
+        sim.load_snapshot_v28(duplicate),
+        Err(crate::SaveError::InvalidValue)
+    );
     continue_roundtrip(&mut sim, 1);
 
     until(&mut sim, "two more shifts under the new job", 600, |s| {
         s.world().resource::<Attendance>().outcomes.len() == 3
     });
-    until(&mut sim, "home after the third shift", 60, |s| !physically_away(s.world(), actor));
-    assert_eq!(sim.world().resource::<Careers>().record(id).unwrap().shift_inputs.len(), 3);
+    until(&mut sim, "home after the third shift", 60, |s| {
+        !physically_away(s.world(), actor)
+    });
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .record(id)
+            .unwrap()
+            .shift_inputs
+            .len(),
+        3
+    );
     continue_roundtrip(&mut sim, 1);
     sim.world_mut().resource_mut::<SimClock>().tick = 3 * 7 * 240 - 1;
     sim.tick();
@@ -284,23 +371,53 @@ fn pool_departure_across_week_boundary_keeps_the_shift_until_the_promotion() {
     assert_eq!(week.len(), 14);
     let old = &pack.careers[0];
     let new = &pack.careers[next as usize];
-    assert_eq!(&week[..6], &[2.0, next as f32, new.path as f32, new.level as f32, 3.0, 3.0]);
-    assert_eq!(week[9], (old.social_demand + new.social_demand + new.social_demand) / 3.0);
+    assert_eq!(
+        &week[..6],
+        &[
+            2.0,
+            next as f32,
+            new.path as f32,
+            new.level as f32,
+            3.0,
+            3.0
+        ]
+    );
+    assert_eq!(
+        week[9],
+        (old.social_demand + new.social_demand + new.social_demand) / 3.0
+    );
     let base = week[13] as u32;
     let sources = sim.career_input_sources(actor.index_u32());
-    assert_eq!(sources, [
-        2.0, f64::from(old.path), f64::from(old.level), f64::from(old_base),
-        2.0, f64::from(new.path), f64::from(new.level), f64::from(base),
-        2.0, f64::from(new.path), f64::from(new.level), f64::from(base),
-    ]);
+    assert_eq!(
+        sources,
+        [
+            2.0,
+            f64::from(old.path),
+            f64::from(old.level),
+            f64::from(old_base),
+            2.0,
+            f64::from(new.path),
+            f64::from(new.level),
+            f64::from(base),
+            2.0,
+            f64::from(new.path),
+            f64::from(new.level),
+            f64::from(base),
+        ]
+    );
     let current = sim.save_snapshot_v28();
     let reviewed = &current.career_input_sources[0].weeks[0];
     assert_eq!(reviewed.inputs.week, 2);
     assert_eq!(reviewed.sources.len(), 1);
     assert!(current.previous.career_inputs[0].weeks.is_empty());
     let mut duplicate = current.clone();
-    duplicate.previous.career_inputs[0].weeks.push(reviewed.inputs);
-    assert_eq!(sim.load_snapshot_v28(duplicate), Err(crate::SaveError::InvalidValue));
+    duplicate.previous.career_inputs[0]
+        .weeks
+        .push(reviewed.inputs);
+    assert_eq!(
+        sim.load_snapshot_v28(duplicate),
+        Err(crate::SaveError::InvalidValue)
+    );
     continue_roundtrip(&mut sim, 1);
 }
 
@@ -316,28 +433,47 @@ fn confirming_an_order_during_a_pool_departure_releases_the_deferred_review() {
 
     let mut wrong_week = sim.current_v17_view();
     wrong_week.legacy.legacy.legacy.careers.records[0].review_due = Some(0);
-    assert_eq!(sim.load_current_v17_view(wrong_week), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_current_v17_view(wrong_week),
+        Err(crate::SaveError::InvalidValue)
+    );
     let mut wrong_shift = saved.clone();
     wrong_shift.manual_work_trips[0].1 += 1;
-    assert_eq!(sim.load_snapshot_v28(wrong_shift), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_snapshot_v28(wrong_shift),
+        Err(crate::SaveError::InvalidValue)
+    );
 
-    let order = SimCommand::UseObject { agent, object: object.index_u32(), interaction: 0 }
-        .into_player_order()
-        .unwrap();
+    let order = SimCommand::UseObject {
+        agent,
+        object: object.index_u32(),
+        interaction: 0,
+    }
+    .into_player_order()
+    .unwrap();
     let conflict = work_conflicts(sim.world(), &[agent]);
     assert_eq!(conflict.conflicts[0].phase, 2);
-    issue(&mut sim, SimCommand::ConfirmedOrder {
-        fingerprint: conflict.fingerprint ^ 1,
-        command: order.clone(),
-    });
+    issue(
+        &mut sim,
+        SimCommand::ConfirmedOrder {
+            fingerprint: conflict.fingerprint ^ 1,
+            command: order.clone(),
+        },
+    );
     assert!(manual_work_trip(sim.world(), actor));
 
-    issue(&mut sim, SimCommand::ConfirmedOrder {
-        fingerprint: conflict.fingerprint,
-        command: order,
-    });
+    issue(
+        &mut sim,
+        SimCommand::ConfirmedOrder {
+            fingerprint: conflict.fingerprint,
+            command: order,
+        },
+    );
     assert!(!manual_work_trip(sim.world(), actor));
-    assert_ne!(work_conflicts(sim.world(), &[agent]).fingerprint, conflict.fingerprint);
+    assert_ne!(
+        work_conflicts(sim.world(), &[agent]).fingerprint,
+        conflict.fingerprint
+    );
     assert!(open_shift(sim.world(), actor).is_some());
     let record = sim.world().resource::<Careers>().record(id).unwrap();
     assert_eq!(record.review_due, None);
@@ -347,7 +483,10 @@ fn confirming_an_order_during_a_pool_departure_releases_the_deferred_review() {
     let mut contradictory = sim.save_snapshot_v28();
     contradictory.manual_work_trips = saved.editable.manual_work_trips;
     let hash = sim.world_hash();
-    assert_eq!(sim.load_snapshot_v28(contradictory), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_snapshot_v28(contradictory),
+        Err(crate::SaveError::InvalidValue)
+    );
     assert_eq!(sim.world_hash(), hash);
     continue_roundtrip(&mut sim, 1);
 }
@@ -355,7 +494,8 @@ fn confirming_an_order_during_a_pool_departure_releases_the_deferred_review() {
 #[test]
 fn recalling_from_the_ladder_only_replaces_a_future_registration() {
     for offset in [-1, 0, 1] {
-        let (mut sim, actor, object, boundary) = swimmer_leaving_at_week_boundary(WorkReview::Promote);
+        let (mut sim, actor, object, boundary) =
+            swimmer_leaving_at_week_boundary(WorkReview::Promote);
         let id = identity(sim.world(), actor);
         let start = boundary + 15;
         sim.world_mut().resource_mut::<SimClock>().tick = start.checked_add_signed(offset).unwrap();
@@ -367,7 +507,14 @@ fn recalling_from_the_ladder_only_replaces_a_future_registration() {
         } else {
             assert_eq!(open_shift(sim.world(), actor).unwrap().start_tick, start);
             assert_eq!(sim.world().get::<Career>(actor), Some(&Career(0)));
-            assert_eq!(sim.world().resource::<Careers>().record(id).unwrap().review_due, Some(1));
+            assert_eq!(
+                sim.world()
+                    .resource::<Careers>()
+                    .record(id)
+                    .unwrap()
+                    .review_due,
+                Some(1)
+            );
         }
         continue_roundtrip(&mut sim, 1);
     }
@@ -383,12 +530,20 @@ fn recalling_before_start_keeps_a_night_shift_base_pay_after_a_raise() {
     assert!(sim.world().resource::<Careers>().record(id).unwrap().pay > base);
     assert_eq!(open_shift(sim.world(), actor), Some(&shift));
     let saved = sim.save_snapshot_v28();
-    assert_eq!(saved.open_shift_base_pay, [terri_core::save_v26::SavedOpenShiftBasePay {
-        sim: id.0, start_tick: shift.start_tick, base_pay: Some(base),
-    }]);
+    assert_eq!(
+        saved.open_shift_base_pay,
+        [terri_core::save_v26::SavedOpenShiftBasePay {
+            sim: id.0,
+            start_tick: shift.start_tick,
+            base_pay: Some(base),
+        }]
+    );
     let mut invalid = saved;
     invalid.open_shift_base_pay[0].base_pay = Some(1);
-    assert_eq!(sim.load_snapshot_v28(invalid), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_snapshot_v28(invalid),
+        Err(crate::SaveError::InvalidValue)
+    );
     continue_roundtrip(&mut sim, 1);
 }
 
@@ -400,14 +555,17 @@ fn ordinary_rollover_promotes_and_restores_the_exact_displaced_shift() {
     let original = &pack.careers[0];
     let next = pack.career_paths[original.path as usize].levels[1];
     let advance = original.advance_weeks;
-    sim.world_mut().insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
 
     let boundary = 2 * 7 * 240;
     sim.world_mut().resource_mut::<SimClock>().tick = boundary - 240 + 14;
     until(&mut sim, "prior shift settled", 90, |s| {
         s.world().resource::<Attendance>().outcomes.len() == 1
     });
-    until(&mut sim, "home after prior shift", 60, |s| !physically_away(s.world(), actor));
+    until(&mut sim, "home after prior shift", 60, |s| {
+        !physically_away(s.world(), actor)
+    });
     let id = identity(sim.world(), actor);
     let prior = sim.world().resource::<Attendance>().shifts[&id].clone();
     assert!(prior.settled);
@@ -420,12 +578,25 @@ fn ordinary_rollover_promotes_and_restores_the_exact_displaced_shift() {
     }
 
     sim.world_mut().resource_mut::<SimClock>().tick = boundary - 40;
-    issue(&mut sim, SimCommand::GoToWork { agent: actor.index_u32() });
-    assert_eq!(sim.save_snapshot_v28().previous.replaced_shifts, [prior.clone()]);
+    issue(
+        &mut sim,
+        SimCommand::GoToWork {
+            agent: actor.index_u32(),
+        },
+    );
+    assert_eq!(
+        sim.save_snapshot_v28().previous.replaced_shifts,
+        std::slice::from_ref(&prior)
+    );
     hold(&mut sim, actor, object);
-    until(&mut sim, "home before weekly rollover", 20, |s| !physically_away(s.world(), actor));
+    until(&mut sim, "home before weekly rollover", 20, |s| {
+        !physically_away(s.world(), actor)
+    });
     assert!(sim.world().resource::<SimClock>().tick < boundary);
-    assert_eq!(open_shift(sim.world(), actor).unwrap().start_tick, boundary + 15);
+    assert_eq!(
+        open_shift(sim.world(), actor).unwrap().start_tick,
+        boundary + 15
+    );
 
     sim.world_mut().resource_mut::<SimClock>().tick = boundary - 1;
     sim.tick();
@@ -452,17 +623,30 @@ fn overnight_pay_keeps_known_night_base_after_the_identical_day_shift_is_held() 
         weight: 1,
     }];
     let record = crate::careers::Record::new(job);
-    sim.world_mut().insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
     let id = identity(sim.world(), actor);
-    sim.world_mut().resource_mut::<Careers>().records.insert(id, record);
+    sim.world_mut()
+        .resource_mut::<Careers>()
+        .records
+        .insert(id, record);
     hold(&mut sim, actor, object);
 
     sim.world_mut().resource_mut::<SimClock>().tick = 219;
-    issue(&mut sim, SimCommand::ChangeShift { agent: actor.index_u32(), shift: 1 });
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
     sim.tick();
     let shift = open_shift(sim.world(), actor).unwrap().clone();
     assert_eq!(shift.pay_cents, 13_800);
-    assert_eq!(sim.world().resource::<Careers>().record(id).unwrap().shift, 1);
+    assert_eq!(
+        sim.world().resource::<Careers>().record(id).unwrap().shift,
+        1
+    );
     for _ in 220..240 {
         sim.tick();
     }
@@ -476,17 +660,28 @@ fn overnight_pay_keeps_known_night_base_after_the_identical_day_shift_is_held() 
     assert_eq!(sim.world_hash(), hash);
     assert_eq!(recorded_base_pay(sim.world(), actor, &shift), Some(120));
 
-    sim.world_mut().resource_mut::<Careers>().records.get_mut(&id).unwrap().pay = 138;
+    sim.world_mut()
+        .resource_mut::<Careers>()
+        .records
+        .get_mut(&id)
+        .unwrap()
+        .pay = 138;
     let mut malformed = sim.save_snapshot_v28();
     assert_eq!(malformed.open_shift_base_pay[0].base_pay, Some(120));
     malformed.open_shift_base_pay[0].base_pay = Some(140);
-    assert_eq!(sim.load_snapshot_v28(malformed), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_snapshot_v28(malformed),
+        Err(crate::SaveError::InvalidValue)
+    );
     continue_roundtrip(&mut sim, 0);
 
     sim.load_snapshot_v24(historical).unwrap();
     assert_eq!(open_shift(sim.world(), actor).unwrap().pay_cents, 13_800);
     assert_eq!(recorded_base_pay(sim.world(), actor, &shift), None);
-    assert_eq!(sim.save_snapshot_v28().open_shift_base_pay[0].base_pay, None);
+    assert_eq!(
+        sim.save_snapshot_v28().open_shift_base_pay[0].base_pay,
+        None
+    );
     continue_roundtrip(&mut sim, 1);
 }
 
@@ -513,13 +708,22 @@ fn night_shift_source_uses_migration_and_registration_proof_before_arithmetic() 
         job.shifts.clear();
         job.pay = 120;
         let record = crate::careers::Record::new(job);
-        sim.world_mut().insert_resource(Content(Box::leak(Box::new(pack))));
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         let id = identity(sim.world(), actor);
-        sim.world_mut().resource_mut::<Careers>().records.insert(id, record);
+        sim.world_mut()
+            .resource_mut::<Careers>()
+            .records
+            .insert(id, record);
         hold(&mut sim, actor, object);
         sim.world_mut().resource_mut::<SimClock>().tick = 39;
         if matches!(producer, Producer::Future) {
-            issue(&mut sim, SimCommand::GoToWork { agent: actor.index_u32() });
+            issue(
+                &mut sim,
+                SimCommand::GoToWork {
+                    agent: actor.index_u32(),
+                },
+            );
         } else {
             sim.tick();
         }
@@ -536,32 +740,64 @@ fn night_shift_source_uses_migration_and_registration_proof_before_arithmetic() 
                 sim.load_snapshot_v21(historical).unwrap();
             }
             Producer::Ambiguous | Producer::Future => {
-                sim.world_mut().resource_mut::<Careers>().records.get_mut(&id).unwrap().pay = 138;
+                sim.world_mut()
+                    .resource_mut::<Careers>()
+                    .records
+                    .get_mut(&id)
+                    .unwrap()
+                    .pay = 138;
                 sim.load_snapshot_v24(sim.save_snapshot_v24()).unwrap();
             }
             Producer::Current => {
                 let original = sim.save_snapshot_v28();
                 assert!(original.open_shift_base_pay.is_empty());
                 sim.load_snapshot_v28(original).unwrap();
-                sim.world_mut().resource_mut::<Careers>().records.get_mut(&id).unwrap().pay = 138;
+                sim.world_mut()
+                    .resource_mut::<Careers>()
+                    .records
+                    .get_mut(&id)
+                    .unwrap()
+                    .pay = 138;
             }
         }
         let shift = open_shift(sim.world(), actor).unwrap().clone();
         assert_eq!(shift.pay_cents, pay, "{producer:?}");
-        assert_eq!(registered_pay_kinds(sim.world(), actor, &shift), [false, true]);
-        assert_eq!(recorded_base_pay(sim.world(), actor, &shift), expected_base, "{producer:?}");
+        assert_eq!(
+            registered_pay_kinds(sim.world(), actor, &shift),
+            [false, true]
+        );
+        assert_eq!(
+            recorded_base_pay(sim.world(), actor, &shift),
+            expected_base,
+            "{producer:?}"
+        );
         let current = sim.save_snapshot_v28();
         if matches!(producer, Producer::Migrated) {
             assert!(current.open_shift_base_pay.is_empty());
         } else {
-            assert_eq!(current.open_shift_base_pay[0].base_pay, expected_base, "{producer:?}");
+            assert_eq!(
+                current.open_shift_base_pay[0].base_pay, expected_base,
+                "{producer:?}"
+            );
         }
         sim.load_snapshot_v28(current).unwrap();
-        sim.world_mut().resource_mut::<Careers>().records.get_mut(&id).unwrap().pay = 139;
+        sim.world_mut()
+            .resource_mut::<Careers>()
+            .records
+            .get_mut(&id)
+            .unwrap()
+            .pay = 139;
         let current = sim.save_snapshot_v28();
-        assert_eq!(current.open_shift_base_pay[0].base_pay, expected_base, "{producer:?}");
+        assert_eq!(
+            current.open_shift_base_pay[0].base_pay, expected_base,
+            "{producer:?}"
+        );
         sim.load_snapshot_v28(current).unwrap();
-        assert_eq!(recorded_base_pay(sim.world(), actor, &shift), expected_base, "{producer:?}");
+        assert_eq!(
+            recorded_base_pay(sim.world(), actor, &shift),
+            expected_base,
+            "{producer:?}"
+        );
     }
 }
 
@@ -582,9 +818,21 @@ fn confirmed_recall_after_a_started_manual_commute_or_work_round_trips() {
         continue_roundtrip(&mut sim, 0);
         hold(&mut sim, actor, object);
         assert!(!manual_work_trip(sim.world(), actor));
-        until(&mut sim, "home after recall", 60, |s| !physically_away(s.world(), actor));
-        assert_eq!(open_shift(sim.world(), actor).unwrap().start_tick, shift.start_tick);
-        assert_eq!(sim.world().resource::<Careers>().record(id).unwrap().review_due, Some(1));
+        until(&mut sim, "home after recall", 60, |s| {
+            !physically_away(s.world(), actor)
+        });
+        assert_eq!(
+            open_shift(sim.world(), actor).unwrap().start_tick,
+            shift.start_tick
+        );
+        assert_eq!(
+            sim.world()
+                .resource::<Careers>()
+                .record(id)
+                .unwrap()
+                .review_due,
+            Some(1)
+        );
         continue_roundtrip(&mut sim, 1);
         until(&mut sim, "old obligation settled once", 120, |s| {
             s.world().resource::<Attendance>().outcomes.len() == 1
@@ -607,13 +855,28 @@ fn acknowledged_build_obstruction_ends_a_manual_trip_but_keeps_its_shift() {
         fixture_position.y as usize,
         true,
     );
-    sim.world_mut().insert_resource(SavedLayout::EdgeWallsV1 { edges: Vec::new() });
+    sim.world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges: Vec::new() });
     crate::rooms::initialize(sim.world_mut()).expect("the fixture has coherent room geometry");
     crate::placement::lot_usable_for_tests(sim.world()).expect("the fixture supports wall edits");
-    sim.world_mut().entity_mut(actor).insert(Position { x: 1.0, y: 4.0 });
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert(Position { x: 1.0, y: 4.0 });
     let wall = |sim: &mut Sim, axis, x, y| {
-        issue(sim, SimCommand::SetWallEdge { axis, x, y, state: WallState::Wall });
-        let receipt = sim.world().resource::<crate::placement::LotEditState>().last_wall_result.unwrap();
+        issue(
+            sim,
+            SimCommand::SetWallEdge {
+                axis,
+                x,
+                y,
+                state: WallState::Wall,
+            },
+        );
+        let receipt = sim
+            .world()
+            .resource::<crate::placement::LotEditState>()
+            .last_wall_result
+            .unwrap();
         assert_eq!(receipt.reason, None, "{axis:?} {x} {y}");
     };
 
@@ -628,27 +891,45 @@ fn acknowledged_build_obstruction_ends_a_manual_trip_but_keeps_its_shift() {
     ] {
         wall(&mut sim, axis, x, y);
     }
-    let setup = sim.prepare_build_commit(crate::rooms::RoomChoices::default()).unwrap();
+    let setup = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
     sim.commit_build_with_access_ack(setup.token).unwrap();
     sim.end_build().unwrap();
 
     sim.world_mut().resource_mut::<SimClock>().tick = 39;
-    issue(&mut sim, SimCommand::GoToWork { agent: actor.index_u32() });
+    issue(
+        &mut sim,
+        SimCommand::GoToWork {
+            agent: actor.index_u32(),
+        },
+    );
     let registered = open_shift(sim.world(), actor).unwrap().clone();
     assert!(manual_work_trip(sim.world(), actor));
-    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Outbound));
-    assert_eq!(sim.world().get::<Path>(actor).unwrap().steps.last(), Some(&(0, 4)));
+    assert_eq!(
+        sim.world().get::<Commuting>(actor),
+        Some(&Commuting::Outbound)
+    );
+    assert_eq!(
+        sim.world().get::<Path>(actor).unwrap().steps.last(),
+        Some(&(0, 4))
+    );
 
     sim.begin_build().unwrap();
     wall(&mut sim, EdgeAxis::Vertical, 0, 4);
-    let build = sim.prepare_build_commit(crate::rooms::RoomChoices::default()).unwrap();
+    let build = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
     assert!(build.access.requires_acknowledgment());
     assert!(build.access.regions.iter().any(|region| {
         region.tiles == [(0, 4), (1, 4)]
             && region.people.contains(&actor.index_u32())
             && !region.external_access
     }));
-    assert_eq!(sim.commit_build(build.token), Err(BuildCommitError::AccessAcknowledgmentRequired));
+    assert_eq!(
+        sim.commit_build(build.token),
+        Err(BuildCommitError::AccessAcknowledgmentRequired)
+    );
     sim.commit_build_with_access_ack(build.token).unwrap();
     sim.end_build().unwrap();
     assert!(!manual_work_trip(sim.world(), actor));
@@ -664,41 +945,84 @@ fn incoming_order_that_becomes_front_recalls_ordinary_work_only() {
         let hold_id = sim.world().get::<SmartObject>(object).unwrap().0;
         pack.tuning.duration_variance = 0.0;
         pack.objects[hold_id.0 as usize].interactions[0].duration_ticks = 65;
-        sim.world_mut().insert_resource(Content(Box::leak(Box::new(pack))));
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
-        let requester = sim.world_mut().spawn((
-            Agent, id, Position { x: 4.0, y: 5.0 }, Needs::all_at(100.0), IntentQueue::default(),
-            Personality::default(), Relationships::default(), Satisfaction::from_value(0.0),
-        )).id();
+        let requester = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                id,
+                Position { x: 4.0, y: 5.0 },
+                Needs::all_at(100.0),
+                IntentQueue::default(),
+                Personality::default(),
+                Relationships::default(),
+                Satisfaction::from_value(0.0),
+            ))
+            .id();
         hold(&mut sim, requester, object);
-        issue(&mut sim, SimCommand::TalkTo {
-            agent: requester.index_u32(), target: worker.index_u32(), interaction: 0,
-        });
-        until(&mut sim, "requester is using the first ordered object", 20, |s| {
-            s.world().get::<terri_core::Eating>(requester).is_some()
-                && s.world().get::<terri_core::Target>(requester).is_some_and(|t| t.object == object)
-        });
-        let remaining = sim.world().get::<terri_core::Eating>(requester).unwrap().remaining_ticks;
+        issue(
+            &mut sim,
+            SimCommand::TalkTo {
+                agent: requester.index_u32(),
+                target: worker.index_u32(),
+                interaction: 0,
+            },
+        );
+        until(
+            &mut sim,
+            "requester is using the first ordered object",
+            20,
+            |s| {
+                s.world().get::<terri_core::Eating>(requester).is_some()
+                    && s.world()
+                        .get::<terri_core::Target>(requester)
+                        .is_some_and(|t| t.object == object)
+            },
+        );
+        let remaining = sim
+            .world()
+            .get::<terri_core::Eating>(requester)
+            .unwrap()
+            .remaining_ticks;
         assert!(remaining > 30);
         assert_eq!(sim.world().get::<IntentQueue>(requester).unwrap().len(), 2);
         sim.world_mut().resource_mut::<SimClock>().tick = 39;
         if manual {
-            issue(&mut sim, SimCommand::GoToWork { agent: worker.index_u32() });
+            issue(
+                &mut sim,
+                SimCommand::GoToWork {
+                    agent: worker.index_u32(),
+                },
+            );
         }
-        until(&mut sim, "office arrival while the first order still runs", 30, |s| {
-            assert!(s.world().get::<terri_core::Eating>(requester).is_some());
-            s.world().get::<AtWork>(worker).is_some()
-        });
+        until(
+            &mut sim,
+            "office arrival while the first order still runs",
+            30,
+            |s| {
+                assert!(s.world().get::<terri_core::Eating>(requester).is_some());
+                s.world().get::<AtWork>(worker).is_some()
+            },
+        );
         until(&mut sim, "older Talk to is next", remaining as usize, |s| {
-            s.world().get::<IntentQueue>(requester).and_then(|q| q.entries().first())
+            s.world()
+                .get::<IntentQueue>(requester)
+                .and_then(|q| q.entries().first())
                 .is_some_and(|entry| entry.intent.object == worker)
         });
         sim.tick();
         assert_eq!(sim.world().get::<AtWork>(worker).is_some(), manual);
         if manual {
-            issue(&mut sim, SimCommand::TalkToFirst {
-                agent: requester.index_u32(), target: worker.index_u32(), interaction: 0,
-            });
+            issue(
+                &mut sim,
+                SimCommand::TalkToFirst {
+                    agent: requester.index_u32(),
+                    target: worker.index_u32(),
+                    interaction: 0,
+                },
+            );
             sim.tick();
             assert!(manual_work_trip(sim.world(), worker));
             assert!(sim.world().get::<AtWork>(worker).is_some());
@@ -735,24 +1059,41 @@ fn older_incoming_order_waits_while_only_later_confirmed_order_recalls_swimmer()
     assert!(crate::player_actions::has_player_work(sim.world(), worker));
     let participants = [requester.index_u32(), worker.index_u32()];
     let before_departure = work_conflicts(sim.world(), &participants).fingerprint;
-    issue(&mut sim, SimCommand::GoToWork { agent: worker.index_u32() });
+    issue(
+        &mut sim,
+        SimCommand::GoToWork {
+            agent: worker.index_u32(),
+        },
+    );
     assert!(manual_work_trip(sim.world(), worker));
 
     let order = talk.into_player_order().unwrap();
-    issue(&mut sim, SimCommand::ConfirmedOrder {
-        fingerprint: before_departure,
-        command: order.clone(),
-    });
+    issue(
+        &mut sim,
+        SimCommand::ConfirmedOrder {
+            fingerprint: before_departure,
+            command: order.clone(),
+        },
+    );
     assert!(manual_work_trip(sim.world(), worker));
     let departure = sim.save_snapshot_v28();
     let current = work_conflicts(sim.world(), &participants).fingerprint;
-    issue(&mut sim, SimCommand::ConfirmedOrder { fingerprint: current, command: order });
+    issue(
+        &mut sim,
+        SimCommand::ConfirmedOrder {
+            fingerprint: current,
+            command: order,
+        },
+    );
     assert!(!manual_work_trip(sim.world(), worker));
 
     sim.load_snapshot_v28(departure).unwrap();
-    until(&mut sim, "worker gone despite the older Talk to order", 100, |s| {
-        s.world().get::<AtWork>(worker).is_some()
-    });
+    until(
+        &mut sim,
+        "worker gone despite the older Talk to order",
+        100,
+        |s| s.world().get::<AtWork>(worker).is_some(),
+    );
     sim.tick();
     assert!(sim.world().get::<AtWork>(worker).is_some());
     assert_eq!(sim.world().get::<IntentQueue>(requester).unwrap().len(), 1);
@@ -1017,8 +1358,14 @@ fn current_save_rejects_an_outbound_route_that_stops_inside_the_lot() {
     }
     let (x, y) = *path.steps.last().unwrap();
     sim.world_mut().entity_mut(actor).insert((
-        Position { x: x as f32, y: y as f32 },
-        Path { steps: vec![], cursor: 0 },
+        Position {
+            x: x as f32,
+            y: y as f32,
+        },
+        Path {
+            steps: vec![],
+            cursor: 0,
+        },
     ));
     let at_exit = sim.save_snapshot_v28();
     sim.load_snapshot_v28(at_exit.clone()).unwrap();
@@ -1030,7 +1377,9 @@ fn current_save_rejects_an_outbound_route_that_stops_inside_the_lot() {
 #[test]
 fn current_save_rejects_a_waiting_return_with_an_office_countdown() {
     let (mut sim, actor, _) = full_fixture(60, 180, 1440);
-    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(4, 4, true);
     until(&mut sim, "office arrival", 180, |s| {
         s.world().get::<AtWork>(actor).is_some()
     });
@@ -1041,20 +1390,31 @@ fn current_save_rejects_a_waiting_return_with_an_office_countdown() {
 
     let mut forged = working.clone();
     forged.commutes.push((actor.index_u32(), 2));
-    assert_eq!(sim.load_snapshot_v28(forged), Err(crate::SaveError::InvalidValue));
+    assert_eq!(
+        sim.load_snapshot_v28(forged),
+        Err(crate::SaveError::InvalidValue)
+    );
     assert_eq!(sim.save_snapshot_v28(), working);
 }
 
 #[test]
 fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
     let (mut sim, actor, object) = full_fixture(60, 180, 1440);
-    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(4, 4, true);
     until(&mut sim, "office arrival", 180, |s| {
         s.world().get::<AtWork>(actor).is_some()
     });
     hold(&mut sim, actor, object);
-    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
-    assert_eq!(sim.world().get::<Position>(actor), Some(&Position { x: 0., y: 1. }));
+    assert_eq!(
+        sim.world().get::<Commuting>(actor),
+        Some(&Commuting::Inbound)
+    );
+    assert_eq!(
+        sim.world().get::<Position>(actor),
+        Some(&Position { x: 0., y: 1. })
+    );
     assert_eq!(sim.world().get::<Path>(actor).unwrap().steps, [(1, 1)]);
     let original = sim.save_snapshot_v28();
     sim.load_snapshot_v28(original.clone()).unwrap();
@@ -1062,11 +1422,17 @@ fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
     // This adjacent tile is walkable grass. The explicit path still has
     // to reach a home destination because the lot already contains floor.
     let mut invalid = crate::current_test_snapshot::CurrentV5View(original.clone());
-    let saved_actor = invalid.world.entities.iter_mut()
+    let saved_actor = invalid
+        .world
+        .entities
+        .iter_mut()
         .find(|entity| entity.index == actor.index_u32())
         .unwrap();
     saved_actor.path.as_mut().unwrap().steps = vec![(0, 2)];
-    assert_eq!(sim.load_snapshot_v28(invalid.0), Err(crate::SaveError::InvalidGrid));
+    assert_eq!(
+        sim.load_snapshot_v28(invalid.0),
+        Err(crate::SaveError::InvalidGrid)
+    );
     assert_eq!(sim.save_snapshot_v28(), original);
 }
 
@@ -1075,7 +1441,9 @@ fn a_player_order_can_leave_a_worker_waiting_to_return_during_an_open_shift() {
     use crate::world_geometry::{WaitingToReturn, WorldSurfaces};
 
     let (mut sim, actor, object) = full_fixture(60, 180, 1440);
-    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(4, 4, true);
     {
         let mut surfaces = sim.world_mut().resource_mut::<WorldSurfaces>();
         surfaces.tiles.fill(1);
@@ -1113,7 +1481,9 @@ fn a_player_order_can_leave_a_worker_waiting_to_return_during_an_open_shift() {
 #[test]
 fn build_reroutes_an_inbound_worker_from_their_visible_position() {
     let (mut sim, actor, object) = full_fixture(60, 180, 1440);
-    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(4, 4, true);
     until(&mut sim, "office arrival", 180, |s| {
         s.world().get::<AtWork>(actor).is_some()
     });
@@ -1127,8 +1497,14 @@ fn build_reroutes_an_inbound_worker_from_their_visible_position() {
     sim.end_build().unwrap();
     assert_eq!(sim.world().get::<Position>(actor), Some(&start));
     assert!(sim.world().get::<AtWork>(actor).is_none());
-    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
-    assert_eq!(sim.world().get::<Path>(actor).unwrap().steps, [(0, 2), (1, 2)]);
+    assert_eq!(
+        sim.world().get::<Commuting>(actor),
+        Some(&Commuting::Inbound)
+    );
+    assert_eq!(
+        sim.world().get::<Path>(actor).unwrap().steps,
+        [(0, 2), (1, 2)]
+    );
     continue_roundtrip(&mut sim, 5);
 }
 
@@ -1136,25 +1512,43 @@ fn enclose_inbound_destination(sim: &mut Sim) -> crate::build_transaction::Build
     use terri_core::layout::{EdgeAxis, WallState};
     sim.begin_build().unwrap();
     for (axis, x, y) in [
-        (EdgeAxis::Vertical, 1, 1), (EdgeAxis::Vertical, 2, 1),
-        (EdgeAxis::Horizontal, 1, 1), (EdgeAxis::Horizontal, 1, 2),
+        (EdgeAxis::Vertical, 1, 1),
+        (EdgeAxis::Vertical, 2, 1),
+        (EdgeAxis::Horizontal, 1, 1),
+        (EdgeAxis::Horizontal, 1, 2),
     ] {
-        issue(sim, SimCommand::SetWallEdge { axis, x, y, state: WallState::Wall });
+        issue(
+            sim,
+            SimCommand::SetWallEdge {
+                axis,
+                x,
+                y,
+                state: WallState::Wall,
+            },
+        );
         assert_eq!(
-            sim.world().resource::<crate::placement::LotEditState>()
-                .last_wall_result.unwrap().reason,
+            sim.world()
+                .resource::<crate::placement::LotEditState>()
+                .last_wall_result
+                .unwrap()
+                .reason,
             None,
             "wall at {axis:?} {x},{y} must be staged"
         );
     }
-    sim.prepare_build_commit(crate::rooms::RoomChoices::default()).unwrap()
+    sim.prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap()
 }
 
 #[test]
 fn stranded_inbound_worker_can_confirm_build_and_settles_review_next_tick() {
     let (mut sim, actor, _) = full_fixture(60, 180, 1440);
-    sim.world_mut().resource_mut::<TileGrid>().set_blocked(4, 4, true);
-    let mut surfaces = sim.world_mut().resource_mut::<crate::world_geometry::WorldSurfaces>();
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(4, 4, true);
+    let mut surfaces = sim
+        .world_mut()
+        .resource_mut::<crate::world_geometry::WorldSurfaces>();
     surfaces.tiles.fill(1);
     surfaces.tiles[21] = 0;
     until(&mut sim, "office arrival", 180, |s| {
@@ -1162,7 +1556,10 @@ fn stranded_inbound_worker_can_confirm_build_and_settles_review_next_tick() {
     });
     sim.world_mut().resource_mut::<SimClock>().tick = 240;
     account_and_settle(sim.world_mut());
-    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
+    assert_eq!(
+        sim.world().get::<Commuting>(actor),
+        Some(&Commuting::Inbound)
+    );
     let start = *sim.world().get::<Position>(actor).unwrap();
     assert_eq!(start, Position { x: 0., y: 1. });
     let id = *sim.world().get::<SimId>(actor).unwrap();
@@ -1176,7 +1573,10 @@ fn stranded_inbound_worker_can_confirm_build_and_settles_review_next_tick() {
     assert!(review.access.requires_acknowledgment());
     sim.commit_build_with_access_ack(review.token).unwrap();
     sim.end_build().unwrap();
-    assert_eq!(sim.world().get::<Commuting>(actor), Some(&Commuting::Inbound));
+    assert_eq!(
+        sim.world().get::<Commuting>(actor),
+        Some(&Commuting::Inbound)
+    );
     assert!(sim.world().get::<Path>(actor).is_none());
     let saved = sim.save_snapshot_v28();
     sim.load_snapshot_v28(saved.clone()).unwrap();
@@ -1199,7 +1599,13 @@ fn imported_private_commutes_resave_with_a_current_boundary_exit() {
         s.world().get::<Commuting>(actor) == Some(&Commuting::Outbound)
     });
     let original = sim.save_snapshot_v28();
-    let exit = *sim.world().get::<Path>(actor).unwrap().steps.last().unwrap();
+    let exit = *sim
+        .world()
+        .get::<Path>(actor)
+        .unwrap()
+        .steps
+        .last()
+        .unwrap();
     for shortened in [false, true] {
         for version in [22, 23] {
             sim.load_snapshot_v28(original.clone()).unwrap();
@@ -1207,14 +1613,21 @@ fn imported_private_commutes_resave_with_a_current_boundary_exit() {
                 sim.world_mut().get_mut::<Path>(actor).unwrap().steps.pop();
             }
             if version == 22 {
-                sim.load_snapshot_editable_world_v22(sim.try_save_snapshot_editable_world_v22().unwrap()).unwrap();
+                sim.load_snapshot_editable_world_v22(
+                    sim.try_save_snapshot_editable_world_v22().unwrap(),
+                )
+                .unwrap();
             } else {
-                sim.load_snapshot_editable_world_v23(sim.save_snapshot_editable_world_v23()).unwrap();
+                sim.load_snapshot_editable_world_v23(sim.save_snapshot_editable_world_v23())
+                    .unwrap();
             }
             let current = sim.save_snapshot_v28();
             sim.load_snapshot_v28(current.clone()).unwrap();
             assert_eq!(sim.save_snapshot_v28(), current);
-            assert_eq!(sim.world().get::<Path>(actor).unwrap().steps.last(), Some(&exit));
+            assert_eq!(
+                sim.world().get::<Path>(actor).unwrap().steps.last(),
+                Some(&exit)
+            );
         }
     }
 }
@@ -2901,7 +3314,10 @@ fn a_saved_scheduled_shift_under_a_previous_shift_still_validates() {
     );
     let shift = scheduled(&sim, actor).expect("the standard shift stays recorded");
     assert_eq!((shift.start_tick, shift.settled), (60, true));
-    assert_eq!(validate_saved(sim.world(), &to_saved(sim.world()), true), Ok(()));
+    assert_eq!(
+        validate_saved(sim.world(), &to_saved(sim.world()), true),
+        Ok(())
+    );
 
     // Open scheduled shifts written by hand, each checked alone at the
     // tick before it ends.

@@ -137,6 +137,8 @@ import { ActionQueue } from './ui/action-queue.js';
 import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
 import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
+import { BubbleControls } from './ui/bubble-controls.js';
+import { AnnotationSpread } from './render/annotation-spread.js';
 import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
@@ -717,6 +719,8 @@ async function main(): Promise<void> {
   if (!failureBubbleRoot || !workDialog || !workMessage || !workProceed) throw new Error('Missing player-order feedback markup');
   const feedbackBubbles = failureBubbleRoot;
   const failureBubbles = new OrderFailureBubbles(feedbackBubbles);
+  const bubbleControls = new BubbleControls(document);
+  const annotationSpread = new AnnotationSpread();
   let workReturnFocus: HTMLElement | null = null;
   const workConfirmation = new WorkOrderConfirmation(sim, overlayPause, {
     show(conflict) {
@@ -2918,6 +2922,13 @@ async function main(): Promise<void> {
         sky,
         characterWorld.plan,
       );
+      // Issue 360: bubbles move a little off each other and out from under
+      // the on-screen controls, which matters most at phone width.
+      if (batch.annotations.count > 0) {
+        const controls = bubbleControls.rects(stage);
+        annotationSpread.spread(batch.instances, batch.annotations.start, batch.annotations.count, camera.scale,
+          controls, stage.width, stage.height, bubbleControls.pixelRatio);
+      }
       // The day/night cycle. `LightingMode` combines the player's saved flat
       // choice with reduced motion's temporary constraint, so one effective
       // state governs ambient light, pools, and the button without rewriting

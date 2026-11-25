@@ -325,7 +325,13 @@ pub(crate) fn route_endpoint(
 ) -> Option<(i32, i32)> {
     let tile = (position.x.round() as i32, position.y.round() as i32);
     match path {
-        Some(path) => Some(path.steps.get(path.cursor..)?.last().copied().unwrap_or(tile)),
+        Some(path) => Some(
+            path.steps
+                .get(path.cursor..)?
+                .last()
+                .copied()
+                .unwrap_or(tile),
+        ),
         None => Some(tile),
     }
 }
@@ -585,7 +591,8 @@ fn revalidate_routes_for(world: &mut World, commutes_only: bool) {
 
 /// Let attendance finish the interrupted return and any due career review when time resumes.
 pub(crate) fn finish_visible_commute_next_tick(world: &mut World, actor: Entity) {
-    world.entity_mut(actor)
+    world
+        .entity_mut(actor)
         .remove::<terri_core::Path>()
         .insert(terri_core::Commuting::Inbound);
 }

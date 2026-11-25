@@ -27,9 +27,9 @@ describe('committed atlas packet validation',()=>{
     validateAtlasStorage(ATLAS_STORAGE,gpu().device);
     const lookup=await decodeAtlasLookup(rawLookup,ATLAS_STORAGE);
     const packet=await decodeAtlasCoverage(rawCoverage,ATLAS_STORAGE);
-    expect(lookup.length).toBe(55*256*256);
+    expect(lookup.length).toBe(56*256*256);
     expect(Math.max(...lookup.subarray(0,65536))).toBeGreaterThan(0);
-    expect(packet.bodies).toHaveLength(1428);expect(packet.dishes).toHaveLength(16);expect(packet.indicators).toHaveLength(62);
+    expect(packet.bodies).toHaveLength(1428);expect(packet.dishes).toHaveLength(16);expect(packet.indicators).toHaveLength(82);
   });
   it.each(['virtualSize','virtualLayers','tileSize','border','physicalSize','tilesPerRow','uniqueTiles'])(
     'rejects invalid layout %s before allocation',key=>{const m=clone();m[key]=0;expect(()=>validateAtlasStorage(m,gpu().device)).toThrow();});
@@ -45,7 +45,7 @@ describe('committed atlas packet validation',()=>{
   });
   it('rejects stale fixture identities and grime dimensions',()=>{
     const m=clone();m.companions[0].sha256='0'.repeat(64);expect(()=>validateAtlasStorage(m,gpu().device)).toThrow(/source|catalogue/);
-    const n=clone();n.sources[42].width=2048;expect(()=>validateAtlasStorage(n,gpu().device)).toThrow(/source|catalogue/);
+    const n=clone(),grime=n.sources.findIndex((s:{file:string})=>s.file.endsWith('grime/household-stains.png'));expect(grime).toBeGreaterThan(0);n.sources[grime].width=2048;expect(()=>validateAtlasStorage(n,gpu().device)).toThrow(/source|catalogue/);
   });
   it.each([['maxTextureDimension2D',1024],['maxTextureArrayLayers',20],['maxStorageBufferBindingSize',1024],['maxBufferSize',1024],['maxStorageBuffersPerShaderStage',3]])(
     'rejects device %s before fetch',async(key,value)=>{const {device}=gpu();Object.assign(device.limits,{[key]:value});const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
@@ -110,10 +110,10 @@ describe('physical uploads and ownership',()=>{
   const files=vi.fn();const loading=loadAtlasStorage(device,{files});await copied;
   expect(bitmaps).toHaveLength(1);expect(bitmaps[0].close).not.toHaveBeenCalled();
   expect(fetcher.mock.calls.filter(([url])=>url.endsWith('.png')).length).toBeLessThanOrEqual(4);
-  release();await expect(loading).resolves.toEqual({texture,lookup});expect(bitmaps).toHaveLength(21);
+  release();await expect(loading).resolves.toEqual({texture,lookup});expect(bitmaps).toHaveLength(22);
   expect(device.createTexture).toHaveBeenCalledWith(expect.objectContaining({usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST|GPUTextureUsage.RENDER_ATTACHMENT}));
   for(const bitmap of bitmaps)expect(bitmap.close).toHaveBeenCalledTimes(1);
-  expect(files).toHaveBeenLastCalledWith(23,23);expect(queue.writeBuffer).toHaveBeenCalledTimes(1);
+  expect(files).toHaveBeenLastCalledWith(24,24);expect(queue.writeBuffer).toHaveBeenCalledTimes(1);
   const row=ATLAS_STORAGE.coverage.bodies[0],rect=SPRITES[row.sprite],density=rect.pixel_density??1;
   const pixel=new DataView(rawCoverage.buffer).getUint32(row.partialPixels[0],true);
   expect(sampleBodyCoverage(row.sprite,(pixel%rect.w+.5)/density,(Math.floor(pixel/rect.w)+.5)/density)).toBeCloseTo(rawCoverage[row.partialAlpha[0]]/255);
@@ -145,7 +145,7 @@ describe('physical uploads and ownership',()=>{
   if(kind==='validation'||kind==='out-of-memory')vi.mocked(device.popErrorScope).mockResolvedValueOnce({message:kind} as GPUError);
   if(kind==='buffer')vi.mocked(device.createBuffer).mockImplementationOnce(()=>{throw Error('buffer failed');});
   await expect(loadAtlasStorage(device)).rejects.toThrow();expect(texture.destroy).toHaveBeenCalledTimes(1);
-  expect(lookup.destroy).toHaveBeenCalledTimes(kind==='buffer'?0:1);expect(bitmap.close).toHaveBeenCalledTimes(kind==='hash'||kind==='buffer'?0:kind==='validation'||kind==='out-of-memory'?21:1);
+  expect(lookup.destroy).toHaveBeenCalledTimes(kind==='buffer'?0:1);expect(bitmap.close).toHaveBeenCalledTimes(kind==='hash'||kind==='buffer'?0:kind==='validation'||kind==='out-of-memory'?22:1);
   downloads();bitmap.width=2048;await expect(loadAtlasStorage(device)).resolves.toEqual({texture,lookup});
  });
 });

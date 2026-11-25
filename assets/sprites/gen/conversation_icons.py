@@ -36,22 +36,48 @@ def conversation_image(glyph, positive):
     return image.resize((84, 84), Image.Resampling.LANCZOS)
 
 
+def neutral_image(glyph):
+    """Speech and topic as in the other reactions, with a level bar for the thumb (issue 360)."""
+    image = Image.new('RGBA', (168, 168))
+    drawing = ImageDraw.Draw(image)
+    drawing.ellipse((4, 4, 164, 164), fill=PALETTE['linen'],
+                    outline=PALETTE['ink'], width=5)
+    for symbol, position, size in (
+        (glyph_image('talk'), (12, 24), 72),
+        (glyph_image(glyph), (84, 24), 72),
+    ):
+        image.alpha_composite(symbol.resize((size, size), Image.Resampling.LANCZOS), position)
+    drawing.rounded_rectangle((60, 118, 108, 130), radius=6, fill=PALETTE['ink'])
+    return image.resize((84, 84), Image.Resampling.LANCZOS)
+
+
+def render_neutral_icons():
+    """The Neutral reaction for each topic, appended after every earlier atlas record."""
+    return [(f'conversation{suffix}Neutral', neutral_image(glyph), 84, 84)
+            for code, suffix, glyph in ICONS if code not in (1, 2)]
+
+
 def render_icons():
     return [(f'conversation{suffix}{reaction}', conversation_image(glyph, positive), 84, 84)
             for code, suffix, glyph in ICONS if code not in (1, 2)
             for positive, reaction in ((True, 'Like'), (False, 'Dislike'))]
 
 
-def load_reviewed_icons(path):
+def reviewed_catalogue(sprites):
+    """The pinned review catalogue for rendered sprites."""
+    return {'version': 1, 'sprites': [
+        {'name': name, 'width': width, 'height': height,
+         'rgbaSha256': hashlib.sha256(image.tobytes()).hexdigest()}
+        for name, image, width, height in sprites]}
+
+
+def load_reviewed_icons(path, render=None):
     """Verify authored pixels against the separately pinned review catalogue."""
     catalogue = json.loads(Path(path).read_text(encoding='utf-8'))
-    sprites = render_icons()
+    sprites = (render or render_icons)()
     if any(image.mode != 'RGBA' or image.size != (width, height)
            for _, image, width, height in sprites):
         raise ValueError('reviewed conversation icon dimensions changed')
-    actual = [{'name': name, 'width': width, 'height': height,
-               'rgbaSha256': hashlib.sha256(image.tobytes()).hexdigest()}
-              for name, image, width, height in sprites]
-    if catalogue.get('version') != 1 or catalogue.get('sprites') != actual:
+    if catalogue != reviewed_catalogue(sprites):
         raise ValueError('reviewed conversation icon pixels changed')
     return sprites
