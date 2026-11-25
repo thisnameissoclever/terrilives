@@ -34,7 +34,7 @@ export function fitLoungerRecline(geometry:Geometry,shape:ShapeParameters,top:nu
     if(parent===spine)pose[bone]=multiply(lean,pose[bone]);
   }
   // Let the head follow the slope and move the low sofa arms above the deck.
-  pose[head]=multiply(pitchAround(position(pose[head]),-.65),pose[head]);
+  pose[head]=multiply(pitchAround(position(pose[head]),-.55),pose[head]);
   for(const side of ['L','R']){
     const shoulder=index('upper_arm.'+side);
     const relax=pitchAround(position(pose[shoulder]),-.45);

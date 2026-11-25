@@ -104,7 +104,9 @@ it('faces shared swimmers into open water between occupied berths',()=>{
 });
 
 it('uses a dedicated recline on the Sunstrip and retains ordinary sofa and chair selection',()=>{
-  expect(plan({action:8,fixtureModel:'pool_lounger'})).toMatchObject({clip:'lounger_recline',fixture:true});
+  for(const tick of [30.5,31.5]){
+    expect(plan({action:8,fixtureModel:'pool_lounger',tick})).toEqual({clip:'lounger_recline',sample:0,fixture:true});
+  }
   expect(plan({action:8,fixtureModel:'chair'})).toMatchObject({clip:'seat_dining_sit',fixture:true});
   expect(plan({action:5,fixtureModel:'pool_lounger'})).toMatchObject({clip:'walk',fixture:false});
 });
