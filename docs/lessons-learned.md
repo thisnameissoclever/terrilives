@@ -14069,3 +14069,15 @@ The first in-ground pool concept drew bright submerged rungs over the water. Mov
 Check the ladder from both sides in the game. From the exposed side, follow each rail over the coping and down to a submerged rung inside the basin. From the near side, verify that the coping hides the submerged portion. Compare the two views before accepting a change to depth or contrast.
 
 The first rendered basin also had a thin outline below the outer edge of the deck. Blender hid the buried walls, then Freestyle traced their outlines into the transparent pixels. Restrict outlines to the exposed surfaces and inspect the exported sprite over ground color from all four facings. The deck should meet the ground at its coping.
+
+## [L-reachable-company] Use chat reachability when a decision depends on company
+
+The first version of the home-alone chore boost counted an awake housemate across a sealed wall as company. The check used presence and wakefulness alone.
+
+Use the same reachable contact tile as the activity the Sim would share. Test the two housemates with an open route, then seal the connecting boundary and repeat the decision with the same status and needs.
+
+## [L-hobby-activity-lifetime] Check activity replacement before crediting the next minute
+
+A hobby mood lift originally carried into the activity that replaced it on the same tick. Consecutive credit identified the sequence of minutes. A Sim could stop, take a new order and begin work before the minute ended.
+
+Tie the lift to its active work. Clear it after cancellation and before a replacement can physically begin. Test a restart at the same target and a switch between reachable objects that share the same approach tile. When loading, verify the active action and allow an obsolete hobby tag to lose its lift without losing the household.

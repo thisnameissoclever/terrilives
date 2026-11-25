@@ -105,14 +105,20 @@ fn published_career_v24_saves_keep_the_whole_payload_and_start_need_mood_at_zero
         assert!(migrated.load_bytes(original));
         let current = migrated.save_bytes();
         let snapshot = decode_current(&current);
-        assert_eq!(snapshot.previous.career_inputs, career.career_inputs);
         assert_eq!(
-            snapshot.previous.queued_work_commands,
+            snapshot.editable.previous.career_inputs,
+            career.career_inputs
+        );
+        assert_eq!(
+            snapshot.editable.previous.queued_work_commands,
             career.queued_work_commands
         );
-        assert_eq!(snapshot.previous.replaced_shifts, career.replaced_shifts);
         assert_eq!(
-            snapshot.previous.legacy.presence_fade,
+            snapshot.editable.previous.replaced_shifts,
+            career.replaced_shifts
+        );
+        assert_eq!(
+            snapshot.editable.previous.legacy.presence_fade,
             career.legacy.presence_fade
         );
         assert!(snapshot.need_mood.is_empty());
@@ -166,9 +172,10 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let (editable, tail) =
         postcard::take_from_bytes::<SaveSnapshotV26>(&current[SAVE_HEADER_BYTES..]).unwrap();
     assert_eq!(editable, snapshot.editable);
-    // Schema 31 appends the remembered topics after the need mood.
+    // The need mood rows precede the topic memory and hobby mood rows.
     let mut expected_tail = postcard::to_allocvec(&snapshot.need_mood).unwrap();
     expected_tail.extend(postcard::to_allocvec(&snapshot.topic_memory).unwrap());
+    expected_tail.extend(postcard::to_allocvec(&snapshot.hobby_mood).unwrap());
     assert_eq!(tail, expected_tail);
 
     use terri_core::admin::{AdminChange, AdminEdit};
@@ -206,5 +213,5 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let migrated = decode_current(&live.save_bytes());
     assert_eq!(migrated.need_mood, published.need_mood);
     assert!(migrated.baths.is_empty());
-    assert_eq!(live.sim.save_snapshot_v31(), migrated);
+    assert_eq!(live.sim.save_snapshot_v32(), migrated);
 }

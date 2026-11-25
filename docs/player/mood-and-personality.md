@@ -66,7 +66,13 @@ These conditions also lower a new person's starting life satisfaction. Managing 
 
 ## Hobbies and skills {#hobbies-and-skills}
 
-Hobbies identify kinds of activities the person finds particularly rewarding. Completing a loved activity increases its life-satisfaction reward. That does not add an extra Hunger, Energy or other need payment. Conditions can separately scale what the person earns.
+Hobbies identify kinds of activities the person finds particularly rewarding. Each game minute they spend doing something they love adds a little mood under Enjoying a hobby in Overview. The lift ends when they stop doing the activity. Walking there, waiting and putting a book back don't earn mood. You can save during a hobby and resume with the same lift.
+
+:::numbers How quickly hobbies lift mood
+An active hobby adds 0.05 mood points per game minute. The lift tops out at 2 mood points.
+:::
+
+Completing a loved activity also increases any life-satisfaction reward it normally gives. Conditions can separately scale what the person earns. Activities still give their usual need benefits.
 
 Skills grow through completed attempts. Cooking, Fitness and Reading have their own progress. Capability-linked skill mastery lowers the chance of relevant mishaps, including cooking problems. Skills do not universally increase speed or every need benefit. An interrupted reading session preserves progress through the book but gives no completed skill attempt.
 

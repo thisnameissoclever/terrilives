@@ -312,6 +312,72 @@ mod tests {
         )
     }
 
+    #[test]
+    fn hobby_mood_resets_on_an_immediate_replacement_and_survives_retuning() {
+        use terri_core::{CommandQueue, SimCommand};
+
+        let pack = hobby_pack();
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let bench = pack.find("bench").unwrap();
+        let first = sim.spawn_object(Position { x: 1.0, y: 1.0 }, bench);
+        let second = sim.spawn_object(Position { x: 3.0, y: 1.0 }, bench);
+        let person = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 1.0 },
+                Needs::with(NeedId::Fun, 20.0),
+                Hobbies(vec!["whittling".into()]),
+            ))
+            .id();
+        let agent = person.index_u32();
+        let use_first = |object: Entity| SimCommand::UseObjectFirst {
+            agent,
+            object: object.index_u32(),
+            interaction: 0,
+        };
+        let lift = |sim: &crate::Sim| crate::hobby_mood::points(sim.world(), person);
+
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(use_first(first));
+        sim.tick();
+        sim.tick();
+        assert_eq!(lift(&sim), Some(0.10));
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(use_first(second));
+        sim.tick();
+        assert_eq!(
+            sim.world()
+                .get::<terri_core::Target>(person)
+                .unwrap()
+                .object,
+            second
+        );
+        assert_eq!(lift(&sim), Some(0.05));
+        sim.tick();
+        assert_eq!(lift(&sim), Some(0.10));
+
+        let mut commands = sim.world_mut().resource_mut::<CommandQueue>();
+        commands.push(SimCommand::CancelIntents { agent });
+        commands.push(use_first(second));
+        sim.tick();
+        assert_eq!(lift(&sim), Some(0.05));
+
+        let saved = sim.save_snapshot_v32();
+        assert_eq!(saved.hobby_mood.len(), 1);
+        let mut retuned = pack.clone();
+        retuned.objects[bench.0 as usize].interactions[0]
+            .tags
+            .clear();
+        let mut restored = test_content::sim_with(8, 8, Box::leak(Box::new(retuned)));
+        restored.load_snapshot_v32(saved).unwrap();
+        assert!(restored.world().get::<terri_core::Eating>(person).is_some());
+        assert!(restored.save_snapshot_v32().hobby_mood.is_empty());
+        assert_eq!(lift(&restored), None);
+    }
+
     /// Two sims complete the SAME activity; only the one who loves it is
     /// paid triple. One fixture, both branches, so "multiplied" and
     /// "base" cannot each pass against a broken other half ([L34]).
@@ -348,6 +414,15 @@ mod tests {
                     .get::<terri_core::Satisfaction>(agent)
                     .unwrap()
                     .value();
+                if sim.world().get::<terri_core::Eating>(agent).is_some() {
+                    let lift = sim
+                        .mood_of(agent.index_u32())
+                        .unwrap()
+                        .moodlets
+                        .into_iter()
+                        .find(|moodlet| moodlet.label == "Enjoying a hobby");
+                    assert_eq!(lift.is_some(), hobbies.iter().any(|tag| tag == "whittling"));
+                }
                 if ledger > 0.0 {
                     assert_eq!(
                         ledger, expected,

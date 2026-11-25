@@ -671,9 +671,11 @@ dish surface, one room's reachable dirty floor tiles, a surface, or a bin.
 The Chores panel on the main bottom bar shows weekly assignments and saved daily
 outcomes. Wiping duties group counter or table surfaces within each room and
 follow build-mode changes. Automatic assignments default to enabled. Assignment
-balances work and chore preference; responsibility, commitment history,
-cleanliness, mood and needs govern daily willingness. Enjoyment remains a
-separate consequence of each chore preference.
+balances work and chore preference and gives more weight to people without
+jobs. Responsibility, commitment history, cleanliness, mood and needs govern
+daily willingness. Having no job raises the odds of doing chores, especially
+when the person can't reach another awake housemate. Any critical need pauses that
+boost. Chore preference also governs enjoyment.
 
 Completion credits the actual performer. Housemates can appreciate fulfilled
 duties or resent avoidable neglect through bounded directional relationship

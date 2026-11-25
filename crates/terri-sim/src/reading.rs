@@ -735,6 +735,7 @@ fn read_tick(world: &mut World, person: Entity) {
         }
         return;
     }
+    crate::hobby_mood::credit(world, person, &act.tags);
     let id = *world.get::<SimId>(person).unwrap();
     let mut library = world.resource::<BookLibrary>().clone();
     let copy = library.copy(j.copy).unwrap();

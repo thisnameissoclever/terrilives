@@ -688,9 +688,12 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
         postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    let source = CurrentV5View(terri_core::SaveSnapshotV31 {
-        current: source,
-        topic_memory: vec![],
+    let source = CurrentV5View(terri_core::SaveSnapshotV32 {
+        previous: terri_core::SaveSnapshotV31 {
+            current: source,
+            topic_memory: vec![],
+        },
+        hobby_mood: vec![],
     });
     let mut handle = SimHandle::new(12, 12);
     assert!(handle.load_bytes(bytes));

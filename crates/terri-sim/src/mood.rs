@@ -118,6 +118,13 @@ fn derive_mood_with_chores(
         });
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
+    if let Some(score) = crate::hobby_mood::points(world, subject) {
+        moodlets.push(Moodlet {
+            label: "Enjoying a hobby".to_string(),
+            score,
+        });
+        tag(&moodlets, &mut sources, MoodSource::Other);
+    }
 
     if let Some(traits) = traits {
         for &(trait_index, severity) in traits.entries() {

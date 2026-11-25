@@ -2277,10 +2277,10 @@ mod editable_return_tests {
                 .iter(sim.world())
                 .any(|c| *c == Commuting::Inbound)
             {
-                let saved = sim.save_snapshot_v31();
+                let saved = sim.save_snapshot_v32();
                 let hash = sim.world_hash();
-                sim.load_snapshot_v31(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v31(), saved);
+                sim.load_snapshot_v32(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v32(), saved);
                 assert_eq!(sim.world_hash(), hash);
                 return;
             }

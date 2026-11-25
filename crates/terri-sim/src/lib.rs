@@ -76,6 +76,7 @@ pub mod edit;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
+mod hobby_mood;
 pub mod household;
 mod media;
 mod mood;
@@ -1526,7 +1527,7 @@ impl Sim {
     /// Published schema twenty-one retains shift and queued-command ownership.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.editable.previous.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
     }
 
@@ -1563,14 +1564,14 @@ impl Sim {
     /// The published household bills projection.
     pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.legacy.clone())
+            .map(|snapshot| snapshot.editable.previous.legacy.legacy.clone())
             .unwrap_or_else(|| save::v22::capture(self))
     }
 
     /// The published bills and lingering preference projection.
     pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.legacy.clone())
+            .map(|snapshot| snapshot.editable.previous.legacy.clone())
             .unwrap_or_else(|| save::v23::capture(self))
     }
 
@@ -1601,7 +1602,7 @@ impl Sim {
     pub fn save_snapshot_v25(&self) -> terri_core::SaveSnapshotV25 {
         let mut snapshot = build_transaction::committed(&self.world)
             .map(|snapshot| terri_core::SaveSnapshotV25 {
-                previous: snapshot.previous.legacy.clone(),
+                previous: snapshot.editable.previous.legacy.clone(),
                 surfaces: snapshot.surfaces.clone(),
                 commutes: snapshot.commutes.clone(),
                 pools: snapshot.pools.clone(),
@@ -1641,10 +1642,10 @@ impl Sim {
     }
 
     /// Historical typed projection for inspection and fixtures whose state fits V24.
-    /// Use V30 for full continuation.
+    /// Use V32 for full continuation.
     pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.clone())
+            .map(|snapshot| snapshot.editable.previous.clone())
             .unwrap_or_else(|| save::v24::capture(self))
     }
 
@@ -1676,7 +1677,7 @@ impl Sim {
     pub fn save_snapshot_v27(&self) -> terri_core::SaveSnapshotV27 {
         build_transaction::committed(&self.world)
             .map(|snapshot| terri_core::SaveSnapshotV27 {
-                legacy: snapshot.previous.clone(),
+                legacy: snapshot.editable.previous.clone(),
                 need_mood: snapshot.need_mood.clone(),
             })
             .unwrap_or_else(|| save::v27::capture(self))
@@ -1698,11 +1699,17 @@ impl Sim {
         snapshot
     }
 
-    /// The complete household with its remembered topic preferences (issue
-    /// 359).
-    pub fn save_snapshot_v31(&self) -> terri_core::SaveSnapshotV31 {
+    /// The current household, including active hobby mood progress.
+    pub fn save_snapshot_v32(&self) -> terri_core::SaveSnapshotV32 {
         build_transaction::committed(&self.world)
             .cloned()
+            .unwrap_or_else(|| save::v32::capture(self))
+    }
+
+    /// Historical V31 projection with remembered topic preferences.
+    pub fn save_snapshot_v31(&self) -> terri_core::SaveSnapshotV31 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.clone())
             .unwrap_or_else(|| save::v31::capture(self))
     }
 
@@ -1717,19 +1724,24 @@ impl Sim {
         pool::EXIT_TICKS
     }
 
-    /// [`Sim::save_snapshot_v30`], the current save, refusing a queue that
+    /// [`Sim::save_snapshot_v32`], refusing a queue that
     /// holds an admin command, and a world a broken admin session left with
     /// edits that would not load ([AP-save-queue] in
     /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
     /// save that met one would otherwise leave it out. The command paths
     /// never leave one queued; this is the check that proves it at the save
     /// boundary.
-    pub fn try_save_snapshot_v31(&self) -> Result<terri_core::SaveSnapshotV31, SaveError> {
+    pub fn try_save_snapshot_v32(&self) -> Result<terri_core::SaveSnapshotV32, SaveError> {
         save::refuse_queued_admin(&self.world)?;
         if admin::world_broken(&self.world) {
             return Err(SaveError::AdminSessionBroken);
         }
-        Ok(self.save_snapshot_v31())
+        Ok(self.save_snapshot_v32())
+    }
+
+    /// A checked V31 projection, which omits hobby mood progress.
+    pub fn try_save_snapshot_v31(&self) -> Result<terri_core::SaveSnapshotV31, SaveError> {
+        Ok(self.try_save_snapshot_v32()?.previous)
     }
 
     /// A checked V30 projection, which has no place for remembered topic
@@ -1820,13 +1832,24 @@ impl Sim {
         self.adopt_complete_activity_state(candidate)
     }
 
-    /// Loads the current save, with remembered topic preferences (issue
-    /// 359).
+    /// Loads V31 with zero hobby mood progress.
     pub fn load_snapshot_v31(
         &mut self,
         snapshot: terri_core::SaveSnapshotV31,
     ) -> Result<(), SaveError> {
         let candidate = save::v31::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_v32(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV32,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v32::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -2519,6 +2542,7 @@ impl Sim {
                     privacy::route,
                     systems::interpersonal::refresh_routes,
                     social_episode::requests::before_movement,
+                    hobby_mood::prune_inactive,
                     systems::movement::follow_path,
                     social_episode::begin_topics,
                     social_company::extend_episodes,
@@ -2594,6 +2618,7 @@ impl Sim {
                 // mood contribution to satisfaction.
                 (
                     need_mood::accrue,
+                    hobby_mood::prune,
                     mood::accrue_satisfaction,
                     privacy::maintain,
                 )
@@ -2993,6 +3018,7 @@ impl Sim {
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
         self.apply_staged_commands();
+        hobby_mood::prune(&mut self.world);
         // Commands can settle events too, so a paused frame ends with the
         // same activity log pass a full tick does.
         activity_log::finish_tick(&mut self.world);
@@ -5959,6 +5985,7 @@ impl Sim {
         careers::hash_inputs(&self.world, &mut hasher);
         careers::hash_input_sources(&self.world, &mut hasher);
         need_mood::hash(&self.world, &mut hasher);
+        hobby_mood::hash(&self.world, &mut hasher);
         // Remembered topic preferences (issue 359): last, and only while
         // somebody remembers something, so every older world hashes as it
         // did.

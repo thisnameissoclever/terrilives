@@ -2492,7 +2492,7 @@ fn abandoned_shared_plate_becomes_a_counter_dish_and_reservation_has_multiple_ow
 }
 
 #[test]
-fn a_visitor_draws_once_per_entry_at_the_tuned_fraction_of_own_willingness() {
+fn a_visitor_draws_once_per_entry_with_the_employment_and_company_boost() {
     let (mut sim, people, _, counter, _) = household();
     let observer = people[1];
     for person in &people {
@@ -2501,44 +2501,67 @@ fn a_visitor_draws_once_per_entry_at_the_tuned_fraction_of_own_willingness() {
             .entity_mut(*person)
             .insert(ChainState::begin(0));
     }
-    *sim.world_mut().get_mut::<Position>(observer).unwrap() =
-        *sim.world().get::<Position>(counter).unwrap();
+    let counter_position = *sim.world().get::<Position>(counter).unwrap();
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() = Position {
+        x: counter_position.x,
+        y: counter_position.y + 1.0,
+    };
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
-    let mut decisions = 0;
-    for seed in 0..200 {
-        sim.world_mut().entity_mut(observer).remove::<ChainState>();
-        if let Some(mut dining) = sim.world_mut().get_resource_mut::<SavedDining>() {
-            dining.opportunities.clear();
+    for (employed, alone, chance) in [
+        (true, false, 0.343),
+        (false, false, 0.43918),
+        (false, true, 0.61032),
+    ] {
+        let mut actor = sim.world_mut().entity_mut(observer);
+        if employed {
+            actor.insert(terri_core::Career(0));
+        } else {
+            actor.remove::<terri_core::Career>();
         }
-        let state = sim.world_mut().resource_mut::<SavedDomestic>().into_inner();
-        state.cleanup.clear();
-        state.visits.clear();
-        state.cleanliness = people
-            .iter()
-            .map(|person| (person.index_u32(), 1.0))
-            .collect();
-        let mut expected = SimRng::from_seed(seed);
-        let accepted = expected.next_f32() < 0.35 * 0.98;
-        sim.world_mut().insert_resource(SimRng::from_seed(seed));
-        tick(sim.world_mut());
-        assert_eq!(
-            !sim.world().resource::<SavedDomestic>().cleanup.is_empty(),
-            accepted
-        );
-        assert_eq!(
-            *sim.world().resource::<SimRng>(),
-            expected,
-            "one entry consumes exactly one draw"
-        );
-        tick(sim.world_mut());
-        assert_eq!(
-            *sim.world().resource::<SimRng>(),
-            expected,
-            "remaining in the room does not roll again"
-        );
-        decisions += usize::from(accepted);
+        if alone {
+            for &other in people.iter().filter(|&&person| person != observer) {
+                sim.world_mut().entity_mut(other).insert(AtWork {
+                    remaining_ticks: 30,
+                });
+            }
+        }
+        let mut decisions = 0;
+        for seed in 0..100 {
+            sim.world_mut().entity_mut(observer).remove::<ChainState>();
+            if let Some(mut dining) = sim.world_mut().get_resource_mut::<SavedDining>() {
+                dining.opportunities.clear();
+            }
+            let state = sim.world_mut().resource_mut::<SavedDomestic>().into_inner();
+            state.cleanup.clear();
+            state.visits.clear();
+            state.cleanliness = people
+                .iter()
+                .map(|person| (person.index_u32(), 1.0))
+                .collect();
+            let mut expected = SimRng::from_seed(seed);
+            let accepted = expected.next_f32() < chance;
+            sim.world_mut().insert_resource(SimRng::from_seed(seed));
+            tick(sim.world_mut());
+            assert_eq!(
+                !sim.world().resource::<SavedDomestic>().cleanup.is_empty(),
+                accepted,
+                "employed={employed}, alone={alone}, seed={seed}"
+            );
+            assert_eq!(
+                *sim.world().resource::<SimRng>(),
+                expected,
+                "one entry consumes exactly one draw"
+            );
+            tick(sim.world_mut());
+            assert_eq!(
+                *sim.world().resource::<SimRng>(),
+                expected,
+                "remaining in the room does not roll again"
+            );
+            decisions += usize::from(accepted);
+        }
+        assert!(decisions > 0 && decisions < 100);
     }
-    assert!(decisions > 0 && decisions < 200);
 }
 
 #[test]
