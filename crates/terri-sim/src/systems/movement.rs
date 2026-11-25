@@ -535,11 +535,9 @@ pub fn follow_path(
         };
 
         let dx = tx as f32 - pos.x;
-        if beds
-            .pools
-            .iter()
-            .any(|(owner, episode)| owner != entity && episode.approach == (tx, ty))
-        {
+        if beds.pools.iter().any(|(owner, episode)| {
+            owner != entity && episode.approach == (tx, ty) && episode.uses_ladder()
+        }) {
             continue;
         }
         let dy = ty as f32 - pos.y;

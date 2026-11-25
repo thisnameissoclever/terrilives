@@ -65,7 +65,7 @@ import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { edgesWithShell } from './render/house-shell.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
-import {prepareWorldPoolRigs} from './render/character/creator-assets.js';
+import {prepareWorldLoungerRig,prepareWorldPoolRigs} from './render/character/creator-assets.js';
 import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.js';
 import {CharacterFrameMeasurement,type CharacterFrameReport} from './render/character/measurement.js';
 import {DeviceLifetime} from './render/character/device-lifetime.js';
@@ -461,6 +461,7 @@ async function main(): Promise<void> {
   const preparedBuildCommit = new PreparedBuildCommit(contactRoster, {
     poolRequired: token => sim.buildPoolContactRequired(token),
     appearances: () => sim.characterAppearances(),
+    prepareSceneAssets: () => prepareWorldLoungerRig(sim),
     pending: active => { buildPoolPending = active; reflectBuildPoolPending(active); },
   });
   const runPreparedBuildCommit: typeof preparedBuildCommit.run = (token, adopt) => preparedBuildCommit.run(token, adopt);
@@ -478,7 +479,8 @@ async function main(): Promise<void> {
     const loaded=await loadPreparedCharacterState(bytes,buildSession,()=>{
       const candidate=SimHandle.from_lot(),source=new SimBridge(candidate,wasm.memory);
       return {loadBytes:(bytes:Uint8Array)=>source.loadBytes(bytes),characterAppearances:()=>source.characterAppearances(),
-        poolContactRequired:()=>source.poolContactRequired(),flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
+        poolContactRequired:()=>source.poolContactRequired(),prepareSceneAssets:()=>prepareWorldLoungerRig(source),
+        flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
     },contactRoster,undefined,()=>{
       if(restoringStartup)loading.note('Preparing swimming');
       else persistence.preparingSwimming();
@@ -562,6 +564,7 @@ async function main(): Promise<void> {
   } finally { closeArchitectureAtlas(architectureAtlas); }
   loading.note('Loading character models');
   await afterPaint();
+  await prepareWorldLoungerRig(sim);
   let characterWorld=await CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
   let weatherScene = new WeatherScene(gpu.device);
   const weatherTuning = sim.weatherTuning();
@@ -2279,7 +2282,7 @@ async function main(): Promise<void> {
     cancel.textContent = pending ? 'Return to build mode' : 'Cancel';
     buildBatchStatus.dataset.pending = String(pending && !roomReview.active);
     if (roomReview.active) reviewControls?.render();
-    else setBuildStatus(pending ? 'Preparing swimming…' : '');
+    else setBuildStatus(pending ? 'Preparing animations…' : '');
   };
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {

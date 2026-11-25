@@ -7,15 +7,20 @@ import { baselineHtml, validatePlayerCoverage } from './player-coverage.mjs';
 
 test('pool values describe swimming-only delivery and retain source-driven total duration', () => {
   const action = { id: 'object:pool/hop_in', object_id: 'pool', action_id: 'hop_in', label: 'Hop in',
-    duration_ticks: 200, need_deltas: { fun: 30, comfort: 10, energy: -5 } };
+    tags: ['pool_swimming'], duration_ticks: 200, need_deltas: { fun: 30, comfort: 10, energy: -5 } };
   const reference = { ticks_per_sim_hour: 120, objects: [{ id: 'pool', type: 'Pool', name: 'Backyard' }], actions: [action] };
   const html = baselineHtml(reference);
   assert.match(html, /<td>100<\/td>/);
   assert.match(html, /Fun \+30; Comfort \+10; Energy -5/);
-  assert.match(html, /Benefits and costs apply during swimming only; entry and exit are included in the total time/);
+  assert.match(html, /Only active swimming supplies these amounts. Entry and exit are included in the total time/);
   assert.doesNotMatch(html, /Paid as a rate while actively using it/);
   assert.match(baselineHtml({ ...reference, actions: [{ ...action, duration_ticks: 240 }] }), /<td>120<\/td>/);
-  assert.match(baselineHtml({ ...reference, actions: [{ ...action, object_id: 'pond', id: 'object:pond/hop_in' }] }), /Paid as a rate while actively using it/);
+  const basin = { ...action, object_id: 'pool_in_ground_5x7', id: 'object:pool_in_ground_5x7/hop_in', duration_ticks: 168 };
+  const basinGuide = baselineHtml({ ...reference, ticks_per_sim_hour: 60,
+    objects: [{ id: basin.object_id, type: 'Pool', name: 'Garden Basin' }], actions: [basin] });
+  assert.match(basinGuide, /<td>168<\/td>/);
+  assert.match(basinGuide, /Only active swimming supplies these amounts. Entry and exit are included in the total time/);
+  assert.match(baselineHtml({ ...reference, actions: [{ ...action, tags: [], object_id: 'pond', id: 'object:pond/hop_in' }] }), /Paid as a rate while actively using it/);
 });
 
 test('removed activity mapping, new relationship cause and broken evidence each fail', () => {

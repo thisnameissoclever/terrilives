@@ -153,9 +153,20 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     let encoded = postcard::to_allocvec(&pack).unwrap();
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/inherited-runtime.pack");
+    if std::env::var_os("TERRI_PROVE_LOUNGER_RUNTIME_FIXTURE").is_some() {
+        let fingerprint = terri_data::content_fingerprint(&pack);
+        let previous = single_sided_lounger(pack);
+        assert_eq!(terri_data::content_fingerprint(&previous), fingerprint);
+        assert_eq!(
+            postcard::to_allocvec(&previous).unwrap(),
+            std::fs::read(&path).unwrap(),
+            "restoring the original lounger approaches must reproduce the previous fixture"
+        );
+        return;
+    }
     let large_pools = ["pool_above_ground_3x4", "pool_in_ground_5x7"];
     if std::env::var_os("TERRI_PROVE_POOL_RUNTIME_FIXTURE").is_some() {
-        let before = compile_fixture("", &large_pools).unwrap();
+        let before = single_sided_lounger(compile_fixture("", &large_pools).unwrap());
         assert_eq!(
             postcard::to_allocvec(&before).unwrap(),
             std::fs::read(&path).unwrap(),
@@ -172,7 +183,7 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
         // changes regenerate the fixture with TERRI_WRITE_RUNTIME_FIXTURE and
         // do not pass through it.
         let old_bytes = std::fs::read(&path).unwrap();
-        let before = compile_fixture("", &large_pools).unwrap();
+        let before = single_sided_lounger(compile_fixture("", &large_pools).unwrap());
         assert_eq!(
             previous_without_topic_memory(&before),
             old_bytes,
@@ -194,6 +205,14 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
             "regenerate the compiled runtime fixture through this test"
         );
     }
+}
+
+fn single_sided_lounger(mut pack: terri_data::ContentPack) -> terri_data::ContentPack {
+    let lounger = pack.find("pool_lounger").unwrap();
+    let approaches = &mut pack.objects[lounger.0 as usize].seats[0].approaches;
+    assert_eq!(approaches.as_slice(), [(1, 0), (1, 1), (-1, 0), (-1, 1)]);
+    approaches.truncate(2);
+    pack
 }
 
 /// The fixture's bytes as they were before issue 359 (remembered topics),

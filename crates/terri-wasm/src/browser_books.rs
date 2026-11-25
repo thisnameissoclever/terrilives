@@ -183,7 +183,7 @@ impl SimHandle {
                         (
                             action.id.clone(),
                             action.label.clone(),
-                            action.duration_ticks,
+                            action.duration_for_model(&object.id),
                             capacity,
                             action.book_reading,
                             action.advertises.clone(),

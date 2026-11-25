@@ -1487,6 +1487,8 @@ export class SimBridge {
     return new Uint32Array(this.memory.buffer,this.handle.chore_progress_ptr(),this.count);
   }
   poolPhases(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_phases_ptr(),this.count); }
+  poolSlots(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_slots_ptr(),this.count); }
+  prevPoolSlots(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_slots_ptr(),this.count); }
   poolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_elapsed_ptr(),this.count); }
   prevPoolPhases(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_phases_ptr(),this.count); }
   prevPoolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_elapsed_ptr(),this.count); }

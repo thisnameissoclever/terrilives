@@ -135,11 +135,11 @@ export class CharacterRenderer {
   get pixelScale(): number { return characterPixelScale(this.width, this.height) * (this.framing.zoom ?? 1); }
   get groundFraction(): number { return this.framing.groundFraction ?? CHARACTER_FRAME.groundY / CHARACTER_FRAME.height; }
 
-  private preparePose(action:string,frame:number,facing:number,id:number,options:{offset?:Vec3;includeFixture?:boolean;poolLayout?:PoolPoseLayout}):boolean {
+  private preparePose(action:string,frame:number,facing:number,id:number,options:{offset?:Vec3;includeFixture?:boolean;poolLayout?:PoolPoseLayout;poolYaw?:number}):boolean {
     const metadata=this.geometry.manifest.clipMetadata?.[action];
     if(metadata?.playback==='static')frame=0;else if(metadata?.stepSamples)frame=Math.floor(frame);
-    const key=action+':'+frame+':'+(options.poolLayout??''),changed=this.mesh.poseSource?this.mesh.lastMatrices!==this.mesh.poseSource:this.mesh.lastPoseKey!==key||!this.mesh.lastMatrices;
-    const matrices = this.mesh.poseSource??(!changed?this.mesh.lastMatrices! : this.mesh.configured ? configuredPose(this.geometry.manifest, this.mesh.shape, action, frame, this.mesh.top, undefined, this.geometry,this.mesh.bikeContact,this.mesh.sleepContact,this.mesh.seatContact,this.mesh.poolContact,options.poolLayout) : new Float32Array(this.geometry.manifest.bones.length * 16));
+    const key=action+':'+frame+':'+(options.poolLayout??'')+':'+(options.poolYaw??0),changed=this.mesh.poseSource?this.mesh.lastMatrices!==this.mesh.poseSource:this.mesh.lastPoseKey!==key||!this.mesh.lastMatrices;
+    const matrices = this.mesh.poseSource??(!changed?this.mesh.lastMatrices! : this.mesh.configured ? configuredPose(this.geometry.manifest, this.mesh.shape, action, frame, this.mesh.top, undefined, this.geometry,this.mesh.bikeContact,this.mesh.sleepContact,this.mesh.seatContact,this.mesh.poolContact,options.poolLayout,options.poolYaw) : new Float32Array(this.geometry.manifest.bones.length * 16));
     if (changed&&!this.mesh.configured&&!this.mesh.poseSource) {
       const poses=sampleMotion(this.geometry.manifest,action,frame).source;
       this.geometry.manifest.bones.forEach((bone, i) => matrices.set(multiply(poses[i], bone.inverseRest), i * 16));
@@ -153,7 +153,7 @@ export class CharacterRenderer {
   }
   prepareScene(action:string,frame:number,facing:number,id:number,
     placement:{width:number;height:number;x:number;y:number;scale:number;depth:number;step:number;light:Vec3},
-    options:{offset?:Vec3;includeFixture?:boolean;fixtureToken?:number;fixtureColourway?:Vec3;poolLayout?:PoolPoseLayout}={}):void {
+    options:{offset?:Vec3;includeFixture?:boolean;fixtureToken?:number;fixtureColourway?:Vec3;poolLayout?:PoolPoseLayout;poolYaw?:number}={}):void {
     this.preparePose(action,frame,facing,id,options);
     this.data.set([placement.width,placement.height,placement.x,placement.y],48);
     this.data.set([placement.scale,placement.depth,placement.step,1],52);

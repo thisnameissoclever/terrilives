@@ -43,7 +43,7 @@ pub(crate) fn restore(
     content: &'static terri_data::ContentPack,
     carried: super::Carried,
 ) -> Result<Sim, SaveError> {
-    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::Legacy)
+    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::Legacy, false)
 }
 
 pub(super) fn restore_with_pool_clock(
@@ -51,6 +51,7 @@ pub(super) fn restore_with_pool_clock(
     content: &'static terri_data::ContentPack,
     mut carried: super::Carried,
     clock: SavedPoolClock,
+    shared_pools: bool,
 ) -> Result<Sim, SaveError> {
     let SaveSnapshotV26 {
         previous,
@@ -75,7 +76,11 @@ pub(super) fn restore_with_pool_clock(
     let mut candidate =
         super::v24::restore_with_sources(previous, content, carried, career_input_sources)?;
     crate::attendance::restore_open_base_pay(candidate.world_mut(), open_shift_base_pay)?;
-    crate::pool::restore(candidate.world_mut(), pools, clock)?;
+    if shared_pools {
+        crate::pool::restore_shared(candidate.world_mut(), pools)?;
+    } else {
+        crate::pool::restore(candidate.world_mut(), pools, clock)?;
+    }
     crate::bath::restore(candidate.world_mut(), baths)?;
     crate::attendance::validate_manual_work_trip_activities(candidate.world())?;
     ordinary_world::validate_restored(&candidate, &surfaces)?;

@@ -1,6 +1,6 @@
 use super::Admission;
 use terri_core::{Footprint, TileDistanceField, TileGrid};
-use terri_data::{CompiledObject, Facing};
+use terri_data::{CompiledObject, Facing, SeatUse};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Route {
@@ -162,6 +162,19 @@ impl Access {
                 .min_by_key(|access| access.distance)
         } else {
             self.perimeter
+        }
+    }
+
+    /// Consider only contacts that can serve this action, regardless of ownership.
+    pub(crate) fn nearest_for_action(&self, sleep: bool, seat_use: SeatUse) -> Option<Reachable> {
+        if seat_use == SeatUse::One {
+            self.seats
+                .iter()
+                .flatten()
+                .copied()
+                .min_by_key(|access| access.distance)
+        } else {
+            self.nearest(sleep)
         }
     }
 }

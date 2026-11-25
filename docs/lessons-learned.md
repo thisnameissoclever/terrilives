@@ -14069,3 +14069,21 @@ The first in-ground pool concept drew bright submerged rungs over the water. Mov
 Check the ladder from both sides in the game. From the exposed side, follow each rail over the coping and down to a submerged rung inside the basin. From the near side, verify that the coping hides the submerged portion. Compare the two views before accepting a change to depth or contrast.
 
 The first rendered basin also had a thin outline below the outer edge of the deck. Blender hid the buried walls, then Freestyle traced their outlines into the transparent pixels. Restrict outlines to the exposed surfaces and inspect the exported sprite over ground color from all four facings. The deck should meet the ground at its coping.
+
+## [L-shared-pool-claim] Reserve the ladder on the final step
+
+The first shared-pool reader accepted an approaching swimmer whenever the last waypoint was the ladder, even if earlier steps remained. A restored swimmer could then hold the ladder while walking elsewhere. A Build detour or a privacy reroute could create the same contradiction in play.
+
+Require exactly one remaining step to the ladder, or require the person to be standing there when the path is exhausted. Release a claim when a reroute adds a step before the ladder. Test an earlier cursor, an exhausted cursor away from the ladder, and a route that reaches the ladder, leaves, and returns.
+
+## [L-waiting-stroke-wrap] Interpolate through an animation loop in order
+
+A swimmer waiting for the ladder paddled backward briefly when the recorded stroke timer restarted. The renderer interpolated between the raw timer values and missed the loop boundary because the action had stayed in the same phase.
+
+Advance the next sample into the same loop interval first. Check both endpoints and the midpoint of the wrap, and verify that the swimmer's place in the water stays fixed.
+
+## [L-action-contact-before-wait] Check the requested contact before reporting a wait
+
+An empty lounger left a housemate waiting for someone to finish using it. The planner found a route to a short end while both long sides were blocked, then treated the absence of a usable seat approach as an occupancy problem.
+
+Check reachability against the contacts for the requested action before checking ownership. Give an unreachable directed order a route failure and exclude the unreachable action from autonomous wait choices. Verify a blocked seat with a free perimeter tile, a usable long side in each facing, and a real wait that ends when the occupant leaves.

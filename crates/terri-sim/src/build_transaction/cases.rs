@@ -106,10 +106,10 @@ fn buying_land_behind_the_house_keeps_an_active_pool_swim() {
     let mut active = (0..60)
         .find_map(|_| {
             sim.tick();
-            sim.save_snapshot_v31()
+            sim.save_snapshot_v32()
                 .pools
                 .iter()
-                .find(|episode| episode.actor == actor && episode.phase == 2)
+                .find(|episode| episode.actor == actor && episode.phase % 8 == 2)
                 .cloned()
         })
         .expect("the person enters the water");
@@ -126,7 +126,7 @@ fn buying_land_behind_the_house_keeps_an_active_pool_swim() {
         },
         100,
     );
-    let memories = sim.save_snapshot_v31().topic_memory;
+    let memories = sim.save_snapshot_v32().topic_memory;
     assert!(!memories.is_empty());
 
     sim.begin_build().unwrap();
@@ -141,14 +141,14 @@ fn buying_land_behind_the_house_keeps_an_active_pool_swim() {
     confirm(&mut sim);
 
     active.approach.0 += pack.tuning.land_strip_depth as i32;
-    let saved = sim.save_snapshot_v31();
+    let saved = sim.save_snapshot_v32();
     assert_eq!(
         saved.pools.iter().find(|row| row.actor == actor),
         Some(&active)
     );
     assert_eq!(saved.topic_memory, memories);
-    sim.load_snapshot_v31(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v31(), saved);
+    sim.load_snapshot_v32(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v32(), saved);
 }
 
 fn wall_refusal(

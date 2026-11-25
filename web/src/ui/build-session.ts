@@ -80,8 +80,8 @@ export class BuildSession implements PersistableSim {
       const committed = this.hooks.commit?.(prepared.value.token, adopt) ?? adopt();
       if (committed instanceof Promise) {
         return committed.then(result => this.receiveCommit(result), error => {
-          this.error = 'Swimming could not be prepared. Try Confirm again.';
-          logError('Build', 'Preparing swimming for this layout failed.', { error });
+          this.error = 'Animations could not be prepared. Try Confirm again.';
+          logError('Build', 'Preparing animations for this layout failed.', { error });
           return false;
         }).finally(() => { this.confirming = false; });
       }

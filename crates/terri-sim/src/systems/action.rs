@@ -125,6 +125,9 @@ impl BedState<'_, '_> {
         );
         result.historical_endpoints(terri_data::is_pre_books_pack(self.content.0));
         for (owner, episode) in self.pools.iter() {
+            if !episode.uses_ladder() {
+                continue;
+            }
             result.claim_endpoint(crate::seating::EndpointUse {
                 owner,
                 endpoint: episode.approach,
@@ -1302,16 +1305,15 @@ pub fn serve_intents(
         } else {
             None
         };
-        if media_plan.is_none() && access.nearest(sleep).is_none() {
+        if media_plan.is_none() && access.nearest_for_action(sleep, advert.seat_use).is_none() {
+            let reason = if advert.seat_use == terri_data::SeatUse::One {
+                "No reachable seat approach"
+            } else {
+                "Object unreachable"
+            };
             if let Some(entry) = queue.entries().first().cloned() {
                 commands.queue(move |world: &mut World| {
-                    crate::player_actions::terminal(
-                        world,
-                        agent,
-                        entry.id,
-                        "failed",
-                        Some("Object unreachable"),
-                    )
+                    crate::player_actions::terminal(world, agent, entry.id, "failed", Some(reason))
                 });
             }
             queue.pop();
@@ -1937,7 +1939,7 @@ pub fn select_action(
                 }) {
                     continue;
                 }
-                let duration = advert.duration_ticks;
+                let duration = advert.duration_for_model(&definition.id);
                 let social_available = crate::social_company::solo_social(advert)
                     || media_plan.as_ref().is_some_and(|_| {
                         social_company.media_allowed(agent, object, index as u32, &relationships)
@@ -2148,7 +2150,7 @@ pub fn select_action(
                     if let Some(plan) = media_plan {
                         media_plans.insert((object, index as u32), plan);
                     }
-                } else if let Some(route) = access.nearest(sleep) {
+                } else if let Some(route) = access.nearest_for_action(sleep, advert.seat_use) {
                     let (score, _) = score_at(route.distance);
                     waiting_rows.push((
                         object,

@@ -22,7 +22,7 @@ pub(crate) fn restore(
     content: &'static terri_data::ContentPack,
     carried: Carried,
 ) -> Result<Sim, SaveError> {
-    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::Legacy)
+    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::Legacy, false)
 }
 
 pub(crate) fn restore_current(
@@ -30,7 +30,15 @@ pub(crate) fn restore_current(
     content: &'static terri_data::ContentPack,
     carried: Carried,
 ) -> Result<Sim, SaveError> {
-    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::LongExit)
+    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::LongExit, false)
+}
+
+pub(super) fn restore_shared(
+    snapshot: SaveSnapshotV28,
+    content: &'static terri_data::ContentPack,
+    carried: Carried,
+) -> Result<Sim, SaveError> {
+    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::LongExit, true)
 }
 
 pub(crate) fn restore_forward_hop(
@@ -38,7 +46,13 @@ pub(crate) fn restore_forward_hop(
     content: &'static terri_data::ContentPack,
     carried: Carried,
 ) -> Result<Sim, SaveError> {
-    restore_with_pool_clock(snapshot, content, carried, SavedPoolClock::ForwardHop)
+    restore_with_pool_clock(
+        snapshot,
+        content,
+        carried,
+        SavedPoolClock::ForwardHop,
+        false,
+    )
 }
 
 fn restore_with_pool_clock(
@@ -46,13 +60,15 @@ fn restore_with_pool_clock(
     content: &'static terri_data::ContentPack,
     carried: Carried,
     clock: SavedPoolClock,
+    shared_pools: bool,
 ) -> Result<Sim, SaveError> {
     let SaveSnapshotV28 {
         editable,
         need_mood,
     } = snapshot;
     v27::validate_rows(&need_mood)?;
-    let mut candidate = v26::restore_with_pool_clock(editable, content, carried, clock)?;
+    let mut candidate =
+        v26::restore_with_pool_clock(editable, content, carried, clock, shared_pools)?;
     v27::install(candidate.world_mut(), need_mood)?;
     Ok(candidate)
 }

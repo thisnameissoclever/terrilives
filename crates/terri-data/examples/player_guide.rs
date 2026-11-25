@@ -63,12 +63,13 @@ fn deltas(values: &[(u8, f32)]) -> Value {
 }
 
 fn action(id: String, object: &str, a: &terri_data::CompiledInteraction) -> Value {
+    let duration = a.duration_for_model(object);
     let mut fields = vec![
         ("id", value(&id)),
         ("object_id", value(&object)),
         ("action_id", value(&a.id)),
         ("label", value(&a.label)),
-        ("duration_ticks", value(&a.duration_ticks)),
+        ("duration_ticks", value(&duration)),
         ("need_deltas", deltas(&a.advertises)),
         ("satisfaction", value(&a.satisfaction)),
         ("tags", value(&a.tags)),

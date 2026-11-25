@@ -4,6 +4,7 @@ use super::{v28, Carried, SaveError};
 use crate::topic_memory::{Memory, TopicMemory};
 use crate::Sim;
 use bevy_ecs::prelude::World;
+use std::collections::BTreeSet;
 use terri_core::{save_v31::SavedTopicMemory, SaveSnapshotV31, SimClock, SimId};
 
 /// Every memory, strictly ascending by knower, other and tag, which is the
@@ -110,20 +111,79 @@ pub(crate) fn validate_live(world: &World) -> Result<(), SaveError> {
     Ok(())
 }
 
-/// Restores a schema-thirty-one save: the schema-thirty world with the
-/// current pool clock, then the memories. Any bad row refuses the whole save
-/// before the live world is touched.
+/// Restore the current save shape, including shared pool continuations.
 pub(crate) fn restore(
     snapshot: SaveSnapshotV31,
     content: &'static terri_data::ContentPack,
     carried: Carried,
+) -> Result<Sim, SaveError> {
+    restore_with(snapshot, content, carried, v28::restore_shared)
+}
+
+/// The published V31 header retains the exclusive pool phase meanings.
+pub(crate) fn restore_published(
+    snapshot: SaveSnapshotV31,
+    content: &'static terri_data::ContentPack,
+    carried: Carried,
+) -> Result<Sim, SaveError> {
+    restore_with(snapshot, content, carried, v28::restore_current)
+}
+
+pub(crate) fn validate_exclusive_pools(
+    snapshot: &SaveSnapshotV31,
+    content: &'static terri_data::ContentPack,
+) -> Result<(), SaveError> {
+    if snapshot
+        .pools
+        .iter()
+        .any(|row| row.phase > crate::pool::CANCELED_LANDING)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    let entities = &snapshot
+        .room_world_v16()
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .world
+        .entities;
+    let pools: BTreeSet<_> = entities
+        .iter()
+        .filter_map(|row| {
+            let id = content.find(row.smart_object.as_deref()?)?;
+            crate::pool::has_pool(content.object(id)).then_some(row.index)
+        })
+        .collect();
+    let mut occupied = BTreeSet::new();
+    for target in entities.iter().filter_map(|row| row.target.as_ref()) {
+        if pools.contains(&target.object) && !occupied.insert(target.object) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    Ok(())
+}
+
+fn restore_with(
+    snapshot: SaveSnapshotV31,
+    content: &'static terri_data::ContentPack,
+    carried: Carried,
+    restore_world: fn(
+        terri_core::SaveSnapshotV30,
+        &'static terri_data::ContentPack,
+        Carried,
+    ) -> Result<Sim, SaveError>,
 ) -> Result<Sim, SaveError> {
     let SaveSnapshotV31 {
         current,
         topic_memory,
     } = snapshot;
     validate_rows(&topic_memory)?;
-    let mut candidate = v28::restore_current(current, content, carried)?;
+    let mut candidate = restore_world(current, content, carried)?;
     install(candidate.world_mut(), topic_memory)?;
     Ok(candidate)
 }
