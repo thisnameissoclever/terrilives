@@ -11,6 +11,8 @@ Housemates now learn which topics each person enjoys, and you can install Natura
 - The installed game plays offline and keeps your saved game as a file on your computer, so clearing browser data cannot remove it. Uninstalling the game leaves the save in place.
 - In the installed game, time keeps passing while the window is minimized, and the game saves when you minimize or close it.
 - Export save and Import save in Options move a game between the website and the installed game, in either direction.
+- On Windows, the installed game updates itself. It downloads a new version while you play and installs it when you close the game, and a note under the time says when the update is ready.
+- On Mac, the installed game tells you when a new version is out. Choose Download to open the release page, then replace the app in Applications.
 
 ## Improved
 

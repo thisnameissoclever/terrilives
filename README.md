@@ -62,9 +62,13 @@ How it differs from the website:
 - **Export save** and **Import save** in Options move a game between the
   website and the installed game, in either direction. Export save writes a
   file; Import save loads one after you confirm, replacing the current game.
-- Updates are not automatic. Install a newer release to update: on Windows,
-  run the new installer and it replaces the old version; on Mac, drag the new
-  app over the old one in Applications. Your saves stay where they are.
+- On Windows, the game updates itself: it downloads a new version in the
+  background and installs it when you close the game. A short note under the
+  time says when an update is ready.
+- On Mac, the game cannot update itself. When a new version is out, a note
+  under the time says "New version available"; choose **Download** to open
+  the release page, then drag the new app over the old one in Applications.
+- Your saves stay where they are through every update.
 
 The installers are not signed, so both systems warn before the first launch:
 

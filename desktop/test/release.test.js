@@ -62,33 +62,40 @@ test('refuses a published release and a draft at another commit', () => {
   assert.deepEqual(release.releaseProblems(otherPlatform, base), []);
 });
 
-test('refuses to replace this platform\'s installers without --replace', () => {
+test('refuses to replace the Windows files without --replace', () => {
   const draft = { isDraft: true, targetCommitish: HEAD, assets: [{ name: 'Natural-Causes-Setup-1.1.0-x64.exe' }] };
   const base = { head: HEAD, platform: 'win', version: '1.1.0' };
   assert.match(release.releaseProblems(draft, { ...base, replace: false }).join(), /--replace/);
   assert.deepEqual(release.releaseProblems(draft, { ...base, replace: true }), []);
 });
 
-test('names the assets for each platform', () => {
-  assert.deepEqual(release.expectedAssets('1.1.0', 'win'), ['Natural-Causes-Setup-1.1.0-x64.exe', 'SHA256SUMS-windows.txt']);
+test('names the assets: Windows files with their update files here, Mac files from the workflow', () => {
+  assert.deepEqual(release.expectedAssets('1.1.0', 'win'), [
+    'Natural-Causes-Setup-1.1.0-x64.exe', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap', 'latest.yml', 'SHA256SUMS-windows.txt',
+  ]);
   assert.deepEqual(release.expectedAssets('1.1.0', 'mac'), [
     'Natural-Causes-1.1.0-arm64.dmg', 'Natural-Causes-1.1.0-x64.dmg', 'SHA256SUMS-macos.txt',
   ]);
   const view = { assets: release.expectedAssets('1.1.0', 'win').map((name) => ({ name })) };
-  assert.deepEqual(release.missingForPublish(view, '1.1.0'), release.expectedAssets('1.1.0', 'mac'));
+  // The Mac files arrive after publishing, so they do not block it.
+  assert.deepEqual(release.missingForPublish(view, '1.1.0'), []);
+  assert.deepEqual(release.missingForPublish({ assets: [{ name: 'Natural-Causes-Setup-1.1.0-x64.exe' }] }, '1.1.0'),
+    ['Natural-Causes-Setup-1.1.0-x64.exe.blockmap', 'latest.yml', 'SHA256SUMS-windows.txt']);
 });
 
-test('treats updater metadata and block maps as never uploaded', () => {
-  for (const name of ['latest.yml', 'latest-mac.yml', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap']) {
-    assert.equal(release.isUpdaterFile(name), true, name);
-  }
-  assert.equal(release.isUpdaterFile('Natural-Causes-Setup-1.1.0-x64.exe'), false);
+test('checks that latest.yml describes this version and installer', () => {
+  const good = 'version: 1.1.0\nfiles:\n  - url: Natural-Causes-Setup-1.1.0-x64.exe\npath: Natural-Causes-Setup-1.1.0-x64.exe\n';
+  assert.deepEqual(release.updateInfoProblems(good, '1.1.0'), []);
+  assert.equal(release.updateInfoProblems(good.replace('version: 1.1.0', 'version: 1.0.0'), '1.1.0').length, 1);
+  assert.equal(release.updateInfoProblems('version: 1.1.0\npath: other.exe\n', '1.1.0').length, 1);
 });
 
-test('parses options and refuses unknown ones', () => {
+test('parses options, builds only on Windows, and refuses unknown ones', () => {
   assert.deepEqual(release.parseArgs([], 'win32'), { platform: 'win', dryRun: false, publish: false, replace: false });
-  assert.equal(release.parseArgs([], 'darwin').platform, 'mac');
-  assert.equal(release.parseArgs(['--mac', '--dry-run'], 'win32').dryRun, true);
+  assert.throws(() => release.parseArgs([], 'darwin'), /desktop-mac workflow/);
+  assert.equal(release.parseArgs(['--publish'], 'darwin').publish, true);
+  assert.equal(release.parseArgs(['--dry-run'], 'win32').dryRun, true);
+  assert.throws(() => release.parseArgs(['--mac'], 'win32'), /Unknown option/);
   assert.throws(() => release.parseArgs(['--force'], 'win32'), /Unknown option/);
   assert.throws(() => release.parseArgs(['--publish', '--replace'], 'win32'), /takes no other option/);
 });
@@ -100,11 +107,12 @@ test('notes are for players: platforms, changelog, install help and checksums', 
   assert.match(notes, /https:\/\/natural-causes\.life\/changelog\//);
   assert.match(notes, /#local-install/);
   assert.match(notes, /SHA-256/);
+  assert.match(notes, /updates itself/);
   assert.doesNotMatch(notes, TYPOGRAPHIC_DASHES);
 });
 
 /** A full Windows run against fake commands and files. */
-function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-Setup-1.1.0-x64.exe', 'latest.yml', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap'] } = {}) {
+function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-Setup-1.1.0-x64.exe', 'latest.yml', 'Natural-Causes-Setup-1.1.0-x64.exe.blockmap', 'builder-debug.yml'], latest = 'version: 1.1.0\npath: Natural-Causes-Setup-1.1.0-x64.exe\n' } = {}) {
   const commands = [];
   const written = new Map();
   const exec = (command, args) => {
@@ -129,6 +137,7 @@ function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-S
       if (file.endsWith('package.json')) return JSON.stringify({ version: '1.1.0' });
       if (file.endsWith('pages.yml')) return "uses: jetli/wasm-pack-action@v0.4.0\n        with:\n          version: 'v0.15.0'\n";
       if (file.endsWith('report.json')) return JSON.stringify(report);
+      if (file.endsWith('latest.yml')) return latest;
       throw new Error(`unexpected read ${file}`);
     },
     writeText: (file, text) => written.set(path.basename(file), text),
@@ -139,15 +148,17 @@ function fakeRun({ view = null, report = passedReport, dist = ['Natural-Causes-S
   return { commands, written, exec, files };
 }
 
-test('a first Windows run creates a draft at HEAD and uploads only the installer and checksums', () => {
+test('a first Windows run creates a draft at HEAD and uploads the installer, its update files and checksums', () => {
   const fake = fakeRun();
-  const result = release.release(['--win'], { exec: fake.exec, files: fake.files, log: () => {}, platform: 'win32' });
-  assert.deepEqual(result.uploads.map((file) => path.basename(file)), ['Natural-Causes-Setup-1.1.0-x64.exe', 'SHA256SUMS-windows.txt']);
+  const result = release.release([], { exec: fake.exec, files: fake.files, log: () => {}, platform: 'win32' });
+  assert.deepEqual(result.uploads.map((file) => path.basename(file)), release.expectedAssets('1.1.0', 'win'));
   const create = fake.commands.find((command) => command[0] === 'gh' && command[2] === 'create');
   assert.deepEqual(create.slice(0, 6), ['gh', 'release', 'create', 'v1.1.0', '--draft', '--target']);
   assert.equal(create[6], HEAD);
   const upload = fake.commands.find((command) => command[0] === 'gh' && command[2] === 'upload');
-  assert.deepEqual(upload, ['gh', 'release', 'upload', 'v1.1.0', 'Natural-Causes-Setup-1.1.0-x64.exe', 'SHA256SUMS-windows.txt']);
+  assert.deepEqual(upload, ['gh', 'release', 'upload', 'v1.1.0', ...release.expectedAssets('1.1.0', 'win')]);
+  const build = fake.commands.find((command) => command.includes('cli.js'));
+  assert.ok(build.includes('--win') && build.includes('never'));
   assert.equal(fake.written.get('SHA256SUMS-windows.txt'), `${'c'.repeat(64)}  Natural-Causes-Setup-1.1.0-x64.exe\n`);
   // Nothing is built before the release checks pass.
   const view = fake.commands.findIndex((command) => command[0] === 'gh' && command[2] === 'view');
@@ -157,21 +168,29 @@ test('a first Windows run creates a draft at HEAD and uploads only the installer
 
 test('a dry run builds but never touches the release', () => {
   const fake = fakeRun();
-  const result = release.release(['--win', '--dry-run'], { exec: fake.exec, files: fake.files, log: () => {}, platform: 'win32' });
+  const result = release.release(['--dry-run'], { exec: fake.exec, files: fake.files, log: () => {}, platform: 'win32' });
   assert.equal(result.dryRun, true);
   assert.ok(!fake.commands.some((command) => command[0] === 'gh' && ['create', 'upload', 'edit'].includes(command[2])));
 });
 
 test('a refused release builds nothing', () => {
   const fake = fakeRun({ view: { isDraft: false, targetCommitish: HEAD, assets: [] } });
-  assert.throws(() => release.release(['--win'], { exec: fake.exec, files: fake.files, log: () => {}, platform: 'win32' }), /already published/);
+  assert.throws(() => release.release([], { exec: fake.exec, files: fake.files, log: () => {}, platform: 'win32' }), /already published/);
   assert.ok(!fake.commands.some((command) => command[0] === 'wasm-pack' && command[1] === 'build'));
 });
 
-test('publishing needs every platform\'s assets on the draft', () => {
-  const partial = fakeRun({ view: { isDraft: true, targetCommitish: HEAD, assets: release.expectedAssets('1.1.0', 'win').map((name) => ({ name })) } });
-  assert.throws(() => release.release(['--publish'], { exec: partial.exec, files: partial.files, log: () => {}, platform: 'win32' }), /missing Natural-Causes-1\.1\.0-arm64\.dmg/);
-  const all = [...release.expectedAssets('1.1.0', 'win'), ...release.expectedAssets('1.1.0', 'mac')].map((name) => ({ name }));
+test('a run without the update files or with a stale latest.yml uploads nothing', () => {
+  const missing = fakeRun({ dist: ['Natural-Causes-Setup-1.1.0-x64.exe'] });
+  assert.throws(() => release.release([], { exec: missing.exec, files: missing.files, log: () => {}, platform: 'win32' }), /which updates need/);
+  const stale = fakeRun({ latest: 'version: 1.0.0\npath: Natural-Causes-Setup-1.0.0-x64.exe\n' });
+  assert.throws(() => release.release([], { exec: stale.exec, files: stale.files, log: () => {}, platform: 'win32' }), /latest\.yml does not name/);
+  for (const fake of [missing, stale]) assert.ok(!fake.commands.some((command) => command[0] === 'gh' && ['create', 'upload'].includes(command[2])));
+});
+
+test('publishing needs the Windows files on the draft; the Mac files follow', () => {
+  const partial = fakeRun({ view: { isDraft: true, targetCommitish: HEAD, assets: [{ name: 'Natural-Causes-Setup-1.1.0-x64.exe' }] } });
+  assert.throws(() => release.release(['--publish'], { exec: partial.exec, files: partial.files, log: () => {}, platform: 'win32' }), /missing .*latest\.yml/);
+  const all = release.expectedAssets('1.1.0', 'win').map((name) => ({ name }));
   const complete = fakeRun({ view: { isDraft: true, targetCommitish: HEAD, assets: all } });
   release.release(['--publish'], { exec: complete.exec, files: complete.files, log: () => {}, platform: 'win32' });
   assert.deepEqual(complete.commands.at(-1), ['gh', 'release', 'edit', 'v1.1.0', '--draft=false', '--latest']);

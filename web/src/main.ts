@@ -135,6 +135,7 @@ import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } 
 import { createSaveStore } from './storage/save-store.js';
 import { desktopBridge, registerDesktopSaveRequests } from './storage/desktop-bridge.js';
 import { applyDesktopWording } from './ui/desktop-wording.js';
+import { connectDesktopUpdates } from './ui/desktop-update-notice.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
@@ -386,7 +387,13 @@ const loading = startupLoading(document);
 async function main(): Promise<void> {
   // The installed game's bridge, or null on the website.
   const desktop = desktopBridge();
-  if (desktop !== null) applyDesktopWording(document);
+  if (desktop !== null) {
+    applyDesktopWording(document);
+    const row = document.getElementById('desktop-update');
+    const text = document.getElementById('desktop-update-text');
+    const download = document.getElementById('desktop-update-download');
+    if (row && text && download) connectDesktopUpdates(desktop, { row, text, download });
+  }
   // First, so a phone in desktop mode is told before the long load, not after.
   // The installed game is never a phone browser in desktop mode.
   if (desktop === null) showDesktopSiteNotice(window, document);

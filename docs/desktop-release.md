@@ -2,7 +2,7 @@
 
 This is the maintainer runbook for the installed game in `desktop/`, issue 276. Players read the README's [Local install](../README.md#local-install) section instead.
 
-The installed game is an Electron app that serves the built website, `web/dist`, from disk under `natural-causes://game/`. It plays offline and saves to ordinary files. Installers are unsigned, built on the owner's machines, and attached to a draft GitHub release. No GitHub Actions workflow builds or publishes them, and changes under `desktop/` do not start the Pages deployment.
+The installed game is an Electron app that serves the built website, `web/dist`, from disk under `natural-causes://game/`. It plays offline and saves to ordinary files. Installers are unsigned. The Windows installer is built on the owner's PC and attached to a draft GitHub release; the Mac disk images are built by the `desktop-mac` workflow when that release is published. Changes under `desktop/` do not start the Pages deployment.
 
 ## How it fits together
 
@@ -65,32 +65,32 @@ The first build downloads Electron, NSIS and winCodeSign into the electron-build
 
 ## Release
 
-Releases are drafts until both platforms have uploaded. The script refuses to run unless `gh` is signed in, the working tree is clean, HEAD equals `origin/main` after a fetch, wasm-pack matches the minor version pinned in `.github/workflows/pages.yml`, and Node is 22.12 or later. On Windows it also requires `.local-build/local-ci/report.json` to record a complete, passing local CI run for HEAD.
+The Windows installer is built on the owner's Windows PC. The Mac disk images are built by the GitHub Actions workflow `.github/workflows/desktop-mac.yml` on GitHub's standard macOS runners, because the owner has no Mac. The owner approved that workflow on 2026-11-25. It runs only when a release is published, or when a maintainer starts it by hand for an existing release's tag; it never runs on a push or a pull request.
 
-On Windows:
+The release script refuses to run unless `gh` is signed in, the working tree is clean, HEAD equals `origin/main` after a fetch, wasm-pack matches the minor version pinned in `.github/workflows/pages.yml`, Node is 22.12 or later, and `.local-build/local-ci/report.json` records a complete, passing local CI run for HEAD. It runs only on Windows.
 
 ```text
 py -3 -B scripts/check-local-ci.py run --report .local-build/local-ci/report.json
-node desktop/scripts/release.js --win
+node desktop/scripts/release.js
 ```
 
-On the Mac, from the same commit:
+The run builds wasm, the website and the installer, writes `SHA256SUMS-windows.txt`, prints sizes, creates the draft release `v<version>` at HEAD if it does not exist, and uploads four files: the installer, its `.blockmap`, `latest.yml` and the checksum file. The automatic updater reads `latest.yml` and the `.blockmap`, so a release without them cannot update anyone. The script checks that `latest.yml` names this version and this installer before it uploads anything. Add `--dry-run` to stop before touching GitHub, and `--replace` to replace the Windows files on an existing draft.
 
-```text
-sh desktop/scripts/release-mac.sh
-```
-
-The Mac script checks for the Xcode command line tools, rustup, wasm-pack, Node and gh, then runs the release script with `--mac`.
-
-Each run builds wasm, the website and the installers, writes `SHA256SUMS-windows.txt` or `SHA256SUMS-macos.txt`, prints sizes, creates the draft release `v<version>` at HEAD if it does not exist, and uploads only the installers and the checksum file. It never uploads `latest*.yml` or `.blockmap` files: the game has no auto-updater. Add `--dry-run` to stop before touching GitHub, and `--replace` to replace this platform's installers on an existing draft.
-
-When the draft has the Windows installer, both Mac disk images and both checksum files, publish it:
+When the draft has the four Windows files, publish it:
 
 ```text
 node desktop/scripts/release.js --publish
 ```
 
-A published release cannot be added to; raise the version for the next one.
+Publishing starts the Mac workflow. It checks out the release's tag, confirms that `web/package.json` has the same version, builds wasm, the website and both disk images with the ad hoc identity `-`, and uploads `Natural-Causes-<version>-arm64.dmg`, `Natural-Causes-<version>-x64.dmg` and `SHA256SUMS-macos.txt` to the release. It needs only the `contents: write` permission. If it fails, fix the cause and run it again from the Actions tab with the release's tag; it replaces any Mac files already uploaded. A published release cannot be given new Windows files; raise the version for the next one.
+
+## Automatic updates
+
+The installed game checks for updates when it starts, only when it is packaged and never on the website. Pass `--no-update-check` to skip the check during verification.
+
+- **Windows:** electron-updater (pinned to 6.8.11, the version that shares `builder-util-runtime` 9.7.0 with electron-builder 26.18.0) reads `latest.yml` from the newest published release of `thisnameissoclever/terrilives`, downloads the new installer in the background, and installs it when the player closes the game. Nothing shows until the download is ready; then the time panel says "Update ready. It installs when you close the game." Drafts are ignored, so nothing updates before `--publish`.
+- **Mac:** the app is signed only ad hoc, so Squirrel.Mac cannot install updates, and the app never downloads one. It asks GitHub's API for the latest release, compares its tag with the app's version, and when the release is newer the time panel says "New version available" with a **Download** button. The button opens that release's page, `https://github.com/thisnameissoclever/terrilives/releases/tag/v<version>`, in the default browser. The app builds that address from the version; the page cannot supply another one.
+- The NSIS installer keeps a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe`. electron-updater uses that folder for downloads and differential updates; uninstalling does not remove it.
 
 ## Versions and cadence
 
@@ -110,7 +110,7 @@ When re-pinning Electron, choose the newest stable release that has been public 
 6. Export save opens a native save dialog; Import save opens a native open dialog and then the confirmation.
 7. Install per user, launch from the Start menu, uninstall, and confirm the `saves` folder remains.
 
-A Mac must check: both disk images build, `codesign -dv` reports an ad hoc signature for arm64 and x64, the app launches through the Gatekeeper steps in the README, WebGPU runs on Metal, saves land in `~/Library/Application Support/Natural Causes/saves`, Cmd+Q saves, a Dock minimize keeps the clock running, and the Edit menu's Copy and Paste work.
+Nobody on the project has a Mac. The workflow log shows whether both disk images built and what `codesign -dv` reports. A Mac user must still check: the app launches through the Gatekeeper steps in the README, WebGPU runs on Metal, saves land in `~/Library/Application Support/Natural Causes/saves`, Cmd+Q saves, a Dock minimize keeps the clock running, the Edit menu's Copy and Paste work, and a newer release shows "New version available" with a working Download button.
 
 ## Measured sizes
 
@@ -124,7 +124,7 @@ Measured on 2026-11-25 for version 1.1.0, built from commit `dd932d662` with Ele
 
 Measure again with `Get-ChildItem -Recurse -File <folder> | Measure-Object Length -Sum` in PowerShell, or `du -sb <folder>` on a Mac. The Mac disk images have not been measured yet.
 
-The installer leaves a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe` (the same size as the installer) after installing, and uninstalling does not remove it. That is electron-builder's NSIS behavior for its updater, which this app does not use.
+The installer leaves a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe` (the same size as the installer) after installing, and uninstalling does not remove it. electron-updater keeps that folder for its downloads.
 
 ## Follow-ups
 

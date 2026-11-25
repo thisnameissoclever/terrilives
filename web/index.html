@@ -250,6 +250,14 @@
       .summary-label {
         color: var(--hud-muted);
       }
+      #desktop-update {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        margin-top: 8px;
+        font-size: 12px;
+      }
+      #desktop-update[hidden], #desktop-update-download[hidden] { display: none; }
       .summary-value {
         text-align: right;
         font-variant-numeric: tabular-nums;
@@ -1688,6 +1696,11 @@
           <span class="summary-label">Bills</span>
           <button id="bills-value" class="summary-value bills-button" type="button"
             aria-haspopup="dialog" aria-controls="bills-dialog"></button>
+        </div>
+        <!-- Installed game only: update news from the app (desktop-update-notice.ts). -->
+        <div id="desktop-update" class="summary-row" role="status" hidden>
+          <span id="desktop-update-text"></span>
+          <button id="desktop-update-download" class="hud-button" type="button" hidden>Download</button>
         </div>
 
         <!-- The status lines live here so every compact layout shows them:

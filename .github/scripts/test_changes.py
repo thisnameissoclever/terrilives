@@ -110,7 +110,7 @@ class ClassifyPaths(unittest.TestCase):
                      "desktop/package.json", "desktop/package-lock.json", "desktop/electron-builder.config.js",
                      "desktop/src/main.js", "desktop/src/app-protocol.js", "desktop/src/preload.js",
                      "desktop/build/icon.ico", "desktop/scripts/release.js", "desktop/test/save-files.test.js",
-                     "docs/desktop-release.md"):
+                     "docs/desktop-release.md", ".github/workflows/desktop-mac.yml", "desktop/src/updates.js"):
             self.assertFalse(changes.affects_site([path]), path)
 
     def test_local_code_scope_does_not_force_publication(self):

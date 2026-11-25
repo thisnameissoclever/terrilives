@@ -2,17 +2,19 @@
 'use strict';
 
 /**
- * Builds the installed game for this computer's platform and attaches the
- * installers to a draft GitHub release. Nothing here runs on GitHub's
- * machines: the owner runs it on Windows and on a Mac.
+ * Builds the Windows installer on the owner's PC and attaches it, with the
+ * update files electron-updater reads, to a draft GitHub release. The Mac
+ * disk images are not built here: publishing the release starts
+ * .github/workflows/desktop-mac.yml, which builds them on GitHub's macOS
+ * runners and uploads them to the same release.
  *
- *   node desktop/scripts/release.js [--win|--mac] [--dry-run] [--replace]
+ *   node desktop/scripts/release.js [--dry-run] [--replace]
  *   node desktop/scripts/release.js --publish
  *
  * --dry-run builds and checksums, then stops before touching GitHub releases.
- * --replace lets an existing draft's installers for this platform be replaced.
- * --publish builds nothing: it checks that the draft has every platform's
- * installers, then publishes it as the latest release.
+ * --replace lets an existing draft's Windows files be replaced.
+ * --publish builds nothing: it checks that the draft has the Windows files,
+ * then publishes it as the latest release.
  *
  * Commands run with argument arrays and no shell. Helpers are exported for
  * tests, which inject `exec` so no real git, gh or build runs.
@@ -33,17 +35,18 @@ const README_INSTALL = 'https://github.com/thisnameissoclever/terrilives#local-i
 class ReleaseError extends Error {}
 
 function parseArgs(argv, platform = process.platform) {
-  const options = { platform: platform === 'darwin' ? 'mac' : 'win', dryRun: false, publish: false, replace: false };
+  const options = { platform: 'win', dryRun: false, publish: false, replace: false };
   for (const arg of argv) {
-    if (arg === '--win') options.platform = 'win';
-    else if (arg === '--mac') options.platform = 'mac';
-    else if (arg === '--dry-run') options.dryRun = true;
+    if (arg === '--dry-run') options.dryRun = true;
     else if (arg === '--publish') options.publish = true;
     else if (arg === '--replace') options.replace = true;
     else throw new ReleaseError(`Unknown option: ${arg}`);
   }
   if (options.publish && (options.dryRun || options.replace)) {
     throw new ReleaseError('--publish builds nothing, so it takes no other option.');
+  }
+  if (platform !== 'win32' && !options.publish) {
+    throw new ReleaseError('Build the Windows installer on Windows. The Mac disk images come from the desktop-mac workflow when the release is published.');
   }
   return options;
 }
@@ -59,14 +62,27 @@ function checksumName(platform) {
   return platform === 'win' ? 'SHA256SUMS-windows.txt' : 'SHA256SUMS-macos.txt';
 }
 
-/** Every asset one platform contributes to the release. */
-function expectedAssets(version, platform) {
-  return [...installerNames(version, platform), checksumName(platform)];
+/** The files electron-updater reads to find and download a Windows update. */
+function updateFileNames(version) {
+  return [`Natural-Causes-Setup-${version}-x64.exe.blockmap`, 'latest.yml'];
 }
 
-/** Updater metadata and block maps stay local: the game has no auto-updater. */
-function isUpdaterFile(name) {
-  return /^latest.*\.ya?ml$/i.test(name) || /\.blockmap$/i.test(name);
+/**
+ * Every asset one platform contributes to the release. Windows assets come
+ * from this script; the Mac assets come from the desktop-mac workflow.
+ */
+function expectedAssets(version, platform) {
+  const updates = platform === 'win' ? updateFileNames(version) : [];
+  return [...installerNames(version, platform), ...updates, checksumName(platform)];
+}
+
+/** Checks that latest.yml describes this version and this installer. */
+function updateInfoProblems(text, version) {
+  const problems = [];
+  const lines = text.split('\n').map((line) => line.trim());
+  if (!lines.includes(`version: ${version}`)) problems.push(`latest.yml does not name version ${version}.`);
+  if (!text.includes(`Natural-Causes-Setup-${version}-x64.exe`)) problems.push('latest.yml does not name the installer.');
+  return problems;
 }
 
 function compareVersions(left, right) {
@@ -136,10 +152,10 @@ function releaseProblems(view, { head, platform, version, replace }) {
   return problems;
 }
 
-/** Assets missing before the draft may be published. */
+/** Windows assets missing before the draft may be published. The Mac ones follow publication. */
 function missingForPublish(view, version) {
   const present = new Set((view.assets ?? []).map((asset) => asset.name));
-  return [...expectedAssets(version, 'win'), ...expectedAssets(version, 'mac')].filter((name) => !present.has(name));
+  return expectedAssets(version, 'win').filter((name) => !present.has(name));
 }
 
 function sha256(file) {
@@ -152,7 +168,7 @@ function checksumText(entries) {
 
 function releaseNotes(version, platformSums) {
   const lines = [
-    `Natural Causes ${version} for Windows and Mac.`,
+    `Natural Causes ${version} for Windows and Mac. The Mac downloads are added a few minutes after this release appears.`,
     '',
     `- Windows: download \`Natural-Causes-Setup-${version}-x64.exe\`.`,
     `- Mac with Apple silicon: download \`Natural-Causes-${version}-arm64.dmg\`.`,
@@ -161,6 +177,8 @@ function releaseNotes(version, platformSums) {
     `What changed: ${PUBLIC_CHANGELOG}`,
     '',
     `How to install, and what to do about the security warnings: ${README_INSTALL}`,
+    '',
+    'The installed game on Windows updates itself. On a Mac, it tells you when a new version is out.',
     '',
     'SHA-256 checksums are in the SHA256SUMS files attached below.',
   ];
@@ -264,8 +282,16 @@ function collectAssets(version, platform, files, log) {
   const sumsFile = path.join(DIST, checksumName(platform));
   files.writeText(sumsFile, sums);
   for (const entry of entries) log(`${entry.name}: ${entry.bytes} bytes, sha256 ${entry.hash}`);
-  const uploads = [...entries.map((entry) => entry.file), sumsFile];
-  if (uploads.some((file) => isUpdaterFile(path.basename(file)))) throw new ReleaseError('Refusing to upload updater files.');
+  const updates = updateFileNames(version).map((name) => {
+    const file = path.join(DIST, name);
+    if (!files.exists(file)) throw new ReleaseError(`electron-builder did not produce ${name}, which updates need.`);
+    return file;
+  });
+  const problems = updateInfoProblems(files.readText(path.join(DIST, 'latest.yml')), version);
+  if (problems.length > 0) throw new ReleaseError(problems.join(' '));
+  const uploads = [...entries.map((entry) => entry.file), ...updates, sumsFile];
+  const expected = expectedAssets(version, platform);
+  if (uploads.map((file) => path.basename(file)).join('|') !== expected.join('|')) throw new ReleaseError('The upload list does not match the expected assets.');
   return { uploads, sums };
 }
 
@@ -290,7 +316,7 @@ function release(argv, { exec = realExec, files = realFiles, log = console.log, 
     const missing = missingForPublish(view, version);
     if (missing.length > 0) throw new ReleaseError(`${tag} is missing ${missing.join(', ')}.`);
     tools.must('gh', ['release', 'edit', tag, '--draft=false', '--latest']);
-    log(`Published ${tag}.`);
+    log(`Published ${tag}. The desktop-mac workflow now builds the Mac disk images and adds them to ${tag}.`);
     return { published: tag };
   }
   const facts = gatherFacts(tools, options, files);
@@ -323,7 +349,6 @@ module.exports = {
   checksumText,
   expectedAssets,
   installerNames,
-  isUpdaterFile,
   localCiProblems,
   missingForPublish,
   parseArgs,
@@ -332,6 +357,8 @@ module.exports = {
   release,
   releaseNotes,
   releaseProblems,
+  updateFileNames,
+  updateInfoProblems,
 };
 
 if (require.main === module) {

@@ -79,7 +79,8 @@ class LocalVerification(unittest.TestCase):
         self.assertEqual(len(desktop), 1)
         self.assertEqual(desktop[0].cwd, "desktop")
         self.assertEqual(desktop[0].argv, ("node", "--test", "test/app-protocol.test.js", "test/save-files.test.js",
-                                           "test/window-policy.test.js", "test/builder-config.test.js", "test/release.test.js"))
+                                           "test/window-policy.test.js", "test/builder-config.test.js", "test/release.test.js",
+                                           "test/updates.test.js"))
         self.assertLess(names.index("Build web"), names.index("Test desktop shell"))
         self.assertIn("desktop", local.GROUPS)
         self.assertFalse(any("electron-builder" in " ".join(row.argv) for row in rows), "Local CI never packages an installer")

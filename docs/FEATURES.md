@@ -1468,7 +1468,7 @@ in ARCHITECTURE.md but deliberately unbuilt.
 
 ## [F-installed-game] The installed game for Windows and macOS
 
-Built for issue 276 on 2026-11-25. An Electron app in `desktop/` serves the same built game from disk under `natural-causes://game/`, with cross-origin isolation, so it plays offline. Saves are ordinary files in the app's `saves` folder and survive uninstalling; they follow the website's slot rules exactly. The game keeps running while the window is minimized, and closing the window saves first. Export save and Import save move a game between the website and the app. Installers are unsigned, built on the owner's machines and attached to GitHub releases; see [the desktop release runbook](desktop-release.md) and the README's Local install section.
+Built for issue 276 on 2026-11-25. An Electron app in `desktop/` serves the same built game from disk under `natural-causes://game/`, with cross-origin isolation, so it plays offline. Saves are ordinary files in the app's `saves` folder and survive uninstalling; they follow the website's slot rules exactly. The game keeps running while the window is minimized, and closing the window saves first. On Windows it updates itself from GitHub releases and installs on quit; on a Mac it says when a new version is out and opens the release page. Export save and Import save move a game between the website and the app. Installers are unsigned. The Windows installer is built on the owner's PC; the Mac disk images are built by a GitHub Actions workflow when a release is published; see [the desktop release runbook](desktop-release.md) and the README's Local install section.
 
 ## Design tone
 

@@ -8,15 +8,17 @@
  * Switches used for verification:
  * - `--user-data-dir=<path>` keeps the profile and saves in a throwaway folder.
  * - `--mute-audio` mutes every window as well as Chromium's own audio output.
+ * - `--no-update-check` skips the update check, for verification runs.
  */
 
-const { app, BrowserWindow, Menu, dialog, ipcMain, protocol, session, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, session, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const { SCHEME, SCHEME_PRIVILEGES, START_URL, createProtocolHandler } = require('./app-protocol.js');
 const { SaveFiles } = require('./save-files.js');
 const policy = require('./window-policy.js');
+const { startUpdateCheck } = require('./updates.js');
 
 const CLOSE_SAVE_TIMEOUT_MS = 10_000;
 const QUIT_WRITE_TIMEOUT_MS = 5_000;
@@ -26,6 +28,7 @@ const QUIT_WRITE_TIMEOUT_MS = 5_000;
 const userDataSwitch = app.commandLine.getSwitchValue('user-data-dir');
 if (userDataSwitch) app.setPath('userData', path.resolve(userDataSwitch));
 const muteAudio = app.commandLine.hasSwitch('mute-audio');
+const skipUpdateCheck = app.commandLine.hasSwitch('no-update-check');
 
 protocol.registerSchemesAsPrivileged([{ scheme: SCHEME, privileges: { ...SCHEME_PRIVILEGES } }]);
 
@@ -36,6 +39,9 @@ const bundleRoot = app.isPackaged
 let gameWindow = null;
 let saves = null;
 let quitting = false;
+/** The latest update news for the page, and the one release page the Mac may open. */
+let updateStatus = null;
+let releasePage = null;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -77,7 +83,46 @@ async function start() {
     // A leftover temporary file is harmless; the next write uses a new name.
   }
   registerSaveChannels();
+  registerUpdateChannels();
   createGameWindow();
+  if (app.isPackaged && !skipUpdateCheck) checkForUpdates();
+}
+
+/** Never in the unpackaged app: it has no release to compare with. */
+function checkForUpdates() {
+  void startUpdateCheck({
+    platform: process.platform,
+    currentVersion: app.getVersion(),
+    autoUpdater: process.platform === 'win32' ? require('electron-updater').autoUpdater : null,
+    fetchJson: async (url) => {
+      const response = await net.fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!response.ok) throw new Error(`Update check failed: HTTP ${response.status}`);
+      return response.json();
+    },
+    notify: ({ kind, version, url }) => {
+      if (kind === 'available') releasePage = url;
+      updateStatus = { kind, version };
+      sendUpdateStatus();
+    },
+    log: (error) => console.warn('Update check:', error && error.message ? error.message : error),
+  });
+}
+
+function sendUpdateStatus() {
+  if (updateStatus === null || gameWindow === null || gameWindow.isDestroyed()) return;
+  gameWindow.webContents.send('natural-causes:update-status', updateStatus);
+}
+
+function registerUpdateChannels() {
+  // Opens only the release page this process found; the page sends no address.
+  ipcMain.on('natural-causes:open-release-page', (event) => {
+    try {
+      trustedSaveRequest(event);
+    } catch {
+      return;
+    }
+    if (releasePage !== null) openExternal(releasePage);
+  });
 }
 
 function setApplicationMenu() {
@@ -114,6 +159,8 @@ function createGameWindow() {
   });
   gameWindow = window;
   window.once('ready-to-show', () => window.show());
+  // A reload or a slow first load must not miss news that already arrived.
+  window.webContents.on('did-finish-load', sendUpdateStatus);
   installCloseSave(window);
   // A minimized or hidden window keeps running, so the page may never see
   // `visibilitychange`. Ask it to save without waiting for the answer.

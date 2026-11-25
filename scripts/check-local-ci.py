@@ -18,7 +18,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GROUPS = ("docs", "scripts", "art", "rust", "site", "web", "desktop")
 DESKTOP_TESTS = ("test/app-protocol.test.js", "test/save-files.test.js", "test/window-policy.test.js",
-                 "test/builder-config.test.js", "test/release.test.js")
+                 "test/builder-config.test.js", "test/release.test.js", "test/updates.test.js")
 ART_DIRECTORIES = ("assets/sprites/gen", "assets/models/sims/sim-01", "assets/models/furniture",
                    "assets/models/kitchen", "assets/models/bathroom", "assets/models/kitchen/actions",
                    "assets/models/bathroom/actions", "assets/models/bedroom", "assets/models/office", "assets/models/outdoor")

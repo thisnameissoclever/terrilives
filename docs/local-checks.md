@@ -14,7 +14,7 @@ The runner executes checks sequentially. It retains documentation IDs; the compl
 
 The existing Pillow and NumPy installation command and `npm ci` remain available through `--install-dependencies`. Use that flag only when dependency installation is authorized. Ordinary checks use the installed dependencies. The runner does not upgrade dependencies or toolchains.
 
-The `desktop` group runs `node --test` on the five shell test files in `desktop/` after the web build, because one of them checks every file type in the fresh `web/dist`. It needs no Electron download and never packages an installer; packaging is in [the desktop release runbook](desktop-release.md).
+The `desktop` group runs `node --test` on the six shell test files in `desktop/` after the web build, because one of them checks every file type in the fresh `web/dist`. It needs no Electron download and never packages an installer; packaging is in [the desktop release runbook](desktop-release.md).
 
 Web tests use one worker. Cargo uses at most two build jobs. Node processes receive a 2,048 MiB heap limit. Existing stricter Node and Cargo limits remain in effect, and the report records the chosen bounds. These limits apply to each process; they do not cap the entire machine's memory use. Commands run sequentially.
 

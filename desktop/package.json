@@ -11,12 +11,15 @@
   },
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/app-protocol.test.js test/save-files.test.js test/window-policy.test.js test/builder-config.test.js test/release.test.js",
+    "test": "node --test test/app-protocol.test.js test/save-files.test.js test/window-policy.test.js test/builder-config.test.js test/release.test.js test/updates.test.js",
     "pack:dir": "electron-builder --dir --config electron-builder.config.js --publish never",
     "release": "node scripts/release.js"
   },
   "devDependencies": {
     "electron": "45.3.0",
     "electron-builder": "26.18.0"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.11"
   }
 }

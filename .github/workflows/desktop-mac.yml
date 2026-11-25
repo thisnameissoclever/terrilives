@@ -1,0 +1,107 @@
+# Builds the installed game's Mac disk images (arm64 and x64) and adds them
+# to a GitHub release. The owner approved this workflow on 2026-11-25 because
+# he has no Mac. The Windows installer is built locally by
+# desktop/scripts/release.js; see docs/desktop-release.md.
+#
+# Two triggers only. Publishing a release builds for that release's tag. A
+# maintainer can also run it by hand for an existing release's tag. It never
+# runs on push or pull request.
+name: Desktop Mac build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and upload to, such as v1.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-mac-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and upload Mac disk images
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+      # The app is signed ad hoc (identity '-'); never look for a certificate.
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - name: Check the tag
+        run: |
+          set -eu
+          case "$TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "Not a release tag: $TAG" >&2; exit 1 ;;
+          esac
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName > /dev/null
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Check the version matches the tag
+        run: |
+          set -eu
+          version=$(node -p "require('./web/package.json').version")
+          test "v$version" = "$TAG" || { echo "web/package.json says $version, tag is $TAG" >&2; exit 1; }
+
+      # rust-toolchain.toml is the single source for the version and targets.
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - uses: jetli/wasm-pack-action@0d096b08b4e5a7de8c28de67e11e945404e9eefa # v0.4.0
+        with:
+          version: 'v0.15.0'
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Build the WASM package
+        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
+
+      - name: Build the website
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check the website build
+        run: |
+          set -eu
+          test -f web/dist/index.html
+          test -f web/dist/changelog/index.html
+          test -f web/dist/guide/index.html
+          test -f web/dist/guide/ui-elements/index.html
+          test -n "$(find web/dist -name '*.wasm' | head -1)"
+
+      - name: Build the disk images
+        working-directory: desktop
+        run: |
+          npm ci
+          npx electron-builder --mac --config electron-builder.config.js --publish never
+
+      - name: Checksum and upload
+        working-directory: desktop/dist
+        run: |
+          set -eu
+          version="${TAG#v}"
+          arm="Natural-Causes-$version-arm64.dmg"
+          intel="Natural-Causes-$version-x64.dmg"
+          test -f "$arm"
+          test -f "$intel"
+          codesign -dv --verbose=2 "mac-arm64/Natural Causes.app" 2>&1 | grep -E 'Signature=adhoc|flags=' || true
+          shasum -a 256 "$arm" "$intel" > SHA256SUMS-macos.txt
+          cat SHA256SUMS-macos.txt
+          ls -l "$arm" "$intel"
+          gh release upload "$TAG" "$arm" "$intel" SHA256SUMS-macos.txt --clobber --repo "$GITHUB_REPOSITORY"

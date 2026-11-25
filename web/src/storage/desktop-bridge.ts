@@ -24,6 +24,19 @@ export interface DesktopBridge {
    * promise when closing, for up to ten seconds.
    */
   onSaveRequested(handler: () => Promise<unknown>): void;
+  /** Update news from the app; absent from older app builds. */
+  onUpdateStatus?(handler: (status: DesktopUpdateStatus) => void): void;
+  /** Opens the newer release's page in the web browser. The app chooses the address. */
+  openReleasePage?(): void;
+}
+
+/**
+ * `ready`: Windows downloaded an update that installs when the game closes.
+ * `available`: a Mac found a newer release it cannot install itself.
+ */
+export interface DesktopUpdateStatus {
+  readonly kind: 'ready' | 'available';
+  readonly version: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

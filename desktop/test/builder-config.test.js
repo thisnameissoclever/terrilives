@@ -19,12 +19,14 @@ test('identifies the app permanently', () => {
   assert.equal(desktopPackage.main, 'src/main.js');
 });
 
-test('packages the shell and the built website, and publishes nothing', () => {
+test('packages the shell and the built website, and names GitHub releases for updates', () => {
   assert.deepEqual(config.files, ['src/**', 'package.json']);
   assert.equal(config.asar, true);
   assert.deepEqual(config.extraResources, [{ from: '../web/dist', to: 'web' }]);
-  assert.equal(config.publish, null);
+  assert.deepEqual(config.publish, { provider: 'github', owner: 'thisnameissoclever', repo: 'terrilives' });
   assert.equal(config.directories.output, 'dist');
+  // Nothing in the package scripts lets electron-builder publish by itself.
+  assert.match(desktopPackage.scripts['pack:dir'], /--publish never/);
 });
 
 test('takes its version from web/package.json, the only typed copy', () => {
@@ -38,7 +40,8 @@ test('installs per user on Windows and keeps saves on uninstall', () => {
   assert.equal(config.nsis.oneClick, false);
   assert.equal(config.nsis.perMachine, false);
   assert.equal(config.nsis.deleteAppDataOnUninstall, false);
-  assert.equal(config.nsis.differentialPackage, false);
+  // Left at its default so the installer gets the .blockmap updates use.
+  assert.equal(config.nsis.differentialPackage, undefined);
   assert.equal(config.nsis.artifactName, 'Natural-Causes-Setup-${version}-x64.${ext}');
 });
 
@@ -63,14 +66,18 @@ test('ships its icons', () => {
   assert.ok(sizes.includes(256), `icon.ico sizes ${sizes}`);
 });
 
-test('pins exactly Electron and electron-builder, and nothing at run time', () => {
+test('pins exactly Electron, electron-builder and the matching electron-updater', () => {
   assert.deepEqual(desktopPackage.devDependencies, { electron: '45.3.0', 'electron-builder': '26.18.0' });
-  assert.equal(desktopPackage.dependencies, undefined);
+  assert.deepEqual(desktopPackage.dependencies, { 'electron-updater': '6.8.11' });
   const root = desktopLock.packages[''];
   assert.deepEqual(root.devDependencies, desktopPackage.devDependencies);
-  assert.equal(root.dependencies, undefined);
+  assert.deepEqual(root.dependencies, desktopPackage.dependencies);
   assert.equal(desktopLock.packages['node_modules/electron'].version, '45.3.0');
   assert.equal(desktopLock.packages['node_modules/electron-builder'].version, '26.18.0');
+  assert.equal(desktopLock.packages['node_modules/electron-updater'].version, '6.8.11');
+  // electron-updater reads the update files with the runtime electron-builder writes them with.
+  assert.equal(desktopLock.packages['node_modules/builder-util-runtime'].version,
+    desktopLock.packages['node_modules/app-builder-lib'].dependencies['builder-util-runtime']);
 });
 
 test('the shell is plain CommonJS that the website never imports', () => {

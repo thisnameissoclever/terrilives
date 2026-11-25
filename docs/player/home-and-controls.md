@@ -116,6 +116,15 @@ The installed game also saves when you minimize its window and before it closes.
 
 To move a household between the website and the installed game, in either direction, use Export save in one and Import save in the other, as described below.
 
+### Updates in the installed game {#installed-updates}
+
+The installed game looks for a new version each time it starts. Nothing interrupts play.
+
+- On Windows, it downloads the new version in the background. When the download is ready, a note under the time says "Update ready. It installs when you close the game." The next time you close the game, the update installs, and the game opens updated next time.
+- On Mac, the game cannot install updates itself. When a new version is out, the note says "New version available". Choose **Download** to open the release page in your web browser, download the new version, and drag it over the old one in Applications.
+
+Your saves stay in place through an update. The website always runs the newest version and shows no update note.
+
 ### Move a save to another browser, device or the installed game {#export-import}
 
 Choose Options, then Export save to save the current household as a file ending in `.ncsave`: the website downloads it, and the installed game asks where to save it. Exporting leaves the saved game where it was. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
