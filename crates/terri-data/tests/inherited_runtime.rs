@@ -3,6 +3,13 @@ use terri_data::{compile, schema::*};
 mod filtered_postcard;
 
 fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentError> {
+    compile_fixture(extra, &[])
+}
+
+fn compile_fixture(
+    extra: &str,
+    excluded_models: &[&str],
+) -> Result<terri_data::ContentPack, terri_data::ContentError> {
     let source = format!(
         "{}\n{}\n{extra}",
         include_str!("../../../content/objects.toml"),
@@ -15,6 +22,9 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     // Restore its authored inputs before compiling the inheritance fixtures.
     tuning.need_mood.empty_loss_units = 500;
     let mut objects: ObjectsFile = toml::from_str(&source).unwrap();
+    objects
+        .model
+        .retain(|model| !excluded_models.contains(&model.id.as_str()));
     let pool = objects
         .object_type
         .iter_mut()
@@ -143,6 +153,16 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     let encoded = postcard::to_allocvec(&pack).unwrap();
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/inherited-runtime.pack");
+    let large_pools = ["pool_above_ground_3x4", "pool_in_ground_5x7"];
+    if std::env::var_os("TERRI_PROVE_POOL_RUNTIME_FIXTURE").is_some() {
+        let before = compile_fixture("", &large_pools).unwrap();
+        assert_eq!(
+            postcard::to_allocvec(&before).unwrap(),
+            std::fs::read(&path).unwrap(),
+            "removing the two new pool models must reproduce the previous fixture"
+        );
+        return;
+    }
     if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
         // Issue 359 (remembered topics) appended four topic memory knobs to
         // `Tuning`, after the admin panel knobs. This proof runs against the
@@ -152,8 +172,9 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
         // changes regenerate the fixture with TERRI_WRITE_RUNTIME_FIXTURE and
         // do not pass through it.
         let old_bytes = std::fs::read(&path).unwrap();
+        let before = compile_fixture("", &large_pools).unwrap();
         assert_eq!(
-            previous_without_topic_memory(&pack),
+            previous_without_topic_memory(&before),
             old_bytes,
             "only the fields issue 359 appended may change the fixture from before issue 359"
         );

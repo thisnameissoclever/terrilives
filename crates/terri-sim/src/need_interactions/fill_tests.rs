@@ -805,9 +805,21 @@ fn a_starving_dirty_person_who_gets_little_from_showers_eats_first() {
 }
 
 #[test]
-fn the_pool_action_and_rectangular_model_move_the_published_content_fingerprint() {
+fn each_pool_catalogue_change_moves_the_published_content_fingerprint() {
     let shipped = terri_data::pack();
     let mut before_pool = shipped.clone();
+    let in_ground = before_pool.find("pool_in_ground_5x7").unwrap();
+    before_pool.objects.truncate(in_ground.0 as usize);
+    assert_eq!(
+        terri_data::content_fingerprint(&before_pool),
+        0x3b54_d178_5d37_68d8
+    );
+    let lodge = before_pool.find("pool_above_ground_3x4").unwrap();
+    before_pool.objects.truncate(lodge.0 as usize);
+    assert_eq!(
+        terri_data::content_fingerprint(&before_pool),
+        0xf7e3_a71d_c98e_ff9d
+    );
     assert_eq!(before_pool.objects.pop().unwrap().id, "pool_rectangular");
     assert_eq!(
         terri_data::content_fingerprint(&before_pool),

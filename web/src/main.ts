@@ -37,7 +37,8 @@ import { WallTool, nearestLine, type WallLine } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { floorPoint, pickWallFace, wallFaces } from './ui/wall-pick.js';
 import { WallView, WallViewControls } from './ui/wall-view.js';
-import { withHoverLine } from './render/placement-preview.js';
+import { placementInstanceCount, withHoverLine } from './render/placement-preview.js';
+import { inGroundPoolFloorOpenings } from './render/in-ground-pool-terrain.js';
 import { WindowTool } from './ui/window-tool.js';
 import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
@@ -1428,6 +1429,7 @@ async function main(): Promise<void> {
       // the list by height.
       lot.floors = sim.floorTiles();
       lot.surfaces = sim.worldSurfaces();
+      refreshPoolFloorOpenings();
       lot.doors = sim.interiorDoorLines();
       lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lot.frontDoors = sim.frontDoorLines();
@@ -1763,6 +1765,8 @@ async function main(): Promise<void> {
   const tallestBoundarySprite = Math.max(
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
+  let poolFloorOpenings = inGroundPoolFloorOpenings(sim);
+  let hiddenPoolOpening: number | null = null;
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
     windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
@@ -1771,6 +1775,7 @@ async function main(): Promise<void> {
     floorPreview: null as readonly number[] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
+    floorOpenings: poolFloorOpenings,
     surfaces: sim.worldSurfaces(),
     coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
@@ -1784,6 +1789,14 @@ async function main(): Promise<void> {
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
+  function refreshPoolFloorOpenings(): void {
+    poolFloorOpenings = inGroundPoolFloorOpenings(sim);
+    showPoolFloorOpenings();
+  }
+  function showPoolFloorOpenings(): void {
+    lot.floorOpenings = hiddenPoolOpening === null ? poolFloorOpenings
+      : poolFloorOpenings.filter(opening => opening.entity !== hiddenPoolOpening);
+  }
   // The house's implicit shell is a wall to the lamps and the sky once
   // bought land lies beyond it (land expansion, issue 254).
   const lightingEdges = (): Uint32Array | null =>
@@ -2310,6 +2323,7 @@ async function main(): Promise<void> {
     lot.windows = sim.windowLines();
     lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
     lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces(); syncFloorResources();
+    refreshPoolFloorOpenings();
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
@@ -2886,6 +2900,19 @@ async function main(): Promise<void> {
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (presenting&&floorScene.visible&&!graphicsRecovering) {
+      const purchaseGhost = buyTool.ghost();
+      const placement = purchaseGhost ?? builder.preview;
+      // Editing marks the original furniture. Play mode marks the selected Sim.
+      const selected = builder.active ? builder.selected : sim.selectedIndex();
+      // The move ghost replaces the selected object's live sprite. Put the
+      // floor back at its old location until the native placement lands.
+      const previewPool = builder.active && placementInstanceCount(placement) > 0
+        && poolFloorOpenings.some(opening => opening.entity === selected) ? selected : null;
+      if (previewPool !== hiddenPoolOpening) {
+        hiddenPoolOpening = previewPool;
+        showPoolFloorOpenings();
+        cameraDirty = true;
+      }
       if (cameraDirty) applyCamera();
       renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
 
@@ -2893,8 +2920,6 @@ async function main(): Promise<void> {
       // frame's pan and zoom.
       if(placementButtons.frame(camera, stage.width, stage.height))sceneLayout.invalidate();
       renderBuildFeedback(nowMs);
-      // Editing marks the original furniture; play mode marks the selected Sim.
-      const selected = builder.active ? builder.selected : sim.selectedIndex();
       const ambient=lightingMode.isFlat()?AMBIENT_NEUTRAL:ambientFor(sim.clockTick(),sim.dayTicks());
       const skyShade = lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient);
       characterWorld.beginFrame(sim,{originX:camera.originX,originY:camera.originY,scale:camera.scale,width:stage.width,height:stage.height,
@@ -2913,12 +2938,12 @@ async function main(): Promise<void> {
         sim.clockTick(),
         lightingMode.isFlat() ? null : lighting,
         undefined,
-        buyTool.ghost() ?? builder.preview,
+        placement,
         roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null)
           ?? (wallTool.active ? withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)
           ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
         // A purchase in the Buy tool's colourway; a moved object in its own.
-        buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
+        purchaseGhost ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,
         characterWorld.plan,
       );

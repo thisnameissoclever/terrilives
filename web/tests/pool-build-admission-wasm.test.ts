@@ -14,7 +14,7 @@ let memory: WebAssembly.Memory;
 beforeAll(async () => { memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory; });
 
 function stagePool(sim: SimBridge, flush = true) {
-  const pool = sim.catalogue().find(item => item.model?.id === 'pool_rectangular')!;
+  const pool = sim.catalogue().find(item => item.model?.id === 'pool_above_ground_3x4')!;
   expect(pool).toBeDefined();
   if (sim.funds() < pool.price) {
     const sellable = Array.from(sim.ids(), id => ({ id, ...sim.salePreview(id) }))
@@ -25,8 +25,8 @@ function stagePool(sim: SimBridge, flush = true) {
       if (sim.funds() >= pool.price) break;
     }
   }
-  expect(sim.purchasePreview(pool.definition, 17, 13, pool.baseFacing).valid).toBe(true);
-  expect(sim.buyObject(pool.definition, 17, 13, pool.baseFacing)).toBe(true);
+  expect(sim.purchasePreview(pool.definition, 13, 13, pool.baseFacing).valid).toBe(true);
+  expect(sim.buyObject(pool.definition, 13, 13, pool.baseFacing)).toBe(true);
   if (flush) {
     sim.flushCommands();
     expect(sim.lastPurchaseResult()?.reason).toBeNull();

@@ -2879,30 +2879,32 @@
       "description": "The selected person can choose Hop in in the pool object menu.",
       "access": "Select a person. Right-click the pool on desktop or long-press it on a phone.",
       "imageSha256": {
-        "desktop": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab",
-        "desktopDetail": "98dc65bd8b95db685cf9dae7155749c4da676718607758126717f076aec6a648",
-        "mobile": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9",
-        "mobileDetail": "8cd2e4fd0c9aef10866b0ba431fb03b117cec9ca5d73e4f25ceedfb9848ec7e0"
+        "desktop": "a820818024405850bf20d5d82dd445c900f481387d4f53d9455aed75bf4d9bfa",
+        "desktopDetail": "065f8f08fd6cd37d0d2127977584470b72befe09f7b3f532e33bc53f4febe8ce",
+        "mobile": "377c83f10e957250288c323c457d757268ba42c7a71b1e4d9510bee91ca37491",
+        "mobileDetail": "e7fa08ffc5db5ff0d460415303205f255f0791b2bd8496dc31a45d7e8ddb5bc9"
       },
       "captureProvenance": {
         "desktop": {
           "viewport": {
             "width": 1280,
-            "height": 720
+            "height": 900
           },
-          "state": "Paused household with Hop in available on the Backyard Rectangle pool menu.",
-          "sourceImageSha256": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab"
+          "state": "Paused household with Hop in open on the Backyard Lodge pool after a right-click.",
+          "sourceImageSha256": "a820818024405850bf20d5d82dd445c900f481387d4f53d9455aed75bf4d9bfa",
+          "rawBrowserImageSha256": "b8d309f7f7a350500b34ff353d96dc97ea8ab2d29d15f32a191a9c0442e7c089"
         },
         "mobile": {
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "state": "Paused household with Hop in available on the Backyard Rectangle pool menu.",
-          "sourceImageSha256": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9"
+          "state": "Paused household with Hop in open on the Backyard Lodge pool after a long press.",
+          "sourceImageSha256": "377c83f10e957250288c323c457d757268ba42c7a71b1e4d9510bee91ca37491",
+          "rawBrowserImageSha256": "7ac7c961591ff8f1e4dd003d28612dec9cd2b2c3111b44635e3c276e8f3c6c35"
         }
       },
-      "sourceSnapshot": "rectangular-pool-2026-11-23"
+      "sourceSnapshot": "backyard-lodge-2026-11-24"
     },
     {
       "id": "build-access-review",

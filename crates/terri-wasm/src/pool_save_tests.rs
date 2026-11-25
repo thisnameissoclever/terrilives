@@ -569,20 +569,76 @@ fn pool_codec_exact_approaches_all_facings_and_queued_command_boundaries() {
 
 #[test]
 fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
-    for (facing, (width, depth, endpoint)) in terri_core::Facing::ALL.into_iter().zip([
-        (3, 2, (3, 5)),
-        (2, 3, (4, 3)),
-        (3, 2, (7, 4)),
-        (2, 3, (5, 7)),
-    ]) {
-        let mut handle = SimHandle::new(12, 12);
+    assert_pool_build_and_swim(
+        "pool_rectangular",
+        1200,
+        [
+            (3, 2, (3, 5)),
+            (2, 3, (4, 3)),
+            (3, 2, (7, 4)),
+            (2, 3, (5, 7)),
+        ],
+    );
+}
+
+#[test]
+fn above_ground_pool_buys_twelve_tiles_and_claims_its_short_end_ladder_in_every_facing() {
+    assert_pool_build_and_swim(
+        "pool_above_ground_3x4",
+        1500,
+        [
+            (4, 3, (3, 6)),
+            (3, 4, (4, 3)),
+            (4, 3, (8, 4)),
+            (3, 4, (6, 8)),
+        ],
+    );
+}
+
+#[test]
+fn in_ground_pool_buys_thirty_five_tiles_and_claims_its_short_end_ladder_in_every_facing() {
+    assert_pool_build_and_swim(
+        "pool_in_ground_5x7",
+        2400,
+        [
+            (7, 5, (3, 6)),
+            (5, 7, (6, 3)),
+            (7, 5, (11, 6)),
+            (5, 7, (6, 11)),
+        ],
+    );
+}
+
+fn assert_pool_build_and_swim(
+    model_name: &str,
+    price: i64,
+    dimensions_and_ladder: [(i32, i32, (i32, i32)); 4],
+) {
+    for (facing, (width, depth, endpoint)) in terri_core::Facing::ALL
+        .into_iter()
+        .zip(dimensions_and_ladder)
+    {
+        let lot_side = 12;
+        let mut handle = SimHandle::new(lot_side, lot_side);
         let pack = handle.sim.world().resource::<Content>().0;
-        let model = pack.find("pool_rectangular").unwrap().0;
+        let model = pack.find(model_name).unwrap().0;
         handle
             .sim
             .world_mut()
-            .insert_resource(terri_core::Funds::from_dollars(1200));
+            .insert_resource(terri_core::Funds::from_dollars(price));
         let facing_code = f64::from(facing.code());
+        let out_of_bounds = f64::from(terri_sim::placement::PlacementRefusal::OutOfBounds as u32);
+        for (x, y) in [
+            (lot_side as i32 - width + 1, 4),
+            (4, lot_side as i32 - depth + 1),
+        ] {
+            let outside =
+                handle.purchase_preview(f64::from(model), f64::from(x), f64::from(y), facing_code);
+            assert_eq!(
+                outside[0], out_of_bounds,
+                "{model_name} {facing:?} at {x},{y}"
+            );
+        }
         let preview = handle.purchase_preview(f64::from(model), 4., 4., facing_code);
         assert_eq!(preview[0], 0., "{facing:?}");
         assert_eq!(preview[4..6], [f64::from(width), f64::from(depth)]);
@@ -593,8 +649,8 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
         assert_eq!(handle.funds_cents(), 0.);
 
         let grid = handle.sim.world().resource::<terri_core::TileGrid>();
-        for y in 3..8 {
-            for x in 3..8 {
+        for y in 3..lot_side as i32 {
+            for x in 3..lot_side as i32 {
                 let in_pool = (4..4 + width).contains(&x) && (4..4 + depth).contains(&y);
                 assert_eq!(grid.is_walkable(x, y), !in_pool, "{facing:?} at {x},{y}");
             }
@@ -612,7 +668,7 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
         reach(&mut handle, 0, 0);
         let active = handle.sim.save_snapshot_v30();
         assert_eq!(active.pools[0].approach, endpoint, "{facing:?}");
-        roundtrip_pool(&mut handle, "rectangular ladder approach");
+        roundtrip_pool(&mut handle, "ladder approach");
         reach(&mut handle, 2, 3);
         let active = handle.sim.current_v5_view();
         let position = active.world.entities[1].position.unwrap();
@@ -620,7 +676,7 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
             (position.x, position.y),
             (endpoint.0 as f32, endpoint.1 as f32)
         );
-        roundtrip_pool(&mut handle, "rectangular pool active swim");
+        roundtrip_pool(&mut handle, "active swim");
     }
 }
 
@@ -658,42 +714,57 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
 }
 
 #[test]
-fn an_explicit_square_pool_purchase_survives_the_catalogue_change() {
-    let mut source = SimHandle::new(12, 12);
-    let mut previous = source.sim.world().resource::<Content>().0.clone();
-    assert_eq!(previous.objects.pop().unwrap().id, "pool_rectangular");
-    let previous = &*Box::leak(Box::new(previous));
-    let square = previous.find("pool").unwrap().0;
-    assert!(previous.catalogue().any(|(id, _, _)| id.0 == square));
-    source.sim = terri_sim::Sim::new_with_lot_and_content(12, 12, Content(previous));
-    source
-        .sim
-        .world_mut()
-        .insert_resource(terri_core::Funds::from_dollars(1200));
-    assert!(source.buy_object(f64::from(square), 4., 4., 0.));
+fn queued_legacy_pool_purchases_keep_their_original_model_and_resale_value() {
+    for (model_name, width) in [("pool", 2), ("pool_rectangular", 3)] {
+        let mut source = SimHandle::new(12, 12);
+        let mut previous = source.sim.world().resource::<Content>().0.clone();
+        let lodge = previous.find("pool_above_ground_3x4").unwrap();
+        previous.objects.truncate(lodge.0 as usize);
+        if model_name == "pool" {
+            assert_eq!(previous.objects.pop().unwrap().id, "pool_rectangular");
+        }
+        let previous = &*Box::leak(Box::new(previous));
+        let model = previous.find(model_name).unwrap().0;
+        assert!(previous.catalogue().any(|(id, _, _)| id.0 == model));
+        source.sim = terri_sim::Sim::new_with_lot_and_content(12, 12, Content(previous));
+        source
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(1200));
+        assert!(source.buy_object(f64::from(model), 4., 4., 0.));
 
-    let mut handle = SimHandle::new(12, 12);
-    assert!(handle.load_bytes(&source.save_bytes()));
-    handle.flush_commands();
-    assert_eq!(handle.last_purchase_result()[4..], [0, 0]);
-    assert_eq!(handle.funds_cents(), 0.);
+        let saved = if model_name == "pool" {
+            let mut historical = SAVE_MAGIC.to_vec();
+            historical.extend(30u16.to_le_bytes());
+            historical.extend(postcard::to_allocvec(&source.sim.save_snapshot_v30()).unwrap());
+            historical
+        } else {
+            source.save_bytes()
+        };
+        let mut handle = SimHandle::new(12, 12);
+        assert!(handle.load_bytes(&saved), "queued {model_name}");
+        handle.flush_commands();
+        assert_eq!(handle.last_purchase_result()[4..], [0, 0]);
+        assert_eq!(handle.funds_cents(), 0.);
 
-    let active = handle.sim.current_v5_view();
-    assert_eq!(
-        active.world.entities[0].smart_object.as_deref(),
-        Some("pool")
-    );
-    let grid = handle.sim.world().resource::<terri_core::TileGrid>();
-    for y in 4..6 {
-        assert!(!grid.is_walkable(4, y));
-        assert!(!grid.is_walkable(5, y));
-        assert!(grid.is_walkable(6, y));
+        let active = handle.sim.current_v5_view();
+        assert_eq!(
+            active.world.entities[0].smart_object.as_deref(),
+            Some(model_name)
+        );
+        let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+        for y in 4..6 {
+            for x in 4..4 + width {
+                assert!(!grid.is_walkable(x, y));
+            }
+            assert!(grid.is_walkable(4 + width, y));
+        }
+        let sale = handle.sale_preview(0.);
+        assert_eq!(sale, [0, 600]);
+        assert!(handle.sell_object(0.));
+        handle.flush_commands();
+        assert_eq!(handle.funds_cents(), 60_000.);
     }
-    let sale = handle.sale_preview(0.);
-    assert_eq!(sale, [0, 600]);
-    assert!(handle.sell_object(0.));
-    handle.flush_commands();
-    assert_eq!(handle.funds_cents(), f64::from(sale[1]) * 100.);
 }
 
 #[test]

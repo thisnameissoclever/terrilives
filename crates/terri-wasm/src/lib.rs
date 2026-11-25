@@ -9060,7 +9060,9 @@ mod boundary_tests {
             .objects
             .iter()
             .enumerate()
-            .filter(|(index, object)| *index != dropped && object.id != "pool")
+            .filter(|(index, object)| {
+                *index != dropped && !matches!(object.id.as_str(), "pool" | "pool_rectangular")
+            })
             .collect();
         assert_eq!(names.len(), priced.len());
         assert_eq!(needs.len(), priced.len());

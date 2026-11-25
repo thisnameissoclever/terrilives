@@ -1590,27 +1590,27 @@
       "output": "images/guide/pool-hop-in-desktop.png",
       "source": "images/ui-editable-pool-hop-in-desktop.jpg",
       "rect": {
-        "x": 448,
-        "y": 237,
-        "width": 420,
-        "height": 289
+        "x": 431,
+        "y": 194,
+        "width": 483,
+        "height": 457
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab",
-      "outputSha256": "98dc65bd8b95db685cf9dae7155749c4da676718607758126717f076aec6a648"
+      "sourceSha256": "a820818024405850bf20d5d82dd445c900f481387d4f53d9455aed75bf4d9bfa",
+      "outputSha256": "065f8f08fd6cd37d0d2127977584470b72befe09f7b3f532e33bc53f4febe8ce"
     },
     {
       "output": "images/guide/pool-hop-in-mobile.png",
       "source": "images/ui-editable-pool-hop-in-mobile.jpg",
       "rect": {
         "x": 0,
-        "y": 236,
+        "y": 237,
         "width": 390,
-        "height": 352
+        "height": 313
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9",
-      "outputSha256": "8cd2e4fd0c9aef10866b0ba431fb03b117cec9ca5d73e4f25ceedfb9848ec7e0"
+      "sourceSha256": "377c83f10e957250288c323c457d757268ba42c7a71b1e4d9510bee91ca37491",
+      "outputSha256": "e7fa08ffc5db5ff0d460415303205f255f0791b2bd8496dc31a45d7e8ddb5bc9"
     },
     {
       "output": "images/guide/build-access-review-desktop.png",

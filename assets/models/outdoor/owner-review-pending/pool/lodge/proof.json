@@ -1,0 +1,91 @@
+{
+  "state": "complete",
+  "object": "pool",
+  "inputs": {
+    "outdoor/export_lodge_pool.py": "b6d8bea34112d8292d6c3d2bdee1299db937a9917838fce020a0ddb88dfcd4c2",
+    "outdoor/owner-review-pending/pool/activity-v9/pool-authoring.blend": "5fffb18ec639acb97e8b28d4a0c84d16458e080376a08a5b36a95cb1702fb69f",
+    "outdoor/owner-review-pending/pool/activity-v9/proof.json": "788d4961a366f9bdb7ee89062e986f2bc12f3ebcada48d4d7a2cc6b4fe99c807",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "outdoor/pool_activity_layout_v9.py": "cd97a08ca38cfd670ef0d3abc39da4f60c11e58fe5594d50f26e517ff05d1bf0",
+    "outdoor/pool_activity_model_v8.py": "4f8d6b3e23873f24bb6d85cf60ac7f706164c3b603ac45d5625afeba54ea8b7c",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "outdoor/registered_pool_art.py": "2782cff6d8dec9467d8639ee800f969bb4d79cdb62c6a76589e193a7fbd63ef4",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "logical_canvas": [
+    256,
+    224
+  ],
+  "source_density": 8,
+  "origin_pixels": [
+    1024.0001220703125,
+    1176.0034713745117
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 5.656854152679443,
+  "model_sha256": "63bd79addc21c3ea0ee02d79b54e87ff15bbee6e422f4daa7bff1dc4c0188943",
+  "geometry_sha256": "2d1fbb11e1a5b440f452b73556430e5535eab2a8d09ab6427cd75de63ebfe1ba",
+  "blender_version": "4.5.16 LTS",
+  "model_checks": {
+    "footprint": [
+      4,
+      3
+    ],
+    "origin": [
+      0.5,
+      -1
+    ],
+    "water_z": 0.82
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "f313af2b2a7c68cfc00fdda4f3b5a0355c298b2d8e201376ea0cef82a8ca25b1"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "5e10e5c671894e2903056d86d1d2bb97714a8a5e457f6106df39f6c672a7bc6b"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "5c06405a13291e86146183ffbca9c7a2f74921d42797e88204b721ad40fe423f"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "ba635d217342b300fedb4f51c82a30251af871119a8ab28d09d3ef15311a11eb"
+    }
+  ]
+}

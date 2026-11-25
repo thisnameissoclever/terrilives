@@ -1,4 +1,5 @@
 import type {PoolPlayback} from './pool-contact-types.js';
+import type {PoolPoseLayout} from './pool-world-layout.js';
 import {requirePoolPose,PoolContactNotReadyError} from './pool-contact-sample.js';
 import type { Bundle, Geometry } from './bundle.js';
 import { add, boneFrame, inverseAffine, length, multiply, solveLimb, sub, transform, type Vec3 } from './math.js';
@@ -34,11 +35,11 @@ function skinInto(out: Float32Array<ArrayBuffer>, a: readonly number[], b: reado
 }
 
 /** Production pose sampling never constructs a contact fit. */
-export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1,poolContact?:PoolPlayback):Float32Array<ArrayBuffer> {
+export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1,poolContact?:PoolPlayback,poolLayout?:PoolPoseLayout):Float32Array<ArrayBuffer> {
   if(bundle.clipMetadata?.[action]?.contacts.policy==='pool'){
     if(!geometry)throw new PoolContactNotReadyError();
     if(audit){audit.contacts=[];audit.assemblies={};}
-    return requirePoolPose(poolContact,geometry,a,top,action,frame);
+    return requirePoolPose(poolContact,geometry,a,top,action,frame,false,poolLayout);
   }
   if(action==='bed_sleep'||action==='bunk_sleep'){
     if(!Number.isFinite(frame)||frame<0)throw new Error('Unknown character pose');

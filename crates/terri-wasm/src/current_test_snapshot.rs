@@ -120,8 +120,8 @@ pub(crate) fn materialized_v14(
     source
 }
 
-/// Fingerprint measured from the compiled catalogue with the rectangular pool.
-pub(crate) const CURRENT_CATALOGUE_FINGERPRINT: u64 = 0xf7e3_a71d_c98e_ff9d;
+/// Fingerprint for the catalogue with the 3-by-4 and 5-by-7 pools.
+pub(crate) const CURRENT_CATALOGUE_FINGERPRINT: u64 = 0x45cd_e098_33f3_fc3a;
 
 /// This projection can change only the global metadata field, never saved state.
 pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut u64) {

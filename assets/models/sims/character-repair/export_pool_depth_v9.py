@@ -15,6 +15,12 @@ ROOT = BASE.parents[3]
 sys.path.insert(0, str(BASE))
 from depth_geometry import digest, sample
 
+REGISTRATION = {
+    'offlinePool': ([2, 2], (0, 0), 2),
+    'offlinePoolRectangular': ([3, 2], (0, -.5), 3),
+    'offlinePoolLodge': ([4, 3], (.5, -1), 4),
+    'offlinePoolInGround': ([7, 5], (0, 0), 6),
+}
 FACINGS = {'SE': 90, 'NW': 270, 'SW': 0, 'NE': 180}
 
 
@@ -38,7 +44,7 @@ def export(source, prefix, atlas_path, pages, output):
     proof = json.loads(proof_path.read_bytes())
     if proof['state'] != 'complete' or digest(model) != proof['model_sha256']:
         raise ValueError('The pool authoring file differs from the completed color export')
-    footprint = [3, 2] if prefix == 'offlinePoolRectangular' else [2, 2]
+    footprint, origin, depth_range = REGISTRATION[prefix]
     if proof['model_checks']['footprint'] != footprint:
         raise ValueError('The pool footprint differs from the registered color export')
     if {row['facing']: row['degrees'] for row in proof['renders']} != FACINGS:
@@ -61,8 +67,6 @@ def export(source, prefix, atlas_path, pages, output):
     for obj in root.children_recursive:
         obj.hide_render = bool(obj.get('pool_rail_authoring_path'))
 
-    offset = (footprint[0] - 2) / 2
-    depth_range = 3 if offset else 2
     output.mkdir(parents=True, exist_ok=False)
     sprites = []
     for facing, degrees in FACINGS.items():
@@ -72,7 +76,7 @@ def export(source, prefix, atlas_path, pages, output):
         if (row['w'], row['h'], density) != (width * 2, height * 2, 2):
             raise ValueError(f'The atlas rectangle differs from the registered canvas for {name}')
         root.rotation_euler.z = math.radians(degrees)
-        root.location = root.rotation_euler.to_matrix() @ Vector((0, offset, 0))
+        root.location = root.rotation_euler.to_matrix() @ Vector((-origin[0], -origin[1], 0))
         bpy.context.view_layer.update()
         alpha = opacity(pages, atlas, row)
         rgba, metrics, _, _ = sample(
@@ -96,7 +100,7 @@ def export(source, prefix, atlas_path, pages, output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--color', type=Path, required=True)
-    parser.add_argument('--prefix', choices=('offlinePool', 'offlinePoolRectangular'), required=True)
+    parser.add_argument('--prefix', choices=REGISTRATION, required=True)
     parser.add_argument('--atlas', type=Path, default=ROOT / 'assets/sprites/atlas.toml')
     parser.add_argument('--pages', type=Path, default=ROOT / 'web/public')
     parser.add_argument('--output', type=Path, required=True)

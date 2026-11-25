@@ -929,8 +929,13 @@ mod access_tests {
     use super::*;
     #[test]
     fn connected_ground_beside_a_pool_cannot_replace_its_blocked_ladder() {
-        for (model, ladder, width) in [("pool", (6, 4), 2), ("pool_rectangular", (7, 4), 3)] {
-            let mut sim = crate::Sim::new_with_lot(9, 9);
+        for (model, ladder, width, depth) in [
+            ("pool", (6, 4), 2, 2),
+            ("pool_rectangular", (7, 4), 3, 2),
+            ("pool_above_ground_3x4", (8, 4), 4, 3),
+            ("pool_in_ground_5x7", (11, 6), 7, 5),
+        ] {
+            let mut sim = crate::Sim::new_with_lot(13, 13);
             let pack = sim.world().resource::<crate::Content>().0;
             let model = pack.find(model).unwrap();
             let pool = sim.spawn_object(Position { x: 4., y: 4. }, model);
@@ -939,7 +944,7 @@ mod access_tests {
                 .insert(terri_core::ObjectFacing(terri_core::Facing::NorthWest));
             let mut grid = sim.world_mut().resource_mut::<TileGrid>();
             for x in 4..4 + width {
-                for y in 4..6 {
+                for y in 4..4 + depth {
                     grid.set_blocked(x, y, true);
                 }
             }
@@ -951,7 +956,7 @@ mod access_tests {
             assert!(report.regions.is_empty());
             assert_eq!(report.blocked_targets.len(), 1);
             assert_eq!(report.blocked_targets[0].target, pool.index_u32());
-            assert_eq!(report.blocked_targets[0].tiles.len(), width * 2);
+            assert_eq!(report.blocked_targets[0].tiles.len(), width * depth);
         }
     }
 

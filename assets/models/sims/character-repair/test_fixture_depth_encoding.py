@@ -29,3 +29,13 @@ class FixtureDepthEncodingTest(unittest.TestCase):
         pixels[0, 1, 2] = 0
         with self.assertRaisesRegex(ValueError, 'range flag'):
             decode_fixture_depth(pixels, 3)
+
+    def test_larger_registered_surfaces_preserve_depth_at_both_limits(self):
+        for limit in (4, 5, 6, 7):
+            values = np.array([[-limit, 0., limit, np.nan]])
+            covered = np.isfinite(values)
+            pixels = encode_fixture_depth(values, covered, limit)
+            self.assertTrue(np.all(pixels[:, :, 2][covered] == 128 + limit - 3))
+            self.assertEqual(pixels[0, 3, 2], 0)
+            np.testing.assert_allclose(decode_fixture_depth(pixels, limit)[covered],
+                                       values[covered], atol=limit / 65535)

@@ -24,7 +24,7 @@ def inside(root, relative):
 def registered_anchor(proof):
     origin = proof.get('origin_pixels')
     canvas = proof.get('logical_canvas')
-    if (canvas not in ([96,120],[160,176])
+    if (canvas not in ([96,120],[160,176],[256,224],[416,352])
             or any(type(value) is not int for value in canvas)):
         raise ValueError('prop camera registration changed')
     expected_origin = (canvas[0]*4,canvas[1]*4+280.0035)
