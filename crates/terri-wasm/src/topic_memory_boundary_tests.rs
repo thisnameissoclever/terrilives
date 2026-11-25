@@ -1,7 +1,7 @@
 //! Remembered topic preferences across the browser boundary: issue 359.
 use super::*;
 use crate::current_test_snapshot::{CurrentV5View, CURRENT_CATALOGUE_FINGERPRINT};
-use terri_core::{SaveSnapshotV30, SaveSnapshotV31, SaveSnapshotV32};
+use terri_core::{SaveSnapshotV30, SaveSnapshotV31, SaveSnapshotV33};
 use terri_sim::topic_memory::TopicMemory;
 
 const EVENING: &[u8] =
@@ -19,7 +19,7 @@ fn main_schema_thirty_saves_load_with_nothing_remembered_and_save_current() {
         let (original, tail) =
             postcard::take_from_bytes::<SaveSnapshotV30>(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         assert!(tail.is_empty(), "{name}");
-        let original = CurrentV5View(SaveSnapshotV32 {
+        let original = CurrentV5View(SaveSnapshotV33 {
             previous: SaveSnapshotV31 {
                 current: original,
                 topic_memory: vec![],

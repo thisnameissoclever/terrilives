@@ -2721,7 +2721,7 @@ mod order_tests {
             );
         }
         let mut expected =
-            crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV32 {
+            crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV33 {
                 previous: terri_core::SaveSnapshotV31 {
                     current: saved.clone(),
                     topic_memory: Vec::new(),

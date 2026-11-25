@@ -48,7 +48,7 @@ On a narrow screen, scroll a table sideways to read its remaining columns. With 
 | Walk, wait, carry or prepare | No direct need benefit | Time passes before relief | No Social from these stages |
 | Buy, sell, move, rotate, recolor, recover a book or edit the home | No direct need benefit | Funds, space and placement rules apply | No direct relationship reward |
 | Stove and counter without a recipe running | No standalone need benefit | They are stations within food preparation, not separate eating actions | No Social |
-| Pool: Hop in | Fun and Comfort during swimming | Costs Energy; one person per pool; ladder access required | No Social |
+| Pool: Hop in | Fun and Comfort during swimming | Costs Energy and requires ladder access. [Capacity varies by model](#swimming). | No Social |
 | Washer-dryer | No direct need benefit | It currently offers no washing action | No Social |
 | Patio umbrella, potted plant, floor lamp, coat rack, nightstand and dresser | No direct need benefit | Furniture, decoration or lighting does not itself refill needs | No Social |
 
@@ -90,9 +90,11 @@ A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} g
 
 ## Swimming {#swimming}
 
-Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, hops into the water, paddles, then climbs back out. Each pool holds one person. The pool and its ladder approach stay reserved until that person is safely out.
+Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, hops into the water, paddles, then climbs back out. Backyard Lodge holds two swimmers and Garden Basin holds four. Backyard Square and Backyard Rectangle hold one.
 
 Build offers Backyard Lodge, a 3×4 above-ground pool with exterior stairs, and Garden Basin, a 5×7 in-ground pool with a short ladder inside one end. Leave a clear tile at the foot of the Lodge stairs or outside the Basin's ladder end. Use [Land](ui-elements/#land) in Build if you need more room in the yard. Older pools keep the footprint they had when placed.
+
+One person uses the ladder at a time. Arrivals wait on land for the ladder. Swimmers ready to leave wait in the water and use the ladder before the next arrival.
 
 :::illustration pool-hop-in
 
@@ -105,9 +107,11 @@ Benefits and costs already delivered remain. Save and Load preserve the current 
 Masculine swim trunks use the person's pants color; a feminine two-piece uses the person's top color. The usual outfit returns after leaving the pool.
 
 :::numbers Numbers and limits
-An uninterrupted visit has 20 game minutes of entry, 60 game minutes of swimming and 40 game minutes of exit. These phases have fixed lengths. The ordinary action-duration variation does not apply.
+Entry takes 20 game minutes, and the climb out takes 40. Swimming lasts 60 game minutes in Backyard Lodge and the older pools, and 100 in Garden Basin. In a shared pool, the swim back to the ladder takes another 8 game minutes. Waiting for the ladder can add time.
 
-The 60-minute swimming phase has baseline totals of Fun +30 points, Comfort +10 points and Energy -5 points, delivered over elapsed swimming time. Personality changes positive refill; ordinary need loss and meter limits can change the final meter difference. Interrupting before swimming gives no swimming benefit or cost.
+A swim already underway in an older save keeps its original timing.
+
+The swimming phase has baseline totals of Fun +30 points, Comfort +10 points and Energy -5 points. Personality changes positive refill. Ordinary need loss and meter limits can change the final meter difference. Waiting and returning to the ladder add no swimming benefit or cost.
 :::
 
 ## Chairs and secondary seats {#chairs}
@@ -117,6 +121,8 @@ A seat can supply Comfort during a meal, TV or radio activity. The person must a
 Different seats have different rates. Seats with their own rest action use that action's Comfort rate; other seats have a separate seating rate. Only Comfort transfers into media and dining use. A sofa's reclining Energy and a reading chair's reading Fun do not transfer. Ordinary Sit receives its own reward once.
 
 Multiple seats on one sofa are distinct places. Sitting, reading, media and dining compete for the same physical seats. A person may hold a place while walking toward it, so an empty-looking chair can already be reserved.
+
+Choose **Sit** on the Sunstrip pool lounger to change into swimwear and recline. Leave one long side clear for access. One person can use the lounger at a time.
 
 ## TV, radio and shared company {#company}
 

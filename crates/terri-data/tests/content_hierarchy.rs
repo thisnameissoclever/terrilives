@@ -798,8 +798,8 @@ fn the_yard_catalogue_offers_both_new_pools_and_retains_the_legacy_models() {
 /// The lounger's one seat and its two approach tiles in every facing,
 /// from an origin of (10, 20) so a transposed origin cannot pass. The
 /// lounger is authored facing south-west with its backrest on the first
-/// tile; the seat is the center of the second tile, facing the long side
-/// both approaches stand beside. Approaches are offsets from the origin
+/// tile; the seat is the center of the second tile, facing a long side.
+/// Both long sides provide approaches. Approaches are offsets from the origin
 /// tile, and a seat facing names the lot direction as the content does:
 /// SE is +x, NW is -x, SW is +y and NE is -y.
 #[test]
@@ -814,25 +814,25 @@ fn pool_lounger_seat_and_approaches_turn_with_the_lounger() {
             Facing::SouthWest,
             (0.0, 1.0),
             Seat::PositiveX,
-            vec![(1, 0), (1, 1)],
+            vec![(1, 0), (1, 1), (-1, 0), (-1, 1)],
         ),
         (
             Facing::SouthEast,
             (1.0, 0.0),
             Seat::NegativeY,
-            vec![(0, -1), (1, -1)],
+            vec![(0, -1), (1, -1), (0, 1), (1, 1)],
         ),
         (
             Facing::NorthWest,
             (0.0, 0.0),
             Seat::PositiveY,
-            vec![(0, 1), (1, 1)],
+            vec![(0, 1), (1, 1), (0, -1), (1, -1)],
         ),
         (
             Facing::NorthEast,
             (0.0, 0.0),
             Seat::NegativeX,
-            vec![(-1, 0), (-1, 1)],
+            vec![(-1, 0), (-1, 1), (1, 0), (1, 1)],
         ),
     ] {
         assert_eq!(

@@ -17,6 +17,7 @@ import {requireSleepPose} from './sleep-contact-sample.js';
 import {fitSeatedPose} from './seat-fit.js';
 import {seatContactResolver} from './seat-contact-sample.js';
 import type {SeatContactArtifactV1,SeatFitResolver} from './seat-contact-types.js';
+import {fitLoungerRecline} from './lounger-recline.js';
 export {composeSkeletonPose} from './pose-joints.js';
 
 /**
@@ -35,11 +36,19 @@ function skinInto(out: Float32Array<ArrayBuffer>, a: readonly number[], b: reado
 }
 
 /** Production pose sampling never constructs a contact fit. */
-export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1,poolContact?:PoolPlayback,poolLayout?:PoolPoseLayout):Float32Array<ArrayBuffer> {
+export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1,poolContact?:PoolPlayback,poolLayout?:PoolPoseLayout,poolYaw=0):Float32Array<ArrayBuffer> {
   if(bundle.clipMetadata?.[action]?.contacts.policy==='pool'){
     if(!geometry)throw new PoolContactNotReadyError();
     if(audit){audit.contacts=[];audit.assemblies={};}
-    return requirePoolPose(poolContact,geometry,a,top,action,frame,false,poolLayout);
+    const matrices=requirePoolPose(poolContact,geometry,a,top,action,frame,false,poolLayout);
+    if(poolYaw!==0){
+      const c=Math.cos(poolYaw),s=Math.sin(poolYaw);
+      for(let i=0;i<matrices.length;i+=4){
+        const x=matrices[i],y=matrices[i+1];
+        matrices[i]=x*c-y*s;matrices[i+1]=x*s+y*c;
+      }
+    }
+    return matrices;
   }
   if(action==='bed_sleep'||action==='bunk_sleep'){
     if(!Number.isFinite(frame)||frame<0)throw new Error('Unknown character pose');
@@ -67,6 +76,12 @@ function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: stri
   if(clip?.contacts.policy==='pool')return fitPool(bundle,a,top,source,rest,matrices,action,frame,audit);
   if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,inverse,matrices,audit,geometry,bikeFit,seatFit});
   const result = new Float32Array(bones.length * 16);
+  if(action==='lounger_recline'){
+    if(!geometry)throw new Error('Sunstrip recline requires its selected geometry.');
+    fitLoungerRecline(geometry,a,top,matrices,rest,inverse);
+    for(let i=0;i<bones.length;i++)skinInto(result,matrices[i],inverse[i],i*16);
+    return result;
+  }
   const positions = matrices.map(m=>[m[12],m[13],m[14]] as [number,number,number]);
   // The authored foot path is a physical ground/contact target, not a scaled pose translation.
   for(let i=0;i<bones.length;i++) if(bones[i].name.startsWith('foot')) {

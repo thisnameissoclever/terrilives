@@ -24,7 +24,7 @@ Each game minute after needs settle, each empty need subtracts 5 points per game
 
 ### Hobby mood
 
-Each active minute on an activity that matches one of a person's hobby tags adds 0.05 mood points under Enjoying a hobby, up to 2 points. A recipe's step-specific tags apply during those steps. A conversation checks each participant's hobbies separately. Traveling, waiting, returning a book and climbing into or out of a pool give no lift. The lift lasts while the Sim is doing the hobby. Pausing freezes the current amount. V32 saves the in-progress minutes for exact continuation.
+Each active minute on an activity that matches one of a person's hobby tags adds 0.05 mood points under Enjoying a hobby, up to 2 points. A recipe's step-specific tags apply during those steps. A conversation checks each participant's hobbies separately. Traveling, waiting, returning a book and climbing into or out of a pool give no lift. The lift lasts while the Sim is doing the hobby. Pausing freezes the current amount. V33 saves the in-progress minutes for exact continuation.
 
 ## [M3] Trait rules
 

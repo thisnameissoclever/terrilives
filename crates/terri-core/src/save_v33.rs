@@ -1,4 +1,4 @@
-//! Active hobby mood progress extends schema thirty-one.
+//! Active hobby mood progress extends the public V32 payload shape.
 
 use crate::{save_v17::SavedOrderActor, SaveSnapshotV31};
 use serde::{Deserialize, Serialize};
@@ -10,13 +10,13 @@ pub struct SavedHobbyMood {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct SaveSnapshotV32 {
+pub struct SaveSnapshotV33 {
     pub previous: SaveSnapshotV31,
     /// Strictly ascending by actor. An omitted actor has zero progress.
     pub hobby_mood: Vec<SavedHobbyMood>,
 }
 
-impl std::ops::Deref for SaveSnapshotV32 {
+impl std::ops::Deref for SaveSnapshotV33 {
     type Target = SaveSnapshotV31;
 
     fn deref(&self) -> &Self::Target {
@@ -24,7 +24,7 @@ impl std::ops::Deref for SaveSnapshotV32 {
     }
 }
 
-impl std::ops::DerefMut for SaveSnapshotV32 {
+impl std::ops::DerefMut for SaveSnapshotV33 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.previous
     }

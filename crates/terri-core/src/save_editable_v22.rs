@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 pub struct SavedPoolEpisode {
     pub actor: u32,
     pub pool: u32,
-    /// 0 approach, 1 entry, 2 paddle, 3 exit, 4 reverse interrupted entry.
+    /// Older headers use the raw phase. V32 shared episodes add eight
+    /// times the one-based swimming slot to the raw phase.
     pub phase: u8,
     pub elapsed: u32,
-    /// Paddle elapsed at the start of exit; the rendered transition starts there.
+    /// Exit stroke origin, or swim minutes completed while waiting for the ladder.
     pub exit_origin: u32,
     pub interrupted: bool,
     pub approach: (i32, i32),

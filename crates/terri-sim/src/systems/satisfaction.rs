@@ -365,16 +365,16 @@ mod tests {
         sim.tick();
         assert_eq!(lift(&sim), Some(0.05));
 
-        let saved = sim.save_snapshot_v32();
+        let saved = sim.save_snapshot_v33();
         assert_eq!(saved.hobby_mood.len(), 1);
         let mut retuned = pack.clone();
         retuned.objects[bench.0 as usize].interactions[0]
             .tags
             .clear();
         let mut restored = test_content::sim_with(8, 8, Box::leak(Box::new(retuned)));
-        restored.load_snapshot_v32(saved).unwrap();
+        restored.load_snapshot_v33(saved).unwrap();
         assert!(restored.world().get::<terri_core::Eating>(person).is_some());
-        assert!(restored.save_snapshot_v32().hobby_mood.is_empty());
+        assert!(restored.save_snapshot_v33().hobby_mood.is_empty());
         assert_eq!(lift(&restored), None);
     }
 

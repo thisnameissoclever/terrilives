@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bevy_ecs::prelude::World;
-use terri_core::{save_v32::SavedHobbyMood, Agent, Entity, SaveSnapshotV32, SimClock};
+use terri_core::{save_v33::SavedHobbyMood, Agent, Entity, SaveSnapshotV33, SimClock};
 
 use super::{v31, Carried, SaveError};
 use crate::{hobby_mood, hobby_mood::HobbyMood, player_actions::saved_actor, Sim};
@@ -13,15 +13,15 @@ fn rows(world: &World) -> Vec<SavedHobbyMood> {
         .collect()
 }
 
-pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV32 {
-    SaveSnapshotV32 {
+pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV33 {
+    SaveSnapshotV33 {
         previous: v31::capture(sim),
         hobby_mood: rows(sim.world()),
     }
 }
 
-pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV32 {
-    SaveSnapshotV32 {
+pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV33 {
+    SaveSnapshotV33 {
         previous: v31::capture_without_commands(sim),
         hobby_mood: rows(sim.world()),
     }
@@ -74,16 +74,37 @@ pub(crate) fn validate_live(world: &World) -> Result<(), SaveError> {
 }
 
 pub(crate) fn restore(
-    snapshot: SaveSnapshotV32,
+    snapshot: SaveSnapshotV33,
     content: &'static terri_data::ContentPack,
     carried: Carried,
 ) -> Result<Sim, SaveError> {
-    let SaveSnapshotV32 {
+    restore_with(snapshot, content, carried, v31::restore)
+}
+
+pub(crate) fn restore_private_v32(
+    snapshot: SaveSnapshotV33,
+    content: &'static terri_data::ContentPack,
+    carried: Carried,
+) -> Result<Sim, SaveError> {
+    restore_with(snapshot, content, carried, v31::restore_published)
+}
+
+fn restore_with(
+    snapshot: SaveSnapshotV33,
+    content: &'static terri_data::ContentPack,
+    carried: Carried,
+    restore_world: fn(
+        terri_core::SaveSnapshotV31,
+        &'static terri_data::ContentPack,
+        Carried,
+    ) -> Result<Sim, SaveError>,
+) -> Result<Sim, SaveError> {
+    let SaveSnapshotV33 {
         previous,
         hobby_mood,
     } = snapshot;
     validate_rows(&hobby_mood)?;
-    let mut candidate = v31::restore(previous, content, carried)?;
+    let mut candidate = restore_world(previous, content, carried)?;
     let world = candidate.world_mut();
     let entities = resolve(world, &hobby_mood)?;
     let tick = world.resource::<SimClock>().tick;

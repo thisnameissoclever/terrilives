@@ -12371,6 +12371,8 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: retain both frozen readers, emit a new combined version, and require complete decoding plus authoritative validation of each historical candidate. Adopt exactly one valid candidate and reject ambiguity before changing the live world. Keep original bytes in a version-specific browser recovery file.
 4. Verification: load authentic files produced by both old binaries, including active conversations and queued creator commands. Preserve random state and continuation, reject truncated or trailing data transactionally, and confirm that cached old writers refuse the new format. Preserve existing zero-as-unlimited queue semantics in every envelope validator.
 
+Version 32 also collided when one writer extended the save with hobby mood and another kept the previous layout for shared swimming. The browser saw identical version headers and compatible content fingerprints. When those prefixes cannot identify a producer, compare complete backup bytes inside the save lock before reusing a recovery file. Test both migration orders, repeated migration of the same bytes and a failed backup write before overwriting the playable slot.
+
 ## [L-reset-defaults-not-baseline] Keep Reset defaults separate from the edit baseline
 
 1. What happened: Reset restored the initial random draft, so activity preferences remained arbitrary rather than returning to 1.0x.
@@ -14081,3 +14083,20 @@ Use the same reachable contact tile as the activity the Sim would share. Test th
 A hobby mood lift originally carried into the activity that replaced it on the same tick. Consecutive credit identified the sequence of minutes. A Sim could stop, take a new order and begin work before the minute ended.
 
 Tie the lift to its active work. Clear it after cancellation and before a replacement can physically begin. Test a restart at the same target and a switch between reachable objects that share the same approach tile. When loading, verify the active action and allow an obsolete hobby tag to lose its lift without losing the household.
+## [L-shared-pool-claim] Reserve the ladder on the final step
+
+The first shared-pool reader accepted an approaching swimmer whenever the last waypoint was the ladder, even if earlier steps remained. A restored swimmer could then hold the ladder while walking elsewhere. A Build detour or a privacy reroute could create the same contradiction in play.
+
+Require exactly one remaining step to the ladder, or require the person to be standing there when the path is exhausted. Release a claim when a reroute adds a step before the ladder. Test an earlier cursor, an exhausted cursor away from the ladder, and a route that reaches the ladder, leaves, and returns.
+
+## [L-waiting-stroke-wrap] Interpolate through an animation loop in order
+
+A swimmer waiting for the ladder paddled backward briefly when the recorded stroke timer restarted. The renderer interpolated between the raw timer values and missed the loop boundary because the action had stayed in the same phase.
+
+Advance the next sample into the same loop interval first. Check both endpoints and the midpoint of the wrap, and verify that the swimmer's place in the water stays fixed.
+
+## [L-action-contact-before-wait] Check the requested contact before reporting a wait
+
+An empty lounger left a housemate waiting for someone to finish using it. The planner found a route to a short end while both long sides were blocked, then treated the absence of a usable seat approach as an occupancy problem.
+
+Check reachability against the contacts for the requested action before checking ownership. Give an unreachable directed order a route failure and exclude the unreachable action from autonomous wait choices. Verify a blocked seat with a free perimeter tile, a usable long side in each facing, and a real wait that ends when the occupant leaves.

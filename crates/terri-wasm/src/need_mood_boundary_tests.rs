@@ -213,5 +213,5 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let migrated = decode_current(&live.save_bytes());
     assert_eq!(migrated.need_mood, published.need_mood);
     assert!(migrated.baths.is_empty());
-    assert_eq!(live.sim.save_snapshot_v32(), migrated);
+    assert_eq!(live.sim.save_snapshot_v33(), migrated);
 }

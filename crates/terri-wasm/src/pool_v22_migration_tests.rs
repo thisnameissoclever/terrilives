@@ -59,14 +59,14 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
             handle.load_bytes(bytes),
             "unchanged historical control must load: {name}"
         );
-        let actual = CurrentV5View(terri_core::SaveSnapshotV32 {
+        let actual = CurrentV5View(terri_core::SaveSnapshotV33 {
             previous: terri_core::SaveSnapshotV31 {
                 current: handle.sim.save_snapshot_v28(),
                 topic_memory: vec![],
             },
             hobby_mood: vec![],
         });
-        let mut expected = CurrentV5View(terri_core::SaveSnapshotV32 {
+        let mut expected = CurrentV5View(terri_core::SaveSnapshotV33 {
             previous: terri_core::SaveSnapshotV31 {
                 current: terri_core::SaveSnapshotV28 {
                     editable: terri_core::SaveSnapshotV26 {

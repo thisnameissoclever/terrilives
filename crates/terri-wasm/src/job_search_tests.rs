@@ -94,7 +94,7 @@ fn the_exports_read_and_set_each_persons_search_and_current_schema_keeps_it() {
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
         terri_core::SAVE_SCHEMA_VERSION.to_le_bytes()
     );
-    let saved = payload!(&bytes, SAVE_SCHEMA_VERSION, terri_core::SaveSnapshotV32);
+    let saved = payload!(&bytes, SAVE_SCHEMA_VERSION, terri_core::SaveSnapshotV33);
     assert_eq!(saved.gameplay_v20().legacy.legacy.job_search_off.len(), 1);
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -172,7 +172,7 @@ fn older_saves_give_every_living_person_the_household_setting() {
     let resaved = payload!(
         &migrated.save_bytes(),
         SAVE_SCHEMA_VERSION,
-        terri_core::SaveSnapshotV32
+        terri_core::SaveSnapshotV33
     );
     let resaved = resaved
         .previous
@@ -234,7 +234,7 @@ fn main_schema_seventeen_saves_move_to_current_with_their_setting() {
             assert_eq!(employed, 1, "only the shipped worker holds a job");
         }
         let current = game.save_bytes();
-        let resaved = payload!(&current, SAVE_SCHEMA_VERSION, terri_core::SaveSnapshotV32);
+        let resaved = payload!(&current, SAVE_SCHEMA_VERSION, terri_core::SaveSnapshotV33);
         let resaved = resaved
             .previous
             .current

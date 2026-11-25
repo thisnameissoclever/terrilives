@@ -880,14 +880,14 @@ fn reading_a_loved_book_builds_mood_during_work_and_clears_on_return() {
     assert_eq!(lift(&sim), Some(0.10));
     sim.flush_commands();
     assert_eq!(lift(&sim), Some(0.10));
-    let saved = sim.save_snapshot_v32();
+    let saved = sim.save_snapshot_v33();
     let hash = sim.world_hash();
     let historical = sim.save_snapshot_v31();
     sim.load_snapshot_v31(historical).unwrap();
     assert_eq!(lift(&sim), None);
-    sim.load_snapshot_v32(saved.clone()).unwrap();
+    sim.load_snapshot_v33(saved.clone()).unwrap();
     assert_eq!(sim.world_hash(), hash);
-    assert_eq!(sim.save_snapshot_v32(), saved);
+    assert_eq!(sim.save_snapshot_v33(), saved);
     assert_eq!(lift(&sim), Some(0.10));
     sim.tick();
     assert_eq!(lift(&sim), Some(0.15));
@@ -3145,7 +3145,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v32::restore(
+    let mut returning = crate::save::v33::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

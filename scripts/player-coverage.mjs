@@ -48,7 +48,7 @@ export function baselineHtml(reference) {
     if (action.recipe || action.chain_id) delivery = 'Food only after eating; Social only with eligible seated company';
     if (action.action_id === 'take_prepared_food') delivery = 'Starts collecting and eating a real portion; see food requirements';
     if (action.id === 'social:fight') delivery = 'No need benefit; completed fights harm both participants';
-    if (action.id === 'object:pool/hop_in') delivery = 'Benefits and costs apply during swimming only; entry and exit are included in the total time';
+    if (action.tags?.includes('pool_swimming')) delivery = 'Only active swimming supplies these amounts. Entry and exit are included in the total time.';
     const conditional = action.need_deltas.social && action.object_id !== 'desk' && action.id !== 'social:chat' ? '; Social requires actual company' : '';
     return `<tr><td>${esc(identity)}<br>${esc(action.label)}</td><td>${esc(number(action.duration_ticks * 60 / reference.ticks_per_sim_hour))}</td><td>${esc(deltas + conditional)}</td><td>${esc(delivery)}</td></tr>`;
   });

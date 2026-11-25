@@ -87,8 +87,9 @@ export class CharacterWorld {
     const contactMode=this.contacts?.mode;
     for(const actor of this.plan.actors){
       const clip=creatorClips.clips[actor.action.clip],sample=clip?clip.samples[clipSample(clip.samples.length,actor.action.sample,clip.playback).index]:undefined;
-      const context={wear:['bath','shower'].includes(actor.action.clip)||actor.action.clip.startsWith('pool_')?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
-        swimwear:actor.action.clip.startsWith('pool_')?(actor.appearance.presentation==='feminine'?'two_piece' as const:'trunks' as const):'none' as const,
+      const wearsSwimwear=actor.action.clip.startsWith('pool_')||actor.action.clip==='lounger_recline';
+      const context={wear:wearsSwimwear||['bath','shower'].includes(actor.action.clip)?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
+        swimwear:wearsSwimwear?(actor.appearance.presentation==='feminine'?'two_piece' as const:'trunks' as const):'none' as const,
         fixture:'none',eyes_closed:sample?.eyesClosed??actor.action.clip==='sleep',clip:actor.action.clip,grip:actor.action.clip==='mop'?'mop' as const:'relaxed' as const,includeFixture:false,includeActivityWater:actor.action.clip==='bath',bathToy:actor.action.clip==='bath'?bathToySelector(actor.bathToy??0):'none' as const,stockMask:actor.stockMask,heldSlot:actor.action.heldSlot};
       const rig=this.geometries.get(actor.action.clip)!;let resources=this.actors.get(actor.entity);
       if(!resources||resources.renderer.selectionKey!==bodySelectionKey(actor.appearance)){
@@ -140,7 +141,7 @@ export class CharacterWorld {
         {width:view.width,height:view.height,x:screenX(actor.x,actor.y,view.originX,view.scale),y:screenY(actor.x,actor.y,view.originY,view.scale),
          scale:view.scale,depth,step:depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),light},
         {offset:actor.offset,includeFixture:includeActivityFixture,fixtureToken:includeActivityFixture?actor.fixtureRow+1:0,fixtureColourway,
-         poolLayout:actor.fixtureModel===LODGE_POOL_MODEL?'lodge':
+          poolYaw:actor.action.poolPlacement?.yaw,poolLayout:actor.fixtureModel===LODGE_POOL_MODEL?'lodge':
            actor.fixtureModel===IN_GROUND_POOL_MODEL?'in-ground':undefined});
       const anchors=renderer.renderer.anchors(actor.angle,actor.offset);
       if(actor.action.clip==='shower'){

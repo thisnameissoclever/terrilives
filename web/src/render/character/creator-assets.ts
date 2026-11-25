@@ -1,9 +1,10 @@
 import manifest from '../../../../assets/models/sims/character-creator/export/manifest.json';
 import library from '../../../../assets/models/sims/character-creator/clips/clips.json';
 import { loadGeometryAssets, type Bundle, type Geometry } from './bundle.js';
-import { combineClipFamily, prepareClipFamily, type CharacterRig, type ClipLibrary, type ClipParts } from './clip-runtime.js';
+import { combineClipFamily, prepareClipFamily, withLoungerRecline, type CharacterRig, type ClipLibrary, type ClipParts } from './clip-runtime.js';
 import {prepareMopHandVariant,withBodyVariants,type CharacterBodyVariant} from './body-variants.js';
 import {readCharacterAsset} from './asset-download.js';
+import type {SimBridge} from '../../bridge.js';
 
 const files = import.meta.glob<string>('../../../../assets/models/sims/character-creator/{export,clips/**}/runtime*.bin', { eager: true, query: '?url', import: 'default' });
 const partsFiles = import.meta.glob<string>('../../../../assets/models/sims/character-creator/clips/*/parts.json', { eager: true, query: '?url', import: 'default' });
@@ -47,6 +48,7 @@ export async function loadCreatorRig(action:string):Promise<CharacterRig>{
 // Worlds share CPU-side clip geometry, including a replacement world after GPU recovery.
 const worldRigs = new Map<string,CharacterRig>();
 let baseWorldRigs: Promise<ReadonlyMap<string,CharacterRig>> | undefined;
+let worldLoungerRig: Promise<void> | undefined;
 
 async function registerWorldFamily(example: string): Promise<void> {
   const rig = await loadCreatorRig(example);
@@ -71,6 +73,17 @@ export function loadBaseWorldRigs(): Promise<ReadonlyMap<string,CharacterRig>> {
 /** Publish all pool clips together, before a pool household or Build change is adopted. */
 export async function prepareWorldPoolRigs(): Promise<void> {
   if (!worldRigs.has('pool_enter')) await registerWorldFamily('pool_enter');
+}
+
+/** Admit Sunstrip's pose and swimwear before a lot containing it can play. */
+export function prepareWorldLoungerRig(source:Pick<SimBridge,'ids'|'kinds'|'objectModel'>):Promise<void>|undefined {
+  if(worldRigs.has('lounger_recline'))return undefined;
+  const ids=Array.from(source.ids()),kinds=source.kinds();
+  const fixtures=ids.filter((_,row)=>kinds[row]!==0);
+  if(!fixtures.some(entity=>source.objectModel(entity)?.id==='pool_lounger'))return undefined;
+  return worldLoungerRig??=loadCreatorRig('pool_enter').then(rig=>{
+    worldRigs.set('lounger_recline',withLoungerRecline(rig,creatorClips.clips.sofa_recline));
+  }).catch(error=>{worldLoungerRig=undefined;throw error;});
 }
 
 /** Contiguous geometry remains available for independent asset and physical proofs. */

@@ -145,7 +145,7 @@ pub(super) fn post_condition(world: &World, edits: &[AdminEdit]) -> Result<(), (
     super::household::post_condition(world, &touched)?;
     crate::save::v27::validate_live(world).map_err(|_| ())?;
     crate::save::v31::validate_live(world).map_err(|_| ())?;
-    crate::save::v32::validate_live(world).map_err(|_| ())?;
+    crate::save::v33::validate_live(world).map_err(|_| ())?;
     #[cfg(test)]
     super::tests_stub::post_condition(world, edits)?;
     Ok(())

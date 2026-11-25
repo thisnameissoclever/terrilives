@@ -1642,7 +1642,7 @@ impl Sim {
     }
 
     /// Historical typed projection for inspection and fixtures whose state fits V24.
-    /// Use V32 for full continuation.
+    /// Use V33 for full continuation.
     pub fn save_snapshot_v24(&self) -> terri_core::SaveSnapshotV24 {
         build_transaction::committed(&self.world)
             .map(|snapshot| snapshot.editable.previous.clone())
@@ -1683,38 +1683,46 @@ impl Sim {
             .unwrap_or_else(|| save::v27::capture(self))
     }
 
-    /// Historical V28 projection with airborne cancellation encoded as a retreat.
-    /// Exit progress rounds down to the earlier historical tick.
+    /// Unchecked V28 field view with airborne cancellation encoded as a
+    /// retreat and exit progress rounded down. Use the checked projection
+    /// before writing a historical header.
     pub fn save_snapshot_v28(&self) -> terri_core::SaveSnapshotV28 {
         let mut snapshot = self.save_snapshot_v30();
         save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::Legacy);
         snapshot
     }
 
-    /// Historical forward-hop projection with the twenty-tick exit clock.
-    /// Exit progress rounds down to the earlier historical tick.
+    /// Unchecked V29 field view with exit progress rounded down to its
+    /// twenty-tick clock. Use the checked projection before writing a
+    /// historical header.
     pub fn save_snapshot_v29(&self) -> terri_core::SaveSnapshotV29 {
         let mut snapshot = self.save_snapshot_v30();
         save::v26::project_legacy_clock(&mut snapshot.editable, pool::SavedPoolClock::ForwardHop);
         snapshot
     }
 
-    /// The current household, including active hobby mood progress.
-    pub fn save_snapshot_v32(&self) -> terri_core::SaveSnapshotV32 {
+    /// The current household with shared swimming and active hobby mood.
+    pub fn save_snapshot_v33(&self) -> terri_core::SaveSnapshotV33 {
         build_transaction::committed(&self.world)
             .cloned()
-            .unwrap_or_else(|| save::v32::capture(self))
+            .unwrap_or_else(|| save::v33::capture(self))
     }
 
-    /// Historical V31 projection with remembered topic preferences.
-    pub fn save_snapshot_v31(&self) -> terri_core::SaveSnapshotV31 {
+    /// The published V32 projection keeps shared swimming and remembered topics.
+    pub fn save_snapshot_v32(&self) -> terri_core::SaveSnapshotV31 {
         build_transaction::committed(&self.world)
             .map(|snapshot| snapshot.previous.clone())
             .unwrap_or_else(|| save::v31::capture(self))
     }
 
-    /// The editable household with the current pool clock, before
-    /// remembered topic preferences.
+    /// Unchecked field view of the V31 layout. Use its checked projection
+    /// before writing a V31 header.
+    pub fn save_snapshot_v31(&self) -> terri_core::SaveSnapshotV31 {
+        self.save_snapshot_v32()
+    }
+
+    /// Unchecked editable-world field view without remembered topics. Use
+    /// `try_save_snapshot_v30` before writing a V30 header.
     pub fn save_snapshot_v30(&self) -> terri_core::SaveSnapshotV30 {
         self.save_snapshot_v31().current
     }
@@ -1724,24 +1732,30 @@ impl Sim {
         pool::EXIT_TICKS
     }
 
-    /// [`Sim::save_snapshot_v32`], refusing a queue that
+    /// [`Sim::save_snapshot_v33`], refusing a queue that
     /// holds an admin command, and a world a broken admin session left with
     /// edits that would not load ([AP-save-queue] in
     /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
     /// save that met one would otherwise leave it out. The command paths
     /// never leave one queued; this is the check that proves it at the save
     /// boundary.
-    pub fn try_save_snapshot_v32(&self) -> Result<terri_core::SaveSnapshotV32, SaveError> {
+    pub fn try_save_snapshot_v33(&self) -> Result<terri_core::SaveSnapshotV33, SaveError> {
         save::refuse_queued_admin(&self.world)?;
         if admin::world_broken(&self.world) {
             return Err(SaveError::AdminSessionBroken);
         }
-        Ok(self.save_snapshot_v32())
+        Ok(self.save_snapshot_v33())
     }
 
-    /// A checked V31 projection, which omits hobby mood progress.
+    pub fn try_save_snapshot_v32(&self) -> Result<terri_core::SaveSnapshotV31, SaveError> {
+        Ok(self.try_save_snapshot_v33()?.previous)
+    }
+
+    /// A historical projection refuses ownership that needs the V32 phase tags.
     pub fn try_save_snapshot_v31(&self) -> Result<terri_core::SaveSnapshotV31, SaveError> {
-        Ok(self.try_save_snapshot_v32()?.previous)
+        let snapshot = self.try_save_snapshot_v32()?;
+        save::v31::validate_exclusive_pools(&snapshot, self.world.resource::<Content>().0)?;
+        Ok(snapshot)
     }
 
     /// A checked V30 projection, which has no place for remembered topic
@@ -1832,8 +1846,21 @@ impl Sim {
         self.adopt_complete_activity_state(candidate)
     }
 
-    /// Loads V31 with zero hobby mood progress.
+    /// Loads a published V31 save with single-occupant pools.
     pub fn load_snapshot_v31(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV31,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v31::restore_published(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    /// Loads a published V32 save with shared swimming.
+    pub fn load_snapshot_v32(
         &mut self,
         snapshot: terri_core::SaveSnapshotV31,
     ) -> Result<(), SaveError> {
@@ -1845,11 +1872,24 @@ impl Sim {
         self.adopt_complete_activity_state(candidate)
     }
 
-    pub fn load_snapshot_v32(
+    pub fn load_snapshot_v33(
         &mut self,
-        snapshot: terri_core::SaveSnapshotV32,
+        snapshot: terri_core::SaveSnapshotV33,
     ) -> Result<(), SaveError> {
-        let candidate = save::v32::restore(
+        let candidate = save::v33::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    /// Loads the private hobby-preview V32 with its original pool policy.
+    pub fn load_private_hobby_snapshot_v32(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV33,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v33::restore_private_v32(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -2522,12 +2562,7 @@ impl Sim {
                 // station walk on the same tick a chosen fridge gets
                 // its path - and there is exactly ONE targeting code
                 // path for chains, this system ([K4]).
-                (
-                    dining::advance,
-                    systems::chain::advance_chains,
-                    pool::prepare,
-                )
-                    .chain(),
+                (dining::advance, systems::chain::advance_chains).chain(),
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -2542,6 +2577,7 @@ impl Sim {
                     privacy::route,
                     systems::interpersonal::refresh_routes,
                     social_episode::requests::before_movement,
+                    pool::prepare,
                     hobby_mood::prune_inactive,
                     systems::movement::follow_path,
                     social_episode::begin_topics,
@@ -3241,6 +3277,10 @@ impl Sim {
                 &mut self.render.pool_phases,
             );
             std::mem::swap(
+                &mut self.render.prev_pool_slots,
+                &mut self.render.pool_slots,
+            );
+            std::mem::swap(
                 &mut self.render.prev_pool_elapsed,
                 &mut self.render.pool_elapsed,
             );
@@ -3275,6 +3315,7 @@ impl Sim {
         self.render.visual_actions.clear();
         self.render.chore_progress.clear();
         self.render.pool_phases.clear();
+        self.render.pool_slots.clear();
         self.render.pool_elapsed.clear();
         self.render.pool_exit_origins.clear();
         self.render.bath_toys.clear();
@@ -3916,6 +3957,10 @@ impl Sim {
             self.render
                 .pool_phases
                 .push(pool.map_or(0, |e| u32::from(e.render_phase())));
+            self.render.pool_slots.push(
+                pool.and_then(pool::PoolEpisode::slot)
+                    .map_or(u32::MAX, u32::from),
+            );
             self.render.pool_elapsed.push(pool.map_or(0, |e| e.elapsed));
             self.render
                 .pool_exit_origins
@@ -4097,6 +4142,9 @@ impl Sim {
                 .prev_pool_phases
                 .clone_from(&self.render.pool_phases);
             self.render
+                .prev_pool_slots
+                .clone_from(&self.render.pool_slots);
+            self.render
                 .prev_pool_elapsed
                 .clone_from(&self.render.pool_elapsed);
             self.render
@@ -4123,6 +4171,7 @@ impl Sim {
                     self.render.prev_positions[position] = self.render.positions[position];
                     self.render.prev_positions[position + 1] = self.render.positions[position + 1];
                     self.render.prev_pool_phases[slot] = self.render.pool_phases[slot];
+                    self.render.prev_pool_slots[slot] = self.render.pool_slots[slot];
                     self.render.prev_pool_elapsed[slot] = self.render.pool_elapsed[slot];
                     self.render.prev_pool_exit_origins[slot] = self.render.pool_exit_origins[slot];
                     self.render.prev_pool_targets[slot] = self.render.interaction_targets[slot];

@@ -8,6 +8,12 @@ import { AdmissionTestService } from './fixtures/contact-admission-service.js';
 const token = { session: 1n, revision: 2n, preparation: 3n } satisfies BuildToken;
 const accepted = (): RoomResult<void> => ({ ok: true, value: undefined });
 
+function pendingRig(){
+  let resolve!:()=>void,reject!:(error:Error)=>void;
+  const promise=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
+  return {promise,resolve,reject};
+}
+
 it('waits for exact pool contacts before confirming and checks the same token again', async () => {
   const service = new AdmissionTestService();
   const roster = new CharacterContactRoster(service);
@@ -74,4 +80,42 @@ it('rejects a token superseded during preparation and keeps the draft uncommitte
     expect(adopt).not.toHaveBeenCalled();
     expect(roster.require(1, appearance).pool).toBeUndefined();
   } finally { roster.dispose(); }
+});
+
+it('cancels a first Sunstrip confirmation even when the live household uses base contacts',async()=>{
+  const service=new AdmissionTestService(),roster=new CharacterContactRoster(service),appearance=defaultAppearance();
+  const appearances=()=>[{entity:1,appearance}],rig=pendingRig();
+  const adopt=vi.fn(accepted),pending=vi.fn();
+  const prepared=new PreparedBuildCommit(roster,{poolRequired:()=>({ok:true,value:false}),appearances,pending,
+    prepareSceneAssets:()=>rig.promise});
+  try{
+    const base=roster.prepareCurrent(appearances(),'base');service.finish(appearance,'base');await base;
+    const result=prepared.run(token,adopt);
+    expect(pending).toHaveBeenLastCalledWith(true);
+    expect(adopt).not.toHaveBeenCalled();
+    expect(prepared.cancel()).toBe(true);
+    expect(await result).toBeNull();
+    rig.resolve();
+    await Promise.resolve();
+    expect(adopt).not.toHaveBeenCalled();
+    expect(roster.mode).toBe('base');
+    expect(pending).toHaveBeenLastCalledWith(false);
+  }finally{rig.resolve();roster.dispose();}
+});
+
+it('leaves a Sunstrip draft uncommitted when the pose download fails',async()=>{
+  const roster=new CharacterContactRoster(new AdmissionTestService());
+  await roster.prepareCurrent([],'base');
+  const rig=pendingRig(),adopt=vi.fn(accepted),pending=vi.fn();
+  const prepared=new PreparedBuildCommit(roster,{poolRequired:()=>({ok:true,value:false}),appearances:()=>[],pending,
+    prepareSceneAssets:()=>rig.promise});
+  try{
+    const result=prepared.run(token,adopt);
+    const refusal=expect(result).rejects.toThrow('Sunstrip download failed');
+    rig.reject(new Error('Sunstrip download failed'));
+    await refusal;
+    expect(adopt).not.toHaveBeenCalled();
+    expect(pending).toHaveBeenLastCalledWith(false);
+    expect(roster.mode).toBe('base');
+  }finally{roster.dispose();}
 });

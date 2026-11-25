@@ -1416,8 +1416,8 @@ fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
         Some(&Position { x: 0., y: 1. })
     );
     assert_eq!(sim.world().get::<Path>(actor).unwrap().steps, [(1, 1)]);
-    let original = sim.save_snapshot_v32();
-    sim.load_snapshot_v32(original.clone()).unwrap();
+    let original = sim.save_snapshot_v33();
+    sim.load_snapshot_v33(original.clone()).unwrap();
 
     // This adjacent tile is walkable grass. The explicit path still has
     // to reach a home destination because the lot already contains floor.
@@ -1430,10 +1430,10 @@ fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
         .unwrap();
     saved_actor.path.as_mut().unwrap().steps = vec![(0, 2)];
     assert_eq!(
-        sim.load_snapshot_v32(invalid.0),
+        sim.load_snapshot_v33(invalid.0),
         Err(crate::SaveError::InvalidGrid)
     );
-    assert_eq!(sim.save_snapshot_v32(), original);
+    assert_eq!(sim.save_snapshot_v33(), original);
 }
 
 #[test]

@@ -197,8 +197,8 @@ export class RoomReviewController {
       const adopt = () => acknowledge ? this.source.commitBuildWithAccessAck!(token) : this.source.commitBuild(token);
       const attempt = this.hooks.commit?.(token, adopt) ?? adopt();
       const result = attempt instanceof Promise ? await attempt.catch(error => {
-        logError('Build', 'Preparing swimming for this layout failed.', { error });
-        this.error = 'Swimming could not be prepared. Try Confirm again.';
+        logError('Build', 'Preparing animations for this layout failed.', { error });
+        this.error = 'Animations could not be prepared. Try Confirm again.';
         this.hooks.refused?.();
         return null;
       }) : attempt;
@@ -253,7 +253,7 @@ export class RoomReviewControls {
     if (controller.busy && doc.activeElement === submit) heading.focus();
     submit.disabled = controller.busy; submit.textContent = controller.accessActive ? 'Confirm' : controller.needsUpdate ? 'Update review' : controller.hasAccess ? 'Review access' : 'Confirm changes';
     const status = doc.querySelector<HTMLElement>('#room-review-status')!;
-    status.textContent = controller.preparing ? 'Preparing swimming…' : controller.error;
+    status.textContent = controller.preparing ? 'Preparing animations…' : controller.error;
     status.dataset.pending = String(controller.preparing);
     const review = controller.review, selector = doc.querySelector<HTMLSelectElement>('#room-review-group')!;
     selector.hidden = controller.accessActive;
