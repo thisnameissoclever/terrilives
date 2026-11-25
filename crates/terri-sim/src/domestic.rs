@@ -778,16 +778,14 @@ pub(crate) fn tick(world: &mut World) {
                 .unwrap()
                 .pending = false;
         }
-        if pending
-            && !available.is_empty()
-            && roll(
-                world,
-                tuning.visitor_cleanup_fraction
-                    * cleanup_probability(clean, &needs, critical, &tuning)
-                    * crate::chores::cleanup_bias(world, person),
-            )
-        {
-            start_cleanup(world, person, available, false);
+        if pending && !available.is_empty() {
+            let usual = tuning.visitor_cleanup_fraction
+                * cleanup_probability(clean, &needs, critical, &tuning)
+                * crate::chores::cleanup_bias(world, person);
+            let chance = crate::chores::autonomous_chance(world, person, usual);
+            if roll(world, chance) {
+                start_cleanup(world, person, available, false);
+            }
         }
     }
 }
@@ -1256,21 +1254,23 @@ pub(crate) fn completed(
             pack.tuning.mood_critical_need_level,
             &tuning,
         );
-        let own = roll(
+        let own_chance = crate::chores::autonomous_chance(
             world,
+            person,
             (probability * crate::chores::cleanup_bias(world, person)).min(0.99),
         );
+        let own = roll(world, own_chance);
         let blocked = !obstructing.is_empty();
-        let response = blocked
-            && roll(
-                world,
-                blocked_cleanup_probability(
-                    cleanliness(world, person),
-                    &needs,
-                    pack.tuning.mood_critical_need_level,
-                    &tuning,
-                ),
+        let response = blocked && {
+            let usual = blocked_cleanup_probability(
+                cleanliness(world, person),
+                &needs,
+                pack.tuning.mood_critical_need_level,
+                &tuning,
             );
+            let chance = crate::chores::autonomous_chance(world, person, usual);
+            roll(world, chance)
+        };
         if own || response {
             let dishes = world
                 .resource::<SavedDomestic>()

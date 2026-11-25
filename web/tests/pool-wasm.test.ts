@@ -39,7 +39,7 @@ it.skipIf(!process.env.POOL_REVIEW_FIXTURES)('loads every retained native review
   const manifest=JSON.parse(readFileSync(join(folder,'manifest.json'),'utf8')) as {schema:number;files:{file:string;actor:number;pool?:number;hasEpisode?:boolean;phase?:number;elapsed?:number;exitOrigin?:number}[]};
   const files=[];
   try{
-    expect([22,CURRENT_SAVE_VERSION]).toContain(manifest.schema);
+    expect([22,32,CURRENT_SAVE_VERSION]).toContain(manifest.schema);
     for(const fixture of manifest.files){
       const bytes=readFileSync(join(folder,fixture.file));expect(sim.loadBytes(bytes),fixture.file).toBe(true);
       const current=sim.saveBytes();

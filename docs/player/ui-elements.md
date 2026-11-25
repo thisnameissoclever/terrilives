@@ -158,6 +158,8 @@ Fit, Trait fit, Social capacity, Skill mastery, Mood on shifts and the jobs' soc
 
 Choose Chores in the bottom dock. The dialog pauses game time. Automatic weekly assignments enables or disables the board's assignment system. The weekly board shows each duty, owner, outcome and actual dirt. Do now sends the selected person to available work; select someone before using it.
 
+New assignments favor housemates without jobs while weighing chore preferences and assigned workload. Starting or leaving a job by itself leaves the current assignments in place until the next weekly assignment.
+
 :::illustration chores-board
 
 Scroll within the dialog for the selected person's responsibility and chore preferences and Apply preferences. Open Recent daily outcomes below the assignments to inspect the history. Positive preferences mean enjoyment; negative ones mean dislike. These changes affect future daily decisions. Commitment history tracks follow-through separately.

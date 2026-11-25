@@ -250,6 +250,9 @@ pub fn tick_interactions(
             });
             continue;
         }
+        if hobbies.is_some_and(|hobbies| hobbies.loves_any(&act.tags)) {
+            crate::hobby_mood::queue_credit(&mut commands, entity);
+        }
         for (need_index, delta) in &act.advertises {
             if *delta > 0.
                 && *need_index as usize == NeedId::Social.index()

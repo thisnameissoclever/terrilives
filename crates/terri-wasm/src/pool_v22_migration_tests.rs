@@ -59,47 +59,53 @@ fn frozen_v22_pool_controls_preserve_every_field_except_owned_coordinates() {
             handle.load_bytes(bytes),
             "unchanged historical control must load: {name}"
         );
-        let actual = CurrentV5View(terri_core::SaveSnapshotV31 {
-            current: handle.sim.save_snapshot_v28(),
-            topic_memory: vec![],
-        });
-        let mut expected = CurrentV5View(terri_core::SaveSnapshotV31 {
-            current: terri_core::SaveSnapshotV28 {
-                editable: terri_core::SaveSnapshotV26 {
-                    previous: terri_core::SaveSnapshotV24 {
-                        career_inputs: vec![],
-                        queued_work_commands: vec![],
-                        replaced_shifts: vec![],
-                        legacy: terri_core::SaveSnapshotV23 {
-                            legacy: terri_core::SaveSnapshotV22 {
-                                legacy: terri_core::SaveSnapshotV21 {
-                                    legacy: source.previous.previous.clone(),
-                                    shifts: terri_core::save_v21::SavedShifts {
-                                        rng: terri_core::SimRng::from_seed(
-                                            terri_sim::shifts::SHIFTS_SEED,
-                                        ),
-                                        draws: 0,
-                                        held: vec![],
-                                        changed_today: vec![],
-                                    },
-                                    queued_shift_commands: vec![],
-                                },
-                                bills: Default::default(),
-                            },
-                            presence_fade: vec![],
-                        },
-                    },
-                    surfaces: source.previous.surfaces.clone(),
-                    commutes: source.previous.commutes.clone(),
-                    pools: source.pools.clone(),
-                    baths: vec![],
-                    manual_work_trips: vec![],
-                    open_shift_base_pay: vec![],
-                    career_input_sources: vec![],
-                },
-                need_mood: vec![],
+        let actual = CurrentV5View(terri_core::SaveSnapshotV33 {
+            previous: terri_core::SaveSnapshotV31 {
+                current: handle.sim.save_snapshot_v28(),
+                topic_memory: vec![],
             },
-            topic_memory: vec![],
+            hobby_mood: vec![],
+        });
+        let mut expected = CurrentV5View(terri_core::SaveSnapshotV33 {
+            previous: terri_core::SaveSnapshotV31 {
+                current: terri_core::SaveSnapshotV28 {
+                    editable: terri_core::SaveSnapshotV26 {
+                        previous: terri_core::SaveSnapshotV24 {
+                            career_inputs: vec![],
+                            queued_work_commands: vec![],
+                            replaced_shifts: vec![],
+                            legacy: terri_core::SaveSnapshotV23 {
+                                legacy: terri_core::SaveSnapshotV22 {
+                                    legacy: terri_core::SaveSnapshotV21 {
+                                        legacy: source.previous.previous.clone(),
+                                        shifts: terri_core::save_v21::SavedShifts {
+                                            rng: terri_core::SimRng::from_seed(
+                                                terri_sim::shifts::SHIFTS_SEED,
+                                            ),
+                                            draws: 0,
+                                            held: vec![],
+                                            changed_today: vec![],
+                                        },
+                                        queued_shift_commands: vec![],
+                                    },
+                                    bills: Default::default(),
+                                },
+                                presence_fade: vec![],
+                            },
+                        },
+                        surfaces: source.previous.surfaces.clone(),
+                        commutes: source.previous.commutes.clone(),
+                        pools: source.pools.clone(),
+                        baths: vec![],
+                        manual_work_trips: vec![],
+                        open_shift_base_pay: vec![],
+                        career_input_sources: vec![],
+                    },
+                    need_mood: vec![],
+                },
+                topic_memory: vec![],
+            },
+            hobby_mood: vec![],
         });
         assert_eq!(expected.world.content_fingerprint, 0x7229_9218_57a2_e3ae);
         expected.world.content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;

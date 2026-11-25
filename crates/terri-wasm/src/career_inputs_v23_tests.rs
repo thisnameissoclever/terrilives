@@ -37,23 +37,32 @@ fn schema_twenty_three_saves_load_with_no_inputs_and_continue() {
             "{name}"
         );
         let saved = decode_current(&current);
-        assert!(saved.previous.career_inputs.is_empty(), "{name}");
-        assert!(saved.previous.queued_work_commands.is_empty(), "{name}");
-        assert!(saved.previous.replaced_shifts.is_empty(), "{name}");
+        assert!(saved.editable.previous.career_inputs.is_empty(), "{name}");
+        assert!(
+            saved.editable.previous.queued_work_commands.is_empty(),
+            "{name}"
+        );
+        assert!(saved.editable.previous.replaced_shifts.is_empty(), "{name}");
         assert_eq!(
-            saved.previous.legacy.presence_fade, original.presence_fade,
+            saved.editable.previous.legacy.presence_fade, original.presence_fade,
             "{name}"
         );
         assert_eq!(
-            saved.previous.legacy.legacy.bills, original.legacy.bills,
+            saved.editable.previous.legacy.legacy.bills, original.legacy.bills,
             "{name}"
         );
         assert_eq!(
-            saved.previous.legacy.legacy.legacy.shifts, original.legacy.legacy.shifts,
+            saved.editable.previous.legacy.legacy.legacy.shifts, original.legacy.legacy.shifts,
             "{name}"
         );
         assert_eq!(
-            saved.previous.legacy.legacy.legacy.queued_shift_commands,
+            saved
+                .editable
+                .previous
+                .legacy
+                .legacy
+                .legacy
+                .queued_shift_commands,
             original.legacy.legacy.queued_shift_commands,
             "{name}"
         );

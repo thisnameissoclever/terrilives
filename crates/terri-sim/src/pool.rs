@@ -316,6 +316,7 @@ pub(crate) fn tick(world: &mut World) {
                 .expect("pool episode retains ordinary occupation");
             let pack = world.resource::<Content>().0;
             let action = &pack.object(eating.object).interactions[eating.interaction as usize];
+            crate::hobby_mood::credit(world, actor, &action.tags);
             let personality = world.get::<Personality>(actor).cloned();
             let fumble = world
                 .get::<terri_core::Fumbled>(actor)

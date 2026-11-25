@@ -17,6 +17,7 @@ pub(crate) use consequences::{dish_washed, moodlets_in};
 mod policy;
 mod work;
 use bevy_ecs::prelude::*;
+pub(crate) use policy::autonomous_chance;
 pub use policy::{enjoyment, willingness};
 use terri_core::chores::*;
 pub(crate) use work::start as start_response;

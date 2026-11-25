@@ -9,7 +9,7 @@ use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
     let snapshot = sim
-        .try_save_snapshot_v32()
+        .try_save_snapshot_v33()
         .expect("valid pool review state");
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
@@ -225,7 +225,7 @@ fn main() {
             for _ in 0..100 {
                 sim.tick();
                 if sim
-                    .save_snapshot_v32()
+                    .save_snapshot_v33()
                     .pools
                     .iter()
                     .any(|p| p.actor == actor.index_u32() && p.phase == 1)
@@ -233,7 +233,7 @@ fn main() {
                     break;
                 }
             }
-            let baseline = sim.try_save_snapshot_v32().expect("valid pool entry state");
+            let baseline = sim.try_save_snapshot_v33().expect("valid pool entry state");
             for (label, ticks, cancel) in [
                 ("entry", 0, false),
                 ("entry-step", 7, false),
@@ -259,7 +259,7 @@ fn main() {
                 {
                     continue;
                 }
-                sim.load_snapshot_v32(baseline.clone()).unwrap();
+                sim.load_snapshot_v33(baseline.clone()).unwrap();
                 for _ in 0..ticks {
                     sim.tick();
                 }
@@ -339,7 +339,7 @@ fn main() {
             .expect("ordinary bath begins")
             .remaining_ticks;
         let snapshot = sim
-            .try_save_snapshot_v32()
+            .try_save_snapshot_v33()
             .expect("valid bath review state");
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();

@@ -2769,10 +2769,10 @@ impl SimHandle {
     /// and the shell's `saveBytes` turns it into a thrown error so no caller
     /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let Ok(snapshot) = self.sim.try_save_snapshot_v32() else {
+        let Ok(snapshot) = self.sim.try_save_snapshot_v33() else {
             return Vec::new();
         };
-        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV31 serializes");
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV33 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2802,10 +2802,32 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == SAVE_SCHEMA_VERSION {
-            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV31>(payload) {
-                Ok((snapshot, [])) => self.sim.load_snapshot_v32(snapshot).is_ok(),
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV33>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v33(snapshot).is_ok(),
                 _ => false,
             };
+        }
+        if version == 32 {
+            let Ok((previous, tail)) =
+                postcard::take_from_bytes::<terri_core::SaveSnapshotV31>(payload)
+            else {
+                return false;
+            };
+            // Published V32 ends after the topic-memory rows. The private hobby
+            // preview appended a vector and retained exclusive pool rules.
+            if tail.is_empty() {
+                return self.sim.load_snapshot_v32(previous).is_ok();
+            }
+            let Ok((hobby_mood, [])) = postcard::take_from_bytes(tail) else {
+                return false;
+            };
+            return self
+                .sim
+                .load_private_hobby_snapshot_v32(terri_core::SaveSnapshotV33 {
+                    previous,
+                    hobby_mood,
+                })
+                .is_ok();
         }
         if version == 31 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV31>(payload) {
@@ -5312,7 +5334,7 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v31()
+            uninterrupted.sim.save_snapshot_v33()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
@@ -5324,8 +5346,8 @@ mod boundary_tests {
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v31(),
-            uninterrupted.sim.save_snapshot_v31()
+            resumed.sim.save_snapshot_v33(),
+            uninterrupted.sim.save_snapshot_v33()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -5337,8 +5359,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v31(),
-            uninterrupted.sim.save_snapshot_v31()
+            resumed.sim.save_snapshot_v33(),
+            uninterrupted.sim.save_snapshot_v33()
         );
     }
 
@@ -11550,6 +11572,8 @@ mod bills_boundary_tests;
 mod career_inputs_v23_tests;
 #[cfg(test)]
 mod career_tab_boundary_tests;
+#[cfg(test)]
+mod hobby_mood_boundary_tests;
 #[cfg(test)]
 mod need_mood_boundary_tests;
 #[cfg(test)]
