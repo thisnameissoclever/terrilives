@@ -285,8 +285,94 @@ pub(crate) fn tag_code(tag: &str) -> u32 {
         .find(|(known, _)| *known == tag)
         .map_or(7, |&(_, code)| code)
 }
+/// The topic a chat with no candidate topic falls back to. Nobody learns
+/// anything from it (issue 359).
+pub(crate) const SMALLTALK_TAG: &str = "smalltalk";
+
 pub(crate) fn topic_weight(mine: f32, theirs: f32, inclination: f32) -> f32 {
     mine.max(0.) * (1. + 4. * inclination.clamp(0., 1.) * theirs.max(0.))
+}
+
+/// How inclined a person is to socialise, from 0 to 1: the largest of their
+/// liking for `socialising`, their Social need's satisfaction term and their
+/// socialising mastery. Topic choice and remembering a chat both read it
+/// (issue 359), so the two cannot drift apart.
+pub(crate) fn sociability(
+    pack: &terri_data::ContentPack,
+    preferences: &crate::compatibility::Preferences,
+    personality: Option<&terri_core::Personality>,
+    skills: Option<&terri_core::Skills>,
+) -> f32 {
+    preferences
+        .get("socialising")
+        .copied()
+        .unwrap_or(0.)
+        .max(0.)
+        .max(personality.map_or(0., |p| {
+            ((p.satisfaction[NeedId::Social.index()] - 1.) / 2.).clamp(0., 1.)
+        }))
+        .max(crate::skills::mastery_for_tag(skills, pack, "socialising").unwrap_or(0.))
+        .clamp(0., 1.)
+}
+
+/// What one initiator's topic weights read about one listener: who they
+/// are, how sociable the initiator is and what the initiator remembers
+/// (issue 359). Without a `SimId` on either side there is nobody to
+/// remember or guess about, and the weight reads the listener's true
+/// preference as it did before memories existed.
+struct Steering<'a> {
+    ids: Option<(terri_core::SimId, terri_core::SimId)>,
+    memory: Option<&'a crate::topic_memory::TopicMemory>,
+    sociability: f32,
+    clock: (u64, u64),
+    avoidance: f32,
+    min_factor: f32,
+}
+
+impl<'a> Steering<'a> {
+    fn new(
+        world: &'a World,
+        pack: &terri_data::ContentPack,
+        (initiator, listener): (Entity, Entity),
+        sociability: f32,
+    ) -> Self {
+        Self {
+            ids: world
+                .get::<terri_core::SimId>(initiator)
+                .copied()
+                .zip(world.get::<terri_core::SimId>(listener).copied()),
+            memory: world.get_resource::<crate::topic_memory::TopicMemory>(),
+            sociability,
+            clock: (
+                world.resource::<terri_core::SimClock>().tick,
+                crate::topic_memory::fade_ticks(pack),
+            ),
+            avoidance: pack.tuning.topic_memory_avoidance,
+            min_factor: pack.tuning.topic_memory_min_factor,
+        }
+    }
+
+    /// `mine * (1 + 4 * s * max(belief, 0))`, times the hold a remembered
+    /// dislike puts on the topic.
+    fn weight(&self, tag: &str, mine: f32, truth: f32) -> f32 {
+        let (Some((knower, other)), Some(memory)) = (self.ids, self.memory) else {
+            return topic_weight(mine, truth, self.sociability);
+        };
+        let belief = crate::topic_memory::belief(
+            memory,
+            (knower, other, tag),
+            truth,
+            self.sociability,
+            self.clock,
+        );
+        topic_weight(mine, belief.value, self.sociability)
+            * crate::topic_memory::avoidance_factor(
+                belief,
+                self.sociability,
+                self.avoidance,
+                self.min_factor,
+            )
+    }
 }
 pub(crate) fn begin_topics(world: &mut World) {
     let mut talks: Vec<_> = world
@@ -321,28 +407,17 @@ pub(crate) fn begin_topics(world: &mut World) {
         }
         let mine = crate::subjects::preferences_of(world, pack, initiator);
         let theirs = crate::subjects::preferences_of(world, pack, listener);
-        let inclination = mine
-            .get("socialising")
-            .copied()
-            .unwrap_or(0.)
-            .max(0.)
-            .max(
-                world
-                    .get::<terri_core::Personality>(initiator)
-                    .map_or(0., |p| {
-                        ((p.satisfaction[NeedId::Social.index()] - 1.) / 2.).clamp(0., 1.)
-                    }),
-            )
-            .max(
-                crate::skills::mastery_for_tag(
-                    world.get::<terri_core::Skills>(initiator),
-                    pack,
-                    "socialising",
-                )
-                .unwrap_or(0.),
-            );
+        let inclination = sociability(
+            pack,
+            &mine,
+            world.get::<terri_core::Personality>(initiator),
+            world.get::<terri_core::Skills>(initiator),
+        );
+        let steering = Steering::new(world, pack, (initiator, listener), inclination);
         // Activity topics first, in tag order, then the subjects the
-        // initiator offers, in content order ([RT-subjects]).
+        // initiator offers, in content order ([RT-subjects]). Each keeps the
+        // listener's true preference for the chat itself; only the weight
+        // reads what the initiator believes (issue 359).
         let mut candidates: Vec<_> = mine
             .iter()
             .filter(|(_, value)| **value > 0.)
@@ -352,7 +427,7 @@ pub(crate) fn begin_topics(world: &mut World) {
                     tag.clone(),
                     value,
                     theirs,
-                    topic_weight(value, theirs, inclination),
+                    steering.weight(tag, value, theirs),
                 )
             })
             .collect();
@@ -360,12 +435,12 @@ pub(crate) fn begin_topics(world: &mut World) {
             crate::subjects::offered(world, pack, (initiator, &mine), (listener, &theirs))
                 .into_iter()
                 .map(|offer| {
-                    let weight = topic_weight(offer.mine, offer.theirs, inclination);
+                    let weight = steering.weight(&offer.tag, offer.mine, offer.theirs);
                     (offer.tag, offer.mine, offer.theirs, weight)
                 }),
         );
         let topic = if candidates.is_empty() {
-            Topic::new(pack, 4, "smalltalk".into(), 0., 0.)
+            Topic::new(pack, 4, SMALLTALK_TAG.into(), 0., 0.)
         } else {
             let total: f32 = candidates.iter().map(|c| c.3).sum();
             let draw = world.resource_mut::<SimRng>().next_f32() * total;

@@ -166,7 +166,10 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let (editable, tail) =
         postcard::take_from_bytes::<SaveSnapshotV26>(&current[SAVE_HEADER_BYTES..]).unwrap();
     assert_eq!(editable, snapshot.editable);
-    assert_eq!(tail, postcard::to_allocvec(&snapshot.need_mood).unwrap());
+    // Schema 31 appends the remembered topics after the need mood.
+    let mut expected_tail = postcard::to_allocvec(&snapshot.need_mood).unwrap();
+    expected_tail.extend(postcard::to_allocvec(&snapshot.topic_memory).unwrap());
+    assert_eq!(tail, expected_tail);
 
     use terri_core::admin::{AdminChange, AdminEdit};
     live.sim.begin_admin().unwrap();
@@ -194,7 +197,7 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     assert!(trailing.is_empty());
     let published = SaveSnapshotV27 {
         legacy,
-        need_mood: snapshot.need_mood,
+        need_mood: snapshot.need_mood.clone(),
     };
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(27u16.to_le_bytes());
@@ -203,5 +206,5 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let migrated = decode_current(&live.save_bytes());
     assert_eq!(migrated.need_mood, published.need_mood);
     assert!(migrated.baths.is_empty());
-    assert_eq!(live.sim.save_snapshot_v28(), migrated);
+    assert_eq!(live.sim.save_snapshot_v31(), migrated);
 }

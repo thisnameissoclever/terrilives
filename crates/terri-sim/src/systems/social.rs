@@ -56,9 +56,10 @@ pub fn tick_social(
         ResMut<crate::social_episode::requests::ConversationRequests>,
     ),
     clock: Res<terri_core::SimClock>,
-    (mut diagnostics, mut log): (
+    (mut diagnostics, mut log, mut memory): (
         ResMut<RelationshipDiagnostics>,
         Option<ResMut<crate::activity_log::ActivityLog>>,
+        Option<ResMut<crate::topic_memory::TopicMemory>>,
     ),
     context: Res<crate::relationship_dynamics::RelationshipContext>,
     mut talking: Query<(Entity, &mut Socialising)>,
@@ -267,6 +268,43 @@ pub fn tick_social(
             }
             commands.entity(partner).try_remove::<Reserved>();
             continue;
+        }
+
+        // Issue 359: each side may remember how the other really felt about
+        // the topic, before the payout below changes anyone's traits. A
+        // fight never reaches here, and smalltalk teaches nothing.
+        if let (Some(memory), Some(topic)) =
+            (memory.as_deref_mut(), episodes.topics.get(&initiator))
+        {
+            for (me, other, preference) in [
+                (initiator, partner, topic.listener_preference),
+                (partner, initiator, topic.initiator_preference),
+            ] {
+                let (Ok(&knower), Ok(&about)) = (sim_ids.get(me), sim_ids.get(other)) else {
+                    continue;
+                };
+                let ledger = ledgers.get(me).ok();
+                let preferences = crate::compatibility::preferences(
+                    content.0,
+                    personalities.get(me).ok(),
+                    ledger.as_ref().and_then(|(_, _, traits)| *traits),
+                    ledger.as_ref().and_then(|(_, hobbies, _)| *hobbies),
+                );
+                let sociability = crate::social_episode::sociability(
+                    content.0,
+                    &preferences,
+                    personalities.get(me).ok(),
+                    skills.get(me).ok(),
+                );
+                crate::topic_memory::learn(
+                    memory,
+                    &tuning,
+                    (knower, about, topic),
+                    preference,
+                    sociability,
+                    clock.tick,
+                );
+            }
         }
 
         // Completion pays the ordinary affinity gain. An interrupted

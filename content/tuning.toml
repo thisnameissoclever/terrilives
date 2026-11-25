@@ -776,6 +776,25 @@ admin_skip_ticks_per_frame = 300
 # How many billing months back a bill's Due select offers, from 1 to 120.
 admin_bill_due_months = 12
 
+# Housemates remember which topics each person likes (issue 359). A chat that
+# is not a fight may teach each side how the other really feels about its
+# topic, and those memories steer later topic choices. Sociability, the same
+# inclination topic choice already reads, sets how likely a chat is
+# remembered, how close a guess comes and how strongly memories steer. Packs
+# published before these knobs reconstruct the shipped values.
+# How many game days a memory takes to fade to nothing, from 1 to 365. A later
+# chat about the same topic with the same person starts it again.
+topic_memory_fade_days = 42
+# The chance that even the least sociable housemate remembers a chat, from 0
+# to 1. The chance rises with sociability to 1.
+topic_memory_remember_floor = 0.3333
+# How strongly a remembered dislike holds a topic back, from 0 to 1. A guess
+# never holds one back.
+topic_memory_avoidance = 0.9
+# The least a remembered dislike leaves of a topic's chance, above 0 and at
+# most 1.
+topic_memory_min_factor = 0.1
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

@@ -144,21 +144,21 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/inherited-runtime.pack");
     if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
-        // Issue 275 (richer topics) appended `topics` to `ContentPack`,
-        // after `need_mood`. This proof runs against the fixture as it was
-        // before that change (26165 bytes, SHA-256
-        // 70d260051d03996660fa88fb9ee0ca36b7b41e888f6bf53ee063adeb21da1870,
-        // main at b0aa7799c): restore that file first. Later content
-        // changes, such as the rectangular pool, regenerate the fixture
-        // with TERRI_WRITE_RUNTIME_FIXTURE and do not pass through it.
+        // Issue 359 (remembered topics) appended four topic memory knobs to
+        // `Tuning`, after the admin panel knobs. This proof runs against the
+        // fixture as it was before that change (26363 bytes, SHA-256
+        // 89007838b3f303d67ce68d674ae937e2048baca229bc1022d012ef4e5835296e,
+        // main at 6fc824780): restore that file first. Later content
+        // changes regenerate the fixture with TERRI_WRITE_RUNTIME_FIXTURE and
+        // do not pass through it.
         let old_bytes = std::fs::read(&path).unwrap();
         assert_eq!(
-            previous_without_topics(&pack),
+            previous_without_topic_memory(&pack),
             old_bytes,
-            "only the field issue 275 appended may change the fixture from before issue 275"
+            "only the fields issue 359 appended may change the fixture from before issue 359"
         );
         eprintln!(
-            "Topics fixture proof: leaving out the field issue 275 appended recovers every byte of the previous fixture"
+            "Topic memory fixture proof: leaving out the fields issue 359 appended recovers every byte of the previous fixture"
         );
         return;
     }
@@ -175,14 +175,14 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     }
 }
 
-/// The fixture's bytes as they were before issue 275 (richer topics),
+/// The fixture's bytes as they were before issue 359 (remembered topics),
 /// rebuilt from the current pack by writing it as postcard does while
-/// leaving out the field issue 275 appended at the end of `ContentPack`.
+/// leaving out the four fields issue 359 appended at the end of `Tuning`.
 /// Postcard writes a struct as its fields in order with no names,
 /// so leaving a field out removes exactly its bytes. The unfiltered writer
 /// must reproduce postcard byte for byte first, or the filtered bytes would
 /// prove nothing.
-fn previous_without_topics(pack: &terri_data::ContentPack) -> Vec<u8> {
+fn previous_without_topic_memory(pack: &terri_data::ContentPack) -> Vec<u8> {
     use filtered_postcard::Rule;
     assert_eq!(
         filtered_postcard::to_vec(pack, &|_, _| Rule::Keep),
@@ -190,7 +190,13 @@ fn previous_without_topics(pack: &terri_data::ContentPack) -> Vec<u8> {
         "the filtered writer reproduces postcard when it filters nothing"
     );
     filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
-        ("ContentPack", "topics") => Rule::Omit,
+        (
+            "Tuning",
+            "topic_memory_fade_days"
+            | "topic_memory_remember_floor"
+            | "topic_memory_avoidance"
+            | "topic_memory_min_factor",
+        ) => Rule::Omit,
         _ => Rule::Keep,
     })
 }

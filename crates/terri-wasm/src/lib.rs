@@ -2763,10 +2763,10 @@ impl SimHandle {
     /// and the shell's `saveBytes` turns it into a thrown error so no caller
     /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let Ok(snapshot) = self.sim.try_save_snapshot_v30() else {
+        let Ok(snapshot) = self.sim.try_save_snapshot_v31() else {
             return Vec::new();
         };
-        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV30 serializes");
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV31 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2796,6 +2796,12 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV31>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v31(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 30 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV30>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v30(snapshot).is_ok(),
                 _ => false,
@@ -5294,7 +5300,7 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v28()
+            uninterrupted.sim.save_snapshot_v31()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
@@ -5306,8 +5312,8 @@ mod boundary_tests {
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v28(),
-            uninterrupted.sim.save_snapshot_v28()
+            resumed.sim.save_snapshot_v31(),
+            uninterrupted.sim.save_snapshot_v31()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -5319,8 +5325,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v28(),
-            uninterrupted.sim.save_snapshot_v28()
+            resumed.sim.save_snapshot_v31(),
+            uninterrupted.sim.save_snapshot_v31()
         );
     }
 
@@ -11538,6 +11544,8 @@ mod presence_fade_boundary_tests;
 mod published_v21_tests;
 #[cfg(test)]
 mod published_v24_tests;
+#[cfg(test)]
+mod topic_memory_boundary_tests;
 
 #[cfg(test)]
 mod current_test_snapshot;

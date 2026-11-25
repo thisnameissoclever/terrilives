@@ -137,6 +137,23 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
         .is_empty());
     assert_eq!(sim.world_hash(), STANDARD_ONLY_HASH);
 }
+
+/// Issue 359 moved [`STANDARD_ONLY_HASH`] only through topic choice and
+/// remembered topics: the same run with the memory resource removed, which
+/// steers by the listener's true preference and remembers nothing, still
+/// gives the value from before.
+#[test]
+fn without_topic_memory_the_standard_only_hash_is_unchanged() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let pack = crate::test_content::pre_shift_careers(terri_data::pack());
+    sim.world_mut().insert_resource(Content(pack));
+    sim.world_mut()
+        .remove_resource::<crate::topic_memory::TopicMemory>();
+    for _ in 0..600 {
+        sim.tick();
+    }
+    assert_eq!(sim.world_hash(), 13043348246484619481);
+}
 /// Computed at fead3700b, before the shift section of the hash existed, as
 /// 6850362082045180278. Issue 339 moved it on purpose: Tim now shelves his
 /// book and leaves for his 06:00 shift instead of waiting about 70 minutes
@@ -152,7 +169,12 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// The prior branch measured this on 2026-10-25; the test separately requires the careers
 /// hash to equal its pre-shift encoding, so a new world pin cannot hide shift bytes.
 /// With gradual need mood, the V28 replay reaches this digest and still passes that encoding check.
-const STANDARD_ONLY_HASH: u64 = 13043348246484619481;
+/// Issue 359 moved it from 13043348246484619481: by tick 600 a chat has
+/// steered by a guess rather than the listener's true preference, and one
+/// remembered topic joins the hash. The careers encoding check above still
+/// holds, and `without_topic_memory_the_standard_only_hash_is_unchanged`
+/// pins the old value with memory switched off.
+const STANDARD_ONLY_HASH: u64 = 10985242059267327331;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.

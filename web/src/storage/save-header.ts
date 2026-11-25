@@ -1,5 +1,5 @@
 const MAGIC = [84, 69, 82, 82, 73, 83, 65, 86] as const;
-export const CURRENT_SAVE_VERSION = 30;
+export const CURRENT_SAVE_VERSION = 31;
 
 // These match the producer dispatch in SimHandle::load_bytes.
 const EDITABLE_FINGERPRINT = 0x7229_9218_57a2_e3aen;

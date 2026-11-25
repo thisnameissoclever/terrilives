@@ -1470,7 +1470,11 @@ describe('SimBridge', () => {
     // 2026-11-20 after integrating that balance with saved world surfaces.
     // The subject a Sim picks changes later random draws. Native and release
     // WebAssembly both produced this digest with the combined household rules.
-    expect(bridge.worldHash()).toBe(17435874788369320558n);
+    // Issue 359 moved it from 17435874788369320558n: topics are steered by
+    // what the initiator remembers or guesses, and remembered topics join the
+    // digest. The rebuilt release WebAssembly gave this value, equal to the
+    // native constant measured first.
+    expect(bridge.worldHash()).toBe(16348041807635976343n);
   });
 
   // ---- Player commands -------------------------------------------------

@@ -127,7 +127,7 @@ impl Carried {
         }
     }
 }
-const MAX_LIST_ENTRIES: usize = 100_000;
+pub(crate) const MAX_LIST_ENTRIES: usize = 100_000;
 /// The most bytes any saved name may hold; the loader refuses a save with
 /// a longer one. Public so the wasm boundary can refuse a queued command
 /// whose name would make the next save unloadable ([CS-command]).
@@ -173,6 +173,7 @@ pub(crate) mod v25;
 pub(crate) mod v26;
 pub(crate) mod v27;
 pub(crate) mod v28;
+pub(crate) mod v31;
 #[cfg(test)]
 mod v3_tests;
 #[cfg(test)]

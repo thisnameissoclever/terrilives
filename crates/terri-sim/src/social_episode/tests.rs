@@ -14,6 +14,7 @@ mod order_cycle_tests;
 mod reward_balance_tests;
 mod sleeping_partner_tests;
 mod subject_tests;
+mod topic_memory_tests;
 mod topic_row_tests;
 
 fn attributed_system_fight(sim: &mut Sim, initiator: Entity, recipient: Entity) -> u64 {

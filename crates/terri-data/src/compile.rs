@@ -3912,6 +3912,31 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = admin_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::AdminTuningOutOfRange { key });
     }
+    // Issue 359: memories fade over at least a day and at most a game year;
+    // the floor and the avoidance are shares; the least factor is above 0 so
+    // a remembered dislike never removes a topic outright. Written as the
+    // accepted ranges so NaN fails them too.
+    let topic_memory_rules = [
+        (
+            "topic_memory_fade_days",
+            (1..=365).contains(&tuning.topic_memory_fade_days),
+        ),
+        (
+            "topic_memory_remember_floor",
+            (0.0..=1.0).contains(&tuning.topic_memory_remember_floor),
+        ),
+        (
+            "topic_memory_avoidance",
+            (0.0..=1.0).contains(&tuning.topic_memory_avoidance),
+        ),
+        (
+            "topic_memory_min_factor",
+            tuning.topic_memory_min_factor > 0.0 && tuning.topic_memory_min_factor <= 1.0,
+        ),
+    ];
+    if let Some((key, _)) = topic_memory_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::TopicMemoryTuningOutOfRange { key });
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -4545,6 +4570,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             admin_skip_default_hours: tuning.admin_skip_default_hours,
             admin_skip_ticks_per_frame: tuning.admin_skip_ticks_per_frame,
             admin_bill_due_months: tuning.admin_bill_due_months,
+            topic_memory_fade_days: tuning.topic_memory_fade_days,
+            topic_memory_remember_floor: tuning.topic_memory_remember_floor,
+            topic_memory_avoidance: tuning.topic_memory_avoidance,
+            topic_memory_min_factor: tuning.topic_memory_min_factor,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -6083,6 +6112,11 @@ mod tests {
             admin_skip_default_hours: crate::Tuning::SHIPPED_ADMIN_SKIP_DEFAULT_HOURS,
             admin_skip_ticks_per_frame: crate::Tuning::SHIPPED_ADMIN_SKIP_TICKS_PER_FRAME,
             admin_bill_due_months: crate::Tuning::SHIPPED_ADMIN_BILL_DUE_MONTHS,
+            // Issue 359: and the shipped topic memory knobs.
+            topic_memory_fade_days: crate::Tuning::SHIPPED_TOPIC_MEMORY_FADE_DAYS,
+            topic_memory_remember_floor: crate::Tuning::SHIPPED_TOPIC_MEMORY_REMEMBER_FLOOR,
+            topic_memory_avoidance: crate::Tuning::SHIPPED_TOPIC_MEMORY_AVOIDANCE,
+            topic_memory_min_factor: crate::Tuning::SHIPPED_TOPIC_MEMORY_MIN_FACTOR,
             bills: shipped_bills_def(),
             need_mood: crate::pack::NeedMoodTuning::HISTORICAL,
             meal_appreciation_gain: 0.0,
@@ -11649,6 +11683,100 @@ mod tests {
         assert_eq!(
             compiled(|t| t.admin_bill_due_months = 120),
             [168, 8, 300, 120]
+        );
+    }
+
+    /// Issue 359: the four topic memory knobs compile within their ranges,
+    /// each refusal names its knob, each boundary is legal and each knob
+    /// reaches its own compiled field rather than a neighbour's.
+    #[test]
+    fn topic_memory_knobs_are_ranged_and_copied_to_their_own_fields() {
+        let refused =
+            |change: fn(&mut TuningFile), key: &str| match compile_tuned(tuning_where(change)) {
+                Err(ContentError::TopicMemoryTuningOutOfRange { key: named }) => {
+                    assert_eq!(named, key)
+                }
+                other => panic!("{key}: {other:?}"),
+            };
+        refused(|t| t.topic_memory_fade_days = 0, "topic_memory_fade_days");
+        refused(|t| t.topic_memory_fade_days = 366, "topic_memory_fade_days");
+        type Set = fn(&mut TuningFile);
+        let floats: [(&str, [Set; 4]); 3] = [
+            (
+                "topic_memory_remember_floor",
+                [
+                    |t| t.topic_memory_remember_floor = -0.0625,
+                    |t| t.topic_memory_remember_floor = 1.0625,
+                    |t| t.topic_memory_remember_floor = f32::NAN,
+                    |t| t.topic_memory_remember_floor = f32::INFINITY,
+                ],
+            ),
+            (
+                "topic_memory_avoidance",
+                [
+                    |t| t.topic_memory_avoidance = -0.0625,
+                    |t| t.topic_memory_avoidance = 1.0625,
+                    |t| t.topic_memory_avoidance = f32::NAN,
+                    |t| t.topic_memory_avoidance = f32::INFINITY,
+                ],
+            ),
+            (
+                "topic_memory_min_factor",
+                [
+                    |t| t.topic_memory_min_factor = 0.0,
+                    |t| t.topic_memory_min_factor = 1.0625,
+                    |t| t.topic_memory_min_factor = f32::NAN,
+                    |t| t.topic_memory_min_factor = f32::NEG_INFINITY,
+                ],
+            ),
+        ];
+        for (key, setters) in floats {
+            for set in setters {
+                refused(set, key);
+            }
+        }
+
+        let compiled = |change: fn(&mut TuningFile)| {
+            let tuning = compile_tuned(tuning_where(change))
+                .unwrap_or_else(|error| panic!("{error}"))
+                .tuning;
+            (
+                tuning.topic_memory_fade_days,
+                [
+                    tuning.topic_memory_remember_floor,
+                    tuning.topic_memory_avoidance,
+                    tuning.topic_memory_min_factor,
+                ],
+            )
+        };
+        assert_eq!(compiled(|_| {}), (42, [0.3333, 0.9, 0.1]));
+        assert_eq!(
+            compiled(|t| t.topic_memory_fade_days = 1),
+            (1, [0.3333, 0.9, 0.1])
+        );
+        assert_eq!(
+            compiled(|t| t.topic_memory_fade_days = 365),
+            (365, [0.3333, 0.9, 0.1])
+        );
+        assert_eq!(
+            compiled(|t| {
+                t.topic_memory_remember_floor = 0.0;
+                t.topic_memory_avoidance = 0.0;
+                t.topic_memory_min_factor = f32::MIN_POSITIVE;
+            }),
+            (42, [0.0, 0.0, f32::MIN_POSITIVE])
+        );
+        assert_eq!(
+            compiled(|t| {
+                t.topic_memory_remember_floor = 1.0;
+                t.topic_memory_avoidance = 1.0;
+                t.topic_memory_min_factor = 1.0;
+            }),
+            (42, [1.0, 1.0, 1.0])
+        );
+        assert_eq!(
+            compiled(|t| t.topic_memory_avoidance = 0.5),
+            (42, [0.3333, 0.5, 0.1])
         );
     }
 

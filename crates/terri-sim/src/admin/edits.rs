@@ -136,13 +136,15 @@ fn touched(edits: &[AdminEdit]) -> Touched {
 /// kind of state the change touched, on the live values, then schema
 /// twenty-seven's need mood checks on every person: no edit writes that
 /// balance, but a need edit changes what it accrues next, so the rows a save
-/// would write are held to the loader's rules after every change.
+/// would write are held to the loader's rules after every change. Schema
+/// thirty-one's remembered topic preferences are held to them the same way.
 pub(super) fn post_condition(world: &World, edits: &[AdminEdit]) -> Result<(), ()> {
     let touched = touched(edits);
     super::housemate::post_condition(world, &touched)?;
     super::career::post_condition(world, &touched)?;
     super::household::post_condition(world, &touched)?;
     crate::save::v27::validate_live(world).map_err(|_| ())?;
+    crate::save::v31::validate_live(world).map_err(|_| ())?;
     #[cfg(test)]
     super::tests_stub::post_condition(world, edits)?;
     Ok(())

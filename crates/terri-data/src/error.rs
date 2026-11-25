@@ -990,6 +990,11 @@ pub enum ContentError {
     AdminTuningOutOfRange {
         key: &'static str,
     },
+    /// Remembered topic preferences (issue 359): a topic memory knob outside
+    /// its range, named by `key`.
+    TopicMemoryTuningOutOfRange {
+        key: &'static str,
+    },
     /// Bills (issue 298, [WB-tuning]): a `[bills]` value outside its range,
     /// named by its dotted key, such as `bills.grace_days` or
     /// `bills.uses.shower.water_cents`.
@@ -2307,6 +2312,13 @@ impl fmt::Display for ContentError {
                  from 1 to 672; admin_skip_default_hours from 1 to \
                  admin_skip_max_hours; admin_skip_ticks_per_frame from 1 to 1440; \
                  admin_bill_due_months from 1 to 120"
+            ),
+            ContentError::TopicMemoryTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: topic_memory_fade_days \
+                 from 1 to 365; topic_memory_remember_floor and \
+                 topic_memory_avoidance from 0 to 1; topic_memory_min_factor \
+                 above 0 and at most 1"
             ),
             ContentError::LandTuningOutOfRange { key } => write!(
                 f,

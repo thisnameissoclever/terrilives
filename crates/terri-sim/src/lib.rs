@@ -106,6 +106,7 @@ pub mod systems;
 mod targeted_cleanup;
 #[cfg(test)]
 pub mod test_content;
+pub mod topic_memory;
 mod waiting;
 
 use bevy_ecs::prelude::*;
@@ -1697,11 +1698,18 @@ impl Sim {
         snapshot
     }
 
-    /// The complete editable household with the current pool clock.
-    pub fn save_snapshot_v30(&self) -> terri_core::SaveSnapshotV30 {
+    /// The complete household with its remembered topic preferences (issue
+    /// 359).
+    pub fn save_snapshot_v31(&self) -> terri_core::SaveSnapshotV31 {
         build_transaction::committed(&self.world)
             .cloned()
-            .unwrap_or_else(|| save::v28::capture(self))
+            .unwrap_or_else(|| save::v31::capture(self))
+    }
+
+    /// The editable household with the current pool clock, before
+    /// remembered topic preferences.
+    pub fn save_snapshot_v30(&self) -> terri_core::SaveSnapshotV30 {
+        self.save_snapshot_v31().current
     }
 
     /// Number of simulation ticks in an ordinary pool exit.
@@ -1716,12 +1724,18 @@ impl Sim {
     /// save that met one would otherwise leave it out. The command paths
     /// never leave one queued; this is the check that proves it at the save
     /// boundary.
-    pub fn try_save_snapshot_v30(&self) -> Result<terri_core::SaveSnapshotV30, SaveError> {
+    pub fn try_save_snapshot_v31(&self) -> Result<terri_core::SaveSnapshotV31, SaveError> {
         save::refuse_queued_admin(&self.world)?;
         if admin::world_broken(&self.world) {
             return Err(SaveError::AdminSessionBroken);
         }
-        Ok(self.save_snapshot_v30())
+        Ok(self.save_snapshot_v31())
+    }
+
+    /// A checked V30 projection, which has no place for remembered topic
+    /// preferences.
+    pub fn try_save_snapshot_v30(&self) -> Result<terri_core::SaveSnapshotV30, SaveError> {
+        Ok(self.try_save_snapshot_v31()?.current)
     }
 
     /// A checked V29 projection that requires exact progress on its exit clock.
@@ -1799,6 +1813,20 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV30,
     ) -> Result<(), SaveError> {
         let candidate = save::v28::restore_current(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    /// Loads the current save, with remembered topic preferences (issue
+    /// 359).
+    pub fn load_snapshot_v31(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV31,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v31::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -2217,6 +2245,10 @@ impl Sim {
         // someone stands among things they like, and out of the hash until
         // then.
         world.insert_resource(presence_fade::PresenceFade::default());
+        // Remembered topic preferences (issue 359): empty until a chat is
+        // remembered, and out of the hash until then. An old save loads
+        // with this empty list, so nothing is remembered.
+        world.insert_resource(topic_memory::TopicMemory::default());
         world.insert_resource(player_actions::PlayerActions::default());
         world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
@@ -2549,7 +2581,15 @@ impl Sim {
                 // adds its contribution: whoever stands among liked
                 // furniture now has the lift recorded, and a fade that has
                 // ended is dropped (issue 344).
-                (mortality::tick, chores::prune, presence_fade::refresh_all).chain(),
+                // Remembered topic preferences that have faded to nothing
+                // are dropped here too (issue 359).
+                (
+                    mortality::tick,
+                    chores::prune,
+                    presence_fade::refresh_all,
+                    topic_memory::expire,
+                )
+                    .chain(),
                 // Sample the minute's settled needs before recording their
                 // mood contribution to satisfaction.
                 (
@@ -5919,6 +5959,10 @@ impl Sim {
         careers::hash_inputs(&self.world, &mut hasher);
         careers::hash_input_sources(&self.world, &mut hasher);
         need_mood::hash(&self.world, &mut hasher);
+        // Remembered topic preferences (issue 359): last, and only while
+        // somebody remembers something, so every older world hashes as it
+        // did.
+        topic_memory::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -8097,7 +8141,13 @@ mod determinism_tests {
         // digest, which the native test measured after integrating the ledger.
         // Subjects change the chat choices and subsequent draws in the current
         // household. The historical control uses its published topic rows.
-        const GOLDEN: u64 = 17435874788369320558;
+        // Issue 359 moved it from 17435874788369320558: an initiator now
+        // steers by what they remember or guess about the listener instead
+        // of the listener's true preference, so the same draw picks other
+        // topics, and remembered topics join the digest. With the memory
+        // resource removed the old value comes back. The published control
+        // above does not move.
+        const GOLDEN: u64 = 16348041807635976343;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(

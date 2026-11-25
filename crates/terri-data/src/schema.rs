@@ -521,6 +521,18 @@ pub struct TuningFile {
     pub admin_skip_ticks_per_frame: u32,
     /// How many billing months back the Due selects offer, from 1 to 120.
     pub admin_bill_due_months: u32,
+    /// Issue 359: how many game days a remembered topic preference takes to
+    /// fade, from 1 to 365.
+    pub topic_memory_fade_days: u32,
+    /// Issue 359: the chance that the least sociable person remembers a
+    /// chat, from 0 to 1.
+    pub topic_memory_remember_floor: f32,
+    /// Issue 359: how strongly a remembered dislike holds a topic back, from
+    /// 0 to 1.
+    pub topic_memory_avoidance: f32,
+    /// Issue 359: the least a remembered dislike leaves of a topic's weight,
+    /// above 0 and at most 1.
+    pub topic_memory_min_factor: f32,
 }
 
 /// The `[bills]` section of `tuning.toml` - [WB-tuning] in
@@ -1795,7 +1807,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 168] = [
+    const TUNING_LINES: [(&str, &str); 172] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1910,6 +1922,10 @@ mod tests {
         ("admin_skip_default_hours", "9"),
         ("admin_skip_ticks_per_frame", "301"),
         ("admin_bill_due_months", "13"),
+        ("topic_memory_fade_days", "43"),
+        ("topic_memory_remember_floor", "0.375"),
+        ("topic_memory_avoidance", "0.875"),
+        ("topic_memory_min_factor", "0.125"),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -2127,6 +2143,10 @@ mod tests {
         assert_eq!(parsed.admin_skip_default_hours, 9);
         assert_eq!(parsed.admin_skip_ticks_per_frame, 301);
         assert_eq!(parsed.admin_bill_due_months, 13);
+        assert_eq!(parsed.topic_memory_fade_days, 43);
+        assert_eq!(parsed.topic_memory_remember_floor, 0.375);
+        assert_eq!(parsed.topic_memory_avoidance, 0.875);
+        assert_eq!(parsed.topic_memory_min_factor, 0.125);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(
