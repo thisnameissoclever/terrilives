@@ -144,6 +144,44 @@ fn learning_stops_at_the_save_loaders_cap() {
     assert!(list.get(SimId(1), SimId(100_000), "t0000").is_none());
 }
 
+/// A chat on a topic already remembered refreshes the memory even when the
+/// roll for a new memory would miss, and the same roll still stops a new
+/// memory.
+#[test]
+fn a_held_memory_is_refreshed_without_the_roll() {
+    let tuning = terri_data::Tuning {
+        topic_memory_remember_floor: 0.0,
+        ..terri_data::pack().tuning
+    };
+    let pack = terri_data::pack();
+    let topic = crate::social_episode::Topic::new(pack, 8, "reading".into(), 0.5, -0.75);
+    let miss = (1..1000u64)
+        .find(|&tick| !remembers(SimId(1), SimId(2), "reading", tick, 0.0))
+        .expect("a roll that misses");
+    let mut fresh = TopicMemory::default();
+    learn(
+        &mut fresh,
+        &tuning,
+        (SimId(1), SimId(2), &topic),
+        -0.75,
+        0.0,
+        miss,
+    );
+    assert!(fresh.is_empty(), "the roll misses a new memory");
+    let mut held = TopicMemory::default();
+    held.remember(memory(1, 2, "reading", 0.5, 0), 10);
+    learn(
+        &mut held,
+        &tuning,
+        (SimId(1), SimId(2), &topic),
+        -0.75,
+        0.0,
+        miss,
+    );
+    let refreshed = held.get(SimId(1), SimId(2), "reading").unwrap();
+    assert_eq!((refreshed.preference, refreshed.tick), (-0.75, miss));
+}
+
 /// Death removes every memory the dead person held and every memory about
 /// them, and leaves the rest.
 #[test]

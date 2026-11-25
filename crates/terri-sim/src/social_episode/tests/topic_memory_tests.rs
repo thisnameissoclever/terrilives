@@ -4,11 +4,13 @@ use super::*;
 use crate::topic_memory::{Memory, TopicMemory};
 
 /// The chat fixture with A as sociable as anyone can be, a reader, and B
-/// someone whose true feeling about reading is `listener`.
+/// someone whose true feeling about reading is `listener`. The remember
+/// floor is 1, so every completed chat is remembered by both sides.
 fn reading_chat(listener: f32) -> (Sim, Entity, Entity) {
     let (mut sim, a, b) = chat_fixture();
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.objects[0].interactions[0].tags = vec!["reading".into()];
+    pack.tuning.topic_memory_remember_floor = 1.;
     let pack = Box::leak(Box::new(pack));
     sim.world_mut().insert_resource(Content(pack));
     let mut satisfaction = [1.; 7];
@@ -109,8 +111,8 @@ fn the_listeners_true_preference_still_decides_the_outcome() {
     assert!((after - before + 0.02).abs() < 0.000001, "{before} {after}");
 }
 
-/// A completed chat teaches each side the other's true preference: A, as
-/// sociable as anyone, always remembers, and the wrong memory is replaced.
+/// A completed chat teaches each side the other's true preference, and
+/// the wrong memory is replaced.
 #[test]
 fn a_completed_chat_teaches_the_true_preference() {
     let (mut sim, a, b) = reading_chat(-1.);
@@ -125,9 +127,47 @@ fn a_completed_chat_teaches_the_true_preference() {
     let memory = sim.world().resource::<TopicMemory>();
     let learned = memory.get(pair.0, pair.1, "reading").unwrap();
     assert_eq!((learned.preference, learned.tick), (-1., 77));
-    if let Some(back) = memory.get(pair.1, pair.0, "reading") {
-        assert_eq!((back.preference, back.tick), (0.5, 77));
-    }
+    let back = memory.get(pair.1, pair.0, "reading").unwrap();
+    assert_eq!((back.preference, back.tick), (0.5, 77));
+}
+
+/// A completed fight teaches nothing, even when every chat is remembered.
+#[test]
+fn a_completed_fight_teaches_nothing() {
+    let (mut sim, a, b) = reading_chat(-1.);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let mut fight = test_content::interaction("fight", &[], 40);
+    fight.tags = vec![crate::fights::FIGHT_TAG.into()];
+    pack.social.push(fight);
+    let fight = crate::fights::fight_index(&pack).unwrap();
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut().entity_mut(a).insert((
+        Target {
+            object: b,
+            interaction: fight,
+        },
+        Socialising {
+            partner: b,
+            interaction: fight,
+            remaining_ticks: 1,
+        },
+    ));
+    sim.world_mut().entity_mut(b).insert(Reserved);
+    begin_topics(sim.world_mut());
+    assert!(sim
+        .world()
+        .resource::<SocialEpisodes>()
+        .topics
+        .contains_key(&a));
+    sim.world_mut()
+        .run_system_once(crate::systems::social::tick_social)
+        .unwrap();
+    assert!(
+        sim.world().get::<Socialising>(a).is_none(),
+        "the fight completed"
+    );
+    assert!(sim.world().resource::<TopicMemory>().is_empty());
 }
 
 /// Smalltalk, the fallback with no topic, teaches nothing.

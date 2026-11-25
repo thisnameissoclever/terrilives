@@ -43,7 +43,8 @@ pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV31 {
 
 /// The loader's checks on the rows alone: no more than the list cap,
 /// strictly ascending by knower, other and tag (so no duplicates), nobody
-/// remembering themselves, a tag, and a finite preference from -1 to 1.
+/// remembering themselves, a tag of at most the text cap that is not
+/// smalltalk (which teaches nothing), and a finite preference from -1 to 1.
 pub(crate) fn validate_rows(rows: &[SavedTopicMemory]) -> Result<(), SaveError> {
     if rows.len() > super::MAX_LIST_ENTRIES
         || rows.windows(2).any(|pair| {
@@ -53,6 +54,8 @@ pub(crate) fn validate_rows(rows: &[SavedTopicMemory]) -> Result<(), SaveError> 
         || rows.iter().any(|row| {
             row.knower == row.other
                 || row.tag.is_empty()
+                || row.tag.len() > super::MAX_TEXT_BYTES
+                || row.tag == crate::social_episode::SMALLTALK_TAG
                 || !row.preference.is_finite()
                 || !(-1.0..=1.0).contains(&row.preference)
         })

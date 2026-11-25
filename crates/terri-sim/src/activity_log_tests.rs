@@ -619,8 +619,10 @@ fn the_two_day_fold_without_the_work_knobs_is_unchanged() {
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
     // Issue 359 moved it from 0xf3ae_9319_a9b5_9cb8, for the reason given
-    // for the two-day fold. Measured in a release build.
-    assert_eq!(fold_without_the_work_knobs(20), 0x3655_5654_5726_31fc);
+    // for the two-day fold, and again from 0x3655_5654_5726_31fc when a
+    // remembered topic began to refresh without a roll. Measured in a
+    // release build.
+    assert_eq!(fold_without_the_work_knobs(20), 0xc2ac_b905_0b16_eacc);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

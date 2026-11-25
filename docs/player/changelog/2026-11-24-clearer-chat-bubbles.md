@@ -1,12 +1,6 @@
-# Clearer chat bubbles and housemates who remember
+# Clearer chat bubbles
 
-Housemates now remember what each person likes to talk about, and chat bubbles agree with the Log and stay readable at night and on small screens.
-
-## New
-
-- Housemates learn what each person likes and dislikes talking about, and steer their chats toward the topics the other person enjoys and away from ones they dislike.
-- A more sociable housemate remembers more of their chats and makes better guesses about someone they have not talked with yet.
-- Memories fade over about six game months unless another chat about the same topic brings them back. Games saved before this update start with nothing remembered.
+Chat bubbles now agree with the Log and stay readable at night and on small screens.
 
 ## Fixed
 

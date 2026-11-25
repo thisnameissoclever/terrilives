@@ -16,6 +16,13 @@ use crate::relationship_effects::{
 };
 use crate::Content;
 
+/// A person's hobbies and traits, read for sociability where the
+/// Satisfaction ledger query cannot reach them.
+type Tastes = (
+    Option<&'static terri_core::Hobbies>,
+    Option<&'static terri_core::Traits>,
+);
+
 /// Advances every conversation by one tick, delivering to BOTH
 /// participants, and completes it. The ordinary affinity gain happens on
 /// completion. An unmet-need penalty is applied separately at actual contact
@@ -75,7 +82,10 @@ pub fn tick_social(
         Option<&terri_core::Hobbies>,
         Option<&mut terri_core::Traits>,
     )>,
-    mut skills: Query<&mut terri_core::Skills>,
+    (mut skills, unledgered): (
+        Query<&mut terri_core::Skills>,
+        Query<Tastes, Without<terri_core::Satisfaction>>,
+    ),
     mut fights: ResMut<crate::fights::Fights>,
 ) {
     let tuning = content.0.tuning;
@@ -283,12 +293,18 @@ pub fn tick_social(
                 let (Ok(&knower), Ok(&about)) = (sim_ids.get(me), sim_ids.get(other)) else {
                     continue;
                 };
-                let ledger = ledgers.get(me).ok();
+                // The same inputs `subjects::preferences_of` reads for topic
+                // choice, whether or not the person keeps a Satisfaction
+                // ledger.
+                let (hobbies, traits) = match ledgers.get(me) {
+                    Ok((_, hobbies, traits)) => (hobbies, traits),
+                    Err(_) => unledgered.get(me).unwrap_or((None, None)),
+                };
                 let preferences = crate::compatibility::preferences(
                     content.0,
                     personalities.get(me).ok(),
-                    ledger.as_ref().and_then(|(_, _, traits)| *traits),
-                    ledger.as_ref().and_then(|(_, hobbies, _)| *hobbies),
+                    traits,
+                    hobbies,
                 );
                 let sociability = crate::social_episode::sociability(
                     content.0,

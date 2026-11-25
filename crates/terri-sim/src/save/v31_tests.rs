@@ -147,8 +147,17 @@ fn the_loader_refuses_bad_rows() {
     }
     // A memory learned after the saved tick.
     refused(&|rows| rows[0].tick = NOW + 1, SaveError::InvalidValue);
-    // An empty tag.
+    // An empty tag, a tag longer than the text cap, and smalltalk, which
+    // teaches nothing.
     refused(&|rows| rows[0].tag.clear(), SaveError::InvalidValue);
+    refused(
+        &|rows| rows[2].tag = "r".repeat(crate::save::MAX_TEXT_BYTES + 1),
+        SaveError::InvalidValue,
+    );
+    refused(
+        &|rows| rows[2].tag = crate::social_episode::SMALLTALK_TAG.into(),
+        SaveError::InvalidValue,
+    );
 
     // The boundaries load: a memory from this very tick and preferences of
     // exactly -1 and 1.
@@ -156,6 +165,7 @@ fn the_loader_refuses_bad_rows() {
     edge.topic_memory[0].preference = 1.0;
     edge.topic_memory[1].preference = -1.0;
     edge.topic_memory[2].tick = NOW;
+    edge.topic_memory[2].tag = "r".repeat(crate::save::MAX_TEXT_BYTES);
     let mut live = Sim::new_from_shipped_lot();
     live.load_snapshot_v31(edge).expect("boundaries load");
 }

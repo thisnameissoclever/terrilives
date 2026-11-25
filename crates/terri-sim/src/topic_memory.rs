@@ -237,7 +237,8 @@ pub fn avoidance_factor(belief: Belief, sociability: f32, avoidance: f32, min_fa
 
 /// After a completed chat, `knower` may remember how `other` felt about the
 /// chat's topic: with [`remember_chance`] for their sociability, decided by
-/// [`remembers`]. Smalltalk, the fallback with no topic of its own, teaches
+/// [`remembers`]. A memory already held for that person and topic is always
+/// refreshed. Smalltalk, the fallback with no topic of its own, teaches
 /// nothing. A list at the save loader's cap drops its oldest memory first.
 pub(crate) fn learn(
     memory: &mut TopicMemory,
@@ -250,8 +251,11 @@ pub(crate) fn learn(
     if topic.tag == crate::social_episode::SMALLTALK_TAG || !preference.is_finite() {
         return;
     }
+    // A later chat on a topic already remembered always refreshes it; only a
+    // new memory depends on the roll.
+    let known = memory.get(knower, other, &topic.tag).is_some();
     let chance = remember_chance(tuning.topic_memory_remember_floor, sociability);
-    if !remembers(knower, other, &topic.tag, tick, chance) {
+    if !known && !remembers(knower, other, &topic.tag, tick, chance) {
         return;
     }
     memory.remember(
