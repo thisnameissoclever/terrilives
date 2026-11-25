@@ -12371,6 +12371,8 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: retain both frozen readers, emit a new combined version, and require complete decoding plus authoritative validation of each historical candidate. Adopt exactly one valid candidate and reject ambiguity before changing the live world. Keep original bytes in a version-specific browser recovery file.
 4. Verification: load authentic files produced by both old binaries, including active conversations and queued creator commands. Preserve random state and continuation, reject truncated or trailing data transactionally, and confirm that cached old writers refuse the new format. Preserve existing zero-as-unlimited queue semantics in every envelope validator.
 
+Version 32 also collided when one writer extended the save with hobby mood and another kept the previous layout for shared swimming. The browser saw identical version headers and compatible content fingerprints. When those prefixes cannot identify a producer, compare complete backup bytes inside the save lock before reusing a recovery file. Test both migration orders, repeated migration of the same bytes and a failed backup write before overwriting the playable slot.
+
 ## [L-reset-defaults-not-baseline] Keep Reset defaults separate from the edit baseline
 
 1. What happened: Reset restored the initial random draft, so activity preferences remained arbitrary rather than returning to 1.0x.
@@ -14070,6 +14072,17 @@ Check the ladder from both sides in the game. From the exposed side, follow each
 
 The first rendered basin also had a thin outline below the outer edge of the deck. Blender hid the buried walls, then Freestyle traced their outlines into the transparent pixels. Restrict outlines to the exposed surfaces and inspect the exported sprite over ground color from all four facings. The deck should meet the ground at its coping.
 
+## [L-reachable-company] Use chat reachability when a decision depends on company
+
+The first version of the home-alone chore boost counted an awake housemate across a sealed wall as company. The check used presence and wakefulness alone.
+
+Use the same reachable contact tile as the activity the Sim would share. Test the two housemates with an open route, then seal the connecting boundary and repeat the decision with the same status and needs.
+
+## [L-hobby-activity-lifetime] Check activity replacement before crediting the next minute
+
+A hobby mood lift originally carried into the activity that replaced it on the same tick. Consecutive credit identified the sequence of minutes. A Sim could stop, take a new order and begin work before the minute ended.
+
+Tie the lift to its active work. Clear it after cancellation and before a replacement can physically begin. Test a restart at the same target and a switch between reachable objects that share the same approach tile. When loading, verify the active action and allow an obsolete hobby tag to lose its lift without losing the household.
 ## [L-shared-pool-claim] Reserve the ladder on the final step
 
 The first shared-pool reader accepted an approaching swimmer whenever the last waypoint was the ladder, even if earlier steps remained. A restored swimmer could then hold the ladder while walking elsewhere. A Build detour or a privacy reroute could create the same contradiction in play.

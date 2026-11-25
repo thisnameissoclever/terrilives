@@ -2721,9 +2721,12 @@ mod order_tests {
             );
         }
         let mut expected =
-            crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV31 {
-                current: saved.clone(),
-                topic_memory: Vec::new(),
+            crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV33 {
+                previous: terri_core::SaveSnapshotV31 {
+                    current: saved.clone(),
+                    topic_memory: Vec::new(),
+                },
+                hobby_mood: Vec::new(),
             });
         let source_layout = expected.layout.clone();
         let (width, height) = (expected.world.grid_width, expected.world.grid_height);

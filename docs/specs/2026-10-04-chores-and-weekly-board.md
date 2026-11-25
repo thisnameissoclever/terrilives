@@ -114,9 +114,18 @@ preference and mood to -1..1. Readiness reaches zero at a critical energy,
 hunger or bladder need and reaches one at level 45. Autonomous floor and surface
 work requires a source above the assigned owner's cleanliness threshold. Dishes
 use the same response with six units as full load; bin fill retains its 600-unit
-threshold. Explicit orders can clean lower amounts. Assignment estimates walking-independent
-workload and weights eligible Sims by 1.2 + preference, using a separately
-saved random stream. It does not consume the activity-duration stream.
+threshold. Explicit orders can clean lower amounts. When no need is critical,
+having no career multiplies the usual odds of taking a daily duty or doing
+spontaneous dishes by 1.5. That multiplier rises to 3.0 when the Sim can't
+walk to a chat contact beside another awake housemate on the lot. A working
+or commuting housemate counts as away. The multiplier is applied to the odds
+`p / (1 - p)`, preserving zero chances and keeping partial chances below one.
+
+Assignment estimates walking-independent workload and weights eligible Sims by
+1.2 + preference. A Sim without a career has 1.5 times the assignment weight
+and 1.5 times the workload capacity of an employed Sim. Current assignments
+carry through until ordinary board reconciliation. Assignment uses a separately
+saved random stream.
 
 History uses (4 previous + outcome)/5. On-time completion counts as 100;
 late completion counts as 50; a helper covering a consciously skipped duty

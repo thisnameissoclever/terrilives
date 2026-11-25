@@ -62,13 +62,13 @@ fn bytes(snapshot: &CurrentV5View) -> Vec<u8> {
 }
 
 #[test]
-fn pool_save_v32_keeps_a_published_v31_single_swimmer_loadable() {
+fn pool_save_v33_keeps_a_published_v31_single_swimmer_loadable() {
     let mut handle = exiting_pool();
     let current = handle.save_bytes();
-    assert_eq!(&current[8..10], &32u16.to_le_bytes());
-
-    let mut older = current.clone();
-    older[8..10].copy_from_slice(&31u16.to_le_bytes());
+    let mut older = SAVE_MAGIC.to_vec();
+    older.extend(31u16.to_le_bytes());
+    let historical = handle.sim.try_save_snapshot_v31().unwrap();
+    older.extend(postcard::to_allocvec(&historical).unwrap());
     assert!(handle.load_bytes(&older));
     assert_eq!(handle.save_bytes(), current);
 }
@@ -113,7 +113,7 @@ fn shared_pool_save_keeps_both_slots_and_refuses_impossible_claims() {
     }
     for _ in 0..150 {
         handle.tick();
-        let snapshot = handle.sim.save_snapshot_v32();
+        let snapshot = handle.sim.save_snapshot_v33();
         if snapshot.pools.len() == 2 && snapshot.pools.iter().all(|e| e.phase % 8 == 2) {
             break;
         }
@@ -129,8 +129,23 @@ fn shared_pool_save_keeps_both_slots_and_refuses_impossible_claims() {
     roundtrip_pool(&mut handle, "two active Lodge swimmers");
 
     let baseline = handle.sim.current_v5_view();
-    let mut older = handle.save_bytes();
-    older[8..10].copy_from_slice(&31u16.to_le_bytes());
+    let current = handle.save_bytes();
+    let mut older = SAVE_MAGIC.to_vec();
+    older.extend(32u16.to_le_bytes());
+    older.extend(postcard::to_allocvec(&baseline.0.previous).unwrap());
+    assert!(
+        handle.load_bytes(&older),
+        "published V32 supports shared pools"
+    );
+    assert_eq!(handle.save_bytes(), current);
+
+    let mut private = older.clone();
+    private.extend(postcard::to_allocvec(&baseline.0.hobby_mood).unwrap());
+    assert!(
+        !handle.load_bytes(&private),
+        "private V32 uses exclusive pools"
+    );
+    older[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&31u16.to_le_bytes());
     assert!(!handle.load_bytes(&older));
     let mut duplicate = baseline.clone();
     duplicate.0.pools[1].phase = duplicate.0.pools[0].phase;
@@ -848,9 +863,12 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
         postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    let source = CurrentV5View(terri_core::SaveSnapshotV31 {
-        current: source,
-        topic_memory: vec![],
+    let source = CurrentV5View(terri_core::SaveSnapshotV33 {
+        previous: terri_core::SaveSnapshotV31 {
+            current: source,
+            topic_memory: vec![],
+        },
+        hobby_mood: vec![],
     });
     let mut handle = SimHandle::new(12, 12);
     assert!(handle.load_bytes(bytes));

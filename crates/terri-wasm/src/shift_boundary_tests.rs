@@ -182,6 +182,7 @@ fn schema_twenty_one_round_trips_through_the_save_bytes() {
     );
     let snapshot = super::current_test_snapshot::decode_current(&bytes);
     assert!(snapshot
+        .editable
         .previous
         .legacy
         .legacy
@@ -190,7 +191,10 @@ fn schema_twenty_one_round_trips_through_the_save_bytes() {
         .held
         .iter()
         .any(|row| row.shift == "late"));
-    assert_eq!(snapshot.previous.legacy.legacy.legacy.shifts.draws, 1);
+    assert_eq!(
+        snapshot.editable.previous.legacy.legacy.legacy.shifts.draws,
+        1
+    );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
     assert_eq!(

@@ -1,6 +1,6 @@
-# Larger pools, conversation memory, and object menus
+# Larger pools, conversation memory, chores and hobbies
 
-Build offers two larger pools. Housemates learn which topics each person enjoys and steer their chats accordingly. Object and person actions open in a list beside the target.
+Housemates can share the larger pools, remember each other's favorite topics and feel better while doing their hobbies. People without jobs are more likely to take on chores. Object and person menus open beside their targets.
 
 ## New
 
@@ -12,8 +12,12 @@ Build offers two larger pools. Housemates learn which topics each person enjoys 
 
 ## Improved
 
+- Doing a favorite activity, such as reading, gradually lifts a housemate's mood while they're doing it. Saving mid-activity keeps the lift when they resume.
+- The chore board is more likely to assign duties to housemates without jobs.
+- Housemates without jobs are more likely to do chores on their own, especially when there's nobody around to talk to and their needs can wait.
 - Backyard Lodge fits two swimmers, and Garden Basin fits four. Swimmers take turns on the ladder.
 - Housemates change into swimwear and recline on a Sunstrip lounger with their legs extended.
+- Existing shared swimming saves and saves from the hobby preview keep their progress. The game makes a recovery copy before replacing either kind of save stored in your browser.
 - Right-click or long-press an object or person to open a compact list beside it. Scroll the menu on smaller screens to reach every action.
 - Bookcase actions show which book you will buy or sell and what it costs or pays.
 

@@ -142,6 +142,16 @@ pub fn tick_social(
 
         let act = &content.0.social[socialising.interaction as usize];
         let fighting = crate::fights::is_fight(act);
+        for person in [initiator, partner] {
+            let hobbies = ledgers
+                .get(person)
+                .ok()
+                .and_then(|(_, hobbies, _)| hobbies)
+                .or_else(|| unledgered.get(person).ok().and_then(|(hobbies, _)| hobbies));
+            if hobbies.is_some_and(|hobbies| hobbies.loves_any(&act.tags)) {
+                crate::hobby_mood::queue_credit(&mut commands, person);
+            }
+        }
 
         // Delivery, both directions. `delta / duration` per tick against
         // the CONTENT duration, exactly as `tick_interactions` does and

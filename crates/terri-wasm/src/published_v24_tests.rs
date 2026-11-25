@@ -42,22 +42,28 @@ fn authentic_public_v24_preserves_career_inputs_and_continues() {
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes));
         let saved = decode_current(&source.save_bytes());
-        assert_eq!(saved.previous.career_inputs, original.career_inputs);
         assert_eq!(
-            saved.previous.queued_work_commands,
+            saved.editable.previous.career_inputs,
+            original.career_inputs
+        );
+        assert_eq!(
+            saved.editable.previous.queued_work_commands,
             original.queued_work_commands
         );
-        assert_eq!(saved.previous.replaced_shifts, original.replaced_shifts);
         assert_eq!(
-            saved.previous.legacy.presence_fade,
+            saved.editable.previous.replaced_shifts,
+            original.replaced_shifts
+        );
+        assert_eq!(
+            saved.editable.previous.legacy.presence_fade,
             original.legacy.presence_fade
         );
         assert_eq!(
-            saved.previous.legacy.legacy.bills,
+            saved.editable.previous.legacy.legacy.bills,
             original.legacy.legacy.bills
         );
         assert_eq!(
-            saved.previous.legacy.legacy.legacy.shifts,
+            saved.editable.previous.legacy.legacy.legacy.shifts,
             original.legacy.legacy.legacy.shifts
         );
         assert_current_continuation(&mut source);
@@ -104,8 +110,8 @@ fn authentic_private_v25_preserves_world_and_bath_continuation() {
         .legacy
         .world
         .content_fingerprint = current_test_snapshot::CURRENT_CATALOGUE_FINGERPRINT;
-    assert_eq!(saved.previous.legacy, expected);
-    assert!(saved.previous.career_inputs.is_empty());
+    assert_eq!(saved.editable.previous.legacy, expected);
+    assert!(saved.editable.previous.career_inputs.is_empty());
     assert_eq!(saved.surfaces, original.surfaces);
     assert_eq!(saved.commutes, original.commutes);
     assert_eq!(saved.pools, original.pools);

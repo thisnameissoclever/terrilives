@@ -22,6 +22,10 @@ need points. The HUD refreshes immediately after a successful load.
 
 Each game minute after needs settle, each empty need subtracts 5 points per game hour and each need above 80 adds 0.02 per game hour. Sum the contributions before clamping the accumulated total to the mood range. The Overview mood breakdown shows a nonzero balance as Mood from needs. The need warnings and the rules for urgent actions continue to use their own thresholds. Save version 27 retains the balance.
 
+### Hobby mood
+
+Each active minute on an activity that matches one of a person's hobby tags adds 0.05 mood points under Enjoying a hobby, up to 2 points. A recipe's step-specific tags apply during those steps. A conversation checks each participant's hobbies separately. Traveling, waiting, returning a book and climbing into or out of a pool give no lift. The lift lasts while the Sim is doing the hobby. Pausing freezes the current amount. V33 saves the in-progress minutes for exact continuation.
+
 ## [M3] Trait rules
 
 Every worn content trait whose compiled kind is `Condition` contributes its
