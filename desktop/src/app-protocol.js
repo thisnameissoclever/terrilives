@@ -81,7 +81,8 @@ function resolveRequestPath(root, requestUrl) {
   } catch {
     return null;
   }
-  if (decoded.includes('\0') || decoded.includes('\\')) return null;
+  // A colon names an NTFS stream or a drive on Windows; no bundle file has one.
+  if (decoded.includes('\0') || decoded.includes('\\') || decoded.includes(':')) return null;
   const segments = decoded.split('/');
   if (segments.some((segment) => segment === '..' || segment === '.')) return null;
   if (!decoded.startsWith('/')) return null;
