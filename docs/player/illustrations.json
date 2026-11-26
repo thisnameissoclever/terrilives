@@ -1077,27 +1077,27 @@
       "output": "images/guide/person-menu-desktop.png",
       "source": "images/ui-person-menu-desktop.png",
       "rect": {
-        "x": 550,
-        "y": 310,
-        "width": 330,
-        "height": 280
+        "x": 645,
+        "y": 216,
+        "width": 407,
+        "height": 183
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "cb8ad454f758b3bdf8e2aa8e2e20617a3d28782c91b6c5fba80fe7946ccb062a",
-      "outputSha256": "5dffd4393f2b6169b81048b77e95aba77acaf3fec3b6a571e97feed00f2df503"
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "7faeebabe73add70986eb61db6c541e02ecd0470d84a120fe77586cc737ddd89",
+      "outputSha256": "5b158e089e30234ee03a4089465d1fd806378106026349bd854dff9c7811267a"
     },
     {
       "output": "images/guide/person-menu-mobile.png",
       "source": "images/ui-person-menu-mobile.png",
       "rect": {
-        "x": 0,
-        "y": 280,
-        "width": 390,
-        "height": 240
+        "x": 76,
+        "y": 267,
+        "width": 314,
+        "height": 182
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "9af43b77477adc56420bf55e43cec6005f5077332d7d2744f98d9c9c81301d38",
-      "outputSha256": "e32b8420bcc3c43a2591a9ad6d9593f48e30e612e5498469132620e9142210e8"
+      "method": "Pixel crop at original scale. No resampling or retouching.",
+      "sourceSha256": "53dd0d0d5dce1bdfb90467d8eec4e39030455b37899f1121bf235cb18ae93231",
+      "outputSha256": "ffc2c30c9fa33d6ec02daca9aa68cc6f65e5904d3e5a0ea464a43164ad0067ca"
     },
     {
       "output": "images/guide/build-placement-desktop.png",
@@ -1484,55 +1484,55 @@
     },
     {
       "output": "images/guide/object-menu-desktop.png",
-      "source": "images/ui-editable-object-menu-desktop.jpg",
+      "source": "images/ui-object-menu-desktop.png",
       "rect": {
-        "x": 346,
-        "y": 333,
-        "width": 429,
-        "height": 278
+        "x": 774,
+        "y": 236,
+        "width": 406,
+        "height": 293
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "026d713a5f059079ef56ea8c6903e2dda9b8ccdda38c96e2ef74d1da7f1a19d4",
-      "outputSha256": "5c56595ac2c1f58cec8229a68f89d47bd53ad0f18c1464412bf869203cd80d6a"
+      "sourceSha256": "f46d761326d49cb610ae61d472c3101904ab3f250379c0d5f795ebe0bd5308cd",
+      "outputSha256": "d542974b3d503c5c88ae18edcae880d9abeba5da83c109525aaed958c5ea8fa1"
     },
     {
       "output": "images/guide/object-menu-mobile.png",
-      "source": "images/ui-editable-object-menu-mobile.jpg",
+      "source": "images/ui-object-menu-mobile.png",
       "rect": {
-        "x": 95,
-        "y": 288,
-        "width": 292,
-        "height": 172
+        "x": 56,
+        "y": 267,
+        "width": 334,
+        "height": 288
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "e528d45b92efc95a0d49105c63a0acb3c6891b26f3069d1b428eb873b8b52c3d",
-      "outputSha256": "ac4f22809369f3a72276ba8f192d74ef1c9667cb0b5db040ae3ccd5e3c83d2de"
+      "sourceSha256": "164cf3143801bb9360bbaef3b15deb7b807da9ea823d98c2c74e5ebb2c961e29",
+      "outputSha256": "af75c9ca836ea23a777d1726aee8bb6b32a5b0c59014821b8bdb81ca50ea49d9"
     },
     {
       "output": "images/guide/object-description-desktop.png",
-      "source": "images/ui-editable-object-description-desktop.jpg",
+      "source": "images/ui-object-description-desktop.png",
       "rect": {
-        "x": 781,
-        "y": 163,
-        "width": 416,
-        "height": 323
+        "x": 774,
+        "y": 236,
+        "width": 406,
+        "height": 403
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "e33f9acafb0aa93182cd44ce345a39709802e8124ed811ead99ef68f76465e92",
-      "outputSha256": "d2be10b20d7f25209d0b07207fb05bfb5a2517798b9c56b422ffb27cb964687e"
+      "sourceSha256": "04b50e9534372427fc2fd92e3f731a4b14f9973e7c8f25632c854f0f509d6a58",
+      "outputSha256": "ebc389bef36f891c4734aebeb36c93888574052df4ee93db429cca99a4e39482"
     },
     {
       "output": "images/guide/object-description-mobile.png",
-      "source": "images/ui-editable-object-description-mobile.jpg",
+      "source": "images/ui-object-description-mobile.png",
       "rect": {
-        "x": 3,
-        "y": 287,
-        "width": 383,
-        "height": 295
+        "x": 56,
+        "y": 267,
+        "width": 334,
+        "height": 398
       },
       "method": "Pixel crop at original scale. No resampling or retouching.",
-      "sourceSha256": "060628f639107364cca8bb727709cee1a6d22f3b923d9d6236f8a5b28c819b38",
-      "outputSha256": "26a3223a7e1d97c643ec97e10c3d330ab4cdee79c6de95e519f19df1cd58fb95"
+      "sourceSha256": "d126606f1881eeb3445ba71eda2c398cb2db90c7591ab7f456e7a1c56e095773",
+      "outputSha256": "ddd468e2f7b6451c96b08e0178816c24422cfea488e1a208ee6cc72ae344a479"
     },
     {
       "output": "images/guide/floor-retry-desktop.png",

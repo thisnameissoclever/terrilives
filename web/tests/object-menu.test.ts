@@ -1,15 +1,42 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as playerOrders from '../src/ui/player-orders.js';
 import {
-  clampMenuPosition,
   NOTHING,
   ObjectMenu,
   menuEntries,
+  surfaceMenuEntries,
   queueModifierHeld,
   type Menu,
   type MenuAction,
   type MenuSurface,
 } from '../src/ui/object-menu.js';
+
+it('names the exact quoted purchase and sale before dispatching the original native quotes', () => {
+  const wire = new Uint8Array([1, 0]);
+  const buy = { title: 'incoming', price: 14, home: { shelf: 9n, slot: 1 }, nextCopyId: 42, wire };
+  const sell = { copy: 7, shelf: 9n, price: 3, wire };
+  const source = {
+    selectedIndex: () => null,
+    entityName: () => 'Bookcase',
+    objectModel: () => ({ shelfCapacity: 4, actions: [{ id: 'read', reading: true }] }),
+    interactionLabels: () => ['Read book'],
+    bookPurchaseQuote: () => ({ quote: buy, refusal: null }),
+    bookSaleQuote: () => ({ quote: sell, refusal: null }),
+    bookCatalogue: () => [
+      { id: 'incoming', title: 'Incoming title', description: '', genre: 'mystery', readingMinutes: 50, price: 14 },
+      { id: 'outgoing', title: 'Outgoing title', description: '', genre: 'mystery', readingMinutes: 50, price: 6 },
+    ],
+    bookCopies: () => [{ id: 7, titleId: 'outgoing', location: { kind: 'inventory' as const }, home: null, borrowerSimId: null }],
+  };
+  const menu = surfaceMenuEntries(source, 9);
+  expect(menu.needsPerson).toBe(true);
+  expect(menu.entries[0]).toMatchObject({ label: 'Read book', enabled: false });
+  expect(menu.entries[1]).toMatchObject({ label: 'Buy book', secondary: 'Incoming title', price: 14, enabled: true });
+  expect(menu.entries[2]).toMatchObject({ label: 'Sell book', secondary: 'Outgoing title', price: 3, enabled: true });
+  expect(menu.entries[1].action).toEqual({ kind: 'buy-book', quote: buy });
+  expect(menu.entries[2].action).toEqual({ kind: 'sell-book', quote: sell });
+  expect(menu.entries[3]).toMatchObject({ label: 'Enter build mode', enabled: true });
+});
 
 describe('queueModifierHeld', () => {
   /**
@@ -26,25 +53,6 @@ describe('queueModifierHeld', () => {
   });
 });
 
-describe('clampMenuPosition', () => {
-  it('keeps every edge inside the viewport with a touch-sized margin', () => {
-    expect(clampMenuPosition(390, 844, 150, 100, 390, 844)).toEqual({
-      x: 232,
-      y: 736,
-    });
-    expect(clampMenuPosition(-20, -10, 150, 100, 390, 844)).toEqual({
-      x: 8,
-      y: 8,
-    });
-  });
-
-  it('anchors an oversized menu at the margin instead of going negative', () => {
-    expect(clampMenuPosition(200, 300, 500, 900, 390, 844)).toEqual({
-      x: 8,
-      y: 8,
-    });
-  });
-});
 
 /**
  * A `MenuSurface` that records what it was shown and keeps the pick
@@ -52,7 +60,7 @@ describe('clampMenuPosition', () => {
  *
  * The project's tests use structural fakes rather than a browser DOM.
  * This fake checks controller decisions; action-intent.test.ts also
- * exercises the real surface's action attributes and pagination events.
+ * exercises the real surface's action attributes and disclosure events.
  */
 function recordingSurface(): MenuSurface & {
   readonly calls: string[];

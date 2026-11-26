@@ -174,15 +174,15 @@ Desktop: right-click a placed object or another person. Phone: long-press the ta
 
 :::illustration object-menu
 
-Actions surround the object. More actions opens the next page; Back returns. Close, Escape or an outside press dismisses the menu. Sim-dependent actions need a selected person.
+Actions appear in a list beside the object or person. Close, Escape or an outside press dismisses the menu. Select a person to enable actions that need one.
 
-On a crowded screen, the menu uses a row that scrolls sideways. Use its scrollbar, swipe the row, or press Tab to reveal each control. Close stays beside the row.
+When the list is taller than the available space, scroll inside the menu. The menu shows **Scroll to see all actions** when there is room for the cue. Swipe up or down on the phone, or press Tab to bring each control into view.
 
-The object's type is primary and its model name secondary. Click or tap the object's name, or focus it and press Enter or Space, to read its description. Activate the name again to close it. The surrounding menu shows a separate description bubble; the compact row shows the description inside that row. Scroll within a longer description to read the rest.
+The object type appears above the model name. Click or tap the name, or focus it and press Enter or Space, to open the description inside the menu. Activate the name again to fold it away.
 
 :::illustration object-description
 
-Enter build mode selects that exact object in Furniture, including objects without ordinary Sim actions. Bookcases offer automatic reading and book commerce. Clear orders appears when the selected person has a player-directed commitment or waiting orders to cancel. Autonomous activity can continue after cancellation. Close dismisses the menu.
+Enter build mode selects that exact object in Furniture, including objects without ordinary Sim actions. Bookcases offer automatic reading, buying and selling. Buy book and Sell book show the quoted title and price when a book is available. Clear orders appears when the selected person has a player-directed commitment or waiting orders to cancel. Autonomous activity can continue after cancellation.
 
 Person menus offer Chat and Fight.
 

@@ -31,7 +31,7 @@ class Element {
   contains(node: Element | null): boolean { return node !== null && (this === node || this.children.some(child => child.contains(node))); }
   querySelector(tag: string): Element | null { return this.all().slice(1).find(child => tag.startsWith('.') ? child.className === tag.slice(1) : child.tag === tag) ?? null; }
   focus() { this.doc.activeElement = this; }
-  click() { this.listeners.click?.({ stopPropagation() {}, preventDefault() {} }); }
+  click() { this.listeners.click?.({ ctrlKey: false, metaKey: false, stopPropagation() {}, preventDefault() {} }); }
 }
 function fixture() {
   const doc = { activeElement: null as Element | null, defaultView: null,
@@ -55,7 +55,7 @@ it('retains an open description and summary focus when Clear orders disappears, 
   expect(root.querySelector('.object-identity')!.open).toBe(true);
   clearable = false; controller.refresh();
   expect(root.querySelector('.object-identity')!.open).toBe(true);
-  expect(root.querySelector('.radial-description')!.hidden).toBe(false);
+  expect(root.querySelector('.object-menu-description')!.hidden).toBe(false);
   expect(doc.activeElement).toBe(root.querySelector('summary'));
   controller.close(); expect(doc.activeElement).toBe(opener);
 });
@@ -134,25 +134,27 @@ it('places actual rotation groups clear of the measured refusal and bottom actio
   expect(right.style.top).toBe(left.style.top);
 });
 
-it('colors radial forward and back navigation while preserving ordinary gameplay choices', () => {
+it('keeps the complete action order and distinguishes dismissal from clearing orders', () => {
   const { doc, root } = fixture();
-  const surface = createMenuSurface(doc as unknown as Document, root as unknown as HTMLElement);
+  const dismiss = vi.fn();
+  const surface = createMenuSurface(doc as unknown as Document, root as unknown as HTMLElement, { dismiss });
   const entries: MenuEntry[] = Array.from({ length: 9 }, (_, interaction) => ({ label: `Action ${interaction}`,
     action: { kind: 'use', object: 1, interaction } }));
   entries.push(NOTHING);
-  const find = (label: string) => root.children.find(button => button.querySelector('span')?.textContent === label)!;
-  surface.show({ title: 'Chair', entries }, 0, 0, () => {});
+  const picked = vi.fn();
+  const find = (label: string) => root.all().find(button => button.querySelector('span')?.textContent === label)!;
+  surface.show({ title: 'Chair', entries }, 0, 0, picked);
   try {
-    expect(root.children.find(button => button.className === 'radial-close')!.attributes['data-action-intent']).toBe('negative');
+    expect(root.querySelector('.object-menu-close')!.attributes['data-action-intent']).toBe('negative');
     expect(find('Action 0').attributes['data-action-intent']).toBeUndefined();
-    expect(find('More actions').attributes['data-action-intent']).toBe('affirmative');
-    find('More actions').click();
-    expect(find('Back').attributes['data-action-intent']).toBe('negative');
-    expect(find('More actions').attributes['data-action-intent']).toBe('affirmative');
-    find('More actions').click();
     expect(find('Clear orders').attributes['data-action-intent']).toBe('negative');
-    find('Back').click();
-    expect(find('Back').attributes['data-action-intent']).toBe('negative');
+    expect(root.all().filter(node => node.className === 'menu-entry').map(node => node.dataset.menuIndex))
+      .toEqual(entries.map((_, index) => String(index)));
+    find('Action 8').click();
+    expect(picked).toHaveBeenCalledWith(8, false);
+    root.querySelector('.object-menu-close')!.click();
+    expect(dismiss).toHaveBeenCalledOnce();
+    expect(picked).toHaveBeenCalledTimes(1);
   } finally { surface.hide(); }
 });
 

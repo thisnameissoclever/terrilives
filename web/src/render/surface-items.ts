@@ -50,3 +50,13 @@ export function surfaceItemDishIds(layout:SurfaceLayout,surface:number,dirty:num
   for(let i=0;i+2<piles.length;i+=3)if(piles[i]===surface&&piles[i+1]===visualSlot)dishes.push(piles[i+2]);
   return dishes;
 }
+
+/** Locate the selected dishes at their authored stack position on the furniture. */
+export function surfaceDishPoint(layout: SurfaceLayout, surface: number, dishes: readonly number[], piles: Uint32Array) {
+  for (let i = 0; i + 2 < piles.length; i += 3) {
+    if (piles[i] === surface && dishes.includes(piles[i + 2])) {
+      return layout.points[layout.kind === 'counter' ? 0 : piles[i + 1]];
+    }
+  }
+  return undefined;
+}
