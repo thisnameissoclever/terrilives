@@ -648,13 +648,13 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 31, which wraps the V30 payload with remembered topic preferences. That V30 payload's V26 core adds explicit ground surfaces, commute direction and pool and
+use version 33, which wraps the published V32 payload with active hobby mood minutes. Published V32 keeps the V31 layout and adds shared pool ownership tags. V31 wraps the V30 payload with remembered topic preferences. That V30 payload's V26 core adds explicit ground surfaces, commute direction and pool and
 bath continuation to published V24, including Career inputs, bills and lingering furniture mood.
 It also records manual work-trip priority and the source jobs and base pay behind
 exceptional Career input rows. Historical base pay that cannot be recovered stays
 explicitly unrecorded; the recorded shift cents remain authoritative for payout.
 Native V24 snapshots are historical field views for inspection and compatible
-fixtures. Current persistence uses V31. The envelope preserves exact player-order and social-execution
+fixtures. Current persistence uses V33. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -717,6 +717,10 @@ V24 wraps the complete V23 payload with the Career tab's score inputs and every 
 V23 wraps the complete V22 payload with the lift each person still gets from liked furniture they have left, as rows of person, affinity kind id and the tick the lift reaches zero, strictly ascending by person and then kind id ([OA-presence] in [object affinities](specs/2026-10-06-object-affinities.md), issue 344). Load refuses a row for nobody living, an unknown kind, a kind with no presence reach, a repeated pair, rows out of order, an end tick that is not after the saved tick or is more than 10,080 ticks after it, and leaves the running game unchanged. The rows join the world hash as a tagged block only while one is running, a person's rows go when they die, and Build mode's baseline carries them. Loading V22 or earlier starts with none.
 
 V31 wraps the complete V30 payload with what each housemate remembers about how others feel about chat topics (issue 359): rows of knower, other person, topic tag, remembered preference and the tick it was learned, strictly ascending by knower, other and tag. Load refuses more than the list cap of 100,000 rows, rows out of order or repeated, a row whose knower and other person are the same, an empty tag, a tag over the 1,024-byte text cap, the `smalltalk` tag, a preference that is not a finite number from -1 to 1, a tick after the saved tick, and a row naming somebody not living, and leaves the running game unchanged. A chat on a topic already remembered always refreshes its row; only a new row depends on the remember roll. Learning evicts the oldest row, then the smallest key, at that same cap, so a save never holds more than its loader accepts. Rows that have faded completely are dropped each tick, a person's rows and every row about them go when they die, and Build mode's and the admin panel's baselines carry them. The rows join the world hash as a tagged block only while one exists. Loading V30 or earlier starts with nothing remembered.
+
+V33 carries the number of earned hobby mood minutes for each person still doing a loved activity. Each row uses the saved actor identity and has between one and 40 minutes. Rows are sorted by actor. Restore rejects invalid minutes, duplicate or missing actors and rows without an active activity before replacing the live world. When a content update removes the hobby tag from an ongoing activity, restore drops its lift. The same rows feed the world hash and are kept in Build and Admin snapshots.
+
+Two writers used header V32. A complete V31-shaped payload selects the published shared-pool reader and starts with zero hobby mood. The private hobby preview appends one vector of hobby mood rows and follows the original single-occupant pool rules. The loader requires the selected payload to consume every byte and validates the state before adoption. Browser recovery retains each distinct V32 source by exact bytes.
 
 V30 retains the V29 payload and extends the separate climb out to 40 ticks. Loading an earlier exit validates its original countdown and maps elapsed time to the same fraction of the climb. Entry, supported retreat, and paddling retain their clocks.
 

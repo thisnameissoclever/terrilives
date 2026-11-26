@@ -329,7 +329,7 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
         world.insert_resource(shifted);
     }
 
-    // People, objects and the walks and reading journeys they are on.
+    // People, objects, paths, and the activity tiles they hold.
     let mut positions = world.query::<&mut Position>();
     for mut position in positions.iter_mut(world) {
         position.x += dx as f32;
@@ -340,6 +340,10 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
         for step in &mut path.steps {
             *step = shift_tile(*step);
         }
+    }
+    let mut swimmers = world.query::<&mut crate::pool::PoolEpisode>();
+    for mut episode in swimmers.iter_mut(world) {
+        episode.approach = shift_tile(episode.approach);
     }
     let mut journeys = world.query::<&mut crate::reading::ReadingJourney>();
     for mut journey in journeys.iter_mut(world) {

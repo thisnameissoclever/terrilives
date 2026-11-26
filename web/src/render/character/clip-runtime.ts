@@ -22,6 +22,17 @@ function joined<T extends Float32Array<ArrayBuffer> | Uint32Array<ArrayBuffer>>(
 
 export interface CharacterRig {base:Geometry;manifest:Bundle;supplemental:Geometry|null;family:string;bodyVariants?:readonly CharacterBodyVariant[]}
 
+/** Reuse the recline skeleton and the pool's original fitted swimwear. */
+export function withLoungerRecline(pool:CharacterRig,recline:ProductionClip):CharacterRig {
+  const {supplemental}=pool;
+  if(!supplemental||pool.manifest.bones.length!==17||recline.playback!=='static')throw new Error('Missing Sunstrip pose assets.');
+  const manifest={...pool.manifest,actions:{...pool.manifest.actions,lounger_recline:[recline.samples[0].bones]},
+    basisActions:{...pool.manifest.basisActions,lounger_recline:[recline.samples[0].basis]}};
+  const parts=supplemental.description.parts.map(part=>({...part,conditions:part.conditions?.map(condition=>
+    condition.swimwear?{...condition,clip:[...(condition.clip??[]),'lounger_recline']}:condition)}));
+  return {...pool,manifest,supplemental:{...supplemental,manifest,description:{...supplemental.description,parts}}};
+}
+
 /** Clip tracks and supplemental meshes retain the shared body without copying its arrays. */
 export function prepareClipFamily(base: Geometry, supplemental: Geometry | null, parts: ClipParts, library: ClipLibrary, family: string): CharacterRig {
   if (base.manifest.bones.length !== 17 || library.version !== 1 || parts.version !== 1 || !library.sources[family]) throw new Error('Unsupported production clip family.');

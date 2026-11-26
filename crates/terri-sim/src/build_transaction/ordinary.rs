@@ -139,8 +139,8 @@ struct PreparedOrdinary {
 }
 fn prepare(sim: &Sim, commands: Vec<SimCommand>) -> Result<PreparedOrdinary, BuildCommitError> {
     next_epoch(&sim.world).map_err(|_| BuildCommitError::CounterExhausted)?;
-    let baseline = save::v31::capture_without_commands(sim);
-    let mut candidate = save::v31::restore(
+    let baseline = save::v33::capture_without_commands(sim);
+    let mut candidate = save::v33::restore(
         baseline.clone(),
         sim.world.resource::<Content>().0,
         save::Carried::for_load(&sim.world),
@@ -176,8 +176,8 @@ fn prepare(sim: &Sim, commands: Vec<SimCommand>) -> Result<PreparedOrdinary, Bui
     {
         return Err(BuildCommitError::AccessAcknowledgmentRequired);
     }
-    let final_state = save::v31::capture(&candidate);
-    save::v31::restore(
+    let final_state = save::v33::capture(&candidate);
+    save::v33::restore(
         final_state.clone(),
         sim.world.resource::<Content>().0,
         save::Carried::for_load(&sim.world),

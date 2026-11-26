@@ -407,7 +407,12 @@ pub(super) fn replan(world: &mut World, actor: Entity) -> Option<Vec<Tile>> {
                 if episode.pool != target.object || episode.phase > 0 {
                     return None;
                 }
-                episode.approach = end;
+                if episode.slot().is_some() && path.len() > 1 {
+                    // The rerouted traveller can reclaim the ladder on the final step.
+                    world.entity_mut(actor).remove::<crate::pool::PoolEpisode>();
+                } else {
+                    episode.approach = end;
+                }
             }
             return Some(path);
         }

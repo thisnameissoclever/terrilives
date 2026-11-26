@@ -2,7 +2,7 @@ use super::{dirt_in, keys, policy, work};
 use crate::relationship_effects::record_opinion_change as effect;
 use bevy_ecs::prelude::*;
 use terri_core::{
-    chores::*, Agent, AtWork, Commuting, Eating, IntentQueue, Needs, Path, SimClock, SimId,
+    chores::*, Agent, AtWork, Career, Commuting, Eating, IntentQueue, Needs, Path, SimClock, SimId,
     Socialising, Target,
 };
 
@@ -17,6 +17,25 @@ fn people(world: &World) -> Vec<(u32, Entity)> {
         .collect();
     people.sort_by_key(|p| p.0);
     people
+}
+
+fn assignees<'a>(
+    world: &World,
+    people: &[(u32, Entity)],
+    profiles: &'a [ChoreProfile],
+) -> Vec<policy::Assignee<'a>> {
+    people
+        .iter()
+        .filter_map(|(id, person)| {
+            profiles
+                .iter()
+                .find(|p| p.sim_id == *id)
+                .map(|profile| policy::Assignee {
+                    profile,
+                    unemployed: world.get::<Career>(*person).is_none(),
+                })
+        })
+        .collect()
 }
 
 pub(crate) fn work_needed(world: &World, state: &SavedChores, key: ChoreKey, owner: u32) -> bool {
@@ -189,29 +208,22 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> Option<WeekCh
         || state.roster != roster
         || state.assignments.iter().map(|a| a.key).collect::<Vec<_>>() != available
     {
-        let profiles: Vec<_> = roster
-            .iter()
-            .filter_map(|id| state.profiles.iter().find(|p| p.sim_id == *id).cloned())
-            .collect();
+        let candidates = assignees(world, &live, &state.profiles);
         let weighted: Vec<_> = available
             .iter()
             .map(|key| (*key, cost(world, *key)))
             .collect();
-        let keep = if state.week == Some(week) && state.roster == roster {
-            state.assignments.clone()
+        let keep: &[ChoreAssignment] = if state.week == Some(week) && state.roster == roster {
+            &state.assignments
         } else {
-            vec![]
+            &[]
         };
         changed = Some(WeekChange {
             previous_week: state.week,
             previous: state.assignments.clone(),
         });
         let rng = state.rng.as_mut().expect("chore stream is initialized");
-        state.assignments = if keep.is_empty() {
-            policy::assign(&weighted, &profiles, week, rng)
-        } else {
-            policy::assign_with_existing(&weighted, &profiles, week, rng, &keep)
-        };
+        state.assignments = policy::assign(&weighted, &candidates, week, rng, keep);
         state.week = Some(week);
         state.roster = roster;
     }
@@ -267,16 +279,7 @@ pub(super) fn assign_new_duties(world: &World, state: &mut SavedChores, new: &[C
     }
     let day = world.resource::<SimClock>().tick
         / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
-    let profiles: Vec<_> = people(world)
-        .iter()
-        .filter_map(|(id, _)| {
-            state
-                .profiles
-                .iter()
-                .find(|profile| profile.sim_id == *id)
-                .cloned()
-        })
-        .collect();
+    let candidates = assignees(world, &people(world), &state.profiles);
     let available = keys(world);
     let weighted: Vec<_> = available
         .iter()
@@ -290,9 +293,9 @@ pub(super) fn assign_new_duties(world: &World, state: &mut SavedChores, new: &[C
         .map(|key| (*key, cost(world, *key)))
         .collect();
     let assignment_week = state.week.unwrap_or(day / 7);
-    state.assignments = policy::assign_with_existing(
+    state.assignments = policy::assign(
         &weighted,
-        &profiles,
+        &candidates,
         assignment_week,
         state.rng.as_mut().expect("chore stream is initialized"),
         &state.assignments,
@@ -555,7 +558,8 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             state.episodes[i].unavailable = true;
             continue;
         };
-        if !idle(world, state, person) || readiness(world, person) == 0.0 {
+        let readiness = readiness(world, person);
+        if readiness == 0.0 || !idle(world, state, person) {
             if state.episodes[i].decision.is_none() {
                 state.episodes[i].unavailable = true;
             }
@@ -569,13 +573,14 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
                 .cloned()
                 .unwrap_or_else(|| ChoreProfile::neutral(owner));
             let mood = crate::mood::score(world, person.index_u32(), state).unwrap_or(0.0) / 8.0;
-            let chance = policy::willingness(
+            let usual_chance = policy::willingness(
                 &profile,
                 key.kind,
                 crate::domestic::cleanliness(world, person),
-                readiness(world, person),
+                readiness,
                 mood,
             );
+            let chance = policy::autonomous_chance(world, person, usual_chance);
             let decision = state.rng.as_mut().unwrap().next_f32() < chance;
             state.episodes[i].decision = Some(decision);
             state.episodes[i].unavailable = false;

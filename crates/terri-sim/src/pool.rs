@@ -6,14 +6,22 @@ use terri_core::{
     Agent, Eating, IntentQueue, NeedId, Needs, ObjectFacing, Path, Personality, Position,
     SmartObject, Target,
 };
+pub(crate) use terri_data::swimming::{ENTER_TICKS, EXIT_TICKS, RETURN_TICKS, SWIM_TICKS};
 
-pub(crate) const ENTER_TICKS: u32 = 20;
 pub(crate) const TAKEOFF_TICK: u32 = 12;
-pub(crate) const SWIM_TICKS: u32 = 60;
 pub(crate) const LEGACY_EXIT_TICKS: u32 = 20;
-pub(crate) const EXIT_TICKS: u32 = 40;
 pub(crate) const TOTAL_TICKS: u32 = ENTER_TICKS + SWIM_TICKS + EXIT_TICKS;
 pub(crate) const CANCELED_LANDING: u8 = 5;
+pub(crate) const WAITING_FOR_LADDER: u8 = 6;
+pub(crate) const RETURNING_TO_LADDER: u8 = 7;
+pub(crate) const SETTLE_TICKS: u32 = 6;
+const STROKE_TICKS: u32 = 12;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct PoolPlace {
+    pub(super) slot: u8,
+    pub(super) swim_ticks: u32,
+}
 
 #[derive(Component, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct PoolEpisode {
@@ -23,9 +31,27 @@ pub(crate) struct PoolEpisode {
     pub exit_origin: u32,
     pub interrupted: bool,
     pub approach: (i32, i32),
+    pub(super) place: Option<PoolPlace>,
 }
 
 impl PoolEpisode {
+    pub(crate) fn slot(&self) -> Option<u8> {
+        self.place.map(|place| place.slot)
+    }
+
+    pub(crate) fn uses_ladder(&self) -> bool {
+        self.place.is_none()
+            || match self.phase {
+                2 => self.elapsed < SETTLE_TICKS,
+                WAITING_FOR_LADDER => self.exit_origin + self.elapsed < SETTLE_TICKS,
+                _ => true,
+            }
+    }
+
+    fn swim_ticks(&self) -> u32 {
+        self.place.map_or(SWIM_TICKS, |place| place.swim_ticks)
+    }
+
     pub(crate) fn render_phase(&self) -> u8 {
         if self.phase == CANCELED_LANDING {
             1
@@ -40,6 +66,14 @@ pub(crate) fn is_swimming(action: &terri_data::CompiledInteraction) -> bool {
 }
 pub(crate) fn has_pool(object: &terri_data::CompiledObject) -> bool {
     object.interactions.iter().any(is_swimming)
+}
+
+pub(crate) fn capacity(object: &terri_data::CompiledObject) -> u8 {
+    terri_data::swimming::capacity(&object.id)
+}
+
+pub(crate) fn swim_ticks(object: &terri_data::CompiledObject) -> u32 {
+    terri_data::swimming::swim_ticks(&object.id)
 }
 
 pub(crate) fn contacts_required(world: &World) -> bool {
@@ -78,13 +112,17 @@ pub(crate) fn has_swimming_state(world: &World) -> bool {
     })
 }
 
-/// Both pool models place the ladder beside the second row of their base footprint.
+/// Rotate the tile at the foot of the ladder with the model's reserved rectangle.
 pub(crate) fn approach(
     object: &terri_data::CompiledObject,
     origin: (i32, i32),
     facing: terri_core::Facing,
 ) -> (i32, i32) {
-    let (x, y) = object.footprint_offset_at((-1, 1), facing);
+    let offset = match object.id.as_str() {
+        "pool_above_ground_3x4" | "pool_in_ground_5x7" => (-1, 2),
+        _ => (-1, 1),
+    };
+    let (x, y) = object.footprint_offset_at(offset, facing);
     (origin.0 + x, origin.1 + y)
 }
 
@@ -111,7 +149,11 @@ pub(crate) fn request_exit(world: &mut World, actor: Entity) -> bool {
         2 => {
             episode.exit_origin = episode.elapsed;
             episode.elapsed = 0;
-            episode.phase = 3;
+            episode.phase = if episode.place.is_some() {
+                WAITING_FOR_LADDER
+            } else {
+                3
+            };
         }
         _ => {}
     }
@@ -122,7 +164,7 @@ pub(crate) fn request_exit(world: &mut World, actor: Entity) -> bool {
     true
 }
 
-/// Selection reserves the fixture first. Claim the ladder before movement.
+/// Give swimmers already in the water the next free use of the ladder.
 pub(crate) fn prepare(world: &mut World) {
     cleanup(world);
     let mut actors: Vec<_> = world
@@ -133,12 +175,33 @@ pub(crate) fn prepare(world: &mut World) {
     for actor in &actors {
         if let Some(episode) = world.get::<PoolEpisode>(*actor) {
             if episode.phase == 0
-                && world
+                && (world
                     .get::<Target>(*actor)
                     .is_none_or(|t| t.object != episode.pool)
+                    || (episode.place.is_some()
+                        && !ready_for_ladder(world, *actor, episode.approach)))
             {
                 world.entity_mut(*actor).remove::<PoolEpisode>();
             }
+        }
+    }
+    for &actor in &actors {
+        let Some(episode) = world.get::<PoolEpisode>(actor) else {
+            continue;
+        };
+        if episode.phase != WAITING_FOR_LADDER
+            || episode.exit_origin + episode.elapsed < SETTLE_TICKS
+            || ladder_claimed(world, actor, episode.approach)
+        {
+            continue;
+        }
+        let mut episode = world.get_mut::<PoolEpisode>(actor).unwrap();
+        episode.phase = RETURNING_TO_LADDER;
+        episode.exit_origin = (episode.exit_origin + episode.elapsed) % STROKE_TICKS;
+        episode.elapsed = 0;
+        let ticks = remaining(&episode);
+        if let Some(mut eating) = world.get_mut::<Eating>(actor) {
+            eating.remaining_ticks = ticks;
         }
     }
     for actor in actors {
@@ -166,13 +229,32 @@ pub(crate) fn prepare(world: &mut World) {
             .get::<ObjectFacing>(target.object)
             .map_or(definition.base_facing, |f| f.0);
         let endpoint = approach(definition, (position.x as i32, position.y as i32), facing);
-        if world
-            .query::<&PoolEpisode>()
-            .iter(world)
-            .any(|e| e.approach == endpoint)
-        {
+        if ladder_claimed(world, actor, endpoint) {
             continue;
         }
+        let capacity = capacity(definition);
+        let place = if capacity > 1 {
+            // Travellers can approach concurrently. Only the final step needs the ladder.
+            if !ready_for_ladder(world, actor, endpoint) {
+                continue;
+            }
+            let swim_ticks = swim_ticks(definition);
+            let used: Vec<_> = world
+                .query::<&PoolEpisode>()
+                .iter(world)
+                .filter(|episode| episode.pool == target.object)
+                .map(PoolEpisode::slot)
+                .collect();
+            if used.contains(&None) {
+                continue;
+            }
+            let Some(slot) = (0..capacity).find(|slot| !used.contains(&Some(*slot))) else {
+                continue;
+            };
+            Some(PoolPlace { slot, swim_ticks })
+        } else {
+            None
+        };
         world.entity_mut(actor).insert(PoolEpisode {
             pool: target.object,
             phase: 0,
@@ -180,8 +262,33 @@ pub(crate) fn prepare(world: &mut World) {
             exit_origin: 0,
             interrupted: false,
             approach: endpoint,
+            place,
         });
     }
+}
+
+fn ready_for_ladder(world: &World, actor: Entity, approach: (i32, i32)) -> bool {
+    world
+        .get::<Path>(actor)
+        .zip(world.get::<Position>(actor))
+        .is_some_and(|(path, pos)| final_approach(path, pos, approach))
+}
+
+fn final_approach(path: &Path, position: &Position, approach: (i32, i32)) -> bool {
+    match path.steps.get(path.cursor..) {
+        Some([step]) => *step == approach,
+        Some([]) => (position.x, position.y) == (approach.0 as f32, approach.1 as f32),
+        _ => false,
+    }
+}
+
+fn ladder_claimed(world: &mut World, actor: Entity, approach: (i32, i32)) -> bool {
+    world
+        .query::<(Entity, &PoolEpisode)>()
+        .iter(world)
+        .any(|(owner, episode)| {
+            owner != actor && episode.approach == approach && episode.uses_ladder()
+        })
 }
 
 pub(crate) fn tick(world: &mut World) {
@@ -199,6 +306,7 @@ pub(crate) fn tick(world: &mut World) {
             }
             episode.phase = 1;
             episode.elapsed = 0;
+            world.get_mut::<Eating>(actor).unwrap().remaining_ticks = remaining(&episode);
             world.entity_mut(actor).insert(episode);
             continue;
         }
@@ -208,6 +316,7 @@ pub(crate) fn tick(world: &mut World) {
                 .expect("pool episode retains ordinary occupation");
             let pack = world.resource::<Content>().0;
             let action = &pack.object(eating.object).interactions[eating.interaction as usize];
+            crate::hobby_mood::credit(world, actor, &action.tags);
             let personality = world.get::<Personality>(actor).cloned();
             let fumble = world
                 .get::<terri_core::Fumbled>(actor)
@@ -221,7 +330,7 @@ pub(crate) fn tick(world: &mut World) {
                             .map_or(1., |p| p.satisfaction[need as usize]),
                         fumble,
                         1.,
-                        SWIM_TICKS,
+                        episode.swim_ticks(),
                     );
                     needs.fill(NeedId::ALL[need as usize], rate);
                 }
@@ -243,9 +352,26 @@ pub(crate) fn tick(world: &mut World) {
                     episode.elapsed = 0;
                     false
                 }
-                2 if episode.elapsed == SWIM_TICKS => {
-                    episode.phase = 3;
+                2 if episode.elapsed == episode.swim_ticks() => {
+                    episode.phase = if episode.place.is_some() {
+                        WAITING_FOR_LADDER
+                    } else {
+                        3
+                    };
                     episode.exit_origin = episode.elapsed;
+                    episode.elapsed = 0;
+                    false
+                }
+                WAITING_FOR_LADDER => {
+                    // Keep the paddle cycle moving without paying any extra need effects.
+                    if episode.elapsed == SETTLE_TICKS + STROKE_TICKS {
+                        episode.elapsed = SETTLE_TICKS;
+                    }
+                    false
+                }
+                RETURNING_TO_LADDER if episode.elapsed == RETURN_TICKS => {
+                    episode.phase = 3;
+                    episode.exit_origin = (episode.exit_origin + RETURN_TICKS) % STROKE_TICKS;
                     episode.elapsed = 0;
                     false
                 }
@@ -433,7 +559,9 @@ pub(crate) fn capture(world: &World) -> Vec<SavedPoolEpisode> {
                 .map(|(actor, e)| SavedPoolEpisode {
                     actor: actor.index_u32(),
                     pool: e.pool.index_u32(),
-                    phase: e.phase,
+                    phase: e
+                        .place
+                        .map_or(e.phase, |place| e.phase + 8 * (place.slot + 1)),
                     elapsed: e.elapsed,
                     exit_origin: e.exit_origin,
                     interrupted: e.interrupted,
@@ -450,7 +578,9 @@ mod migration;
 mod migration_tests;
 mod persistence;
 pub(crate) use migration::migrate_v22;
-pub(crate) use persistence::{restore, restore_historical_v22, restore_physical, SavedPoolClock};
+pub(crate) use persistence::{
+    restore, restore_historical_v22, restore_physical, restore_shared, SavedPoolClock,
+};
 
 /// Historical retreats may have reached the part of entry that is now airborne.
 pub(crate) fn migrate_legacy_clock(world: &mut World, clock: SavedPoolClock) {
@@ -515,7 +645,18 @@ pub(crate) fn project_legacy_clock(
     }
 }
 
-fn remaining(e: &PoolEpisode) -> u32 {
+pub(super) fn remaining(e: &PoolEpisode) -> u32 {
+    if e.place.is_some() {
+        return match e.phase {
+            0 => ENTER_TICKS + e.swim_ticks() + RETURN_TICKS + EXIT_TICKS,
+            1 => ENTER_TICKS - e.elapsed + e.swim_ticks() + RETURN_TICKS + EXIT_TICKS,
+            2 => e.swim_ticks() - e.elapsed + RETURN_TICKS + EXIT_TICKS,
+            WAITING_FOR_LADDER => RETURN_TICKS + EXIT_TICKS,
+            RETURNING_TO_LADDER => RETURN_TICKS - e.elapsed + EXIT_TICKS,
+            _ => countdown(e.phase, e.elapsed, EXIT_TICKS)
+                .expect("runtime pool phase has a valid countdown"),
+        };
+    }
     countdown(e.phase, e.elapsed, EXIT_TICKS).expect("runtime pool phase has a valid countdown")
 }
 

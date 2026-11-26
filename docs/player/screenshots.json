@@ -595,6 +595,15 @@
         "poolModelSha256": "2f2e2cffae907f6a44717eb789dada07900e24a4d78b45ed11a57a7ccfc861cb",
         "fixtureSha256": "5b405f54b4d58b09dbd6e2d7602587301f367afe23b7c4fe953cc36079eac0a0",
         "method": "Isolated browser on the local production build with sound off and flat lighting. A right-click opened the pool menu on desktop and a touch long-press opened it on the phone layout."
+      },
+      {
+        "id": "object-menu-popover-2026-11-25",
+        "capturedAt": "2026-11-25",
+        "sourceBase": "f616d4eeb9444ae64b7d967978f7de61c8094980",
+        "htmlSha256": "485e65ce5a1711e87f6facb0b5ba9fb812aaf1318605ccc548b0648323f1eb60",
+        "bundleSha256": "156b26ef39a225b75fe7f504a4fce8250a6aa354beddba48548c2af8ef91bd82",
+        "wasmSha256": "0fca6362feb988768afbcf633cbe8e99a20003552e5afc704d5394062d07ef28",
+        "method": "Local production build from the popover candidate, viewed in isolated muted Chrome contexts on Windows. The main branch base and deployed-file hashes identify the comparison, and the capture rows record the actual access path."
       }
     ],
     "weatherSetup": {
@@ -1731,87 +1740,113 @@
     {
       "id": "object-description",
       "section": "object-menu",
-      "desktop": "images/ui-editable-object-description-desktop.jpg",
+      "desktop": "images/ui-object-description-desktop.png",
       "desktopDetail": "images/guide/object-description-desktop.png",
-      "mobile": "images/ui-editable-object-description-mobile.jpg",
+      "mobile": "images/ui-object-description-mobile.png",
       "mobileDetail": "images/guide/object-description-mobile.png",
-      "description": "Opening the object name reveals its optional description beside the available actions.",
+      "description": "Opening the bookcase name reveals its description inside the list.",
       "access": "Open the object menu, then activate the object name.",
       "imageSha256": {
-        "desktop": "e33f9acafb0aa93182cd44ce345a39709802e8124ed811ead99ef68f76465e92",
-        "desktopDetail": "d2be10b20d7f25209d0b07207fb05bfb5a2517798b9c56b422ffb27cb964687e",
-        "mobile": "060628f639107364cca8bb727709cee1a6d22f3b923d9d6236f8a5b28c819b38",
-        "mobileDetail": "26a3223a7e1d97c643ec97e10c3d330ab4cdee79c6de95e519f19df1cd58fb95"
+        "desktop": "04b50e9534372427fc2fd92e3f731a4b14f9973e7c8f25632c854f0f509d6a58",
+        "desktopDetail": "ebc389bef36f891c4734aebeb36c93888574052df4ee93db429cca99a4e39482",
+        "mobile": "d126606f1881eeb3445ba71eda2c398cb2db90c7591ab7f456e7a1c56e095773",
+        "mobileDetail": "ddd468e2f7b6451c96b08e0178816c24422cfea488e1a208ee6cc72ae344a479"
       },
       "captureProvenance": {
         "desktop": {
           "viewport": {
             "width": 1280,
-            "height": 720
+            "height": 800
           },
-          "state": "The armchair description is open in the surrounding menu.",
-          "sourceImageSha256": "e33f9acafb0aa93182cd44ce345a39709802e8124ed811ead99ef68f76465e92"
+          "state": "Opening the bookcase name reveals its description inside the list.",
+          "access": "Open the bookcase menu and press Enter on its name",
+          "sourceImageSha256": "04b50e9534372427fc2fd92e3f731a4b14f9973e7c8f25632c854f0f509d6a58"
         },
         "mobile": {
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "state": "The bookcase description is open in the phone menu.",
-          "sourceImageSha256": "060628f639107364cca8bb727709cee1a6d22f3b923d9d6236f8a5b28c819b38"
+          "state": "Opening the bookcase name reveals its description inside the list.",
+          "access": "Open the bookcase menu and tap its name",
+          "sourceImageSha256": "d126606f1881eeb3445ba71eda2c398cb2db90c7591ab7f456e7a1c56e095773"
         }
       },
-      "sourceSnapshot": "editable-guide-object-description-2026-10-22"
+      "sourceSnapshot": "object-menu-popover-2026-11-25"
     },
     {
       "id": "object-menu",
       "section": "object-menu",
-      "desktop": "images/ui-editable-object-menu-desktop.jpg",
+      "desktop": "images/ui-object-menu-desktop.png",
       "desktopDetail": "images/guide/object-menu-desktop.png",
-      "mobile": "images/ui-editable-object-menu-mobile.jpg",
+      "mobile": "images/ui-object-menu-mobile.png",
       "mobileDetail": "images/guide/object-menu-mobile.png",
-      "description": "The desktop menu shows Clear orders because Tim has a player order. The phone bookcase menu shows item actions and Close.",
+      "description": "The bookcase actions appear in a list beside the object. Buy and Sell show the book and price.",
       "access": "Right-click a placed object on desktop or long-press it on a phone. With the game view focused, target the object with the arrow keys and press Enter.",
       "imageSha256": {
-        "desktop": "026d713a5f059079ef56ea8c6903e2dda9b8ccdda38c96e2ef74d1da7f1a19d4",
-        "desktopDetail": "5c56595ac2c1f58cec8229a68f89d47bd53ad0f18c1464412bf869203cd80d6a",
-        "mobile": "e528d45b92efc95a0d49105c63a0acb3c6891b26f3069d1b428eb873b8b52c3d",
-        "mobileDetail": "ac4f22809369f3a72276ba8f192d74ef1c9667cb0b5db040ae3ccd5e3c83d2de"
+        "desktop": "f46d761326d49cb610ae61d472c3101904ab3f250379c0d5f795ebe0bd5308cd",
+        "desktopDetail": "d542974b3d503c5c88ae18edcae880d9abeba5da83c109525aaed958c5ea8fa1",
+        "mobile": "164cf3143801bb9360bbaef3b15deb7b807da9ea823d98c2c74e5ebb2c961e29",
+        "mobileDetail": "af75c9ca836ea23a777d1726aee8bb6b32a5b0c59014821b8bdb81ca50ea49d9"
       },
       "captureProvenance": {
         "desktop": {
           "viewport": {
             "width": 1280,
-            "height": 720
+            "height": 800
           },
-          "state": "Tim has a waiting player order. The armchair menu includes Clear orders.",
-          "sourceImageSha256": "026d713a5f059079ef56ea8c6903e2dda9b8ccdda38c96e2ef74d1da7f1a19d4"
+          "state": "The bookcase actions appear in a list beside the object. Buy and Sell show the book and price.",
+          "access": "Focus the game view, target the bookcase and press Enter",
+          "sourceImageSha256": "f46d761326d49cb610ae61d472c3101904ab3f250379c0d5f795ebe0bd5308cd"
         },
         "mobile": {
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "state": "The bookcase menu is open with no player order to clear.",
-          "sourceImageSha256": "e528d45b92efc95a0d49105c63a0acb3c6891b26f3069d1b428eb873b8b52c3d"
+          "state": "The bookcase actions appear in a list beside the object. Buy and Sell show the book and price.",
+          "access": "Long-press and release on the bookcase",
+          "sourceImageSha256": "164cf3143801bb9360bbaef3b15deb7b807da9ea823d98c2c74e5ebb2c961e29"
         }
       },
-      "sourceSnapshot": "editable-guide-dock-2026-10-22"
+      "sourceSnapshot": "object-menu-popover-2026-11-25"
     },
     {
       "id": "person-menu",
       "section": "object-menu",
       "desktop": "images/ui-person-menu-desktop.png",
       "mobile": "images/ui-person-menu-mobile.png",
-      "description": "Actions directed at another person.",
+      "description": "Chat and Fight appear beside the other housemate.",
       "access": "Select one person, then right-click or hold another person.",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "object-menu-popover-2026-11-25",
       "imageSha256": {
-        "desktop": "cb8ad454f758b3bdf8e2aa8e2e20617a3d28782c91b6c5fba80fe7946ccb062a",
-        "mobile": "9af43b77477adc56420bf55e43cec6005f5077332d7d2744f98d9c9c81301d38"
-      }
+        "desktop": "7faeebabe73add70986eb61db6c541e02ecd0470d84a120fe77586cc737ddd89",
+        "desktopDetail": "5b158e089e30234ee03a4089465d1fd806378106026349bd854dff9c7811267a",
+        "mobile": "53dd0d0d5dce1bdfb90467d8eec4e39030455b37899f1121bf235cb18ae93231",
+        "mobileDetail": "ffc2c30c9fa33d6ec02daca9aa68cc6f65e5904d3e5a0ea464a43164ad0067ca"
+      },
+      "captureProvenance": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "state": "Chat and Fight appear beside the other housemate.",
+          "access": "Select Tim, then focus the game view, target Bill and press Enter",
+          "sourceImageSha256": "7faeebabe73add70986eb61db6c541e02ecd0470d84a120fe77586cc737ddd89"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "state": "Chat and Fight appear beside the other housemate.",
+          "access": "Select Tim, then focus the game view, target Casey and press Enter",
+          "sourceImageSha256": "53dd0d0d5dce1bdfb90467d8eec4e39030455b37899f1121bf235cb18ae93231"
+        }
+      },
+      "desktopDetail": "images/guide/person-menu-desktop.png",
+      "mobileDetail": "images/guide/person-menu-mobile.png"
     },
     {
       "id": "room-review",
@@ -2879,30 +2914,32 @@
       "description": "The selected person can choose Hop in in the pool object menu.",
       "access": "Select a person. Right-click the pool on desktop or long-press it on a phone.",
       "imageSha256": {
-        "desktop": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab",
-        "desktopDetail": "98dc65bd8b95db685cf9dae7155749c4da676718607758126717f076aec6a648",
-        "mobile": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9",
-        "mobileDetail": "8cd2e4fd0c9aef10866b0ba431fb03b117cec9ca5d73e4f25ceedfb9848ec7e0"
+        "desktop": "a820818024405850bf20d5d82dd445c900f481387d4f53d9455aed75bf4d9bfa",
+        "desktopDetail": "065f8f08fd6cd37d0d2127977584470b72befe09f7b3f532e33bc53f4febe8ce",
+        "mobile": "377c83f10e957250288c323c457d757268ba42c7a71b1e4d9510bee91ca37491",
+        "mobileDetail": "e7fa08ffc5db5ff0d460415303205f255f0791b2bd8496dc31a45d7e8ddb5bc9"
       },
       "captureProvenance": {
         "desktop": {
           "viewport": {
             "width": 1280,
-            "height": 720
+            "height": 900
           },
-          "state": "Paused household with Hop in available on the Backyard Rectangle pool menu.",
-          "sourceImageSha256": "90f79d2fba252ec005d77bfeb949a7ad7e93beded7e533bd1acf3c906805adab"
+          "state": "Paused household with Hop in open on the Backyard Lodge pool after a right-click.",
+          "sourceImageSha256": "a820818024405850bf20d5d82dd445c900f481387d4f53d9455aed75bf4d9bfa",
+          "rawBrowserImageSha256": "b8d309f7f7a350500b34ff353d96dc97ea8ab2d29d15f32a191a9c0442e7c089"
         },
         "mobile": {
           "viewport": {
             "width": 390,
             "height": 844
           },
-          "state": "Paused household with Hop in available on the Backyard Rectangle pool menu.",
-          "sourceImageSha256": "5936b5b8e91bb2c3b3b7dafec872ba7e8f24ce9b843664c19bf73b902bae69f9"
+          "state": "Paused household with Hop in open on the Backyard Lodge pool after a long press.",
+          "sourceImageSha256": "377c83f10e957250288c323c457d757268ba42c7a71b1e4d9510bee91ca37491",
+          "rawBrowserImageSha256": "7ac7c961591ff8f1e4dd003d28612dec9cd2b2c3111b44635e3c276e8f3c6c35"
         }
       },
-      "sourceSnapshot": "rectangular-pool-2026-11-23"
+      "sourceSnapshot": "backyard-lodge-2026-11-24"
     },
     {
       "id": "build-access-review",

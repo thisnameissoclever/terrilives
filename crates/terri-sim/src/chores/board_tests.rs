@@ -24,6 +24,115 @@ fn fixture() -> (Sim, SavedChores, ChoreKey) {
     (sim, state, key)
 }
 
+#[test]
+fn being_home_alone_boosts_daily_chore_willingness_without_overriding_critical_needs() {
+    use terri_core::{AtWork, Career, Commuting, NeedId, Needs, SimRng};
+
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let owner = state.episodes.iter().find(|e| e.key == key).unwrap().owner;
+    let people: Vec<_> = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .map(|(person, id)| (person, id.0))
+        .collect();
+    let person = people.iter().find(|(_, id)| *id == owner).unwrap().0;
+    *state
+        .profiles
+        .iter_mut()
+        .find(|p| p.sim_id == owner)
+        .unwrap() = ChoreProfile::neutral(owner);
+    sim.world_mut()
+        .init_resource::<terri_core::save::SavedDomestic>();
+    sim.world_mut()
+        .resource_mut::<terri_core::save::SavedDomestic>()
+        .cleanliness = vec![(person.index_u32(), 0.75)];
+    let seed = (0..100)
+        .find(|&seed| (0.65..0.68).contains(&SimRng::from_seed(seed).next_f32()))
+        .unwrap();
+    state.rng = Some(SimRng::from_seed(seed));
+
+    for (employed, alone, urgent, expected) in [
+        (true, false, None, Some(false)),
+        (false, false, None, Some(false)),
+        (true, true, None, Some(false)),
+        (false, true, Some(NeedId::Hunger), None),
+        (false, true, Some(NeedId::Hygiene), Some(false)),
+        (false, true, None, Some(true)),
+    ] {
+        for (i, &(other, _)) in people.iter().filter(|(e, _)| *e != person).enumerate() {
+            let mut other = sim.world_mut().entity_mut(other);
+            if alone && i == 0 {
+                other.insert(Commuting::Outbound);
+            } else if alone {
+                other.insert(AtWork {
+                    remaining_ticks: 30,
+                });
+            }
+        }
+        let mut actor = sim.world_mut().entity_mut(person);
+        actor.insert(urgent.map_or(Needs::all_at(100.0), |need| Needs::with(need, 0.0)));
+        if employed {
+            actor.insert(Career(0));
+        } else {
+            actor.remove::<Career>();
+        }
+        let mut today = state.clone();
+        board::tick(sim.world_mut(), &mut today);
+        let decision = today
+            .episodes
+            .iter()
+            .find(|e| e.key == key)
+            .unwrap()
+            .decision;
+        assert_eq!(
+            decision, expected,
+            "employed={employed}, alone={alone}, urgent={urgent:?}"
+        );
+    }
+}
+
+#[test]
+fn weekly_assignments_favor_people_without_a_job() {
+    use terri_core::{Career, SimRng};
+
+    let (mut sim, mut state, _) = fixture();
+    let people: Vec<_> = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .map(|(person, id)| (person, id.0))
+        .collect();
+    let (person, id) = people[0];
+    for &(employee, _) in &people {
+        sim.world_mut().entity_mut(employee).insert(Career(0));
+    }
+    for profile in &mut state.profiles {
+        *profile = ChoreProfile::neutral(profile.sim_id);
+    }
+    let samples = |world: &World| {
+        (0..64)
+            .map(|seed| {
+                let mut week = state.clone();
+                week.rng = Some(SimRng::from_seed(seed));
+                board::reconcile(world, &mut week);
+                week.assignments.iter().filter(|a| a.owner == id).count()
+            })
+            .sum::<usize>()
+    };
+    let employed = samples(sim.world());
+    let mut current_week = state.clone();
+    board::reconcile(sim.world(), &mut current_week);
+    sim.world_mut().entity_mut(person).remove::<Career>();
+    assert!(board::reconcile(sim.world(), &mut current_week).is_none());
+    let unemployed = samples(sim.world());
+    assert!(
+        unemployed > employed,
+        "employed={employed}, unemployed={unemployed}"
+    );
+}
+
 /// A housemate held to wait for someone walking over to talk or argue does not
 /// start their duty until released: the loader refuses a reserved recipient
 /// with work of their own, so Build mode would not open.

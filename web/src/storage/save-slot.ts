@@ -195,6 +195,10 @@ async function preserveHistoricalBackup(
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');
   }
   if (previousVersion === CURRENT_SAVE_VERSION) return previous;
+  if (previousVersion === 32) {
+    await preserveV32Backup(root, previous);
+    return previous;
+  }
   let backupFile = `terri-save-1.v${previousVersion}-backup.bin`;
   let existing = await read(root, backupFile);
   if (existing !== null) {
@@ -212,13 +216,34 @@ async function preserveHistoricalBackup(
       throw new Error(`The existing V${previousVersion} recovery backup is unreadable. The saved game was not replaced.`);
     }
   }
+  await writeHistoricalBackup(root, backupFile, previous);
+  return previous;
+}
+
+async function preserveV32Backup(root: SlotDirectory, source: ArrayBuffer): Promise<void> {
+  // Both V32 writers used the same prefix. Only an exact copy protects this source.
+  for (let copy = 1; ; copy++) {
+    const name = copy === 1 ? 'terri-save-1.v32-backup.bin' : `terri-save-1.v32-${copy}-backup.bin`;
+    const existing = await read(root, name);
+    if (existing === null) {
+      await writeHistoricalBackup(root, name, source);
+      return;
+    }
+    if (sameBytes(existing, source)) return;
+  }
+}
+
+async function writeHistoricalBackup(
+  root: SlotDirectory,
+  name: string,
+  source: ArrayBuffer,
+): Promise<void> {
   try {
-    await write(root, backupFile, previous);
+    await write(root, name, source);
   } catch (error: unknown) {
     // Remove only the incomplete backup created by this operation, while
     // still holding the origin lock. A retry must not trust an empty file.
-    await removeIfPresent(root, backupFile);
+    await removeIfPresent(root, name);
     throw error;
   }
-  return previous;
 }

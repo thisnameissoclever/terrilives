@@ -27,6 +27,8 @@ test('accepts every name the save code can write', () => {
     'terri-save-1.v23-published-backup.bin',
     'terri-save-1.v23-standard-backup.bin',
     'terri-save-1.v99999-backup.bin',
+    'terri-save-1.v32-backup.bin',
+    'terri-save-1.v32-2-backup.bin',
   ];
   for (const name of names) assert.ok(isSaveName(name), name);
 });

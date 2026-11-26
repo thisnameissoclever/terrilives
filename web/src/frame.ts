@@ -957,6 +957,8 @@ export interface RenderSource {
   carriedDishes?(): Uint32Array;
   choreProgress?(): Uint32Array;
   poolPhases?(): Uint32Array;
+  poolSlots?(): Uint32Array;
+  prevPoolSlots?(): Uint32Array;
   poolElapsed?(): Uint32Array;
   prevPoolPhases?(): Uint32Array;
   prevPoolElapsed?(): Uint32Array;

@@ -14574,6 +14574,8 @@ mod tests {
                 "pool",
                 "pool_lounger",
                 "pool_rectangular",
+                "pool_above_ground_3x4",
+                "pool_in_ground_5x7",
             ],
             "these are the shipped multi-tile objects, in declaration order; \
              with every object 1x1 this test cannot distinguish a footprint \

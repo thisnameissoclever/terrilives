@@ -1,6 +1,164 @@
 use crate::{Content, Sim};
 use terri_core::{Eating, Facing, Intent, IntentQueue, Path, Position, Target};
 
+fn place_lounger_test_object(
+    sim: &mut Sim,
+    model: &str,
+    origin: (i32, i32),
+    facing: Facing,
+) -> bevy_ecs::entity::Entity {
+    let pack = sim.world().resource::<Content>().0;
+    let id = pack.find(model).unwrap();
+    let definition = pack.object(id);
+    let position = Position {
+        x: origin.0 as f32,
+        y: origin.1 as f32,
+    };
+    let object = sim.spawn_object(position, id);
+    crate::apply_object_placement(sim.world_mut(), object, definition, position, facing);
+    let footprint = definition.footprint_at(facing);
+    let mut grid = sim.world_mut().resource_mut::<terri_core::TileGrid>();
+    for y in origin.1..origin.1 + footprint.depth as i32 {
+        for x in origin.0..origin.0 + footprint.width as i32 {
+            grid.set_blocked(x as usize, y as usize, true);
+        }
+    }
+    object
+}
+
+fn order_lounger(
+    sim: &mut Sim,
+    person: bevy_ecs::entity::Entity,
+    lounger: bevy_ecs::entity::Entity,
+) {
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::UseObjectFirst {
+            agent: person.index_u32(),
+            object: lounger.index_u32(),
+            interaction: 0,
+        });
+}
+
+#[test]
+fn an_empty_pool_lounger_with_blocked_seat_approaches_does_not_keep_an_order_waiting() {
+    let mut sim = Sim::new_with_lot(16, 16);
+    let lounger = place_lounger_test_object(&mut sim, "pool_lounger", (5, 5), Facing::SouthWest);
+    place_lounger_test_object(&mut sim, "pool_in_ground_5x7", (6, 4), Facing::SouthEast);
+    let person = sim.spawn_agent(Position { x: 3., y: 6. }, 100.);
+    {
+        let mut grid = sim.world_mut().resource_mut::<terri_core::TileGrid>();
+        grid.set_blocked(4, 5, true);
+        grid.set_blocked(4, 6, true);
+    }
+    let grid = sim.world().resource::<terri_core::TileGrid>();
+    assert!(!grid.is_walkable(6, 5) && !grid.is_walkable(6, 6));
+    assert!(grid.can_interact_with_rect(
+        (5, 7),
+        (5, 5),
+        terri_core::Footprint { width: 1, depth: 2 },
+    ));
+    assert!(sim.world().get::<terri_core::Reserved>(lounger).is_none());
+
+    order_lounger(&mut sim, person, lounger);
+    sim.tick();
+
+    assert!(sim.world().get::<IntentQueue>(person).unwrap().is_empty());
+    assert!(sim.world().get::<terri_core::Blocked>(person).is_none());
+    let history = sim.action_events_since(0);
+    let failure = history
+        .events
+        .iter()
+        .find(|event| event.phase == "failed")
+        .unwrap();
+    assert_eq!(
+        failure.reason.as_deref(),
+        Some("No reachable seat approach")
+    );
+}
+
+#[test]
+fn an_empty_pool_lounger_is_usable_from_either_long_side_in_each_facing() {
+    for (facing, sides) in [
+        (Facing::SouthWest, [[(6, 5), (6, 6)], [(4, 5), (4, 6)]]),
+        (Facing::SouthEast, [[(5, 4), (6, 4)], [(5, 6), (6, 6)]]),
+        (Facing::NorthWest, [[(5, 6), (6, 6)], [(5, 4), (6, 4)]]),
+        (Facing::NorthEast, [[(4, 5), (4, 6)], [(6, 5), (6, 6)]]),
+    ] {
+        for [open, closed] in [sides, [sides[1], sides[0]]] {
+            let mut sim = Sim::new_with_lot(16, 16);
+            let lounger = place_lounger_test_object(&mut sim, "pool_lounger", (5, 5), facing);
+            {
+                let mut grid = sim.world_mut().resource_mut::<terri_core::TileGrid>();
+                for (x, y) in [closed[0], closed[1], open[0]] {
+                    grid.set_blocked(x as usize, y as usize, true);
+                }
+            }
+            let endpoint = open[1];
+            let person = sim.spawn_agent(Position { x: 3., y: 8. }, 100.);
+            order_lounger(&mut sim, person, lounger);
+            sim.tick();
+            assert_eq!(
+                sim.world()
+                    .get::<Path>(person)
+                    .and_then(|path| path.steps.last()),
+                Some(&endpoint),
+                "{facing:?}, only {endpoint:?} is open"
+            );
+            for _ in 0..120 {
+                sim.tick();
+                if sim.world().get::<Eating>(person).is_some() {
+                    break;
+                }
+            }
+            assert!(sim.world().get::<Eating>(person).is_some(), "{facing:?}");
+            assert_eq!(
+                sim.world()
+                    .get::<super::PhysicalClaim>(person)
+                    .unwrap()
+                    .furniture,
+                lounger
+            );
+        }
+    }
+}
+
+#[test]
+fn a_directed_pool_lounger_order_waits_for_an_actual_occupant() {
+    let mut sim = Sim::new_with_lot(16, 16);
+    let lounger = place_lounger_test_object(&mut sim, "pool_lounger", (5, 5), Facing::SouthWest);
+    let first = sim.spawn_agent(Position { x: 6., y: 6. }, 100.);
+    let second = sim.spawn_agent(Position { x: 4., y: 7. }, 100.);
+    order_lounger(&mut sim, first, lounger);
+    order_lounger(&mut sim, second, lounger);
+    sim.tick();
+
+    assert!(sim.world().get::<Eating>(first).is_some());
+    assert!(sim.world().get::<terri_core::Blocked>(second).is_some());
+    assert_eq!(sim.world().get::<IntentQueue>(second).unwrap().len(), 1);
+
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::CancelIntents {
+            agent: first.index_u32(),
+        });
+    for _ in 0..65 {
+        sim.tick();
+        if sim.world().get::<Eating>(second).is_some() {
+            break;
+        }
+    }
+    assert!(sim.world().get::<terri_core::Blocked>(second).is_none());
+    assert_eq!(
+        sim.world()
+            .get::<super::PhysicalClaim>(second)
+            .unwrap()
+            .furniture,
+        lounger
+    );
+    assert!(sim.world().get::<Eating>(second).is_some());
+}
+
 #[test]
 fn build_replans_the_same_media_seat_and_updates_its_owned_endpoint() {
     use terri_core::layout::{EdgeAxis, WallState};

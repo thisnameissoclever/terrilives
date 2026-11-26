@@ -479,7 +479,14 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
     let (retained, appended) = current.objects.split_at(legacy.objects.len());
     assert_eq!(
         appended.iter().map(|o| o.id.as_str()).collect::<Vec<_>>(),
-        ["pool", "pool_lounger", "patio_umbrella", "pool_rectangular"]
+        [
+            "pool",
+            "pool_lounger",
+            "patio_umbrella",
+            "pool_rectangular",
+            "pool_above_ground_3x4",
+            "pool_in_ground_5x7",
+        ]
     );
     for object in appended {
         assert!(published.find(&object.id).is_none(), "{} is new", object.id);
@@ -741,46 +748,58 @@ fn yard_furniture_declares_its_types_footprints_and_the_lounger_sit() {
 }
 
 #[test]
-fn the_yard_catalogue_offers_the_rectangular_pool_and_retains_the_square_model() {
+fn the_yard_catalogue_offers_both_new_pools_and_retains_the_legacy_models() {
     use terri_data::{Facing, Footprint};
 
     let pack = terri_data::pack();
-    let legacy_id = pack.find("pool").expect("saved square pool model");
-    let replacement_id = pack
+    let square_id = pack.find("pool").expect("saved square pool model");
+    let rectangle_id = pack
         .find("pool_rectangular")
-        .expect("rectangular pool model");
-    let legacy = pack.object(legacy_id);
-    let replacement = pack.object(replacement_id);
-    assert_eq!(legacy.price, Some(1200));
-    assert_eq!(replacement.price, legacy.price);
-    assert_eq!(replacement.bill_daily, legacy.bill_daily);
-    assert_eq!(replacement.interactions, legacy.interactions);
-    assert_eq!(replacement.display_name(), "Pool");
+        .expect("saved rectangle pool model");
+    let lodge_id = pack
+        .find("pool_above_ground_3x4")
+        .expect("larger above-ground pool model");
+    let in_ground_id = pack
+        .find("pool_in_ground_5x7")
+        .expect("in-ground pool model");
+    let square = pack.object(square_id);
+    let rectangle = pack.object(rectangle_id);
+    let lodge = pack.object(lodge_id);
+    let in_ground = pack.object(in_ground_id);
+    assert_eq!(square.price, Some(1200));
+    assert_eq!(rectangle.price, square.price);
+    assert_eq!(lodge.price, Some(1500));
+    assert_eq!(in_ground.price, Some(2400));
+    for model in [square, rectangle, lodge, in_ground] {
+        assert_eq!(model.bill_daily, square.bill_daily);
+        assert_eq!(model.interactions, square.interactions);
+        assert_eq!(model.display_name(), "Pool");
+        assert_eq!(model.base_facing, Facing::SouthEast);
+    }
     let offered: Vec<_> = pack
         .catalogue()
         .filter(|(_, model, _)| model.display_name() == "Pool")
         .map(|(id, _, _)| id)
         .collect();
-    assert_eq!(offered, [replacement_id]);
-    assert_eq!(replacement.base_facing, Facing::SouthEast);
-    for (facing, (width, depth)) in Facing::ALL
-        .into_iter()
-        .zip([(3, 2), (2, 3), (3, 2), (2, 3)])
-    {
-        assert!(replacement.supports(facing), "{facing:?}");
-        assert_eq!(replacement.footprint_at(facing), Footprint { width, depth });
-        assert_eq!(
-            legacy.footprint_at(facing),
-            Footprint { width: 2, depth: 2 }
-        );
+    assert_eq!(offered, [lodge_id, in_ground_id]);
+    for (model, sizes) in [
+        (square, [(2, 2), (2, 2), (2, 2), (2, 2)]),
+        (rectangle, [(3, 2), (2, 3), (3, 2), (2, 3)]),
+        (lodge, [(4, 3), (3, 4), (4, 3), (3, 4)]),
+        (in_ground, [(7, 5), (5, 7), (7, 5), (5, 7)]),
+    ] {
+        for (facing, (width, depth)) in Facing::ALL.into_iter().zip(sizes) {
+            assert!(model.supports(facing), "{} {facing:?}", model.id);
+            assert_eq!(model.footprint_at(facing), Footprint { width, depth });
+        }
     }
 }
 
 /// The lounger's one seat and its two approach tiles in every facing,
 /// from an origin of (10, 20) so a transposed origin cannot pass. The
 /// lounger is authored facing south-west with its backrest on the first
-/// tile; the seat is the center of the second tile, facing the long side
-/// both approaches stand beside. Approaches are offsets from the origin
+/// tile; the seat is the center of the second tile, facing a long side.
+/// Both long sides provide approaches. Approaches are offsets from the origin
 /// tile, and a seat facing names the lot direction as the content does:
 /// SE is +x, NW is -x, SW is +y and NE is -y.
 #[test]
@@ -795,25 +814,25 @@ fn pool_lounger_seat_and_approaches_turn_with_the_lounger() {
             Facing::SouthWest,
             (0.0, 1.0),
             Seat::PositiveX,
-            vec![(1, 0), (1, 1)],
+            vec![(1, 0), (1, 1), (-1, 0), (-1, 1)],
         ),
         (
             Facing::SouthEast,
             (1.0, 0.0),
             Seat::NegativeY,
-            vec![(0, -1), (1, -1)],
+            vec![(0, -1), (1, -1), (0, 1), (1, 1)],
         ),
         (
             Facing::NorthWest,
             (0.0, 0.0),
             Seat::PositiveY,
-            vec![(0, 1), (1, 1)],
+            vec![(0, 1), (1, 1), (0, -1), (1, -1)],
         ),
         (
             Facing::NorthEast,
             (0.0, 0.0),
             Seat::NegativeX,
-            vec![(-1, 0), (-1, 1)],
+            vec![(-1, 0), (-1, 1), (1, 0), (1, 1)],
         ),
     ] {
         assert_eq!(

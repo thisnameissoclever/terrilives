@@ -22,6 +22,7 @@ mod relationship_tuning;
 pub use need_tuning::NeedInteractionTuning;
 pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
+pub mod swimming;
 
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
@@ -3492,6 +3493,8 @@ mod tests {
                 "nightstand",
                 "patio_umbrella",
                 "pool",
+                "pool_above_ground_3x4",
+                "pool_in_ground_5x7",
                 "pool_lounger",
                 "pool_rectangular",
                 "potted_plant",
@@ -3948,7 +3951,14 @@ mod tests {
         );
         assert_eq!(
             unplaced,
-            ["patio_umbrella", "pool", "pool_lounger", "pool_rectangular"],
+            [
+                "patio_umbrella",
+                "pool",
+                "pool_above_ground_3x4",
+                "pool_in_ground_5x7",
+                "pool_lounger",
+                "pool_rectangular",
+            ],
             "only yard furniture is absent from the starting house"
         );
     }

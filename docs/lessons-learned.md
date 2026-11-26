@@ -12371,6 +12371,8 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: retain both frozen readers, emit a new combined version, and require complete decoding plus authoritative validation of each historical candidate. Adopt exactly one valid candidate and reject ambiguity before changing the live world. Keep original bytes in a version-specific browser recovery file.
 4. Verification: load authentic files produced by both old binaries, including active conversations and queued creator commands. Preserve random state and continuation, reject truncated or trailing data transactionally, and confirm that cached old writers refuse the new format. Preserve existing zero-as-unlimited queue semantics in every envelope validator.
 
+Version 32 also collided when one writer extended the save with hobby mood and another kept the previous layout for shared swimming. The browser saw identical version headers and compatible content fingerprints. When those prefixes cannot identify a producer, compare complete backup bytes inside the save lock before reusing a recovery file. Test both migration orders, repeated migration of the same bytes and a failed backup write before overwriting the playable slot.
+
 ## [L-reset-defaults-not-baseline] Keep Reset defaults separate from the edit baseline
 
 1. What happened: Reset restored the initial random draft, so activity preferences remained arbitrary rather than returning to 1.0x.
@@ -14068,3 +14070,50 @@ Show the full object from the clearest angle before accepting an art change that
 2. Root cause: the website's hide save may skip while another operation runs, because the page keeps running and the next autosave catches up. A close ends the page, so the same skip loses the save. The boundary rule from [L64] was right; the caller assumed a skipped save was harmless.
 3. Prevention: a save requested just before the page or process ends first waits for the active operation (`PersistenceController.whenIdle`), checks again that New game is not starting, then saves. The Electron main process holds `will-quit` until queued save file writes finish, for at most five seconds. Each wait is bounded: the page's close save by the app's ten-second limit, and the quit hold for file writes by five more seconds.
 4. Verification: the controller and bridge tests hold a save open and require the close save to wait and then run, and to skip if New game began meanwhile. The save-files test requires `idle()` to wait for a queued write, including a refused one.
+## [L-pool-ladder-depth] Follow the ladder down from the deck into the water
+
+The first in-ground pool concept drew bright submerged rungs over the water. Moving them behind the near rim hid the connection between the rails and the rungs, making the rails appear to end inside the wall.
+
+Check the ladder from both sides in the game. From the exposed side, follow each rail over the coping and down to a submerged rung inside the basin. From the near side, verify that the coping hides the submerged portion. Compare the two views before accepting a change to depth or contrast.
+
+The first rendered basin also had a thin outline below the outer edge of the deck. Blender hid the buried walls, then Freestyle traced their outlines into the transparent pixels. Restrict outlines to the exposed surfaces and inspect the exported sprite over ground color from all four facings. The deck should meet the ground at its coping.
+
+## [L-reachable-company] Use chat reachability when a decision depends on company
+
+The first version of the home-alone chore boost counted an awake housemate across a sealed wall as company. The check used presence and wakefulness alone.
+
+Use the same reachable contact tile as the activity the Sim would share. Test the two housemates with an open route, then seal the connecting boundary and repeat the decision with the same status and needs.
+
+## [L-hobby-activity-lifetime] Check activity replacement before crediting the next minute
+
+A hobby mood lift originally carried into the activity that replaced it on the same tick. Consecutive credit identified the sequence of minutes. A Sim could stop, take a new order and begin work before the minute ended.
+
+Tie the lift to its active work. Clear it after cancellation and before a replacement can physically begin. Test a restart at the same target and a switch between reachable objects that share the same approach tile. When loading, verify the active action and allow an obsolete hobby tag to lose its lift without losing the household.
+## [L-shared-pool-claim] Reserve the ladder on the final step
+
+The first shared-pool reader accepted an approaching swimmer whenever the last waypoint was the ladder, even if earlier steps remained. A restored swimmer could then hold the ladder while walking elsewhere. A Build detour or a privacy reroute could create the same contradiction in play.
+
+Require exactly one remaining step to the ladder, or require the person to be standing there when the path is exhausted. Release a claim when a reroute adds a step before the ladder. Test an earlier cursor, an exhausted cursor away from the ladder, and a route that reaches the ladder, leaves, and returns.
+
+## [L-waiting-stroke-wrap] Interpolate through an animation loop in order
+
+A swimmer waiting for the ladder paddled backward briefly when the recorded stroke timer restarted. The renderer interpolated between the raw timer values and missed the loop boundary because the action had stayed in the same phase.
+
+Advance the next sample into the same loop interval first. Check both endpoints and the midpoint of the wrap, and verify that the swimmer's place in the water stays fixed.
+
+## [L-action-contact-before-wait] Check the requested contact before reporting a wait
+
+An empty lounger left a housemate waiting for someone to finish using it. The planner found a route to a short end while both long sides were blocked, then treated the absence of a usable seat approach as an occupancy problem.
+
+Check reachability against the contacts for the requested action before checking ownership. Give an unreachable directed order a route failure and exclude the unreachable action from autonomous wait choices. Verify a blocked seat with a free perimeter tile, a usable long side in each facing, and a real wait that ends when the occupant leaves.
+## [L-object-menu-geometry-invalidation] Reposition a menu when its geometry changes
+
+Opening a bookcase menu at 3× speed dropped a local Chrome run from 60 to 13 to 15 frames per second. The simulation clock reran the full radial layout even when the camera and object stood still. Each pass searched 112 times for space for a collapsed description.
+
+Use the position of the target and the sizes of the menu and nearby controls to decide when placement is stale. Keep optional text in the measured layout only while it is visible. Verify the same running lot with the menu closed, open, and expanded. Run the comparison at 3× speed and check that a stationary menu does not write new positions on simulation ticks.
+
+## [L-recline-support-regions] Check which parts of the body support a recline
+
+The Sunstrip pose passed a clearance check while a hand held the body above the cushion and the head remained upright. The check used the closest vertex anywhere on the body. The fit also treated that closest point as support.
+
+Fit the hips and upper back to their cushions while checking the entire body for clipping. Measure the head angle separately. Compare the pose with the original at normal play zoom and close up, and include short, tall, slim, and broad people.

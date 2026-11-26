@@ -27,7 +27,7 @@ describe('committed atlas packet validation',()=>{
     validateAtlasStorage(ATLAS_STORAGE,gpu().device);
     const lookup=await decodeAtlasLookup(rawLookup,ATLAS_STORAGE);
     const packet=await decodeAtlasCoverage(rawCoverage,ATLAS_STORAGE);
-    expect(lookup.length).toBe(56*256*256);
+    expect(lookup.length).toBe(59 * 256 * 256);
     expect(Math.max(...lookup.subarray(0,65536))).toBeGreaterThan(0);
     expect(packet.bodies).toHaveLength(1428);expect(packet.dishes).toHaveLength(16);expect(packet.indicators).toHaveLength(82);
   });

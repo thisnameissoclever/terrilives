@@ -520,6 +520,44 @@
       }
     },
     {
+      "id": "object:pool_above_ground_3x4/hop_in",
+      "article": "activities",
+      "section": "swimming",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/player_actions.rs",
+        "crates/terri-sim/src/pool.rs",
+        "crates/terri-sim/src/systems/action.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/movement.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Lodge holds two swimmers. Entry lasts 20 game minutes, active swimming 60, the return to the ladder 8 and climbing out 40. Waiting for the ladder can add time. Only active swimming delivers the baseline Fun +30, Comfort +10 and Energy -5. Ordinary decay and personality scaling still apply. Saves preserve each swimmer's place and phase."
+      }
+    },
+    {
+      "id": "object:pool_in_ground_5x7/hop_in",
+      "article": "activities",
+      "section": "swimming",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/player_actions.rs",
+        "crates/terri-sim/src/pool.rs",
+        "crates/terri-sim/src/systems/action.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/movement.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Basin holds four swimmers. Entry lasts 20 game minutes, active swimming 100, the return to the ladder 8 and climbing out 40. Waiting for the ladder can add time. Only active swimming delivers the baseline Fun +30, Comfort +10 and Energy -5. Ordinary decay and personality scaling still apply. Saves preserve each swimmer's place and phase."
+      }
+    },
+    {
       "id": "object:pool_lounger/sit",
       "article": "activities",
       "section": "chairs",
@@ -533,7 +571,7 @@
       ],
       "numbers": [],
       "review": {
-        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+        "basis": "Sunstrip holds one person and is reachable from either long side. The housemate reclines in swimwear. The action supplies only its authored Comfort. Actual occupied secondary seating is separate."
       }
     },
     {
@@ -1117,10 +1155,11 @@
         "content/skills.toml",
         "content/traits.toml",
         "crates/terri-sim/src/skills.rs",
+        "crates/terri-sim/src/hobby_mood.rs",
         "crates/terri-sim/src/systems/satisfaction.rs"
       ],
       "review": {
-        "basis": "Completed attempts teach; hobbies scale completion satisfaction; skill does not universally accelerate or increase physical benefits."
+        "basis": "Completed attempts teach. Hobbies scale any completion satisfaction and give a separate capped mood lift that grows during active hobby minutes. Travel, waiting and book returns earn no lift. The lift ends when the activity stops and survives saving during the activity. Skill does not universally accelerate or increase physical benefits."
       }
     },
     {
@@ -1158,6 +1197,7 @@
         "crates/terri-sim/src/chores/board.rs",
         "crates/terri-sim/src/chores/consequences.rs",
         "crates/terri-sim/src/chores/mod.rs",
+        "crates/terri-sim/src/chores/policy.rs",
         "crates/terri-sim/src/chores/work.rs",
         "crates/terri-sim/src/domestic.rs",
         "crates/terri-sim/src/neglect.rs",
@@ -1165,7 +1205,7 @@
         "crates/terri-sim/src/systems/chain.rs"
       ],
       "review": {
-        "basis": "Cleaning removes real dirt and physical completion earns other living housemates appreciation toward its actual cleaner, with or without board assignments, but supplies no bodily need reward. Canceled or zero-unit work earns none; already removed dirt remains removed. Accepted chore-argument responses yield to critical needs, work, book returns and player orders; failed routing ends the attempt, waiting does not reroll. The same assigned recipient must earn completion credit for the original duty in time for repair. Dish credit follows the largest current-duty contribution, with positive recipient washing during the window, regardless of the final washer. Preparation and transport cannot claim consumption benefits."
+        "basis": "Cleaning removes real dirt and physical completion earns other living housemates appreciation toward its actual cleaner, with or without board assignments, but supplies no bodily need reward. New assignments favor housemates without jobs while accounting for preference and workload. Housemates without jobs have higher odds of accepting a daily duty or washing dishes spontaneously, particularly when they can't reach another awake housemate on the lot. Any critical need pauses the boost. Canceled or zero-unit work earns no appreciation; already removed dirt remains removed. Accepted chore-argument responses yield to critical needs, work, book returns and player orders; failed routing ends the attempt, waiting does not reroll. The same assigned recipient must earn completion credit for the original duty in time for repair. Dish credit follows the largest current-duty contribution, with positive recipient washing during the window, regardless of the final washer. Preparation and transport cannot claim consumption benefits."
       }
     }
   ],

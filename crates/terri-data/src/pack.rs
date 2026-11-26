@@ -2086,14 +2086,19 @@ impl ContentPack {
         &self.objects[id.0 as usize]
     }
 
-    /// The Buy tool's offers in pack order ([BM-shell]). The square pool keeps
-    /// its price for purchases already queued in a save and for resale.
+    /// The Buy tool's offers in pack order ([BM-shell]). Legacy pools keep
+    /// their prices for purchases already queued in a save and for resale.
     pub fn catalogue(&self) -> impl Iterator<Item = (ObjectDefId, &CompiledObject, u32)> + '_ {
-        let has_rectangular_pool = self.find("pool_rectangular").is_some();
+        let show_rectangle = self.find("pool_above_ground_3x4").is_none();
+        let show_square = show_rectangle && self.find("pool_rectangular").is_none();
         self.objects
             .iter()
             .enumerate()
-            .filter(move |(_, object)| !has_rectangular_pool || object.id != "pool")
+            .filter(move |(_, object)| match object.id.as_str() {
+                "pool" => show_square,
+                "pool_rectangular" => show_rectangle,
+                _ => true,
+            })
             .filter_map(|(index, object)| Some((ObjectDefId(index as u32), object, object.price?)))
     }
 

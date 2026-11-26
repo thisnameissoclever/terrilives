@@ -1057,7 +1057,7 @@ export function resolveRightClick(
     if(point&&target.floorChoreAt){const [x,y]=screenToWorld(point.x,point.y,originX,originY,scale);const floor=target.floorChoreAt(Math.round(x),Math.round(y));if(floor.length===2)return floorMenuEntries(floor[0],floor[1]);}
     return NOTHING_MENU;
   }
-  if (pick.bookCopy !== undefined) return { title: 'Book', entries: [{ label: 'Recover book', enabled: (target.canRecoverBook?.(pick.bookCopy) ?? false) && (target.pendingBookCommands?.() ?? 0) === 0, action: { kind: 'recover-book', copy: pick.bookCopy } }] };
+  if (pick.bookCopy !== undefined) return { title: 'Book', book: pick.bookCopy, entries: [{ label: 'Recover book', enabled: (target.canRecoverBook?.(pick.bookCopy) ?? false) && (target.pendingBookCommands?.() ?? 0) === 0, action: { kind: 'recover-book', copy: pick.bookCopy } }] };
   if (pick.isAgent) {
     if (target.selectedIndex() === null) return null;
     // The selected sim itself: nothing to do but close. A DIFFERENT

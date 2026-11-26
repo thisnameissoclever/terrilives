@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { SURFACE_LAYOUTS, spriteIndex } from '../src/render/atlas.js';
-import { surfaceItemCount, surfaceItemSprite, surfacePointIndex, surfaceItemDishIds } from '../src/render/surface-items.js';
+import { surfaceDishPoint, surfaceItemCount, surfaceItemSprite, surfacePointIndex, surfaceItemDishIds } from '../src/render/surface-items.js';
+
+it('locates each selected stack of dishes at its own authored point', () => {
+  const table = SURFACE_LAYOUTS[spriteIndex('offlineDiningTable')];
+  const counter = SURFACE_LAYOUTS[spriteIndex('offlineCounter')];
+  const piles = Uint32Array.of(90, 0, 701, 90, 2, 702, 90, 2, 703, 91, 4, 704);
+  expect(surfaceDishPoint(table, 90, [701], piles)).toBe(table.points[0]);
+  expect(surfaceDishPoint(table, 90, [702, 703], piles)).toBe(table.points[2]);
+  expect(surfaceDishPoint(counter, 91, [704], piles)).toBe(counter.points[0]);
+  expect(surfaceDishPoint(table, 90, [704], piles)).toBeUndefined();
+});
 
 describe('authored surface occupancy',()=>{
   it.each(['','NW','SW','NE'])('keeps counter prep and all three meals apart in facing %s',(facing)=>{

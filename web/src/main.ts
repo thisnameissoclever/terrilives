@@ -37,7 +37,8 @@ import { WallTool, nearestLine, type WallLine } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { floorPoint, pickWallFace, wallFaces } from './ui/wall-pick.js';
 import { WallView, WallViewControls } from './ui/wall-view.js';
-import { withHoverLine } from './render/placement-preview.js';
+import { placementInstanceCount, withHoverLine } from './render/placement-preview.js';
+import { inGroundPoolFloorOpenings } from './render/in-ground-pool-terrain.js';
 import { WindowTool } from './ui/window-tool.js';
 import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
@@ -47,6 +48,8 @@ import { BuildSceneFeedback, PendingIndicator, SceneFeedback, operationFeedback 
 import { PersistenceSceneFeedback } from './ui/persistence-feedback.js';
 import { SceneLayoutObserver } from './ui/scene-feedback-layout.js';
 import { screenX, screenY } from './render/iso.js';
+import { fixtureRegistration } from './render/fixture-registration.js';
+import { surfaceDishPoint, surfaceLayout } from './render/surface-items.js';
 import type { BuildReview } from './rooms/codec.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
@@ -64,7 +67,7 @@ import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { edgesWithShell } from './render/house-shell.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
-import {prepareWorldPoolRigs} from './render/character/creator-assets.js';
+import {prepareWorldLoungerRig,prepareWorldPoolRigs} from './render/character/creator-assets.js';
 import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.js';
 import {CharacterFrameMeasurement,type CharacterFrameReport} from './render/character/measurement.js';
 import {DeviceLifetime} from './render/character/device-lifetime.js';
@@ -130,7 +133,7 @@ import { BuildContextActions, createContextSurface, ghostAnchorTop, ghostAnchorX
 import { canvasToClient } from './input.js';
 import { createCompactBuildLayout } from './ui/build-layout.js';
 import { installShortcuts } from './ui/shortcuts.js';
-import { KIND_AGENT } from './render/instances.js';
+import { ACTIVITY_AT_WORK, KIND_AGENT } from './render/instances.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { desktopBridge, registerDesktopSaveRequests } from './storage/desktop-bridge.js';
@@ -139,7 +142,7 @@ import { connectDesktopUpdates } from './ui/desktop-update-notice.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { ClearOrdersAvailability, OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
 import { OrderHistoryPanel } from './ui/order-history.js';
-import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
+import { failureBubbleAnchor, OrderFailureBubbles } from './ui/order-failure-bubbles.js';
 import { BubbleControls } from './ui/bubble-controls.js';
 import { AnnotationSpread } from './render/annotation-spread.js';
 import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
@@ -472,6 +475,7 @@ async function main(): Promise<void> {
   const preparedBuildCommit = new PreparedBuildCommit(contactRoster, {
     poolRequired: token => sim.buildPoolContactRequired(token),
     appearances: () => sim.characterAppearances(),
+    prepareSceneAssets: () => prepareWorldLoungerRig(sim),
     pending: active => { buildPoolPending = active; reflectBuildPoolPending(active); },
   });
   const runPreparedBuildCommit: typeof preparedBuildCommit.run = (token, adopt) => preparedBuildCommit.run(token, adopt);
@@ -489,7 +493,8 @@ async function main(): Promise<void> {
     const loaded=await loadPreparedCharacterState(bytes,buildSession,()=>{
       const candidate=SimHandle.from_lot(),source=new SimBridge(candidate,wasm.memory);
       return {loadBytes:(bytes:Uint8Array)=>source.loadBytes(bytes),characterAppearances:()=>source.characterAppearances(),
-        poolContactRequired:()=>source.poolContactRequired(),flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
+        poolContactRequired:()=>source.poolContactRequired(),prepareSceneAssets:()=>prepareWorldLoungerRig(source),
+        flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
     },contactRoster,undefined,()=>{
       if(restoringStartup)loading.note('Preparing swimming');
       else persistence.preparingSwimming();
@@ -573,6 +578,7 @@ async function main(): Promise<void> {
   } finally { closeArchitectureAtlas(architectureAtlas); }
   loading.note('Loading character models');
   await afterPaint();
+  await prepareWorldLoungerRig(sim);
   let characterWorld=await CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
   let weatherScene = new WeatherScene(gpu.device);
   const weatherTuning = sim.weatherTuning();
@@ -1440,6 +1446,7 @@ async function main(): Promise<void> {
       // the list by height.
       lot.floors = sim.floorTiles();
       lot.surfaces = sim.worldSurfaces();
+      refreshPoolFloorOpenings();
       lot.doors = sim.interiorDoorLines();
       lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lot.frontDoors = sim.frontDoorLines();
@@ -1785,6 +1792,8 @@ async function main(): Promise<void> {
   const tallestBoundarySprite = Math.max(
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
+  let poolFloorOpenings = inGroundPoolFloorOpenings(sim);
+  let hiddenPoolOpening: number | null = null;
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
     windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
@@ -1793,6 +1802,7 @@ async function main(): Promise<void> {
     floorPreview: null as readonly number[] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
+    floorOpenings: poolFloorOpenings,
     surfaces: sim.worldSurfaces(),
     coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
@@ -1806,6 +1816,14 @@ async function main(): Promise<void> {
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
+  function refreshPoolFloorOpenings(): void {
+    poolFloorOpenings = inGroundPoolFloorOpenings(sim);
+    showPoolFloorOpenings();
+  }
+  function showPoolFloorOpenings(): void {
+    lot.floorOpenings = hiddenPoolOpening === null ? poolFloorOpenings
+      : poolFloorOpenings.filter(opening => opening.entity !== hiddenPoolOpening);
+  }
   // The house's implicit shell is a wall to the lamps and the sky once
   // bought land lies beyond it (land expansion, issue 254).
   const lightingEdges = (): Uint32Array | null =>
@@ -1951,13 +1969,51 @@ async function main(): Promise<void> {
   // off, because every object on it offers exactly one.
   // Queue mode or the modifier held on the row: either appends, the same
   // rule the canvas click follows.
-  let menuSceneAnchor: {x: number; y: number} | null = null;
+  const menuKeepouts = ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls',
+    'activity-log-toggle', 'activity-log', 'sim-sheet', 'options-panel', 'builder-dock']
+    .map(id => document.getElementById(id)).filter((element): element is HTMLElement => element !== null);
+  const menuHead = (person: number) => {
+    const row = sim.ids().indexOf(person);
+    if (row < 0 || sim.activities()[row] === ACTIVITY_AT_WORK) return null;
+    const head = characterWorld.plan.actorAt(row)?.head;
+    if (head) return head;
+    const positions = sim.positions();
+    return [positions[row * 2], positions[row * 2 + 1], 1.7] as const;
+  };
+  const menuBookPosition = (book: number) => {
+    const row = sim.droppedBookIds().indexOf(book);
+    if (row < 0) return null;
+    const positions = sim.droppedBookPositions();
+    return [positions[row * 2], positions[row * 2 + 1]] as const;
+  };
+  const menuDishPosition = (surface: number, dishes: readonly number[], row: number) => {
+    const layout = surfaceLayout(sim.sprites()[row]);
+    return layout && surfaceDishPoint(layout, surface, dishes, sim.dishPiles());
+  };
   const menu: ObjectMenu = new ObjectMenu(createMenuSurface(document, menuRoot, {
     anchor(model) {
-      if (model.object === undefined) return null;
-      const row = Array.from(sim.ids()).indexOf(model.object);
+      if (model.person !== undefined) {
+        const head = menuHead(model.person);
+        return head && failureBubbleAnchor([head[0], head[1], head[2] - 0.33],
+          { ...camera, width: stage.width, height: stage.height, rect: stage.getBoundingClientRect() });
+      }
+      if (model.book !== undefined) {
+        const position = menuBookPosition(model.book);
+        return position && canvasToClient(screenX(...position, camera.originX, camera.scale),
+          screenY(...position, camera.originY, camera.scale), stage.getBoundingClientRect(), stage.width, stage.height);
+      }
+      if (model.object === undefined) return undefined;
+      const row = sim.ids().indexOf(model.object);
       if (row < 0) return null;
-      const positions = sim.positions(), x = positions[row * 2], y = positions[row * 2 + 1];
+      const offsets = fixtureRegistration(sim).offsets;
+      const positions = sim.positions();
+      const x = positions[row * 2] + offsets[row * 2], y = positions[row * 2 + 1] + offsets[row * 2 + 1];
+      if (model.dishes) {
+        const point = menuDishPosition(model.object, model.dishes, row);
+        return point ? canvasToClient(screenX(x, y, camera.originX, camera.scale) + point[0] * camera.scale,
+          screenY(x, y, camera.originY, camera.scale) + point[1] * camera.scale,
+          stage.getBoundingClientRect(), stage.width, stage.height) : null;
+      }
       const sprite = sim.sprites()[row];
       const object = sim.objectModel(model.object);
       if (!object) return null;
@@ -1968,13 +2024,17 @@ async function main(): Promise<void> {
         stage.getBoundingClientRect(), stage.width, stage.height);
       return point;
     },
-    revision: () => [camera.originX, camera.originY, camera.scale, stage.width, stage.height, sim.clockTick()].join(','),
-    keepouts: () => ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls']
-      .map(id => document.getElementById(id)?.getBoundingClientRect())
-      .filter((rect): rect is DOMRect => !!rect && rect.width > 0 && rect.height > 0),
+    revision(model) {
+      const position = model.person !== undefined ? menuHead(model.person) : model.book !== undefined ? menuBookPosition(model.book) : null;
+      const motion = position?.map(value => Math.round(value * camera.scale * 34)).join(',') ?? '';
+      const dish = model.dishes && model.object !== undefined
+        ? menuDishPosition(model.object, model.dishes, sim.ids().indexOf(model.object))?.join(',') ?? 'removed' : '';
+      return `${camera.originX},${camera.originY},${camera.scale},${stage.width},${stage.height},${sim.lotRevision()},${motion},${dish}`;
+    },
+    keepouts: menuKeepouts,
     dismiss: () => menu.close(),
     closed: () => sceneFeedback.anchor(null),
-    positioned: point => { menuSceneAnchor = point; sceneFeedback.anchor(point); },
+    positioned: point => sceneFeedback.anchor(point),
   }), (action, additive) => {
     if (action.kind === 'build') {
       if (overlayPause.suspendedExcept('builder') || builder.pending) return;
@@ -2288,7 +2348,7 @@ async function main(): Promise<void> {
     cancel.textContent = pending ? 'Return to build mode' : 'Cancel';
     buildBatchStatus.dataset.pending = String(pending && !roomReview.active);
     if (roomReview.active) reviewControls?.render();
-    else setBuildStatus(pending ? 'Preparing swimming…' : '');
+    else setBuildStatus(pending ? 'Preparing animations…' : '');
   };
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {
@@ -2332,6 +2392,7 @@ async function main(): Promise<void> {
     lot.windows = sim.windowLines();
     lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
     lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces(); syncFloorResources();
+    refreshPoolFloorOpenings();
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
@@ -2468,8 +2529,7 @@ async function main(): Promise<void> {
     const viewport=stage.getBoundingClientRect();
     return {left:viewport.left,top:viewport.top,right:viewport.right,
       bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
-  },sceneObstacles,[stage,builderDock], () => menuRoot.hidden ? [] :
-    Array.from(menuRoot.querySelectorAll<HTMLElement>('.menu-entry, .radial-identity, .radial-close, .radial-description, .object-action-rail')));
+  },sceneObstacles,[stage,builderDock]);
   let highlightRevision = sim.lotRevision();
   const renderBuildFeedback = (now: number): void => {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
@@ -2614,6 +2674,7 @@ async function main(): Promise<void> {
     }
     if (event.key === 'Enter') {
       event.preventDefault();
+      if (event.repeat) return;
       const action = keyboardTargets.activate();
       if (action.kind === 'select') {
         const accepted = sim.select(action.entity);
@@ -2755,7 +2816,7 @@ async function main(): Promise<void> {
   );
   function openBookCopy(copy: number): void {
     const rect = stage.getBoundingClientRect();
-    menu.open({ title: 'Book', entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
+    menu.open({ title: 'Book', book: copy, entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
       rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -2908,6 +2969,19 @@ async function main(): Promise<void> {
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (presenting&&floorScene.visible&&!graphicsRecovering) {
+      const purchaseGhost = buyTool.ghost();
+      const placement = purchaseGhost ?? builder.preview;
+      // Editing marks the original furniture. Play mode marks the selected Sim.
+      const selected = builder.active ? builder.selected : sim.selectedIndex();
+      // The move ghost replaces the selected object's live sprite. Put the
+      // floor back at its old location until the native placement lands.
+      const previewPool = builder.active && placementInstanceCount(placement) > 0
+        && poolFloorOpenings.some(opening => opening.entity === selected) ? selected : null;
+      if (previewPool !== hiddenPoolOpening) {
+        hiddenPoolOpening = previewPool;
+        showPoolFloorOpenings();
+        cameraDirty = true;
+      }
       if (cameraDirty) applyCamera();
       renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
 
@@ -2915,8 +2989,6 @@ async function main(): Promise<void> {
       // frame's pan and zoom.
       if(placementButtons.frame(camera, stage.width, stage.height))sceneLayout.invalidate();
       renderBuildFeedback(nowMs);
-      // Editing marks the original furniture; play mode marks the selected Sim.
-      const selected = builder.active ? builder.selected : sim.selectedIndex();
       const ambient=lightingMode.isFlat()?AMBIENT_NEUTRAL:ambientFor(sim.clockTick(),sim.dayTicks());
       const skyShade = lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient);
       characterWorld.beginFrame(sim,{originX:camera.originX,originY:camera.originY,scale:camera.scale,width:stage.width,height:stage.height,
@@ -2935,12 +3007,12 @@ async function main(): Promise<void> {
         sim.clockTick(),
         lightingMode.isFlat() ? null : lighting,
         undefined,
-        buyTool.ghost() ?? builder.preview,
+        placement,
         roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null)
           ?? (wallTool.active ? withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)
           ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
         // A purchase in the Buy tool's colourway; a moved object in its own.
-        buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
+        purchaseGhost ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,
         characterWorld.plan,
       );

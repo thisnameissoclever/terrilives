@@ -1545,11 +1545,8 @@ def main():
     for sprite in conversation_icons.render_icons():
         densities[len(sprites)] = 2
         sprites.append(sprite)
-    # Keep the compact pool, lounger and umbrella indices from the first
-    # outdoor catalog. Append the rectangular pool after them.
-    prop_starts = {}
-    for catalog in ('static-props-07.json', 'static-props-08.json'):
-        prop_starts[catalog] = len(sprites)
+    def append_outdoor_catalog(catalog):
+        start = len(sprites)
         props, prop_anchors, prop_density, prop_bounds = load_props(
             os.path.join(ROOT, 'assets', 'models', catalog),
             existing_names={sprite[0] for sprite in sprites},
@@ -1560,15 +1557,17 @@ def main():
             anchors[index] = prop_anchors[sprite[0]]
             densities[index] = prop_density[sprite[0]]
             bounds[index] = prop_bounds[sprite[0]]
-    # Issue 360's neutral conversation bubbles append after the rectangular
-    # pool, so every earlier index keeps its place. Like the pool they fall
-    # in the tail packed on pages of their own below, so no earlier page
-    # changes.
+        return start
+
+    append_outdoor_catalog('static-props-07.json')
+    wide_pool_start = append_outdoor_catalog('static-props-08.json')
+    # The rectangular pool and neutral conversation bubbles share their published page.
     for sprite in conversation_icons.render_neutral_icons():
         densities[len(sprites)] = 2
         sprites.append(sprite)
+    lodge_start = append_outdoor_catalog('static-props-09.json')
+    basin_start = append_outdoor_catalog('static-props-10.json')
     sync_generated_architecture(sprites, check=args.check)
-    wide_pool_start = prop_starts['static-props-08.json']
     textured = [(index, sprite) for index, sprite in enumerate(sprites)
                 if index < wide_pool_start and index not in visible_layers and index not in shelf_data['positions']]
     dense_sprites, texture_aliases = deduplicate_pixels([sprite for _, sprite in textured])
@@ -1590,18 +1589,18 @@ def main():
     sheets.extend(shelf_data['sheets'])
     placed.update(shelf_data['positions'])
     pages.update({index: shelf_page_start + page for index, page in shelf_data['pages'].items()})
-    # Pack the wide pool after the existing source pages. Sorting these tall
-    # sprites into the original shelves would move unrelated source rectangles.
-    wide_pool = sprites[wide_pool_start:]
-    wide_layout, wide_pages = pack_pages([(sprite[2], sprite[3]) for sprite in wide_pool], 2048, PADDING)
-    wide_page_start = len(sheets)
-    sheets.extend(Image.new('RGBA', (width, height)) for _ in range(wide_pages))
-    for index, (_, image, _, _) in enumerate(wide_pool):
-        page, x, y = wide_layout[index]
-        sprite_index = wide_pool_start + index
-        pages[sprite_index] = wide_page_start + page
-        placed[sprite_index] = (x, y)
-        sheets[wide_page_start + page].paste(image, (x, y))
+    # Pack each appended batch on its own pages to preserve the published rectangles.
+    batch_starts = (wide_pool_start, lodge_start, basin_start, len(sprites))
+    for first, end in zip(batch_starts, batch_starts[1:]):
+        batch = sprites[first:end]
+        layout, count = pack_pages([(sprite[2], sprite[3]) for sprite in batch], width, PADDING)
+        page_start = len(sheets)
+        sheets.extend(Image.new('RGBA', (width, height)) for _ in range(count))
+        for index, (_, image, _, _) in enumerate(batch):
+            page, x, y = layout[index]
+            pages[first + index] = page_start + page
+            placed[first + index] = (x, y)
+            sheets[page_start + page].paste(image, (x, y))
     pngs = [png_bytes(sheet) for sheet in sheets]
     if args.check:
         for index, sheet in enumerate(sheets):

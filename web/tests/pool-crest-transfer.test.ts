@@ -7,6 +7,7 @@ import {expect,it} from 'vitest';
 import {defaultAppearance,validateAppearance} from '../src/character/schema.js';
 import {PoolCycleSource,validatePoolCycleDefinition} from '../src/render/character/pool-cycle-source.js';
 import {bindPoolContacts,interpolatePoolPoseProgram,requirePoolPose} from '../src/render/character/pool-contact-sample.js';
+import type {PoolPoseLayout} from '../src/render/character/pool-world-layout.js';
 import {createPoolContactInput} from '../src/render/character/pool-contact-preparation.js';
 import {poolPartKey,poolShapeIdentity} from '../src/render/character/pool-contact-identity.js';
 import type {PoolShapePlayback} from '../src/render/character/pool-contact-types.js';
@@ -132,5 +133,28 @@ it('clears the installed short, broad swimmer at the crest and renders the fract
   const matrices=requirePoolPose(playback,geometry[0],shape,source.top,action,phase*lastFrame);
   expect(matrices).toHaveLength(source.bundle.bones.length*16);
   expect(matrices.every(Number.isFinite),'Exit matrices at elapsed tick '+tick).toBe(true);
+ }
+ const sample=(clip:string,phase:number,layout?:PoolPoseLayout)=>requirePoolPose(
+  playback,geometry[0],shape,source.top,clip,phase*(source.bundle.actions[clip].length-(clip==='pool_paddle'?0:1)),false,layout,
+ );
+ const arm=source.bundle.bones.findIndex(bone=>bone.name==='hand.L')*16;
+ const foot=source.bundle.bones.findIndex(bone=>bone.name==='foot.L')*16;
+ for(const [clip,phase] of [['pool_enter',.34],['pool_exit_0',.79]] as const){
+  const held=sample(clip,phase),free=sample(clip,phase,'lodge');
+  expect(free.slice(arm,arm+16)).not.toEqual(held.slice(arm,arm+16));
+  expect(free.slice(foot,foot+16)).toEqual(held.slice(foot,foot+16));
+  expect(free.every(Number.isFinite)).toBe(true);
+ }
+ for(const [clip,phase] of [['pool_enter',0],['pool_enter',1],['pool_paddle',.25],['pool_exit_0',1]] as const){
+  expect(sample(clip,phase,'lodge')).toEqual(sample(clip,phase));
+ }
+ const inGround=(clip:string,phase:number)=>sample(clip,phase,'in-ground');
+ expect(inGround('pool_enter',1)).toEqual(inGround('pool_paddle',0));
+ expect(inGround('pool_exit_0',1)).toEqual(inGround('pool_enter',0));
+ for(const origin of [0,3,8,11]){
+  expect(inGround('pool_exit_'+origin,0)).toEqual(inGround('pool_paddle',origin/12));
+ }
+ for(const [clip,phase] of [['pool_enter',.32],['pool_enter',.6],['pool_exit_0',.4],['pool_exit_0',.5],['pool_exit_0',.76],['pool_exit_0',.89]] as const){
+  expect(inGround(clip,phase).every(Number.isFinite)).toBe(true);
  }
 },120_000);

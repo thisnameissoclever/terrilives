@@ -62,6 +62,181 @@ fn bytes(snapshot: &CurrentV5View) -> Vec<u8> {
 }
 
 #[test]
+fn pool_save_v33_keeps_a_published_v31_single_swimmer_loadable() {
+    let mut handle = exiting_pool();
+    let current = handle.save_bytes();
+    let mut older = SAVE_MAGIC.to_vec();
+    older.extend(31u16.to_le_bytes());
+    let historical = handle.sim.try_save_snapshot_v31().unwrap();
+    older.extend(postcard::to_allocvec(&historical).unwrap());
+    assert!(handle.load_bytes(&older));
+    assert_eq!(handle.save_bytes(), current);
+}
+
+#[test]
+fn shared_pool_save_keeps_both_slots_and_refuses_impossible_claims() {
+    let mut handle = SimHandle::new(15, 15);
+    let definition = handle
+        .sim
+        .world()
+        .resource::<Content>()
+        .0
+        .find("pool_above_ground_3x4")
+        .unwrap();
+    let pool = handle
+        .sim
+        .spawn_object(Position { x: 6., y: 6. }, definition);
+    for y in 6..9 {
+        for x in 6..10 {
+            handle
+                .sim
+                .world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+    }
+    for y in [7., 8.] {
+        let actor = handle.sim.spawn_agent(Position { x: 4., y }, 50.);
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(actor)
+            .insert(Needs::all_at(50.));
+        command(
+            &mut handle,
+            SimCommand::UseObjectFirst {
+                agent: actor.index_u32(),
+                object: pool.index_u32(),
+                interaction: 0,
+            },
+        );
+    }
+    for _ in 0..150 {
+        handle.tick();
+        let snapshot = handle.sim.save_snapshot_v33();
+        if snapshot.pools.len() == 2 && snapshot.pools.iter().all(|e| e.phase % 8 == 2) {
+            break;
+        }
+    }
+
+    let baseline = handle.sim.current_v5_view();
+    assert_eq!(baseline.0.pools.len(), 2);
+    let mut phases: Vec<_> = baseline.0.pools.iter().map(|row| row.phase).collect();
+    phases.sort_unstable();
+    assert_eq!(phases, [10, 18]);
+    assert!(handle.sim.try_save_snapshot_v31().is_err());
+    assert!(handle.sim.try_save_snapshot_v30().is_err());
+    roundtrip_pool(&mut handle, "two active Lodge swimmers");
+
+    let baseline = handle.sim.current_v5_view();
+    let current = handle.save_bytes();
+    let mut older = SAVE_MAGIC.to_vec();
+    older.extend(32u16.to_le_bytes());
+    older.extend(postcard::to_allocvec(&baseline.0.previous).unwrap());
+    assert!(
+        handle.load_bytes(&older),
+        "published V32 supports shared pools"
+    );
+    assert_eq!(handle.save_bytes(), current);
+
+    let mut private = older.clone();
+    private.extend(postcard::to_allocvec(&baseline.0.hobby_mood).unwrap());
+    assert!(
+        !handle.load_bytes(&private),
+        "private V32 uses exclusive pools"
+    );
+    older[SAVE_MAGIC.len()..SAVE_HEADER_BYTES].copy_from_slice(&31u16.to_le_bytes());
+    assert!(!handle.load_bytes(&older));
+    let mut duplicate = baseline.clone();
+    duplicate.0.pools[1].phase = duplicate.0.pools[0].phase;
+    assert!(!handle.load_bytes(&bytes(&duplicate)));
+    let mut excess = baseline.clone();
+    excess.0.pools[1].phase = 26;
+    assert!(!handle.load_bytes(&bytes(&excess)));
+
+    let mut ladder_overlap = baseline.clone();
+    for row in &mut ladder_overlap.0.pools {
+        row.phase = row.phase / 8 * 8 + 7;
+        row.elapsed = 0;
+        row.exit_origin = 0;
+    }
+    let actors: Vec<_> = ladder_overlap.0.pools.iter().map(|row| row.actor).collect();
+    for actor in &mut ladder_overlap.world.entities {
+        if actors.contains(&actor.index) {
+            actor.eating.as_mut().unwrap().remaining_ticks = 48;
+        }
+    }
+    assert!(!handle.load_bytes(&bytes(&ladder_overlap)));
+    assert_eq!(handle.sim.current_v5_view(), baseline);
+}
+
+#[test]
+fn shared_pool_save_rejects_an_early_or_exhausted_ladder_claim() {
+    let mut handle = SimHandle::new(12, 12);
+    assert!(handle.spawn_object(4., 4., "pool_above_ground_3x4"));
+    for y in 4..7 {
+        for x in 4..8 {
+            handle
+                .sim
+                .world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+    }
+    handle.spawn_agent(2., 5., 70.);
+    command(
+        &mut handle,
+        SimCommand::UseObjectFirst {
+            agent: 1,
+            object: 0,
+            interaction: 0,
+        },
+    );
+    reach(&mut handle, 0, 0);
+
+    let baseline = handle.save_bytes();
+    let mut saved = handle.sim.current_v5_view();
+    assert_eq!(saved.0.pools[0].phase, 8);
+    assert_eq!(saved.0.pools[0].approach, (3, 6));
+    let actor = &mut saved.world.entities[1];
+    let position = actor.position.as_mut().unwrap();
+    position.x = 3.;
+    position.y = 5.;
+    let path = actor.path.as_mut().unwrap();
+    path.steps = vec![(3, 5), (3, 6)];
+    path.cursor = 1;
+
+    let mut control = SimHandle::new(12, 12);
+    assert!(control.load_bytes(&bytes(&saved)), "final ladder step");
+    let mut arrived = saved.clone();
+    let actor = &mut arrived.world.entities[1];
+    actor.position.as_mut().unwrap().y = 6.;
+    actor.path.as_mut().unwrap().cursor = 2;
+    assert!(
+        control.load_bytes(&bytes(&arrived)),
+        "exhausted at the ladder"
+    );
+
+    for (cursor, reason) in [
+        (0, "early ladder claim"),
+        (2, "exhausted away from the ladder"),
+    ] {
+        saved.world.entities[1].path.as_mut().unwrap().cursor = cursor;
+        assert!(!handle.load_bytes(&bytes(&saved)), "{reason}");
+        assert_eq!(handle.save_bytes(), baseline, "{reason}");
+    }
+
+    let path = saved.world.entities[1].path.as_mut().unwrap();
+    path.steps = vec![(3, 6), (3, 5), (3, 6)];
+    path.cursor = 0;
+    assert!(
+        !handle.load_bytes(&bytes(&saved)),
+        "loop before the final step"
+    );
+    assert_eq!(handle.save_bytes(), baseline);
+}
+
+#[test]
 fn pool_codec_converts_a_legacy_late_retreat_and_keeps_current_hop_strict() {
     let mut handle = exiting_pool();
     let actor = handle.sim.save_snapshot_v30().pools[0].actor;
@@ -525,7 +700,7 @@ fn reach(handle: &mut SimHandle, phase: u8, elapsed: u32) {
             .save_snapshot_v30()
             .pools
             .iter()
-            .any(|e| e.actor == 1 && e.phase == phase && e.elapsed == elapsed)
+            .any(|e| e.actor == 1 && e.phase % 8 == phase && e.elapsed == elapsed)
         {
             return;
         }
@@ -569,20 +744,76 @@ fn pool_codec_exact_approaches_all_facings_and_queued_command_boundaries() {
 
 #[test]
 fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
-    for (facing, (width, depth, endpoint)) in terri_core::Facing::ALL.into_iter().zip([
-        (3, 2, (3, 5)),
-        (2, 3, (4, 3)),
-        (3, 2, (7, 4)),
-        (2, 3, (5, 7)),
-    ]) {
-        let mut handle = SimHandle::new(12, 12);
+    assert_pool_build_and_swim(
+        "pool_rectangular",
+        1200,
+        [
+            (3, 2, (3, 5)),
+            (2, 3, (4, 3)),
+            (3, 2, (7, 4)),
+            (2, 3, (5, 7)),
+        ],
+    );
+}
+
+#[test]
+fn above_ground_pool_buys_twelve_tiles_and_claims_its_short_end_ladder_in_every_facing() {
+    assert_pool_build_and_swim(
+        "pool_above_ground_3x4",
+        1500,
+        [
+            (4, 3, (3, 6)),
+            (3, 4, (4, 3)),
+            (4, 3, (8, 4)),
+            (3, 4, (6, 8)),
+        ],
+    );
+}
+
+#[test]
+fn in_ground_pool_buys_thirty_five_tiles_and_claims_its_short_end_ladder_in_every_facing() {
+    assert_pool_build_and_swim(
+        "pool_in_ground_5x7",
+        2400,
+        [
+            (7, 5, (3, 6)),
+            (5, 7, (6, 3)),
+            (7, 5, (11, 6)),
+            (5, 7, (6, 11)),
+        ],
+    );
+}
+
+fn assert_pool_build_and_swim(
+    model_name: &str,
+    price: i64,
+    dimensions_and_ladder: [(i32, i32, (i32, i32)); 4],
+) {
+    for (facing, (width, depth, endpoint)) in terri_core::Facing::ALL
+        .into_iter()
+        .zip(dimensions_and_ladder)
+    {
+        let lot_side = 12;
+        let mut handle = SimHandle::new(lot_side, lot_side);
         let pack = handle.sim.world().resource::<Content>().0;
-        let model = pack.find("pool_rectangular").unwrap().0;
+        let model = pack.find(model_name).unwrap().0;
         handle
             .sim
             .world_mut()
-            .insert_resource(terri_core::Funds::from_dollars(1200));
+            .insert_resource(terri_core::Funds::from_dollars(price));
         let facing_code = f64::from(facing.code());
+        let out_of_bounds = f64::from(terri_sim::placement::PlacementRefusal::OutOfBounds as u32);
+        for (x, y) in [
+            (lot_side as i32 - width + 1, 4),
+            (4, lot_side as i32 - depth + 1),
+        ] {
+            let outside =
+                handle.purchase_preview(f64::from(model), f64::from(x), f64::from(y), facing_code);
+            assert_eq!(
+                outside[0], out_of_bounds,
+                "{model_name} {facing:?} at {x},{y}"
+            );
+        }
         let preview = handle.purchase_preview(f64::from(model), 4., 4., facing_code);
         assert_eq!(preview[0], 0., "{facing:?}");
         assert_eq!(preview[4..6], [f64::from(width), f64::from(depth)]);
@@ -593,8 +824,8 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
         assert_eq!(handle.funds_cents(), 0.);
 
         let grid = handle.sim.world().resource::<terri_core::TileGrid>();
-        for y in 3..8 {
-            for x in 3..8 {
+        for y in 3..lot_side as i32 {
+            for x in 3..lot_side as i32 {
                 let in_pool = (4..4 + width).contains(&x) && (4..4 + depth).contains(&y);
                 assert_eq!(grid.is_walkable(x, y), !in_pool, "{facing:?} at {x},{y}");
             }
@@ -612,7 +843,7 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
         reach(&mut handle, 0, 0);
         let active = handle.sim.save_snapshot_v30();
         assert_eq!(active.pools[0].approach, endpoint, "{facing:?}");
-        roundtrip_pool(&mut handle, "rectangular ladder approach");
+        roundtrip_pool(&mut handle, "ladder approach");
         reach(&mut handle, 2, 3);
         let active = handle.sim.current_v5_view();
         let position = active.world.entities[1].position.unwrap();
@@ -620,7 +851,7 @@ fn rectangular_pool_buys_six_tiles_and_claims_its_ladder_in_every_facing() {
             (position.x, position.y),
             (endpoint.0 as f32, endpoint.1 as f32)
         );
-        roundtrip_pool(&mut handle, "rectangular pool active swim");
+        roundtrip_pool(&mut handle, "active swim");
     }
 }
 
@@ -632,9 +863,12 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
         postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    let source = CurrentV5View(terri_core::SaveSnapshotV31 {
-        current: source,
-        topic_memory: vec![],
+    let source = CurrentV5View(terri_core::SaveSnapshotV33 {
+        previous: terri_core::SaveSnapshotV31 {
+            current: source,
+            topic_memory: vec![],
+        },
+        hobby_mood: vec![],
     });
     let mut handle = SimHandle::new(12, 12);
     assert!(handle.load_bytes(bytes));
@@ -658,42 +892,57 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
 }
 
 #[test]
-fn an_explicit_square_pool_purchase_survives_the_catalogue_change() {
-    let mut source = SimHandle::new(12, 12);
-    let mut previous = source.sim.world().resource::<Content>().0.clone();
-    assert_eq!(previous.objects.pop().unwrap().id, "pool_rectangular");
-    let previous = &*Box::leak(Box::new(previous));
-    let square = previous.find("pool").unwrap().0;
-    assert!(previous.catalogue().any(|(id, _, _)| id.0 == square));
-    source.sim = terri_sim::Sim::new_with_lot_and_content(12, 12, Content(previous));
-    source
-        .sim
-        .world_mut()
-        .insert_resource(terri_core::Funds::from_dollars(1200));
-    assert!(source.buy_object(f64::from(square), 4., 4., 0.));
+fn queued_legacy_pool_purchases_keep_their_original_model_and_resale_value() {
+    for (model_name, width) in [("pool", 2), ("pool_rectangular", 3)] {
+        let mut source = SimHandle::new(12, 12);
+        let mut previous = source.sim.world().resource::<Content>().0.clone();
+        let lodge = previous.find("pool_above_ground_3x4").unwrap();
+        previous.objects.truncate(lodge.0 as usize);
+        if model_name == "pool" {
+            assert_eq!(previous.objects.pop().unwrap().id, "pool_rectangular");
+        }
+        let previous = &*Box::leak(Box::new(previous));
+        let model = previous.find(model_name).unwrap().0;
+        assert!(previous.catalogue().any(|(id, _, _)| id.0 == model));
+        source.sim = terri_sim::Sim::new_with_lot_and_content(12, 12, Content(previous));
+        source
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(1200));
+        assert!(source.buy_object(f64::from(model), 4., 4., 0.));
 
-    let mut handle = SimHandle::new(12, 12);
-    assert!(handle.load_bytes(&source.save_bytes()));
-    handle.flush_commands();
-    assert_eq!(handle.last_purchase_result()[4..], [0, 0]);
-    assert_eq!(handle.funds_cents(), 0.);
+        let saved = if model_name == "pool" {
+            let mut historical = SAVE_MAGIC.to_vec();
+            historical.extend(30u16.to_le_bytes());
+            historical.extend(postcard::to_allocvec(&source.sim.save_snapshot_v30()).unwrap());
+            historical
+        } else {
+            source.save_bytes()
+        };
+        let mut handle = SimHandle::new(12, 12);
+        assert!(handle.load_bytes(&saved), "queued {model_name}");
+        handle.flush_commands();
+        assert_eq!(handle.last_purchase_result()[4..], [0, 0]);
+        assert_eq!(handle.funds_cents(), 0.);
 
-    let active = handle.sim.current_v5_view();
-    assert_eq!(
-        active.world.entities[0].smart_object.as_deref(),
-        Some("pool")
-    );
-    let grid = handle.sim.world().resource::<terri_core::TileGrid>();
-    for y in 4..6 {
-        assert!(!grid.is_walkable(4, y));
-        assert!(!grid.is_walkable(5, y));
-        assert!(grid.is_walkable(6, y));
+        let active = handle.sim.current_v5_view();
+        assert_eq!(
+            active.world.entities[0].smart_object.as_deref(),
+            Some(model_name)
+        );
+        let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+        for y in 4..6 {
+            for x in 4..4 + width {
+                assert!(!grid.is_walkable(x, y));
+            }
+            assert!(grid.is_walkable(4 + width, y));
+        }
+        let sale = handle.sale_preview(0.);
+        assert_eq!(sale, [0, 600]);
+        assert!(handle.sell_object(0.));
+        handle.flush_commands();
+        assert_eq!(handle.funds_cents(), 60_000.);
     }
-    let sale = handle.sale_preview(0.);
-    assert_eq!(sale, [0, 600]);
-    assert!(handle.sell_object(0.));
-    handle.flush_commands();
-    assert_eq!(handle.funds_cents(), f64::from(sale[1]) * 100.);
 }
 
 #[test]

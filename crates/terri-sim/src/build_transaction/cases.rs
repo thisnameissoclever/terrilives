@@ -42,7 +42,7 @@ fn first_pool_requires_contacts_only_for_the_prepared_candidate_until_confirmed(
     assert_eq!(sim.build_pool_contacts_required(before.token), Ok(false));
 
     let pack = sim.world().resource::<Content>().0;
-    let definition = pack.find("pool_rectangular").unwrap();
+    let definition = pack.find("pool_above_ground_3x4").unwrap();
     issue(
         &mut sim,
         SimCommand::BuyObject {
@@ -65,6 +65,92 @@ fn first_pool_requires_contacts_only_for_the_prepared_candidate_until_confirmed(
     sim.cancel_build().unwrap();
     assert!(sim.pool_contacts_required());
 }
+
+#[test]
+fn buying_land_behind_the_house_keeps_an_active_pool_swim() {
+    use crate::topic_memory::{Memory, TopicMemory};
+    use terri_core::{SimClock, SimId};
+
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.world_mut()
+        .insert_resource(terri_core::Funds::from_dollars(100_000));
+    let pack = sim.world().resource::<Content>().0;
+    let definition = pack.find("pool_above_ground_3x4").unwrap();
+    issue(
+        &mut sim,
+        SimCommand::BuyObject {
+            definition: definition.0,
+            x: 4,
+            y: 12,
+            facing: terri_core::Facing::SouthEast,
+        },
+    );
+    let object = sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_purchase_result
+        .unwrap()
+        .object
+        .expect("the pool fits in the starting yard");
+    let actor = sim
+        .spawn_agent(terri_core::Position { x: 3., y: 14. }, 70.)
+        .index_u32();
+    issue(
+        &mut sim,
+        SimCommand::UseObjectFirst {
+            agent: actor,
+            object,
+            interaction: 0,
+        },
+    );
+    let mut active = (0..60)
+        .find_map(|_| {
+            sim.tick();
+            sim.save_snapshot_v33()
+                .pools
+                .iter()
+                .find(|episode| episode.actor == actor && episode.phase % 8 == 2)
+                .cloned()
+        })
+        .expect("the person enters the water");
+    assert_eq!(active.approach, (3, 14));
+
+    let tick = sim.world().resource::<SimClock>().tick;
+    sim.world_mut().resource_mut::<TopicMemory>().remember(
+        Memory {
+            knower: SimId(1),
+            other: SimId(2),
+            tag: "reading".into(),
+            preference: 0.5,
+            tick,
+        },
+        100,
+    );
+    let memories = sim.save_snapshot_v33().previous.topic_memory;
+    assert!(!memories.is_empty());
+
+    sim.begin_build().unwrap();
+    issue(&mut sim, SimCommand::BuyLand { side: 0 });
+    assert!(sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_land_result
+        .unwrap()
+        .reason
+        .is_none());
+    confirm(&mut sim);
+
+    active.approach.0 += pack.tuning.land_strip_depth as i32;
+    let saved = sim.save_snapshot_v33();
+    assert_eq!(
+        saved.pools.iter().find(|row| row.actor == actor),
+        Some(&active)
+    );
+    assert_eq!(saved.topic_memory, memories);
+    sim.load_snapshot_v33(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v33(), saved);
+}
+
 fn wall_refusal(
     sim: &mut Sim,
     axis: EdgeAxis,

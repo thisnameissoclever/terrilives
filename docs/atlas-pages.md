@@ -28,10 +28,10 @@ The deterministic shelf allocator preserves record order and never rotates
 images. Every padded rectangle must fit its selected page. Oversized input
 fails explicitly; do not lower density to conceal a capacity failure.
 
-The four rectangular pool facings occupy a final source page. Keeping their
-placement after the existing pages preserves every earlier sprite index and
-texture rectangle. Architecture drawing IDs still begin after the complete
-sprite catalogue.
+Backyard Lodge and Garden Basin append their four facings after the rectangular
+pool and the neutral conversation icons. The append preserves earlier sprite
+indices and texture rectangles. Architecture drawing IDs begin after the
+complete sprite catalogue.
 
 Use `atlas_pixels.AtlasPages` for source-pixel verification. Select a page
 from the sprite record before cropping. The reader also supports historical

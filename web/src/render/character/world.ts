@@ -26,6 +26,7 @@ import {PoolRipples} from './pool-ripples.js';
 import {collectPoolWaterContacts,PoolLandingRipples,type PoolWaterFootprint} from './pool-water-contact.js';
 import {poolContactFixture,poolContactTakeoffPhase,poolWaterCutout} from './pool-contact-release.js';
 import {poolWaterBounds} from './pool-water-retarget.js';
+import {IN_GROUND_POOL_MODEL,LODGE_POOL_MODEL,RECTANGULAR_POOL_MODEL,inGroundPoolWater} from './pool-world-layout.js';
 
 type WorldContacts=Pick<CharacterContactRoster,'require'> & Partial<Pick<CharacterContactRoster,'mode'>>;
 interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1;contactMode?:CharacterPreparationMode}
@@ -50,6 +51,7 @@ export class CharacterWorld {
   private poolRipples:PoolRipples|null=null;
   private poolFootprint:PoolWaterFootprint|null=null;
   private rectangularPoolFootprint:PoolWaterFootprint|null=null;
+  private lodgePoolFootprint:PoolWaterFootprint|null=null;
   private constructor(private readonly device:GPUDevice,private readonly format:GPUTextureFormat,
     private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:WorldContacts){
     this.plan=new CharacterScenePlan(action=>{
@@ -85,8 +87,9 @@ export class CharacterWorld {
     const contactMode=this.contacts?.mode;
     for(const actor of this.plan.actors){
       const clip=creatorClips.clips[actor.action.clip],sample=clip?clip.samples[clipSample(clip.samples.length,actor.action.sample,clip.playback).index]:undefined;
-      const context={wear:['bath','shower'].includes(actor.action.clip)||actor.action.clip.startsWith('pool_')?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
-        swimwear:actor.action.clip.startsWith('pool_')?(actor.appearance.presentation==='feminine'?'two_piece' as const:'trunks' as const):'none' as const,
+      const wearsSwimwear=actor.action.clip.startsWith('pool_')||actor.action.clip==='lounger_recline';
+      const context={wear:wearsSwimwear||['bath','shower'].includes(actor.action.clip)?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
+        swimwear:wearsSwimwear?(actor.appearance.presentation==='feminine'?'two_piece' as const:'trunks' as const):'none' as const,
         fixture:'none',eyes_closed:sample?.eyesClosed??actor.action.clip==='sleep',clip:actor.action.clip,grip:actor.action.clip==='mop'?'mop' as const:'relaxed' as const,includeFixture:false,includeActivityWater:actor.action.clip==='bath',bathToy:actor.action.clip==='bath'?bathToySelector(actor.bathToy??0):'none' as const,stockMask:actor.stockMask,heldSlot:actor.action.heldSlot};
       const rig=this.geometries.get(actor.action.clip)!;let resources=this.actors.get(actor.entity);
       if(!resources||resources.renderer.selectionKey!==bodySelectionKey(actor.appearance)){
@@ -115,6 +118,7 @@ export class CharacterWorld {
         const {low,high,surface}=poolWaterBounds(poolContactFixture());
         this.poolFootprint={minimum:[low[0],low[1]],maximum:[high[0],high[1]],height:surface,cutout:poolWaterCutout()};
         this.rectangularPoolFootprint={minimum:[low[0],low[1]-1],maximum:[high[0],high[1]],height:surface};
+        this.lodgePoolFootprint={minimum:[low[0],low[1]-2],maximum:[high[0]+1,high[1]],height:surface};
       }
     }
     this.poolRipples?.begin();
@@ -136,7 +140,9 @@ export class CharacterWorld {
       renderer.prepareScene(actor.action.clip,actor.action.sample,actor.angle,actor.token,
         {width:view.width,height:view.height,x:screenX(actor.x,actor.y,view.originX,view.scale),y:screenY(actor.x,actor.y,view.originY,view.scale),
          scale:view.scale,depth,step:depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),light},
-        {offset:actor.offset,includeFixture:includeActivityFixture,fixtureToken:includeActivityFixture?actor.fixtureRow+1:0,fixtureColourway});
+        {offset:actor.offset,includeFixture:includeActivityFixture,fixtureToken:includeActivityFixture?actor.fixtureRow+1:0,fixtureColourway,
+          poolYaw:actor.action.poolPlacement?.yaw,poolLayout:actor.fixtureModel===LODGE_POOL_MODEL?'lodge':
+           actor.fixtureModel===IN_GROUND_POOL_MODEL?'in-ground':undefined});
       const anchors=renderer.renderer.anchors(actor.angle,actor.offset);
       if(actor.action.clip==='shower'){
         const body=renderer.renderer,mesh=body.resources;
@@ -147,7 +153,9 @@ export class CharacterWorld {
       }
       if(actor.fixtureEntity!==null&&actor.action.clip.startsWith('pool_')){
         const body=renderer.renderer;
-        const water=(actor.fixtureModel==='pool_rectangular'?this.rectangularPoolFootprint:this.poolFootprint)!;
+        const water=(actor.fixtureModel===IN_GROUND_POOL_MODEL?inGroundPoolWater:
+          actor.fixtureModel===LODGE_POOL_MODEL?this.lodgePoolFootprint:
+          actor.fixtureModel===RECTANGULAR_POOL_MODEL?this.rectangularPoolFootprint:this.poolFootprint)!;
         const {ripples,touchdown}=collectPoolWaterContacts(body.geometry,body.resources.deformed,body.poseMatrices,water,actor.offset);
         const depth=layeredDepth(actor.x,actor.y,view.gridSize,LAYER_PROP);
         const frame={

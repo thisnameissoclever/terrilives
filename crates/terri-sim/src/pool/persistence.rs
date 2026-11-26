@@ -45,8 +45,16 @@ pub(crate) fn restore_physical(
     world: &mut World,
     rows: Vec<SavedPoolEpisode>,
 ) -> Result<(), SaveError> {
-    attach(world, rows)?;
-    validate_physical(world, Coordinates::Current, SavedPoolClock::LongExit)
+    attach(world, rows, true)?;
+    validate_physical(world, Coordinates::Current, SavedPoolClock::LongExit, true)
+}
+
+pub(crate) fn restore_shared(
+    world: &mut World,
+    rows: Vec<SavedPoolEpisode>,
+) -> Result<(), SaveError> {
+    restore_physical(world, rows)?;
+    validate_orders(world)
 }
 
 /// Save layers attach after every nested component and order is restored.
@@ -55,8 +63,8 @@ pub(crate) fn restore(
     rows: Vec<SavedPoolEpisode>,
     clock: SavedPoolClock,
 ) -> Result<(), SaveError> {
-    attach(world, rows)?;
-    validate_physical(world, Coordinates::Current, clock)?;
+    attach(world, rows, false)?;
+    validate_physical(world, Coordinates::Current, clock, false)?;
     validate_orders(world)?;
     if clock != SavedPoolClock::LongExit {
         migrate_legacy_clock(world, clock);
@@ -68,13 +76,18 @@ pub(crate) fn restore_historical_v22(
     world: &mut World,
     rows: Vec<SavedPoolEpisode>,
 ) -> Result<(), SaveError> {
-    attach(world, rows)?;
-    validate_physical(world, Coordinates::HistoricalV22, SavedPoolClock::Legacy)?;
+    attach(world, rows, false)?;
+    validate_physical(
+        world,
+        Coordinates::HistoricalV22,
+        SavedPoolClock::Legacy,
+        false,
+    )?;
     validate_orders(world)
 }
 
 pub(super) fn validate_legacy_clock_at_current_coordinates(world: &World) -> Result<(), SaveError> {
-    validate_physical(world, Coordinates::Current, SavedPoolClock::Legacy)?;
+    validate_physical(world, Coordinates::Current, SavedPoolClock::Legacy, false)?;
     validate_orders(world)
 }
 
@@ -117,7 +130,11 @@ fn validate_orders(world: &World) -> Result<(), SaveError> {
     Ok(())
 }
 
-fn attach(world: &mut World, rows: Vec<SavedPoolEpisode>) -> Result<(), SaveError> {
+fn attach(
+    world: &mut World,
+    rows: Vec<SavedPoolEpisode>,
+    shared_pools: bool,
+) -> Result<(), SaveError> {
     if rows.len() > 100_000 || rows.windows(2).any(|p| p[0].actor >= p[1].actor) {
         return Err(SaveError::InvalidValue);
     }
@@ -126,27 +143,56 @@ fn attach(world: &mut World, rows: Vec<SavedPoolEpisode>) -> Result<(), SaveErro
             crate::dining::entity(world, row.actor).ok_or(SaveError::InvalidEntityReference)?;
         let pool =
             crate::dining::entity(world, row.pool).ok_or(SaveError::InvalidEntityReference)?;
+        let (phase, place) = if row.phase <= CANCELED_LANDING {
+            (row.phase, None)
+        } else {
+            let slot = (row.phase / 8)
+                .checked_sub(1)
+                .ok_or(SaveError::InvalidValue)?;
+            if !shared_pools {
+                return Err(SaveError::InvalidValue);
+            }
+            let object = world
+                .get::<SmartObject>(pool)
+                .ok_or(SaveError::InvalidValue)?;
+            let definition = world.resource::<Content>().0.object(object.0);
+            if capacity(definition) <= 1 || slot >= capacity(definition) {
+                return Err(SaveError::InvalidValue);
+            }
+            (
+                row.phase % 8,
+                Some(PoolPlace {
+                    slot,
+                    swim_ticks: swim_ticks(definition),
+                }),
+            )
+        };
         world.entity_mut(actor).insert(PoolEpisode {
             pool,
-            phase: row.phase,
+            phase,
             elapsed: row.elapsed,
             exit_origin: row.exit_origin,
             interrupted: row.interrupted,
             approach: row.approach,
+            place,
         });
     }
     Ok(())
 }
 
 fn phase_valid(e: &PoolEpisode, clock: SavedPoolClock) -> bool {
+    let swim_ticks = e.place.map_or(SWIM_TICKS, |place| place.swim_ticks);
     match e.phase {
         0 => e.elapsed == 0 && !e.interrupted && e.exit_origin == 0,
         1 => e.elapsed < ENTER_TICKS && !e.interrupted && e.exit_origin == 0,
-        2 => e.elapsed < SWIM_TICKS && !e.interrupted && e.exit_origin == 0,
+        2 => e.elapsed < swim_ticks && !e.interrupted && e.exit_origin == 0,
         3 => {
             e.elapsed < clock.exit_ticks()
-                && e.exit_origin <= SWIM_TICKS
-                && (e.interrupted || e.exit_origin == SWIM_TICKS)
+                && if e.place.is_some() {
+                    e.exit_origin < STROKE_TICKS
+                } else {
+                    e.exit_origin <= SWIM_TICKS && (e.interrupted || e.exit_origin == SWIM_TICKS)
+                }
         }
         4 => {
             let limit = if clock == SavedPoolClock::Legacy {
@@ -162,6 +208,15 @@ fn phase_valid(e: &PoolEpisode, clock: SavedPoolClock) -> bool {
                 && e.interrupted
                 && e.exit_origin == 0
         }
+        WAITING_FOR_LADDER => {
+            e.place.is_some()
+                && e.elapsed < SETTLE_TICKS + STROKE_TICKS
+                && e.exit_origin <= swim_ticks
+                && (e.interrupted || e.exit_origin == swim_ticks)
+        }
+        RETURNING_TO_LADDER => {
+            e.place.is_some() && e.elapsed < RETURN_TICKS && e.exit_origin < STROKE_TICKS
+        }
         _ => false,
     }
 }
@@ -170,6 +225,7 @@ fn validate_physical(
     world: &World,
     coordinates: Coordinates,
     clock: SavedPoolClock,
+    shared_pools: bool,
 ) -> Result<(), SaveError> {
     let pack = world.resource::<Content>().0;
     let pools: BTreeSet<_> =
@@ -188,8 +244,7 @@ fn validate_physical(
             .iter(world)
             .filter(|(_, target)| pools.contains(&target.object))
         {
-            if pool_owners.insert(target.object, actor).is_some()
-                || world.get::<Reserved>(target.object).is_none()
+            if world.get::<Reserved>(target.object).is_none()
                 || world.get::<Agent>(actor).is_none()
                 || world.get::<Needs>(actor).is_none()
                 || world.get::<StepWork>(actor).is_some()
@@ -203,6 +258,17 @@ fn validate_physical(
                 .ok_or(SaveError::InvalidValue)?;
             let object = world.get::<SmartObject>(target.object).unwrap();
             let definition = pack.object(object.0);
+            let claims = pool_owners.entry(target.object).or_insert(0);
+            *claims += 1;
+            if *claims
+                > if shared_pools {
+                    usize::from(capacity(definition))
+                } else {
+                    1
+                }
+            {
+                return Err(SaveError::InvalidValue);
+            }
             if !definition
                 .interactions
                 .get(target.interaction as usize)
@@ -236,7 +302,11 @@ fn validate_physical(
                         work.object != object.0
                             || work.interaction != target.interaction
                             || Some(work.remaining_ticks)
-                                != countdown(e.phase, e.elapsed, clock.exit_ticks())
+                                != if e.place.is_some() {
+                                    Some(remaining(e))
+                                } else {
+                                    countdown(e.phase, e.elapsed, clock.exit_ticks())
+                                }
                     })
                 {
                     return Err(SaveError::InvalidValue);
@@ -244,11 +314,14 @@ fn validate_physical(
             } else {
                 // An exhausted waiting route can outlive the previous ladder owner by one tick.
                 let path = path.ok_or(SaveError::InvalidValue)?;
-                if eating.is_some()
-                    || path.steps.last().map_or(
-                        (position.x, position.y) != (endpoint.0 as f32, endpoint.1 as f32),
-                        |end| *end != endpoint,
-                    )
+                let at_ladder = (position.x, position.y) == (endpoint.0 as f32, endpoint.1 as f32);
+                if eating.is_some() || path.steps.last().map_or(!at_ladder, |end| *end != endpoint)
+                {
+                    return Err(SaveError::InvalidValue);
+                }
+                // Shared swimmers acquire the ladder on the final step or at its dry contact.
+                if episode.is_some_and(|e| e.place.is_some())
+                    && !final_approach(path, position, endpoint)
                 {
                     return Err(SaveError::InvalidValue);
                 }
@@ -262,8 +335,24 @@ fn validate_physical(
     }
     if let Some(mut episodes) = world.try_query::<(Entity, &PoolEpisode)>() {
         let mut approaches = BTreeSet::new();
+        let mut exclusive = BTreeSet::new();
+        let mut slots = BTreeMap::<Entity, BTreeSet<u8>>::new();
         for (actor, e) in episodes.iter(world) {
-            if pool_owners.get(&e.pool) != Some(&actor) || !approaches.insert(e.approach) {
+            if world
+                .get::<Target>(actor)
+                .is_none_or(|target| target.object != e.pool)
+                || ((e.place.is_none() || e.uses_ladder()) && !approaches.insert(e.approach))
+            {
+                return Err(SaveError::InvalidValue);
+            }
+            let valid_place = match e.place {
+                Some(place) => {
+                    !exclusive.contains(&e.pool)
+                        && slots.entry(e.pool).or_default().insert(place.slot)
+                }
+                None => !slots.contains_key(&e.pool) && exclusive.insert(e.pool),
+            };
+            if !valid_place {
                 return Err(SaveError::InvalidValue);
             }
         }

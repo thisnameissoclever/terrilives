@@ -855,6 +855,47 @@ fn finish_order(sim: &mut Sim, person: Entity, id: u64) {
 }
 
 #[test]
+fn reading_a_loved_book_builds_mood_during_work_and_clears_on_return() {
+    let (mut sim, reader, shelf, seat, title) = fixture("armchair");
+    sim.world_mut()
+        .entity_mut(reader)
+        .insert(Hobbies(vec!["reading".into()]));
+    let lift = |sim: &Sim| {
+        sim.mood_of(reader.index_u32())
+            .unwrap()
+            .moodlets
+            .into_iter()
+            .find(|moodlet| moodlet.label == "Enjoying a hobby")
+            .map(|moodlet| moodlet.score)
+    };
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, reader, seat, &title, false);
+    sim.tick();
+    assert_eq!(lift(&sim), None);
+    until(&mut sim, reader, ReadingStage::Read);
+    assert_eq!(lift(&sim), None);
+    sim.tick();
+    assert_eq!(lift(&sim), Some(0.05));
+    sim.tick();
+    assert_eq!(lift(&sim), Some(0.10));
+    sim.flush_commands();
+    assert_eq!(lift(&sim), Some(0.10));
+    let saved = sim.save_snapshot_v33();
+    let hash = sim.world_hash();
+    let historical = sim.save_snapshot_v31();
+    sim.load_snapshot_v31(historical).unwrap();
+    assert_eq!(lift(&sim), None);
+    sim.load_snapshot_v33(saved.clone()).unwrap();
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(sim.save_snapshot_v33(), saved);
+    assert_eq!(lift(&sim), Some(0.10));
+    sim.tick();
+    assert_eq!(lift(&sim), Some(0.15));
+    until(&mut sim, reader, ReadingStage::Return);
+    assert_eq!(lift(&sim), None);
+}
+
+#[test]
 fn reading_journey_actual_command_three_sessions_retain_first_pass_novelty() {
     let (mut sim, p, shelf, seat, title) = fixture("armchair");
     purchase(&mut sim, Some(shelf), &title);
@@ -3104,7 +3145,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v31::restore(
+    let mut returning = crate::save::v33::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

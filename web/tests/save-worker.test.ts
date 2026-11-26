@@ -46,6 +46,10 @@ const v20 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 20, 0, 29, 128, 0, 0
 const v21 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 21, 0, 29, 128, 0, 0, 0, 1]);
 const v22 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 22, 0, 29, 128, 0, 0, 0, 1]);
 const current = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0, 29, 128, 0, 0, 0, 1]);
+const v32 = new Uint8Array([...current.slice(0, 8), 32, 0, 29, 128, 0, 0, 0, 1]);
+const v32WithHobby = new Uint8Array([...v32, 1, 3, 8]);
+const V32_BACKUP = 'terri-save-1.v32-backup.bin';
+const V32_SECOND_BACKUP = 'terri-save-1.v32-2-backup.bin';
 const v30 = new Uint8Array([...current.slice(0, 8), 30, 0, 29, 128, 0, 0, 0, 1]);
 const v29 = new Uint8Array([...current.slice(0, 8), 29, 0, 29, 128, 0, 0, 0, 1]);
 const v28 = new Uint8Array([...current.slice(0, 8), 28, 0, 29, 128, 0, 0, 0, 1]);
@@ -182,6 +186,58 @@ describe('save worker recovery backup', () => {
     expect(slot.events.indexOf(`close ${backup}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
     expect(await cached('save', v23)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(current);
+  });
+
+  describe('V32 recovery with both historical producers', () => {
+    it.each([[v32, v32WithHobby], [v32WithHobby, v32]])(
+      'keeps distinct V32 originals and reuses an exact backup after reconnecting',
+      async (first, second) => {
+        const slot = await workerSlot(first);
+        expect(await slot.request('save')).toMatchObject({ ok: true });
+        expect(slot.files.get(V32_BACKUP)).toEqual(first);
+
+        slot.files.set(PRIMARY, second);
+        slot.events.length = 0;
+        expect(await slot.request('save')).toMatchObject({ ok: true });
+        expect(slot.files.get(V32_BACKUP)).toEqual(first);
+        expect(slot.files.get(V32_SECOND_BACKUP)).toEqual(second);
+        expect(slot.events.indexOf(`close ${V32_SECOND_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
+
+        slot.files.set(PRIMARY, first);
+        expect(await (await slot.connect())('save')).toMatchObject({ ok: true });
+        slot.files.set(PRIMARY, second);
+        expect(await (await slot.connect())('save')).toMatchObject({ ok: true });
+        expect(slot.events.filter(event => /^writable terri-save-1\.v32/.test(event))).toEqual([`writable ${V32_SECOND_BACKUP}`]);
+      },
+    );
+
+    it('keeps a new V32 original whose length matches an existing backup', async () => {
+      const source = v32WithHobby.slice();
+      source[source.length - 1] = 9;
+      const slot = await workerSlot(source);
+      slot.files.set(V32_BACKUP, v32);
+      slot.files.set(V32_SECOND_BACKUP, v32WithHobby);
+      expect(await slot.request('save')).toMatchObject({ ok: true });
+      expect(slot.files.get(V32_BACKUP)).toEqual(v32);
+      expect(slot.files.get(V32_SECOND_BACKUP)).toEqual(v32WithHobby);
+      expect(slot.files.get('terri-save-1.v32-3-backup.bin')).toEqual(source);
+    });
+
+    it('keeps the original slot and first V32 backup if writing a sibling fails', async () => {
+      const slot = await workerSlot(v32WithHobby);
+      slot.files.set(V32_BACKUP, v32);
+      slot.fail.file = V32_SECOND_BACKUP;
+      slot.fail.phase = 'close';
+      expect(await slot.request('save')).toMatchObject({ ok: false, error: 'close failed' });
+      expect(slot.files.get(PRIMARY)).toEqual(v32WithHobby);
+      expect(slot.files.get(V32_BACKUP)).toEqual(v32);
+      expect(slot.files.has(V32_SECOND_BACKUP)).toBe(false);
+      expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+
+      slot.fail.file = '';
+      expect(await slot.request('save')).toMatchObject({ ok: true });
+      expect(slot.files.get(V32_SECOND_BACKUP)).toEqual(v32WithHobby);
+    });
   });
 
   it.each(['open', 'write', 'close'])('keeps V24 when its backup %s fails', async phase => {

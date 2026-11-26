@@ -1767,6 +1767,7 @@ describe('resolveRightClick', () => {
 
     expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual({
       title: 'Thing 8',
+      person: 8,
       entries: [
         { label: 'Chat', action: { kind: 'talk', target: 8, interaction: 0 } },
         { label: 'Gossip', action: { kind: 'talk', target: 8, interaction: 1 } },

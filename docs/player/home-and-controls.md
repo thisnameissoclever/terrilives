@@ -46,7 +46,7 @@ Choose **Confirm** to accept the reviewed layout. Choose **Return to build mode*
 
 :::illustration build-access-review
 
-The first pool can take time to prepare for the household. While Build shows **Preparing swimming**, choose **Return to build mode** or press Escape to stop waiting and keep the draft.
+The first pool or Sunstrip lounger can take time to prepare for the household. While Build shows **Preparing animations**, choose **Return to build mode** or press Escape to stop waiting and keep the draft.
 
 ## Furniture and buying {#furniture}
 

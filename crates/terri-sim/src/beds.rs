@@ -50,6 +50,9 @@ pub(crate) fn action_capacity(
     object: &CompiledObject,
     action: &terri_data::CompiledInteraction,
 ) -> Option<u32> {
+    if crate::pool::is_swimming(action) {
+        return Some(u32::from(crate::pool::capacity(object)));
+    }
     match action_admission(pack, object, action) {
         ActionAdmission::BookSource => None,
         ActionAdmission::Seats => Some(object.seats.len() as u32),
@@ -438,6 +441,9 @@ impl Occupancy {
         }
         if crate::seating::media_kind(object, interaction).is_some() {
             return self.viewer_admissions(agent, target, interaction.slots, false);
+        }
+        if crate::pool::is_swimming(interaction) && crate::pool::capacity(object) > 1 {
+            return self.viewer_admissions(agent, target, crate::pool::capacity(object), false);
         }
         if admission == ActionAdmission::Exclusive {
             return self

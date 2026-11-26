@@ -16,7 +16,7 @@ const fsPromises = require('node:fs/promises');
 const path = require('node:path');
 
 /** Every name the save code can produce, and nothing else. */
-const SAVE_NAME = /^terri-save-1(\.previous|\.damaged(-\d+-\d+)?|\.v\d{1,5}(-(editable|published|standard))?-backup)?\.bin$/;
+const SAVE_NAME = /^terri-save-1(\.previous|\.damaged(-\d+-\d+)?|\.v\d{1,5}(-(editable|published|standard|\d{1,5}))?-backup)?\.bin$/;
 const TEMPORARY_NAME = /^terri-save-1[^/\\]*\.tmp-\d+-\d+$/;
 const MAX_SAVE_BYTES = 256 * 1024 * 1024;
 const RENAME_ATTEMPTS = 6;

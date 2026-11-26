@@ -1,6 +1,6 @@
 # Outdoor store models
 
-This folder holds three procedurally modeled outdoor items: a backyard pool, a pool lounger and a patio umbrella. Each one renders to four facings through the larger registered static prop exporter in `../bathroom/render_wide_static.py`, the same exporter the bathtub uses. The pool has straight walls, a rectangular basin and an inclined exterior ladder. Swimmers turn on a 48 cm landing between the rails.
+This folder holds the four pool models, pool lounger, and patio umbrella. Each model renders to four facings. The two pools sold in Build have separate Blender exporters for the fitted stairs and the below-grade basin.
 
 ## Contents
 
@@ -12,11 +12,13 @@ This folder holds three procedurally modeled outdoor items: a backyard pool, a p
 
 ## Models and dimensions
 
-One tile is 1.0 world unit. Models are centered on the origin; the evaluated pool bounds below include its beveled ladder stringers.
+One tile is 1.0 world unit.
 
-**Pool.** Backyard Rectangle occupies 3 by 2 tiles, including the exterior ladder. A previously placed Backyard Square keeps its 2 by 2 footprint. Both use a straight front wall and full-width water. The wide model extends the basin one tile behind the compact model. Pale stone coping tops the wall at Z=0.90, and water sits at Z=0.82.
+**Backyard Lodge** occupies 3 by 4 tiles, including the exterior stairs. Its wood walls surround a rectangular basin. Pale stone coping tops the wall at Z=0.90, and water sits at Z=0.82. The model retains the fitted stair treads and landing, with wider, lower rails. Sims can step up and down with their arms free.
 
-The two models share the ladder at X=-0.50 and the standing approach at (-0.5, 1.5) in the contact frame. Exterior treads stand outside the front wall. The landing is 0.48 m deep, with 0.654 m of clear space between the rails. The wide sprite and its depth map are registered half a tile toward the basin from that frame. Character drawing and water effects rotate the corresponding offset with the model. Both fit their animation to the compact basin and the same physical ladder.
+**Garden Basin** occupies 5 by 7 tiles. Its stone surround meets the ground at Z=0, and water sits at Z=-0.18. Sims hop in from the deck and climb out on three submerged ladder treads. The floor opening follows the placed pool, so the original ground and finishes can reappear if the pool moves or is sold.
+
+**Backyard Rectangle and Backyard Square** remain in existing lots at their original 3 by 2 and 2 by 2 footprints. Both have an inclined exterior ladder, straight walls, and full-width water. Their variants share the original fitted ladder at X=-0.50 and standing approach at (-0.5, 1.5). The wide sprite and depth map are offset half a tile from that frame. Color, depth, character drawing, and water effects rotate together.
 
 **Pool lounger** (1 by 2 tiles, long axis along world Y as the bathtub is authored). A pale wood frame with four short legs, a deck board and a muted teal padded cushion. The model is 0.62 wide and 1.80 long. The seat cushion top is 0.42 high, which suits the generic chair-sitting pose on its edge. The backrest at the +Y end is hinged on the frame, raised 40 degrees and reaches about 0.80 high; two wood props hold it from the side rails.
 
@@ -24,7 +26,7 @@ The two models share the ladder at X=-0.50 and the standing approach at (-0.5, 1
 
 ## Files
 
-Each object has three source files, following the plant and bathtub pattern:
+The lounger, umbrella, and legacy pool sources follow the plant and bathtub pattern:
 
 - `*_layout.py` holds the dimensions and any vertex helpers in pure Python, with no Blender import.
 - `*_model.py` defines `build(root)`, which creates the named meshes under `root` with the helpers in `../furniture/build_parts.py` and returns the model checks recorded in `proof.json`.
@@ -34,7 +36,14 @@ Each object has three source files, following the plant and bathtub pattern:
 
 ## Render a candidate
 
-Run `export_pool_fixture_v9.py` in background Blender with `--source` pointing to the matched ladder source and `--output` pointing to a new directory. Add `--compact` to build the smaller model and the fitted contacts used by both pools. Pass these arguments after Blender's `--` separator. Render either model with `render_pool_activity_v5.py --directory <export> --output <sprites>`. Use the exact modeled geometry and registered camera for the matching color and depth passes.
+Use a fresh output directory for each pool export. Each writes the editable Blender file, four registered color views, evaluated geometry, and the proof file.
+
+```powershell
+blender -b -t 1 -P assets/models/outdoor/export_lodge_pool.py -- --output .scratch/lodge
+blender -b -t 1 -P assets/models/outdoor/export_in_ground_pool.py -- --output .scratch/basin
+```
+
+For legacy assets, run `export_pool_fixture_v9.py` in background Blender with `--source` pointing to the matched ladder source and `--output` pointing to a new directory. Add `--compact` to export the square model. Render either legacy asset with `render_pool_activity_v5.py --directory <export> --output <sprites>`.
 
 For the lounger and umbrella, pass a new output directory after -- to the corresponding renderer. The launcher can return before rendering finishes. Wait for `proof.json` in the output folder to report `"state": "complete"`, or `"failed"` with a traceback, with a bounded wait. Each run writes `proof.json`, an authoring `.blend` and `closed-SE.png`, `closed-NW.png`, `closed-SW.png` and `closed-NE.png` at 1280 by 1408 pixels, the 160 by 176 logical canvas at density 8.
 
@@ -44,15 +53,17 @@ The atlas importer, `assets/sprites/gen/offline_props.py`, rejects a facing whos
 
 | Object | Current folder | Earlier folders |
 |---|---|---|
-| Pool | `owner-review-pending/pool/activity-v9` and `activity-v9-compact` | Original candidate-04 accepted the shallow static pool. Original 01 had plain water; 02 outlined separate ripple meshes; 03 had visible stair steps. Activity-v1 added the basin and treads but regressed to coarse water and was rejected. Activity-v2 restored fine water detail with the older external ladder. Activity-v4 retains that water detail with the compact six-tread ladder and crest landing. Activity-v5 widened the passage from 52 to 56 centimeters. Activity-v6 added a toe recess. Activity-v7 widened the turn platform. Activity-v8 used an inset ladder that cut into the basin. Activity-v9 uses a continuous wall and an external ladder. |
+| Backyard Lodge | `owner-review-pending/pool/lodge` | Adapted from the activity-v9 contact fixture. |
+| Garden Basin | `owner-review-pending/pool/in-ground` | Uses the activity-v9 interior treads at the height of the submerged ladder. |
+| Legacy pools | `owner-review-pending/pool/activity-v9` and `activity-v9-compact` | Original candidate-04 accepted the shallow static pool. Original 01 had plain water; 02 outlined separate ripple meshes; 03 had visible stair steps. Activity-v1 added the basin and treads but regressed to coarse water and was rejected. Activity-v2 restored fine water detail with the older external ladder. Activity-v4 retains that water detail with the compact six-tread ladder and crest landing. Activity-v5 widened the passage from 52 to 56 centimeters. Activity-v6 added a toe recess. Activity-v7 widened the turn platform. Activity-v8 used an inset ladder that cut into the basin. Activity-v9 uses a continuous wall and an external ladder. |
 | Pool lounger | `owner-review-pending/lounger/candidate-01` | none |
 | Patio umbrella | `owner-review-pending/umbrella/candidate-02` | 01 had a slate base collar that blended into the base and a slightly flatter canopy |
 
 The original candidate-04 pool, lounger and umbrella passed the review in `docs/assets/review-evidence/outdoor/2026-10-17/art-review.md`. The activity-v2 review compared all four source views against activity-v1, rejected the coarse ripples, and accepted the finer water detail. Activity-v4 passed a separate four-view static review. Its evaluated solids, rail paths and water geometry match the retained compact r3 scene. Depth export hides the `pool_rail_authoring_path` helpers and renders the visible solids, rails and water.
 
-The [v14 pool motion](../sims/character-creator/pool_activity_motion_v14.json) guides the elbows toward the pool during the ladder crest transition. [Contacts v3](../sims/character-creator/clips/pool/contacts-v3.json) derives from `contacts-v2.json` by replacing only `revisions.poseProducer` with the SHA-256 digest of the exact v14 motion file. The physical geometry and contact policy retain their original bytes. Verify the derivative by reversing that digest substitution and comparing the complete file with v2. This binds the new motion to the existing r3 physical export.
+In the historical r3 export, [v14 pool motion](../sims/character-creator/pool_activity_motion_v14.json) guided the elbows toward the pool during the ladder crest transition. [Contacts v3](../sims/character-creator/clips/pool/contacts-v3.json) derives from `contacts-v2.json` by replacing only `revisions.poseProducer` with the SHA-256 digest of the exact v14 motion file. The physical geometry and contact policy retain their original bytes. Verify the derivative by reversing that digest substitution and comparing the complete file with v2.
 
-The static prop catalogs `../static-props-07.json` and `../static-props-08.json` bind the accepted art proofs, and `assets/sprites/gen/build.py` packs their sprites into the atlas. The [registered depth workflow](../sims/character-repair/README.md) covers both pool variants. The renderer uses each pixel's physical depth to place a housemate in front of or behind the object. Verify fitted entry, paddling, exit and water coverage in the displayed game after the complete compiler accepts the tested body.
+The static prop catalogs `../static-props-07.json` and `../static-props-08.json` retain legacy colors. Catalogs `../static-props-09.json` and `../static-props-10.json` bind the Lodge and Basin proofs. The atlas build packs them with their [registered depth maps](../sims/character-repair/README.md). The renderer uses each pixel's physical depth to place a housemate in front of or behind the object. Verify entry, paddling, exit, and water coverage in the game after updating a model.
 
 The [active pool release](../../../web/src/render/character/pool-active-release.ts) selects the matching motion, physical contacts and climb-out data. The Sim pushes off at tick 12 of entry. The game fits the climb-out to the selected body and returns it to the original dry approach. A save during the climb preserves the phase and elapsed ticks.
 

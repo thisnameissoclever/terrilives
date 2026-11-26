@@ -1127,7 +1127,13 @@ pub(crate) fn validate_manual_work_trip_activities(world: &World) -> Result<(), 
                 .is_none(),
             (None, None, Some(episode)) => {
                 episode.interrupted
-                    && matches!(episode.phase, 3 | 4 | crate::pool::CANCELED_LANDING)
+                    && matches!(
+                        episode.phase,
+                        3 | 4
+                            | crate::pool::CANCELED_LANDING
+                            | crate::pool::WAITING_FOR_LADDER
+                            | crate::pool::RETURNING_TO_LADDER
+                    )
             }
             (None, None, None) => {
                 world.get::<Target>(actor).is_none()
@@ -2277,10 +2283,10 @@ mod editable_return_tests {
                 .iter(sim.world())
                 .any(|c| *c == Commuting::Inbound)
             {
-                let saved = sim.save_snapshot_v31();
+                let saved = sim.save_snapshot_v33();
                 let hash = sim.world_hash();
-                sim.load_snapshot_v31(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v31(), saved);
+                sim.load_snapshot_v33(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v33(), saved);
                 assert_eq!(sim.world_hash(), hash);
                 return;
             }

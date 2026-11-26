@@ -68,11 +68,13 @@ fn main() {
             sim.flush_commands();
             for _ in 0..160 {
                 sim.tick();
-                if !sim.save_snapshot_v30().baths.is_empty() {
+                if !sim.save_snapshot_v33().baths.is_empty() {
                     break;
                 }
             }
-            let snapshot = sim.save_snapshot_v30();
+            let snapshot = sim
+                .try_save_snapshot_v33()
+                .expect("valid bath review state");
             let episode = snapshot
                 .baths
                 .iter()

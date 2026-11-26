@@ -586,6 +586,11 @@ pub fn tick_chain_steps(
         }) {
             continue;
         }
+        if hobbies.is_some_and(|hobbies| {
+            crate::hobby_mood::loves_step(content.0, &chain_state, origins.get(sim).ok(), hobbies)
+        }) {
+            crate::hobby_mood::queue_credit(&mut commands, sim);
+        }
         // Saturating, the Eating countdown's own idiom: this arm never
         // re-enters below zero today, but a StepWork inserted at 0 by a
         // future path would underflow-panic in debug rather than
