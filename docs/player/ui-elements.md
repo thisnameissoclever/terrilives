@@ -303,7 +303,7 @@ Choose **Start over** to confirm a new game. **Keep playing** also dismisses thi
 
 :::illustration new-game-confirm
 
-Options, then Export save downloads the current household as a file and opens instructions for recovering a save from the old website. Follow the recovery link in the same browser, profile, and device where you played. Close the instructions with Close or Escape. Options, then Import save opens a file picker; after you choose a save file, a confirmation appears before the running game and its saved game are replaced. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
+Options, then Export save downloads the current household as a file and, on the website, opens instructions for recovering a save from the old website. In the installed game, Export save asks where to save the file and opens no instructions. Follow the recovery link in the same browser, profile, and device where you played. Close the instructions with Close or Escape. Options, then Import save opens a file picker; after you choose a save file, a confirmation appears before the running game and its saved game are replaced. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
 
 :::illustration import-confirm
 

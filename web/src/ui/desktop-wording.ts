@@ -5,13 +5,12 @@
  * link open in a new browser tab, and their labels say so. In the installed
  * game, the guide and changelog open in a new app window, and a website link
  * opens in the player's web browser. Only the parts of the labels that name
- * the destination change. The Export save recovery panel's note about what
- * Export save writes also names the app instead of "this website".
+ * the destination change.
+ *
+ * On the website, Export save also opens the panel about recovering a save
+ * from the old website. In the installed game it opens only the system's Save
+ * dialog: straight after a successful export, that panel read as a failure.
  */
-
-/** The recovery panel's last note, as the installed game shows it. */
-export const DESKTOP_EXPORT_NOTE =
-  "Export save writes the game in this app to a file. Use the recovery page above for the old website's save.";
 
 const NEW_TAB = 'opens in a new tab';
 const NEW_TAB_SENTENCE = 'Opens in a new tab';
@@ -31,8 +30,11 @@ function reword(text: string, wording: { lower: string; sentence: string }): str
 /** Applies every installed-game wording change to the game page. */
 export function applyDesktopWording(root: ParentNode & Pick<Document, 'getElementById'>): void {
   applyDesktopLinkWording(root);
-  const exportNote = root.getElementById('save-transfer-export');
-  if (exportNote) exportNote.textContent = DESKTOP_EXPORT_NOTE;
+  const exportSave = root.getElementById('export-save');
+  if (exportSave) {
+    exportSave.removeAttribute('popovertarget');
+    exportSave.removeAttribute('aria-controls');
+  }
 }
 
 /** Rewrites "opens in a new tab" on every new-window link under `root`. */

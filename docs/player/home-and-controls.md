@@ -134,7 +134,7 @@ To use the file, open the game where you want to play (another browser, another 
 
 ### Saves from the old web address {#old-address}
 
-Export save also opens prominent recovery instructions with a link to the old website's recovery page, on the website and in the installed game. In the installed game, the link opens in your web browser. Close the instructions with Close or Escape.
+On the website, Export save also opens prominent recovery instructions with a link to the old website's recovery page. Close the instructions with Close or Escape. The installed game opens only its save dialog.
 
 :::illustration save-recovery
 

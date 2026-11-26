@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-import { DESKTOP_EXPORT_NOTE, applyDesktopLinkWording, applyDesktopWording } from '../src/ui/desktop-wording.js';
+import { applyDesktopLinkWording, applyDesktopWording } from '../src/ui/desktop-wording.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
@@ -17,6 +17,9 @@ class FakeLink {
   }
   setAttribute(name: string, value: string): void {
     this.attributes.set(name, value);
+  }
+  removeAttribute(name: string): void {
+    this.attributes.delete(name);
   }
 }
 
@@ -65,14 +68,15 @@ describe('installed game link wording', () => {
     expect(link.textContent).toBe('Guide (opens in a new tab)');
   });
 
-  it('names the app in the Export save note and leaves the website wording in the page', () => {
-    const note = /<p id="save-transfer-export">([^<]*)<\/p>/.exec(INDEX_HTML);
-    expect(note?.[1]).toBe("Export save downloads the game at this website. Use the recovery page above for the old website's save.");
-    const element = { textContent: note![1] };
-    const root = { querySelectorAll: () => [], getElementById: (id: string) => (id === 'save-transfer-export' ? element : null) };
+  it('keeps the recovery panel on Export save in the page and detaches it in the installed game', () => {
+    const button = /<button id="export-save"[^>]*>/.exec(INDEX_HTML)?.[0] ?? '';
+    expect(button).toContain('popovertarget="save-transfer-help"');
+    expect(button).toContain('aria-controls="save-transfer-help"');
+    const exportSave = new FakeLink({ popovertarget: 'save-transfer-help', 'aria-controls': 'save-transfer-help' }, 'Export save');
+    const root = { querySelectorAll: () => [], getElementById: (id: string) => (id === 'export-save' ? exportSave : null) };
     applyDesktopWording(root as unknown as Document);
-    expect(element.textContent).toBe(DESKTOP_EXPORT_NOTE);
-    expect(DESKTOP_EXPORT_NOTE).not.toMatch(/this website|download/);
+    expect(exportSave.getAttribute('popovertarget')).toBeNull();
+    expect(exportSave.getAttribute('aria-controls')).toBeNull();
   });
 
   it('rewords every new-tab label in the real game page', () => {
