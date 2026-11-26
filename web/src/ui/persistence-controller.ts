@@ -273,7 +273,7 @@ export class PersistenceController {
    * running world is not the protected household, so the stored bytes are
    * exported unchanged instead.
    */
-  async exportSave(deliver: (bytes: Uint8Array) => void): Promise<boolean> {
+  async exportSave(deliver: (bytes: Uint8Array) => void | Promise<boolean>): Promise<boolean> {
     if (!this.beginOperation('export')) return false;
     try {
       const protectedSave = this.savingPaused;
@@ -286,7 +286,10 @@ export class PersistenceController {
         this.showKeepingPausedNote('No saved game found', true);
         return false;
       }
-      deliver(bytes);
+      // A delivery that returns a promise waits for the player's answer, such
+      // as the installed game's save dialog; false means they cancelled.
+      const delivered = deliver(bytes);
+      if (delivered !== undefined && !(await delivered)) return false;
       this.showKeepingPausedNote(protectedSave ? 'Saved game exported' : 'Game exported');
       return true;
     } catch (error: unknown) {

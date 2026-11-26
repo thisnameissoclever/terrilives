@@ -76,6 +76,43 @@ describe('Export save', () => {
     expect(controller.controlState().exportDisabled).toBe(false);
   });
 
+  it('waits for an asynchronous delivery and shows the note only when it completes', async () => {
+    const view = status();
+    const controller = new PersistenceController(store(null), sim(), view);
+    await controller.restoreAtStartup();
+    let finish: (saved: boolean) => void = () => {};
+    const exporting = controller.exportSave(() => new Promise<boolean>((resolve) => { finish = resolve; }));
+    await Promise.resolve();
+    expect(view.textContent).not.toBe('Game exported');
+    finish(true);
+    expect(await exporting).toBe(true);
+    expect(view.textContent).toBe('Game exported');
+  });
+
+  it('shows no note and returns false when the player cancels the save dialog', async () => {
+    const view = status();
+    const controller = new PersistenceController(store(null), sim(), view);
+    await controller.restoreAtStartup();
+    const before = view.textContent;
+
+    expect(await controller.exportSave(async () => false)).toBe(false);
+    expect(view.textContent).toBe(before);
+    expect(controller.controlState().exportDisabled).toBe(false);
+  });
+
+  it('reports an asynchronous delivery that fails', async () => {
+    const errors: unknown[] = [];
+    const view = status();
+    const controller = new PersistenceController(store(null), sim(), view, (error) => errors.push(error));
+    await controller.restoreAtStartup();
+
+    expect(await controller.exportSave(() => Promise.reject(new Error('disk full')))).toBe(false);
+    expect(view.textContent).toBe('Export failed. The game is still running.');
+    expect(view.attributes.get('data-kind')).toBe('error');
+    expect(errors).toHaveLength(1);
+    expect(controller.controlState().exportDisabled).toBe(false);
+  });
+
   it('exports the protected slot unchanged, within the click, while saving is paused', async () => {
     const protectedSave = saveBytes(CURRENT_SAVE_VERSION + 1);
     const backend = store(protectedSave);

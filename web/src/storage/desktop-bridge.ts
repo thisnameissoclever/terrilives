@@ -19,6 +19,11 @@ export interface DesktopSaveFiles {
 export interface DesktopBridge {
   readonly saves: DesktopSaveFiles;
   /**
+   * Asks the player where to save an exported save file. Resolves `cancelled`
+   * when they close the dialog, and rejects when the file cannot be written.
+   */
+  exportFile(name: string, bytes: Uint8Array): Promise<'saved' | 'cancelled'>;
+  /**
    * Registers the page's answer to the app asking for a save, before the
    * window closes or when it is minimized. The app waits for the returned
    * promise when closing, for up to ten seconds.
@@ -42,6 +47,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function desktopBridge(scope: object = globalThis): DesktopBridge | null {
   const candidate = (scope as { naturalCausesDesktop?: unknown }).naturalCausesDesktop;
   if (!isRecord(candidate) || typeof candidate.onSaveRequested !== 'function') return null;
+  if (typeof candidate.exportFile !== 'function') return null;
   const saves = candidate.saves;
   if (!isRecord(saves)) return null;
   if (typeof saves.read !== 'function' || typeof saves.write !== 'function' || typeof saves.remove !== 'function') {

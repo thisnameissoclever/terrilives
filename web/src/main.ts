@@ -1516,7 +1516,11 @@ async function main(): Promise<void> {
   });
   exportSaveButton.addEventListener('click', () => {
     const exporting = persistence.exportSave((bytes) =>
-      downloadSaveFile(bytes, saveFileName(new Date())),
+      desktop !== null
+        ? desktop
+            .exportFile(saveFileName(new Date()), bytes)
+            .then((result) => result === 'saved')
+        : downloadSaveFile(bytes, saveFileName(new Date())),
     );
     syncPersistenceButtons();
     void exporting.then(() => syncPersistenceButtons());

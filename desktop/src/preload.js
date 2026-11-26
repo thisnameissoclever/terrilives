@@ -37,6 +37,8 @@ contextBridge.exposeInMainWorld('naturalCausesDesktop', {
     write: (name, bytes) => ipcRenderer.invoke('natural-causes:saves:write', name, bytes),
     remove: (name) => ipcRenderer.invoke('natural-causes:saves:remove', name),
   },
+  /** Asks where to save an exported save file: resolves 'saved' or 'cancelled'. */
+  exportFile: (name, bytes) => ipcRenderer.invoke('natural-causes:export', name, bytes),
   onSaveRequested(handler) {
     if (typeof handler === 'function' && saveRequestHandler === null) saveRequestHandler = handler;
   },

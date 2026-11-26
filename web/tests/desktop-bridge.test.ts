@@ -12,6 +12,7 @@ function validBridge() {
       write: vi.fn(async (name: string, bytes: Uint8Array) => { files.set(name, bytes); }),
       remove: vi.fn(async (name: string) => { files.delete(name); }),
     },
+    exportFile: vi.fn(async () => 'saved' as const),
     onSaveRequested: vi.fn((next: () => Promise<unknown>) => { handler = next; }),
   };
   return { bridge, files, request: () => handler!() };
@@ -39,7 +40,9 @@ describe('desktopBridge', () => {
     ['no write', { saves: { read() {}, remove() {} }, onSaveRequested() {} }],
     ['no remove', { saves: { read() {}, write() {} }, onSaveRequested() {} }],
     ['a read that is not a function', { saves: { read: 1, write() {}, remove() {} }, onSaveRequested() {} }],
-    ['no save request hook', { saves: { read() {}, write() {}, remove() {} } }],
+    ['no save request hook', { saves: { read() {}, write() {}, remove() {} }, exportFile() {} }],
+    ['no export channel', { saves: { read() {}, write() {}, remove() {} }, onSaveRequested() {} }],
+    ['an export channel that is not a function', { saves: { read() {}, write() {}, remove() {} }, exportFile: 1, onSaveRequested() {} }],
   ])('rejects %s', (_label, value) => {
     expect(desktopBridge({ naturalCausesDesktop: value })).toBeNull();
   });
