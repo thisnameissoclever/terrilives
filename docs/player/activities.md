@@ -90,13 +90,11 @@ A toilet, shower or bath use stops after {{number:tuning.need_fill_max_ticks}} g
 
 ## Swimming {#swimming}
 
-Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, hops into the water, paddles, then climbs back out. Backyard Lodge holds two swimmers and Garden Basin holds four. Backyard Square and Backyard Rectangle hold one.
+Select a person, then right-click the pool or long-press it on a phone. Choose **Hop in** from the [object menu](ui-elements/#object-menu). People can also choose it themselves. The person changes into swimwear, hops into the water, paddles, then climbs back out. Backyard Lodge holds two swimmers and Garden Basin holds four. Backyard Square and Backyard Rectangle hold one.
 
 Build offers Backyard Lodge, a 3×4 above-ground pool with exterior stairs, and Garden Basin, a 5×7 in-ground pool with a short ladder inside one end. Leave a clear tile at the foot of the Lodge stairs or outside the Basin's ladder end. Use [Land](ui-elements/#land) in Build if you need more room in the yard. Older pools keep the footprint they had when placed.
 
 One person uses the ladder at a time. Arrivals wait on land for the ladder. Swimmers ready to leave wait in the water and use the ladder before the next arrival.
-
-:::illustration pool-hop-in
 
 Only paddling supplies Fun and Comfort and costs Energy. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
 
