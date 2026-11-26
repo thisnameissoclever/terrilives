@@ -1116,9 +1116,13 @@ describe('the Buy tool in the page', () => {
       expect(MAIN_TS).toContain(wiring);
     }
     // The ghost reaches the one packer; its batch publishes the live count.
-    expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(2);
+    // The frame reads it once, so the pool floor openings and the packer see
+    // the same placement.
+    expect(MAIN_TS.split('const purchaseGhost = buyTool.ghost();')).toHaveLength(2);
+    expect(MAIN_TS.split('const placement = purchaseGhost ?? builder.preview;')).toHaveLength(2);
+    expect(MAIN_TS).toMatch(/undefined,\s*placement,\s*roomReview\.highlight\(\)/);
     // [RC-render]: the ghost of a purchase is drawn in the Buy tool's colourway,
     // a moved object's in the object's own.
-    expect(MAIN_TS).toContain('buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,');
+    expect(MAIN_TS).toContain('purchaseGhost ? buyTool.ghostColourway() : builder.colourway ?? 0,');
   });
 });
