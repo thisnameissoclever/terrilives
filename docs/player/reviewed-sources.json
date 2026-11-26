@@ -208,7 +208,7 @@
     "crates/terri-sim/src/details.rs": "a7ab8f57ce9df6931bcd882c07708a8221e6d7b44b7dae3c3f69407af3629585",
     "crates/terri-sim/src/dining.rs": "9a878149d6d53a500ca59a3015427c2b32429c0b2b538228626a078298418f74",
     "crates/terri-sim/src/dining/completion_tests.rs": "e0ba74da90dd94329123e158162f637fe512e36272f531ab3e54f38a87ab9f98",
-    "crates/terri-sim/src/dining/table_actions.rs": "457ad7440eeda332e4a97cb786f95c544e9d37370ac2d30660224154d10ee292",
+    "crates/terri-sim/src/dining/table_actions.rs": "0612f08f4de0ab87a8696f9ca43565e494c8841b0f6592143aa730147eaf1e10",
     "crates/terri-sim/src/dining/tests.rs": "17662d6d9a015709b970e47cf11e76f78b0ca12879be024c9b6c5d1c85f4e39c",
     "crates/terri-sim/src/domestic.rs": "d324bff681ee045d74614500fcf6c7b0e4022677a7eaee4cf53853f9ec08112e",
     "crates/terri-sim/src/domestic/tests.rs": "060a16e0de5d9cd437ba70f62fa013b4b3ceb7c880b72aa18e04510549b66c5b",
