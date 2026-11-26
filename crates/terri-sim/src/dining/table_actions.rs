@@ -1,8 +1,19 @@
 use super::*;
 
+/// The meal table's plain sitting action. A pack can list a table's actions
+/// in any order, so it is found by its id and never by its position.
+pub(crate) const SIT_PROPERLY: &str = "sit_properly";
+
 pub(crate) fn ordinary_sitting(world: &World, person: Entity) -> Option<Entity> {
     let target = world.get::<Target>(person)?;
-    (target.interaction == 0 && role(world, target.object, "meal_table")).then_some(target.object)
+    let object = world.get::<SmartObject>(target.object)?;
+    let action = world
+        .resource::<Content>()
+        .0
+        .object(object.0)
+        .interactions
+        .get(target.interaction as usize)?;
+    (action.id == SIT_PROPERLY && role(world, target.object, "meal_table")).then_some(target.object)
 }
 
 fn chairs(world: &World, table: Entity) -> Vec<Entity> {
@@ -278,6 +289,40 @@ mod tests {
             .0;
         (sim, person, table)
     }
+    /// A pack may list the table's actions in another order, as a reordered
+    /// V6 restore does. Sitting is recognised by the action's id, so the
+    /// table's other action is never read as sitting and sitting is never
+    /// missed at its new position.
+    #[test]
+    fn ordinary_sitting_names_the_action_by_id_in_any_order() {
+        let (mut sim, person, table) = fixture();
+        let mut pack = terri_data::pack().clone();
+        for object in &mut pack.objects {
+            object.interactions.reverse();
+        }
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        sim.world_mut().insert_resource(Content(pack));
+        let model = sim.world().get::<SmartObject>(table).unwrap().0;
+        let actions = &pack.object(model).interactions;
+        let sit = actions
+            .iter()
+            .position(|action| action.id == SIT_PROPERLY)
+            .unwrap() as u32;
+        assert_ne!(sit, 0, "the reversed pack moves sitting off index 0");
+        for (interaction, expected) in [(sit, Some(table)), (1 - sit, None)] {
+            sim.world_mut().entity_mut(person).insert(Target {
+                object: table,
+                interaction,
+            });
+            assert_eq!(
+                ordinary_sitting(sim.world(), person),
+                expected,
+                "{}",
+                actions[interaction as usize].id
+            );
+        }
+    }
+
     #[test]
     fn empty_table_offers_sitting_only_when_physical_chairs_exist() {
         let (mut sim, person, table) = fixture();

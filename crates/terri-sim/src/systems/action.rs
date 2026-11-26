@@ -1103,7 +1103,12 @@ pub fn serve_intents(
             continue;
         }
         if content.0.object(placed.0).id == "dining_table"
-            && intent.interaction == 0
+            && content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(intent.interaction as usize)
+                .is_some_and(|action| action.id == crate::dining::SIT_PROPERLY)
             && !objects.iter().any(|(_, pos, o, _, f)| {
                 content.0.object(o.0).id == "chair"
                     && crate::dining::setting_at(

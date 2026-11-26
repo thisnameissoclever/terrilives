@@ -531,7 +531,17 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// Issue 359 moved it from 0x88a4_d29e_ee60_b5ca: topics are steered by memory
 /// and guesses, and remembered topics join each tick's hash. With the memory
 /// resource removed the old fold comes back.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x5c3b_7d08_431b_cc03;
+/// Two changes then moved it from 0x5c3b_7d08_431b_cc03, both on purpose.
+/// Chores for Sims without a job and the active hobby lift change the
+/// household's choices: that change alone gives 0xd4e9_36d2_2a98_1e7b here
+/// (0xc824_f66f_0525_1b16 with both work knobs at 0). Since shared pools,
+/// autonomy no longer scores a wait for a seat it cannot reach. The shipped desk
+/// chair's one seat approach is across the study wall, so its Sit was never
+/// admissible, yet it used to add a waiting row to choices; without that
+/// row the first tick's choices differ. With both
+/// changes the two work knobs again make no difference in two days. Measured
+/// at the merge of both, with the old waiting row restored to separate them.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x102e_e8bc_9a92_2172;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the

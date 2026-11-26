@@ -128,20 +128,20 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
         legacy.finish(),
         "standard shifts and an undrawn stream add no careers hash bytes"
     );
-    // Issue 344's fade: no lift is fading at this tick, so the fade adds
-    // nothing to the hash.
-    assert!(sim
-        .world()
-        .resource::<crate::presence_fade::PresenceFade>()
-        .entries()
-        .is_empty());
+    // Issue 344's fade added nothing to this pin while no lift was fading at
+    // this tick. Since autonomy stopped scoring a wait for a seat with no
+    // reachable approach, a lift is fading at tick 600 and its bytes are part
+    // of the pin; the careers check above does not read the fade.
     assert_eq!(sim.world_hash(), STANDARD_ONLY_HASH);
 }
 
 /// Issue 359 moved [`STANDARD_ONLY_HASH`] only through topic choice and
 /// remembered topics: the same run with the memory resource removed, which
-/// steers by the listener's true preference and remembers nothing, still
-/// gives the value from before.
+/// steers by the listener's true preference and remembers nothing, gave the
+/// value from before. It is now a regression pin for the run without memory:
+/// chores for Sims without a job, the active hobby lift and the removed wait
+/// for an unreachable seat (see [`STANDARD_ONLY_HASH`]) moved it from
+/// 13043348246484619481, and no tree before issue 359 produced the new value.
 #[test]
 fn without_topic_memory_the_standard_only_hash_is_unchanged() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -152,7 +152,7 @@ fn without_topic_memory_the_standard_only_hash_is_unchanged() {
     for _ in 0..600 {
         sim.tick();
     }
-    assert_eq!(sim.world_hash(), 13043348246484619481);
+    assert_eq!(sim.world_hash(), 14572578620981545019);
 }
 /// Computed at fead3700b, before the shift section of the hash existed, as
 /// 6850362082045180278. Issue 339 moved it on purpose: Tim now shelves his
@@ -174,7 +174,15 @@ fn without_topic_memory_the_standard_only_hash_is_unchanged() {
 /// remembered topic joins the hash. The careers encoding check above still
 /// holds, and `without_topic_memory_the_standard_only_hash_is_unchanged`
 /// pins the old value with memory switched off.
-const STANDARD_ONLY_HASH: u64 = 10985242059267327331;
+/// Two changes then moved it from 10985242059267327331, both on purpose:
+/// chores for Sims without a job and the active hobby lift change Monday
+/// morning's choices (that change alone gives 15994824286922952861), and
+/// autonomy no longer scores a wait for a seat it cannot reach. The shipped desk
+/// chair's one seat approach is across the study wall, so its Sit was never
+/// admissible, yet it used to add a waiting row to choices; without that
+/// row the first tick's choices differ, so a
+/// lift is fading at tick 600. The careers encoding check still holds.
+const STANDARD_ONLY_HASH: u64 = 18368880661169495683;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.

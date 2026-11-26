@@ -592,11 +592,17 @@ fn queued_settings_count_toward_the_shared_command_limit() {
     assert_eq!(live.world_hash(), hash);
 }
 
+/// The case needs two housemates choosing a chat with the same third one on
+/// the first tick: Sim 0 is admitted and Sim 2 waits. The shipped seed
+/// reached it until autonomy stopped scoring a wait for a seat with no
+/// reachable approach (the shipped desk chair's), which changed the first
+/// tick's choices. World seed 80 is the only one of seeds 1 to 299 that
+/// reaches it now; the shipped seed no longer does.
 #[test]
 fn v14_bare_waiter_is_adopted_before_a_current_save_without_claiming_admission() {
     use crate::social_episode::requests::{ConversationOrigin, ConversationRequests, RequestPhase};
     use terri_core::{Agent, Blocked, Path, Reserved, SimClock, SimId, SimRng, Target};
-    let mut source = Sim::new_from_shipped_lot();
+    let mut source = Sim::new_from_shipped_lot_with_seed(80);
     source.tick();
     let people: std::collections::BTreeMap<_, _> = source
         .world_mut()
