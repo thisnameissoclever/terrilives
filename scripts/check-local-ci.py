@@ -30,6 +30,9 @@ class Command:
     name: str
     argv: tuple
     cwd: str = "."
+    # Node heap ceiling for this command. Everything stays at the shared-machine
+    # default unless it has been measured to need more.
+    heap_megabytes: int = 2048
 
 
 def commands(groups, *, install_dependencies=False):
@@ -56,7 +59,8 @@ def commands(groups, *, install_dependencies=False):
         Command("web", "Build WASM package", ("wasm-pack", "build", "crates/terri-wasm", "--target", "web", "--out-dir", "../../web/src/wasm")),
         *([Command("web", "Install web dependencies", ("npm", "ci"), "web")] if install_dependencies else []),
         Command("web", "Verify player values against compiled gameplay", ("node", "scripts/check-player-reference.mjs", "--verify-export")),
-        Command("web", "Type check web", ("npm", "run", "typecheck"), "web"),
+        # tsc measured 2.3 GB on 2026-11-26 (1264 files) and runs out of memory at 2 GB.
+        Command("web", "Type check web", ("npm", "run", "typecheck"), "web", heap_megabytes=3072),
         Command("web", "Test web", ("npm", "test", "--", "--maxWorkers=1"), "web"),
         Command("web", "Build web", ("npm", "run", "build"), "web"),
         # After Build web: the protocol test reads the fresh web/dist. No installer is packaged here.
@@ -103,7 +107,7 @@ def source_snapshot(root, report):
     return {"revision": sha, "working_diff_sha256": hashlib.sha256(diff).hexdigest(), "untracked_files": extra}
 
 
-def execute_command(argv, cwd, log):
+def execute_command(argv, cwd, log, heap_megabytes=2048):
     executable = shutil.which(argv[0])
     if executable is None:
         raise FileNotFoundError("required local command is unavailable: " + argv[0])
@@ -122,14 +126,14 @@ def execute_command(argv, cwd, log):
         resolved = [node, str(cli), *argv[1:]]
     with log.open("wb") as stream:
         return subprocess.run(resolved, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT,
-                              env=bounded_environment()).returncode
+                              env=bounded_environment(heap_ceiling=heap_megabytes)).returncode
 
 
-def bounded_environment(environ=None):
+def bounded_environment(environ=None, heap_ceiling=2048):
     task_environment = dict(os.environ if environ is None else environ)
     options = task_environment.get("NODE_OPTIONS", "")
     pattern = re.compile(r"(?:^|\s)--max[-_]old[-_]space[-_]size(?:=|\s+)([0-9]+)(?=\s|$)")
-    memory = min([2048, *[int(value) for value in pattern.findall(options)]])
+    memory = min([heap_ceiling, *[int(value) for value in pattern.findall(options)]])
     if memory < 1:
         raise ValueError("NODE_OPTIONS heap limit must be positive")
     task_environment["NODE_OPTIONS"] = (pattern.sub(" ", options).strip() + f" --max-old-space-size={memory}").strip()
@@ -163,9 +167,9 @@ def run_checks(root, report, groups, *, execute=execute_command, install_depende
         print(f"[{command.group}] {command.name}", flush=True)
         start = time.monotonic()
         row = {"name": command.name, "group": command.group, "argv": list(command.argv), "cwd": command.cwd,
-               "log": str(logs / f"{index:02d}.log")}
+               "log": str(logs / f"{index:02d}.log"), "node_heap_megabytes": command.heap_megabytes}
         try:
-            row["returncode"] = execute(command.argv, root / command.cwd, Path(row["log"]))
+            row["returncode"] = execute(command.argv, root / command.cwd, Path(row["log"]), heap_megabytes=command.heap_megabytes)
         except OSError as error:
             row.update(returncode=127, error=str(error))
         except KeyboardInterrupt:

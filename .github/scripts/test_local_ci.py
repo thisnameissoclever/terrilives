@@ -98,6 +98,12 @@ class LocalVerification(unittest.TestCase):
         values = local.bounded_environment({"NODE_OPTIONS": "--max-old-space-size=8192", "CARGO_BUILD_JOBS": "12"})
         self.assertIn("--max-old-space-size=2048", values["NODE_OPTIONS"])
         self.assertEqual(values["CARGO_BUILD_JOBS"], "2")
+        values = local.bounded_environment({"NODE_OPTIONS": "--max-old-space-size=8192"}, heap_ceiling=3072)
+        self.assertIn("--max-old-space-size=3072", values["NODE_OPTIONS"])
+        values = local.bounded_environment({"NODE_OPTIONS": "--max-old-space-size=512"}, heap_ceiling=3072)
+        self.assertIn("--max-old-space-size=512", values["NODE_OPTIONS"])
+        raised = {row.name: row.heap_megabytes for row in local.commands(local.GROUPS) if row.heap_megabytes != 2048}
+        self.assertEqual(raised, {"Type check web": 3072}, "Only measured commands get a larger Node heap")
 
     def test_owner_authorization_refuses_substitutions_and_unreviewable_references(self):
         values = dict(sha="a" * 40, head="a" * 40, actor="owner", owner="owner", reference="sha256:" + "b" * 64)
@@ -118,7 +124,7 @@ class LocalVerification(unittest.TestCase):
     def test_failed_check_is_retained_and_stops_later_work(self):
         root = self.fixture()
         calls = []
-        def execute(command, cwd, log):
+        def execute(command, cwd, log, heap_megabytes):
             calls.append(command)
             return 7
         report = root / "ignored-report.json"
@@ -132,7 +138,7 @@ class LocalVerification(unittest.TestCase):
     def test_partial_run_records_revision_without_claiming_complete_verification(self):
         root = self.fixture()
         report = root / "report.json"
-        result = local.run_checks(root, report, ("docs",), execute=lambda *unused: 0)
+        result = local.run_checks(root, report, ("docs",), execute=lambda *unused, **options: 0)
         self.assertRegex(result["checked_revision"], r"^[0-9a-f]{40}$")
         self.assertEqual(result["groups"], ["docs"])
         self.assertFalse(result["complete"])
@@ -141,7 +147,7 @@ class LocalVerification(unittest.TestCase):
     def test_source_change_during_checks_invalidates_the_receipt(self):
         root = self.fixture()
         report = root / "report.json"
-        def execute(*unused):
+        def execute(*unused, **options):
             (root / "changed.py").write_text("changed source")
             return 0
         result = local.run_checks(root, report, ("docs",), execute=execute)
@@ -150,14 +156,14 @@ class LocalVerification(unittest.TestCase):
 
     def test_complete_run_retains_every_command_result_and_stable_source(self):
         root = self.fixture()
-        result = local.run_checks(root, root / "report.json", local.GROUPS, execute=lambda *unused: 0)
+        result = local.run_checks(root, root / "report.json", local.GROUPS, execute=lambda *unused, **options: 0)
         self.assertTrue(result["complete"])
         self.assertEqual(len(result["results"]), len(local.commands(local.GROUPS)))
         self.assertEqual(result["source_before"], result["source_after"])
 
     def test_interruption_remains_an_incomplete_durable_report(self):
         root = self.fixture()
-        def execute(*unused):
+        def execute(*unused, **options):
             raise KeyboardInterrupt()
         report = root / "report.json"
         result = local.run_checks(root, report, ("docs",), execute=execute)
