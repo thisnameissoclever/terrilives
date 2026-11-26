@@ -4,10 +4,13 @@ import { expect, it, vi } from 'vitest';
 import * as frame from '../src/frame.js';
 import { FLOATS_PER_INSTANCE, OFFSET_SPRITE } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
+import { placementInstanceCount } from '../src/render/placement-preview.js';
 
 it.each(['floor', 'selection', 'review'] as const)('uploads the %s highlight through actual main packing and draw statements without recounting', mode => {
   const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  const start = main.indexOf('    const selected = builder.active');
+  // From the frame's one read of the placement ghost, which the pool floor
+  // openings and the packer share.
+  const start = main.indexOf('      const purchaseGhost = buyTool.ghost();');
   const end = main.indexOf('    // Inside the sample below', start);
   expect(start).toBeGreaterThan(0);
   expect(end).toBeGreaterThan(start);
@@ -34,8 +37,14 @@ it.each(['floor', 'selection', 'review'] as const)('uploads the %s highlight thr
     roomSelection: { highlight: () => mode === 'selection' ? highlight : { tiles: [[8, 8]], valid: true } },
     sky: { width: 0, height: 0, values: floats }, AMBIENT_NEUTRAL: 1,
     weatherScene: { prepare: vi.fn() }, weatherTuning: null, drawWorldEffects: vi.fn(),
-    wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw,fixtureDepthBase:0 },
+    wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw,fixtureDepthBase:0,setGrimeInstances:vi.fn(),grimeSpriteBase:0 },
     interiorDaylightShade: 0,
+    // This lot has no in-ground pool, and the camera is current.
+    placementInstanceCount, poolFloorOpenings: [] as { entity: number }[], hiddenPoolOpening: null as number | null,
+    showPoolFloorOpenings: () => { throw new Error('a lot without a pool showed pool floor openings'); },
+    cameraDirty: false, applyCamera: vi.fn(), lot: { width: 0 },
+    buildGrimeInstances: vi.fn(() => ({ instances: floats, count: 0 })),
+    placementButtons: { frame: () => false }, sceneLayout: { invalidate: vi.fn() }, renderBuildFeedback: vi.fn(),
     // A later frame: startup's first-scene report has already run.
     firstSceneRecorded: true };
   new Function(...Object.keys(bindings), code)(...Object.values(bindings));
