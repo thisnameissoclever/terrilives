@@ -97,11 +97,9 @@ export function describeStartupFailure(
 
   if (isNoAdapter(error) && env.desktop) {
     return {
-      title: 'The game did not get a graphics device',
+      title: 'The game could not use the graphics card',
       detail,
       hints: [
-        'WebGPU is available, but the game could not use the graphics card. ' +
-          'This usually happens after a graphics driver crash or reset.',
         'Close Natural Causes and open it again.',
         'If that does not help, restart the computer or update the graphics driver.',
       ],

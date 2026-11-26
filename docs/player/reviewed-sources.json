@@ -929,7 +929,7 @@
     "web/src/ui/set-text-if-changed.ts": "7755130b6e1dd323fe1a2728675a693aa0810db6cb284f91c5be7709168a5aae",
     "web/src/ui/shortcuts.ts": "8acd44a01226417bf042afc9cb04a396333f2a38cec7cef7fc9ea9322ba361e1",
     "web/src/ui/skills-panel.ts": "b4bda13b985c084f03b92f0b4e3dc59981b26964a6e3ca5b180359a477c19e2e",
-    "web/src/ui/startup-failure.ts": "32884623978b4d25a5ed1ce22c884e1866b7b4c49b18212614d37f9a50e16131",
+    "web/src/ui/startup-failure.ts": "f808e3329eb6b0e2047cae2a5923cf9298e54ad567651a1c1406af2afc8bd3d4",
     "web/src/ui/startup-loading.ts": "17c667ef1c631dc8b2a5dc7e6d710b73e97746b54cf216de59fd9bb58bb6e74f",
     "web/src/ui/time-controls.ts": "a3b9cb8b6022194781e9dbb5226d97bb83b48ff2c469805c5422a959453ff6dd",
     "web/src/ui/traits-panel.ts": "3e28af7de34d7a09de6d5f6e999c886ae67fb850656fb5fba09bb1cf32fa6e75",

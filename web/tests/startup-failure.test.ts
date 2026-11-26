@@ -158,9 +158,12 @@ describe('describeStartupFailure', () => {
 
     it('tells the player to reopen the app, not to restart a browser, for a refused device', () => {
       const notice = describeStartupFailure(new NoGpuAdapterError(), desktop);
-      expect(notice.title).toBe('The game did not get a graphics device');
+      expect(notice.title).toBe('The game could not use the graphics card');
+      expect(notice.hints).toEqual([
+        'Close Natural Causes and open it again.',
+        'If that does not help, restart the computer or update the graphics driver.',
+      ]);
       const hints = notice.hints.join(' ');
-      expect(hints).toContain('Close Natural Causes and open it again.');
       expect(hints).not.toMatch(/browser|chrome:/i);
     });
 
