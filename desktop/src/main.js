@@ -16,6 +16,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { SCHEME, SCHEME_PRIVILEGES, START_URL, createProtocolHandler } = require('./app-protocol.js');
+const { createExportFile } = require('./export-file.js');
 const { MAX_SAVE_BYTES, SaveFiles } = require('./save-files.js');
 const policy = require('./window-policy.js');
 const { startUpdateCheck } = require('./updates.js');
@@ -226,24 +227,16 @@ function trustedSaveRequest(event) {
   }
 }
 
-const EXPORT_NAME = /^natural-causes-save-\d{4}-\d{2}-\d{2}\.ncsave$/;
-
-/** Asks where to save an exported save file. Resolves 'saved' or 'cancelled'. */
-async function exportSaveFile(name, bytes) {
-  if (typeof name !== 'string' || !EXPORT_NAME.test(name)) throw new Error('That is not a save file name.');
-  if (!(bytes instanceof Uint8Array)) throw new Error('Save data must be bytes.');
-  if (bytes.byteLength > MAX_SAVE_BYTES) throw new Error('Save data is larger than 256 MiB. Nothing was saved.');
-  const options = {
-    title: 'Export save',
-    defaultPath: path.join(app.getPath('downloads'), name),
-    filters: [{ name: 'Natural Causes save', extensions: ['ncsave'] }],
-  };
-  const window = gameWindow !== null && !gameWindow.isDestroyed() ? gameWindow : null;
-  const result = window === null ? await dialog.showSaveDialog(options) : await dialog.showSaveDialog(window, options);
-  if (result.canceled || !result.filePath) return 'cancelled';
-  await fs.promises.writeFile(result.filePath, bytes);
-  return 'saved';
-}
+/** Asks where to save an exported save file; the page is told saved or cancelled. */
+const exportSaveFile = createExportFile({
+  showSaveDialog: (options) => (gameWindow !== null && !gameWindow.isDestroyed()
+    ? dialog.showSaveDialog(gameWindow, options)
+    : dialog.showSaveDialog(options)),
+  writeFile: (filePath, bytes) => fs.promises.writeFile(filePath, bytes),
+  downloadsDirectory: () => app.getPath('downloads'),
+  join: path.join,
+  maxBytes: MAX_SAVE_BYTES,
+});
 
 function registerSaveChannels() {
   ipcMain.handle('natural-causes:export', (event, name, bytes) => {

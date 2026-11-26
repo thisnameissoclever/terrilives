@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { desktopBridge, registerDesktopSaveRequests, type DesktopBridge } from '../src/storage/desktop-bridge.js';
@@ -128,5 +129,18 @@ describe('registerDesktopSaveRequests', () => {
     finish();
     await answered;
     expect(settled).toBe(true);
+  });
+});
+
+describe("the installed game's Export save", () => {
+  const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  const handler = main.slice(main.indexOf("exportSaveButton.addEventListener('click'"));
+
+  it('delivers through the app export dialog and counts only saved as done', () => {
+    const exporting = handler.slice(0, handler.indexOf('syncPersistenceButtons();'));
+    expect(exporting).toContain('desktop !== null');
+    expect(exporting).toContain('.exportFile(saveFileName(new Date()), bytes)');
+    expect(exporting).toContain("(result) => result === 'saved'");
+    expect(exporting).toContain('downloadSaveFile(bytes, saveFileName(new Date()))');
   });
 });

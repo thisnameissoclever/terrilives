@@ -89,6 +89,36 @@ describe('Export save', () => {
     expect(view.textContent).toBe('Game exported');
   });
 
+  it('does not hold the operation while an asynchronous delivery waits', async () => {
+    const view = status();
+    const controller = new PersistenceController(store(null), sim(), view);
+    await controller.restoreAtStartup();
+    let finish: (saved: boolean) => void = () => {};
+    const exporting = controller.exportSave(() => new Promise<boolean>((resolve) => { finish = resolve; }));
+    await Promise.resolve();
+
+    // The close save asks whenIdle first; it must not wait for the dialog.
+    await controller.whenIdle();
+    expect(controller.controlState().exportDisabled).toBe(false);
+    expect(await controller.save()).toBe(true);
+    finish(true);
+    expect(await exporting).toBe(true);
+  });
+
+  it('labels a late export result as the export', async () => {
+    const events: { operation: string; message: string }[] = [];
+    const controller = new PersistenceController(store(null), sim(), status(), () => {},
+      (bytes) => bytes.byteLength > 0,
+      (event) => events.push({ operation: event.operation, message: event.message }));
+    await controller.restoreAtStartup();
+    let finish: (saved: boolean) => void = () => {};
+    const exporting = controller.exportSave(() => new Promise<boolean>((resolve) => { finish = resolve; }));
+    await Promise.resolve();
+    finish(true);
+    await exporting;
+    expect(events.at(-1)).toEqual({ operation: 'export', message: 'Game exported' });
+  });
+
   it('shows no note and returns false when the player cancels the save dialog', async () => {
     const view = status();
     const controller = new PersistenceController(store(null), sim(), view);

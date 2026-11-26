@@ -58,7 +58,8 @@ export function desktopBridge(scope: object = globalThis): DesktopBridge | null 
 
 /**
  * Answers the app's save requests with an automatic save. It first waits for
- * any Save, Load, import or clear already running, because an automatic save
+ * any Save, Load, import or clear already running (an Export save waiting on
+ * its save dialog does not count, since the dialog can stay open), because an automatic save
  * is skipped while one runs and the window may close right after this answer.
  * Starting a new game skips the save, as the website's hide save does, so a
  * request cannot write the old household back while New game is clearing it.

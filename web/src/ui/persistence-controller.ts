@@ -272,11 +272,18 @@ export class PersistenceController {
    * Gives `deliver` the bytes for a save file. While saving is paused, the
    * running world is not the protected household, so the stored bytes are
    * exported unchanged instead.
+   *
+   * The operation is held only while the bytes are captured and `deliver` is
+   * called. A delivery that returns a promise, such as the installed game's
+   * save dialog, is awaited after the operation is released, so a close save
+   * is not kept waiting behind an open dialog.
    */
   async exportSave(deliver: (bytes: Uint8Array) => void | Promise<boolean>): Promise<boolean> {
     if (!this.beginOperation('export')) return false;
+    let delivered: void | Promise<boolean>;
+    let protectedSave = false;
     try {
-      const protectedSave = this.savingPaused;
+      protectedSave = this.savingPaused;
       // Known protected bytes are delivered synchronously, still inside the
       // click, because some mobile browsers drop a download started later.
       const bytes = protectedSave
@@ -286,19 +293,24 @@ export class PersistenceController {
         this.showKeepingPausedNote('No saved game found', true);
         return false;
       }
-      // A delivery that returns a promise waits for the player's answer, such
-      // as the installed game's save dialog; false means they cancelled.
-      const delivered = deliver(bytes);
-      if (delivered !== undefined && !(await delivered)) return false;
-      this.showKeepingPausedNote(protectedSave ? 'Saved game exported' : 'Game exported');
-      return true;
+      delivered = deliver(bytes);
     } catch (error: unknown) {
       this.reportError(error);
-      this.showKeepingPausedNote('Export failed. The game is still running.', true);
+      this.showKeepingPausedNote('Export failed. The game is still running.', true, 'export');
       return false;
     } finally {
       this.finishOperation('export');
     }
+    try {
+      // A promise settles with the player's answer; false means they cancelled.
+      if (delivered !== undefined && !(await delivered)) return false;
+    } catch (error: unknown) {
+      this.reportError(error);
+      this.showKeepingPausedNote('Export failed. The game is still running.', true, 'export');
+      return false;
+    }
+    this.showKeepingPausedNote(protectedSave ? 'Saved game exported' : 'Game exported', false, 'export');
+    return true;
   }
 
   /**
@@ -484,13 +496,13 @@ export class PersistenceController {
   }
 
   /** While saving is paused, every message keeps saying so, since Save stays disabled. */
-  private showKeepingPausedNote(message: string, error = false): void {
+  private showKeepingPausedNote(message: string, error = false, operation?: PersistenceOperation): void {
     if (!this.savingPaused) {
-      this.show(message, error ? 'failure' : 'success');
+      this.show(message, error ? 'failure' : 'success', operation);
       return;
     }
     const sentence = message.endsWith('.') ? message : `${message}.`;
-    this.show(`${sentence} Saving paused.`, 'failure');
+    this.show(`${sentence} Saving paused.`, 'failure', operation);
   }
 
   private protectSavedGame(bytes?: Uint8Array): void {
@@ -564,10 +576,11 @@ export class PersistenceController {
     }
   }
 
-  private show(message: string, state: PersistenceFeedbackEvent['state'] = 'success'): void {
+  /** `operation` names a result that arrives after its operation was released. */
+  private show(message: string, state: PersistenceFeedbackEvent['state'] = 'success', operation?: PersistenceOperation): void {
     if (this.presentFeedback) {
-      this.presentFeedback({ operation: this.activeOperation ?? 'restore', state,
-        automatic: this.automaticOperation, savingPaused: this.savingPaused, message });
+      this.presentFeedback({ operation: operation ?? this.activeOperation ?? 'restore', state,
+        automatic: operation === undefined && this.automaticOperation, savingPaused: this.savingPaused, message });
       return;
     }
     this.status.textContent = message;
