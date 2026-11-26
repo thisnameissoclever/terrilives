@@ -67,10 +67,11 @@ How it differs from the website:
   the background and installs it when you close the game. A short note under
   the time says when an update is ready. Your saves stay where they are.
 
-The Mac app is signed and notarized by Apple, so it opens without a security
-warning. The Windows installer is not signed, so Windows warns before the
-first install: if SmartScreen says it protected your PC, choose **More info**,
-then **Run anyway**. Some antivirus programs also flag unsigned installers.
+The Mac app is signed with the developer's Apple Developer ID and notarized
+by Apple; macOS may ask you to confirm once before it first opens. The Windows
+installer is not signed, so Windows warns before the first install: if
+SmartScreen says it protected your PC, choose **More info**, then **Run
+anyway**. Some antivirus programs also flag unsigned installers.
 
 Each release lists SHA-256 checksums for its downloads. Maintainers build and
 publish releases with [the desktop release runbook](docs/desktop-release.md).

@@ -10,20 +10,39 @@
  * background, and installs it when the player closes the game. The player
  * sees nothing until the download is ready. Nothing restarts the game.
  * The Mac build is signed and notarized, which Squirrel.Mac requires.
+ *
+ * On a Mac, electron-updater reports a download before Squirrel.Mac has
+ * fetched and staged it, so the notice waits for Electron's own updater
+ * (`nativeUpdater`) to report the staged update. If staging fails, for
+ * example when the app runs from the disk image, nothing is shown.
  */
 
 const UPDATING_PLATFORMS = Object.freeze(['win32', 'darwin']);
 
 /**
  * Starts the update check on Windows and macOS; does nothing elsewhere.
- * `notify` receives `{ kind: 'ready', version }` once a download is ready.
+ * `notify` receives `{ kind: 'ready', version }` once an update will install
+ * on quit. `nativeUpdater` is Electron's autoUpdater, required on macOS.
  */
-async function startUpdateCheck({ platform, autoUpdater, notify, log = () => {} }) {
+async function startUpdateCheck({ platform, autoUpdater, nativeUpdater = null, notify, log = () => {} }) {
   if (!UPDATING_PLATFORMS.includes(platform)) return false;
+  if (platform === 'darwin' && !nativeUpdater) {
+    log(new Error('The Mac update check needs the native autoUpdater from Electron.'));
+    return false;
+  }
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.on('error', (error) => log(error));
-  autoUpdater.on('update-downloaded', (info) => notify({ kind: 'ready', version: String(info && info.version) }));
+  if (platform === 'darwin') {
+    let version = null;
+    autoUpdater.on('update-downloaded', (info) => { version = String(info && info.version); });
+    nativeUpdater.on('error', (error) => log(error));
+    nativeUpdater.on('update-downloaded', () => {
+      if (version !== null) notify({ kind: 'ready', version });
+    });
+  } else {
+    autoUpdater.on('update-downloaded', (info) => notify({ kind: 'ready', version: String(info && info.version) }));
+  }
   try {
     await autoUpdater.checkForUpdates();
   } catch (error) {

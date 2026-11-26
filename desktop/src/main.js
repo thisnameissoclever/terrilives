@@ -88,9 +88,11 @@ async function start() {
 
 /** Never in the unpackaged app: it has no release to compare with. */
 function checkForUpdates() {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return;
   void startUpdateCheck({
     platform: process.platform,
     autoUpdater: require('electron-updater').autoUpdater,
+    nativeUpdater: process.platform === 'darwin' ? require('electron').autoUpdater : null,
     notify: ({ kind, version }) => {
       updateStatus = { kind, version };
       sendUpdateStatus();
@@ -103,7 +105,6 @@ function sendUpdateStatus() {
   if (updateStatus === null || gameWindow === null || gameWindow.isDestroyed()) return;
   gameWindow.webContents.send('natural-causes:update-status', updateStatus);
 }
-
 
 function setApplicationMenu() {
   if (process.platform !== 'darwin') {

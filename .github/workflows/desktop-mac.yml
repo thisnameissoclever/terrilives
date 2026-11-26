@@ -129,6 +129,7 @@ jobs:
           printf '%s\n' "$APPLE_API_KEY_P8" > "$secrets_dir/AuthKey.p8"
           export CSC_LINK="$secrets_dir/certificate.p12"
           export APPLE_API_KEY="$secrets_dir/AuthKey.p8"
+          unset MAC_CERT_P12_BASE64 APPLE_API_KEY_P8
           npx electron-builder --mac --config electron-builder.config.js --publish never
 
       - name: Remove signing files
@@ -168,4 +169,6 @@ jobs:
             Natural-Causes-$version-arm64-mac.zip Natural-Causes-$version-x64-mac.zip > SHA256SUMS-macos.txt
           cat SHA256SUMS-macos.txt
           ls -l $files
-          gh release upload "$TAG" $files SHA256SUMS-macos.txt --clobber --repo "$GITHUB_REPOSITORY"
+          # latest-mac.yml goes last, so no Mac is told about zips still uploading.
+          gh release upload "$TAG" ${files% latest-mac.yml} SHA256SUMS-macos.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release upload "$TAG" latest-mac.yml --clobber --repo "$GITHUB_REPOSITORY"

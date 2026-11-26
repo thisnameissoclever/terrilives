@@ -46,7 +46,7 @@ The packaged app accepts the same switches. Close every instance you start; a se
 
 ```text
 cd desktop
-node --test test/app-protocol.test.js test/save-files.test.js test/window-policy.test.js test/builder-config.test.js test/release.test.js
+node --test test/app-protocol.test.js test/save-files.test.js test/window-policy.test.js test/builder-config.test.js test/release.test.js test/updates.test.js
 ```
 
 The protocol test reads the fresh `web/dist` and fails if the build contains a file type the protocol has no deliberate content type for. Local CI runs these tests in its `desktop` group after the web build; see [local checks](local-checks.md). It never packages an installer.
@@ -65,7 +65,7 @@ The first build downloads Electron, NSIS and winCodeSign into the electron-build
 
 ## Release
 
-The Windows installer is built on the owner's Windows PC. The Mac disk images are built by the GitHub Actions workflow `.github/workflows/desktop-mac.yml` on GitHub's standard macOS runners, because the owner has no Mac. The owner approved that workflow on 2026-11-25. It runs only when a release is published, or when a maintainer starts it by hand for an existing release's tag; it never runs on a push or a pull request.
+The Windows installer is built on the owner's Windows PC. The signed Mac app (disk images, update zips and `latest-mac.yml`) is built by the GitHub Actions workflow `.github/workflows/desktop-mac.yml` on GitHub's standard macOS runners, because the owner has no Mac. The owner approved that workflow on 2026-11-25. It runs only when a release is published, or when a maintainer starts it by hand for an existing release's tag; it never runs on a push or a pull request.
 
 The release script refuses to run unless `gh` is signed in, the working tree is clean, HEAD equals `origin/main` after a fetch, wasm-pack matches the minor version pinned in `.github/workflows/pages.yml`, Node is 22.12 or later, and `.local-build/local-ci/report.json` records a complete, passing local CI run for HEAD. It runs only on Windows.
 
@@ -100,7 +100,7 @@ Publishing starts the Mac workflow. GitHub runs the workflow file as it exists a
 
 The installed game checks for updates when it starts, only when it is packaged and never on the website. Pass `--no-update-check` to skip the check during verification.
 
-- electron-updater (pinned to 6.8.11, the version that shares `builder-util-runtime` 9.7.0 with electron-builder 26.18.0) reads `latest.yml` on Windows or `latest-mac.yml` on a Mac from the newest published release of `thisnameissoclever/terrilives`, downloads the update in the background (the installer on Windows, the zip for the Mac's processor on a Mac), and installs it when the player closes the game. Nothing shows until the download is ready; then the time panel says "Update ready. It installs when you close the game." Nothing restarts the game. Drafts are ignored, so nothing updates before `--publish`.
+- electron-updater (pinned to 6.8.11, the version that shares `builder-util-runtime` 9.7.0 with electron-builder 26.18.0) reads `latest.yml` on Windows or `latest-mac.yml` on a Mac from the newest published release of `thisnameissoclever/terrilives`, downloads the update in the background (the installer on Windows, the zip for the Mac's processor on a Mac), and installs it when the player closes the game. Nothing shows until the download is ready; then the time panel says "Update ready. It installs when you close the game." On a Mac the note waits until Squirrel.Mac has staged the update, so a Mac running the app straight from the disk image shows nothing. Nothing restarts the game. Drafts are ignored, so nothing updates before `--publish`.
 - macOS installs updates only into a signed app whose signature matches, which is why the Mac app is signed and notarized. Windows checks no signature, because no `publisherName` is configured.
 - The NSIS installer keeps a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-updater\installer.exe`. electron-updater uses that folder for downloads and differential updates; uninstalling does not remove it.
 
@@ -122,7 +122,7 @@ When re-pinning Electron, choose the newest stable release that has been public 
 6. Export save opens a native save dialog; Import save opens a native open dialog and then the confirmation.
 7. Install per user, launch from the Start menu, uninstall, and confirm the `saves` folder remains.
 
-Nobody on the project has a Mac. The workflow log shows whether both apps built, signed, notarized and passed `spctl`. A Mac user must still check: the app opens without a Gatekeeper warning, WebGPU runs on Metal, saves land in `~/Library/Application Support/Natural Causes/saves`, Cmd+Q saves, a Dock minimize keeps the clock running, the Edit menu's Copy and Paste work, and an older installed version updates itself after a newer release is published.
+Nobody on the project has a Mac. The workflow log shows whether both apps built, signed, notarized and passed `spctl`. A Mac user must still check: the app opens after macOS's single confirmation for downloaded apps, WebGPU runs on Metal, saves land in `~/Library/Application Support/Natural Causes/saves`, Cmd+Q saves, a Dock minimize keeps the clock running, the Edit menu's Copy and Paste work, and an older installed version updates itself after a newer release is published.
 
 ## Measured sizes
 

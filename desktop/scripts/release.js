@@ -4,9 +4,10 @@
 /**
  * Builds the Windows installer on the owner's PC and attaches it, with the
  * update files electron-updater reads, to a draft GitHub release. The Mac
- * disk images are not built here: publishing the release starts
+ * app is not built here: publishing the release starts
  * .github/workflows/desktop-mac.yml, which builds them on GitHub's macOS
- * runners and uploads them to the same release.
+ * runners, signs and notarizes it, and uploads its disk images, update zips
+ * and latest-mac.yml to the same release.
  *
  *   node desktop/scripts/release.js [--dry-run] [--replace]
  *   node desktop/scripts/release.js --publish
@@ -46,7 +47,7 @@ function parseArgs(argv, platform = process.platform) {
     throw new ReleaseError('--publish builds nothing, so it takes no other option.');
   }
   if (platform !== 'win32' && !options.publish) {
-    throw new ReleaseError('Build the Windows installer on Windows. The Mac disk images come from the desktop-mac workflow when the release is published.');
+    throw new ReleaseError('Build the Windows installer on Windows. The signed Mac app comes from the desktop-mac workflow when the release is published.');
   }
   return options;
 }
@@ -330,7 +331,7 @@ function release(argv, { exec = realExec, files = realFiles, log = console.log, 
     const missing = missingForPublish(view, version);
     if (missing.length > 0) throw new ReleaseError(`${tag} is missing ${missing.join(', ')}.`);
     tools.must('gh', ['release', 'edit', tag, '--draft=false', '--latest']);
-    log(`Published ${tag}. The desktop-mac workflow now builds the Mac disk images and adds them to ${tag}.`);
+    log(`Published ${tag}. The desktop-mac workflow now builds, signs and notarizes the Mac app and adds it to ${tag}.`);
     return { published: tag };
   }
   const facts = gatherFacts(tools, options, files);
