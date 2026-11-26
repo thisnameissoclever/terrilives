@@ -144,6 +144,12 @@ def bounded_environment(environ=None, heap_ceiling=2048):
     return task_environment
 
 
+def effective_heap(command, environ=None):
+    """The Node heap ceiling a command actually runs with, after the caller's own limit."""
+    options = bounded_environment(environ, heap_ceiling=command.heap_megabytes)["NODE_OPTIONS"]
+    return int(re.search(r"--max-old-space-size=(\d+)", options)[1])
+
+
 def run_checks(root, report, groups, *, execute=execute_command, install_dependencies=False):
     root, report = Path(root).resolve(), Path(report).resolve()
     report.parent.mkdir(parents=True, exist_ok=True)
@@ -156,18 +162,20 @@ def run_checks(root, report, groups, *, execute=execute_command, install_depende
                                   "This report does not authorize a push, merge, hosted check or paid build."],
               "results": [], "state": "running", "complete": False}
     task_environment = bounded_environment()
+    selected = commands(groups, install_dependencies=install_dependencies)
+    # The largest heap any selected command may use; each result row records its own.
     result["resources"] = {"web_test_workers": 1, "cargo_build_jobs": int(task_environment["CARGO_BUILD_JOBS"]),
-                           "node_heap_megabytes": int(re.search(r"--max-old-space-size=(\d+)", task_environment["NODE_OPTIONS"])[1])}
+                           "node_heap_megabytes": max(effective_heap(row) for row in selected)}
     def retain():
         report.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     retain()
     logs = report.with_suffix(".logs")
     logs.mkdir(parents=True, exist_ok=True)
-    for index, command in enumerate(commands(groups, install_dependencies=install_dependencies)):
+    for index, command in enumerate(selected):
         print(f"[{command.group}] {command.name}", flush=True)
         start = time.monotonic()
         row = {"name": command.name, "group": command.group, "argv": list(command.argv), "cwd": command.cwd,
-               "log": str(logs / f"{index:02d}.log"), "node_heap_megabytes": command.heap_megabytes}
+               "log": str(logs / f"{index:02d}.log"), "node_heap_megabytes": effective_heap(command)}
         try:
             row["returncode"] = execute(command.argv, root / command.cwd, Path(row["log"]), heap_megabytes=command.heap_megabytes)
         except OSError as error:

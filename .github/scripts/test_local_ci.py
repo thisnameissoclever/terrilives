@@ -104,6 +104,9 @@ class LocalVerification(unittest.TestCase):
         self.assertIn("--max-old-space-size=512", values["NODE_OPTIONS"])
         raised = {row.name: row.heap_megabytes for row in local.commands(local.GROUPS) if row.heap_megabytes != 2048}
         self.assertEqual(raised, {"Type check web": 3072}, "Only measured commands get a larger Node heap")
+        typecheck = next(row for row in local.commands(local.GROUPS) if row.name == "Type check web")
+        self.assertEqual(local.effective_heap(typecheck, {}), 3072)
+        self.assertEqual(local.effective_heap(typecheck, {"NODE_OPTIONS": "--max-old-space-size=512"}), 512)
 
     def test_owner_authorization_refuses_substitutions_and_unreviewable_references(self):
         values = dict(sha="a" * 40, head="a" * 40, actor="owner", owner="owner", reference="sha256:" + "b" * 64)
