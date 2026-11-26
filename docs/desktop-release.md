@@ -59,7 +59,7 @@ npx electron-builder --win --dir --config electron-builder.config.js --publish n
 npx electron-builder --win --config electron-builder.config.js --publish never
 ```
 
-The first command writes the unpacked app to `desktop/dist/win-unpacked`. The second writes the per-user NSIS installer, `desktop/dist/Natural-Causes-Setup-<version>-x64.exe`. `desktop/dist/` is ignored by Git. The version comes from `web/package.json` through `extraMetadata`; `desktop/package.json` has no version of its own.
+The first command writes the unpacked app to `desktop/dist/win-unpacked`. The second writes the NSIS installer, which installs per user by default, `desktop/dist/Natural-Causes-Setup-<version>-x64.exe`. `desktop/dist/` is ignored by Git. The version comes from `web/package.json` through `extraMetadata`; `desktop/package.json` has no version of its own.
 
 The first build downloads Electron, NSIS and winCodeSign into the electron-builder cache. If extracting winCodeSign fails with "A required privilege is not held by the client", Windows is refusing to create symbolic links. Enabling Windows Developer Mode fixes it; that is the owner's decision, so stop and ask.
 
@@ -141,6 +141,6 @@ The installer leaves a copy of itself in `%LOCALAPPDATA%\natural-causes-desktop-
 
 ## Follow-ups
 
-- Electron fuses stay at their defaults. Turning off `RunAsNode`, `EnableNodeCliInspectArguments` and `EnableNodeOptionsEnvironmentVariable`, and turning on asar integrity validation and `OnlyLoadAppFromAsar`, would harden the packaged app. Each needs its own packaged verification.
+- The packaged app turns off the `RunAsNode`, `EnableNodeCliInspectArguments` and `EnableNodeOptionsEnvironmentVariable` fuses. Asar integrity validation and `OnlyLoadAppFromAsar` stay at their defaults; turning them on would harden the app further and needs its own packaged verification.
 - Windows can end the app during shutdown before the close save finishes. The page's autosaves and the minimize save limit what can be lost.
 - Saving copies the save across the bridge up to three times per save (slot, last good copy, recovery backup). Measure an autosave's frame time if saves grow large.

@@ -43,7 +43,7 @@ Mac. Download it from the repository's
 `Natural-Causes-<version>-x64.dmg` for a Mac with an Intel processor. The
 download is several hundred MB, because it carries its own copy of the
 Chromium browser engine. On Windows, run the installer; it installs for your
-user account only. On Mac, open the disk image and drag Natural Causes into
+user account unless you choose to install it for everyone on the computer. On Mac, open the disk image and drag Natural Causes into
 Applications.
 
 How it differs from the website:

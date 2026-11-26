@@ -203,3 +203,12 @@ test('publishing needs the Windows files on the draft; the Mac files follow', ()
   release.release(['--publish'], { exec: complete.exec, files: complete.files, log: () => {}, platform: 'win32' });
   assert.deepEqual(complete.commands.at(-1), ['gh', 'release', 'edit', 'v1.1.0', '--draft=false', '--latest']);
 });
+
+test('the Mac asset list matches what the desktop-mac workflow uploads', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'desktop-mac.yml'), 'utf8');
+  const uploaded = [...workflow.matchAll(/files="(?:\$files )?([^"]+)"/g)]
+    .flatMap((match) => match[1].split(' '))
+    .map((name) => name.replace('$version', '1.1.0'));
+  uploaded.push('SHA256SUMS-macos.txt');
+  assert.deepEqual(uploaded.sort(), release.expectedAssets('1.1.0', 'mac').sort());
+});

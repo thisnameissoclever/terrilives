@@ -29,6 +29,13 @@ module.exports = {
   asar: true,
   extraResources: [{ from: '../web/dist', to: 'web' }],
   extraMetadata: { version: webPackage.version },
+  // The packaged app never runs as plain Node and ignores Node's debugging
+  // switches and NODE_OPTIONS, so nobody can use it to run their own code.
+  electronFuses: {
+    runAsNode: false,
+    enableNodeCliInspectArguments: false,
+    enableNodeOptionsEnvironmentVariable: false,
+  },
   publish: { provider: 'github', owner: 'thisnameissoclever', repo: 'terrilives' },
   win: {
     target: [{ target: 'nsis', arch: ['x64'] }],

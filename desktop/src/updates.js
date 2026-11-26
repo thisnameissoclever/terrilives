@@ -44,7 +44,10 @@ async function startUpdateCheck({ platform, autoUpdater, nativeUpdater = null, n
     autoUpdater.on('update-downloaded', (info) => notify({ kind: 'ready', version: String(info && info.version) }));
   }
   try {
-    await autoUpdater.checkForUpdates();
+    const result = await autoUpdater.checkForUpdates();
+    // The background download settles later. Its failure is already reported
+    // through the 'error' event, so only keep it from going unhandled.
+    if (result && result.downloadPromise) result.downloadPromise.catch(() => {});
   } catch (error) {
     log(error);
   }

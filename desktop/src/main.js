@@ -67,11 +67,12 @@ async function start() {
     callback(policy.allowPermission(permission));
   });
   protocol.handle(SCHEME, createProtocolHandler(bundleRoot));
-  // Export save downloads a file. Keep the system's save dialog, but give it a
-  // title instead of the download's internal blob: address.
+  // Export save and the startup report's Download report save files. Keep the
+  // system's save dialog, but give it a title instead of the download's
+  // internal blob: address.
   session.defaultSession.on('will-download', (_event, item) => {
     item.setSaveDialogOptions({
-      title: 'Export save',
+      title: item.getFilename().endsWith('.json') ? 'Download report' : 'Export save',
       defaultPath: path.join(app.getPath('downloads'), item.getFilename()),
     });
   });

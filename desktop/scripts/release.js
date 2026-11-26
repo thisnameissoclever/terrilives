@@ -178,7 +178,7 @@ function checksumText(entries) {
   return entries.map(({ name, hash }) => `${hash}  ${name}`).join('\n') + '\n';
 }
 
-function releaseNotes(version, platformSums) {
+function releaseNotes(version) {
   const lines = [
     `Natural Causes ${version} for Windows and Mac. The Mac downloads are added a few minutes after this release appears.`,
     '',
@@ -194,7 +194,6 @@ function releaseNotes(version, platformSums) {
     '',
     'SHA-256 checksums are in the SHA256SUMS files attached below.',
   ];
-  if (platformSums) lines.push('', '```', platformSums.trimEnd(), '```');
   return lines.join('\n') + '\n';
 }
 
@@ -278,7 +277,7 @@ function build(tools, options, files) {
   tools.must('npm', ['ci'], { cwd: DESKTOP });
   tools.must(process.execPath, [
     path.join(DESKTOP, 'node_modules', 'electron-builder', 'cli.js'),
-    options.platform === 'win' ? '--win' : '--mac',
+    '--win',
     '--config', 'electron-builder.config.js', '--publish', 'never',
   ], { cwd: DESKTOP });
 }

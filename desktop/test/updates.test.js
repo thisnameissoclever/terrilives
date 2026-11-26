@@ -20,6 +20,17 @@ function fakeUpdater({ fails = false } = {}) {
   return updater;
 }
 
+test('a failed background download is not left unhandled', async () => {
+  const updater = fakeUpdater();
+  let handled = false;
+  const failed = Promise.reject(new Error('download dropped'));
+  const original = failed.catch.bind(failed);
+  failed.catch = (handler) => { handled = true; return original(handler); };
+  updater.checkForUpdates = async () => ({ downloadPromise: failed });
+  await startUpdateCheck({ platform: 'win32', autoUpdater: updater, nativeUpdater: new EventEmitter(), notify: () => {} });
+  assert.equal(handled, true);
+});
+
 for (const platform of ['win32', 'darwin']) {
   test(`${platform} checks at launch, downloads quietly and installs on quit`, async () => {
     const updater = fakeUpdater();
