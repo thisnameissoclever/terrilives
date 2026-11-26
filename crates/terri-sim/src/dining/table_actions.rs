@@ -379,6 +379,110 @@ mod tests {
         assert!(!is_table_sit(&chair, 0) && !is_table_meal(&chair, 1));
     }
 
+    /// Only a table that lists exactly sitting keeps the historical managed
+    /// meal at position 1. A table with no actions, or whose one action is
+    /// not sitting, has no meal past its actions.
+    #[test]
+    fn only_the_historical_table_shape_keeps_a_meal_past_its_actions() {
+        let current = terri_data::pack().object(terri_data::pack().find("dining_table").unwrap());
+        let mut empty = current.clone();
+        empty.interactions.clear();
+        assert!(!is_table_meal(&empty, 0) && !is_table_meal(&empty, 1));
+        let mut eat_only = current.clone();
+        eat_only
+            .interactions
+            .retain(|action| action.id == TAKE_PREPARED_FOOD);
+        assert_eq!(eat_only.interactions.len(), 1);
+        assert!(is_table_meal(&eat_only, 0));
+        assert!(
+            !is_table_meal(&eat_only, 1),
+            "position 1 is past a table that never sat"
+        );
+        let mut other = current.clone();
+        other.interactions.truncate(1);
+        other.interactions[0].id = "another_action".into();
+        assert!(!is_table_meal(&other, 1));
+    }
+
+    /// A new order for a table position past its actions is refused when the
+    /// command is accepted, unless the table is the historical one that lists
+    /// only sitting.
+    #[test]
+    fn an_order_past_a_non_historical_tables_actions_is_refused() {
+        let (mut sim, person, table) = fixture();
+        let mut pack = terri_data::pack().clone();
+        let id = pack.find("dining_table").unwrap();
+        pack.objects
+            .iter_mut()
+            .find(|object| object.id == "dining_table")
+            .unwrap()
+            .interactions
+            .retain(|action| action.id == TAKE_PREPARED_FOOD);
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        assert_eq!(pack.object(id).interactions.len(), 1);
+        sim.world_mut().insert_resource(Content(pack));
+        // Refused when the command is accepted, before any tick could serve it.
+        let since = sim.action_events_since(0).events.len();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: person.index_u32(),
+                object: table.index_u32(),
+                interaction: 1,
+            });
+        sim.flush_commands();
+        assert!(sim
+            .world()
+            .get::<terri_core::IntentQueue>(person)
+            .is_none_or(|queue| queue.is_empty()));
+        assert_eq!(
+            sim.action_events_since(0).events[since..]
+                .iter()
+                .find(|event| event.phase == "failed")
+                .and_then(|event| event.reason.as_deref()),
+            Some("Unknown object action")
+        );
+    }
+
+    /// Restoring a save names the table's actions by id. With them reversed
+    /// an active sit order sits at position 1, where the meal used to be, and
+    /// restores as a sit rather than being refused as a meal without one.
+    #[test]
+    fn a_restored_sit_order_at_position_one_is_a_sit_not_a_meal() {
+        let (mut sim, person, table, sit, _) = reversed_table();
+        assert_eq!(sit, 1);
+        assert_eq!(order_at_table(&mut sim, person, table, sit), None);
+        let active = |sim: &crate::Sim| {
+            sim.world()
+                .resource::<crate::player_actions::PlayerActions>()
+                .orders
+                .iter()
+                .any(|((actor, _), order)| *actor == person && order.active)
+        };
+        for _ in 0..200 {
+            if active(&sim) {
+                break;
+            }
+            sim.tick();
+        }
+        assert!(active(&sim), "the sit order is active when saved");
+        let saved = sim.save_snapshot_v33();
+        let hash = sim.world_hash();
+        let (mut restored, ..) = reversed_table();
+        restored
+            .load_snapshot_v33(saved.clone())
+            .expect("an active sit order restores");
+        assert_eq!(restored.save_snapshot_v33(), saved);
+        assert_eq!(restored.world_hash(), hash);
+        assert_eq!(
+            restored
+                .world()
+                .get::<Target>(person)
+                .map(|target| (target.object, target.interaction)),
+            Some((table, sit))
+        );
+    }
+
     /// The shipped household with every object's actions listed in reverse,
     /// so the table's Eat prepared food is at position 0 and sitting at 1.
     fn reversed_table() -> (crate::Sim, Entity, Entity, u32, u32) {
