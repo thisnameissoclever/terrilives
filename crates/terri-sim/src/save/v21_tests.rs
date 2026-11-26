@@ -143,7 +143,7 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// for an unreachable seat (see [`STANDARD_ONLY_HASH`]) moved it from
 /// 13043348246484619481, and no tree before issue 359 produced the new value.
 #[test]
-fn without_topic_memory_the_standard_only_hash_is_unchanged() {
+fn the_standard_only_hash_without_topic_memory() {
     let mut sim = Sim::new_from_shipped_lot();
     let pack = crate::test_content::pre_shift_careers(terri_data::pack());
     sim.world_mut().insert_resource(Content(pack));
@@ -172,8 +172,8 @@ fn without_topic_memory_the_standard_only_hash_is_unchanged() {
 /// Issue 359 moved it from 13043348246484619481: by tick 600 a chat has
 /// steered by a guess rather than the listener's true preference, and one
 /// remembered topic joins the hash. The careers encoding check above still
-/// holds, and `without_topic_memory_the_standard_only_hash_is_unchanged`
-/// pins the old value with memory switched off.
+/// held, and `the_standard_only_hash_without_topic_memory` then pinned the
+/// old value with memory switched off.
 /// Two changes then moved it from 10985242059267327331, both on purpose:
 /// chores for Sims without a job and the active hobby lift change Monday
 /// morning's choices (that change alone gives 15994824286922952861), and

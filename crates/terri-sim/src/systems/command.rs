@@ -781,7 +781,7 @@ pub(crate) fn drain_ordinary_commands(
                 };
                 let valid_action = definitions.get(object).is_ok_and(|placed| {
                     // Historical dining tables expose this managed action outside their authored rows.
-                    (content.0.object(placed.0).id == "dining_table" && interaction == 1)
+                    crate::dining::is_table_meal(content.0.object(placed.0), interaction)
                         || crate::action_rows::resolve(content.0, placed.0, interaction)
                             .is_some_and(|row| row.public)
                 });

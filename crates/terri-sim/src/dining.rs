@@ -6,7 +6,9 @@ mod table_actions;
 mod tests;
 use crate::{Content, SaveError};
 use bevy_ecs::prelude::*;
-pub(crate) use table_actions::{ordinary_sitting, table_actions, take_prepared_food, SIT_PROPERLY};
+pub(crate) use table_actions::{
+    is_table_meal, is_table_sit, ordinary_sitting, table_actions, take_prepared_food,
+};
 use terri_core::{
     save::*, Agent, AtWork, Blocked, ChainState, Commuting, Eating, IntentQueue, ObjectFacing,
     Path, Position, Reserved, SimId, SmartObject, Socialising, StepWork, Target, TileGrid,
