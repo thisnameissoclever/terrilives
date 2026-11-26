@@ -352,6 +352,33 @@ mod tests {
         }
     }
 
+    /// A historical table lists only sitting and addresses its managed meal
+    /// at position 1. Any other table names the meal by id, and a position
+    /// past its actions is never the meal.
+    #[test]
+    fn a_historical_table_keeps_its_managed_meal_at_position_one() {
+        let table = |pack: &'static terri_data::ContentPack| {
+            pack.object(pack.find("dining_table").unwrap()).clone()
+        };
+        let historical = table(terri_data::published_pre_books_pack());
+        assert_eq!(historical.interactions.len(), 1);
+        assert!(is_table_sit(&historical, 0) && !is_table_meal(&historical, 0));
+        assert!(is_table_meal(&historical, 1) && !is_table_sit(&historical, 1));
+        assert!(!is_table_meal(&historical, 2));
+
+        let current = table(terri_data::pack());
+        assert!(is_table_sit(&current, 0) && is_table_meal(&current, 1));
+        assert!(!is_table_meal(&current, 2));
+        let mut extra = current.clone();
+        extra.interactions.truncate(1);
+        extra.interactions.push(extra.interactions[0].clone());
+        extra.interactions[1].id = "another_action".into();
+        assert!(!is_table_meal(&extra, 1) && !is_table_meal(&extra, 2));
+        let mut chair = current.clone();
+        chair.id = "chair".into();
+        assert!(!is_table_sit(&chair, 0) && !is_table_meal(&chair, 1));
+    }
+
     /// The shipped household with every object's actions listed in reverse,
     /// so the table's Eat prepared food is at position 0 and sitting at 1.
     fn reversed_table() -> (crate::Sim, Entity, Entity, u32, u32) {
