@@ -26,3 +26,5 @@ Housemates can share the larger pools, remember each other's favorite topics and
 - Buying land while a housemate is swimming keeps their swim in progress.
 - A housemate can reach the Sunstrip lounger from either long side. Sit reports the lounger as unreachable when both sides are blocked.
 - The game keeps running smoothly with a furniture menu open, including at 3× speed.
+- Housemates settle lower against the Sunstrip cushions and let their heads tilt back.
+- Housemates sharing Backyard Lodge or Garden Basin paddle facing different directions.

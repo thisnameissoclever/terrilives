@@ -1,6 +1,6 @@
 import {expect,it} from 'vitest';
 import {characterActionPlan,type CharacterActionState} from '../src/render/character/action-plan.js';
-import {LODGE_POOL_MODEL,poolSwimPlacement} from '../src/render/character/pool-world-layout.js';
+import {IN_GROUND_POOL_MODEL,LODGE_POOL_MODEL,poolSwimPlacement} from '../src/render/character/pool-world-layout.js';
 const base:CharacterActionState={action:0,activity:0,entity:7,facing:1,x:0,y:0,tick:30,reducedMotion:false,
   fixtureModel:null,wholeSeat:false,readingStage:0,carriedBook:false,carriedDishes:false,carriedDinner:false,
   shelfSlot:0,reachRemaining:10,reachTotal:40,progress:0};
@@ -81,8 +81,32 @@ it('continues the stroke and stays at the berth when the ladder wait clock wraps
   expect(after.poolPlacement).toEqual(before.poolPlacement);
 });
 
+it('faces shared swimmers into open water between occupied berths',()=>{
+  const pools=[
+    [LODGE_POOL_MODEL,[.123,-.391],2],
+    [IN_GROUND_POOL_MODEL,[.623,1.929],4],
+  ] as const;
+  for(const [model,[mouthX,mouthY],capacity] of pools){
+    const swimmers=Array.from({length:capacity},(_,slot)=>{
+      const {yaw,offset}=poolSwimPlacement(model,slot,1)!;
+      const c=Math.cos(yaw),s=Math.sin(yaw);
+      return {x:offset[0]+c*mouthX-s*mouthY,y:offset[1]+s*mouthX+c*mouthY,forwardX:s,forwardY:-c};
+    });
+    for(const [slot,swimmer] of swimmers.entries())for(const [otherSlot,other] of swimmers.entries()){
+      if(slot===otherSlot)continue;
+      const dx=other.x-swimmer.x,dy=other.y-swimmer.y;
+      const alignment=(dx*swimmer.forwardX+dy*swimmer.forwardY)/Math.hypot(dx,dy);
+      expect.soft(alignment,`${model} berth ${slot} facing berth ${otherSlot}`).toBeLessThan(.92);
+      expect.soft(swimmer.forwardX*other.forwardX+swimmer.forwardY*other.forwardY,
+        `${model} berths ${slot} and ${otherSlot} facing the same way`).toBeLessThan(.87);
+    }
+  }
+});
+
 it('uses a dedicated recline on the Sunstrip and retains ordinary sofa and chair selection',()=>{
-  expect(plan({action:8,fixtureModel:'pool_lounger'})).toMatchObject({clip:'lounger_recline',fixture:true});
+  for(const tick of [30.5,31.5]){
+    expect(plan({action:8,fixtureModel:'pool_lounger',tick})).toEqual({clip:'lounger_recline',sample:0,fixture:true});
+  }
   expect(plan({action:8,fixtureModel:'chair'})).toMatchObject({clip:'seat_dining_sit',fixture:true});
   expect(plan({action:5,fixtureModel:'pool_lounger'})).toMatchObject({clip:'walk',fixture:false});
 });

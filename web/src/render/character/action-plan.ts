@@ -89,7 +89,7 @@ export function characterActionPlan(state:CharacterActionState,frameCount:(clip:
   if(state.action===9&&state.fixtureModel){
     if(!['bed','double_bed'].includes(state.fixtureModel))throw new Error('No configured sleeping fixture: '+state.fixtureModel);
     clip=state.fixtureModel==='bed'?'bunk_sleep':'bed_sleep';fixture=true;
-  }else if(state.action===8&&state.fixtureModel==='pool_lounger'){clip='lounger_recline';fixture=true;}
+  }else if(state.action===8&&state.fixtureModel==='pool_lounger')return {clip:'lounger_recline',sample:0,fixture:true};
   else if(state.wholeSeat&&state.activity===15){clip='sofa_recline';fixture=true;}
   else if(state.readingStage===6||state.readingStage===7){
     if(!Number.isInteger(state.shelfSlot)||state.shelfSlot<0||state.shelfSlot>=24)throw new Error('Invalid physical book slot.');
