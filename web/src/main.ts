@@ -445,7 +445,7 @@ async function main(): Promise<void> {
   // can count it arriving. init() still gets the original response, so
   // compiling overlaps the download and the browser can cache the compiled
   // code; a clone is counted alongside, and the step changes once it ends.
-  loading.step('Loading the simulation');
+  loading.step('Loading simulation files');
   const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
     .then(response => countAlongside(response, count => loading.bytes(count),
       () => loading.step('Starting the simulation'))) });

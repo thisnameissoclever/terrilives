@@ -20,8 +20,8 @@
  * so its text there must match; `startup-loading.test.ts` checks it.
  */
 export const STARTUP_STEPS = [
-  'Loading the game',
-  'Loading the simulation',
+  'Loading game files',
+  'Loading simulation files',
   'Starting the simulation',
   'Loading the household',
   'Starting graphics',

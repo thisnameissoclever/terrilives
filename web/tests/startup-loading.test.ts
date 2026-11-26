@@ -32,7 +32,7 @@ function fixture() {
 
 describe('startup loading cover', () => {
   it('numbers each step in startup order', () => {
-    expect(startupStepLine('Loading the game')).toBe('Step 1 of 10: Loading the game');
+    expect(startupStepLine('Loading game files')).toBe('Step 1 of 10: Loading game files');
     expect(startupStepLine('Drawing the house')).toBe('Step 10 of 10: Drawing the house');
     expect(new Set(STARTUP_STEPS).size).toBe(STARTUP_STEPS.length);
   });
@@ -82,7 +82,7 @@ describe('startup loading cover', () => {
 
   it('hides completed transfer progress during preparation and restores it for later downloads', () => {
     const f = fixture();
-    f.loading.step('Loading the simulation');
+    f.loading.step('Loading simulation files');
     f.loading.bytes(600_000);
     expect(f.loaded).toMatchObject({ hidden: false, textContent: '0.6 MB loaded' });
     f.loading.step('Starting the simulation');

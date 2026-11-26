@@ -6,7 +6,7 @@ const key='terrilives.startup-report.v1';
 const gmailHandoff=(mailto:string)=>'https://mail.google.com/mail/u/0/?extsrc=mailto&url='+encodeURIComponent(mailto);
 function boot(saved?:string,reportPage=false,denied=false,clipboardFails=false,batched=false){
   const values=new Map<string,string>(saved?[[key,saved]]:[]),events=new Map<string,((event:unknown)=>void)[]>();
-  const step={textContent:'Loading the game'},output={textContent:''},summary={textContent:''};
+  const step={textContent:'Loading game files'},output={textContent:''},summary={textContent:''};
   const download={disabled:true,addEventListener:vi.fn()},fetch=vi.fn(()=>{throw Error('Unexpected network request');});
   const clicks=new Map<string,()=>Promise<void>|void>();
   const copy={disabled:false,addEventListener:(event:string,callback:()=>Promise<void>)=>clicks.set(event,callback),dataset:{}};
