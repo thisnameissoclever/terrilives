@@ -19,6 +19,7 @@ import { OrderDiagnostics } from '../src/ui/player-orders.js';
 import { frameElapsedMs } from '../src/frame.js';
 import { CharacterContactRoster } from '../src/render/character/contact-admission.js';
 import { PreparedBuildCommit, type BuildCommitAttempt } from '../src/ui/prepared-build-commit.js';
+import { prepareWorldLoungerRig } from '../src/render/character/creator-assets.js';
 import type { BuildReview } from '../src/rooms/codec.js';
 import { AdmissionTestService } from './fixtures/contact-admission-service.js';
 
@@ -111,7 +112,7 @@ function fixture(source = main) {
     adminSkip: { step() {} },
     MAX_TICKS_PER_FRAME: 5, BACKGROUND_MAX_TICKS: 300,
     persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
-    orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false, PreparedBuildCommit, contactRoster,
+    orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false, PreparedBuildCommit, prepareWorldLoungerRig, contactRoster,
     advanceSimulationFrame: () => { sim.flushCommands(); return 0; },
     advanceFrameWithCommandFeedback: (advance: () => number, after: () => void) => { const result = advance(); after(); return result; } };
   const bound = new Function('ctx', `with(ctx) { ${wiring(source)} }`)(context) as {

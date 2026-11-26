@@ -1019,11 +1019,13 @@ pub(crate) fn restore(
             .map_or_else(|| label(world, &entry), |key| key.kind.label().into());
         let dynamic_meal = entry.intent.cleanup.is_none()
             && entry.intent.chore.is_none()
-            && entry.intent.interaction == 1
             && world
                 .get::<terri_core::SmartObject>(entry.intent.object)
                 .is_some_and(|object| {
-                    world.resource::<crate::Content>().0.object(object.0).id == "dining_table"
+                    crate::dining::is_table_meal(
+                        world.resource::<crate::Content>().0.object(object.0),
+                        entry.intent.interaction,
+                    )
                 });
         if dynamic_meal && s.active {
             let valid = world

@@ -53,7 +53,7 @@ function fixture() {
     confirmLoadGame: { addEventListener: (_event: string, handler: typeof listener) => { listener = handler; } },
     loadingGame: false, loadGameDialog, persistence, sceneFeedback, commandStatus: sceneFeedback.status,
     syncPersistenceButtons: vi.fn(() => { expect(loadGameDialog.open).toBe(false); }),
-    wallFade: { reset: vi.fn() }, adoptLotShape: vi.fn(), lot: { architecture: {} },
+    wallFade: { reset: vi.fn() }, adoptLotShape: vi.fn(), refreshPoolFloorOpenings: vi.fn(), lot: { architecture: {} },
     sim: { wallTiles: () => [], wallEdges: () => [], windowLines: () => [], windowPlacements: () => [],
       floorTiles: () => [], worldSurfaces: () => [], interiorDoorLines: () => [], interiorHorizontalDoorLines: () => [],
       frontDoorLines: () => [], streetColumn: () => null, orderEventsSince: () => ({ nextCursor: '9' }) },

@@ -196,16 +196,21 @@ fn a_returning_reader_is_not_locked_out_by_another_readers_walk_to_the_only_cont
 /// before the fix, Tim took a book at 05:47, Bill set out at the same tick to
 /// fetch one, and Tim stood waiting until about 07:10 and left at about
 /// 07:25. Issue 338 changed Tim's first choice at 05:16 on Monday, so the
-/// shipped seed no longer reaches that state. World seed 182 is the only one
-/// of seeds 0 to 299 in which Tim, returning a book at his shift start, waits
-/// to return it when a walk holds the contact again (the defect restored in
-/// `endpoints_conflict`): there another housemate is walking back to the same
-/// bookcase with a book of their own, and with the defect restored Tim waits
-/// 40 ticks. With the fix he does not wait and leaves 25 minutes after his
-/// shift starts.
+/// shipped seed no longer reaches that state. World seed 182 then served: it
+/// was the only one of seeds 0 to 299 in which Tim, returning a book at his
+/// shift start while another housemate walks to the same bookcase, waits to
+/// return it when a walk holds the contact again (the defect restored in
+/// `endpoints_conflict`). Autonomy then stopped scoring a wait for a seat
+/// with no reachable approach (the shipped desk chair's), which changed the
+/// household's first choices, and seed 182 no longer reaches the case. Of
+/// seeds 0 to 299, seeds 74 and 100 now reach it, keep Tim's departure within
+/// 30 minutes with the fix, and with the defect restored make him wait (60
+/// and 58 ticks) and leave an hour after his shift starts. Seed 74 is used;
+/// with the fix Tim does not wait and leaves 25 minutes after his shift
+/// starts.
 #[test]
 fn the_shipped_household_returns_tims_book_and_sends_him_to_his_first_shift() {
-    let mut sim = Sim::new_from_shipped_lot_with_seed(182);
+    let mut sim = Sim::new_from_shipped_lot_with_seed(74);
     let tim = sim
         .world_mut()
         .query::<(Entity, &SimName)>()

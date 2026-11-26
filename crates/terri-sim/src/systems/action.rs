@@ -1066,7 +1066,7 @@ pub fn serve_intents(
             );
             continue;
         };
-        if content.0.object(placed.0).id == "dining_table" && intent.interaction == 1 {
+        if crate::dining::is_table_meal(content.0.object(placed.0), intent.interaction) {
             if chain_state.is_some()
                 && beds.meal_orders.get(agent).is_ok_and(|order| {
                     queue
@@ -1102,8 +1102,7 @@ pub fn serve_intents(
             claimed.push(agent);
             continue;
         }
-        if content.0.object(placed.0).id == "dining_table"
-            && intent.interaction == 0
+        if crate::dining::is_table_sit(content.0.object(placed.0), intent.interaction)
             && !objects.iter().any(|(_, pos, o, _, f)| {
                 content.0.object(o.0).id == "chair"
                     && crate::dining::setting_at(

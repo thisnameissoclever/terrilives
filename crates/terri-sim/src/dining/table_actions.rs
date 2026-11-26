@@ -1,8 +1,48 @@
 use super::*;
 
+/// The meal table's plain sitting action. A pack can list a table's actions
+/// in any order, so it is found by its id and never by its position.
+pub(crate) const SIT_PROPERLY: &str = "sit_properly";
+
+/// The dining table's Eat prepared food action, also found by its id.
+pub(crate) const TAKE_PREPARED_FOOD: &str = "take_prepared_food";
+
+/// Whether `interaction` is the dining table's sitting action.
+pub(crate) fn is_table_sit(object: &terri_data::CompiledObject, interaction: u32) -> bool {
+    object.id == "dining_table"
+        && object
+            .interactions
+            .get(interaction as usize)
+            .is_some_and(|action| action.id == SIT_PROPERLY)
+}
+
+/// Whether `interaction` is the dining table's Eat prepared food action. A
+/// historical table lists only sitting and addresses the managed meal at
+/// position 1, past its authored actions.
+pub(crate) fn is_table_meal(object: &terri_data::CompiledObject, interaction: u32) -> bool {
+    if object.id != "dining_table" {
+        return false;
+    }
+    match object.interactions.get(interaction as usize) {
+        Some(action) => action.id == TAKE_PREPARED_FOOD,
+        None => {
+            interaction == 1
+                && object.interactions.len() == 1
+                && object.interactions[0].id == SIT_PROPERLY
+        }
+    }
+}
+
 pub(crate) fn ordinary_sitting(world: &World, person: Entity) -> Option<Entity> {
     let target = world.get::<Target>(person)?;
-    (target.interaction == 0 && role(world, target.object, "meal_table")).then_some(target.object)
+    let object = world.get::<SmartObject>(target.object)?;
+    let action = world
+        .resource::<Content>()
+        .0
+        .object(object.0)
+        .interactions
+        .get(target.interaction as usize)?;
+    (action.id == SIT_PROPERLY && role(world, target.object, "meal_table")).then_some(target.object)
 }
 
 fn chairs(world: &World, table: Entity) -> Vec<Entity> {
@@ -278,6 +318,149 @@ mod tests {
             .0;
         (sim, person, table)
     }
+    /// A pack may list the table's actions in another order, as a reordered
+    /// V6 restore does. Sitting is recognised by the action's id, so the
+    /// table's other action is never read as sitting and sitting is never
+    /// missed at its new position.
+    #[test]
+    fn ordinary_sitting_names_the_action_by_id_in_any_order() {
+        let (mut sim, person, table) = fixture();
+        let mut pack = terri_data::pack().clone();
+        for object in &mut pack.objects {
+            object.interactions.reverse();
+        }
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        sim.world_mut().insert_resource(Content(pack));
+        let model = sim.world().get::<SmartObject>(table).unwrap().0;
+        let actions = &pack.object(model).interactions;
+        let sit = actions
+            .iter()
+            .position(|action| action.id == SIT_PROPERLY)
+            .unwrap() as u32;
+        assert_ne!(sit, 0, "the reversed pack moves sitting off index 0");
+        for (interaction, expected) in [(sit, Some(table)), (1 - sit, None)] {
+            sim.world_mut().entity_mut(person).insert(Target {
+                object: table,
+                interaction,
+            });
+            assert_eq!(
+                ordinary_sitting(sim.world(), person),
+                expected,
+                "{}",
+                actions[interaction as usize].id
+            );
+        }
+    }
+
+    /// A historical table lists only sitting and addresses its managed meal
+    /// at position 1. Any other table names the meal by id, and a position
+    /// past its actions is never the meal.
+    #[test]
+    fn a_historical_table_keeps_its_managed_meal_at_position_one() {
+        let table = |pack: &'static terri_data::ContentPack| {
+            pack.object(pack.find("dining_table").unwrap()).clone()
+        };
+        let historical = table(terri_data::published_pre_books_pack());
+        assert_eq!(historical.interactions.len(), 1);
+        assert!(is_table_sit(&historical, 0) && !is_table_meal(&historical, 0));
+        assert!(is_table_meal(&historical, 1) && !is_table_sit(&historical, 1));
+        assert!(!is_table_meal(&historical, 2));
+
+        let current = table(terri_data::pack());
+        assert!(is_table_sit(&current, 0) && is_table_meal(&current, 1));
+        assert!(!is_table_meal(&current, 2));
+        let mut extra = current.clone();
+        extra.interactions.truncate(1);
+        extra.interactions.push(extra.interactions[0].clone());
+        extra.interactions[1].id = "another_action".into();
+        assert!(!is_table_meal(&extra, 1) && !is_table_meal(&extra, 2));
+        let mut chair = current.clone();
+        chair.id = "chair".into();
+        assert!(!is_table_sit(&chair, 0) && !is_table_meal(&chair, 1));
+    }
+
+    /// The shipped household with every object's actions listed in reverse,
+    /// so the table's Eat prepared food is at position 0 and sitting at 1.
+    fn reversed_table() -> (crate::Sim, Entity, Entity, u32, u32) {
+        let (mut sim, person, table) = fixture();
+        let mut pack = terri_data::pack().clone();
+        for object in &mut pack.objects {
+            object.interactions.reverse();
+        }
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        sim.world_mut().insert_resource(Content(pack));
+        let model = sim.world().get::<SmartObject>(table).unwrap().0;
+        let position = |id: &str| {
+            pack.object(model)
+                .interactions
+                .iter()
+                .position(|action| action.id == id)
+                .unwrap() as u32
+        };
+        let (sit, eat) = (position(SIT_PROPERLY), position(TAKE_PREPARED_FOOD));
+        assert_eq!(
+            (sit, eat),
+            (1, 0),
+            "the reversed pack swaps the table's actions"
+        );
+        (sim, person, table, sit, eat)
+    }
+
+    /// The reason the person's order failed with on the next tick, if it did.
+    fn order_at_table(
+        sim: &mut crate::Sim,
+        person: Entity,
+        table: Entity,
+        interaction: u32,
+    ) -> Option<String> {
+        let since = sim.action_events_since(0).events.len();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: person.index_u32(),
+                object: table.index_u32(),
+                interaction,
+            });
+        sim.tick();
+        sim.action_events_since(0).events[since..]
+            .iter()
+            .find(|event| event.phase == "failed")
+            .map(|event| event.reason.clone().unwrap_or_default())
+    }
+
+    /// Serving an order at the table names its two actions by id. With the
+    /// actions reversed, Eat prepared food at position 0 takes the meal path,
+    /// and sitting at position 1 takes the chair path, never the meal's.
+    #[test]
+    fn serving_table_orders_names_sit_and_eat_by_id_in_any_order() {
+        let (mut sim, person, table, sit, eat) = reversed_table();
+        assert_eq!(
+            order_at_table(&mut sim, person, table, eat).as_deref(),
+            Some("Prepared food unavailable"),
+            "nothing is prepared, so the eat order fails on the meal path"
+        );
+        assert_eq!(
+            order_at_table(&mut sim, person, table, sit),
+            None,
+            "the table has chairs, so the sit order is served"
+        );
+
+        let (mut sim, person, table, sit, _) = reversed_table();
+        for chair in chairs(sim.world(), table) {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::SellObject {
+                    object: chair.index_u32(),
+                });
+            sim.flush_commands();
+        }
+        assert_eq!(
+            order_at_table(&mut sim, person, table, sit).as_deref(),
+            Some("No usable dining chair"),
+            "without chairs the sit order fails on the chair path"
+        );
+    }
+
     #[test]
     fn empty_table_offers_sitting_only_when_physical_chairs_exist() {
         let (mut sim, person, table) = fixture();

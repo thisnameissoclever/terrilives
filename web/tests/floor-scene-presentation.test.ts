@@ -8,6 +8,7 @@ import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { activeFloorFinishKeys } from '../src/render/floor-materials.js';
 import { prepareArchitectureFinishes } from '../src/render/architecture-finishes.js';
 import { sceneFramebufferSize } from '../src/render/scene-sampling.js';
+import { placementInstanceCount } from '../src/render/placement-preview.js';
 
 const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 function section(start: string, end: string): string {
@@ -83,6 +84,9 @@ function fixture() {
     // Feedback ownership is covered by main-scene-feedback; this host exercises scene rendering.
     renderBuildFeedback() {},
     placementButtons: { frame() {} }, builder: { active: false, preview: null, colourway: 0 },
+    // This lot has no in-ground pool, so no placement hides a pool's floor opening.
+    placementInstanceCount, poolFloorOpenings: [] as { entity: number }[], hiddenPoolOpening: null as number | null,
+    showPoolFloorOpenings() { throw new Error('a lot without a pool showed pool floor openings'); },
     sim: { selectedIndex: () => 0, clockTick: () => 0, dayTicks: () => 1440, seasonIndex: () => 0,
       roomTiles: () => ({ ok: true, value: [] }), floorTiles: () => floors, worldSurfaces: () => new Uint8Array(2), floorGrime:()=>new Uint32Array() },
     alpha: 0, deltaMs: 0, reducedMotion: { matches: false }, AMBIENT_NEUTRAL: [1, 1, 1],

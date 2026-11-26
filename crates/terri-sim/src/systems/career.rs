@@ -540,6 +540,13 @@ mod tests {
             "the blank constructor deliberately has no portal presentation"
         );
 
+        // The walk home ends on the tile its own path names. With current
+        // world geometry that is the nearest home tile from the street
+        // boundary, (15, 2) on the shipped lot, and not the portal's
+        // authored landing (15, 3) that frozen formats used. Settle only on
+        // the walk's own end, so a later errand that crosses another tile
+        // cannot stand in for the return.
+        let mut walk_end = None;
         let mut settled = false;
         for tick in 1..=20 {
             presented.tick();
@@ -559,21 +566,31 @@ mod tests {
                 .world()
                 .get::<Position>(worker)
                 .expect("the worker survives the return");
-            if presented.world().get::<AtWork>(worker).is_none()
-                && presented.world().get::<Commuting>(worker).is_none()
-                && (position.x, position.y) == (15.0, 3.0)
-            {
+            let position = (position.x, position.y);
+            if presented.world().get::<Commuting>(worker) == Some(&Commuting::Inbound) {
+                walk_end = presented
+                    .world()
+                    .get::<Path>(worker)
+                    .and_then(|path| path.steps.last().copied());
+            } else if presented.world().get::<AtWork>(worker).is_none() {
+                let end = walk_end.expect("the worker walked home after the shift");
+                assert_eq!(
+                    position,
+                    (end.0 as f32, end.1 as f32),
+                    "the walk home ended where its path ends"
+                );
                 settled = true;
                 break;
             }
         }
 
-        assert!(settled, "the worker must finish the authored return walk");
+        assert!(settled, "the worker must finish the return walk");
+        assert_eq!(walk_end, Some((15, 2)), "the shipped lot's walk home");
         let position = presented
             .world()
             .get::<Position>(worker)
             .expect("the worker survives the return");
-        assert_eq!((position.x, position.y), (15.0, 3.0));
+        assert_eq!((position.x, position.y), (15.0, 2.0));
         assert!(presented.world().get::<AtWork>(worker).is_none());
         assert!(presented.world().get::<Commuting>(worker).is_none());
     }
