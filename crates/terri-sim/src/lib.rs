@@ -2228,6 +2228,7 @@ impl Sim {
         // Restoration attaches activity state in stages; seed interpolation from the final snapshot.
         restored.render_rows.clear();
         restored.sync_render_buffer_after_commands();
+        restored.seed_walking_interpolation();
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -3239,6 +3240,35 @@ impl Sim {
     /// deleting the sort must fail that test.
     pub fn sync_render_buffer(&mut self) {
         self.sync_render_buffer_inner(true);
+    }
+
+    /// After a load, gives each walker the previous drawn sample the live run
+    /// had on the tick the save was made, so the first frame after a load
+    /// draws the walk the way the live frame did. Only the render buffer
+    /// changes; the save and the world hash never read it.
+    fn seed_walking_interpolation(&mut self) {
+        for (slot, &entity) in self.render_rows.iter().enumerate() {
+            let entity = self.world.entity(entity);
+            if !entity.contains::<terri_core::Agent>() || entity.contains::<terri_core::Blocked>() {
+                continue;
+            }
+            let (Some(path), Some(position)) = (
+                entity.get::<terri_core::Path>(),
+                entity.get::<terri_core::Position>(),
+            ) else {
+                continue;
+            };
+            let index = slot * 2;
+            // A body drawn somewhere other than its own position, on a
+            // fixture or a socket, is not walking there.
+            if self.render.positions.get(index..index + 2) != Some(&[position.x, position.y]) {
+                continue;
+            }
+            if let Some(before) = systems::movement::position_before_last_step(path, *position) {
+                self.render.prev_positions[index] = before.x;
+                self.render.prev_positions[index + 1] = before.y;
+            }
+        }
     }
 
     /// Refreshes command-visible render metadata without advancing the two

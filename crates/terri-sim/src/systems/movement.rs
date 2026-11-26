@@ -17,6 +17,49 @@ const SPEED: f32 = TILES_PER_TICK;
 #[path = "movement_edge_tests.rs"]
 mod edge_tests;
 
+/// Where a walker stood before its last step along `path`, for drawing only.
+///
+/// A load has no previous drawn sample, so a walker would be drawn standing
+/// and facing its next segment. A step moves `SPEED` tiles toward the step at
+/// the cursor and never past it, and arriving on a step advances the cursor,
+/// so the last step can be read back from the saved path. On a step, it came
+/// along the segment that ends there; between steps, along the segment it is
+/// on. Neither the save nor the world hash reads the result.
+///
+/// Returns `None` when the path cannot say: a walker that has just reached
+/// its first step, since the path does not hold where it started, or one
+/// with nothing left to walk toward. It cannot tell a walker that was held in
+/// place on its last tick; that walker is drawn as if it had moved.
+pub(crate) fn position_before_last_step(path: &Path, position: Position) -> Option<Position> {
+    let at = |step: (i32, i32)| (step.0 as f32, step.1 as f32);
+    let here = (position.x, position.y);
+    let cursor = path.cursor as usize;
+    // The segment the last step was taken along, and how far along it the
+    // walker is. Before the first step its start is unknown, so the step is
+    // taken as a whole one.
+    let (from, to) = match cursor.checked_sub(1).map(|last| at(path.steps[last])) {
+        Some(reached) if reached == here => {
+            (Some(at(*path.steps.get(cursor.checked_sub(2)?)?)), here)
+        }
+        Some(reached) => (Some(reached), at(*path.steps.get(cursor)?)),
+        None => (None, at(*path.steps.first()?)),
+    };
+    let origin = from.unwrap_or(here);
+    let (dx, dy) = (to.0 - origin.0, to.1 - origin.1);
+    let length = (dx * dx + dy * dy).sqrt();
+    let travelled = from.map_or(SPEED, |from| {
+        ((here.0 - from.0).powi(2) + (here.1 - from.1).powi(2)).sqrt()
+    });
+    if length == 0.0 || travelled == 0.0 {
+        return None;
+    }
+    let back = SPEED.min(travelled);
+    Some(Position {
+        x: here.0 - dx / length * back,
+        y: here.1 - dy / length * back,
+    })
+}
+
 /// Draws the two voice clips a conversation will be made of, or `None` when
 /// the pack has no voice.
 ///
@@ -1126,5 +1169,78 @@ mod tests {
             ticks_before, ticks_after,
             "the remaining time must survive a reload alongside the pair"
         );
+    }
+
+    /// The drawn sample before a walker's position, as the renderer reads it.
+    fn drawn(sim: &Sim, walker: Entity) -> ([f32; 2], [f32; 2]) {
+        let slot = sim
+            .render_rows
+            .iter()
+            .position(|row| *row == walker)
+            .unwrap()
+            * 2;
+        (
+            [
+                sim.render.prev_positions[slot],
+                sim.render.prev_positions[slot + 1],
+            ],
+            [sim.render.positions[slot], sim.render.positions[slot + 1]],
+        )
+    }
+
+    /// A load restores the previous drawn sample the live run had, so the
+    /// first frame after it draws a walk the way the live frame did. On a
+    /// waypoint the walker's next segment turns, and the live frame still
+    /// shows the step that reached the waypoint. The save and the world hash
+    /// are unchanged by the load.
+    #[test]
+    fn a_load_draws_a_walker_with_the_live_previous_sample() {
+        let mut live = Sim::new_with_lot(8, 8);
+        let walker = live.spawn_agent(Position { x: 1.0, y: 1.0 }, 100.0);
+        live.world_mut().entity_mut(walker).insert(Path {
+            steps: vec![(2, 1), (3, 1), (3, 2), (3, 3)],
+            cursor: 0,
+        });
+        live.sync_render_buffer();
+        // Ticks 1 to 11 walk the first three segments; tick 8 ends on the
+        // waypoint (3, 1), where the path turns from east to south.
+        for tick in 1..=11 {
+            live.tick();
+            live.sync_render_buffer();
+            let path = live.world().get::<Path>(walker).unwrap().clone();
+            let saved = live.save_snapshot_v33();
+            let mut loaded = Sim::new_with_lot(8, 8);
+            loaded.load_snapshot_v33(saved.clone()).unwrap();
+            assert_eq!(
+                loaded.save_snapshot_v33(),
+                saved,
+                "tick {tick}: the save is unchanged"
+            );
+            assert_eq!(
+                loaded.world_hash(),
+                live.world_hash(),
+                "tick {tick}: the hash is unchanged"
+            );
+            let (before, now) = drawn(&live, walker);
+            let (after, restored) = drawn(&loaded, walker);
+            assert_eq!(restored, now, "tick {tick}");
+            if path.cursor == 1 && now == [2.0, 1.0] {
+                // Just on its first step: the path does not hold where the
+                // walk began, so the load draws the walker standing.
+                assert_eq!(after, now, "tick {tick}");
+            } else {
+                assert_eq!(
+                    after, before,
+                    "tick {tick}: the first drawn frame matches the live one"
+                );
+            }
+            if tick == 8 {
+                assert_eq!(
+                    (now, before),
+                    ([3.0, 1.0], [2.75, 1.0]),
+                    "the case under test"
+                );
+            }
+        }
     }
 }
