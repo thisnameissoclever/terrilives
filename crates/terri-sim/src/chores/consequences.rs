@@ -84,13 +84,14 @@ pub fn moodlets(world: &World, person: Entity) -> Vec<crate::mood::Moodlet> {
     let Some(state) = world.get_resource::<SavedChores>() else {
         return vec![];
     };
-    moodlets_in(world, person, state)
+    moodlets_in(world, person, state, |_, _| {})
 }
 
 pub(crate) fn moodlets_in(
     world: &World,
     person: Entity,
     state: &SavedChores,
+    mut observe: impl FnMut(bool, &crate::mood::Moodlet),
 ) -> Vec<crate::mood::Moodlet> {
     let Some(id) = world.get::<terri_core::SimId>(person) else {
         return vec![];
@@ -118,7 +119,7 @@ pub(crate) fn moodlets_in(
             .find(|p| p.sim_id == id.0)
             .map_or(0, |p| p.preferences[kind.index()]);
         if preference != 0 {
-            moodlets.push(crate::mood::Moodlet {
+            let moodlet = crate::mood::Moodlet {
                 label: if preference > 0 {
                     "Enjoying a chore"
                 } else {
@@ -126,7 +127,9 @@ pub(crate) fn moodlets_in(
                 }
                 .into(),
                 score: f32::from(preference) / 100.0,
-            });
+            };
+            observe(false, &moodlet);
+            moodlets.push(moodlet);
         }
     }
     for feeling in state
@@ -134,7 +137,7 @@ pub(crate) fn moodlets_in(
         .iter()
         .filter(|f| f.person == id.0 && f.expires > now && f.score != 0)
     {
-        moodlets.push(crate::mood::Moodlet {
+        let moodlet = crate::mood::Moodlet {
             label: if feeling.score > 0 {
                 "Enjoyed a chore"
             } else {
@@ -142,7 +145,9 @@ pub(crate) fn moodlets_in(
             }
             .into(),
             score: f32::from(feeling.score) / 100.0,
-        });
+        };
+        observe(false, &moodlet);
+        moodlets.push(moodlet);
     }
     if let Some(pos) = world.get::<terri_core::Position>(person) {
         if let Some(room) = crate::room_regions::RoomRegions::from_world(world)
@@ -211,10 +216,12 @@ pub(crate) fn moodlets_in(
                 / surfaces.len().max(1) as f32;
             for (label, intensity) in [("Grimy floor", floor), ("Grimy surfaces", surface)] {
                 if intensity > 0.0 {
-                    moodlets.push(crate::mood::Moodlet {
+                    let moodlet = crate::mood::Moodlet {
                         label: label.into(),
                         score: -(0.3 + clean) * intensity.clamp(0.0, 1.0),
-                    });
+                    };
+                    observe(true, &moodlet);
+                    moodlets.push(moodlet);
                 }
             }
         }

@@ -14,6 +14,7 @@ let nextRequest=1;
 export class CreatorSession {
   readonly draft:CharacterDraft;
   pending=false;
+  pendingEditAppearance:string|null=null;
   error='';
   private request:number|null=null;
   private closed=false;
@@ -51,5 +52,5 @@ export class CreatorSession {
     }
     return changed;
   }
-  destroy():void {if(this.closed)return;this.closed=true;this.contacts?.dispose();}
+  destroy():void {if(this.closed)return;this.closed=true;this.pendingEditAppearance=null;this.contacts?.dispose();}
 }

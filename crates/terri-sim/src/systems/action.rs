@@ -695,11 +695,8 @@ pub fn serve_intents(
         Has<Reserved>,
         Option<&ObjectFacing>,
     )>,
-    // Everything a TalkTo intent needs to know about its target: where
-    // it stands, whether it is spoken for, and whether it is busy in
-    // any of the four ways [H10] rules out. Component reads rather than
-    // filters, so "busy" and "gone" stay distinguishable - a busy
-    // partner is waited for and a gone one drops the intent.
+    // Keep living conversation recipients resolvable while they work or
+    // sleep. The social scheduler decides when an order can approach.
     #[allow(clippy::type_complexity)] people: Query<
         (
             &Position,
@@ -708,10 +705,6 @@ pub fn serve_intents(
             Has<Path>,
             Has<Eating>,
             Has<Socialising>,
-            // At work is BUSY, not gone - [E4] meets [C3]: a directed
-            // talk waits by the door for the worker's return exactly
-            // as it waits out a shower. A commuter is already busy
-            // through Has<Path>.
             Has<terri_core::AtWork>,
             Has<crate::reading::ReadingJourney>,
             Has<terri_core::ChainState>,

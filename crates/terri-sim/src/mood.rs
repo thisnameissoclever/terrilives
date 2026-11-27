@@ -8,6 +8,10 @@ use terri_core::{
 };
 use terri_data::{CompiledTraitKind, ContentPack, Tuning};
 
+use crate::activity_log::{
+    mood::{Cause, CauseKind, Observation},
+    ActivityLog,
+};
 use crate::{need_mood::NeedMood, Content, Sim};
 
 const MOOD_FROM_NEEDS: &str = "Mood from needs";
@@ -73,21 +77,24 @@ pub(crate) fn score(
     index: u32,
     chores: &terri_core::chores::SavedChores,
 ) -> Option<f32> {
-    derive_mood_with_chores(world, index, Some(chores)).map(|m| m.overall_score)
+    derive_mood_with_chores::<false>(world, index, Some(chores), &mut Observation::default())
+        .map(|m| m.overall_score)
 }
 
 pub(crate) fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
-    derive_mood_with_chores(
+    derive_mood_with_chores::<false>(
         world,
         index,
         world.get_resource::<terri_core::chores::SavedChores>(),
+        &mut Observation::default(),
     )
 }
 
-fn derive_mood_with_chores(
+fn derive_mood_with_chores<const CAPTURE: bool>(
     world: &World,
     index: u32,
     chores: Option<&terri_core::chores::SavedChores>,
+    observation: &mut Observation,
 ) -> Option<MoodSnapshot> {
     let pack = world.get_resource::<Content>()?.0;
     let mut subject_query = world.try_query_filtered::<(
@@ -104,8 +111,34 @@ fn derive_mood_with_chores(
 
     let mut moodlets = Vec::new();
     let mut sources = Vec::new();
+    // Record cause identities where the projection adds the actual scores.
+    // Reads and the disabled Log compile out the capture paths.
+    macro_rules! note {
+        ($kind:expr, $other:expr) => {
+            if CAPTURE {
+                observation.add(Cause::new($kind, $other), moodlets.last().unwrap().score);
+            }
+        };
+        ($kind:expr) => {
+            note!($kind, None)
+        };
+    }
     if let Some(chores) = chores {
-        moodlets.extend(crate::chores::moodlets_in(world, subject, chores));
+        moodlets.extend(crate::chores::moodlets_in(
+            world,
+            subject,
+            chores,
+            |is_mess, moodlet| {
+                if CAPTURE {
+                    let kind = if is_mess {
+                        CauseKind::Mess
+                    } else {
+                        CauseKind::Chores
+                    };
+                    observation.add(Cause::new(kind, None), moodlet.score);
+                }
+            },
+        ));
     }
     tag(&moodlets, &mut sources, MoodSource::Other);
     if let Some(need_mood) = world
@@ -116,6 +149,7 @@ fn derive_mood_with_chores(
             label: MOOD_FROM_NEEDS.to_string(),
             score: need_mood.points(),
         });
+        note!(CauseKind::Needs);
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
     if let Some(score) = crate::hobby_mood::points(world, subject) {
@@ -123,6 +157,7 @@ fn derive_mood_with_chores(
             label: "Enjoying a hobby".to_string(),
             score,
         });
+        note!(CauseKind::Hobby);
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
@@ -141,6 +176,7 @@ fn derive_mood_with_chores(
                     label: definition.label.clone(),
                     score: -pack.tuning.mood_condition_penalty * severity,
                 });
+                note!(CauseKind::Condition);
                 tag(&moodlets, &mut sources, MoodSource::Other);
             }
         }
@@ -155,13 +191,23 @@ fn derive_mood_with_chores(
                 continue;
             }
             let feeling = relationships.feeling(*sim_id);
-            if !feeling.is_finite() || feeling.abs() < pack.tuning.mood_relationship_min_affinity {
+            let active =
+                feeling.is_finite() && feeling.abs() >= pack.tuning.mood_relationship_min_affinity;
+            if !active {
                 continue;
             }
             let dx = other_position.x - position.x;
             let dy = other_position.y - position.y;
             let distance = (dx * dx + dy * dy).sqrt();
-            if !distance.is_finite() || distance >= pack.tuning.mood_relationship_radius {
+            if !distance.is_finite() {
+                continue;
+            }
+            if CAPTURE {
+                // Keep evidence outside the radius for companions who can affect mood.
+                let proximity = (1.0 - distance / pack.tuning.mood_relationship_radius).max(0.0);
+                observation.company(*sim_id, feeling, proximity);
+            }
+            if distance >= pack.tuning.mood_relationship_radius {
                 continue;
             }
             nearby.push((
@@ -187,6 +233,14 @@ fn derive_mood_with_chores(
                 * feeling
                 * (1.0 - distance / pack.tuning.mood_relationship_radius),
         });
+        note!(
+            if feeling.is_sign_positive() {
+                CauseKind::ComfortableCompany
+            } else {
+                CauseKind::UneasyCompany
+            },
+            Some(SimId(sim_id))
+        );
         tag(&moodlets, &mut sources, MoodSource::Feeling { sim: sim_id });
     }
 
@@ -198,6 +252,7 @@ fn derive_mood_with_chores(
             label: "No assigned bed".to_string(),
             score: -20.0,
         });
+        note!(CauseKind::BedAssignment);
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
@@ -212,6 +267,7 @@ fn derive_mood_with_chores(
                 label: BURNT_DINNER.to_string(),
                 score: -pack.tuning.burnt_meal_mood_penalty,
             });
+            note!(CauseKind::BurntDinner);
             tag(&moodlets, &mut sources, MoodSource::Timer { timer: 0 });
         }
     }
@@ -221,12 +277,21 @@ fn derive_mood_with_chores(
                 label: HAD_A_FIGHT.to_string(),
                 score: -pack.tuning.fight_mood_penalty,
             });
+            note!(CauseKind::Fight);
             tag(&moodlets, &mut sources, MoodSource::Timer { timer: 1 });
         }
     }
     if let (Some(id), Some(careers)) = (subject_id, world.get_resource::<crate::careers::Careers>())
     {
-        career_moodlets(&mut moodlets, &mut sources, careers, *id, now, &pack.tuning);
+        career_moodlets::<CAPTURE>(
+            &mut moodlets,
+            &mut sources,
+            careers,
+            *id,
+            now,
+            &pack.tuning,
+            observation,
+        );
     }
     // Bills (issue 298, [WB-paying]): derived from the bills each time, like
     // Warned at work, so it needs no timer and ends on the tick the last
@@ -236,6 +301,7 @@ fn derive_mood_with_chores(
             label: BEHIND_ON_BILLS.to_string(),
             score: -pack.bills.overdue_mood,
         });
+        note!(CauseKind::OverdueBills);
         tag(&moodlets, &mut sources, MoodSource::BillsOverdue);
     }
     for death in world
@@ -269,6 +335,7 @@ fn derive_mood_with_chores(
             label: format!("Grieving {}", death.name),
             score: -strength * (1.0 - elapsed as f32 / duration as f32),
         });
+        note!(CauseKind::Grief, Some(SimId(death.sim_id)));
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
@@ -277,6 +344,7 @@ fn derive_mood_with_chores(
             label: "Waiting for an item".into(),
             score: -penalty,
         });
+        note!(CauseKind::Waiting);
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
 
@@ -285,17 +353,54 @@ fn derive_mood_with_chores(
             label: "Dirty dishes".into(),
             score: -penalty,
         });
+        note!(CauseKind::Mess);
         tag(&moodlets, &mut sources, MoodSource::Other);
     }
-    moodlets.extend(overdoing_moodlets(pack, habituation));
-    moodlets.extend(crate::affinity::presence_moodlets(world, pack, subject));
-    moodlets.extend(crate::affinity::use_moodlets(world, pack, subject));
+    let repetition = overdoing_moodlets(pack, habituation);
+    if CAPTURE {
+        for moodlet in &repetition {
+            observation.add(Cause::new(CauseKind::Repetition, None), moodlet.score);
+        }
+    }
+    moodlets.extend(repetition);
+    moodlets.extend(crate::affinity::presence_moodlets_with(
+        world,
+        pack,
+        subject,
+        |id, moodlet| {
+            if CAPTURE {
+                let kind = match id {
+                    "plants" => CauseKind::Plants,
+                    "aquarium" => CauseKind::Aquarium,
+                    _ => CauseKind::Mixed,
+                };
+                observation.add(Cause::new(kind, None), moodlet.score);
+            }
+        },
+    ));
+    moodlets.extend(crate::affinity::use_moodlets(
+        world,
+        pack,
+        subject,
+        |user, moodlet| {
+            if CAPTURE {
+                let other = world.get::<SimId>(user).copied();
+                observation.add(
+                    Cause::new(CauseKind::DislikedObjectUse, other),
+                    moodlet.score,
+                );
+            }
+        },
+    ));
     tag(&moodlets, &mut sources, MoodSource::Other);
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)
         .sum::<f32>()
         .clamp(-100.0, 100.0);
+    if CAPTURE {
+        observation.score = overall_score;
+    }
     Some(MoodSnapshot {
         overall_score,
         overall_label: overall_label(overall_score),
@@ -334,26 +439,34 @@ pub(crate) const CAREER_LABELS: [&str; 7] = [
     FIRED,
 ];
 
-fn career_moodlets(
+fn career_moodlets<const CAPTURE: bool>(
     moodlets: &mut Vec<Moodlet>,
     sources: &mut Vec<MoodSource>,
     careers: &crate::careers::Careers,
     id: SimId,
     now: u64,
     tuning: &Tuning,
+    observation: &mut Observation,
 ) {
+    let mut note = |cause, score| {
+        if CAPTURE {
+            observation.add(Cause::new(cause, None), score);
+        }
+    };
     if let Some(record) = careers.record(id) {
         if record.job_satisfaction < tuning.career_job_misery {
             moodlets.push(Moodlet {
                 label: HATES_THE_JOB.to_string(),
                 score: -tuning.career_mood_misery,
             });
+            note(CauseKind::WorkSatisfaction, -tuning.career_mood_misery);
             tag(moodlets, sources, MoodSource::JobSatisfaction);
         } else if record.job_satisfaction > tuning.career_job_joy {
             moodlets.push(Moodlet {
                 label: ENJOYS_THE_JOB.to_string(),
                 score: tuning.career_mood_joy,
             });
+            note(CauseKind::WorkSatisfaction, tuning.career_mood_joy);
             tag(moodlets, sources, MoodSource::JobSatisfaction);
         }
         if record.warned() {
@@ -361,21 +474,43 @@ fn career_moodlets(
                 label: WARNED_AT_WORK.to_string(),
                 score: -tuning.career_mood_warned,
             });
+            note(CauseKind::Mixed, -tuning.career_mood_warned);
             tag(moodlets, sources, MoodSource::Other);
         }
     }
     let events = [
-        (&careers.promoted, PROMOTED, tuning.career_mood_promoted),
-        (&careers.raised, GOT_A_RAISE, tuning.career_mood_raise),
-        (&careers.demoted, DEMOTED, -tuning.career_mood_demoted),
-        (&careers.fired, FIRED, -tuning.career_mood_fired),
+        (
+            &careers.promoted,
+            PROMOTED,
+            tuning.career_mood_promoted,
+            CauseKind::Promotion,
+        ),
+        (
+            &careers.raised,
+            GOT_A_RAISE,
+            tuning.career_mood_raise,
+            CauseKind::Raise,
+        ),
+        (
+            &careers.demoted,
+            DEMOTED,
+            -tuning.career_mood_demoted,
+            CauseKind::Demotion,
+        ),
+        (
+            &careers.fired,
+            FIRED,
+            -tuning.career_mood_fired,
+            CauseKind::Dismissal,
+        ),
     ];
-    for (offset, (timers, label, score)) in events.into_iter().enumerate() {
+    for (offset, (timers, label, score, cause)) in events.into_iter().enumerate() {
         if timers.active(id, now) {
             moodlets.push(Moodlet {
                 label: label.to_string(),
                 score,
             });
+            note(cause, score);
             // The admin panel's timer codes 2 to 5 follow burnt dinner and
             // the fight.
             let timer = 2 + offset as u8;
@@ -449,6 +584,11 @@ pub(crate) fn is_food(pack: &ContentPack, object: ObjectDefId, row: u32) -> bool
 /// small fluctuations from accumulating; the ledger preserves sustained effects.
 pub(crate) fn accrue_satisfaction(world: &mut World) {
     let tuning = world.resource::<Content>().0.tuning;
+    let log_tick = world
+        .get_resource::<ActivityLog>()
+        .filter(|log| log.enabled())
+        .map(|_| world.resource::<terri_core::SimClock>().tick);
+    let mut observations = Vec::new();
     let people: Vec<_> = world
         .query_filtered::<Entity, (With<Agent>, With<terri_core::Satisfaction>)>()
         .iter(world)
@@ -456,7 +596,21 @@ pub(crate) fn accrue_satisfaction(world: &mut World) {
     let changes: Vec<_> = people
         .into_iter()
         .filter_map(|person| {
-            let mood = derive_mood(world, person.index_u32())?;
+            let index = person.index_u32();
+            let mood = if let Some((tick, &actor)) = log_tick.zip(world.get::<SimId>(person)) {
+                let mut observation = Observation::default();
+                observation.tick = tick;
+                let mood = derive_mood_with_chores::<true>(
+                    world,
+                    index,
+                    world.get_resource::<terri_core::chores::SavedChores>(),
+                    &mut observation,
+                )?;
+                observations.push((actor, observation));
+                mood
+            } else {
+                derive_mood(world, index)?
+            };
             let delta = satisfaction_change(mood.overall_score, &tuning);
             Some((person, delta))
         })
@@ -466,6 +620,11 @@ pub(crate) fn accrue_satisfaction(world: &mut World) {
             .get_mut::<terri_core::Satisfaction>(person)
             .unwrap()
             .add(delta);
+    }
+    if let Some(tick) = log_tick {
+        world
+            .resource_mut::<ActivityLog>()
+            .observe_mood(tick, observations);
     }
 }
 
@@ -493,18 +652,46 @@ fn has_assigned_bed(world: &World, person: SimId) -> bool {
         })
 }
 
-fn overall_label(score: f32) -> &'static str {
-    if score <= -50.0 {
-        "Miserable"
-    } else if score <= -15.0 {
-        "Low"
-    } else if score < 15.0 {
-        "Okay"
-    } else if score < 50.0 {
-        "Good"
-    } else {
-        "Great"
+/// Classifies the exact settled score for the HUD and activity log.
+/// Values are the activity log's mood band codes.
+#[derive(Clone, Copy)]
+#[repr(u8)]
+pub(crate) enum MoodBand {
+    Miserable = 1,
+    Low = 2,
+    Okay = 3,
+    Good = 4,
+    Great = 5,
+}
+
+impl MoodBand {
+    pub(crate) fn for_score(score: f32) -> Self {
+        if score <= -50.0 {
+            Self::Miserable
+        } else if score <= -15.0 {
+            Self::Low
+        } else if score < 15.0 {
+            Self::Okay
+        } else if score < 50.0 {
+            Self::Good
+        } else {
+            Self::Great
+        }
     }
+
+    fn label(self) -> &'static str {
+        match self {
+            Self::Miserable => "Miserable",
+            Self::Low => "Low",
+            Self::Okay => "Okay",
+            Self::Good => "Good",
+            Self::Great => "Great",
+        }
+    }
+}
+
+fn overall_label(score: f32) -> &'static str {
+    MoodBand::for_score(score).label()
 }
 
 #[cfg(test)]
@@ -513,6 +700,201 @@ mod tests {
     use crate::test_content;
     use terri_core::{SmartObject, NEED_MAX};
     use terri_data::{CompiledTrait, ContentPack};
+
+    fn mood_log_housemates(feeling: f32) -> (Sim, Entity, Entity) {
+        let mut sim = test_content::sim_with(12, 12, test_content::pack(Vec::new()));
+        let mut relationships = Relationships::default();
+        relationships.bump(SimId(7), feeling);
+        let subject = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(50),
+                SimName("Shayla".into()),
+                Position { x: 1.0, y: 1.0 },
+                Needs::all_at(50.0),
+                NeedMood(-44_940),
+                relationships,
+                terri_core::Satisfaction::default(),
+            ))
+            .id();
+        let companion = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(7),
+                SimName("Bill".into()),
+                Position { x: 1.0, y: 1.0 },
+            ))
+            .id();
+        (sim, subject, companion)
+    }
+
+    fn settle_mood_log(sim: &mut Sim, tick: u64) {
+        sim.world_mut().resource_mut::<terri_core::SimClock>().tick = tick;
+        accrue_satisfaction(sim.world_mut());
+    }
+
+    fn mood_log_rows(sim: &Sim) -> Vec<crate::activity_log::LogRecord> {
+        sim.activity_log()
+            .records()
+            .filter(|row| row.0[2] & 0xff == 13)
+            .copied()
+            .collect()
+    }
+
+    #[test]
+    fn mood_log_follows_leaving_company_through_its_final_score_despite_opposing_need_drift() {
+        let (mut sim, person, companion) = mood_log_housemates(1.0);
+        settle_mood_log(&mut sim, 488);
+        assert!(
+            mood_log_rows(&sim).is_empty(),
+            "first sample sets the baseline"
+        );
+
+        for minute in 1..=20 {
+            sim.world_mut().get_mut::<Position>(companion).unwrap().x = 1.0 + minute as f32 / 5.0;
+            sim.world_mut().get_mut::<NeedMood>(person).unwrap().0 += 6;
+            settle_mood_log(&mut sim, 488 + minute);
+            if minute == 10 {
+                assert!(
+                    !mood_log_rows(&sim).is_empty(),
+                    "visible if the player pauses mid-change"
+                );
+            }
+        }
+
+        let updates = mood_log_rows(&sim);
+        assert!(updates.len() > 1);
+        assert!(
+            updates.len() < 10,
+            "small moves should not flood the staging ring"
+        );
+        assert!(updates.iter().all(|row| row.value(2) == 488));
+        let end = updates.last().unwrap();
+        assert_eq!(end.tick(), 508);
+        assert_eq!(end.actor(), 50);
+        assert_eq!(end.other(), 7);
+        assert_eq!(end.label(), 2);
+        assert_eq!(end.label2() & 1, 1);
+        assert_eq!(
+            [end.value(0), end.value(1), end.value(3)],
+            [-1498, -2747, -1500]
+        );
+    }
+
+    #[test]
+    fn mood_log_reversal_starts_at_the_previous_extreme() {
+        let (mut sim, _, companion) = mood_log_housemates(1.0);
+        settle_mood_log(&mut sim, 100);
+        sim.world_mut().get_mut::<Position>(companion).unwrap().x = 5.0;
+        settle_mood_log(&mut sim, 101);
+        sim.world_mut().get_mut::<Position>(companion).unwrap().x = 1.0;
+        settle_mood_log(&mut sim, 102);
+
+        let updates = mood_log_rows(&sim);
+        assert_eq!(updates.len(), 2);
+        assert_eq!([updates[0].value(2), updates[0].value(0)], [100, -1500]);
+        assert_eq!([updates[1].value(2), updates[1].value(0)], [101, 1500]);
+        assert_eq!(updates[1].label2() & 1, 1);
+    }
+
+    #[test]
+    fn mood_log_does_not_claim_distance_when_affinity_explains_the_change() {
+        let (mut sim, person, companion) = mood_log_housemates(1.0);
+        settle_mood_log(&mut sim, 100);
+        sim.world_mut().get_mut::<Position>(companion).unwrap().x = 1.25;
+        sim.world_mut()
+            .get_mut::<Relationships>(person)
+            .unwrap()
+            .bump(SimId(7), -1.0);
+        settle_mood_log(&mut sim, 101);
+
+        let updates = mood_log_rows(&sim);
+        let end = updates.last().unwrap();
+        assert_eq!(end.label(), 2);
+        assert_eq!(end.value(3), -1500);
+        assert_eq!(end.label2() & 1, 0);
+    }
+
+    #[test]
+    fn disabled_mood_log_discards_the_baseline_before_reenabling() {
+        let (mut sim, _, companion) = mood_log_housemates(1.0);
+        settle_mood_log(&mut sim, 101);
+        sim.set_activity_log_enabled(false);
+        sim.world_mut().get_mut::<Position>(companion).unwrap().x = 5.0;
+        settle_mood_log(&mut sim, 102);
+        assert!(mood_log_rows(&sim).is_empty());
+        sim.set_activity_log_enabled(true);
+        settle_mood_log(&mut sim, 103);
+        assert!(mood_log_rows(&sim).is_empty());
+        sim.world_mut().get_mut::<Position>(companion).unwrap().x = 1.0;
+        settle_mood_log(&mut sim, 104);
+        let updates = mood_log_rows(&sim);
+        assert_eq!(updates.len(), 1);
+        assert_eq!([updates[0].value(2), updates[0].value(0)], [103, 1500]);
+    }
+
+    #[test]
+    fn unpublished_mood_changes_do_not_span_a_quiet_gap() {
+        let (mut sim, person, _) = mood_log_housemates(0.0);
+        settle_mood_log(&mut sim, 100);
+        sim.world_mut().get_mut::<NeedMood>(person).unwrap().0 += 18_000;
+        for tick in 101..=1000 {
+            settle_mood_log(&mut sim, tick);
+        }
+        sim.world_mut().get_mut::<NeedMood>(person).unwrap().0 += 12_000;
+        settle_mood_log(&mut sim, 1001);
+
+        assert!(
+            mood_log_rows(&sim).is_empty(),
+            "the two small rises are separate"
+        );
+
+        sim.world_mut().get_mut::<NeedMood>(person).unwrap().0 += 15_000;
+        settle_mood_log(&mut sim, 1002);
+        let rows = mood_log_rows(&sim);
+        assert_eq!(rows.len(), 1);
+        assert_eq!([rows[0].value(2), rows[0].value(0)], [1000, 450]);
+    }
+
+    #[test]
+    fn unpublished_mood_change_accumulates_continuous_small_steps() {
+        let (mut sim, person, _) = mood_log_housemates(0.0);
+        settle_mood_log(&mut sim, 100);
+        for tick in 101..=510 {
+            sim.world_mut().get_mut::<NeedMood>(person).unwrap().0 += 60;
+            settle_mood_log(&mut sim, tick);
+        }
+
+        let rows = mood_log_rows(&sim);
+        let first = rows
+            .first()
+            .expect("slow continuous progress crosses four points");
+        assert_eq!(first.value(2), 100);
+        assert_eq!(first.label(), 1);
+    }
+
+    #[test]
+    fn mood_log_band_matches_the_hud_when_the_score_rounds_to_a_boundary() {
+        for (need, rounded_score, hud_label, band) in [
+            (-179_994, -5000, "Low", 2),
+            (30_006, -1500, "Okay", 3),
+            (209_994, 1500, "Okay", 3),
+            (419_994, 5000, "Good", 4),
+        ] {
+            let (mut sim, person, _) = mood_log_housemates(0.0);
+            settle_mood_log(&mut sim, 100);
+            sim.world_mut().get_mut::<NeedMood>(person).unwrap().0 = need;
+            settle_mood_log(&mut sim, 101);
+
+            let rows = mood_log_rows(&sim);
+            assert_eq!(rows.len(), 1);
+            assert_eq!(mood(&sim, person).overall_label, hud_label);
+            assert_eq!(rows[0].value(1), rounded_score);
+            assert_eq!(rows[0].label2(), band << 8);
+        }
+    }
 
     /// A condition with a reserved label would put two identical labels in
     /// the Mood panel. Traits need distinct labels across the details sheet.
@@ -722,24 +1104,27 @@ mod tests {
     }
 
     #[test]
-    fn needs_accumulate_only_at_zero_and_strictly_above_eighty() {
+    fn empty_and_high_need_rates_balance_around_neutral() {
         let pack = Box::leak(Box::new(ContentPack {
             decay_per_tick: [0.0; terri_core::NEED_COUNT],
             ..test_content::pack(Vec::new()).clone()
         }));
         let mut sim = test_content::sim_with(8, 8, pack);
-        let mut needs = Needs::all_at(50.0);
-        needs.set(NeedId::Hunger, 0.0);
-        needs.set(NeedId::Energy, 0.01);
-        needs.set(NeedId::Hygiene, 80.0);
-        needs.set(NeedId::Bladder, 81.0);
-        let person = subject(&mut sim, needs);
+        let mut neutral = Needs::all_at(79.99);
+        neutral.set(NeedId::Energy, 0.01);
+        let mut one_high = neutral;
+        one_high.set(NeedId::Hygiene, 80.0);
+        let mut one_empty = Needs::all_at(81.0);
+        one_empty.set(NeedId::Hunger, 0.0);
+        let cases = [(neutral, 0.0), (one_high, 0.02), (one_empty, -0.02)]
+            .map(|(needs, expected)| (subject(&mut sim, needs), expected));
 
-        assert_eq!(mood(&sim, person).overall_score, 0.0);
-        for _ in 0..12 {
+        for _ in 0..60 {
             sim.tick();
         }
-        assert_eq!(mood(&sim, person).overall_score, -1.196);
+        for (person, expected) in cases {
+            assert_eq!(mood(&sim, person).overall_score, expected);
+        }
     }
 
     #[test]
@@ -779,7 +1164,7 @@ mod tests {
                 .get(NeedId::Energy)
                 < 80.0
         );
-        assert_eq!(mood(&sim, person).overall_score, -0.1);
+        assert_eq!(mood(&sim, person).overall_score, -14.0 / 6000.0);
     }
 
     #[test]
@@ -815,7 +1200,7 @@ mod tests {
                 .get(NeedId::Hunger),
             1.0
         );
-        assert_eq!(mood(&sim, person).overall_score, -0.1);
+        assert_eq!(mood(&sim, person).overall_score, -14.0 / 6000.0);
     }
 
     #[test]
@@ -827,15 +1212,15 @@ mod tests {
         for _ in 0..12 {
             sim.tick();
         }
-        assert_eq!(mood(&sim, person).overall_score, -1.2);
+        assert_eq!(mood(&sim, person).overall_score, -0.028);
 
         sim.world_mut()
             .entity_mut(person)
             .insert(Needs::all_at(50.0));
         sim.flush_commands();
-        assert_eq!(mood(&sim, person).overall_score, -1.2);
+        assert_eq!(mood(&sim, person).overall_score, -0.028);
         sim.tick();
-        assert_eq!(mood(&sim, person).overall_score, -1.2);
+        assert_eq!(mood(&sim, person).overall_score, -0.028);
     }
 
     #[test]
@@ -860,7 +1245,7 @@ mod tests {
             .unwrap()
             .set(NeedId::Comfort, 100.0);
         sim.tick();
-        assert_eq!(units(&sim, high), 599_412);
+        assert_eq!(units(&sim, high), 599_998);
         assert_eq!(units(&sim, low), -600_000);
     }
 

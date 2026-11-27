@@ -245,6 +245,28 @@ pub(crate) fn redirect_recipient(world: &mut World, recipient: Entity) {
         detach(world, owner, true);
     }
 }
+
+pub(super) fn cancel_waits_for_departure(world: &mut World, recipient: Entity) {
+    let waiters: Vec<_> = world
+        .resource::<SocialEpisodes>()
+        .executions
+        .iter()
+        .filter_map(|(&actor, execution)| match execution.owner {
+            ExecutionOwner::Player(id)
+                if execution.recipient == recipient
+                    && execution.phase == ExecutionPhase::Approaching
+                    && super::is_casual(world, execution.interaction) =>
+            {
+                Some((actor, id))
+            }
+            _ => None,
+        })
+        .collect();
+    for (actor, id) in waiters {
+        crate::player_actions::terminal(world, actor, id, "canceled", Some("Recipient is at work"));
+    }
+}
+
 pub(crate) fn forget_person(world: &mut World, person: Entity) {
     redirect_recipient(world, person);
     detach(world, person, true);
@@ -558,7 +580,10 @@ fn eligible_requests(world: &mut World) -> Vec<(Entity, terri_core::components::
                     .0
                     .social
                     .get(e.intent.interaction as usize)
-                    .is_some()
+                    .is_some_and(|action| {
+                        crate::fights::is_fight(action)
+                            || !super::requests::unavailable(world, e.intent.object)
+                    })
         })
         .collect();
     requests.retain(|(actor, entry)| {

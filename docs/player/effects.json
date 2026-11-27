@@ -1090,7 +1090,7 @@
         "crates/terri-sim/src/mood.rs"
       ],
       "review": {
-        "basis": "Each completed game minute counts empty needs and needs strictly above 80%. Their combined rate changes the saved contribution to overall mood."
+        "basis": "Each completed game minute counts empty needs and needs at 80% or higher. Six high needs offset most of the loss from one empty need. Their combined rate changes the saved contribution to overall mood."
       }
     },
     {

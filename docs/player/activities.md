@@ -156,7 +156,9 @@ Exercise supplies Fun and practice in Fitness while costing Energy and Hygiene. 
 
 ## Chat and Fight {#talk-and-fight}
 
-Select the speaker, then open another person's menu and choose Chat or Fight. A chat request waits for the recipient's existing activity, including its travel and longer meal or reading goal. Private bathroom use makes the initiator wait outside. The recipient does not become reserved merely because a request exists. Once the speaker is on the way and the recipient has stopped to wait, the recipient does not leave for a shared meal, washing up or another chore until the conversation or argument ends.
+Select the speaker, then open another person's menu and choose Chat or Fight. A chat request can wait for an available recipient to finish an activity, including travel around the lot, a meal or reading. Someone who is asleep, at work or commuting is unavailable for casual chat. If they fall asleep or leave for work during a wait, the chat is canceled and the initiator can do something else. Private bathroom use makes the initiator wait outside. The recipient does not become reserved merely because a request exists. Once the speaker is on the way and the recipient has stopped to wait, the recipient does not leave for a shared meal, washing up or another chore until the conversation or argument ends.
+
+If you [confirm an order that recalls a worker](ui-elements/#work-confirmation), that chat waits for the worker to get home.
 
 Chat supplies Social and Fun during actual talking. Each participant's own feeling affects their reward. Completion can improve feelings, but a disliked topic, such as a subject like trains or the weather, can instead make the listener think less of the initiator. Starting at an inconvenient moment can also leave an unmet-need penalty. See [conversations](relationships/#conversations).
 

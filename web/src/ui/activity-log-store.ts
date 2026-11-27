@@ -25,6 +25,7 @@ export const KIND = {
   weeklyReview: 10,
   careerChange: 11,
   death: 12,
+  mood: 13,
 } as const;
 
 /** Flags in bits 16 to 23 of word 2: the actor's or the other person's Social total is partial. */

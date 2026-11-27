@@ -15,7 +15,7 @@
  */
 
 import {
-  type ComposeContext, DEFAULT_FILTERS, FILTER_ORDER, LogLines, type LogLine, type TopicNames, lineText,
+  type ComposeContext, DEFAULT_FILTERS, FILTER_ORDER, LogLines, type LogLine, type TopicNames, type LogContent, lineContent,
 } from './activity-log-compose.js';
 import { ACTIVITY_LOG_CAPACITY, type ActivityLogStore } from './activity-log-store.js';
 import { PANEL_WORDS, SOMEONE_IN_SENTENCE, onlyNamed } from './activity-log-words.js';
@@ -46,15 +46,15 @@ export interface ActivityLogView {
    * Replaces every row and brings the newest line into view after the next
    * layout, even when the new list has the old one's height. Reads no layout.
    */
-  replaceRows(texts: readonly string[]): ActivityLogRow[];
+  replaceRows(texts: readonly LogContent[], preserveScroll?: boolean): ActivityLogRow[];
   /**
    * Show earlier entries: puts rows above the first one, keeps every rendered
    * row as it is, and holds the old first row in its place on screen.
    */
-  prependRows(texts: readonly string[]): ActivityLogRow[];
-  appendRow(text: string): ActivityLogRow;
+  prependRows(texts: readonly LogContent[]): ActivityLogRow[];
+  appendRow(text: LogContent): ActivityLogRow;
   /** Replaces a row's text where it stands. */
-  setRowText(row: ActivityLogRow, text: string): void;
+  setRowText(row: ActivityLogRow, text: LogContent): void;
   removeRow(row: ActivityLogRow): void;
   /** Whether the newest line is in view. Must not read layout while a frame runs. */
   atBottom(): boolean;
@@ -334,8 +334,8 @@ export class ActivityLogPanel {
     this.limit = Math.min(ACTIVITY_LOG_CAPACITY, this.limit + ACTIVITY_LOG_WINDOW);
     const from = lines.length - Math.min(lines.length, this.limit);
     const to = lines.length - shownBefore;
-    const texts: string[] = [];
-    for (let index = from; index < to; index++) texts.push(lineText(store, lines[index], this.context));
+    const texts: LogContent[] = [];
+    for (let index = from; index < to; index++) texts.push(lineContent(store, lines[index], this.context));
     const rows = view.prependRows(texts);
     for (let index = from; index < to; index++) this.rows.set(lines[index], rows[index - from]);
     this.reflectState();
@@ -411,7 +411,7 @@ export class ActivityLogPanel {
     this.lines.add(store, 0, this.context);
     this.seen = store.total;
     const shown = this.lines.lines.slice(-this.limit);
-    const rows = view.replaceRows(shown.map(line => lineText(store, line, this.context)));
+    const rows = view.replaceRows(shown.map(line => lineContent(store, line, this.context)));
     shown.forEach((line, index) => this.rows.set(line, rows[index]));
     this.reflectOnly();
     this.reflectState();
@@ -425,46 +425,76 @@ export class ActivityLogPanel {
     const from = Math.max(0, store.length - fresh);
     this.seen = store.total;
     const changed = this.lines.add(store, from, this.context);
+    let removedMounted = false;
+    for (const removed of this.lines.removed) {
+      if (this.rows.has(removed)) removedMounted = true;
+      this.dropRow(removed);
+    }
     // Hidden records still push old ones out of the store, so their lines go
     // even on a frame that adds none.
-    this.forgetEvicted();
+    const evictedMounted = this.forgetEvicted();
+    const lines = this.lines.lines;
+    const firstShown = Math.max(0, lines.length - this.limit);
+    const reordered = this.lines.reordered;
+    const movedInWindow = reordered.length > 0
+      && reordered.some(line => this.rows.has(line) || lines.indexOf(line) >= firstShown);
+    const missingMountedRows = evictedMounted && this.rows.size < lines.length - firstShown;
+    if (removedMounted || movedInWindow || missingMountedRows) {
+      this.redrawWindow();
+      this.reflectState();
+      return;
+    }
     if (changed.length === 0) {
       // The first records can arrive hidden: Nothing matches these filters.
       this.reflectState();
       return;
     }
     const follow = view.atBottom();
+    let appended = false;
     for (let index = 0; index < changed.length; index++) {
       const line = changed[index];
+      if (reordered.length > 0 && lines.indexOf(line) < firstShown) continue;
       const old = this.rows.get(line);
       if (old) view.removeRow(old);
-      this.rows.set(line, view.appendRow(lineText(store, line, this.context)));
+      this.rows.set(line, view.appendRow(lineContent(store, line, this.context)));
+      appended = true;
     }
     this.trimRows();
     this.reflectState();
-    if (follow) view.scrollToBottom();
+    if (follow && appended) view.scrollToBottom();
+  }
+
+  /** Redraw only when the visible window changes away from its append path. */
+  private redrawWindow(): void {
+    const { store, view } = this.options;
+    const shown = this.lines.lines.slice(-this.limit);
+    this.rows.clear();
+    const rows = view.replaceRows(shown.map(line => lineContent(store, line, this.context)), !view.atBottom());
+    shown.forEach((line, index) => this.rows.set(line, rows[index]));
   }
 
   /**
-   * Lines rise by `seq`; drop those whose newest record has left the store,
-   * then recount the groups that lost older members, as a rebuild would.
+   * Drop every line whose newest record has left the store, then recount
+   * groups that lost older members.
    */
-  private forgetEvicted(): void {
+  private forgetEvicted(): boolean {
     const { store, view } = this.options;
-    if (store.length === 0) return;
+    if (store.length === 0) return false;
     const oldest = store.seq(0);
-    let evicted = 0;
-    while (evicted < this.lines.lines.length && this.lines.lines[evicted].seq < oldest) evicted++;
-    if (evicted > 0) {
-      for (let index = 0; index < evicted; index++) this.dropRow(this.lines.lines[index]);
-      this.lines.trim(this.lines.lines.length - evicted);
+    let evictedMounted = false;
+    const evicted = this.lines.evictBefore(oldest);
+    for (let index = 0; index < evicted.length; index++) {
+      const line = evicted[index];
+      if (this.rows.has(line)) evictedMounted = true;
+      this.dropRow(line);
     }
     const recounted = this.lines.recount(store);
     for (let index = 0; index < recounted.length; index++) {
       const line = recounted[index];
       const row = this.rows.get(line);
-      if (row) view.setRowText(row, lineText(store, line, this.context));
+      if (row) view.setRowText(row, lineContent(store, line, this.context));
     }
+    return evictedMounted;
   }
 
   private trimRows(): void {
@@ -580,10 +610,20 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
   let pinned = true;
   /** A scroll to the newest line waiting for the next layout. */
   let follow = false;
-  const row = (text: string): HTMLLIElement => {
+  const row = (text: LogContent): HTMLLIElement => {
     const item = doc.createElement('li');
-    item.textContent = text;
+    setRowContent(item, text);
     return item;
+  };
+  const setRowContent = (item: HTMLLIElement, text: LogContent) => {
+    if (typeof text === 'string') { item.className = ''; item.textContent = text; return; }
+    item.className = 'activity-log-mood';
+    const result = doc.createElement('strong');
+    result.textContent = text.result;
+    const cause = doc.createElement('span');
+    cause.className = 'activity-log-mood-cause';
+    cause.textContent = text.cause;
+    item.replaceChildren(result, cause);
   };
   const measurePinned = () => {
     pinned = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <= 4;
@@ -652,14 +692,15 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       setTextIfChanged(empty, text ?? '');
     },
     reflectShowEarlier(visible) { earlier.hidden = !visible; },
-    replaceRows(texts) {
+    replaceRows(texts, preserveScroll = false) {
       const items = texts.map(row);
       list.replaceChildren(...items);
-      scrollToBottom();
+      if (preserveScroll) follow = false;
+      else scrollToBottom();
       // A list replaced at its old height reports no resize, and the waiting
       // scroll would never land. Observing the list afresh makes the
       // observer report it after the next layout, without reading layout now.
-      if (observer && observing) {
+      if (observer && observing && !preserveScroll) {
         observer.unobserve(list);
         observer.observe(list);
       }
@@ -681,7 +722,7 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       list.append(item);
       return item as unknown as ActivityLogRow;
     },
-    setRowText(handle, text) { (handle as unknown as HTMLLIElement).textContent = text; },
+    setRowText(handle, text) { setRowContent(handle as unknown as HTMLLIElement, text); },
     removeRow(handle) { (handle as unknown as HTMLLIElement).remove(); },
     atBottom() {
       if (!observer) measurePinned();

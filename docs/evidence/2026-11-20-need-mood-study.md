@@ -42,7 +42,7 @@ The run used Windows x64, Rust 1.94.1 and one Cargo build job. The cold build ti
 
 ## Reproduce
 
-Use a local copy of the V23 input. The example reads the save and writes measurements to standard output.
+Use a local copy of the V23 input and the source snapshot identified below to reproduce this run. The example reads the save and writes measurements to standard output. A run from a current checkout measures how the same household plays under the current mood rules.
 
 ```powershell
 $env:CARGO_TARGET_DIR = Join-Path (Get-Location) '.local-build/cargo'

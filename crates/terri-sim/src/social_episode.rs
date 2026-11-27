@@ -88,6 +88,21 @@ pub(crate) fn family_bonus(related: bool) -> f32 {
 pub(crate) fn shared_interest(topic: &Topic) -> bool {
     topic.initiator_preference > 0. && topic.listener_preference > 0.
 }
+
+pub(crate) fn is_casual(world: &World, interaction: u32) -> bool {
+    world
+        .resource::<crate::Content>()
+        .0
+        .social
+        .get(interaction as usize)
+        .is_some_and(|action| !crate::fights::is_fight(action))
+}
+
+pub(crate) fn recipient_departing(world: &mut World, recipient: Entity) {
+    requests::cancel_waits_for_departure(world, recipient);
+    execution::cancel_waits_for_departure(world, recipient);
+}
+
 pub(crate) fn urgent(world: &World, person: Entity) -> bool {
     world.get::<terri_core::AtWork>(person).is_some()
         || world.get::<terri_core::Commuting>(person).is_some()

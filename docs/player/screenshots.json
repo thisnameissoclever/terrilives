@@ -604,6 +604,27 @@
         "bundleSha256": "156b26ef39a225b75fe7f504a4fce8250a6aa354beddba48548c2af8ef91bd82",
         "wasmSha256": "0fca6362feb988768afbcf633cbe8e99a20003552e5afc704d5394062d07ef28",
         "method": "Local production build from the popover candidate, viewed in isolated muted Chrome contexts on Windows. The main branch base and deployed-file hashes identify the comparison, and the capture rows record the actual access path."
+      },
+      {
+        "id": "2026-11-25-log-replay-render",
+        "url": "http://127.0.0.1:5218/.local-build/mood-proof/?public=1",
+        "description": "Chrome rendered the game Log component and its styles from the local candidate. Records came from the played Day 1329 replay with fictional names substituted in the presenter. The household scene was outside the fixture.",
+        "sourceHashes": {
+          "web/src/ui/activity-log-compose.ts": "1b8949e900d1f26615bb899aa9ea497928e1df33f24410a6b9620992b9c11944",
+          "web/src/ui/activity-log-panel.ts": "211aafb01e3c5e6cd554a18ebc2c822d3a9b0f0e88e1413a26e938dfecbcf25c",
+          "web/src/ui/activity-log-words.ts": "4ee23719fbc949e070ca14057166a29331f848feb3704a52979a2be836f648f5",
+          "web/src/ui/compact-hud.css": "b406ebbad097d08907fe1a1b28e74c7469259fea1df665958d71163387620021",
+          "web/index.html": "fa58335bb81250ee4d3df6ce4cec76cff215b0cb08e2d6543b8d24fc5af39d84"
+        }
+      },
+      {
+        "id": "2026-11-25-edit-save-played",
+        "url": "http://localhost:5218/?stress=0",
+        "description": "Chrome ran the candidate game and opened Edit housemate in a fresh local household. The capture shows the real footer.",
+        "sourceHashes": {
+          "web/src/ui/character-creator/view.ts": "6cb034f0110d46de86ac0ece47e8543ff7ae11cd0730aa3462bda2ca2eda5990",
+          "web/src/ui/character-creator/field.ts": "58c235602333ab736b9ed24702b5dde40f470dc588a3db96e0f857122e33f4bf"
+        }
       }
     ],
     "weatherSetup": {
@@ -2568,64 +2589,61 @@
     {
       "id": "log",
       "section": "log",
-      "description": "The Log open with the default filters, showing the whole household and scrolled to the newest line; the desktop capture includes a bathroom privacy line.",
+      "description": "The Log shows recent activity with its default filters.",
       "access": "Choose Log at the top right of the screen.",
-      "sourceSnapshot": "activity-log-review-fixes",
+      "sourceSnapshot": "2026-11-25-log-replay-render",
       "imageSha256": {
-        "desktop": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d",
-        "mobile": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+        "desktop": "be1cea4f79baedc83831bfa2a76df75e5df0816abccee1ad2632476c12e00f70",
+        "mobile": "7a4c5547c1636f14d8eab549e32604d005b8915763001c8546d1b41c12dfc236"
       },
       "captureMetadata": {
         "desktop": {
-          "width": 1440,
-          "height": 960,
+          "width": 360,
+          "height": 786,
           "viewport": {
             "width": 1440,
             "height": 960
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d"
+          "captureMethod": "Chrome compositor capture clipped to the Log or editor footer",
+          "sourceImageSha256": "be1cea4f79baedc83831bfa2a76df75e5df0816abccee1ad2632476c12e00f70"
         },
         "mobile": {
-          "width": 390,
-          "height": 844,
+          "width": 374,
+          "height": 710,
           "viewport": {
             "width": 390,
             "height": 844
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+          "captureMethod": "Chrome compositor capture clipped to the Log or editor footer",
+          "sourceImageSha256": "7a4c5547c1636f14d8eab549e32604d005b8915763001c8546d1b41c12dfc236"
         }
       },
-      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
-      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
-      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
-      "desktop": "images/ui-log-desktop.png",
-      "mobile": "images/ui-log-mobile.png"
+      "desktop": "images/ui-2026-11-25-log-desktop.png",
+      "mobile": "images/ui-2026-11-25-log-mobile.png"
     },
     {
       "id": "log-only",
       "section": "log",
-      "description": "The Log with Only Tim ticked, showing only the lines that involve the selected housemate.",
-      "access": "Select Tim in the Household row, choose Log, then tick Only Tim at the end of the filter row.",
-      "sourceSnapshot": "activity-log-review-fixes",
+      "description": "The Log shows mood changes with Details + mood, Timestamps and Only Riley enabled.",
+      "access": "Select a housemate, open Log, tick Only for that housemate, then choose Details + mood and Timestamps.",
+      "sourceSnapshot": "2026-11-25-log-replay-render",
       "imageSha256": {
-        "desktop": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636",
-        "mobile": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+        "desktop": "0e6e8bc66ea307926d8e62f809dcaa9fc4a55dcbebdb0c114d5cc24bf257d2c9",
+        "mobile": "382d8072ec93896868f4bfaeb44812e21f0c690120ff39cd04da3cd7174ab687"
       },
       "captureMetadata": {
         "desktop": {
-          "width": 1440,
-          "height": 960,
+          "width": 360,
+          "height": 786,
           "viewport": {
             "width": 1440,
             "height": 960
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636"
+          "captureMethod": "Chrome compositor capture clipped to the Log or editor footer",
+          "sourceImageSha256": "0e6e8bc66ea307926d8e62f809dcaa9fc4a55dcbebdb0c114d5cc24bf257d2c9"
         },
         "mobile": {
           "width": 390,
@@ -2635,15 +2653,12 @@
             "height": 844
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
-          "sourceImageSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+          "captureMethod": "Chrome compositor viewport screenshot",
+          "sourceImageSha256": "382d8072ec93896868f4bfaeb44812e21f0c690120ff39cd04da3cd7174ab687"
         }
       },
-      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
-      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
-      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
-      "desktop": "images/ui-log-only-desktop.png",
-      "mobile": "images/ui-log-only-mobile.png"
+      "desktop": "images/ui-2026-11-25-log-only-desktop.png",
+      "mobile": "images/ui-2026-11-25-log-only-mobile.jpg"
     },
     {
       "id": "log-show-earlier",
@@ -2978,6 +2993,39 @@
         "desktop": "editable-guide-access-desktop-2026-10-22",
         "mobile": "editable-guide-access-phone-2026-10-22"
       }
+    },
+    {
+      "id": "edit-housemate-save",
+      "section": "creator",
+      "description": "Save in the footer of Edit housemate.",
+      "access": "Select a housemate, choose Edit, then look at the lower right of the current tab.",
+      "sourceSnapshot": "2026-11-25-edit-save-played",
+      "desktop": "images/ui-2026-11-25-edit-housemate-save-desktop.png",
+      "imageSha256": {
+        "desktop": "c55d27cc60456d200df65508883ae1468cdfc3058ca38b235a4c4e6a2c190b1d",
+        "mobile": "e2dc3d928ea91bd2887e8d19076bac111eb38ad0aae99e293e87c4c9738c459e"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1240,
+          "height": 76,
+          "devicePixelRatio": 1,
+          "captureMethod": "Chrome compositor capture of the live editor footer at the desktop window size. The capture measures the footer.",
+          "sourceImageSha256": "c55d27cc60456d200df65508883ae1468cdfc3058ca38b235a4c4e6a2c190b1d"
+        },
+        "mobile": {
+          "width": 374,
+          "height": 125,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Chrome compositor capture clipped to the Log or editor footer",
+          "sourceImageSha256": "e2dc3d928ea91bd2887e8d19076bac111eb38ad0aae99e293e87c4c9738c459e"
+        }
+      },
+      "mobile": "images/ui-2026-11-25-edit-housemate-save-mobile.png"
     }
   ],
   "uiSections": {

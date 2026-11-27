@@ -1204,4 +1204,4 @@ pool = { label = "Pools", water_cents = 50, electricity_cents = 60 }
 [need_mood]
 high_level = 80.0
 gain_hundredths_per_hour = 2
-loss_hundredths_per_hour = 600
+loss_hundredths_per_hour = 14

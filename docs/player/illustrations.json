@@ -243,7 +243,7 @@
       "mobile": "images/guide/log-mobile.png"
     },
     "log-only": {
-      "title": "Log with Only ticked",
+      "title": "Mood changes for one housemate",
       "desktop": "images/guide/log-only-desktop.png",
       "mobile": "images/guide/log-only-mobile.png"
     },
@@ -286,6 +286,11 @@
       "title": "Review unreachable areas",
       "desktop": "images/guide/build-access-review-desktop.png",
       "mobile": "images/guide/build-access-review-mobile.png"
+    },
+    "edit-housemate-save": {
+      "title": "Save from any Edit housemate tab",
+      "desktop": "images/guide/edit-housemate-save-desktop.png",
+      "mobile": "images/guide/edit-housemate-save-mobile.png"
     }
   },
   "crops": [
@@ -1315,55 +1320,59 @@
     },
     {
       "output": "images/guide/log-desktop.png",
-      "source": "images/ui-log-desktop.png",
+      "source": "images/ui-2026-11-25-log-desktop.png",
       "rect": {
-        "x": 1064,
+        "x": 0,
         "y": 0,
-        "width": 376,
-        "height": 872
+        "width": 360,
+        "height": 276
       },
-      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d",
-      "outputSha256": "7130ea6c938f39eab1da213678984ad20a256d0e97f03d3ee8140aad3c3f6513"
+      "sourceSnapshot": "2026-11-25-log-replay-render",
+      "method": "Pillow crop at 1:1 size without scaling",
+      "sourceSha256": "be1cea4f79baedc83831bfa2a76df75e5df0816abccee1ad2632476c12e00f70",
+      "outputSha256": "1cc8927f787131a01746c40a763f61290ec270413d5653a91e21ec390e8d4cb5"
     },
     {
       "output": "images/guide/log-mobile.png",
-      "source": "images/ui-log-mobile.png",
+      "source": "images/ui-2026-11-25-log-mobile.png",
       "rect": {
-        "x": 4,
-        "y": 4,
-        "width": 382,
-        "height": 685
+        "x": 0,
+        "y": 0,
+        "width": 374,
+        "height": 307
       },
-      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2",
-      "outputSha256": "d272325df1fe05dc637e97f9fd8c5b9c697904774303ffb1988ce8344f89902f"
+      "sourceSnapshot": "2026-11-25-log-replay-render",
+      "method": "Pillow crop at 1:1 size without scaling",
+      "sourceSha256": "7a4c5547c1636f14d8eab549e32604d005b8915763001c8546d1b41c12dfc236",
+      "outputSha256": "5988b99fa9fa17ba0e3f22badf90075954c0f90dadbbc2b0d5586125b3da7a11"
     },
     {
       "output": "images/guide/log-only-desktop.png",
-      "source": "images/ui-log-only-desktop.png",
+      "source": "images/ui-2026-11-25-log-only-desktop.png",
       "rect": {
-        "x": 1064,
+        "x": 0,
         "y": 0,
-        "width": 376,
-        "height": 872
+        "width": 360,
+        "height": 481
       },
-      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636",
-      "outputSha256": "07f0a260100e13070b5b438a5bfe6c5fbf6ef4b3331a93b9f8acd08c0f4dd43d"
+      "sourceSnapshot": "2026-11-25-log-replay-render",
+      "method": "Pillow crop at 1:1 size without scaling",
+      "sourceSha256": "0e6e8bc66ea307926d8e62f809dcaa9fc4a55dcbebdb0c114d5cc24bf257d2c9",
+      "outputSha256": "8e3c02d132032806694f6ed8948cf180add2fac63d76e7c431b8ab85234cfdd4"
     },
     {
       "output": "images/guide/log-only-mobile.png",
-      "source": "images/ui-log-only-mobile.png",
+      "source": "images/ui-2026-11-25-log-only-mobile.jpg",
       "rect": {
-        "x": 4,
-        "y": 4,
-        "width": 382,
-        "height": 685
+        "x": 8,
+        "y": 8,
+        "width": 374,
+        "height": 520
       },
-      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
-      "sourceSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2",
-      "outputSha256": "ac0ec7ba8fb7603854445d7bbee19000c96e46d0d1435ece0b0a27474a69bc81"
+      "sourceSnapshot": "2026-11-25-log-replay-render",
+      "method": "Pillow crop at 1:1 size without scaling",
+      "sourceSha256": "382d8072ec93896868f4bfaeb44812e21f0c690120ff39cd04da3cd7174ab687",
+      "outputSha256": "90b81362d812d7ac72507bf609b4d9cc00a2fd7fe5d50e24dc7a3886a40458bc"
     },
     {
       "output": "images/guide/admin-housemate-desktop.png",
@@ -1637,6 +1646,34 @@
       "method": "Pixel crop at original scale. No resampling or retouching.",
       "sourceSha256": "40c72f5c4520df7c6c869c83cf9fb6e5db507ff39757e6c7e4ef179145a3787a",
       "outputSha256": "4110d89e246d0a69ff7a6c2c8cb3a184a5a55f2f894198f0f6c6785c8056e270"
+    },
+    {
+      "output": "images/guide/edit-housemate-save-desktop.png",
+      "source": "images/ui-2026-11-25-edit-housemate-save-desktop.png",
+      "rect": {
+        "x": 1050,
+        "y": 0,
+        "width": 190,
+        "height": 76
+      },
+      "sourceSnapshot": "2026-11-25-edit-save-played",
+      "method": "Pillow crop at 1:1 size without scaling",
+      "sourceSha256": "c55d27cc60456d200df65508883ae1468cdfc3058ca38b235a4c4e6a2c190b1d",
+      "outputSha256": "fcdc018599de7c37a70d4fc2e39b69321747be29f43d2f6022b9da75ea5d1755"
+    },
+    {
+      "output": "images/guide/edit-housemate-save-mobile.png",
+      "source": "images/ui-2026-11-25-edit-housemate-save-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 374,
+        "height": 125
+      },
+      "sourceSnapshot": "2026-11-25-edit-save-played",
+      "method": "Pillow crop at 1:1 size without scaling",
+      "sourceSha256": "e2dc3d928ea91bd2887e8d19076bac111eb38ad0aae99e293e87c4c9738c459e",
+      "outputSha256": "a764ad43dd12e95780e3691f185b8c6656be86a5d4d876f522f56554fb6b0754"
     }
   ]
 }

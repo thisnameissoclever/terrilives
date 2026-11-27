@@ -145,7 +145,7 @@ struct LogState {
     largest_frame: u32,
     /// Records of each kind in the largest frame, indexed by kind code, and
     /// the tick that frame ended on.
-    largest_kinds: [u32; 13],
+    largest_kinds: [u32; LogKind::ALL.len() + 1],
     largest_tick: u64,
 }
 
@@ -167,7 +167,7 @@ fn run_chunk(
             if taken > state.largest_frame {
                 state.largest_frame = taken;
                 state.largest_tick = sim.world().resource::<terri_core::SimClock>().tick;
-                state.largest_kinds = [0; 13];
+                state.largest_kinds = [0; LogKind::ALL.len() + 1];
                 for record in sim.activity_log_export().chunks_exact(RECORD_WORDS) {
                     let code = (record[2] & 0xff) as usize;
                     if code < state.largest_kinds.len() {

@@ -5,7 +5,7 @@ import { readableNumber, reviewValue } from '../../character/presentation.js';
 
 export const traitLimitDescriptionId='creator-trait-limit';
 
-export function fieldControl(document:Document, field:CharacterField, draft:CharacterDraft, index:number, changed:(rebuild:boolean)=>void, fail:(error:unknown)=>void):HTMLElement {
+export function fieldControl(document:Document, field:CharacterField, draft:CharacterDraft, index:number, changed:(rebuild:boolean)=>void, fail:(error:unknown)=>void, registerPending?:(commit:()=>boolean)=>void):HTMLElement {
   const row=document.createElement('div');row.className='creator-field';row.dataset.field=field.id;
   const label=document.createElement('label'),name=document.createElement('strong'),description=document.createElement('span');
   const id=`creator-field-${index}`;label.htmlFor=id;name.textContent=field.label;description.textContent=field.description;
@@ -16,7 +16,7 @@ export function fieldControl(document:Document, field:CharacterField, draft:Char
   const capped=!!trait&&value!==true&&draft.value.traits.length>=draft.catalog.max_traits;
   const severityLocked=!!trait&&draft.locks.has(JSON.stringify(['severity',trait.id]));
   const describedBy=description.id+(capped?' '+traitLimitDescriptionId:'');
-  const commit=(value:FieldValue)=>{try{draft.set(field.id,value);changed(field.kind!=='number'&&field.kind!=='float'&&field.kind!=='text');}catch(error){changed(true);fail(error);}};
+  const commit=(value:FieldValue):boolean=>{try{draft.set(field.id,value);changed(field.kind!=='number'&&field.kind!=='float'&&field.kind!=='text');return true;}catch(error){if(field.kind!=='number'&&field.kind!=='float'&&field.kind!=='text')changed(true);fail(error);return false;}};
   const decorate=<T extends HTMLInputElement|HTMLSelectElement>(input:T):T=>{
     input.id=id;input.setAttribute('aria-describedby',describedBy);input.disabled=!applicable||capped;return input;
   };
@@ -33,11 +33,15 @@ export function fieldControl(document:Document, field:CharacterField, draft:Char
     tooltip(value);
     const update=(input:HTMLInputElement)=>{
       const raw=input.valueAsNumber/scale;
-      commit(field.kind==='float'?floatBits(raw):raw);
-      const stored=field.get(draft.value),current=formatted(stored);range.value=number.value=current;tooltip(stored);
+      if(!commit(field.kind==='float'?floatBits(raw):raw))return false;
+      const stored=field.get(draft.value),current=formatted(stored);range.value=number.value=current;tooltip(stored);return true;
     };
-    range.addEventListener('input',()=>{try{update(range);}catch(error){fail(error);}});
-    number.addEventListener('change',()=>{try{update(number);}catch(error){fail(error);}});
+    let numberPending=false;
+    range.addEventListener('input',()=>{try{if(update(range))numberPending=false;}catch(error){fail(error);}});
+    const commitNumber=()=>{if(!numberPending)return true;try{if(!update(number))return false;numberPending=false;return true;}catch(error){fail(error);return false;}};
+    number.addEventListener('input',()=>{numberPending=true;});
+    number.addEventListener('change',()=>{numberPending=true;commitNumber();});
+    registerPending?.(commitNumber);
     if(field.unit){
       const valueGroup=document.createElement('span'),unit=document.createElement('span');valueGroup.className='creator-number';unit.className='creator-unit';
       unit.textContent=field.unit==='hours'?'h':field.unit;unit.setAttribute('aria-hidden','true');valueGroup.append(number,unit);controls.append(range,valueGroup);
@@ -61,7 +65,10 @@ export function fieldControl(document:Document, field:CharacterField, draft:Char
     select.addEventListener('change',()=>{const color=choices[Number(select.value)].value as Rgb;input.value=hex(color);commit(color);});controls.append(select);
   }else {
     const input=decorate(document.createElement('input'));input.type='text';input.value=String(value);if(field.max)input.maxLength=field.max;
-    input.addEventListener('change',()=>commit(input.value));controls.append(input);
+    let textPending=false;
+    const commitText=()=>{if(!textPending)return true;if(!commit(input.value))return false;textPending=false;return true;};
+    input.addEventListener('input',()=>{textPending=true;});
+    input.addEventListener('change',()=>{textPending=true;commitText();});registerPending?.(commitText);controls.append(input);
   }
   const random=document.createElement('button');random.id=id+'-random';random.type='button';random.textContent='Random';random.disabled=!applicable||capped||severityLocked||draft.locks.has(field.id);random.setAttribute('aria-label',field.label+': randomize');
   if(capped)random.setAttribute('aria-describedby',traitLimitDescriptionId);

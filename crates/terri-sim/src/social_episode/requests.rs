@@ -4,8 +4,8 @@ pub(crate) mod runtime;
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{
-    Agent, AtWork, Blocked, ChainState, Commuting, Eating, IntentQueue, Path, Position, Reserved,
-    Restless, SimClock, Socialising, StepWork, Target, TileGrid, Wander,
+    Agent, Blocked, ChainState, Eating, IntentQueue, Path, Position, Reserved, Restless, SimClock,
+    Socialising, StepWork, Target, TileGrid, Wander,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -275,7 +275,7 @@ fn conversation_remaining(world: &World, person: Entity) -> Option<u32> {
     owned.into_iter().chain(received).max()
 }
 fn work(world: &World, person: Entity) -> bool {
-    world.get::<AtWork>(person).is_some() || world.get::<Commuting>(person).is_some()
+    crate::attendance::physically_away(world, person)
 }
 
 fn release_recipient(world: &mut World, r: &ConversationRequest) {
@@ -425,6 +425,23 @@ pub(crate) fn defer_incoming(world: &mut World, recipient: Entity) {
     }
 }
 
+pub(super) fn cancel_waits_for_departure(world: &mut World, recipient: Entity) {
+    let incoming: Vec<_> = world
+        .resource::<ConversationRequests>()
+        .requests
+        .values()
+        .filter(|r| {
+            r.recipient == recipient
+                && r.phase != RequestPhase::Talking
+                && !managed_player(world, r)
+        })
+        .map(|r| r.id)
+        .collect();
+    for id in incoming {
+        cancel_request(world, id);
+    }
+}
+
 pub(crate) fn enqueue(
     world: &mut World,
     initiator: Entity,
@@ -432,16 +449,13 @@ pub(crate) fn enqueue(
     interaction: u32,
     origin: ConversationOrigin,
 ) -> Option<u64> {
-    let pack = world.resource::<crate::Content>().0;
     if initiator == recipient
         || world.get::<Agent>(initiator).is_none()
         || world.get::<Agent>(recipient).is_none()
         || world.get::<terri_core::SimId>(initiator).is_none()
         || world.get::<terri_core::SimId>(recipient).is_none()
-        || pack
-            .social
-            .get(interaction as usize)
-            .is_none_or(crate::fights::is_fight)
+        || !super::is_casual(world, interaction)
+        || unavailable(world, recipient)
     {
         return None;
     }
@@ -782,17 +796,21 @@ pub(crate) fn maintain(world: &mut World) {
             cancel_request(world, r.id);
             continue;
         }
-        if r.phase == RequestPhase::Talking
+        let talking = r.phase == RequestPhase::Talking
             && world
                 .get::<Socialising>(r.initiator)
-                .is_none_or(|s| s.partner != r.recipient || s.interaction != r.interaction)
-        {
+                .is_some_and(|s| s.partner == r.recipient && s.interaction == r.interaction);
+        if r.phase == RequestPhase::Talking && !talking {
             world
                 .resource_mut::<ConversationRequests>()
                 .requests
                 .get_mut(&r.id)
                 .unwrap()
                 .phase = RequestPhase::Waiting;
+        }
+        if !talking && unavailable(world, r.recipient) {
+            cancel_request(world, r.id);
+            continue;
         }
         if r.origin == ConversationOrigin::Autonomous
             && !work(world, r.initiator)
@@ -804,19 +822,12 @@ pub(crate) fn maintain(world: &mut World) {
             continue;
         }
         if r.origin == ConversationOrigin::Autonomous
-            && r.phase != RequestPhase::Talking
+            && !talking
             && world
                 .get::<terri_core::Needs>(r.initiator)
                 .is_some_and(|needs| {
                     gives_up_chosen_chat(needs, &world.resource::<crate::Content>().0.tuning)
                 })
-        {
-            cancel_request(world, r.id);
-            continue;
-        }
-        if r.origin == ConversationOrigin::Autonomous
-            && r.phase != RequestPhase::Talking
-            && asleep(world, r.recipient)
         {
             cancel_request(world, r.id);
             continue;
@@ -850,13 +861,11 @@ pub(crate) fn gives_up_chosen_chat(needs: &terri_core::Needs, tuning: &terri_dat
         .any(|need| needs.get(need) <= tuning.mood_critical_need_level)
 }
 
-/// Whether `person` is asleep, by the simulation's own sleep state: an
-/// interaction under way that carries the pack's sleep tag. A chat a
-/// housemate chose for themselves is never chosen with, and gives up on, a
-/// sleeping partner (issue 338, the owner's ruling of 2026-10-23); the asker
-/// may choose it again once the partner wakes. Player-ordered and
-/// `LegacyUnattributed` chats keep waiting, as with the critical-needs
-/// give-up above.
+pub(crate) fn unavailable(world: &World, person: Entity) -> bool {
+    work(world, person) || asleep(world, person)
+}
+
+/// Sleep begins when the person starts the interaction with the pack's sleep tag.
 pub(crate) fn asleep(world: &World, person: Entity) -> bool {
     crate::systems::circadian::is_asleep(
         world.resource::<crate::Content>().0,

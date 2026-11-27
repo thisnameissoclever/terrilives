@@ -10113,7 +10113,7 @@ browser rendering after rebuilding both the sprite atlas and simulation.
 
 **Root cause.** Creation, save restoration and test setup shared a default constructor with different intended meanings. Small per-tick values also approach the precision limit of a single-precision floating-point score near its ceiling.
 
-**Prevention.** Apply neutral values and trait offsets only when creating a Sim. Restore saved scores directly, validate them before changing the live world, and define saturation explicitly. Give test fixtures an explicit score. State rates in game ticks and game days; check that small losses still change a score at its maximum.
+**Prevention.** Apply neutral values and trait offsets only when creating a Sim. Restore saved scores directly, validate them before changing the live world, and define saturation explicitly. Give test fixtures an explicit score. Use game time on both sides of a rate comparison and label every duration. Give real-time conversions separately at a named simulation speed. Check that small losses still change a score at its maximum.
 
 **Verify.** Restore zero, an in-range score and an old total above the ceiling twice. Exercise trait offsets through the public move-in command. Run the actual neglect system at 100 with the shipped small rate. Measure month-scale extreme mood and year-scale ordinary mood. Deliberately replace exact restoration with additive restoration and omit creation offsets; the causal assertions must fail. See [dated evidence](assets/review-evidence/dock-controls/README.md).
 ### [L-privacy-domestic-composition] Merge station ownership and save contracts together
@@ -14117,3 +14117,18 @@ Use the position of the target and the sizes of the menu and nearby controls to 
 The Sunstrip pose passed a clearance check while a hand held the body above the cushion and the head remained upright. The check used the closest vertex anywhere on the body. The fit also treated that closest point as support.
 
 Fit the hips and upper back to their cushions while checking the entire body for clipping. Measure the head angle separately. Compare the pose with the original at normal play zoom and close up, and include short, tall, slim, and broad people.
+## [L-creator-submit-commits-focused-field] Save must read a focused field
+
+**What happened.** A direct Save from the current editor tab applied an edit from another tab and lost the name that was still being edited.
+
+**Root cause.** The editor draft received text changes through the field's change event. Clicking Save could submit before a pending value reached the draft.
+
+**Prevention.** Commit pending text and numeric values through their validation handlers before changing tabs or submitting. Keep the explicit Save request while the committed appearance prepares. Submit only after that preparation succeeds, and release the request when the editor closes or preparation fails.
+
+**Verify.** Change one tab, type in a field on another tab, and click Save with that field still focused. Read both values back from the simulation. Repeat with a numeric appearance value that starts preparation on focus loss. One Save activation must apply the prepared value. An invalid pending value must keep the draft open without sending an edit.
+
+## [L-chat-recall-vs-return] Check the recipient before placing a chat order
+
+The browser attaches a work fingerprint to orders even when the player sees no recall warning. Treat the recipient's availability at submission as a separate check. A chat that recalls someone can wait for the return it started. A new chat submitted during an existing return should leave the initiator's current orders intact.
+
+Verify an ordinary commute home, a worker blocked from returning, and a player-confirmed recall that begins while the recipient is still at work.

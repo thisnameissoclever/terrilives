@@ -5,7 +5,7 @@
  * A line is one parent record with its children. It is visible when an
  * enabled filter is in the trigger mask of the parent or of any child, and
  * filters only add or remove clauses, so each event stays one line under
- * every combination. Details and Time never make a line visible. Every word
+ * every combination. Details makes mood changes visible; Timestamps adds time. Every word
  * comes from `activity-log-words.ts` or the simulation's label table.
  *
  * Text is built only on request, which the panel makes only while it is
@@ -96,15 +96,20 @@ export class LogLines {
   private readonly groups = new Map<string, LogLine>();
   /** Reused by every `add`, so a call that finds nothing visible allocates nothing. */
   private readonly changed: LogLine[] = [];
+  readonly removed: LogLine[] = [];
+  readonly reordered: LogLine[] = [];
   /** Reused by every `recount`. */
   private readonly recounted: LogLine[] = [];
+  private readonly evicted: LogLine[] = [];
   /** The oldest `seq` the store held at the last `recount`. */
   private oldest = 0;
+  private evictionOldest = 0;
 
   reset(): void {
     this.lines.length = 0;
     this.groups.clear();
     this.oldest = 0;
+    this.evictionOldest = 0;
   }
 
   /**
@@ -115,33 +120,53 @@ export class LogLines {
   add(store: ActivityLogStore, from: number, context: ComposeContext): readonly LogLine[] {
     const changed = this.changed;
     changed.length = 0;
+    this.removed.length = 0;
+    this.reordered.length = 0;
     for (let index = Math.max(0, from); index < store.length; index++) {
-      if (store.parent(index) !== 0 || !visible(store, index, context)) continue;
+      if (store.parent(index) !== 0) continue;
+      if (!visible(store, index, context)) {
+        // The newest mood checkpoint decides whether a selected person is involved.
+        if (store.kind(index) === KIND.mood && (context.filters & FILTER.details) !== 0) {
+          const key = `mood:${store.actor(index)}:${store.value(index, 2) >>> 0}`;
+          const old = this.groups.get(key);
+          if (old) {
+            this.groups.delete(key);
+            this.lines.splice(this.lines.indexOf(old), 1);
+            const changedAt = changed.indexOf(old);
+            if (changedAt >= 0) changed.splice(changedAt, 1);
+            this.removed.push(old);
+          }
+        }
+        continue;
+      }
       const seq = store.seq(index);
       const tick = store.tick(index);
-      if (store.kind(index) !== KIND.annoyed) {
+      const mood = store.kind(index) === KIND.mood;
+      if (store.kind(index) !== KIND.annoyed && !mood) {
         const line: LogLine = { seq, tick, key: null, count: 1, change: 0, members: null };
-        this.lines.push(line);
+        this.insert(line);
         changed.push(line);
         continue;
       }
-      const key = groupKey(store, index, context.dayTicks);
+      const key = mood ? `mood:${store.actor(index)}:${store.value(index, 2) >>> 0}`
+        : `annoyed:${groupKey(store, index, context.dayTicks)}`;
       const group = this.groups.get(key);
       if (group) {
         group.seq = seq;
         group.tick = tick;
         group.count += 1;
-        group.change += store.value(index, 2);
-        group.members!.push(seq);
-        this.moveToEnd(group);
+        if (!mood) group.change += store.value(index, 2);
+        if (!mood) group.members!.push(seq);
+        this.lines.splice(this.lines.indexOf(group), 1);
+        this.insert(group);
         // A group merged twice in one call moves past the lines between, as
         // it does in `lines`, so rows append in the order a rebuild gives.
         moveToEndOf(changed, group);
         continue;
       }
-      const line: LogLine = { seq, tick, key, count: 1, change: store.value(index, 2), members: [seq] };
+      const line: LogLine = { seq, tick, key, count: 1, change: mood ? 0 : store.value(index, 2), members: mood ? null : [seq] };
       this.groups.set(key, line);
-      this.lines.push(line);
+      this.insert(line);
       changed.push(line);
     }
     return changed;
@@ -188,12 +213,35 @@ export class LogLines {
     this.lines.length = limit;
   }
 
-  /** Moves a merged line to the newest position without building an array of removed lines. */
-  private moveToEnd(line: LogLine): void {
-    const lines = this.lines;
-    const last = lines.length - 1;
-    for (let index = lines.lastIndexOf(line); index < last; index++) lines[index] = lines[index + 1];
-    lines[last] = line;
+  /** Insert by displayed tick, using sequence as the stable tie-breaker. */
+  private insert(line: LogLine): void {
+    let at = this.lines.length;
+    while (at > 0) {
+      const previous = this.lines[at - 1];
+      if (previous.tick < line.tick || (previous.tick === line.tick && previous.seq < line.seq)) break;
+      at--;
+    }
+    if (at === this.lines.length) this.lines.push(line);
+    else {
+      this.reordered.push(line);
+      this.lines.splice(at, 0, line);
+    }
+  }
+
+  /** Forget evicted records regardless of their displayed time order. */
+  evictBefore(oldest: number): readonly LogLine[] {
+    const removed = this.evicted;
+    removed.length = 0;
+    if (oldest === this.evictionOldest) return removed;
+    this.evictionOldest = oldest;
+    for (let i = this.lines.length - 1; i >= 0; i--) {
+      const line = this.lines[i];
+      if (line.seq >= oldest) continue;
+      this.lines.splice(i, 1);
+      if (line.key !== null && this.groups.get(line.key) === line) this.groups.delete(line.key);
+      removed.push(line);
+    }
+    return removed;
   }
 }
 
@@ -294,6 +342,10 @@ function involves(store: ActivityLogStore, index: number, person: number): boole
  * stays hidden leaves no garbage.
  */
 export function visible(store: ActivityLogStore, index: number, context: ComposeContext): boolean {
+  if (store.kind(index) === KIND.mood) {
+    return (context.filters & FILTER.details) !== 0
+      && (context.selected === null || involves(store, index, context.selected));
+  }
   const enabled = context.filters & TRIGGER_FILTERS;
   const family = VISIBILITY.collect(store, index);
   const children = family.members;
@@ -313,8 +365,22 @@ export function visible(store: ActivityLogStore, index: number, context: Compose
 export function lineText(store: ActivityLogStore, line: LogLine, context: ComposeContext): string {
   const index = store.indexOfSeq(line.seq);
   if (index < 0) return '';
-  const body = TEXT.compose(store, index, context, line);
-  return (context.filters & FILTER.time) !== 0 ? stamp(line.tick, context.dayTicks) + body : body;
+  const content = lineContent(store, line, context);
+  return typeof content === 'string' ? content : `${content.result}\n${content.cause}`;
+}
+
+export type LogContent = string | { readonly result: string; readonly cause: string };
+
+/** Structured mood content keeps names independent of presentation. */
+export function lineContent(store: ActivityLogStore, line: LogLine, context: ComposeContext): LogContent {
+  const index = store.indexOfSeq(line.seq);
+  if (index < 0) return '';
+  const prefix = (context.filters & FILTER.time) !== 0 ? stamp(line.tick, context.dayTicks) : '';
+  if (store.kind(index) === KIND.mood) {
+    const mood = TEXT.composeMood(store, index, context);
+    return { result: prefix + mood.result, cause: mood.cause };
+  }
+  return prefix + TEXT.compose(store, index, context, line);
 }
 
 /** `D{day}, T{hh}:{mm} ` for a tick: day counted from 1, as the HUD counts it. */
@@ -407,6 +473,19 @@ class LineText {
       case KIND.death: return words.head(actor, words.DIED);
       default: return words.head(actor, words.SOMETHING);
     }
+  }
+
+  composeMood(store: ActivityLogStore, index: number, context: ComposeContext): { result: string; cause: string } {
+    const actor = context.name(store.actor(index)) ?? words.SOMEONE;
+    const delta = store.value(index, 0) / 100;
+    const result = store.value(index, 1) / 100;
+    const causeDelta = store.value(index, 3);
+    const start = store.value(index, 2) >>> 0;
+    const minutes = Math.round(((store.tick(index) - start) >>> 0) * 1440 / Math.max(1, context.dayTicks));
+    const otherId = store.other(index);
+    const other = otherId === NONE ? null : context.name(otherId);
+    return words.moodChange(actor, delta, result, store.label(index), causeDelta, other,
+      (store.label2(index) & 1) !== 0, minutes, (store.label2(index) >>> 8) & 0xff);
   }
 
   /** Clauses in the fixed order chore, social, skill, career, after the head. */

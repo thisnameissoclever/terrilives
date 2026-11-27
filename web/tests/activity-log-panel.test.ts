@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { FILTER } from '../src/ui/activity-log-compose.js';
+import { FILTER, type LogContent } from '../src/ui/activity-log-compose.js';
+const contentText = (value: LogContent): string => typeof value === 'string' ? value : `${value.result}\n${value.cause}`;
 import {
   ACTIVITY_LOG_WINDOW, ActivityLogNames, ActivityLogPanel, type ActivityLogRow, type ActivityLogView,
   activityLogElements, attachActivityLogPanel, createActivityLogView, rememberingNames,
@@ -41,25 +42,27 @@ class FakeView implements ActivityLogView {
   reflectOnly(label: string | null, checked: boolean) { this.calls++; this.only = { label, checked }; }
   reflectEmpty(text: string | null) { this.calls++; this.empty = text; }
   reflectShowEarlier(visible: boolean) { this.calls++; this.earlier = visible; }
-  replaceRows(texts: readonly string[]) {
+  replaceRows(texts: readonly LogContent[]) {
     this.calls++;
     this.replaced++;
-    this.rows = texts.map(text => ({ row: { __row: true } as const, text }));
+    this.rows = texts.map(text => ({ row: { __row: true } as const, text: contentText(text) }));
     return this.rows.map(entry => entry.row);
   }
-  prependRows(texts: readonly string[]) {
+  prependRows(texts: readonly LogContent[]) {
     this.calls++;
-    const added = texts.map(text => ({ row: { __row: true } as const, text }));
+    const added = texts.map(text => ({ row: { __row: true } as const, text: contentText(text) }));
     this.rows = [...added, ...this.rows];
     return added.map(entry => entry.row);
   }
-  appendRow(text: string) {
+  appendRow(content: LogContent) {
+    const text = contentText(content);
     this.calls++;
     const row = { __row: true } as const;
     this.rows.push({ row, text });
     return row;
   }
-  setRowText(row: ActivityLogRow, text: string) {
+  setRowText(row: ActivityLogRow, content: LogContent) {
+    const text = contentText(content);
     this.calls++;
     const entry = this.rows.find(candidate => candidate.row === row);
     if (entry) entry.text = text;
@@ -74,8 +77,8 @@ class FakeView implements ActivityLogView {
   texts() { return this.rows.map(entry => entry.text); }
 }
 
-function setup() {
-  const store = new ActivityLogStore();
+function setup(capacity?: number) {
+  const store = new ActivityLogStore(capacity);
   const source = new QueueSource();
   const view = new FakeView();
   const names = new ActivityLogNames();
@@ -874,7 +877,7 @@ describe('the activity log page', () => {
   it('keeps every panel word in the words module', () => {
     const markup = html.slice(html.indexOf('<button id="activity-log-toggle"'), html.indexOf('<div id="hud">'));
     expect(markup.replace(/<[^>]*>/g, '').trim()).toBe('');
-    expect(PANEL_WORDS.filters).toEqual(['Actions', 'Chores', 'Social', 'Skills', 'Career', 'Details', 'Time']);
+    expect(PANEL_WORDS.filters).toEqual(['Actions', 'Chores', 'Social', 'Skills', 'Career', 'Details + mood', 'Timestamps']);
   });
 
   it('drains every frame, resets on Load and closes beside Options and Sim details', () => {
@@ -885,4 +888,103 @@ describe('the activity log page', () => {
     expect(main).toContain('activityLogPanel.setBuilding(buildSession.active);');
     expect(main).toContain("get('activitylog') === '0') sim.setActivityLogEnabled(false);");
   });
+});
+
+it('backfills the oldest row when a selected mood episode leaves a full window', () => {
+  const { panel, view, select, drain } = setup();
+  select(BILL);
+  for (let seq = 1; seq <= 200; seq++) drain(record({ seq, tick: seq, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  drain(record({ seq: 201, tick: 201, kind: 13, actor: TIM, other: BILL, label: 2, values: [-100, -100, 200, -100] }));
+  panel.open(); panel.toggleOnly(); panel.toggleFilter(5);
+  expect(view.texts()).toHaveLength(200);
+  drain(record({ seq: 202, tick: 202, kind: 13, actor: TIM, label: 1, values: [-200, -200, 200, -200] }));
+  panel.update();
+  expect(view.texts()).toHaveLength(200);
+  expect(view.earlier).toBe(false);
+});
+
+it.each([1, 2])('backfills a backdated checkpoint after %i hidden evictions', (count) => {
+  const { panel, view, drain } = setup(203);
+  drain(record({ seq: 1, tick: 9, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  drain(record({ seq: 2, tick: 10, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  drain(record({ seq: 3, tick: 8, kind: KIND.mood, actor: TIM, label: 1, values: [-400, -400, 1, -400] }));
+  for (let seq = 4; seq <= 201; seq++) {
+    drain(record({ seq, tick: seq + 20, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  }
+  for (let seq = 202; seq <= 203; seq++) drain(record({ seq, tick: seq + 20, kind: KIND.skillLevel, actor: TIM }));
+  panel.open(); panel.toggleFilter(5);
+  expect(view.texts()).toHaveLength(200);
+  expect(view.earlier).toBe(true);
+  drain(...Array.from({ length: count }, (_, offset) =>
+    record({ seq: 204 + offset, tick: 224 + offset, kind: KIND.skillLevel, actor: TIM })));
+  panel.update();
+  expect(view.texts()).toHaveLength(201 - count);
+  expect(view.texts()[0]).toContain('Mood fell');
+  expect(view.earlier).toBe(false);
+});
+
+it('keeps the mounted rows when a checkpoint lands outside the window', () => {
+  const { panel, view, drain } = setup();
+  for (let seq = 1; seq <= 200; seq++) {
+    drain(record({ seq, tick: seq + 20, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  }
+  panel.open(); panel.toggleFilter(5);
+  const before = view.rows;
+  drain(record({ seq: 201, tick: 8, kind: KIND.mood, actor: TIM, label: 1, values: [-400, -400, 1, -400] }));
+  panel.update();
+  expect(view.rows).toBe(before);
+  expect(view.earlier).toBe(true);
+});
+
+it('can append a visible row in the same update as an unseen earlier checkpoint', () => {
+  const { panel, view, drain } = setup();
+  for (let seq = 1; seq <= 200; seq++) {
+    drain(record({ seq, tick: seq + 20, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  }
+  panel.open(); panel.toggleFilter(5);
+  const replacements = view.replaced;
+  const retained = view.rows[1].row;
+  drain(
+    record({ seq: 201, tick: 8, kind: KIND.mood, actor: TIM, label: 1, values: [-400, -400, 1, -400] }),
+    record({ seq: 202, tick: 221, kind: KIND.actionDone, triggers: FILTER.actions, actor: TIM, label: 0 }),
+  );
+  panel.update();
+  expect(view.replaced).toBe(replacements);
+  expect(view.rows[0].row).toBe(retained);
+  expect(view.texts().at(-1)).toBe('Tim: Read a book');
+});
+
+
+it('keeps incremental rows in timestamp order after a backdated mood checkpoint', () => {
+  const { panel, view, drain } = setup();
+  drain(record({ seq: 1, tick: 10, kind: 13, actor: TIM, label: 1, values: [-100, -100, 1, -100] }));
+  drain(record({ seq: 2, tick: 30, kind: KIND.actionDone, triggers: FILTER.actions, actor: BILL, label: 0 }));
+  panel.open(); panel.toggleFilter(5); panel.toggleFilter(6);
+  drain(record({ seq: 3, tick: 20, kind: 13, actor: TIM, label: 1, values: [-200, -200, 1, -200] }));
+  panel.update();
+  const incremental = view.texts();
+  expect(incremental.map(text => text.slice(0, 10))).toEqual(['D1, T00:20', 'D1, T00:30']);
+  panel.close(); panel.open();
+  expect(view.texts()).toEqual(incremental);
+});
+
+
+it('renders newlines in ordinary names as text and mood causes as a separate element', () => {
+  const children: any[] = [];
+  const element = () => ({ className: '', textContent: '', children: [] as any[],
+    replaceChildren(...parts: any[]) { this.children = parts; }, setAttribute() {},
+    addEventListener() {}, style: { setProperty() {}, removeProperty() {} } });
+  const doc = { defaultView: null, createElement: element };
+  const list = { ...element(), append(item: any) { children.push(item); } };
+  const other = element();
+  const view = createActivityLogView(doc as never, { toggle: other, panel: other, filters: [], only: other,
+    onlyBox: other, onlyText: other, scroller: other, earlier: other, list, empty: other, dock: other } as never);
+  view.appendRow('Tim\nSmith: Read a book');
+  view.appendRow({ result: 'Tim\nSmith: Mood fell 1 point to -1 (Okay)', cause: 'Needs: decreased.' });
+  expect(children[0].className).toBe('');
+  expect(children[0].textContent).toBe('Tim\nSmith: Read a book');
+  expect(children[1].className).toBe('activity-log-mood');
+  expect(children[1].children.map((part: any) => part.textContent)).toEqual([
+    'Tim\nSmith: Mood fell 1 point to -1 (Okay)', 'Needs: decreased.',
+  ]);
 });

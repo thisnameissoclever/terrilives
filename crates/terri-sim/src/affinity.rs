@@ -265,10 +265,20 @@ fn lifts_from_counts(
 /// ([`crate::presence_fade`], issue 344). It reads `Likes the {kind} here`
 /// while the room gives something and `Enjoyed the {kind}` once it does not,
 /// so returning raises the mood up to the room's lift and never above it.
+#[cfg(test)]
 pub(crate) fn presence_moodlets(
     world: &World,
     pack: &ContentPack,
     subject: Entity,
+) -> Vec<Moodlet> {
+    presence_moodlets_with(world, pack, subject, |_, _| {})
+}
+
+pub(crate) fn presence_moodlets_with(
+    world: &World,
+    pack: &ContentPack,
+    subject: Entity,
+    mut observe: impl FnMut(&str, &Moodlet),
 ) -> Vec<Moodlet> {
     let near = presence_lifts(world, pack, subject);
     let lingering = world
@@ -299,7 +309,9 @@ pub(crate) fn presence_moodlets(
             } else {
                 format!("Enjoyed the {}", kind.label)
             };
-            Some(Moodlet { label, score })
+            let moodlet = Moodlet { label, score };
+            observe(&kind.id, &moodlet);
+            Some(moodlet)
         })
         .collect()
 }
@@ -367,19 +379,26 @@ fn nuisances(
 /// `Bothered by {name} using the {kind}` per [`nuisances`] entry, worth
 /// `value * affinity_use_points`. A user without a name is skipped, as
 /// mood skips one among the people nearby.
-pub(crate) fn use_moodlets(world: &World, pack: &ContentPack, subject: Entity) -> Vec<Moodlet> {
+pub(crate) fn use_moodlets(
+    world: &World,
+    pack: &ContentPack,
+    subject: Entity,
+    mut observe: impl FnMut(Entity, &Moodlet),
+) -> Vec<Moodlet> {
     let rooms = RoomRegions::from_world(world);
     nuisances(world, pack, &rooms, subject)
         .into_iter()
         .filter_map(|nuisance| {
             let name = &world.get::<SimName>(nuisance.user)?.0;
-            Some(Moodlet {
+            let moodlet = Moodlet {
                 label: format!(
                     "Bothered by {name} using the {}",
                     pack.affinities[nuisance.kind as usize].label
                 ),
                 score: nuisance.value * pack.tuning.affinity_use_points,
-            })
+            };
+            observe(nuisance.user, &moodlet);
+            Some(moodlet)
         })
         .collect()
 }

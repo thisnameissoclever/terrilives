@@ -9920,7 +9920,7 @@ mod boundary_tests {
         );
         assert_eq!(
             handle.mood_snapshot_of(subject.index_u32()),
-            vec![-0.1, -0.1]
+            vec![-14.0 / 6000.0; 2]
         );
         assert!(handle.mood_summary_of(non_sim.index_u32()).is_empty());
         assert!(handle.mood_snapshot_of(non_sim.index_u32()).is_empty());

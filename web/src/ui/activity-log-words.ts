@@ -17,7 +17,7 @@ export const PANEL_WORDS = {
   toggle: 'Log',
   title: 'Log',
   close: 'Close',
-  filters: ['Actions', 'Chores', 'Social', 'Skills', 'Career', 'Details', 'Time'] as const,
+  filters: ['Actions', 'Chores', 'Social', 'Skills', 'Career', 'Details + mood', 'Timestamps'] as const,
   /** The accessible names of the filter group and the scrolling list of entries. */
   filtersGroup: 'Filters',
   entries: 'Log entries',
@@ -163,3 +163,30 @@ export function performanceOutOf100(value: number): string { return `performance
 export function fitFactor(value: number): string { return `fit ${value}`; }
 export function skillFactor(value: number): string { return `skill ${value}%`; }
 export function moodFactor(value: number): string { return `mood ${value}`; }
+
+/** A mood episode uses the newest absolute checkpoint, including its cause. */
+export function moodChange(actor: string, delta: number, result: number, cause: number, causeDelta: number,
+  other: string | null, distance: boolean, minutes: number, bandCode: number): { result: string; cause: string } {
+  const band = ['','Miserable','Low','Okay','Good','Great'][bandCode] || (result <= -50 ? 'Miserable' : result <= -15 ? 'Low' : result < 15 ? 'Okay' : result < 50 ? 'Good' : 'Great');
+  const direction = delta < 0 ? 'fell' : 'rose';
+  const amount = Number(Math.abs(delta).toFixed(1));
+  const displayedResult = Number(result.toFixed(1));
+  const labels: Record<number, string> = {
+    0: 'Multiple or unspecified causes', 1: 'Needs', 2: other ? `Comforted by ${other}` : 'Comfortable company',
+    3: other ? `Uneasy around ${other}` : 'Uneasy company', 4: 'Plants', 5: 'Aquarium', 6: 'Burnt dinner',
+    7: 'Fight', 8: 'Promotion', 9: 'Raise', 10: 'Demotion', 11: 'Dismissal', 12: 'Work satisfaction',
+    13: 'Overdue bills', 14: 'Waiting', 15: 'Grief', 16: 'Condition', 17: 'Mess', 18: 'Bed assignment',
+    19: 'Repetition', 20: 'Chores', 21: 'Disliked object use', 22: 'Enjoying a hobby',
+  };
+  const label = labels[cause] ?? labels[0];
+  const effect = causeDelta < 0 ? 'decreased' : 'increased';
+  let explanation = cause === 0 || labels[cause] === undefined
+    ? `${label} over ${minutes} game ${minutes === 1 ? 'minute' : 'minutes'}.`
+    : `${label}: ${effect} over ${minutes} game ${minutes === 1 ? 'minute' : 'minutes'}.`;
+  if (distance && (cause === 2 || cause === 3)) {
+    const farther = cause === 2 ? causeDelta < 0 : causeDelta > 0;
+    const verb = causeDelta < 0 ? 'faded' : 'increased';
+    explanation = `\u201c${label}\u201d ${verb} over ${minutes} game ${minutes === 1 ? 'minute' : 'minutes'} as they moved ${farther ? 'farther apart' : 'closer together'}.`;
+  }
+  return { result: `${actor}: Mood ${direction} ${amount} ${amount === 1 ? 'point' : 'points'} to ${displayedResult} (${band})`, cause: explanation };
+}

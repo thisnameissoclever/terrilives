@@ -17,7 +17,7 @@ const FRAME_TICKS: usize = 5;
 pub struct Volume {
     day_ticks: u64,
     /// Records per game day, indexed by kind code; slot 0 is unused.
-    per_day: Vec<[u32; 13]>,
+    per_day: Vec<[u32; LogKind::ALL.len() + 1]>,
     /// Mess annoyances per game day, the research's other figure.
     mess_per_day: Vec<u32>,
     mess_label: u32,
@@ -67,7 +67,7 @@ impl Volume {
         for words in self.buffer.chunks_exact(RECORD_WORDS) {
             let day = (u64::from(words[1]) / self.day_ticks.max(1)) as usize;
             while self.per_day.len() <= day {
-                self.per_day.push([0; 13]);
+                self.per_day.push([0; LogKind::ALL.len() + 1]);
                 self.mess_per_day.push(0);
             }
             let code = (words[2] & 0xff) as usize;

@@ -277,7 +277,9 @@ pub(crate) fn accept(world: &mut World, actor: Entity, entry: QueuedOrder) {
         && intent.cleanup.is_none()
         && intent.chore.is_none()
         && world.get::<Agent>(intent.object).is_some()
-        && crate::attendance::manual_work_trip(world, intent.object)
+        && (crate::attendance::manual_work_trip(world, intent.object)
+            || (crate::social_episode::is_casual(world, intent.interaction)
+                && crate::attendance::needs_recall(world, intent.object)))
         && world
             .get_resource::<ConfirmedRecipientOrder>()
             .is_some_and(|proof| {
@@ -1411,14 +1413,34 @@ pub(crate) fn observe(world: &mut World) {
             continue;
         }
         let intent = state.entry.intent;
-        if intent.object != actor
+        let directed_conversation = intent.object != actor
             && intent.cleanup.is_none()
             && intent.chore.is_none()
-            && world.get::<Agent>(intent.object).is_some()
-            && (state.active
-                || world
-                    .get::<IntentQueue>(actor)
-                    .is_some_and(|q| q.entries().first().is_some_and(|entry| entry.id == id)))
+            && world.get::<Agent>(intent.object).is_some();
+        let active_or_front = state.active
+            || world
+                .get::<IntentQueue>(actor)
+                .is_some_and(|q| q.entries().first().is_some_and(|entry| entry.id == id));
+        let casual =
+            directed_conversation && crate::social_episode::is_casual(world, intent.interaction);
+        if casual && active_or_front && state.phase != 3 {
+            let unavailable = if crate::social_episode::requests::asleep(world, intent.object) {
+                Some("Recipient is asleep")
+            } else if crate::attendance::needs_recall(world, intent.object)
+                || (state.active && crate::attendance::physically_away(world, intent.object))
+            {
+                Some("Recipient is at work")
+            } else {
+                None
+            };
+            if let Some(reason) = unavailable {
+                terminal(world, actor, id, "canceled", Some(reason));
+                continue;
+            }
+        }
+        if directed_conversation
+            && !casual
+            && active_or_front
             && !crate::attendance::manual_work_trip(world, intent.object)
             && (world.get::<terri_core::AtWork>(intent.object).is_some()
                 || world.get::<terri_core::Commuting>(intent.object)

@@ -1,5 +1,7 @@
 # Sleeping chat partners verification
 
+This report records the October release. The [current conversation contract](../superpowers/specs/2026-10-17-urgent-needs-and-pending-conversations-design.md#conversations) includes the November 25 changes to sleeping and away recipients.
+
 This record holds the measurements for issue 338, which stops housemates waiting beside a sleeping partner. By the owner's ruling of 2026-10-23, a housemate never chooses a chat with someone who is asleep, a chat they chose gives up when its partner falls asleep, and a chat the player ordered keeps waiting; rule 6 of the conversation contracts in the [pending-conversation design](../superpowers/specs/2026-10-17-urgent-needs-and-pending-conversations-design.md) records it. By the coordinator's decision of 2026-10-24, arguments the game starts over a grievance, which are not player orders, follow the same rule: the game does not start one against a sleeper and withdraws a waiting one when its recipient falls asleep, while a Fight the player orders keeps waiting; [fights](2026-10-16-fights.md) records it. The figures were taken on 2026-10-24 on a Windows 11 desktop.
 
 ## Contents

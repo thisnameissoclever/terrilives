@@ -280,7 +280,7 @@ fn conversation_fun_relief_matches_actual_disliked_company_delivery() {
 }
 
 #[test]
-fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
+fn unavailable_recipient_releases_a_restored_wait_on_the_first_tick() {
     let mut sim = Sim::new_from_shipped_lot_with_seed(42);
     let people: Vec<_> = sim
         .world_mut()
@@ -293,6 +293,20 @@ fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
     let c = people.iter().find(|(id, _)| *id == 2).unwrap().1;
     // Keep the third housemate from starting a competing chat during setup.
     sim.world_mut().entity_mut(c).insert(Reserved);
+    let request = requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
+    sim.world_mut()
+        .resource_mut::<requests::ConversationRequests>()
+        .requests
+        .get_mut(&request)
+        .unwrap()
+        .origin = requests::ConversationOrigin::LegacyUnattributed;
     let door = sim.world().resource::<Content>().0.lot.front_door.unwrap();
     sim.world_mut().entity_mut(b).insert((
         terri_core::Career(0),
@@ -304,15 +318,6 @@ fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
             y: door.1 as f32,
         },
     ));
-    requests::enqueue(
-        sim.world_mut(),
-        a,
-        b,
-        0,
-        requests::ConversationOrigin::Autonomous,
-    )
-    .unwrap();
-    sim.tick();
     sim.world_mut().entity_mut(c).remove::<Reserved>();
     assert_eq!(sim.activity_status_of(a.index_u32()).unwrap().code, 3);
     let mut loaded = Sim::new_from_shipped_lot();
@@ -326,6 +331,22 @@ fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
         hash,
         "Status reconstruction is read-only while paused"
     );
+    assert!(loaded
+        .world()
+        .resource::<requests::ConversationRequests>()
+        .requests
+        .contains_key(&request));
+    let asker = crate::edit::living_entity(loaded.world(), 0).unwrap();
+    loaded.tick();
+    assert!(loaded
+        .world()
+        .get::<requests::CommittedConversation>(asker)
+        .is_none());
+    assert!(!loaded
+        .world()
+        .resource::<requests::ConversationRequests>()
+        .requests
+        .contains_key(&request));
 }
 
 #[test]
