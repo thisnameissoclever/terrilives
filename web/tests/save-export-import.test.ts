@@ -3,7 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { CURRENT_SAVE_VERSION } from '../src/storage/save-header.js';
 import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from '../src/storage/save-file.js';
 import type { SaveStore } from '../src/storage/save-store.js';
-import { PersistenceController, type PersistableSim } from '../src/ui/persistence-controller.js';
+import { SceneFeedback } from '../src/ui/operation-feedback.js';
+import { PersistenceSceneFeedback } from '../src/ui/persistence-feedback.js';
+import {
+  PersistenceController,
+  type PersistableSim,
+  type PersistenceFeedbackEvent,
+} from '../src/ui/persistence-controller.js';
 
 /** Bytes with a real save prefix: TERRISAV followed by a little-endian version. */
 function saveBytes(version = CURRENT_SAVE_VERSION, body: number[] = [7]): Uint8Array {
@@ -37,6 +43,34 @@ function sim(load = true): PersistableSim & { tick: number; loaded: Uint8Array[]
       return this.tick;
     },
     dayTicks: () => 100,
+  };
+}
+
+function presentedScene() {
+  const element = {
+    textContent: '',
+    dataset: {} as Record<string, string>,
+    style: {} as Record<string, string>,
+    setAttribute: () => {},
+    removeAttribute: () => {},
+    getAttribute: () => null,
+  };
+  const hint = { hidden: true, textContent: '' };
+  const presentation = new PersistenceSceneFeedback(new SceneFeedback(element as unknown as HTMLElement), hint);
+  return {
+    element,
+    present: (event: PersistenceFeedbackEvent) => presentation.present(event),
+  };
+}
+
+/** An Export save whose delivery stays open until the test answers it. */
+function openExportDialog() {
+  let resolve: (saved: boolean) => void = () => {};
+  let reject: (error: Error) => void = () => {};
+  return {
+    deliver: () => new Promise<boolean>((pass, fail) => { resolve = pass; reject = fail; }),
+    finish: (saved: boolean) => resolve(saved),
+    fail: (error: Error) => reject(error),
   };
 }
 
@@ -103,6 +137,158 @@ describe('Export save', () => {
     expect(await controller.save()).toBe(true);
     finish(true);
     expect(await exporting).toBe(true);
+  });
+
+  it('keeps a save failure that is published while the export dialog is open', async () => {
+    const slot = presentedScene();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), status(), () => {}, undefined, slot.present);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.saveAutomatically()).toBe(false);
+    expect(slot.element.textContent).toBe('Save failed. Try again.');
+    expect(slot.element.dataset.state).toBe('failure');
+
+    dialog.finish(true);
+    expect(await exporting).toBe(true);
+    expect(slot.element.textContent).toBe('Save failed. Try again.');
+    expect(slot.element.dataset.state).toBe('failure');
+  });
+
+  it('keeps that failure while a later automatic save has only reached Saving', async () => {
+    const slot = presentedScene();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), status(), () => {}, undefined, slot.present);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.saveAutomatically()).toBe(false);
+    let release!: () => void;
+    backend.save = () => new Promise<void>((resolve) => { release = resolve; });
+    const saving = controller.saveAutomatically();
+    await Promise.resolve();
+    expect(slot.element.textContent).toBe('Save failed. Try again.');
+
+    dialog.finish(true);
+    expect(await exporting).toBe(true);
+    expect(slot.element.textContent).toBe('Save failed. Try again.');
+    release();
+    expect(await saving).toBe(true);
+    // A successful automatic save still clears a save failure, as it does
+    // without an export in progress. The export success was already withheld.
+    expect(slot.element.textContent).toBe('');
+  });
+
+  it('shows Game exported when the failure from the wait was already cleared', async () => {
+    const slot = presentedScene();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), status(), () => {}, undefined, slot.present);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.saveAutomatically()).toBe(false);
+    backend.save = async () => {};
+    expect(await controller.saveAutomatically()).toBe(true);
+    expect(slot.element.textContent).toBe('');
+
+    dialog.finish(true);
+    expect(await exporting).toBe(true);
+    expect(slot.element.textContent).toBe('Game exported');
+  });
+
+  it('replaces a save failure from before Export save once the export finishes', async () => {
+    const slot = presentedScene();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), status(), () => {}, undefined, slot.present);
+    await controller.restoreAtStartup();
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.save()).toBe(false);
+    expect(slot.element.textContent).toBe('Save failed. Try again.');
+
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+    dialog.finish(true);
+    expect(await exporting).toBe(true);
+    expect(slot.element.textContent).toBe('Game exported');
+  });
+
+  it('leaves the save failure on screen when the player cancels the export dialog', async () => {
+    const slot = presentedScene();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), status(), () => {}, undefined, slot.present);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.saveAutomatically()).toBe(false);
+
+    dialog.finish(false);
+    expect(await exporting).toBe(false);
+    expect(slot.element.textContent).toBe('Save failed. Try again.');
+  });
+
+  it('still reports an export that fails after a save failure during the dialog', async () => {
+    const slot = presentedScene();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), status(), () => {}, undefined, slot.present);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.saveAutomatically()).toBe(false);
+
+    dialog.fail(new Error('could not write'));
+    expect(await exporting).toBe(false);
+    expect(slot.element.textContent).toBe('Export failed. The game is still running.');
+    expect(slot.element.dataset.state).toBe('failure');
+  });
+
+  it('keeps a save failure on the status line when no scene presenter is attached', async () => {
+    const view = status();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), view);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+    backend.save = async () => { throw new Error('disk full'); };
+    expect(await controller.saveAutomatically()).toBe(false);
+    expect(view.textContent).toBe('Save failed. Try again.');
+    expect(view.attributes.get('data-kind')).toBe('error');
+
+    dialog.finish(true);
+    expect(await exporting).toBe(true);
+    expect(view.textContent).toBe('Save failed. Try again.');
+    expect(view.attributes.get('data-kind')).toBe('error');
+  });
+
+  it('shows Game exported on the status line when the save during the wait succeeded', async () => {
+    const view = status();
+    const backend = store(null);
+    const controller = new PersistenceController(backend, sim(), view);
+    await controller.restoreAtStartup();
+    const dialog = openExportDialog();
+    const exporting = controller.exportSave(dialog.deliver);
+    await Promise.resolve();
+    expect(await controller.saveAutomatically()).toBe(true);
+
+    dialog.finish(true);
+    expect(await exporting).toBe(true);
+    expect(view.textContent).toBe('Game exported');
+    expect(view.attributes.has('data-kind')).toBe(false);
   });
 
   it('labels a late export result as the export', async () => {
