@@ -239,6 +239,8 @@ place = [
   # and also the mechanism: two beds in two different rooms means "go to
   # bed" has a choice in it, and the bunk is the faster, worse one.
   { object = "desk", x = 6.0, y = 6.0, facing = "SW" },
+  # Faces the desk. The front approach is the desk tile itself. Sit uses
+  # an open side in the study; the west edge is the bedroom wall.
   { object = "desk_chair", x = 6.0, y = 7.0, facing = "NW" },
   { object = "bed", x = 9.0, y = 6.0 },
   { object = "reading_chair", x = 9.0, y = 9.0 },

@@ -536,12 +536,18 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// household's choices: that change alone gives 0xd4e9_36d2_2a98_1e7b here
 /// (0xc824_f66f_0525_1b16 with both work knobs at 0). Since shared pools,
 /// autonomy no longer scores a wait for a seat it cannot reach. The shipped desk
-/// chair's one seat approach is across the study wall, so its Sit was never
-/// admissible, yet it used to add a waiting row to choices; without that
-/// row the first tick's choices differ. With both
+/// chair's one seat approach was the desk tile in front of it, which is not
+/// walkable, so its Sit was never admissible, yet it used to add a waiting
+/// row to choices; without that row the first tick's choices differ. With both
 /// changes the two work knobs again make no difference in two days. Measured
 /// at the merge of both, with the old waiting row restored to separate them.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x102e_e8bc_9a92_2172;
+/// Issue 371 moved it from 0x102e_e8bc_9a92_2172. The chair still faces the
+/// desk, and that front tile is still the desk. Sit now also accepts either
+/// side and the back. East and south of the study chair are open floor, so
+/// autonomy can score Sit there and the household's choices differ from the
+/// first tick. Both work knobs still make no difference in two days. Measured
+/// in a debug build from the failing assertion.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x2c3a_e845_9b7c_1f8c;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -598,7 +604,9 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x102e_e8bc_9a92_2172;
 /// 0x4c23_0370_81d0_e3e4, which f616d4eeb still gave, for the same reasons:
 /// with the old wait for an unreachable seat restored it gives
 /// 0xae74_5810_29e9_358c. Measured in a release build.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xce28_a880_d24d_6db5;
+/// Issue 371 moved it from 0xce28_a880_d24d_6db5, for the reason given for
+/// the two-day fold. Measured in a release build from the failing assertion.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x682c_11ab_b536_0a93;
 
 /// Issue 309: the two-day fold with the log off, the work lateness limit at
 /// 0 and the work Bladder relief at 0 is the shipped two-day value above
@@ -638,7 +646,10 @@ fn the_twenty_day_fold_without_the_work_knobs_is_unchanged() {
     // release build. The two changes that moved the two-day fold then moved
     // it from 0xc2ac_b905_0b16_eacc, which f616d4eeb still gave; with the old
     // wait for an unreachable seat restored it gives 0x5b03_9402_e42a_18a0.
-    assert_eq!(fold_without_the_work_knobs(20), 0x328b_c775_f612_9be3);
+    // Issue 371 moved it from 0x328b_c775_f612_9be3, for the reason given
+    // for the two-day fold. Measured in a release build from the failing
+    // assertion.
+    assert_eq!(fold_without_the_work_knobs(20), 0x28f3_6fcf_5560_0830);
 }
 
 /// The fold of the shipped household's per-tick hashes over `days` game

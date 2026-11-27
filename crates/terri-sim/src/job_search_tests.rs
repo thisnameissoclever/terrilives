@@ -308,13 +308,19 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// household's choices: that change alone gives 14988741566562452199
 /// (686692443648896538 with both work knobs at 0). Since shared pools,
 /// autonomy no longer scores a wait for a seat it cannot reach. The shipped desk
-/// chair's one seat approach is across the study wall, so its Sit was never
-/// admissible, yet it used to add a waiting row to choices; without that
-/// row the first tick's choices differ. With both
+/// chair's one seat approach was the desk tile in front of it, which is not
+/// walkable, so its Sit was never admissible, yet it used to add a waiting
+/// row to choices; without that row the first tick's choices differ. With both
 /// changes the two work knobs again make no difference before Thursday. The
 /// draw counts and every job and shift are unchanged. Measured at the merge of
 /// both, with the old waiting row restored to separate them.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (6355534044410395913, 7, 2);
+/// Issue 371 moved the hash from 6355534044410395913. The chair still faces
+/// the desk. Sit now also accepts either side and the back, east and south
+/// of this chair are open study floor, and autonomy can score Sit there.
+/// Jobs, shifts and draw counts are unchanged. Both work knobs still make
+/// no difference before Thursday. Measured in a debug build from the failing
+/// assertion.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (2939015249152938535, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

@@ -961,7 +961,9 @@ name = { set = "Standard Task" }
 description = { set = "A padded seat and back on a five-caster base. Decent support for a small office, without paying lounge-chair prices." }
 price = { set = 70 }
 sprite = { set = "offlineDeskChair" }
-seat = { set = [{ id = "seat", x = 0.0, y = 0.0, facing = "SW", approaches = [[0, 1]] }] }
+# The front (+Y in this base art) is the desk when the chair faces it.
+# Either side and the back stay available, so Sit still has a way in.
+seat = { set = [{ id = "seat", x = 0.0, y = 0.0, facing = "SW", approaches = [[0, 1], [-1, 0], [1, 0], [0, -1]] }] }
 
 [[model]]
 id = "reading_chair"

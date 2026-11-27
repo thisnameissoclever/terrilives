@@ -142,6 +142,9 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// chores for Sims without a job, the active hobby lift and the removed wait
 /// for an unreachable seat (see [`STANDARD_ONLY_HASH`]) moved it from
 /// 13043348246484619481, and no tree before issue 359 produced the new value.
+/// Issue 371 moved it from 14572578620981545019. Sit on the study desk chair
+/// is reachable from an open side, so Monday morning's choices differ. Measured
+/// in a debug build from the failing assertion.
 #[test]
 fn the_standard_only_hash_without_topic_memory() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -152,7 +155,7 @@ fn the_standard_only_hash_without_topic_memory() {
     for _ in 0..600 {
         sim.tick();
     }
-    assert_eq!(sim.world_hash(), 14572578620981545019);
+    assert_eq!(sim.world_hash(), 17862917905366479971);
 }
 /// Computed at fead3700b, before the shift section of the hash existed, as
 /// 6850362082045180278. Issue 339 moved it on purpose: Tim now shelves his
@@ -178,11 +181,15 @@ fn the_standard_only_hash_without_topic_memory() {
 /// chores for Sims without a job and the active hobby lift change Monday
 /// morning's choices (that change alone gives 15994824286922952861), and
 /// autonomy no longer scores a wait for a seat it cannot reach. The shipped desk
-/// chair's one seat approach is across the study wall, so its Sit was never
-/// admissible, yet it used to add a waiting row to choices; without that
-/// row the first tick's choices differ, so a
+/// chair's one seat approach was the desk tile in front of it, which is not
+/// walkable, so its Sit was never admissible, yet it used to add a waiting
+/// row to choices; without that row the first tick's choices differ, so a
 /// lift is fading at tick 600. The careers encoding check still holds.
-const STANDARD_ONLY_HASH: u64 = 18368880661169495683;
+/// Issue 371 moved it from 18368880661169495683. Sit on that chair is now
+/// reachable from an open study side, so the choices through tick 600 differ
+/// and a different lift is fading. The careers encoding check still holds.
+/// Measured in a debug build from the failing assertion.
+const STANDARD_ONLY_HASH: u64 = 9949722349598790461;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.

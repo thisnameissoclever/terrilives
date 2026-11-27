@@ -1631,6 +1631,196 @@ fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
     panic!("Worker did not sit within the bounded route");
 }
 
+fn shipped_model(sim: &mut Sim, id: &str) -> bevy_ecs::entity::Entity {
+    let pack = sim.world().resource::<Content>().0;
+    let found: Vec<_> = sim
+        .world_mut()
+        .query::<(bevy_ecs::entity::Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .filter(|(_, object)| pack.object(object.0).id == id)
+        .map(|(entity, _)| entity)
+        .collect();
+    assert_eq!(found.len(), 1, "{id}");
+    found[0]
+}
+
+fn menu_row(sim: &Sim, object: bevy_ecs::entity::Entity, action: &str) -> u32 {
+    let pack = sim.world().resource::<Content>().0;
+    let definition = pack.object(
+        sim.world()
+            .get::<terri_core::SmartObject>(object)
+            .unwrap()
+            .0,
+    );
+    definition
+        .interactions
+        .iter()
+        .position(|row| row.id == action)
+        .unwrap_or_else(|| panic!("{action} is not on {}", definition.id)) as u32
+}
+
+/// Issue 371. The shipped chair faces the desk, so its front approach is
+/// the desk. The west tile is bedroom floor behind the study wall. Sit
+/// from the object menu uses an open side in the study.
+#[test]
+fn sit_on_the_shipped_study_desk_chair_uses_a_study_side() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let chair = shipped_model(&mut sim, "desk_chair");
+    let at = *sim.world().get::<Position>(chair).unwrap();
+    let facing = sim
+        .world()
+        .get::<terri_core::ObjectFacing>(chair)
+        .unwrap()
+        .0;
+    assert_eq!((at.x, at.y, facing), (6., 7., Facing::NorthWest));
+    let definition = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .object(sim.world().get::<terri_core::SmartObject>(chair).unwrap().0);
+    let sit = menu_row(&sim, chair, "sit");
+    assert_eq!(definition.interactions[sit as usize].label, "Sit");
+    let origin = (at.x as i32, at.y as i32);
+    let tiles: Vec<(i32, i32)> = definition
+        .seat_approaches_at(0, facing)
+        .unwrap()
+        .into_iter()
+        .map(|(x, y)| (origin.0 + x, origin.1 + y))
+        .collect();
+    assert_eq!(tiles, vec![(6, 6), (7, 7), (5, 7), (6, 8)]);
+    let legal: Vec<(i32, i32)> = {
+        let grid = sim.world().resource::<terri_core::TileGrid>();
+        assert!(grid.is_walkable(8, 8));
+        tiles
+            .iter()
+            .copied()
+            .filter(|&tile| super::legal_contact(grid, definition, facing, origin, Some(0), tile))
+            .collect()
+    };
+    assert_eq!(
+        legal,
+        vec![(7, 7), (6, 8)],
+        "the desk and the bedroom wall are not ways to sit"
+    );
+    let person = sim.spawn_agent(Position { x: 8., y: 8. }, 100.);
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::UseObjectFirst {
+            agent: person.index_u32(),
+            object: chair.index_u32(),
+            interaction: sit,
+        });
+    sim.tick();
+    let failed: Vec<_> = sim
+        .action_events_since(0)
+        .events
+        .iter()
+        .filter(|event| event.phase == "failed")
+        .map(|event| event.reason.clone())
+        .collect();
+    assert!(
+        failed.is_empty(),
+        "Sit from the object menu failed: {failed:?}"
+    );
+    let endpoint = sim
+        .world()
+        .get::<Path>(person)
+        .and_then(|path| path.steps.last().copied())
+        .expect("Sit has a route");
+    assert!(
+        legal.contains(&endpoint),
+        "Sit walked to {endpoint:?}, not an open study side {legal:?}"
+    );
+    for _ in 0..80 {
+        sim.tick();
+        if sim.world().get::<Eating>(person).is_some() && sim.world().get::<Path>(person).is_none()
+        {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.activities[row],
+                crate::render_buffer::activity::SITTING
+            );
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::SIT
+            );
+            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
+            assert_eq!(buffer.seated_furniture[row], chair.index_u32());
+            let claim = sim
+                .world()
+                .get::<super::PhysicalClaim>(person)
+                .expect("Sit holds the chair");
+            assert_eq!(claim.furniture, chair);
+            assert_eq!(claim.seat, "seat");
+            assert!(!claim.all);
+            return;
+        }
+    }
+    panic!("Sit did not reach the study desk chair");
+}
+
+/// Desk work seats on the same shipped chair from a free side, which is
+/// not the declared front. Adding Sit approaches must not change that.
+#[test]
+fn desk_work_still_seats_on_the_shipped_study_chair() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let desk = shipped_model(&mut sim, "desk");
+    let chair = shipped_model(&mut sim, "desk_chair");
+    let work = menu_row(&sim, desk, "attend_correspondence");
+    assert!(sim
+        .world()
+        .resource::<terri_core::TileGrid>()
+        .is_walkable(8, 8));
+    let person = sim.spawn_agent(Position { x: 8., y: 8. }, 100.);
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::UseObjectFirst {
+            agent: person.index_u32(),
+            object: desk.index_u32(),
+            interaction: work,
+        });
+    for _ in 0..160 {
+        sim.tick();
+        if sim.world().get::<Eating>(person).is_some() {
+            let lease = super::claim(sim.world(), person.index_u32())
+                .cloned()
+                .expect("desk work leases the shipped chair");
+            assert_eq!(lease.chair, Some(chair.index_u32()));
+            assert_eq!(lease.station, desk.index_u32());
+            assert!(
+                [(7, 7), (6, 8)].contains(&lease.endpoint),
+                "entered from an open study side: {:?}",
+                lease.endpoint
+            );
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.activities[row],
+                crate::render_buffer::activity::CORRESPONDENCE
+            );
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::SIT
+            );
+            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
+            assert_eq!(buffer.seated_furniture[row], chair.index_u32());
+            return;
+        }
+    }
+    panic!("Desk work did not sit on the shipped study chair");
+}
+
 #[test]
 fn desk_work_scores_no_chair_comfort_when_choosing() {
     let pack = terri_data::pack();

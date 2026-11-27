@@ -2067,6 +2067,53 @@ mod tests {
         assert_eq!((chair_placement.x, chair_placement.y), (6.0, 7.0));
     }
 
+    /// Issue 371. The chair faces the desk, so the front approach is the
+    /// desk tile (6, 6). The west neighbour (5, 7) is the bedroom, across
+    /// the study wall, and is not the authored front. Sit also accepts
+    /// either side and the back; east (7, 7) and south (6, 8) are open
+    /// study floor.
+    #[test]
+    fn the_study_desk_chair_keeps_a_front_on_the_desk_and_a_side_in_the_study() {
+        let p = pack();
+        let chair_id = p.find("desk_chair").expect("shipped desk chair");
+        let chair = p.object(chair_id);
+        let placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|row| row.object == chair_id)
+            .expect("desk chair placement");
+        assert_eq!(chair.base_facing, Facing::SouthEast);
+        assert_eq!(chair.footprint, Footprint { width: 1, depth: 1 });
+        assert_eq!((placement.x, placement.y), (6.0, 7.0));
+        assert_eq!(placement.facing, Facing::NorthWest);
+        let offsets = chair
+            .seat_approaches_at(0, placement.facing)
+            .expect("desk chair seat");
+        let tiles: Vec<(i32, i32)> = offsets
+            .iter()
+            .map(|(x, y)| (placement.x as i32 + x, placement.y as i32 + y))
+            .collect();
+        assert_eq!(
+            tiles,
+            vec![(6, 6), (7, 7), (5, 7), (6, 8)],
+            "front on the desk, then east, west and south"
+        );
+        let desk_id = p.find("desk").expect("shipped desk");
+        let desk = p
+            .lot
+            .placements
+            .iter()
+            .find(|row| row.object == desk_id)
+            .expect("desk placement");
+        assert_eq!(desk.facing, Facing::SouthWest);
+        assert_eq!(
+            p.object(desk_id).footprint_at(desk.facing),
+            Footprint { width: 2, depth: 1 }
+        );
+        assert_eq!((desk.x, desk.y), (6.0, 6.0));
+    }
+
     #[test]
     fn decorative_chairs_face_their_table_and_desk() {
         let p = pack();
