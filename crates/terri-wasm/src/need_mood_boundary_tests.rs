@@ -176,6 +176,7 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let mut expected_tail = postcard::to_allocvec(&snapshot.need_mood).unwrap();
     expected_tail.extend(postcard::to_allocvec(&snapshot.topic_memory).unwrap());
     expected_tail.extend(postcard::to_allocvec(&snapshot.hobby_mood).unwrap());
+    expected_tail.extend(postcard::to_allocvec(&snapshot.walk_steps).unwrap());
     assert_eq!(tail, expected_tail);
 
     use terri_core::admin::{AdminChange, AdminEdit};
@@ -213,5 +214,5 @@ fn v28_preserves_the_private_editable_payload_and_admits_published_v27() {
     let migrated = decode_current(&live.save_bytes());
     assert_eq!(migrated.need_mood, published.need_mood);
     assert!(migrated.baths.is_empty());
-    assert_eq!(live.sim.save_snapshot_v33(), migrated);
+    assert_eq!(live.sim.save_snapshot_v34(), migrated);
 }

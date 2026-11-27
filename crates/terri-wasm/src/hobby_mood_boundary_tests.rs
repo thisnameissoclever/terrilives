@@ -46,7 +46,7 @@ fn v31_payload_loads_with_empty_hobby_mood_and_rejects_a_hobby_tail() {
     let current = decode_current(&original);
     let mut legacy = SAVE_MAGIC.to_vec();
     legacy.extend(31u16.to_le_bytes());
-    legacy.extend(postcard::to_allocvec(&current.previous).unwrap());
+    legacy.extend(postcard::to_allocvec(&current.previous.previous).unwrap());
     assert!(live.load_bytes(&legacy));
     assert!(decode_current(&live.save_bytes()).hobby_mood.is_empty());
     assert_eq!(live.save_bytes(), original);
@@ -93,7 +93,6 @@ fn private_v32_keeps_accumulated_hobby_mood_and_continues_in_v33() {
     let mut private_v32 = SAVE_MAGIC.to_vec();
     private_v32.extend(32u16.to_le_bytes());
     private_v32.extend(postcard::to_allocvec(&snapshot.previous).unwrap());
-    private_v32.extend(postcard::to_allocvec(&snapshot.hobby_mood).unwrap());
 
     let mut restored = SimHandle::new(12, 12);
     assert!(restored.load_bytes(&private_v32));
@@ -116,7 +115,7 @@ fn v32_refuses_truncated_trailing_or_invalid_hobby_rows_without_loading_the_pref
     let snapshot = decode_current(&source.save_bytes());
     let mut public_v32 = SAVE_MAGIC.to_vec();
     public_v32.extend(32u16.to_le_bytes());
-    public_v32.extend(postcard::to_allocvec(&snapshot.previous).unwrap());
+    public_v32.extend(postcard::to_allocvec(&snapshot.previous.previous).unwrap());
     let invalid_row = SavedHobbyMood {
         actor: SavedOrderActor::Sim(0),
         minutes: 0,

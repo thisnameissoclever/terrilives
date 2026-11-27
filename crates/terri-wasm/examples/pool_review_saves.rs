@@ -9,7 +9,7 @@ use terri_wasm::SimHandle;
 
 fn write(sim: &Sim, folder: &std::path::Path, name: &str, actor: u32, pool: u32) -> String {
     let snapshot = sim
-        .try_save_snapshot_v33()
+        .try_save_snapshot_v34()
         .expect("valid pool review state");
     let episode = snapshot.pools.iter().find(|p| p.actor == actor);
     let mut bytes = SAVE_MAGIC.to_vec();
@@ -339,7 +339,7 @@ fn main() {
             .expect("ordinary bath begins")
             .remaining_ticks;
         let snapshot = sim
-            .try_save_snapshot_v33()
+            .try_save_snapshot_v34()
             .expect("valid bath review state");
         assert!(snapshot.pools.is_empty());
         let mut bytes = SAVE_MAGIC.to_vec();

@@ -24,7 +24,7 @@ use crate::social_episode::requests::runtime::Runtime;
 use crate::{save, SaveError, Sim};
 use bevy_ecs::prelude::*;
 use terri_core::admin::{AdminChange, AdminEdit, AdminStructureError};
-use terri_core::{CommandQueue, SaveSnapshotV33, SimCommand};
+use terri_core::{CommandQueue, SaveSnapshotV34, SimCommand};
 
 /// Why the drain refused a change ([AP-cmd-refusals]). The discriminant is
 /// the code the shell words.
@@ -124,7 +124,7 @@ pub(crate) struct AdminEntry {
 /// not hashed, like Build mode's transaction.
 #[derive(Resource, Clone)]
 pub(crate) struct AdminSession {
-    baseline: SaveSnapshotV33,
+    baseline: SaveSnapshotV34,
     baseline_hash: u64,
     request_runtime: Runtime,
     pub(crate) journal: Vec<AdminEntry>,
@@ -277,7 +277,7 @@ impl Sim {
         if !self.world.resource::<CommandQueue>().is_empty() {
             self.flush_commands();
         }
-        let baseline = save::v33::capture(self);
+        let baseline = save::v34::capture(self);
         let request_runtime = crate::social_episode::requests::runtime::capture(&self.world);
         self.restore_session_baseline(baseline.clone(), &request_runtime)
             .map_err(AdminOpenError::WouldNotReload)?;

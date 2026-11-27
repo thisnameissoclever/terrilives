@@ -73,7 +73,7 @@ fn main() {
                 }
             }
             let snapshot = sim
-                .try_save_snapshot_v33()
+                .try_save_snapshot_v34()
                 .expect("valid bath review state");
             let episode = snapshot
                 .baths

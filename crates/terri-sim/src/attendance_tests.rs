@@ -1421,7 +1421,10 @@ fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
 
     // This adjacent tile is walkable grass. The explicit path still has
     // to reach a home destination because the lot already contains floor.
-    let mut invalid = crate::current_test_snapshot::CurrentV5View(original.clone());
+    let mut invalid = crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV34 {
+        previous: original.clone(),
+        walk_steps: Vec::new(),
+    });
     let saved_actor = invalid
         .world
         .entities
@@ -1430,7 +1433,7 @@ fn current_save_rejects_an_inbound_path_that_ends_before_the_floor() {
         .unwrap();
     saved_actor.path.as_mut().unwrap().steps = vec![(0, 2)];
     assert_eq!(
-        sim.load_snapshot_v33(invalid.0),
+        sim.load_snapshot_v33(invalid.0.previous),
         Err(crate::SaveError::InvalidGrid)
     );
     assert_eq!(sim.save_snapshot_v33(), original);
