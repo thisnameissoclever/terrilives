@@ -20,7 +20,7 @@ need points. The HUD refreshes immediately after a successful load.
 
 ## [M2] Need rules
 
-Each game minute after needs settle, each empty need subtracts 5 points per game hour and each need above 80 adds 0.02 per game hour. Sum the contributions before clamping the accumulated total to the mood range. The Overview mood breakdown shows a nonzero balance as Mood from needs. The need warnings and the rules for urgent actions continue to use their own thresholds. Save version 27 retains the balance.
+Each game minute after needs settle, each empty need subtracts 0.14 mood points per game hour. Each need at 80% or higher adds 0.02 points per game hour. A need between those levels contributes zero. Six high needs and one empty need yield a net loss of 0.02 points per game hour, equal in size to the gain from one high need and six neutral needs. Sum the contributions before clamping the accumulated total to the mood range. Overview shows a nonzero balance as Mood from needs. Need warnings and urgent actions use their own thresholds. Saves preserve the accumulated balance.
 
 ### Hobby mood
 

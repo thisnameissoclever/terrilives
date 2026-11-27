@@ -1,14 +1,16 @@
 import { expect, it, vi } from 'vitest';
 import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
-vi.mock('../src/ui/character-creator/preview.js',()=>({CreatorPreview:class {}}));
+vi.mock('../src/ui/character-creator/preview.js',()=>({CreatorPreview:class {prepare(){return Promise.resolve();} destroy(){}}}));
 import { CreatorView, creatorPages } from '../src/ui/character-creator/view.js';
 import { CharacterDraft } from '../src/character/draft.js';
+import { CreatorSession } from '../src/ui/character-creator/session.js';
 import { floatBits, neutralDraft } from '../src/character/schema.js';
 import type { CharacterCatalog } from '../src/character/catalog.js';
 
 class Element {
   children:Element[]=[];dataset:Record<string,string>={};attributes:Record<string,string>={};
   disabled=false;checked=false;open=false;value='';id='';className='';type='';private text='';
+  listeners=new Map<string,()=>void>();
   constructor(readonly tag:string){}
   get textContent():string {return this.text+this.children.map(child=>child.textContent).join(' ');}
   set textContent(value:string){this.text=value;this.children=[];}
@@ -16,7 +18,8 @@ class Element {
   replaceChildren(...children:Element[]):void {this.children=children;}
   setAttribute(name:string,value:string):void {this.attributes[name]=value;}
   removeAttribute(name:string):void {delete this.attributes[name];}
-  addEventListener():void {}
+  addEventListener(event:string,handler:()=>void):void {this.listeners.set(event,handler);}
+  fire(event:string):void {if(!this.disabled)this.listeners.get(event)?.();}
   contains():boolean {return false;}
   all():Element[] {return [this,...this.children.flatMap(child=>child.all())];}
   querySelectorAll(selector:string):Element[] {
@@ -59,26 +62,27 @@ function viewFixture(definitions:CharacterCatalog=catalog){
   const draft=CharacterDraft.edit(neutralDraft('Name'),42,definitions,[]);
   const drawPreview=vi.fn(),refreshAnimation=vi.fn();
   const view=Object.assign(Object.create(CreatorView.prototype),{root,document,session:{draft,pending:false,error:'',sim:1},
-    page:'appearance',renderedPage:null,openGroups:new Map(),destroyed:false,previewReady:true,appearanceReady:true,previewError:'',lastAppearance:'',
+    page:'appearance',renderedPage:null,openGroups:new Map(),destroyed:false,previewReady:true,appearanceReady:true,preparationError:'',previewError:'',lastAppearance:'',
     element:(selector:string)=>fixed.get(selector)!,drawPreview,refreshAnimation}) as {
       page:string;render():void;drawPreview:typeof drawPreview;refreshAnimation:typeof refreshAnimation;
     };
   return {view,editor,draft,drawPreview,fixed};
 }
 
-it('allows Review submission after preparation without requiring a visible preview draw',()=>{
-  const {view,fixed}=viewFixture();view.page='review';Reflect.set(view,'previewReady',false);view.render();
+it('allows Move in after preparation without requiring a visible preview draw',()=>{
+  const {view,fixed}=viewFixture();view.page='review';
+  Reflect.set(Reflect.get(view,'session'),'sim',null);Reflect.set(view,'previewReady',false);view.render();
   expect(fixed.get('[data-next]')!.disabled).toBe(false);
   Reflect.set(view,'appearanceReady',false);view.render();expect(fixed.get('[data-next]')!.disabled).toBe(true);
   Reflect.set(view,'appearanceReady',true);Reflect.set(view,'previewError','Graphics failed');view.render();
-  expect(fixed.get('[data-next]')!.disabled).toBe(true);
+  expect(fixed.get('[data-next]')!.disabled).toBe(false);
 });
 
 it('shows character-resource preparation immediately and clears the spinner on completion or failure',()=>{
   const {view,fixed}=viewFixture(); Reflect.set(view,'appearanceReady',false); view.render();
   expect(fixed.get('.creator-status')!.attributes['data-pending']).toBe('true');
   Reflect.set(view,'appearanceReady',true);view.render(); expect(fixed.get('.creator-status')!.attributes['data-pending']).toBeUndefined();
-  Reflect.set(view,'appearanceReady',false);Reflect.set(view,'previewError','Resource unavailable');view.render();
+  Reflect.set(view,'appearanceReady',false);Reflect.set(view,'preparationError','Resource unavailable');view.render();
   expect(fixed.get('.creator-status')!.attributes['data-pending']).toBeUndefined();
 });
 
@@ -155,7 +159,7 @@ it('serializes preview work and defers queued draws while hidden or destroyed',a
 
 it('keeps explicit forward and cancel intent through page, label and pending changes',()=>{
   const {view,fixed}=viewFixture();
-  for(const [page,sim,label,pending] of [['appearance',1,'Continue',false],['review',1,'Apply changes',false],['review',null,'Move in',true]] as const){
+  for(const [page,sim,label,pending] of [['appearance',1,'Save',false],['review',1,'Save',false],['review',null,'Move in',true]] as const){
     view.page=page;Object.assign(Reflect.get(view,'session'),{sim,pending});view.render();
     expect(fixed.get('[data-next]')!.textContent).toBe(label);
     expect(fixed.get('[data-next]')!.attributes['data-action-intent']).toBe('affirmative');
@@ -163,4 +167,112 @@ it('keeps explicit forward and cancel intent through page, label and pending cha
     expect(fixed.get('[data-global-random]')!.attributes['data-action-intent']).toBeUndefined();
     expect(fixed.get('[data-next]')!.disabled).toBe(pending);
   }
+});
+
+
+it('saves the complete edit draft from any tab and preserves the create wizard',async()=>{
+  vi.stubGlobal('MutationObserver',class {observe():void {} disconnect():void {}});
+  try {
+    for(const editing of [true,false]){
+      const fixed=new Map<string,Element>();
+      const node=(selector:string)=>{if(!fixed.has(selector))fixed.set(selector,new Element('div'));return fixed.get(selector)!;};
+      const root=new Element('root');Object.assign(node('.creator-preview'),{getClientRects:()=>[]});
+      const window={matchMedia:()=>({matches:true,addEventListener:vi.fn()}),addEventListener:vi.fn(),requestAnimationFrame:vi.fn(),cancelAnimationFrame:vi.fn()};
+      const document={hidden:false,defaultView:window,activeElement:null,createElement:(tag:string)=>new Element(tag),getElementById:()=>null,addEventListener:vi.fn()};
+      const editCharacter=vi.fn(()=>true);
+      const source={characterCatalog:()=>catalog,characterSnapshot:()=>neutralDraft('Name'),editCharacter};
+      const session=editing?new CreatorSession(source as unknown as ConstructorParameters<typeof CreatorSession>[0],42,[],1,()=>{}):
+        {draft:CharacterDraft.edit(neutralDraft('Name'),42,catalog,[]),pending:false,error:'',sim:null,submit:vi.fn(()=>true)};
+      const draft=session.draft,submit=vi.spyOn(session,'submit');
+      let dialog:{open:boolean}|null=null;
+      Object.assign(root,{ownerDocument:document,classList:{add:vi.fn(),remove:vi.fn()},innerHTML:'',querySelector:node,closest:()=>dialog,parentElement:null});
+      root.append(node('.creator-nav'));
+      const createView=()=>new CreatorView(root as unknown as HTMLElement,session as unknown as ConstructorParameters<typeof CreatorView>[1],{} as GPUDevice,'rgba8unorm',()=>{if(dialog)dialog.open=false;});
+      let view=createView();
+      await Promise.resolve();
+      const nav=node('.creator-nav');
+      const go=(page:string)=>nav.children.find(button=>button.dataset.page===page)!.fire('click');
+      if(editing){
+        for(const [heightValue,blur] of [[75,false],[80,true]] as const){
+          const height=node('.creator-editor').all().find(row=>row.dataset.field==='appearance.body.height')!.all().find(input=>input.type==='number')!;
+          Object.assign(height,{valueAsNumber:heightValue});height.fire('input');
+          if(blur)height.fire('change');
+          expect(node('[data-next]').disabled).toBe(false);
+          node('[data-next]').fire('click');
+          expect(submit).not.toHaveBeenCalled();expect(node('[data-next]').disabled).toBe(true);
+          await Promise.resolve();
+          expect(submit).toHaveBeenCalledTimes(1);
+          expect(editCharacter).toHaveBeenCalledWith(expect.any(Number),1,expect.objectContaining({appearance:expect.objectContaining({body:expect.objectContaining({height:heightValue})})}));
+          session.pending=false;view.render();submit.mockClear();editCharacter.mockClear();
+        }
+      }
+      go('identity');
+      const editor=node('.creator-editor');
+      const name=editor.all().find(row=>row.dataset.field==='name')!.all().find(input=>input.type==='text')!;
+      name.value='Changed';name.fire('input');
+      go('personality');
+      const slider=editor.all().find(row=>row.dataset.field==='behavior.shyness')!.all().find(input=>input.type==='range')!;
+      Object.assign(slider,{valueAsNumber:75});slider.fire('input');
+      if(editing){
+        go('identity');
+        let currentName=editor.all().find(row=>row.dataset.field==='name')!.all().find(input=>input.type==='text')!;
+        currentName.value=' ';currentName.fire('input');currentName.fire('change');
+        expect(draft.value.name).toBe('Changed');
+        node('[data-next]').fire('click');expect(submit).not.toHaveBeenCalled();expect(session.error).not.toBe('');
+        expect(editor.all().find(row=>row.dataset.field==='name')!.all().find(input=>input.type==='text')).toBe(currentName);
+        expect(currentName.value).toBe(' ');
+        currentName.value='Changed again';currentName.fire('input');
+        expect(node('[data-next]').textContent).toBe('Save');
+        node('[data-next]').fire('click');
+        expect(submit).toHaveBeenCalledTimes(1);
+        expect(editCharacter).toHaveBeenCalledWith(expect.any(Number),1,expect.objectContaining({name:'Changed again',behavior:expect.objectContaining({shyness:75})}));
+        session.pending=false;
+        for(const [page] of creatorPages){go(page);expect(node('[data-next]').textContent).toBe('Save');
+          Reflect.set(view,'appearanceReady',false);view.render();expect(node('[data-next]').disabled).toBe(false);
+          Reflect.set(view,'appearanceReady',true);view.render();expect(node('[data-next]').disabled).toBe(false);}
+        submit.mockClear();editCharacter.mockClear();go('appearance');
+        dialog={open:true};
+        const appearanceNumber=()=>editor.all().find(row=>row.dataset.field==='appearance.body.height')!.all().find(input=>input.type==='number')!;
+        let fail!: (error:Error)=>void;
+        const failing=new Promise<void>((_resolve,reject)=>{fail=reject;});
+        Reflect.set(Reflect.get(view,'preview'),'prepare',()=>failing);
+        const failingHeight=appearanceNumber();
+        Object.assign(failingHeight,{valueAsNumber:85});failingHeight.fire('input');node('[data-next]').fire('click');
+        fail(new Error('Appearance preparation failed.'));await Promise.resolve();
+        expect(submit).not.toHaveBeenCalled();expect(node('[data-next]').disabled).toBe(false);
+        expect(node('.creator-status').textContent).toBe('Appearance preparation failed.');
+        Reflect.set(Reflect.get(view,'preview'),'prepare',()=>Promise.resolve());
+        node('[data-next]').fire('click');node('[data-next]').fire('click');await Promise.resolve();
+        expect(submit).toHaveBeenCalledTimes(1);
+        expect(editCharacter).toHaveBeenCalledWith(expect.any(Number),1,expect.objectContaining({appearance:expect.objectContaining({body:expect.objectContaining({height:85})})}));
+        session.pending=false;view.render();submit.mockClear();editCharacter.mockClear();
+        let finishOldView!:()=>void;
+        const oldPreparation=new Promise<void>(resolve=>{finishOldView=resolve;});
+        Reflect.set(Reflect.get(view,'preview'),'prepare',()=>oldPreparation);
+        const recoveryHeight=appearanceNumber();
+        Object.assign(recoveryHeight,{valueAsNumber:90});recoveryHeight.fire('input');node('[data-next]').fire('click');
+        expect(submit).not.toHaveBeenCalled();
+        view.destroy();nav.replaceChildren();root.append(nav);view=createView();
+        await Promise.resolve();
+        expect(submit).toHaveBeenCalledTimes(1);
+        expect(editCharacter).toHaveBeenCalledWith(expect.any(Number),1,expect.objectContaining({appearance:expect.objectContaining({body:expect.objectContaining({height:90})})}));
+        finishOldView();await Promise.resolve();expect(submit).toHaveBeenCalledTimes(1);
+        session.pending=false;view.render();submit.mockClear();editCharacter.mockClear();
+        let finish!:()=>void;
+        const pending=new Promise<void>(resolve=>{finish=resolve;});
+        Reflect.set(Reflect.get(view,'preview'),'prepare',()=>pending);
+        const height=appearanceNumber();
+        Object.assign(height,{valueAsNumber:95});height.fire('input');node('[data-next]').fire('click');
+        expect(node('[data-next]').disabled).toBe(true);
+        node('[data-cancel]').fire('click');expect(dialog.open).toBe(false);
+        finish();await Promise.resolve();
+        expect(submit).not.toHaveBeenCalled();expect(editCharacter).not.toHaveBeenCalled();
+      }else{
+        expect(node('[data-next]').textContent).toBe('Continue');node('[data-next]').fire('click');
+        expect(submit).not.toHaveBeenCalled();go('review');expect(node('[data-next]').textContent).toBe('Move in');
+        node('[data-next]').fire('click');expect(submit).toHaveBeenCalledTimes(1);
+      }
+      view.destroy();
+    }
+  }finally{vi.unstubAllGlobals();}
 });

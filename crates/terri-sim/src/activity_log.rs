@@ -13,8 +13,10 @@ use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Mutex;
-use terri_core::SimClock;
+use terri_core::{SimClock, SimId};
 use terri_data::ContentPack;
+
+pub(crate) mod mood;
 
 /// Little-endian `u32` words in one record ([AL-record]).
 pub const RECORD_WORDS: usize = 12;
@@ -30,12 +32,13 @@ pub const STAGING_CAPACITY: usize = 256;
 pub const NONE: u32 = u32::MAX;
 
 /// Trigger mask bits. A line shows when an enabled filter's bit is set in
-/// its record or in one of its children. Details and Time never trigger.
+/// its record or in one of its children. Details triggers mood rows only.
 pub const ACTIONS: u32 = 1;
 pub const CHORES: u32 = 2;
 pub const SOCIAL: u32 = 4;
 pub const SKILLS: u32 = 8;
 pub const CAREER: u32 = 16;
+pub const DETAILS: u32 = 32;
 
 /// Flags in bits 16 to 23 of word 2. Set when the actor's, or the other
 /// person's, Social total began before any activity start this world saw,
@@ -85,10 +88,11 @@ pub enum LogKind {
     WeeklyReview = 10,
     CareerChange = 11,
     Death = 12,
+    MoodChange = 13,
 }
 
 impl LogKind {
-    pub const ALL: [Self; 12] = [
+    pub const ALL: [Self; 13] = [
         Self::ActionDone,
         Self::ChatDone,
         Self::FightDone,
@@ -101,6 +105,7 @@ impl LogKind {
         Self::WeeklyReview,
         Self::CareerChange,
         Self::Death,
+        Self::MoodChange,
     ];
 
     pub fn from_code(code: u8) -> Option<Self> {
@@ -399,7 +404,7 @@ pub fn labels(pack: &'static ContentPack) -> &'static Labels {
 }
 
 /// The staging ring and the scratch state emitters accumulate across ticks.
-/// Never saved, never hashed, never read by a simulation system. A Load
+/// Its state is excluded from saves, hashes and gameplay decisions. A Load
 /// builds a fresh world and with it an empty log; a Build transaction
 /// carries this resource across its world swaps in `copy_feedback`.
 #[derive(Resource)]
@@ -430,6 +435,8 @@ struct Scratch {
     /// This pass's chat and fight feelings, waiting for the record of the
     /// conversation that caused them.
     feelings: Vec<HeldFeeling>,
+    /// One mood track per living person, cleared when logging is disabled.
+    mood: mood::Journal,
 }
 
 #[derive(Clone, Copy)]
@@ -542,6 +549,24 @@ impl Default for ActivityLog {
 impl ActivityLog {
     pub fn enabled(&self) -> bool {
         self.enabled
+    }
+
+    pub(crate) fn observe_mood(&mut self, now: u64, observations: Vec<(SimId, mood::Observation)>) {
+        if !self.enabled {
+            return;
+        }
+        for (actor, observation) in observations {
+            for record in self
+                .scratch
+                .mood
+                .observe(actor, observation)
+                .into_iter()
+                .flatten()
+            {
+                self.push(record);
+            }
+        }
+        self.scratch.mood.retain_observed(now);
     }
 
     /// Turns emission on or off for the disabled performance baseline.

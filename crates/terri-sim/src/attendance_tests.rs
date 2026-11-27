@@ -96,6 +96,78 @@ fn start_swimming(sim: &mut Sim, actor: Entity) -> Entity {
 }
 
 #[test]
+fn unavailable_recipient_releases_a_wait_at_scheduled_departure() {
+    use crate::social_episode::requests::{
+        self, CommittedConversation, ConversationOrigin, ConversationRequests, RequestPhase,
+    };
+    use terri_core::{Eating, Reserved};
+
+    let (mut sim, worker, object) = full_fixture(40, 120, 240);
+    let content = *sim.world().resource::<Content>();
+    let chat = content
+        .0
+        .social
+        .iter()
+        .position(|a| a.id == "chat")
+        .unwrap() as u32;
+    let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    let asker = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 2., y: 5. },
+            Needs::all_at(100.),
+            Personality::default(),
+            Relationships::default(),
+            Satisfaction::from_value(0.),
+        ))
+        .id();
+    let definition = sim.world().get::<SmartObject>(object).unwrap().0;
+    sim.world_mut().entity_mut(object).insert(Reserved);
+    sim.world_mut().entity_mut(worker).insert((
+        Target {
+            object,
+            interaction: 0,
+        },
+        Eating {
+            object: definition,
+            interaction: 0,
+            remaining_ticks: 100,
+        },
+    ));
+    let request = requests::enqueue(
+        sim.world_mut(),
+        asker,
+        worker,
+        chat,
+        ConversationOrigin::Autonomous,
+    )
+    .expect("a busy housemate at home can receive a chat request");
+    sim.world_mut().resource_mut::<SimClock>().tick = 38;
+    sim.tick();
+    assert_eq!(
+        sim.world().resource::<ConversationRequests>().requests[&request].phase,
+        RequestPhase::Waiting
+    );
+    sim.tick();
+    assert_eq!(
+        sim.world().get::<Commuting>(worker),
+        Some(&Commuting::Outbound)
+    );
+    assert!(sim.world().get::<CommittedConversation>(asker).is_none());
+    assert!(sim
+        .world()
+        .get::<Target>(asker)
+        .is_none_or(|target| target.object != worker));
+    assert!(!sim
+        .world()
+        .resource::<ConversationRequests>()
+        .requests
+        .contains_key(&request));
+}
+
+#[test]
 fn pool_autonomous_swimmer_keeps_ownership_until_scheduled_work_can_depart() {
     let (mut sim, actor, _) = full_fixture(40, 120, 240);
     let pool = start_swimming(&mut sim, actor);
@@ -938,7 +1010,7 @@ fn acknowledged_build_obstruction_ends_a_manual_trip_but_keeps_its_shift() {
 }
 
 #[test]
-fn incoming_order_that_becomes_front_recalls_ordinary_work_only() {
+fn an_older_queued_chat_reaching_the_front_does_not_recall_a_worker() {
     for manual in [false, true] {
         let (mut sim, worker, object) = full_fixture(40, 120, 240);
         let mut pack = sim.world().resource::<Content>().0.clone();
@@ -987,7 +1059,9 @@ fn incoming_order_that_becomes_front_recalls_ordinary_work_only() {
             .unwrap()
             .remaining_ticks;
         assert!(remaining > 30);
-        assert_eq!(sim.world().get::<IntentQueue>(requester).unwrap().len(), 2);
+        let queue = sim.world().get::<IntentQueue>(requester).unwrap();
+        assert_eq!(queue.len(), 2);
+        let chat = queue.entries()[1].id;
         sim.world_mut().resource_mut::<SimClock>().tick = 39;
         if manual {
             issue(
@@ -1006,14 +1080,30 @@ fn incoming_order_that_becomes_front_recalls_ordinary_work_only() {
                 s.world().get::<AtWork>(worker).is_some()
             },
         );
-        until(&mut sim, "older Talk to is next", remaining as usize, |s| {
-            s.world()
-                .get::<IntentQueue>(requester)
-                .and_then(|q| q.entries().first())
-                .is_some_and(|entry| entry.intent.object == worker)
-        });
-        sim.tick();
-        assert_eq!(sim.world().get::<AtWork>(worker).is_some(), manual);
+        until(
+            &mut sim,
+            "older Talk is canceled",
+            remaining as usize + 2,
+            |s| {
+                s.world()
+                    .get::<IntentQueue>(requester)
+                    .is_some_and(|queue| queue.order(chat).is_none())
+            },
+        );
+        assert!(sim.world().get::<AtWork>(worker).is_some());
+        assert_eq!(
+            crate::social_episode::execution_order(sim.world(), requester),
+            None
+        );
+        assert!(sim
+            .world()
+            .get::<Target>(requester)
+            .is_none_or(|target| target.object != worker));
+        assert!(sim.action_events_since(0).events.iter().any(|event| {
+            event.actor == requester.index_u32()
+                && event.order_id == chat
+                && event.phase == "canceled"
+        }));
         if manual {
             issue(
                 &mut sim,
@@ -1032,7 +1122,88 @@ fn incoming_order_that_becomes_front_recalls_ordinary_work_only() {
 }
 
 #[test]
-fn older_incoming_order_waits_while_only_later_confirmed_order_recalls_swimmer() {
+fn new_chat_with_an_unavailable_recipient_keeps_the_requesters_order() {
+    use crate::world_geometry::WaitingToReturn;
+
+    for (status, reason) in [
+        ("inbound", "Recipient is returning from work"),
+        ("stranded", "Recipient is returning from work"),
+        ("outbound", "Recipient is at work"),
+        ("working", "Recipient is at work"),
+        ("asleep", "Recipient is asleep"),
+    ] {
+        let (mut sim, worker, object) = full_fixture(60, 120, 240);
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.tuning.max_queued_intents = 1;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        let requester = sim.spawn_agent(Position { x: 4.0, y: 5.0 }, 100.0);
+        hold(&mut sim, requester, object);
+        let existing = sim.world().get::<IntentQueue>(requester).unwrap().entries()[0].clone();
+        let pack = sim.world().resource::<Content>().0;
+        let mut recipient = sim.world_mut().entity_mut(worker);
+        match status {
+            "inbound" => {
+                recipient.insert(Commuting::Inbound);
+            }
+            "stranded" => {
+                recipient.insert((AtWork { remaining_ticks: 1 }, WaitingToReturn));
+            }
+            "outbound" => {
+                recipient.insert(Commuting::Outbound);
+            }
+            "working" => {
+                recipient.insert(AtWork {
+                    remaining_ticks: 60,
+                });
+            }
+            "asleep" => {
+                let bed = pack.find("bed").unwrap();
+                let sleep = pack
+                    .object(bed)
+                    .interactions
+                    .iter()
+                    .position(|row| row.tags.contains(&pack.sleep_tag))
+                    .unwrap();
+                recipient.insert(terri_core::Eating {
+                    object: bed,
+                    interaction: sleep as u32,
+                    remaining_ticks: 60,
+                });
+            }
+            _ => unreachable!(),
+        }
+        let command = SimCommand::TalkToFirst {
+            agent: requester.index_u32(),
+            target: worker.index_u32(),
+            interaction: 0,
+        };
+        let command = if matches!(status, "inbound" | "stranded" | "asleep") {
+            let participants = [requester.index_u32(), worker.index_u32()];
+            let quote = work_conflicts(sim.world(), &participants);
+            assert!(quote.conflicts.is_empty());
+            SimCommand::ConfirmedOrder {
+                fingerprint: quote.fingerprint,
+                command: command.into_player_order().unwrap(),
+            }
+        } else {
+            command
+        };
+        issue(&mut sim, command);
+        assert_eq!(
+            sim.world().get::<IntentQueue>(requester).unwrap().entries(),
+            &[existing],
+        );
+        assert!(sim.action_events_since(0).events.iter().any(|event| {
+            event.actor == requester.index_u32()
+                && event.phase == "failed"
+                && event.reason.as_deref() == Some(reason)
+        }));
+    }
+}
+
+#[test]
+fn only_a_confirmed_chat_can_interrupt_a_swimmers_work_departure() {
     let (mut sim, worker, _) = full_fixture(40, 120, 240);
     start_swimming(&mut sim, worker);
     let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
@@ -1057,6 +1228,7 @@ fn older_incoming_order_waits_while_only_later_confirmed_order_recalls_swimmer()
     };
     issue(&mut sim, talk.clone());
     assert!(crate::player_actions::has_player_work(sim.world(), worker));
+    let chat = sim.world().get::<IntentQueue>(requester).unwrap().entries()[0].id;
     let participants = [requester.index_u32(), worker.index_u32()];
     let before_departure = work_conflicts(sim.world(), &participants).fingerprint;
     issue(
@@ -1066,6 +1238,12 @@ fn older_incoming_order_waits_while_only_later_confirmed_order_recalls_swimmer()
         },
     );
     assert!(manual_work_trip(sim.world(), worker));
+    assert!(sim
+        .world()
+        .get::<IntentQueue>(requester)
+        .unwrap()
+        .order(chat)
+        .is_some());
 
     let order = talk.into_player_order().unwrap();
     issue(
@@ -1096,7 +1274,12 @@ fn older_incoming_order_waits_while_only_later_confirmed_order_recalls_swimmer()
     );
     sim.tick();
     assert!(sim.world().get::<AtWork>(worker).is_some());
-    assert_eq!(sim.world().get::<IntentQueue>(requester).unwrap().len(), 1);
+    assert!(sim
+        .world()
+        .get::<IntentQueue>(requester)
+        .unwrap()
+        .order(chat)
+        .is_none());
 }
 
 fn use_historical_blank_rooms(sim: &mut Sim) {

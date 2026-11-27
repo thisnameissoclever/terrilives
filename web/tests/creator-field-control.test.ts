@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
 import { CharacterDraft } from '../src/character/draft.js';
 import { floatBits, neutralDraft } from '../src/character/schema.js';
@@ -80,4 +80,22 @@ it('refreshes the value box tooltip after an edit',()=>{
   (box as unknown as {valueAsNumber:number}).valueAsNumber=41;box.fire('change');
   expect(box.value).toBe('41');
   expect((box as unknown as {title?:string}).title).toBe('41');
+});
+
+it('keeps Undo after the slider corrects an invalid pending number',()=>{
+  const draft=CharacterDraft.edit(neutralDraft('Name'),7,catalog,[]);
+  const field=draft.fields.find(field=>field.id==='behavior.shyness')!;
+  let flush=()=>false;
+  const fail=vi.fn();
+  const row=fieldControl(document,field,draft,0,()=>{},fail,commit=>{flush=commit;}) as unknown as Element;
+  const box=numberBox(row),range=row.children[1].children[0];
+  Object.defineProperty(box,'valueAsNumber',{get:()=>box.value===''?NaN:Number(box.value)});
+  Object.defineProperty(range,'valueAsNumber',{get:()=>Number(range.value)});
+  box.value='';box.fire('input');box.fire('change');
+  expect(fail).toHaveBeenCalledTimes(1);
+  range.value='71';range.fire('input');
+  expect(flush()).toBe(true);
+  expect(draft.value.behavior.shyness).toBe(71);
+  draft.undo();
+  expect(draft.value.behavior.shyness).toBe(50);
 });

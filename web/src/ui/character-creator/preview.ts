@@ -34,8 +34,12 @@ export class CreatorPreview {
   }
   prepare(appearance:CharacterAppearanceV1,facing:number,action='idle'):Promise<CharacterPreparation|undefined> {
     const requested=JSON.stringify([appearance,facing,action]);
-    if(requested!==this.requested){this.requested=requested;++this.generation;this.preparation=this.contacts.prepare(appearance);void this.preparation.catch(()=>{});}
-    return this.preparation!;
+    if(requested!==this.requested||!this.preparation){
+      this.requested=requested;++this.generation;
+      const preparation=this.contacts.prepare(appearance);this.preparation=preparation;
+      void preparation.catch(()=>{if(this.preparation===preparation)this.preparation=null;});
+    }
+    return this.preparation;
   }
   async draw(appearance: CharacterAppearanceV1, facing: number, action='idle', frame=0,currentFrame?:()=>number): Promise<boolean> {
     const preparation=this.prepare(appearance,facing,action),generation=this.generation;

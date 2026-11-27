@@ -8,10 +8,12 @@ The dock shows the selected person's current mood: Miserable, Low, Okay, Good or
 
 Needs, conditions, nearby people, grief, dirt, dishes, waiting and recent events can all contribute. A pleasant activity does not guarantee a good overall mood when several other things are wrong. Read the named reasons before trying to fix the meter by repeating one favorite action.
 
-Each game minute, every empty need lowers mood a little and every need above {{number:need_mood.high_level}}% raises it a little. These changes add together. If someone finishes a shower with a little Energy left, that Energy level contributes zero points for the minute. Sim details shows the accumulated effect under Mood from needs. The game keeps it when you save and load. Households from older versions start counting from the time you resume playing.
+When mood changes during play, open the [Log](ui-elements/#log) and turn on **Details + mood** to see significant changes and their causes. For example, the Log can show that a housemate's mood fell as the comfort of nearby company faded.
+
+Each game minute, every empty need lowers mood a little and every need at {{number:need_mood.high_level}}% or higher raises it a little. Needs between those levels contribute zero. Sim details shows the accumulated effect under Mood from needs. The game keeps it when you save and load. Older saves made before needs affected mood this way start with a neutral contribution.
 
 :::numbers How quickly needs change mood
-Each need at zero costs {{number:need_mood.loss_per_hour}} mood points per game hour. Each need above {{number:need_mood.high_level}}% adds {{number:need_mood.gain_per_hour}} points per game hour. The game applies a fraction each minute. Five healthy needs held above that level for ten hours earn one mood point.
+Each empty need costs {{number:need_mood.loss_per_hour}} mood points per game hour. Each need at {{number:need_mood.high_level}}% or higher adds {{number:need_mood.gain_per_hour}} points per game hour. The game adds these rates together and applies a fraction each game minute. With six high needs and one empty need, Mood from needs falls by 0.02 points per game hour. With one high need and six in the middle, it rises by the same amount. This contribution stays between −100 and +100.
 :::
 
 Waiting for an occupied item lowers mood more when the activity could help a pressing need. Walking, working and talking are not the same waiting state. Removing dirt or dishes can improve mood without adding personal Hygiene, and nearby liked company can improve mood without adding Social.

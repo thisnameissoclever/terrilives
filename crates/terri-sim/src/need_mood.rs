@@ -28,10 +28,10 @@ pub(crate) fn accrue(
     for (person, needs, current) in &mut people {
         let mut delta = 0;
         for &level in needs.as_slice() {
-            if level > tuning.high_level {
-                delta += tuning.high_gain_units;
-            } else if level == NEED_MIN {
+            if level == NEED_MIN {
                 delta -= tuning.empty_loss_units;
+            } else if level >= tuning.high_level {
+                delta += tuning.high_gain_units;
             }
         }
         if delta == 0 {

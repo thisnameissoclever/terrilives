@@ -41,7 +41,7 @@ impl Week {
         self.ledger_floor_minutes += u64::from(ledger == -MAX_UNITS);
         for need in NeedId::ALL {
             let value = needs.get(need);
-            self.high_minutes[need.index()] += u64::from(value > high_level);
+            self.high_minutes[need.index()] += u64::from(value > NEED_MIN && value >= high_level);
             self.zero_minutes[need.index()] += u64::from(value == NEED_MIN);
         }
     }
@@ -171,9 +171,7 @@ fn main() -> Result<(), Box<dyn Error>> {
          overall_negative_100_minutes,overall_negative_100_percent,ledger_100_minutes,\
          ledger_100_percent,ledger_negative_100_minutes,ledger_negative_100_percent"
     );
-    println!(
-        "kind,household,week,need,above_high_minutes,above_high_percent,zero_minutes,zero_percent"
-    );
+    println!("kind,household,week,need,high_minutes,high_percent,zero_minutes,zero_percent");
     study("saved", saved, weeks)?;
     study("starter", Sim::new_from_shipped_lot_with_seed(seed), weeks)
 }

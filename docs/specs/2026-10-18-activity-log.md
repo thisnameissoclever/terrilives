@@ -4,6 +4,8 @@ Issue 275 asks for a player-facing log of what the household does: a button at t
 
 The design was written on 2026-10-18 against main `10ced796b`. Facts about the current code below were read from that revision; the plan repeats the checks an implementer should run before relying on them.
 
+The November 25 mood extension uses the existing Details filter, now labeled Details + mood. Time is now labeled Timestamps. The extension adds session-only entries for significant mood changes, including changes during unrelated activities. Details + mood still shows numbers on ordinary entries.
+
 ## Contents
 
 - [[AL-decisions] Owner decisions this design follows](#al-decisions-owner-decisions-this-design-follows)
@@ -52,7 +54,7 @@ The owner decided these points on 2026-10-17 and 2026-10-18.
 | Line | What the panel shows for one parent record and its children. |
 | Head | The part of a line every visible line shows: `Name: label`, with the other person and topic when the event has them. |
 | Clause | A part of a line that one filter adds, such as the Social reactions or the Career outcome. |
-| Trigger | A filter whose clause, when that filter is on, makes the line visible. Details and Time never trigger. |
+| Trigger | A filter whose clause, when that filter is on, makes the line visible. Details + mood triggers mood entries. Timestamps only adds the prefix. |
 | Opinion | One person's directional feeling toward another, stored from -1 to 1 and shown on the People panel as a band. Details shows it multiplied by 100. |
 | Tick | One game minute. A game day is 1,440 ticks. |
 
@@ -84,7 +86,7 @@ A record is twelve little-endian `u32` words, 48 bytes. The simulation never bui
 | 7 | `parent` | `seq` of the parent record, or 0. Set by the end-of-tick link pass, which only links records of the same tick and prefers the nearest earlier candidate, then the nearest later one. |
 | 8 to 11 | `v0` to `v3` | Signed values whose meaning depends on the kind. |
 
-Trigger mask bits: Actions 1, Chores 2, Social 4, Skills 8, Career 16. Details and Time have no bit because they never make a line visible.
+Trigger mask bits are Actions 1, Chores 2, Social 4, Skills 8, Career 16 and Details + mood 32. Only mood records carry bit 32. Timestamps adds the time to visible entries.
 
 Values use fixed units so the shell rounds once: needs in tenths of a point; opinion changes in ten-thousandths of the -1 to 1 scale, so 100 units is one displayed point; preferences, fit and mood multiplied by 100; performance and percentages as whole numbers.
 
@@ -102,6 +104,7 @@ Values use fixed units so the shell rounds once: needs in tenths of a point; opi
 | 10 Weekly review | Parent | Career | `label` level title after, none after a dismissal; `v0` outcome code in bits 0 to 7 and the warning in bit 8; `v1` performance; `v2` fit; `v3` mastery percent and mood packed as two `i16` |
 | 11 Career change | Parent | Career | `label` level title, the one left for a quit; `v0` 0 hired by search, 1 assigned by the player, 2 left the job |
 | 12 Death | Parent | Social | `actor` the person who died |
+| 13 Mood change | Parent | Details + mood | `actor` affected person, `other` primary companion when applicable, `label` cause, `label2` verified proximity change in bit 0 and native mood band in bits 8 to 15, `v0` total episode change in hundredths, `v1` final mood in hundredths, `v2` unsigned start tick, `v3` primary cause change in hundredths |
 
 Ordinary skill practice that does not cross a level is part of kind 1 and never triggers.
 
@@ -141,7 +144,7 @@ Sources that are not logged, and why:
 1. Walking, waiting, wandering, commuting and work shifts. The issue excludes going to and returning from work, and the others are not actions a player orders.
 2. Chain steps, which would repeat one meal four times. The chain is logged once.
 3. Need decay, relationship decay, proximity contact, shared-activity contact counted per minute, and incompatibility friction. All are continuous; they change every tick for many pairs and are summarized only where an action carries them [AL-capture].
-4. Moodlets starting or ending, needs turning critical, money and purchases. These would need the Mood or Money filters the owner did not choose.
+4. Individual moodlet changes and critical need warnings. The mood extension reports a significant overall change and its main cause. Money and purchases have no Log filter.
 5. Chats and fights withdrawn or given up before they start (pull request 302): a chosen chat a housemate gives up once Hunger or Energy turns critical or its partner falls asleep (issue 338), a waiting request withdrawn for another conversation, and a fight the game started, called off before it begins, including one whose recipient falls asleep (issue 338). Each ends a conversation that never ran, so the log records nothing, as it records nothing for an interrupted chat.
 6. Changes to a housemate's own job search setting (pull request 303). Turning it on or off is a setting, not something the household did, so it logs nothing, as the old household-wide setting logged nothing. A hire by job search still logs its Career line.
 7. Duties a room change adds in the middle of a week (`chores::board::assign_new_duties`, called from `chores::room_changes`). The room review lists each automatically assigned duty with its owner before the player confirms the change, and the next week's Chores this week line names it; a mid-week line would repeat what the player just confirmed.
@@ -165,6 +168,8 @@ Each item below is captured by copying a value at the moment the simulation comp
 ## [AL-compose] One line per event
 
 The shell composes lines from records. A line is visible when at least one enabled filter is in its trigger mask, including the triggers of its children. A visible line always shows its head, then each clause whose filter is on, in a fixed order: chore, social, skill, career. Numbers from Details follow the clause they measure in parentheses. Time puts the timestamp first.
+
+Mood snapshots reuse the settled projection that drives life satisfaction. The first change of at least four points creates an entry. Further changes update it in approximately two-point steps and at the end of a verified proximity effect. A reversal of at least 0.75 points starts a separate episode. The shell groups updates by person and start tick and reads the newest score and cause. The cause compares the effects at the start and end, including temporary effects such as hobby enjoyment. A company explanation names movement only when distance accounts for the change more strongly than affinity. Capture continues while the panel is closed or Details + mood is off.
 
 This one rule produces the issue's two notes. With only Actions on, a chat shows its head and nothing else. With Social on and Actions off, a chat still shows, because Social is one of its triggers, while "Tim: Read a book" disappears, because it has no Social trigger. Each event stays one line under every combination because filters only add or remove clauses.
 
@@ -375,9 +380,9 @@ These are proposals, not approved copy. They live in one shell module, `web/src/
 
 | Surface | Proposed strings |
 | --- | --- |
-| Toggle and panel | Log; Close; Actions; Chores; Social; Skills; Career; Details; Time; Nothing has happened yet.; Nothing matches these filters.; Show earlier entries; Only {name}, the checkbox that narrows the log to the selected housemate; the accessible names Filters, for the filter group, and Log entries, for the scrolling list |
+| Toggle and panel | Log; Close; Actions; Chores; Social; Skills; Career; Details + mood; Timestamps; Nothing has happened yet.; Nothing matches these filters.; Show earlier entries; Only {name}, the checkbox that narrows the log to the selected housemate; the accessible names Filters, for the filter group, and Log entries, for the scrolling list |
 | Head | {name}: {label}; with {name}; about {topic}, left out for small talk and a fight over nothing in particular, which read Chat with {name} and Fight with {name}; Someone at the start of a line and someone elsewhere, for a person the shell never saw a name for |
-| Time | D{day}, T{hh}:{mm} |
+| Timestamps | D{day}, T{hh}:{mm} |
 | Topic words, phase 1 | eating; sleep; reading; exercise; the aquarium; comfort; showers; the toilet; TV; lounging; washing; cleaning; music; letters; baths; cooking; bathroom privacy; something; the dishes; chores; for arguments over a grievance privacy, TV, music, exercise, a nuisance and interruptions; for arguments over an everyday topic the same words as that topic's chats, with ingredients and preparing food |
 | Reactions | {name} loves it; {name} likes it; {name} does not mind it; {name} dislikes it; {name} hates it |
 | Feelings | {name} appreciates {name}; {name} and {name} like each other less; a feeling whose line was not logged, as its own line: {name}: Appreciated {name}'s meal, Appreciated {name}'s chore or Resented {name}'s neglected chore; Annoyed by {name}'s dishes; Annoyed by {name}'s dirty place setting; Annoyed that {name} walked in while they were using the {type}. Awkward.; Annoyed that {name} started using the {type} right in front of them. Awkward.; in both, {type} is the fixture's type label in lowercase, such as toilet, shower or bathtub, never its model name, and bathroom when the fixture is unknown, since only bathroom fixtures start private use; Annoyed that {name} interrupted; Bothered by {name} using the {kind}, reused from the mood panel; ({n} times), which shares its parentheses with a Details number as ({n} times, {+n} opinion of {name}); {name} resents {name}, for a chore neglected; Annoyed by {name}, for a cause the shell does not know |

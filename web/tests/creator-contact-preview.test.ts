@@ -16,7 +16,7 @@ it('requests the newest contact data while an earlier preview draw is still awai
   const a=defaultAppearance(),b=structuredClone(a);b.body.height=100;
   const prepare=vi.fn(()=>Promise.resolve(undefined)),draw=vi.fn();
   const view=Object.assign(Object.create(CreatorView.prototype),{destroyed:false,session:{draft:{value:{appearance:b}}},preview:{prepare,draw},
-    previewInFlight:true,previewReady:true,appearanceReady:false,preparationKey:'',preparationGeneration:0,previewKey:JSON.stringify([a,0,'idle']),previewError:'',facing:0,action:'idle',queuedDraw:false,
+    previewInFlight:true,previewReady:true,appearanceReady:false,preparationKey:'',preparationGeneration:0,preparationError:'',previewKey:JSON.stringify([a,0,'idle']),previewError:'',facing:0,action:'idle',queuedDraw:false,
     visible:()=>true,syncStatus(){},refreshAnimation(){}}) as CreatorView;
   await (view as unknown as {drawPreview():Promise<void>}).drawPreview();
   expect(prepare).toHaveBeenCalledWith(b,0,'idle');expect(draw).not.toHaveBeenCalled();expect(Reflect.get(view,'queuedDraw')).toBe(true);expect(Reflect.get(view,'previewReady')).toBe(false);
@@ -27,7 +27,7 @@ function hiddenPreparationView(){
   const appearance=defaultAppearance(),draw=vi.fn();
   const view=Object.assign(Object.create(CreatorView.prototype),{destroyed:false,session:{draft:{value:{appearance}}},
     preview:{prepare:()=>new Promise<void>((resolve,reject)=>pending.push({resolve,reject})),draw},
-    previewInFlight:false,previewReady:false,appearanceReady:false,preparationKey:'',preparationGeneration:0,
+    previewInFlight:false,previewReady:false,appearanceReady:false,preparationKey:'',preparationGeneration:0,preparationError:'',
     previewKey:'',previewError:'',facing:0,action:'walk',queuedDraw:false,
     visible:()=>false,syncStatus:vi.fn(),refreshAnimation:vi.fn(),element:()=>({textContent:''})});
   return {view,pending,appearance,draw,request:()=>Reflect.get(view,'drawPreview').call(view) as Promise<void>};
@@ -43,9 +43,10 @@ it('admits a prepared appearance without drawing a hidden preview',async()=>{
 it('ignores superseded preparation success and reports the latest failure',async()=>{
   const {view,pending,appearance,request}=hiddenPreparationView();
   await request();appearance.body.height=90;await request();
-  pending[0].resolve();await Promise.resolve();expect(view.appearanceReady).toBe(false);
+  pending[0].resolve();await Promise.resolve();expect(view.appearanceReady).toBe(false);expect(view.preparationError).toBe('');
+  view.syncStatus.mockClear();
   pending[1].reject(new Error('Preparation failed'));await Promise.resolve();await Promise.resolve();
-  expect(view.appearanceReady).toBe(false);expect(view.previewError).toBe('Preparation failed');
+  expect(view.appearanceReady).toBe(false);expect(view.preparationError).toBe('Preparation failed');expect(view.previewError).toBe('');expect(view.syncStatus).toHaveBeenCalled();
 });
 
 it('keeps a new A request ready when the earlier A request rejects after A-B-A edits',async()=>{
@@ -54,7 +55,7 @@ it('keeps a new A request ready when the earlier A request rejects after A-B-A e
   await request();appearance.body.height=90;await request();appearance.body.height=initial;await request();
   pending[2].resolve();await Promise.resolve();
   pending[0].reject(new Error('Old request failed'));pending[1].resolve();await Promise.resolve();await Promise.resolve();
-  expect(view.appearanceReady).toBe(true);expect(view.previewError).toBe('');
+  expect(view.appearanceReady).toBe(true);expect(view.preparationError).toBe('');expect(view.previewError).toBe('');
 });
 
 it('ignores preparation completion after the creator closes',async()=>{
@@ -82,8 +83,9 @@ it('clears failed preparation when Undo restores the last successfully drawn app
   await request();pending[0].resolve();await Promise.resolve();
   view.previewKey=JSON.stringify([appearance,0,'walk']);view.previewReady=true;
   appearance.body.height=90;await request();pending[1].reject(new Error('New body failed'));await Promise.resolve();
-  expect(view.previewError).toBe('New body failed');
+  expect(view.preparationError).toBe('New body failed');expect(view.previewError).toBe('');
+  view.syncStatus.mockClear();
   appearance.body.height=initial;await request();
-  expect(view.appearanceReady).toBe(false);expect(view.previewError).toBe('');
-  pending[2].resolve();await Promise.resolve();expect(view.appearanceReady).toBe(true);expect(view.previewError).toBe('');
+  expect(view.appearanceReady).toBe(false);expect(view.preparationError).toBe('');expect(view.syncStatus).toHaveBeenCalled();
+  pending[2].resolve();await Promise.resolve();expect(view.appearanceReady).toBe(true);expect(view.preparationError).toBe('');expect(view.previewError).toBe('');
 });

@@ -6,6 +6,8 @@ The creator edits a private character draft. New drafts randomize supported valu
 
 Identity, Appearance, Personality, Needs & habits, Interests & skills, Household, and Review share one draft. Personality combines temperament and named traits. Conditions, advanced need rates, and skill details begin collapsed. Activity preferences starts expanded and can be collapsed. Appearance begins with collapsed Colors, Body, Style, Face, and Details groups. Disclosure state survives navigation. Each group has one heading.
 
+Edit housemate submits the entire shared draft when the player chooses Save from any tab. Create a housemate uses Continue between tabs and Move in from Review.
+
 Activity preferences use Eat & cook, Sleep, Wash & bathroom, Relax, Read, Watch TV, Listen to music, Exercise, Write letters, and Watch fish. Membership follows explicit action identifiers. The displayed arithmetic mean includes implicit weights of one; viewing it changes nothing. Editing a category sets its member routes atomically. Undo restores the exact previous sparse records and float values. Reset removes the category's explicit weights so every supported member uses the default 1.0x preference. Unsupported routes and the ineffective dish-cleanup activity weight remain preserved internally and have no misleading slider. Trait contributions appear beside the affected category.
 
 Randomize affects unlocked fields. Section and field operations restrict that scope. Page membership is independent of command/save groups, so resetting Personality cannot reset needs or activity preferences. Locks protect absence and conditional values from randomization; explicit Reset ignores locks. Undo restores draft values and private random-generator state.
@@ -38,9 +40,9 @@ Bike preparation depends on presentation, body proportions, bottoms, and footwea
 
 Each live bed fixture owns retained cover topology before it can be used. Occupancy combines prepared slot contributions and updates that cover without constructing a new surface or graphics buffer. Empty beds keep their published artwork; fixture removal releases their retained resources.
 
-The creator keeps its last valid preview during preparation and leaves editing and cancellation available. A new appearance invalidates an older pending draw immediately, including an A-B-A edit sequence. Preparation never submits a character command automatically. The current configuration must be ready when the player applies the draft.
+The creator keeps its last valid preview during background preparation and leaves editing and cancellation available. A new appearance invalidates an older pending draw immediately, including an A-B-A edit sequence. Preparation without a Save request sends no character command.
 
-The optional narrow-screen preview does not gate Move in or Apply changes. Required appearance preparation runs while the preview is hidden; only drawing and its animation clock stop. Submission waits for the latest preparation, and obsolete completions or errors cannot change the current draft's readiness.
+Move in and Save require the current appearance to be prepared. The optional preview can stay hidden or fail to draw. Save remembers the requested draft and locks edits while its appearance prepares. The editor session keeps the request if graphics recovery replaces its view. The editor submits that draft when preparation succeeds. Closing the editor discards a request that is still preparing. If preparation fails, Save can retry the same draft. Obsolete completions or errors cannot change the current draft's readiness.
 
 Sprites and dynamic meshes share a scene with twice the display framebuffer dimensions. Color, coverage, physical depth, and categorical identity stay associated at each sample until visibility is resolved. Only color is reduced for presentation. The scene uses linear premultiplied color; registered sprite color and depth use the same source sample. Picking selects a visible physical sample and never averages identifiers. Framebuffer allocation respects the graphics device's texture limits.
 

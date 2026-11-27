@@ -12,8 +12,8 @@ use bevy_ecs::prelude::*;
 #[cfg(test)]
 use terri_core::Reserved;
 use terri_core::{
-    Agent, CommandQueue, Eating, Intent, IntentQueue, Path, Selected, SimCommand, SmartObject,
-    Target,
+    Agent, AtWork, CommandQueue, Commuting, Eating, Intent, IntentQueue, Path, Selected,
+    SimCommand, SmartObject, Target,
 };
 
 pub use super::lot_edit::drain_commands;
@@ -522,6 +522,16 @@ pub(crate) fn drain_ordinary_commands(
     definitions: Query<&SmartObject>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
     mut chores: Option<ResMut<terri_core::chores::SavedChores>>,
+    recipients: Query<
+        (
+            Option<&Eating>,
+            Option<&Commuting>,
+            Has<AtWork>,
+            Has<crate::world_geometry::WaitingToReturn>,
+        ),
+        With<Agent>,
+    >,
+    confirmed_recipient: Option<Res<crate::player_actions::ConfirmedRecipientOrder>>,
 ) {
     // Zero means unlimited; every positive cap also admits the first order.
     let cap = content.0.tuning.max_queued_intents as usize;
@@ -1021,7 +1031,29 @@ pub(crate) fn drain_ordinary_commands(
                     object: target,
                     interaction,
                 };
-                if content.0.social.get(interaction as usize).is_none() {
+                let refusal = match content.0.social.get(interaction as usize) {
+                    None => Some("Unknown social action"),
+                    Some(action) if !crate::fights::is_fight(action) => recipients
+                        .get(target)
+                        .ok()
+                        .and_then(|(eating, commuting, at_work, waiting)| {
+                            if crate::systems::circadian::is_asleep(content.0, eating) {
+                                return Some("Recipient is asleep");
+                            }
+                            if waiting || commuting == Some(&Commuting::Inbound) {
+                                return Some("Recipient is returning from work");
+                            }
+                            let recall = confirmed_recipient.as_ref().is_some_and(|proof| {
+                                proof.agent == agent.index_u32()
+                                    && proof.target == target.index_u32()
+                            });
+                            (at_work || commuting == Some(&Commuting::Outbound))
+                                .then_some("Recipient is at work")
+                                .filter(|_| !recall)
+                        }),
+                    _ => None,
+                };
+                if let Some(reason) = refusal {
                     fail_intent(
                         &mut commands,
                         &mut agents,
@@ -1031,7 +1063,7 @@ pub(crate) fn drain_ordinary_commands(
                         agent,
                         intent,
                         placement,
-                        "Unknown social action",
+                        reason,
                     );
                     continue;
                 }

@@ -93,9 +93,7 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
             .get::<crate::world_geometry::WaitingToReturn>(actor)
             .is_some();
         let pending = manual_work_trip(world, actor);
-        let away = (world.get::<AtWork>(actor).is_some() && !waiting)
-            || world.get::<Commuting>(actor) == Some(&Commuting::Outbound)
-            || pending;
+        let away = needs_recall(world, actor) || pending;
         if saved.is_none() && !due_now && !away {
             continue;
         }
@@ -179,6 +177,14 @@ fn review_due(world: &World, actor: Entity) -> Option<u64> {
 
 pub(crate) fn physically_away(world: &World, actor: Entity) -> bool {
     world.get::<AtWork>(actor).is_some() || world.get::<Commuting>(actor).is_some()
+}
+
+pub(crate) fn needs_recall(world: &World, actor: Entity) -> bool {
+    world.get::<Commuting>(actor) == Some(&Commuting::Outbound)
+        || (world.get::<AtWork>(actor).is_some()
+            && world
+                .get::<crate::world_geometry::WaitingToReturn>(actor)
+                .is_none())
 }
 
 /// A started obligation owns its score until settlement, even if the
@@ -725,6 +731,8 @@ fn depart(world: &mut World, actor: Entity) {
 }
 
 fn begin_commute(world: &mut World, actor: Entity, steps: Vec<(i32, i32)>) {
+    // Let waiting chats release their own targets and reservations before departure.
+    crate::social_episode::recipient_departing(world, actor);
     crate::recipe_actions::suspend(world, actor);
     if let Some(target) = world.get::<terri_core::Target>(actor).copied() {
         crate::reservations::release_now(world, actor, target);

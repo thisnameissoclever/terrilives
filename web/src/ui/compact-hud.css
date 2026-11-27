@@ -361,6 +361,9 @@ body[data-building='true'] #hud #time-controls { display: none; }
 #activity-log-earlier { width: 100%; min-height: 32px; margin-bottom: 6px; font-size: 12px; }
 #activity-log-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.35; }
 #activity-log-list li { overflow-wrap: anywhere; }
+#activity-log-list .activity-log-mood { padding-block: 2px; }
+#activity-log-list .activity-log-mood strong { font-weight: 650; }
+#activity-log-list .activity-log-mood-cause { display: block; color: var(--hud-muted); padding-inline-start: 10px; }
 #activity-log-empty { margin: 4px 0; color: var(--hud-muted); font-size: 12px; }
 @media (max-width: 600px), (max-height: 480px) {
   /* The open panel covers the full width from the top edge to the dock,

@@ -1,9 +1,5 @@
-//! Owner's ruling of 2026-10-23 (issue 338): a housemate never chooses a chat
-//! with someone who is asleep, and a chat they chose gives up when its partner
-//! falls asleep, so they may ask again once the partner wakes. A chat the
-//! player ordered keeps waiting for a sleeping partner. "Asleep" is the
-//! simulation's sleep state, `systems::circadian::is_asleep`: an interaction
-//! under way whose tags include the pack's sleep tag.
+//! Casual chats yield when the recipient is asleep or away for work. Sleep
+//! begins with an interaction tagged by the content pack as sleep.
 //!
 //! The coordinator's decision of 2026-10-24 extends the same treatment to a
 //! fight the game starts over a grievance, which is not a player's order: it
@@ -141,6 +137,107 @@ fn requests_created(sim: &Sim) -> u64 {
         .next_id
 }
 
+#[test]
+fn unavailable_recipient_cannot_receive_a_new_casual_request() {
+    for status in ["at work", "commuting", "sleeping"] {
+        let (mut sim, a, b) = household();
+        match status {
+            "at work" => {
+                sim.world_mut().entity_mut(b).insert(terri_core::AtWork {
+                    remaining_ticks: 100,
+                });
+            }
+            "commuting" => {
+                sim.world_mut()
+                    .entity_mut(b)
+                    .insert(terri_core::Commuting::Outbound);
+            }
+            _ => start_using(&mut sim, b, BED, 100),
+        }
+        let before = requests_created(&sim);
+        assert_eq!(
+            requests::enqueue(
+                sim.world_mut(),
+                a,
+                b,
+                0,
+                requests::ConversationOrigin::Autonomous,
+            ),
+            None,
+            "a recipient {status} cannot receive a casual request"
+        );
+        assert_eq!(requests_created(&sim), before);
+        assert!(sim.world().get::<Target>(a).is_none());
+    }
+}
+
+#[test]
+fn unavailable_recipient_leaving_for_work_releases_a_waiting_housemate() {
+    for commute in [false, true] {
+        let (mut sim, a, b) = household();
+        start_using(&mut sim, b, FRIDGE, 200);
+        assert!(tick_until(&mut sim, 60, |sim| {
+            request_to(sim, a, b).is_some_and(|r| r.phase == requests::RequestPhase::Waiting)
+        }));
+        let first = request_to(&sim, a, b).unwrap();
+        sim.tick();
+        assert_eq!(request_to(&sim, a, b).unwrap().id, first.id);
+
+        let mut recipient = sim.world_mut().entity_mut(b);
+        recipient.remove::<(Target, terri_core::Eating)>();
+        if commute {
+            recipient.insert(terri_core::Commuting::Outbound);
+        } else {
+            recipient.insert(terri_core::AtWork {
+                remaining_ticks: 100,
+            });
+        }
+        requests::before_choices(sim.world_mut());
+
+        assert_eq!(request_to(&sim, a, b), None);
+        assert!(sim.world().get::<Target>(a).is_none());
+        assert!(sim.world().get::<Path>(a).is_none());
+        assert!(sim.world().get::<terri_core::Blocked>(a).is_none());
+        assert!(sim
+            .world()
+            .get::<requests::CommittedConversation>(a)
+            .is_none());
+    }
+}
+
+#[test]
+fn unavailable_recipient_cancels_an_active_order_before_it_recalls_the_worker() {
+    let (mut sim, a, b) = household();
+    *sim.world_mut().get_mut::<Needs>(a).unwrap() = Needs::all_at(90.);
+    start_using(&mut sim, b, FRIDGE, 200);
+    talk(&mut sim, a, b);
+    sim.flush_commands();
+    let order = execution_order(sim.world(), a).expect("the order approaches a busy recipient");
+    let mut recipient = sim.world_mut().entity_mut(b);
+    recipient
+        .remove::<(Target, terri_core::Eating)>()
+        .insert(terri_core::AtWork {
+            remaining_ticks: 100,
+        });
+
+    sim.flush_commands();
+
+    assert!(sim.world().get::<terri_core::AtWork>(b).is_some());
+    assert!(sim.world().get::<IntentQueue>(a).unwrap().is_empty());
+    assert_eq!(execution_order(sim.world(), a), None);
+    assert!(sim.world().get::<Target>(a).is_none());
+    assert_eq!(
+        sim.action_events_since(0)
+            .events
+            .iter()
+            .filter(|event| event.actor == a.index_u32()
+                && event.order_id == order
+                && event.phase == "canceled")
+            .count(),
+        1
+    );
+}
+
 /// The partner is equally out of reach in both runs, for the same number of
 /// ticks; only the sleep tag differs. Awake at the fridge, the lonely housemate
 /// chooses to wait for them; asleep, they choose nothing involving them.
@@ -226,10 +323,8 @@ fn a_chosen_chat_gives_up_when_its_partner_falls_asleep_and_asks_again_after_wak
     assert!(again.is_some_and(|id| id > first.id), "a new request");
 }
 
-/// A player's order is exempt: it waits beside a partner who falls asleep and
-/// beside one already asleep, and the chat runs once the partner wakes.
 #[test]
-fn a_player_ordered_chat_keeps_waiting_for_a_sleeping_partner() {
+fn unavailable_recipient_stops_a_player_ordered_chat_with_a_sleeping_partner() {
     for falls_asleep in [true, false] {
         let (mut sim, a, b) = household();
         *sim.world_mut().get_mut::<Needs>(a).unwrap() = Needs::all_at(90.);
@@ -239,66 +334,75 @@ fn a_player_ordered_chat_keeps_waiting_for_a_sleeping_partner() {
             start_using(&mut sim, b, BED, 60);
         }
         talk(&mut sim, a, b);
-        sim.tick();
-        let id = sim.world().get::<IntentQueue>(a).unwrap().entries()[0].id;
+        sim.flush_commands();
+        let accepted = sim
+            .action_events_since(0)
+            .events
+            .into_iter()
+            .find(|event| event.actor == a.index_u32() && event.phase == "accepted")
+            .unwrap();
+        let id = accepted.order_id;
         if falls_asleep {
-            for _ in 0..10 {
-                sim.tick();
-            }
+            assert_eq!(execution_order(sim.world(), a), Some(id));
+            assert_eq!(sim.world().get::<Target>(a).unwrap().object, b);
             start_using(&mut sim, b, BED, 60);
+            sim.flush_commands();
         }
-        let slept_beside = sleep_through(&mut sim, b, |sim| {
-            assert!(
-                sim.world()
-                    .get::<IntentQueue>(a)
-                    .unwrap()
-                    .order(id)
-                    .is_some(),
-                "falls asleep {falls_asleep}: order {id} keeps waiting"
-            );
-        });
-        assert!(slept_beside > 30, "falls asleep {falls_asleep}: it waited");
+        assert!(asleep(&sim, b));
+        assert!(sim
+            .world()
+            .get::<IntentQueue>(a)
+            .unwrap()
+            .order(id)
+            .is_none());
+        assert_eq!(execution_order(sim.world(), a), None);
+        assert!(sim.world().get::<Target>(a).is_none());
+        assert!(sim.world().get::<terri_core::Blocked>(a).is_none());
+        assert!(!talking(&sim, a, b));
+        assert_eq!(
+            sim.action_events_since(0)
+                .events
+                .iter()
+                .filter(|event| event.actor == a.index_u32()
+                    && event.order_id == id
+                    && event.phase == if falls_asleep { "canceled" } else { "failed" }
+                    && event.reason.as_deref() == Some("Recipient is asleep"))
+                .count(),
+            1
+        );
+        sleep_through(&mut sim, b, |sim| assert!(!talking(sim, a, b)));
+        talk(&mut sim, a, b);
         assert!(
             tick_until(&mut sim, 120, |sim| sim
                 .world()
                 .get::<Socialising>(a)
                 .is_some_and(|s| s.partner == b)),
-            "falls asleep {falls_asleep}: the ordered chat runs after waking"
+            "a new order can run once the recipient wakes"
         );
     }
 }
 
-/// A waiting chat loaded from an older save without a recorded origin may
-/// have come from a player's order, so, as with pull request 302's give-up,
-/// it is exempt and keeps waiting. A chosen chat in the same position gives
-/// up whether it is waiting, suspended, or approaching a recipient it has
-/// reserved, and an approaching one releases that reservation.
 #[test]
-fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
-    for (origin, phase, stays) in [
+fn unavailable_recipient_clears_chosen_and_legacy_chat_phases_when_sleep_begins() {
+    for (origin, phase) in [
         (
             requests::ConversationOrigin::LegacyUnattributed,
             requests::RequestPhase::Waiting,
-            true,
         ),
         (
             requests::ConversationOrigin::Autonomous,
             requests::RequestPhase::Waiting,
-            false,
         ),
         (
             requests::ConversationOrigin::Autonomous,
             requests::RequestPhase::Suspended,
-            false,
         ),
         (
             requests::ConversationOrigin::Autonomous,
             requests::RequestPhase::Approaching,
-            false,
         ),
     ] {
         let (mut sim, a, b) = household();
-        start_using(&mut sim, b, BED, 200);
         let id = requests::enqueue(
             sim.world_mut(),
             a,
@@ -315,6 +419,7 @@ fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
             request.origin = origin;
             request.phase = phase;
         }
+        start_using(&mut sim, b, BED, 200);
         let approaching = phase == requests::RequestPhase::Approaching;
         if approaching {
             sim.world_mut().entity_mut(b).insert(Reserved);
@@ -324,11 +429,7 @@ fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
                 .insert(b, a);
         }
         requests::before_movement(sim.world_mut());
-        assert_eq!(
-            request_to(&sim, a, b).is_some(),
-            stays,
-            "{origin:?} {phase:?} beside a sleeper"
-        );
+        assert_eq!(request_to(&sim, a, b), None, "{origin:?} {phase:?}");
         if approaching {
             assert!(
                 sim.world().get::<Reserved>(b).is_none(),

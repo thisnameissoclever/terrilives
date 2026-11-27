@@ -42,9 +42,11 @@ export class CreatorView {
   private appearanceReady=false;
   private preparationKey='';
   private preparationGeneration=0;
+  private preparationError='';
   private previewError='';
   private previewKey='';
   private lastAppearance='';
+  private pendingFieldCommits:(()=>boolean)[]=[];
   constructor(private readonly root:HTMLElement, readonly session:CreatorSession, device:GPUDevice, format:GPUTextureFormat,
     private readonly cancel:()=>void) {
     this.document=root.ownerDocument;this.window=this.document.defaultView!;root.classList.add('creator-shell');
@@ -68,9 +70,18 @@ export class CreatorView {
     });
     listen('[data-undo]','click',()=>this.change(()=>session.draft.undo()));
     listen('[data-reset]','click',()=>this.change(()=>session.draft.reset(this.page==='review'?'all':this.page)));
-    listen('[data-cancel]','click',()=>{if(!session.pending)this.cancel();});
+    listen('[data-cancel]','click',()=>{if(!session.pending){session.pendingEditAppearance=null;this.cancel();}});
     listen('[data-next]','click',()=>{
-      if(this.page==='review'){if(!this.appearanceReady||this.previewError)return;session.submit();this.render();}
+      if(session.pending||session.pendingEditAppearance!=null||!this.pendingFieldCommits.every(commit=>commit()))return;
+      if(session.sim!==null){
+        if(!this.appearanceReady){
+          session.pendingEditAppearance=this.preparationKey;
+          if(this.preparationError){this.preparationError='';void this.drawPreview();}
+          this.syncStatus();return;
+        }
+        session.submit();this.render();
+      }
+      else if(this.page==='review'){if(!this.appearanceReady)return;session.submit();this.render();}
       else {this.page=creatorPages[creatorPages.findIndex(([id])=>id===this.page)+1][0];this.render();}
     });
     listen('[data-turn]','click',()=>{this.facing=(this.facing+1)%4;void this.drawPreview();});
@@ -78,7 +89,7 @@ export class CreatorView {
     listen('[data-action]','change',()=>{this.action=this.element<HTMLSelectElement>('[data-action]').value;this.frame=0;this.clock.reset();this.refreshAnimation();void this.drawPreview();});
     const nav=this.element('.creator-nav');
     for(const [id,label] of creatorPages){const button=this.document.createElement('button');button.type='button';button.textContent=label;button.dataset.page=id;
-      button.addEventListener('click',()=>{this.page=id;this.render();},{signal:this.abort.signal});nav.append(button);}
+      button.addEventListener('click',()=>{if(!this.pendingFieldCommits.every(commit=>commit()))return;this.page=id;this.render();},{signal:this.abort.signal});nav.append(button);}
     this.document.addEventListener('visibilitychange',()=>this.refreshAnimation(),{signal:this.abort.signal});
     this.window.addEventListener('resize',()=>this.refreshAnimation(),{signal:this.abort.signal});
     this.motion.addEventListener('change',()=>{if(this.motion.matches){this.paused=true;this.clock.setPaused(true);}this.refreshAnimation();},{signal:this.abort.signal});
@@ -96,7 +107,7 @@ export class CreatorView {
   private refreshAnimation():void {
     if(this.destroyed)return;
     if(this.visible()&&this.queuedDraw&&!this.previewInFlight){this.queuedDraw=false;void this.drawPreview();}
-    const active=this.visible()&&!this.paused&&!this.previewError&&this.action!=='idle';this.clock.setActive(active);
+    const active=this.visible()&&!this.paused&&!this.preparationError&&!this.previewError&&this.action!=='idle';this.clock.setActive(active);
     const play=this.element<HTMLButtonElement>('[data-play]');play.textContent=this.paused?'Play':'Pause';play.setAttribute('aria-label',this.paused?'Play animation':'Pause animation');
     if(!active&&this.animationRequest!==null){this.window.cancelAnimationFrame(this.animationRequest);this.animationRequest=null;}
     if(active&&this.animationRequest===null)this.animationRequest=this.window.requestAnimationFrame(now=>this.animate(now));
@@ -109,29 +120,46 @@ export class CreatorView {
     this.refreshAnimation();
   }
   private syncStatus():void {
-    const loading=!this.appearanceReady&&!this.previewError&&!this.session.error;
+    const preparingEdit=this.session.pendingEditAppearance!=null;
+    const applying=this.session.pending||preparingEdit;
+    const loading=!this.appearanceReady&&!this.preparationError&&!this.session.error;
     const status=this.element('.creator-status');
-    status.textContent=this.session.pending?'Applying character changes.':this.session.error||this.previewError||(loading?'Loading character...':'');
-    if(this.session.pending||loading){status.setAttribute('data-pending','true');status.setAttribute('aria-busy','true');}
+    status.textContent=applying?'Applying character changes.':this.session.error||this.preparationError||this.previewError||(loading?'Loading character...':'');
+    if(applying||loading){status.setAttribute('data-pending','true');status.setAttribute('aria-busy','true');}
     else {status.removeAttribute('data-pending');status.removeAttribute('aria-busy');}
-    this.element<HTMLButtonElement>('[data-undo]').disabled=this.session.pending||!this.session.draft.canUndo;
-    for(const selector of ['[data-global-random]','[data-reset]','[data-cancel]','[data-next]'])this.element<HTMLButtonElement>(selector).disabled=this.session.pending;
-    if(this.page==='review'&&(!this.appearanceReady||this.previewError))this.element<HTMLButtonElement>('[data-next]').disabled=true;
+    this.element('.creator-editor').inert=preparingEdit;
+    for(const tab of this.root.querySelectorAll<HTMLButtonElement>('[data-page]'))tab.disabled=preparingEdit;
+    this.element<HTMLButtonElement>('[data-undo]').disabled=applying||!this.session.draft.canUndo;
+    for(const selector of ['[data-global-random]','[data-reset]'])this.element<HTMLButtonElement>(selector).disabled=applying;
+    this.element<HTMLButtonElement>('[data-cancel]').disabled=this.session.pending;
+    this.element<HTMLButtonElement>('[data-next]').disabled=applying||
+      (this.session.sim===null&&this.page==='review'&&!this.appearanceReady);
     this.element('[data-name]').textContent=this.session.draft.value.name;
+  }
+  private settleEditPreparation():void {
+    if(this.session.pendingEditAppearance!==this.preparationKey){this.syncStatus();return;}
+    this.session.pendingEditAppearance=null;
+    // The dialog closes before its close event destroys the view.
+    const dialog=this.root.closest('dialog');
+    if(this.appearanceReady&&(!dialog||dialog.open))this.session.submit();
+    this.render();
   }
   private async drawPreview():Promise<void> {
     if(this.destroyed)return;
     const appearance=this.session.draft.value.appearance,key=JSON.stringify([appearance,this.facing,this.action]);
     const preparationKey=JSON.stringify(appearance);
     const appearanceChanged=preparationKey!==this.preparationKey;
-    if(appearanceChanged){this.preparationKey=preparationKey;++this.preparationGeneration;this.appearanceReady=false;}
+    if(appearanceChanged){
+      if(this.session.pendingEditAppearance!==preparationKey)this.session.pendingEditAppearance=null;
+      this.preparationKey=preparationKey;++this.preparationGeneration;this.appearanceReady=false;this.preparationError='';
+    }
     const preparationGeneration=this.preparationGeneration;
     void this.preview.prepare(appearance,this.facing*Math.PI/2,this.action).then(()=>{
       if(this.destroyed||preparationGeneration!==this.preparationGeneration||this.appearanceReady)return;
-      this.appearanceReady=true;this.syncStatus();
+      this.appearanceReady=true;this.preparationError='';this.settleEditPreparation();
     },error=>{
       if(this.destroyed||preparationGeneration!==this.preparationGeneration||isPreparationCancelled(error))return;
-      this.appearanceReady=false;this.previewReady=false;this.previewError=error instanceof Error?error.message:String(error);this.queuedDraw=false;this.syncStatus();this.refreshAnimation();
+      this.appearanceReady=false;this.previewReady=false;this.preparationError=error instanceof Error?error.message:String(error);this.queuedDraw=false;this.settleEditPreparation();this.refreshAnimation();
     });
     const changed=appearanceChanged||key!==this.previewKey;
     if(changed){this.previewReady=false;this.previewError='';this.syncStatus();}
@@ -172,9 +200,9 @@ export class CreatorView {
     }
     setActionIntent(this.element<HTMLButtonElement>('[data-next]'),'affirmative');
     setActionIntent(this.element<HTMLButtonElement>('[data-cancel]'),'negative');
-    this.element('[data-next]').textContent=this.page==='review'?(editing?'Apply changes':'Move in'):'Continue';
+    this.element('[data-next]').textContent=editing?'Save':this.page==='review'?'Move in':'Continue';
     this.element('[data-reset]').textContent=this.page==='review'?'Reset character':'Reset section';
-    const editor=this.element('.creator-editor');editor.replaceChildren();
+    const editor=this.element('.creator-editor');editor.replaceChildren();this.pendingFieldCommits=[];
     const header=this.document.createElement('div');header.className='creator-section-header';
     const title=this.document.createElement('h2');title.textContent=creatorPages.find(([id])=>id===this.page)![1];header.append(title);
     if(this.page!=='review')header.append(this.button('Randomize section',()=>this.change(()=>this.session.draft.randomize(this.page))));
@@ -232,7 +260,7 @@ export class CreatorView {
           if(preset){preset.value=this.session.draft.personalityPreset??'';const apply=preset.parentElement?.querySelector<HTMLButtonElement>('button');if(apply)apply.disabled=!preset.value||this.session.pending;}
           if(field.section==='appearance'){this.lastAppearance=JSON.stringify(this.session.draft.value.appearance);void this.drawPreview();}
         }
-      },error=>this.fail(error));
+      },error=>this.fail(error),commit=>this.pendingFieldCommits.push(commit));
       if(field.id.startsWith('activity-category:')){const summary=this.document.createElement('small');summary.className='creator-category-influence';summary.dataset.category=field.id.slice('activity-category:'.length);control.append(summary);}
       group.append(control);
     }

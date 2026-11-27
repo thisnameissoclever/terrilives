@@ -1278,13 +1278,23 @@ mod tests {
                 terri_core::IntentQueue::default(),
             ))
             .id();
-        sim.world_mut()
-            .resource_mut::<CommandQueue>()
-            .push(terri_core::SimCommand::TalkTo {
-                agent: admirer.index_u32(),
-                target: worker.index_u32(),
-                interaction: 0,
-            });
+        let preflight = crate::attendance::work_conflicts(
+            sim.world(),
+            &[admirer.index_u32(), worker.index_u32()],
+        );
+        assert_eq!(preflight.conflicts.len(), 1);
+        sim.world_mut().resource_mut::<CommandQueue>().push(
+            terri_core::SimCommand::ConfirmedOrder {
+                fingerprint: preflight.fingerprint,
+                command: terri_core::SimCommand::TalkTo {
+                    agent: admirer.index_u32(),
+                    target: worker.index_u32(),
+                    interaction: 0,
+                }
+                .into_player_order()
+                .unwrap(),
+            },
+        );
         sim.flush_commands();
         assert!(
             sim.world().get::<AtWork>(worker).is_none(),
