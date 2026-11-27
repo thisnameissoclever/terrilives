@@ -25,6 +25,28 @@ export interface PersistenceFeedbackEvent {
   readonly automatic: boolean;
   readonly savingPaused: boolean;
   readonly message: string;
+  /** Identifies a failure note, in the order the controller published them. */
+  readonly failureNote?: number;
+  /**
+   * Set on a late export success. A failure note published after this value
+   * stays on screen.
+   */
+  readonly retainFailureAfter?: number;
+}
+
+/**
+ * A late Export save success leaves a newer failure note in place. There is
+ * one persistence note, and the success would otherwise replace it.
+ */
+export function exportSuccessKeepsFailure(
+  event: Pick<PersistenceFeedbackEvent, 'operation' | 'state' | 'retainFailureAfter'>,
+  shownFailureNote: number | undefined,
+): boolean {
+  return event.operation === 'export'
+    && event.state === 'success'
+    && event.retainFailureAfter !== undefined
+    && shownFailureNote !== undefined
+    && shownFailureNote > event.retainFailureAfter;
 }
 
 export interface PersistenceControlState {
@@ -141,6 +163,10 @@ export class PersistenceController {
   /** Callers of `whenIdle`, released when the active operation finishes. */
   private idleWaiters: Array<() => void> = [];
   private automaticOperation = false;
+  /** How many failure notes this controller has published. */
+  private failureNoteCount = 0;
+  /** Failure note currently written to the status line when no scene presenter is attached. */
+  private statusFailureNote = 0;
   private readonly pendingIndicator: PendingIndicator;
 
   constructor(
@@ -276,7 +302,9 @@ export class PersistenceController {
    * The operation is held only while the bytes are captured and `deliver` is
    * called. A delivery that returns a promise, such as the installed game's
    * save dialog, is awaited after the operation is released, so a close save
-   * is not kept waiting behind an open dialog.
+   * is not kept waiting behind an open dialog. A manual load, import, restore
+   * or clear cannot run during that wait only because the save dialog is
+   * modal to the game window.
    */
   async exportSave(deliver: (bytes: Uint8Array) => void | Promise<boolean>): Promise<boolean> {
     if (!this.beginOperation('export')) return false;
@@ -301,6 +329,8 @@ export class PersistenceController {
     } finally {
       this.finishOperation('export');
     }
+    // Failure notes published from here on happened while the dialog was open.
+    const failureNotesAtRelease = this.failureNoteCount;
     try {
       // A promise settles with the player's answer; false means they cancelled.
       if (delivered !== undefined && !(await delivered)) return false;
@@ -309,7 +339,12 @@ export class PersistenceController {
       this.showKeepingPausedNote('Export failed. The game is still running.', true, 'export');
       return false;
     }
-    this.showKeepingPausedNote(protectedSave ? 'Saved game exported' : 'Game exported', false, 'export');
+    this.showKeepingPausedNote(
+      protectedSave ? 'Saved game exported' : 'Game exported',
+      false,
+      'export',
+      failureNotesAtRelease,
+    );
     return true;
   }
 
@@ -496,9 +531,14 @@ export class PersistenceController {
   }
 
   /** While saving is paused, every message keeps saying so, since Save stays disabled. */
-  private showKeepingPausedNote(message: string, error = false, operation?: PersistenceOperation): void {
+  private showKeepingPausedNote(
+    message: string,
+    error = false,
+    operation?: PersistenceOperation,
+    retainFailureAfter?: number,
+  ): void {
     if (!this.savingPaused) {
-      this.show(message, error ? 'failure' : 'success', operation);
+      this.show(message, error ? 'failure' : 'success', operation, error ? undefined : retainFailureAfter);
       return;
     }
     const sentence = message.endsWith('.') ? message : `${message}.`;
@@ -577,12 +617,26 @@ export class PersistenceController {
   }
 
   /** `operation` names a result that arrives after its operation was released. */
-  private show(message: string, state: PersistenceFeedbackEvent['state'] = 'success', operation?: PersistenceOperation): void {
+  private show(
+    message: string,
+    state: PersistenceFeedbackEvent['state'] = 'success',
+    operation?: PersistenceOperation,
+    retainFailureAfter?: number,
+  ): void {
+    const failureNote = state === 'failure' && message !== '' ? ++this.failureNoteCount : undefined;
+    const event: PersistenceFeedbackEvent = {
+      operation: operation ?? this.activeOperation ?? 'restore', state,
+      automatic: operation === undefined && this.automaticOperation, savingPaused: this.savingPaused, message,
+      ...(failureNote === undefined ? {} : { failureNote }),
+      ...(retainFailureAfter === undefined ? {} : { retainFailureAfter }),
+    };
     if (this.presentFeedback) {
-      this.presentFeedback({ operation: operation ?? this.activeOperation ?? 'restore', state,
-        automatic: operation === undefined && this.automaticOperation, savingPaused: this.savingPaused, message });
+      this.presentFeedback(event);
       return;
     }
+    // The status line is the only note when nothing presents to the scene.
+    if (exportSuccessKeepsFailure(event, this.statusFailureNote === 0 ? undefined : this.statusFailureNote)) return;
+    this.statusFailureNote = failureNote ?? 0;
     this.status.textContent = message;
     if (state === 'failure') this.status.setAttribute('data-kind', 'error');
     else this.status.removeAttribute('data-kind');

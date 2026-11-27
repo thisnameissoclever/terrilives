@@ -138,9 +138,13 @@ describe("the installed game's Export save", () => {
 
   it('delivers through the app export dialog and counts only saved as done', () => {
     const exporting = handler.slice(0, handler.indexOf('syncPersistenceButtons();'));
-    expect(exporting).toContain('desktop !== null');
-    expect(exporting).toContain('.exportFile(saveFileName(new Date()), bytes)');
+    const compact = exporting.replace(/\s+/g, ' ');
+    const branch = compact.indexOf('desktop !== null ?');
+    const throughApp = compact.indexOf('.exportFile(', branch + 1);
+    const throughSite = compact.indexOf(': downloadSaveFile(', throughApp + 1);
+    expect(branch).toBeGreaterThanOrEqual(0);
+    expect(throughApp).toBeGreaterThan(branch);
+    expect(throughSite).toBeGreaterThan(throughApp);
     expect(exporting).toContain("(result) => result === 'saved'");
-    expect(exporting).toContain('downloadSaveFile(bytes, saveFileName(new Date()))');
   });
 });

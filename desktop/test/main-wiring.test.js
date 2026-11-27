@@ -22,3 +22,10 @@ test('the export channel checks the sender before it reaches the dialog', () => 
 test('the preload exposes the export channel the page calls', () => {
   assert.match(PRELOAD, /exportFile: \(name, bytes\) => ipcRenderer\.invoke\('natural-causes:export', name, bytes\)/);
 });
+
+test('the export file writer limits saves to MAX_SAVE_BYTES', () => {
+  const start = MAIN.indexOf('createExportFile({');
+  assert.notEqual(start, -1, 'createExportFile is called');
+  const call = MAIN.slice(start, MAIN.indexOf('});', start));
+  assert.match(call, /maxBytes:\s*MAX_SAVE_BYTES\b/);
+});
