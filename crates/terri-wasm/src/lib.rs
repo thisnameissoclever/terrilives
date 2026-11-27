@@ -2769,10 +2769,10 @@ impl SimHandle {
     /// and the shell's `saveBytes` turns it into a thrown error so no caller
     /// stores it.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let Ok(snapshot) = self.sim.try_save_snapshot_v33() else {
+        let Ok(snapshot) = self.sim.try_save_snapshot_v34() else {
             return Vec::new();
         };
-        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV33 serializes");
+        let payload = postcard::to_allocvec(&snapshot).expect("SaveSnapshotV34 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2802,6 +2802,12 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == SAVE_SCHEMA_VERSION {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV34>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v34(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 33 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV33>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v33(snapshot).is_ok(),
                 _ => false,
@@ -5334,7 +5340,7 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v33()
+            uninterrupted.sim.save_snapshot_v34()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
@@ -11320,6 +11326,8 @@ mod window_boundary_tests {
 
 #[cfg(test)]
 mod save_v6_tests;
+#[cfg(test)]
+mod walk_corner_tests;
 
 impl SimHandle {
     fn enqueue_book(&mut self, command: terri_core::command::BookCommand) -> bool {

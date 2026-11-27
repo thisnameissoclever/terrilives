@@ -132,7 +132,7 @@ fn shared_pool_save_keeps_both_slots_and_refuses_impossible_claims() {
     let current = handle.save_bytes();
     let mut older = SAVE_MAGIC.to_vec();
     older.extend(32u16.to_le_bytes());
-    older.extend(postcard::to_allocvec(&baseline.0.previous).unwrap());
+    older.extend(postcard::to_allocvec(&baseline.0.previous.previous).unwrap());
     assert!(
         handle.load_bytes(&older),
         "published V32 supports shared pools"
@@ -206,6 +206,9 @@ fn shared_pool_save_rejects_an_early_or_exhausted_ladder_claim() {
     path.steps = vec![(3, 5), (3, 6)];
     path.cursor = 1;
 
+    // The ladder edit moves the body onto a stored walk sample. That sample
+    // is presentation, so this pool check starts from an empty step list.
+    saved.0.walk_steps.clear();
     let mut control = SimHandle::new(12, 12);
     assert!(control.load_bytes(&bytes(&saved)), "final ladder step");
     let mut arrived = saved.clone();
@@ -863,12 +866,15 @@ fn a_pre_rectangle_save_keeps_its_square_pool_and_active_order() {
         postcard::take_from_bytes::<terri_core::SaveSnapshotV28>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    let source = CurrentV5View(terri_core::SaveSnapshotV33 {
-        previous: terri_core::SaveSnapshotV31 {
-            current: source,
-            topic_memory: vec![],
+    let source = CurrentV5View(terri_core::SaveSnapshotV34 {
+        previous: terri_core::SaveSnapshotV33 {
+            previous: terri_core::SaveSnapshotV31 {
+                current: source,
+                topic_memory: vec![],
+            },
+            hobby_mood: vec![],
         },
-        hobby_mood: vec![],
+        walk_steps: vec![],
     });
     let mut handle = SimHandle::new(12, 12);
     assert!(handle.load_bytes(bytes));

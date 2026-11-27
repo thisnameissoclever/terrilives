@@ -109,6 +109,7 @@ mod targeted_cleanup;
 pub mod test_content;
 pub mod topic_memory;
 mod waiting;
+mod walk_steps;
 
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
@@ -346,7 +347,12 @@ fn facing_toward_path_step(source: &terri_core::Position, path: &terri_core::Pat
     facing_between(source.x, source.y, target_x as f32, target_y as f32)
 }
 
-fn facing_between(source_x: f32, source_y: f32, target_x: f32, target_y: f32) -> Option<u32> {
+pub(crate) fn facing_between(
+    source_x: f32,
+    source_y: f32,
+    target_x: f32,
+    target_y: f32,
+) -> Option<u32> {
     use render_buffer::facing;
     let dx = target_x - source_x;
     let dy = target_y - source_y;
@@ -1701,18 +1707,25 @@ impl Sim {
         snapshot
     }
 
-    /// The current household with shared swimming and active hobby mood.
-    pub fn save_snapshot_v33(&self) -> terri_core::SaveSnapshotV33 {
+    /// The current household, including the previous position of each walker
+    /// whose samples differed.
+    pub fn save_snapshot_v34(&self) -> terri_core::SaveSnapshotV34 {
         build_transaction::committed(&self.world)
             .cloned()
+            .unwrap_or_else(|| save::v34::capture(self))
+    }
+
+    /// The V33 projection: shared swimming and active hobby mood, without
+    /// walker steps.
+    pub fn save_snapshot_v33(&self) -> terri_core::SaveSnapshotV33 {
+        build_transaction::committed(&self.world)
+            .map(|snapshot| snapshot.previous.clone())
             .unwrap_or_else(|| save::v33::capture(self))
     }
 
     /// The published V32 projection keeps shared swimming and remembered topics.
     pub fn save_snapshot_v32(&self) -> terri_core::SaveSnapshotV31 {
-        build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.previous.clone())
-            .unwrap_or_else(|| save::v31::capture(self))
+        self.save_snapshot_v33().previous
     }
 
     /// Unchecked field view of the V31 layout. Use its checked projection
@@ -1732,19 +1745,24 @@ impl Sim {
         pool::EXIT_TICKS
     }
 
-    /// [`Sim::save_snapshot_v33`], refusing a queue that
+    /// [`Sim::save_snapshot_v34`], refusing a queue that
     /// holds an admin command, and a world a broken admin session left with
     /// edits that would not load ([AP-save-queue] in
     /// `docs/specs/2026-11-20-admin-panel.md`): no save can record one, so a
     /// save that met one would otherwise leave it out. The command paths
     /// never leave one queued; this is the check that proves it at the save
     /// boundary.
-    pub fn try_save_snapshot_v33(&self) -> Result<terri_core::SaveSnapshotV33, SaveError> {
+    pub fn try_save_snapshot_v34(&self) -> Result<terri_core::SaveSnapshotV34, SaveError> {
         save::refuse_queued_admin(&self.world)?;
         if admin::world_broken(&self.world) {
             return Err(SaveError::AdminSessionBroken);
         }
-        Ok(self.save_snapshot_v33())
+        Ok(self.save_snapshot_v34())
+    }
+
+    /// [`Sim::save_snapshot_v33`], with the same refusal as the current save.
+    pub fn try_save_snapshot_v33(&self) -> Result<terri_core::SaveSnapshotV33, SaveError> {
+        Ok(self.try_save_snapshot_v34()?.previous)
     }
 
     pub fn try_save_snapshot_v32(&self) -> Result<terri_core::SaveSnapshotV31, SaveError> {
@@ -1865,6 +1883,18 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV31,
     ) -> Result<(), SaveError> {
         let candidate = save::v31::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_complete_activity_state(candidate)
+    }
+
+    pub fn load_snapshot_v34(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV34,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v34::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -2312,6 +2342,10 @@ impl Sim {
         // remembered, and out of the hash until then. An old save loads
         // with this empty list, so nothing is remembered.
         world.insert_resource(topic_memory::TopicMemory::default());
+        // Previous walker positions (issue 372): presentation only, and out
+        // of the hash. An old save loads with this empty, so a corner that
+        // was saved before the field existed still uses the next path leg.
+        world.insert_resource(walk_steps::WalkSteps::default());
         world.insert_resource(player_actions::PlayerActions::default());
         world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
@@ -4189,6 +4223,17 @@ impl Sim {
                 .map(|row| row.entity),
         );
         self.socket_projected_entities = previous_socket_projection;
+
+        // Record the step only when interpolation advances. A load or a
+        // pause keeps the restored rows: both samples are equal then, so
+        // recording would erase the step the load still needs.
+        if advance_interpolation {
+            let recorded = walk_steps::record(&self.render);
+            self.world
+                .insert_resource(walk_steps::WalkSteps { rows: recorded });
+        }
+        let steps = self.world.resource::<walk_steps::WalkSteps>().rows.clone();
+        walk_steps::apply_equal_sample_facing(&mut self.render, &steps, facing_between);
     }
 
     pub fn render_buffer(&self) -> &render_buffer::RenderBuffer {

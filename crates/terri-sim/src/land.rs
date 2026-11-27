@@ -330,10 +330,20 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     }
 
     // People, objects, paths, and the activity tiles they hold.
+    // A walk step is the position the body just left. It has to move with
+    // that body, or the next paused draw aims from the old lot at the new
+    // one and a later save keeps that aim.
     let mut positions = world.query::<&mut Position>();
     for mut position in positions.iter_mut(world) {
         position.x += dx as f32;
         position.y += dy as f32;
+    }
+    if let Some(mut steps) = world.get_resource_mut::<crate::walk_steps::WalkSteps>() {
+        let (shift_x, shift_y) = (dx as f32, dy as f32);
+        for step in &mut steps.rows {
+            step.x += shift_x;
+            step.y += shift_y;
+        }
     }
     let mut paths = world.query::<&mut Path>();
     for mut path in paths.iter_mut(world) {

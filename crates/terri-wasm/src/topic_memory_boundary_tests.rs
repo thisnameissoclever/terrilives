@@ -1,7 +1,7 @@
 //! Remembered topic preferences across the browser boundary: issue 359.
 use super::*;
 use crate::current_test_snapshot::{CurrentV5View, CURRENT_CATALOGUE_FINGERPRINT};
-use terri_core::{SaveSnapshotV30, SaveSnapshotV31, SaveSnapshotV33};
+use terri_core::{SaveSnapshotV30, SaveSnapshotV31, SaveSnapshotV33, SaveSnapshotV34};
 use terri_sim::topic_memory::TopicMemory;
 
 const EVENING: &[u8] =
@@ -19,12 +19,15 @@ fn main_schema_thirty_saves_load_with_nothing_remembered_and_save_current() {
         let (original, tail) =
             postcard::take_from_bytes::<SaveSnapshotV30>(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         assert!(tail.is_empty(), "{name}");
-        let original = CurrentV5View(SaveSnapshotV33 {
-            previous: SaveSnapshotV31 {
-                current: original,
-                topic_memory: vec![],
+        let original = CurrentV5View(SaveSnapshotV34 {
+            previous: SaveSnapshotV33 {
+                previous: SaveSnapshotV31 {
+                    current: original,
+                    topic_memory: vec![],
+                },
+                hobby_mood: vec![],
             },
-            hobby_mood: vec![],
+            walk_steps: vec![],
         });
         assert_eq!(original.world.content_fingerprint, 0xf7e3_a71d_c98e_ff9d);
         let mut migrated = SimHandle::from_lot();

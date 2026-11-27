@@ -12,7 +12,12 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 33;
+///
+/// Version 34 appends the previous render position of each walker whose
+/// samples differed. A load on a path corner uses that position so the walker
+/// keeps facing the way they were walking. Older schemas still load, and a
+/// save that predates the field has no step to restore.
+pub const SAVE_SCHEMA_VERSION: u16 = 34;
 
 /// Frozen V5 envelope - [RC-save] in `docs/specs/2026-09-22-colourways.md`: the
 /// V4 envelope with each placed object's colourway appended, for the objects
